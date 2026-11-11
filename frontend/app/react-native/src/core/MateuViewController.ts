@@ -3,7 +3,7 @@ import { evaluateExpression, interpolate, interpolateUrl } from './expressions.t
 import { applyClientRules, ruleRequiredErrorsOf } from './clientRules.ts';
 import { isStaleScreenError } from './buildSkew.ts';
 import { isLeaveAction } from './leaveActions.ts';
-import { actionFlagsOf, actionTargetOf, appHomeOf, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
+import { actionFlagsOf, actionTargetOf, appHomeOf, floatingIntentOf, notificationToastOf, valueChangeActionsOf, type ValueChangeTrigger, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
 import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, isErrorAnswer, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
@@ -21,6 +21,8 @@ import { isClientRunnable, resolveAction, resolveFlowCommand, type ShellAction }
 import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
 import { finishedAnnouncement, progressOf, type TaskAction, type TaskEvent } from './taskCenter.ts';
 import { inboxChangeOf } from './inbox.ts';
+import { classifyFailure, describeFailure, HttpStatusError, isIdempotentAction } from './requestPolicy.ts';
+import { connectivity } from './connectivity.ts';
 import type { ToastAction } from './componentContext.ts';
 
 /** The action whose answer an increment is (a streamed task's Retry runs it again). */
@@ -118,6 +120,56 @@ export class MateuViewController {
   /** @RestAction/@RestData: actions whose descriptor makes the client fetch an external REST
    *  endpoint instead of dispatching to the Mateu server (keyed by action id). */
   private actionRestData: Record<string, Json> = {};
+  private actionTimeout: Record<string, number> = {};
+  private actionIdempotent: Record<string, boolean> = {};
+  private actionJs: Record<string, string> = {};
+  /** The actions in flight on this view (a second press of the same one is ignored until it answers). */
+  private pending = new Set<string>();
+  private pendingListeners = new Set<() => void>();
+
+  /** The @Fab buttons of the App shell this view was opened through (see renderComponentFragment). */
+  appFabs: { fabs: Json[]; route: string; consumedRoute: string; serverSideType: string } | null = null;
+
+  /** Runs an app-level @Fab action against the app class that declared it; its answer applies here. */
+  async runAppFab(actionId: string): Promise<void> {
+    const app = this.appFabs;
+    if (!app || !actionId) return;
+    try {
+      const increment = await this.session.api.runAction({
+        route: app.route,
+        consumedRoute: app.consumedRoute,
+        actionId,
+        serverSideType: app.serverSideType || null,
+        initiatorComponentId: 'ux_main',
+        embeddedChrome: this.embeddedChrome,
+        componentState: {},
+        appState: this.session.appState,
+        parameters: {},
+      });
+      this.applyIncrement({ ...(increment as Json), fragments: [] });
+    } catch (e) {
+      this.session.notify(null, describeFailure(e, connectivity.isOnline), 'error');
+    }
+  }
+
+  /** Whether `actionId` is waiting for its answer (its control shows busy). */
+  isPending(actionId: string): boolean {
+    return this.pending.has(actionId);
+  }
+
+  /** Listens to the in-flight set (usePendingAction); returns the unsubscribe. */
+  subscribePending(listener: () => void): () => void {
+    this.pendingListeners.add(listener);
+    return () => {
+      this.pendingListeners.delete(listener);
+    };
+  }
+
+  private setPending(actionId: string, on: boolean): void {
+    if (on) this.pending.add(actionId);
+    else this.pending.delete(actionId);
+    for (const l of [...this.pendingListeners]) l();
+  }
   private currentValidations: Json[] = [];
   /** Client-side rules of the current component (RuleMapper wire shape). */
   private currentRules: Json[] = [];
@@ -127,12 +179,28 @@ export class MateuViewController {
 
   /** @Emits name stamped as __source on dispatched events. */
   private emitsName = '';
+  /** OnValueChange triggers of the current component. */
+  private valueChanges: ValueChangeTrigger[] = [];
   /** @AutoSave: debounced action fired after edits. */
   private autoSave: { actionId: string; debounceMillis: number } | null = null;
   private autoSaveTimer: ReturnType<typeof setTimeout> | undefined;
 
   /** Action-returned banners (UIIncrementDto.banners) — cleared on navigation. */
   actionBanners: PageBanner[] = [];
+
+  /** How each field on screen takes the focus (its input registers it), and the field a rejected
+   *  save asked to focus — the first invalid one — once it is drawn. */
+  private fieldFocus: Record<string, () => void> = {};
+  private focusRequest: string | null = null;
+
+  registerFieldFocus(fieldId: string, focus: () => void): void {
+    if (!fieldId) return;
+    this.fieldFocus[fieldId] = focus;
+    if (this.focusRequest === fieldId) {
+      this.focusRequest = null;
+      setTimeout(focus, 50);
+    }
+  }
 
   /** Inline field validation errors (fieldId → message), consumed by the field renderers. */
   fieldErrors: Record<string, string> = {};
@@ -149,8 +217,15 @@ export class MateuViewController {
   /** Host hook: go to `target` on the native stack — back to it when it is already there, else
    *  pushed (or taking the top's place when `replaceTop`). */
   stackNavigator: ((target: NavTarget, replaceTop: boolean) => void) | null = null;
-  /** Errors/messages silenced (embedded islands). */
-  silentErrors = false;
+  /**
+   * A view that does not own the window: an island inside a page, an overlay's content, an embedded
+   * micro frontend. Its SetWindowTitle / its page title never reach the app bar (the web's
+   * embeddedChrome rule) — it used to rename the bar after the first embedded page and keep it.
+   */
+  windowless = false;
+  /** An embedded micro frontend's chrome (MicroFrontend.chrome): sent on every request, so the
+   *  remote's server leaves the window commands out (RunActionRqDto.embeddedChrome). */
+  embeddedChrome: string | undefined = undefined;
 
   private dataHandlers: Record<string, (data: unknown) => void> = {};
   /** Field-scoped data (lookup `search-<field>` results arrive as `{ <fieldId>: page }`). */
@@ -178,6 +253,7 @@ export class MateuViewController {
 
   /** The host unmounted this view: pending timed triggers must not fire. */
   dispose(): void {
+    this.session.noteDirty(this, false);
     this.polling.stop();
     if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
   }
@@ -247,7 +323,7 @@ export class MateuViewController {
       }
       const increment = await timed(`load ${route || '/'}`, () =>
         this.session.api.navigate(route, consumedRoute, serverSideType, this.session.appState,
-          (consumedRoute ?? '') === this.mediatorConsumed ? { ...this.mediatorSeed } : {}));
+          (consumedRoute ?? '') === this.mediatorConsumed ? { ...this.mediatorSeed } : {}, this.embeddedChrome));
       enter();
       this.freshScreen = true;
       this.applyIncrement(increment as Json);
@@ -284,6 +360,20 @@ export class MateuViewController {
 
   /** Runs an action; resolves whether it went through (a kanban move puts its card back otherwise). */
   async runAction(actionId: string, parameters?: Json, silent = false): Promise<boolean> {
+    // No double submit: a second press of an action still in flight is dropped (a slow Save sent
+    // twice saved twice). Triggers (silent) and reads (a type-ahead search) are never held back.
+    const exclusive = !silent && !isIdempotentAction(actionId, this.actionIdempotent[actionId]);
+    if (exclusive && this.pending.has(actionId)) return false;
+    if (!exclusive) return this.runActionNow(actionId, parameters, silent);
+    this.setPending(actionId, true);
+    try {
+      return await this.runActionNow(actionId, parameters, silent);
+    } finally {
+      this.setPending(actionId, false);
+    }
+  }
+
+  private async runActionNow(actionId: string, parameters: Json | undefined, silent: boolean): Promise<boolean> {
     // Dirty guard on discarding actions (Cancel on an edit form).
     // The host may confirm asynchronously; a synchronous confirm hook keeps it simple here.
     if (this.trackDirty && this.dirty && isLeaveAction(actionId, this.currentComponentActions)) {
@@ -317,6 +407,9 @@ export class MateuViewController {
       }
       if (Object.keys(errors).length > 0) {
         this.fieldErrors = errors;
+        // the focus goes to the first rejected field (the web's focusFirstInvalidField), drawn anew
+        // by the publish below
+        this.focusRequest = Object.keys(errors)[0] ?? null;
         // the version bump remounts the field tree — render against the EDITED state
         this.publish({ ...this.view, state: { ...this.currentComponentState }, version: this.view.version + 1 });
         // the message is under each field, by its label: a summary here could only name the fields
@@ -334,6 +427,14 @@ export class MateuViewController {
     // mateu-component (selection guard, validation, then the question).
     const confirmation = this.actionConfirmation[actionId];
     if (confirmation && !(await this.session.confirmAction(confirmation))) return false;
+
+    // @Action(js = …) runs in the CLIENT and never reaches the server method. The web runs it only
+    // where the page opted in (RunJS is off by default); a native app has no page to run it in, so it
+    // is always off here — said once on the console, as the web says it, and nothing is sent.
+    if (this.actionJs[actionId] !== undefined) {
+      console.warn(`[mateu] RunJS is off: the client-side script of "${actionId}" was not run (the mobile app runs no page scripts).`);
+      return false;
+    }
 
     // @RestAction/@RestData: call the external REST endpoint CLIENT-SIDE instead of dispatching to
     // the Mateu server — fetch + merge the response into the state + toast (fires on click for a
@@ -378,6 +479,7 @@ export class MateuViewController {
             actionId,
             serverSideType: this.resolveActionTarget(actionId) || null,
             initiatorComponentId: this.currentComponentId,
+            embeddedChrome: this.embeddedChrome,
             componentState: this.actionState(),
             appState: this.session.appState,
             parameters: parameters ?? {},
@@ -401,9 +503,12 @@ export class MateuViewController {
         actionId,
         serverSideType: this.resolveActionTarget(actionId) || null,
         initiatorComponentId: this.currentComponentId,
+        embeddedChrome: this.embeddedChrome,
         componentState: this.actionState(),
         appState: this.session.appState,
         parameters: parameters ?? {},
+        timeoutMillis: this.actionTimeout[actionId],
+        idempotent: this.actionIdempotent[actionId],
       });
       this.applyIncrement(increment as Json);
       // The server answers a handler that threw with an error message (its error boundary), not an
@@ -415,8 +520,15 @@ export class MateuViewController {
       return true;
     } catch (e) {
       // a stale-screen refusal already showed its own notice (with Reload) — not a second toast
-      if (silent || this.silentErrors || isStaleScreenError(e)) devLog('[Mateu] action failed:', actionId, errorText(e));
-      else this.session.notify(null, `Action failed: ${errorText(e)}`, 'error');
+      if (silent || isStaleScreenError(e)) devLog('[Mateu] action failed:', actionId, errorText(e));
+      else {
+        // in plain words, with a Retry when sending it again could work (the web's mateu-api-caller)
+        const failure = classifyFailure(e, connectivity.isOnline);
+        devLog('[Mateu] action failed:', actionId, errorText(e));
+        this.session.notify(null, failure.message, 'error', failure.retryable
+          ? { actions: [{ label: 'Retry', onPress: () => void this.runAction(actionId, parameters) }] }
+          : undefined);
+      }
       return false;
     }
   }
@@ -524,8 +636,9 @@ export class MateuViewController {
       if (successRoute && !successRoute.includes('${')) this.handleCommand({ type: 'NavigateTo', data: successRoute });
       return true;
     } catch (e) {
-      if (this.silentErrors) devLog('[Mateu] rest action failed:', errorText(e));
-      else this.session.notify(null, `Request failed: ${errorText(e)}`, 'error');
+      // a screen-load fetch (@RestData) fails like a load: logged; a pressed action says so
+      if (actionId === '__restdata__') devLog('[Mateu] rest data failed:', errorText(e));
+      else this.session.notify(null, describeFailure(e, connectivity.isOnline), 'error');
       return false;
     }
   }
@@ -546,6 +659,7 @@ export class MateuViewController {
       actionId: '__restfetch__',
       serverSideType: this.currentServerSideType || null,
       initiatorComponentId: this.currentComponentId,
+      embeddedChrome: this.embeddedChrome,
       componentState: this.actionState(),
       appState: this.session.appState,
       parameters: { _sourceKind: sourceKind, _sourceId: sourceId, ...extra },
@@ -553,8 +667,8 @@ export class MateuViewController {
     const appData = (increment?.['appData'] as Json) ?? {};
     const failure = appData['_restfetchError'] as Json | undefined;
     if (failure) {
-      const status = typeof failure['status'] === 'number' && failure['status'] > 0 ? ` (HTTP ${failure['status']})` : '';
-      throw new Error(`The request failed${status}`);
+      if (typeof failure['status'] === 'number' && failure['status'] > 0) throw new HttpStatusError(failure['status'], '');
+      throw new Error('The request failed');
     }
     return appData['_restfetch'] ?? {};
   }
@@ -562,10 +676,20 @@ export class MateuViewController {
   // ── field state ─────────────────────────────────────────────────────────────────────
 
   putState(fieldId: string, value: unknown): void {
+    const changed = !sameValue(this.currentComponentState[fieldId], value);
     this.currentComponentState[fieldId] = value;
     this.markUserEdit();
-    // Rules react to edits (observed fields, conditional visibility/disabling).
-    this.applyRulesAndRepublish();
+    // Rules react to edits (observed fields, conditional visibility/disabling); without a rule change
+    // the tree still re-renders against the edited state — a `${state.x}` title, label or button
+    // label follows what is typed (it was evaluated once). Same version: nothing is remounted.
+    if (!this.applyRulesAndRepublish()) this.publish({ ...this.view, state: { ...this.currentComponentState } });
+    // OnValueChange: the edited field's triggers run their actions (Total recomputes, the City
+    // options follow the Country) — like every trigger, silent on failure and never held back
+    if (changed) {
+      for (const actionId of valueChangeActionsOf(this.valueChanges, fieldId, (c) => this.evalValidationCondition(c))) {
+        void this.runAction(actionId, undefined, true);
+      }
+    }
     // @AutoSave: fire the configured action once the user has been idle for the debounce window.
     if (this.autoSave) {
       if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
@@ -578,6 +702,8 @@ export class MateuViewController {
   }
 
   private setDirty(value: boolean): void {
+    // the session knows every view with unsaved changes: a navigation away asks about ALL of them
+    this.session.noteDirty(this, value && this.trackDirty);
     if (this.dirty === value) return;
     this.dirty = value;
     this.onDirtyChanged(value);
@@ -595,6 +721,9 @@ export class MateuViewController {
     this.actionSse = { ...this.inheritedSse, ...flags.sse };
     this.actionBubble = flags.bubble;
     this.actionRestData = flags.restData;
+    this.actionTimeout = flags.timeoutMillis;
+    this.actionIdempotent = flags.idempotent;
+    this.actionJs = flags.js;
     this.currentValidations = asArray(sscNode['validations']);
     this.currentRules = asArray(sscNode['rules']);
     this.fieldAttributes = {};
@@ -616,6 +745,7 @@ export class MateuViewController {
     // the emitter's __source); @AutoSave → debounced save on every edit.
     const plan = triggerPlanOf(sscNode['triggers']);
     this.autoSave = plan.autoSave;
+    this.valueChanges = plan.valueChanges;
     this.session.unsubscribeAll(this);
     for (const sub of plan.subscriptions) {
       this.session.subscribe(this, sub.eventName, (payload) => {
@@ -645,14 +775,21 @@ export class MateuViewController {
     });
   }
 
-  private applyRulesAndRepublish(): void {
+  private applyRulesAndRepublish(): boolean {
     if (this.applyRules()) {
       this.publish({ ...this.view, state: { ...this.currentComponentState }, version: this.view.version + 1 });
+      return true;
     }
+    return false;
   }
 
   private ownsAction(actionId: string): boolean {
     return ownsAction(this.currentComponentActions, actionId);
+  }
+
+  /** Whether the view on show advertises `actionId` (what the web's mateu-component claims). */
+  advertises(actionId: string): boolean {
+    return this.ownsAction(actionId);
   }
 
   private resolveActionTarget(actionId: string): string {
@@ -696,15 +833,16 @@ export class MateuViewController {
   applyIncrement(increment: Json, origin?: IncrementOrigin): void {
     // first: the components about to render may fetch from the sources they name
     this.session.sources.addReferenced(increment['restSources']);
+    // an answer that opens an overlay names the OVERLAY's content (a crud drawer's record): the
+    // window under it keeps its title
+    const opensOverlay = asArray(increment['fragments']).some(
+      (f) => floatingIntentOf(str(f['action']) || 'Replace', f['component'] as Json | null, !!this.view.component) === 'overlay',
+    );
     for (const fragment of asArray(increment['fragments'])) this.applyFragment(fragment);
 
     for (const msg of asArray(increment['messages'])) {
       const toast = toastOf(msg);
       if (!toast) continue;
-      if (this.silentErrors) {
-        devLog(`[Mateu] ${toast.variant}: ${toast.text}`);
-        continue;
-      }
       // The message's actions (an Undo among them) run on THIS controller — the initiator whose
       // action produced the message; a route navigates.
       const actions = toast.actions.map((a) => ({ label: a.label, style: a.style, onPress: () => this.runToastAction(a) }));
@@ -731,7 +869,10 @@ export class MateuViewController {
       }
     }
 
-    for (const cmd of asArray(increment['commands'])) this.handleCommand(cmd, origin);
+    for (const cmd of asArray(increment['commands'])) {
+      if (opensOverlay && str(cmd['type']) === 'SetWindowTitle') continue;
+      this.handleCommand(cmd, origin);
+    }
 
     // Action-returned banners (PageBanner/PageBanners): bare returns replace, .append accumulates.
     const banners = asArray(increment['banners']) as PageBanner[];
@@ -740,10 +881,22 @@ export class MateuViewController {
       this.publish({ ...this.view, version: this.view.version + 1 });
     }
 
+    // app state / app data an answer carries: `${appState.x}` / `${appData.x}` on screen follow it
     const newAppState = increment['appState'];
-    if (newAppState && typeof newAppState === 'object') {
+    const newAppData = increment['appData'];
+    let appChanged = false;
+    if (newAppState && typeof newAppState === 'object' && Object.keys(newAppState).length) {
       Object.assign(this.session.appState, newAppState);
+      appChanged = true;
     }
+    if (newAppData && typeof newAppData === 'object') {
+      const visible = Object.fromEntries(Object.entries(newAppData as Json).filter(([k]) => !k.startsWith('_')));
+      if (Object.keys(visible).length) {
+        Object.assign(this.session.appData, visible);
+        appChanged = true;
+      }
+    }
+    if (appChanged && this.view.component) this.publish({ ...this.view });
   }
 
   private applyFragment(fragment: Json): void {
@@ -755,12 +908,21 @@ export class MateuViewController {
 
     // Overlay fragments (action Add + Drawer/Dialog) stack over the page. The opener context
     // lets a ClientSide overlay content dispatch its actions against THIS view's component.
-    const overlayType = component ? str((component['metadata'] as Json)?.['type']) : '';
-    if (action.toLowerCase() === 'add' && (overlayType === 'Drawer' || overlayType === 'Dialog')) {
+    const floating = floatingIntentOf(action, component, !!this.view.component);
+    if (floating === 'toast') {
+      const toast = notificationToastOf((component!['metadata'] as Json) ?? {});
+      this.session.notify(toast.title, toast.text, toast.variant, { duration: toast.duration });
+      return;
+    }
+    if (floating === 'overlay') {
       this.session.openOverlay(component, state, data, {
         route: this.currentRoute,
         consumedRoute: this.currentConsumedRoute,
-        serverSideType: this.currentServerSideType,
+        // an overlay re-sent from inside an overlay (a drawer's «Save and next») keeps the ORIGINAL
+        // opener as the place its unowned actions bubble to
+        serverSideType: this.openerServerSideType || this.currentServerSideType,
+        session: this.session,
+        controller: this,
       });
       return;
     }
@@ -787,6 +949,11 @@ export class MateuViewController {
         }
         const handler = this.dataHandlers[targetId || 'ux_main'] ?? this.dataHandlers['crud'];
         if (handler) handler(data);
+        else if (typeof data === 'object' && !Array.isArray(data)) {
+          // data for the view itself: `${data.lastUpdate}` reads it (it was dropped)
+          const merged = { ...((this.view.data && typeof this.view.data === 'object' && !Array.isArray(this.view.data)) ? this.view.data as Json : {}), ...(data as Json) };
+          this.publish({ ...this.view, data: merged, loading: false });
+        }
         return;
       }
       if (!state || typeof state !== 'object') return;
@@ -847,11 +1014,19 @@ export class MateuViewController {
   }
 
   /** Mounts an inline ServerSide node (embedded island / overlay content) into this view. */
+  /** The opener's type of an overlay's content (see mountServerSide). */
+  private openerServerSideType = '';
+
   mountServerSide(component: unknown): void {
     const node = component as Json;
+    // an overlay's content was seeded with its OPENER's type: what the content does not own (a crud
+    // drawer's Save, owned by the crud, not by the entity form inside) bubbles to the opener — sent
+    // as the entity form's type it answered 403
+    const opener = this.currentServerSideType;
     this.currentRoute = str(node['route']) || this.currentRoute;
     this.currentServerSideType = str(node['serverSideType']) || this.currentServerSideType;
-    this.navigationServerSideType = this.currentServerSideType;
+    this.navigationServerSideType = opener || this.currentServerSideType;
+    if (opener) this.openerServerSideType = opener;
     this.freshScreen = true;
     this.renderComponentFragment(node, (node['initialData'] as Json) ?? {}, null);
   }
@@ -875,6 +1050,12 @@ export class MateuViewController {
       const same = homeRoute === this.currentRoute && homeSst === this.currentServerSideType;
       if ((homeRoute || homeSst) && !same && this.appShellHops < 2) {
         this.appShellHops++;
+        // the app's own @Fab buttons float over its screens (they belong to the app class, so they
+        // run against it): an app opened inside another shell kept its content and lost them
+        const fabs = asArray(meta['fabs']);
+        this.appFabs = fabs.length
+          ? { fabs, route: homeRoute, consumedRoute: homeConsumed, serverSideType: str(meta['serverSideType']) }
+          : null;
         void this.navigate(homeRoute, homeConsumed, homeSst);
         return;
       }
@@ -948,6 +1129,7 @@ export class MateuViewController {
           actionId: '',
           serverSideType: sst || null,
           initiatorComponentId: id || 'ux_main',
+          embeddedChrome: this.embeddedChrome,
           componentState: {},
           appState: this.session.appState,
           parameters: {},
@@ -1006,6 +1188,7 @@ export class MateuViewController {
         actionId: '_progress-cancel',
         serverSideType: this.currentServerSideType || null,
         initiatorComponentId: this.currentComponentId,
+        embeddedChrome: this.embeddedChrome,
         componentState: {},
         appState: this.session.appState,
         parameters: { taskId },
@@ -1061,6 +1244,8 @@ export class MateuViewController {
         break;
       case 'SetWindowTitle': {
         const title = typeof cmdData === 'string' ? cmdData : str((cmdData as Json)?.['title']);
+        // the window is the host's: an embedded page never names it (nor is announced as a new screen)
+        if (this.windowless) break;
         if (title && !title.startsWith('[')) {
           this.windowTitle = title;
           this.session.setTitle(title);
@@ -1147,7 +1332,7 @@ export class MateuViewController {
     this.onRender(view);
     // a YAML record page is named by the server before its record arrives ("28"): once its own
     // title template resolves ("Voyager 1"), the title follows it — silently (core/windowTitle.ts)
-    const title = resolvedPageTitle(view.component, view.state ?? {}, view.data);
+    const title = this.windowless ? '' : resolvedPageTitle(view.component, view.state ?? {}, view.data);
     if (title && title !== this.windowTitle) {
       this.windowTitle = title;
       this.session.setTitle(title);
@@ -1158,6 +1343,19 @@ export class MateuViewController {
   private windowTitle = '';
 }
 
+
+/** Whether an edit changed a value (arrays/objects by content: a multi-select re-sends a new array). */
+function sameValue(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    try {
+      return JSON.stringify(a) === JSON.stringify(b);
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
 
 /** A restAction's body against ctx: when the request declares JSON, every scope is JSON-escaped first
  *  (a quote or a newline in a value broke the body: 400), as on the web (libs/mateu jsonTemplate.ts). */

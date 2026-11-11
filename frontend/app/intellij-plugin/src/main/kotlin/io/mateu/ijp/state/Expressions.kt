@@ -6,9 +6,12 @@ package io.mateu.ijp.state
  * identifier paths (`state.total`, `state['a b']`), optional chaining (`?.`, `?.[]`), unary
  * `!`/`-`, arithmetic, comparisons (JavaScript's: two strings compare as text, otherwise as
  * numbers), loose `==`/`!=` and strict `===`/`!==`, `&&`/`||`/`??`, the ternary and regex literals
- * with `.test(…)` (the server's @Pattern condition). Unknown syntax throws — callers decide the
- * fallback. The web, Redwood, React Native and this evaluator are held to one corpus:
- * conformance/client/expressions.json (ExpressionsConformanceTest).
+ * with `.test(…)` (the server's @Pattern condition), and — what a REST source url uses —
+ * `String(x)`/`Number(x)`/`encodeURIComponent(x)`, `Math.round/floor/ceil/abs/min/max` and the
+ * pure string/number/list methods of [METHODS] (the server's ProxyExpression set). Unknown syntax
+ * throws — callers decide the fallback. The web, Redwood, React Native and this evaluator are held
+ * to one corpus: conformance/client/expressions.json (ExpressionsConformanceTest); url templates to
+ * conformance/client/source-templates.json (SourceTemplatesConformanceTest).
  */
 object Expressions {
 
@@ -16,6 +19,8 @@ object Expressions {
 
     /** `i18n.orders.title` — the translation scope the server resolves (TranslationRegistry). */
     private val I18N_KEY = Regex("^i18n\\.([A-Za-z0-9_][A-Za-z0-9_.\\-]*)$")
+    private val EXPRESSION = Regex("\\$\\{([^}]+)}")
+    private val ESCAPE_OR_EXPRESSION = Regex("(\\\\\\\\|\\\\\\$\\{)|\\$\\{([^}]+)}")
 
     /**
      * A request BODY template: when the request declares JSON (a `Content-Type` naming json), every
@@ -51,13 +56,20 @@ object Expressions {
 
     private fun interpolate(template: String?, ctx: Map<String, Any?>, json: Boolean): String {
         if (template == null || !template.contains("\${")) return template ?: ""
-        return Regex("\\$\\{([^}]+)}").replace(template) { m ->
+        // A shown text honours the literal escapes the server writes around data
+        // (`Templates.literal`): `\${` is a literal `${`, `\\` a backslash — the web's parseTemplate.
+        // A body template (json) keeps its backslashes: they are JSON's own escapes there.
+        return (if (json) EXPRESSION else ESCAPE_OR_EXPRESSION).replace(template) { m ->
+            if (!json && m.groupValues[1].isNotEmpty()) {
+                return@replace if (m.groupValues[1] == "\\\\") "\\" else "\${"
+            }
+            val expr = m.groupValues[if (json) 1 else 2]
             // `${i18n.key}` is resolved by the SERVER for the caller's language; one that reaches the
             // plugin unresolved (no catalogue on the server for it) shows as its key, never as blank.
-            val i18n = I18N_KEY.matchEntire(m.groupValues[1].trim())
+            val i18n = I18N_KEY.matchEntire(expr.trim())
             if (i18n != null && ctx["i18n"] == null) return@replace i18n.groupValues[1]
             try {
-                when (val v = evaluate(m.groupValues[1].trim(), ctx)) {
+                when (val v = evaluate(expr.trim(), ctx)) {
                     null -> ""
                     is Double -> if (v % 1.0 == 0.0 && !v.isInfinite()) v.toLong().toString() else v.toString()
                     is String -> if (json) jsonEscape(v) else v
@@ -84,11 +96,8 @@ object Expressions {
         return Regex("\\$\\{([^}]+)}").replace(template) { m ->
             val expr = m.groupValues[1]
             val value = try {
-                when (val v = evaluate(expr.trim(), ctx)) {
-                    null -> ""
-                    is Double -> if (v % 1.0 == 0.0 && !v.isInfinite()) v.toLong().toString() else v.toString()
-                    else -> v.toString()
-                }
+                // a list is `a,b`, as JavaScript's String() prints it (and every other leg sends it)
+                jsText(evaluate(expr.trim(), ctx))
             } catch (e: Exception) {
                 ""
             }
@@ -178,6 +187,15 @@ object Expressions {
                 ch.isDigit() || (ch == '.' && i + 1 < src.length && src[i + 1].isDigit()) -> {
                     var j = i
                     while (j < src.length && (src[j].isDigit() || src[j] == '.')) j++
+                    // an exponent (`1e3`, `2.5E-2`)
+                    if (j < src.length && (src[j] == 'e' || src[j] == 'E')) {
+                        var k = j + 1
+                        if (k < src.length && (src[k] == '+' || src[k] == '-')) k++
+                        if (k < src.length && src[k].isDigit()) {
+                            while (k < src.length && src[k].isDigit()) k++
+                            j = k
+                        }
+                    }
                     tokens.add(Token('n', src.substring(i, j)))
                     i = j
                 }
@@ -246,6 +264,19 @@ object Expressions {
             val t = tokens.getOrNull(pos++) ?: throw IllegalArgumentException("unexpected end")
             if (v != null && t.value != v) throw IllegalArgumentException("expected '$v'")
             return t
+        }
+
+        /** `(a, b, …)` after a callee: the arguments, evaluated. */
+        private fun arguments(): List<Any?> {
+            eat("(")
+            val args = ArrayList<Any?>()
+            if (isOp(")")) { eat(")"); return args }
+            while (true) {
+                args.add(ternary())
+                if (isOp(",")) { eat(","); continue }
+                eat(")")
+                return args
+            }
         }
 
         private fun ternary(): Any? {
@@ -344,11 +375,19 @@ object Expressions {
                         val prop = eat()
                         require(prop.type == 'i') { "expected a property name" }
                         if (isOp("(")) {
-                            // the one call an expression may make: a regex's `test` (the @Pattern condition)
-                            eat("("); val arg = ternary(); eat(")")
+                            // the calls an expression may make: a regex's `test` (the @Pattern
+                            // condition), Math's pure functions and the pure string/number/list
+                            // methods of METHODS — the set the server's proxied leg evaluates
+                            // (ProxyExpression), held to conformance/client/source-templates.json
+                            val args = arguments()
                             if (short) continue
-                            require(value is Regex && prop.value == "test") { "'${prop.value}' is not callable in expressions" }
-                            value = (value as Regex).containsMatchIn(display(arg))
+                            val target = value
+                            value = when {
+                                target is Regex && prop.value == "test" -> target.containsMatchIn(display(args.firstOrNull()))
+                                target === MATH -> math(prop.value, args)
+                                prop.value in METHODS -> callMethod(target, prop.value, args)
+                                else -> throw IllegalArgumentException("'${prop.value}' is not callable in expressions")
+                            }
                         } else {
                             value = if (short) null else member(value, prop.value)
                         }
@@ -371,8 +410,19 @@ object Expressions {
                 t.type == 'r' -> { eat(); regexOf(t.value, t.flags) }
                 t.type == 'i' -> {
                     eat()
-                    when (t.value) {
-                        "true" -> true; "false" -> false; "null", "undefined" -> null
+                    when {
+                        t.value == "true" -> true
+                        t.value == "false" -> false
+                        t.value == "null" || t.value == "undefined" -> null
+                        t.value in FUNCTIONS && isOp("(") && !ctx.containsKey(t.value) -> {
+                            val arg = arguments().firstOrNull()
+                            when (t.value) {
+                                "String" -> jsText(arg)
+                                "Number" -> num(arg)
+                                else -> urlEncode(jsText(arg))
+                            }
+                        }
+                        t.value == "Math" && !ctx.containsKey("Math") -> MATH
                         else -> normalize(ctx[t.value])
                     }
                 }
@@ -406,9 +456,127 @@ object Expressions {
                     else -> n
                 }
             }
-            is String -> if (prop == "length") target.length.toDouble() else null
+            is String -> if (prop == "length") target.length.toDouble() else prop.toIntOrNull()?.let { i -> target.getOrNull(i)?.toString() }
             else -> null
         })
+    }
+
+    /** `Math`: only its pure rounding / min / max functions are reachable. */
+    private val MATH = Any()
+
+    /** The global functions an expression may call (one argument each). */
+    private val FUNCTIONS = setOf("String", "Number", "encodeURIComponent")
+
+    /** The methods of a string, number or list an expression may call — pure ones only (the
+     *  server's ProxyExpression.METHODS). */
+    val METHODS = setOf(
+        "toLowerCase", "toUpperCase", "trim", "includes", "startsWith", "endsWith", "slice",
+        "substring", "indexOf", "padStart", "padEnd", "toString", "toFixed", "join",
+    )
+
+    /** A list as plain values: a wire-backed array (JsonNode) unwrapped item by item. */
+    private fun plainList(v: Any?): List<Any?>? = when {
+        v is List<*> -> v.map { normalize(it) }
+        v is com.fasterxml.jackson.databind.JsonNode && v.isArray -> v.map { normalize(it) }
+        else -> null
+    }
+
+    /** A value as JavaScript's String() prints it: a list is its items joined by commas. */
+    private fun jsText(v: Any?): String {
+        val list = plainList(v)
+        return if (list != null) list.joinToString(",") { jsText(it) } else display(v)
+    }
+
+    private fun math(name: String, args: List<Any?>): Double = when (name) {
+        "round" -> num(args.firstOrNull()).let { if (it.isNaN() || it.isInfinite()) it else Math.floor(it + 0.5) }
+        "floor" -> Math.floor(num(args.firstOrNull()))
+        "ceil" -> Math.ceil(num(args.firstOrNull()))
+        "abs" -> Math.abs(num(args.firstOrNull()))
+        "min", "max" -> {
+            var acc = if (name == "min") Double.POSITIVE_INFINITY else Double.NEGATIVE_INFINITY
+            var nan = false
+            for (a in args) {
+                val d = num(a)
+                if (d.isNaN()) nan = true
+                acc = if (name == "min") minOf(acc, d) else maxOf(acc, d)
+            }
+            if (nan) Double.NaN else acc
+        }
+        else -> throw IllegalArgumentException("Math.$name is not supported in expressions")
+    }
+
+    /** JavaScript's ToIntegerOrInfinity, clamped to the int range (NaN → 0). */
+    private fun toInteger(v: Any?): Long {
+        val d = num(v)
+        if (d.isNaN()) return 0
+        return maxOf(Int.MIN_VALUE.toDouble(), minOf(Int.MAX_VALUE.toDouble(), d)).toLong()
+    }
+
+    /** `slice(start, end)`'s range: a negative index counts from the end, then clamped. */
+    private fun sliceRange(length: Int, args: List<Any?>): IntRange {
+        val s = if (args.isEmpty()) 0L else toInteger(args[0])
+        val e = if (args.size < 2) length.toLong() else toInteger(args[1])
+        val from = (if (s < 0) maxOf(length + s, 0L) else minOf(s, length.toLong())).toInt()
+        val to = (if (e < 0) maxOf(length + e, 0L) else minOf(e, length.toLong())).toInt()
+        return from until to
+    }
+
+    private fun pad(s: String, args: List<Any?>, start: Boolean): String {
+        val target = toInteger(args.getOrNull(0))
+        val fill = if (args.size < 2) " " else jsText(args[1])
+        if (target <= s.length || fill.isEmpty()) return s
+        require(target <= 10_000) { "pad length" }
+        val padding = StringBuilder()
+        while (padding.length < target - s.length) padding.append(fill)
+        padding.setLength((target - s.length).toInt())
+        return if (start) "$padding$s" else "$s$padding"
+    }
+
+    /** `value.name(args)`, with JavaScript's meaning, for the METHODS only. */
+    private fun callMethod(value: Any?, name: String, args: List<Any?>): Any? {
+        requireNotNull(value) { "cannot call '$name' of null" }
+        val a0 = args.getOrNull(0)
+        val list = plainList(value)
+        return when {
+            value is String -> when (name) {
+                "toLowerCase" -> value.lowercase(java.util.Locale.ROOT)
+                "toUpperCase" -> value.uppercase(java.util.Locale.ROOT)
+                "trim" -> value.trim()
+                "includes" -> value.contains(jsText(a0))
+                "startsWith" -> value.startsWith(jsText(a0))
+                "endsWith" -> value.endsWith(jsText(a0))
+                "indexOf" -> value.indexOf(jsText(a0)).toDouble()
+                "slice" -> sliceRange(value.length, args).let { if (it.isEmpty()) "" else value.substring(it.first, it.last + 1) }
+                "substring" -> {
+                    val from = toInteger(a0).coerceIn(0, value.length.toLong()).toInt()
+                    val to = if (args.size < 2) value.length else toInteger(args[1]).coerceIn(0, value.length.toLong()).toInt()
+                    value.substring(minOf(from, to), maxOf(from, to))
+                }
+                "padStart" -> pad(value, args, true)
+                "padEnd" -> pad(value, args, false)
+                "toString" -> value
+                else -> throw IllegalArgumentException("'$name' is not a string method")
+            }
+            value is Number -> when (name) {
+                "toString" -> display(value.toDouble())
+                "toFixed" -> {
+                    val digits = if (args.isEmpty()) 0L else toInteger(a0)
+                    require(digits in 0..100) { "toFixed digits" }
+                    java.math.BigDecimal(value.toDouble()).setScale(digits.toInt(), java.math.RoundingMode.HALF_UP).toPlainString()
+                }
+                else -> throw IllegalArgumentException("'$name' is not a number method")
+            }
+            list != null -> when (name) {
+                "join" -> list.joinToString(if (args.isEmpty()) "," else jsText(a0)) { jsText(it) }
+                "includes" -> list.any { strictEquals(it, a0) }
+                "indexOf" -> list.indexOfFirst { strictEquals(it, a0) }.toDouble()
+                "slice" -> sliceRange(list.size, args).let { r -> if (r.isEmpty()) emptyList() else list.subList(r.first, r.last + 1).toList() }
+                "toString" -> jsText(list)
+                else -> throw IllegalArgumentException("'$name' is not a list method")
+            }
+            value is Boolean && name == "toString" -> value.toString()
+            else -> throw IllegalArgumentException("'$name' is not callable on $value")
+        }
     }
 
     /** A value as JS would print it inside a string: whole doubles without ".0", null as "". */

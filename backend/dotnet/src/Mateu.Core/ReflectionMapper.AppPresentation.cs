@@ -38,8 +38,7 @@ internal sealed partial class ReflectionMapper
                 {
                     Id = Naming.CamelCase(m.Name),
                     Label = fab.Label ?? m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name),
-                    Order = fab.Order,
-                    ButtonStyle = "primary",
+                    ButtonStyle = fab.ButtonStyle,
                 };
             })
             .ToList();

@@ -1,11 +1,15 @@
 import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Image } from './BackendImage';
+import { BOX_LOOKS, BOX_SIZES, cssToRn } from '../core/cssStyle';
+import { materialIconOf } from '../ui/wireIcons';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { CrudRenderer } from './CrudRenderer';
 import { interpolate } from '../core/expressions';
 import { wireButtonAlignSelf } from '../core/phoneLayout';
 import { useButtonPress } from './useButtonPress';
+import { PendingAware } from './usePendingAction';
 import { islandSession } from '../core/MateuSession';
 import { resolvedPreviewOf } from '../core/resolvedMicroFrontends';
 import { buttonGroupMembers } from '../core/buttonGroup';
@@ -19,7 +23,7 @@ import { PageRenderer } from './PageRenderer';
 import {
   SectionRenderer, SubSectionRenderer, CardRenderer, TabsRenderer, AccordionRenderer,
   SplitRenderer, BadgeRenderer, AnchorRenderer, ProgressBarRenderer, DialogRenderer, ConfirmDialogRenderer,
-  PopoverRenderer,
+  PopoverRenderer, PopoverTrigger,
 } from './ContainerRenderer';
 import {
   MetricCardRenderer, ScoreboardRenderer, DashboardPanelRenderer, DashboardLayoutRenderer,
@@ -42,7 +46,6 @@ import { MatrixGridRenderer } from './MatrixGridRenderer';
 import { MapRenderer } from './MapRenderer';
 import { DropZoneRenderer } from './DropZoneRenderer';
 import { EmptyState, MetricCard, PlanningBoard, Skeleton } from '../api/metadata';
-import { useAppContext } from '../context/AppContext';
 import { MateuViewHost, useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
 import { MateuButton } from '../ui/controls';
@@ -84,8 +87,10 @@ export function ComponentRenderer({ component, state, data }: Props) {
 }
 
 function ServerSideIsland({ component }: { component: Record<string, unknown> }) {
-  const { session } = useAppContext();
-  return <MateuViewHost session={session} serverSideNode={component} silent />;
+  // the island runs in the session of the view it sits in (a remote micro frontend's own island
+  // talks to the remote, not to the app's backend)
+  const { session } = useViewController();
+  return <MateuViewHost session={session} serverSideNode={component} embedded />;
 }
 
 /**
@@ -93,10 +98,15 @@ function ServerSideIsland({ component }: { component: Record<string, unknown> })
  * own baseUrl we spin a dedicated session for that origin; otherwise it shares the host session.
  */
 function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }) {
-  const { session } = useAppContext();
+  const { session } = useViewController();
   const baseUrl = (metadata['baseUrl'] as string) ?? '';
   const remoteSession = React.useMemo(() => islandSession(session, baseUrl), [baseUrl, session]);
+  // its declared chrome (NONE / COMPACT / PAGE) reaches the page inside it (MateuViewHost provides
+  // it and sends it as embeddedChrome), and its own box style (a dashed frame, padding) is drawn around it
+  const chrome = typeof metadata['chrome'] === 'string' && metadata['chrome'] ? (metadata['chrome'] as string).toUpperCase() : null;
+  const box = cssToRn(String(metadata['style'] ?? ''), DIV_BOX);
   return (
+    <View style={box}>
     <MateuViewHost
       session={remoteSession}
       target={{
@@ -108,8 +118,10 @@ function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }
       // resolved by the host (resolve = SERVER): painted without asking; its actions still go to
       // the island's own session — the remote
       preview={resolvedPreviewOf(metadata)}
-      silent
+      embedded
+      chrome={chrome}
     />
+    </View>
   );
 }
 
@@ -118,12 +130,16 @@ const FullWidthContext = React.createContext(false);
 
 function ClientSideComponent({ component, state, data }: { component: Record<string, unknown>; state: Record<string, unknown>; data: unknown }) {
   const inFullWidth = React.useContext(FullWidthContext);
+  const popoverTrigger = React.useContext(PopoverTrigger);
   const controller = useViewController();
   const pressButton = useButtonPress();
   const runAction = (actionId: string) => void controller.runAction(actionId);
 
   const metadata = (component['metadata'] as Record<string, unknown>) ?? {};
   const metaType = (metadata['type'] as string) ?? '';
+  // what a `${…}` in a text or a label reads: the state, the view's data, the app's state and data
+  // (`${data.lastUpdate}` / `${appState.language}` stayed empty — only the state was offered)
+  const textCtx = { state, data: data ?? controller.rendered.data, appState: controller.session.appState, appData: controller.session.appData };
 
   const renderComponent = (comp: unknown, st: Record<string, unknown>, onStateChange: (id: string, v: unknown) => void) => (
     <ComponentRenderer component={comp} state={st} />
@@ -192,7 +208,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
         );
       }
       const id =(metadata['actionId'] as string) ?? (metadata['id'] as string) ?? '';
-      const label = interpolate((metadata['label'] as string) ?? id, { state });
+      const label = interpolate((metadata['label'] as string) ?? id, textCtx);
       // Button.parameters travel with the dispatched action (e.g. the conflict dialog's
       // keep-mine/take-theirs buttons) — same contract as the web's buttonRenderer.
       const parameters = (metadata['parameters'] as Record<string, unknown> | undefined) ?? undefined;
@@ -202,21 +218,35 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       // else the button is disabled — never a navigation to "/p/" nor a fall-through to the action.
       const press = pressButton(metadata, { state, data }, () => void controller.runAction(id, parameters), label);
       const disabled = metadata['disabled'] === true || press.disabled;
-      const onPress = press.onPress;
+      const onPress = popoverTrigger
+        ? () => {
+            popoverTrigger();
+            if (metadata['route'] || controller.advertises(id)) press.onPress();
+          }
+        : press.onPress;
       return (
-        <MateuButton
-          label={label}
-          buttonStyle={metadata['buttonStyle'] as string | undefined}
-          color={metadata['color'] as string | undefined}
-          disabled={disabled}
-          onPress={onPress}
-          style={{ alignSelf: wireButtonAlignSelf(inFullWidth) }}
-        />
+        // while its action is in flight the button shows busy and takes no second press
+        <PendingAware actionId={id}>
+          {(pending) => (
+            <MateuButton
+              label={label}
+              buttonStyle={metadata['buttonStyle'] as string | undefined}
+              color={metadata['color'] as string | undefined}
+              size={metadata['size'] as string | undefined}
+              icon={materialIconOf(metadata['iconOnLeft'] as string | undefined)}
+              iconRight={materialIconOf(metadata['iconOnRight'] as string | undefined)}
+              disabled={disabled || pending}
+              loading={pending}
+              onPress={onPress}
+              style={{ alignSelf: wireButtonAlignSelf(inFullWidth) }}
+            />
+          )}
+        </PendingAware>
       );
     }
 
     case 'Text': {
-      const text = interpolate((metadata['text'] as string) ?? '', { state });
+      const text = interpolate((metadata['text'] as string) ?? '', textCtx);
       // Text size: xl/l/s/xs enlarge or reduce the font; m (or absent) applies nothing.
       const TEXT_SIZES: Record<string, number> = { xl: 22, l: 18, s: 12.5, xs: 11 };
       const size = TEXT_SIZES[(metadata['size'] as string) ?? ''];
@@ -259,9 +289,25 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
           <LayoutRenderer component={component} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
         </FullWidthContext.Provider>
       );
+    // A Scroller with a height scrolls by itself (its items no longer run down the page)
     case 'Scroller':
+      return <ScrollerRenderer component={component} state={state} renderComponent={renderComponent} />;
+    case 'Div': {
+      // a Div's `content` is its text (a styled block of plain text) — it used to be dropped
+      const content = metadata['content'];
+      if (typeof content === 'string' && content.trim()) {
+        return (
+          <View style={cssToRn((component['style'] as string) ?? '', DIV_BOX)}>
+            <Text style={styles.text}>{interpolate(content, { state })}</Text>
+            <LayoutRenderer component={{ ...component, style: null }} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
+          </View>
+        );
+      }
+      return (
+        <LayoutRenderer component={component} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
+      );
+    }
     case 'Container':
-    case 'Div':
       return (
         <LayoutRenderer component={component} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
       );
@@ -296,7 +342,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     case 'Skeleton':
       return <SkeletonRenderer metadata={metadata as unknown as Skeleton} />;
     case 'Chart':
-      return <ChartRenderer metadata={metadata} />;
+      return <ChartRenderer metadata={metadata} style={(component['style'] as string) ?? ''} />;
     case 'Gantt':
       return <GanttRenderer component={component} />;
     case 'Kanban':
@@ -383,10 +429,12 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       // the two shapes a page template asks for: a round avatar, a 4:3 photo
       const css = String(component['style'] ?? '');
       const shape = /border-radius:\s*50%/.test(css) ? styles.imageRound : /aspect-ratio:\s*4\s*\/\s*3/.test(css) ? styles.imagePhoto : styles.image;
+      // its own declared width / max-width / radius (`max-width: 24rem`, `width: 6rem` in a card's media)
+      const declared = cssToRn(css, IMAGE_BOX);
       return src && !src.includes('${') ? (
         <Image
           source={{ uri: src }}
-          style={shape}
+          style={[shape, declared, typeof declared['width'] === 'number' && shape === styles.image ? { height: (declared['width'] as number) * 0.75 } : null]}
           resizeMode={shape === styles.image ? 'contain' : 'cover'}
           {...imageA11y(alt)}
         />
@@ -394,7 +442,14 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     }
     case 'CustomField':
       // ComponentAdapter's nested island / a custom field: render its content node.
-      return metadata['content'] ? <ComponentRenderer component={metadata['content']} state={state} /> : null;
+      // ComponentAdapter's nested island / a custom field: its content node, under its label
+      if (!metadata['content']) return null;
+      return (
+        <View style={styles.customField}>
+          {!!metadata['label'] && <Text style={styles.customFieldLabel}>{interpolate(String(metadata['label']), { state })}</Text>}
+          <ComponentRenderer component={metadata['content']} state={state} />
+        </View>
+      );
     case 'MicroFrontend':
       return <MicroFrontendIsland metadata={metadata} />;
 
@@ -408,7 +463,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     case 'GridColumn':
       return <GridColumnRenderer metadata={metadata} />;
     case 'VirtualList':
-      return <VirtualListRenderer metadata={metadata} state={state} data={data} />;
+      return <VirtualListRenderer component={component} metadata={metadata} state={state} data={data} />;
     case 'Details':
       return <DetailsRenderer metadata={metadata} state={state} data={data} />;
     case 'Breadcrumbs':
@@ -505,8 +560,39 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
   }
 }
 
+const DIV_BOX = new Set([...BOX_LOOKS, ...BOX_SIZES]);
+const IMAGE_BOX = new Set(['width', 'max-width', 'height', 'max-height', 'border-radius']);
+
+/**
+ * A Scroller: with a height (or max-height) in its style it is a box of that height that scrolls
+ * its own content — nested in the screen's scroll (nestedScrollEnabled, for Android); without one
+ * it is a plain column, as on the web (a Scroller with no height never scrolls there either).
+ */
+function ScrollerRenderer({ component, state, renderComponent }: {
+  component: Record<string, unknown>; state: Record<string, unknown>;
+  renderComponent: (comp: unknown, st: Record<string, unknown>, onStateChange: (id: string, v: unknown) => void) => React.ReactNode;
+}) {
+  const box = cssToRn((component['style'] as string) ?? '', DIV_BOX);
+  const bounded = typeof box['height'] === 'number' || typeof box['maxHeight'] === 'number';
+  const inner = { ...component, style: null };
+  if (!bounded) {
+    return (
+      <View style={box}>
+        <LayoutRenderer component={inner} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
+      </View>
+    );
+  }
+  return (
+    <ScrollView style={box} nestedScrollEnabled showsVerticalScrollIndicator>
+      <LayoutRenderer component={inner} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
+    </ScrollView>
+  );
+}
+
 const styles = themed(() => StyleSheet.create({
   centered: { alignSelf: 'center', margin: 20 },
+  customField: { gap: 4, marginTop: 6, marginBottom: 14 },
+  customFieldLabel: { fontSize: 14, fontWeight: '500', color: theme.muted },
   error: { color: theme.danger, padding: 8, fontSize: 14 },
   text: { fontSize: 14, color: theme.ink, flexShrink: 1 },
   heading: { fontWeight: '700', color: theme.ink, paddingTop: 8, paddingBottom: 8 },

@@ -224,12 +224,34 @@ test('messages: toasts with duration and an Undo that runs the reverse action', 
   assert.equal(calls.at(-1)!.actionId, 'restore');
 });
 
-test('silent errors (embedded islands) never toast', async () => {
-  const { c, notes } = harness([new Error('boom')]);
-  c.silentErrors = true;
-  c.applyIncrement({ messages: [{ text: 'hidden' }] });
+test('an embedded island shows what its actions answer: messages, sticky errors, undo, a failed action', async () => {
+  const { c, notes } = harness([
+    { messages: [{ text: 'Junior suite held', variant: 'success' }] },
+    { messages: [{ text: 'That user name is taken', variant: 'error', persistence: 'sticky' }] },
+    new Error('HTTP 503'),
+  ]);
+  c.windowless = true;
+  await c.runAction('hold');
+  await c.runAction('save');
   await c.runAction('x');
-  assert.equal(notes.length, 0);
+  assert.deepEqual(notes.map((n) => n.text), ['Junior suite held', 'That user name is taken', notes[2].text]);
+  assert.equal(notes[1].options.sticky, true);
+  assert.equal(notes[2].variant, 'error');
+  // only a trigger's (silent) failure stays quiet
+  await c.runAction('poll', undefined, true);
+  assert.equal(notes.length, 3);
+});
+
+test('an embedded view never names the window, and says its chrome on every request', async () => {
+  const { c, session, calls } = harness([{ commands: [{ type: 'SetWindowTitle', data: 'Address' }] }, {}]);
+  const titles: string[] = [];
+  session.setTitle = (t) => titles.push(t);
+  c.windowless = true;
+  c.embeddedChrome = 'COMPACT';
+  await c.runAction('edit');
+  await c.navigate('/x', '', '');
+  assert.deepEqual(titles, []);
+  assert.equal(calls[0].embeddedChrome, 'COMPACT');
 });
 
 test('a failed action toasts unless it is a silent trigger', async () => {
@@ -237,7 +259,9 @@ test('a failed action toasts unless it is a silent trigger', async () => {
   await c.runAction('go', undefined, true);
   assert.equal(notes.length, 0);
   await c.runAction('go');
-  assert.equal(notes[0].text, 'Action failed: HTTP 503');
+  // in plain words, with a Retry (a 5xx may pass)
+  assert.equal(notes[0].text, 'The server could not complete the request (error 503). Please try again.');
+  assert.equal(notes[0].options.actions[0].label, 'Retry');
   assert.equal(notes[0].variant, 'error');
 });
 
@@ -463,7 +487,7 @@ test('@RestAction runs against the endpoint in the client and merges the result 
     assert.equal(c.currentComponentState['city'], 'Palma');
     assert.equal(notes.at(-1)!.text, 'Found Palma');
     await c.runAction('bad');
-    assert.equal(notes.at(-1)!.text, 'Request failed: HTTP 500');
+    assert.equal(notes.at(-1)!.text, 'The server could not complete the request (error 500). Please try again.');
     assert.equal(calls.filter((x) => x.kind === 'action').length, 0, 'no Mateu round trip');
   } finally {
     globalThis.fetch = realFetch;
@@ -513,7 +537,7 @@ test('a write whose proxied call fails says so — not its success message', asy
   await c.initialLoad('/orders');
   await c.runAction('remove');
   assert.notEqual(notes.at(-1)!.text, 'Deleted');
-  assert.match(notes.at(-1)!.text, /Request failed.*HTTP 500/);
+  assert.match(notes.at(-1)!.text, /could not complete the request \(error 500\)/);
 });
 
 test('forEachSelectedRow: a proxied source loops on the server (one call), a direct one per checked row', async () => {
@@ -767,4 +791,105 @@ test('an island behind a mediator carries what its host seeded: on its loads, it
   await c.runAction('scan');
   assert.equal(streamed.length, 1, 'the mediator declared the scan as a stream');
   assert.equal(streamed[0]!.componentState.stayId, 'st-1');
+});
+
+test('no double submit: a second press of an action in flight is dropped; its control knows it is busy', async () => {
+  const { session, c, calls } = harness();
+  let release: (v: unknown) => void = () => {};
+  (session as any).api.runAction = (rq: Json) => {
+    calls.push(rq);
+    return rq.actionId === 'save' ? new Promise((r) => (release = r)) : Promise.resolve({});
+  };
+  const heard: boolean[] = [];
+  c.subscribePending(() => heard.push(c.isPending('save')));
+  const first = c.runAction('save');
+  await tick();
+  assert.equal(await c.runAction('save'), false);
+  // a read (a type-ahead search) is never held back
+  await c.runAction('search');
+  await c.runAction('search');
+  release({});
+  assert.equal(await first, true);
+  assert.deepEqual(calls.map((x) => x.actionId), ['save', 'search', 'search']);
+  assert.deepEqual(heard, [true, false]);
+});
+
+test('an edit re-renders what reads the state (no remount) and runs the field\'s OnValueChange action', async () => {
+  const { c, calls, renders } = harness([fragment(ssc({
+    triggers: [{ type: 'OnValueChange', actionId: 'recalculate', propertyName: 'quantity' }],
+  }), { quantity: 1 }), {}]);
+  await c.initialLoad('/orders');
+  const version = renders.at(-1)!.version;
+  c.putState('quantity', 3);
+  await tick();
+  assert.equal(renders.at(-1)!.state.quantity, 3);
+  assert.equal(renders.at(-1)!.version, version, 'same version: fields keep their focus');
+  assert.equal(calls.at(-1)!.actionId, 'recalculate');
+  // the same value again changes nothing
+  const sent = calls.length;
+  c.putState('quantity', 3);
+  assert.equal(calls.length, sent);
+});
+
+test('data / appState / appData an answer carries reach the screen', async () => {
+  const { c, session, renders } = harness([fragment(ssc()), { fragments: [{ targetComponentId: 'cmp1', data: { lastUpdate: '22:23' } }], appState: { language: 'es' }, appData: { museum: 'Rijks', _restfetch: 1 } }]);
+  await c.initialLoad('/orders');
+  await c.runAction('newData');
+  assert.deepEqual(renders.at(-1)!.data, { lastUpdate: '22:23' });
+  assert.equal(session.appState.language, 'es');
+  assert.deepEqual(session.appData, { museum: 'Rijks' });
+});
+
+test('an edited @ConfirmOnNavigationIfDirty island makes the whole app ask before leaving', async () => {
+  const { c, session } = harness();
+  c.mountServerSide(ssc({ confirmOnNavigationIfDirty: true }));
+  assert.equal(session.anyUnsavedChanges(), false);
+  c.putState('name', 'Ada');
+  assert.equal(session.anyUnsavedChanges(), true);
+  assert.equal(session.hasUnsavedChanges(), true);
+  c.dispose();
+  assert.equal(session.anyUnsavedChanges(), false, 'a view that is gone has nothing to lose');
+});
+
+test('an @Action(js) is client-side only: never sent to the server (RunJS is off on the app)', async () => {
+  const { c, calls } = harness([fragment(ssc({ actions: [{ id: 'changeNote', js: "state.note = 'x'" }, { id: 'save', js: '' }] })), {}]);
+  await c.initialLoad('/orders');
+  const warn = console.warn;
+  const warned: string[] = [];
+  console.warn = (m: string) => warned.push(m);
+  try {
+    assert.equal(await c.runAction('changeNote'), false);
+  } finally {
+    console.warn = warn;
+  }
+  assert.equal(calls.filter((x) => x.kind === 'action').length, 0);
+  assert.match(warned[0], /RunJS is off/);
+  await c.runAction('save');
+  assert.equal(calls.at(-1)!.actionId, 'save');
+});
+
+test('an action sends its declared timeout and idempotency', async () => {
+  const { c, calls } = harness([fragment(ssc({ actions: [{ id: 'slowCheck', timeoutMillis: 1500, idempotent: true }] })), {}]);
+  await c.initialLoad('/orders');
+  await c.runAction('slowCheck');
+  assert.equal(calls.at(-1)!.timeoutMillis, 1500);
+  assert.equal(calls.at(-1)!.idempotent, true);
+});
+
+test('a Notification / ConfirmDialog an island action returns floats: the island keeps its content', async () => {
+  const notification = { type: 'ClientSide', metadata: { type: 'Notification', title: 'Catalogue exported', text: '1,284 records' } };
+  const confirm = { type: 'ClientSide', metadata: { type: 'ConfirmDialog', header: 'Delete?', confirmActionId: 'doDelete' }, children: [] };
+  const { c, session, notes, renders } = harness([fragment(ssc()), fragment(notification), fragment(confirm)]);
+  const opened: Json[] = [];
+  session.openOverlay = (component, _s, _d, opener) => opened.push({ component, opener });
+  await c.navigate('/orders', '', '');
+  const shown = renders.at(-1)!.component;
+  await c.runAction('notifyMe');
+  await c.runAction('askToDelete');
+  assert.equal(renders.at(-1)!.component, shown);
+  assert.deepEqual(notes.map((n) => [n.title, n.text]), [['Catalogue exported', '1,284 records']]);
+  assert.equal(opened.length, 1);
+  assert.equal(opened[0].component, confirm);
+  // its buttons run on the view that opened it
+  assert.equal(opened[0].opener.controller, c);
 });

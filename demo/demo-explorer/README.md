@@ -105,7 +105,7 @@ whole YAML page), `entries/behaviour/validation.yaml` (a Java view island + C#/P
   is a framework bug, and it is being fixed in `fix/explorer-findings-2`.
 
 > **These workarounds are temporary.** The notes on handler buttons needing an explicit `actionId`,
-> on `ButtonGroup` rendering only in a toolbar, on the embedded heading and the Redwood section below
+> on `ButtonGroup` rendering only in a toolbar, on the embedded heading
 > describe beta.51 bugs. Framework PR #1092 (branch `fix/explorer-findings`) and its follow-up
 > `fix/explorer-findings-2` fix them. Once both are merged and `mateu.version` moves to the release
 > that contains them, drop these notes. Also drop the workarounds in the examples, such as the
@@ -171,13 +171,34 @@ k8s: `deploy/demos/k8s/70-demo-explorer.yaml` carries a Deployment/Service/Ingre
 (images from `deploy/demos/demo-explorer-remotes.Dockerfile`, one `--target` each), on
 `explorer-{java,yaml,static,python}.ec1.mateu.io`.
 
-## Redwood
+## Redwood and the native renderers
 
-`-Dmateu.renderer=mateu-redwood` serves the same app on the Redwood (VB) renderer (no console errors
-on the template entries), but Redwood RESHAPES the entry page with its own page projection: the
-header and description are not drawn and only the first example card shows, beside the Code tabs.
-Fix that (in the Redwood projection, or by giving the entry page a shape Redwood keeps) before
-advertising the Redwood twin.
+`mvn clean spring-boot:run -Dmateu.renderer=mateu-redwood` serves the same app on the Redwood (VB)
+renderer: the entry page is drawn in full there (header, description, every example card, the Code
+tabs), and so are the examples — islands keep their own header, buttons, tabs, overlays and
+columns, and their actions go back to their own class. Run `mvn clean` whenever you switch: a stale
+`target` keeps the other renderer. To try a Redwood renderer built from source instead of the
+released one, `mvn install` `backend/shared/frontend/redwood` first.
+
+On **2026-11-10** the Explorer was used to review three renderers against Vaadin, entry by entry,
+and the fixes landed on `integration/explorer-review`:
+
+- **Redwood** — a Playwright sweep of all 205 entry pages (the same checks as
+  `e2e/explorer-probe.mjs`: title, example content, error texts, Code tabs, console errors, 5xx),
+  compared with a baseline run, plus scripted interactions per stream (island actions, typed values,
+  triggers, shortcuts). The fixes are pinned by the renderer's own suites
+  (`frontend/web/monorepo/apps/redwood/poc/test-explorer-*.mjs`).
+- **React Native** — the Expo web build pointed at the Explorer (`?route=<entry route>`, see
+  `frontend/app/react-native/App.tsx`), the same per-entry checks run over the components and
+  behaviour areas. A phone has no CORS, but the web build does: REST examples under
+  `/explorer-api/**` need CORS headers for the Expo origin there.
+- **Desktop (IntelliJ)** — the plugin's render probe in batch mode: `./gradlew renderProbe
+  -Pprobe.json=<folder> -Pprobe.baseUrl=http://localhost:8640` renders every increment captured from
+  the Explorer's routes (`*.json` in the folder) to a PNG plus a widget-tree dump, in one JVM; a
+  `probe.properties` in the folder sets `settleMs` (time for islands to answer) and `locale`.
+
+What each renderer still does differently is in `doc/.../reference/parity.md` (Renderers) and
+`known-issues.md`.
 
 ## Status
 

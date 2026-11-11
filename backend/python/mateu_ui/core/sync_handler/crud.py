@@ -694,7 +694,13 @@ class CrudHandlerMixin(MixinBase):
 
         entity = copy.copy(stored)
         read_only = bool(class_flag(element, "__mateu_read_only__", False))
-        locked = {camel_case(f.name) for f in view_fields(element) if read_only or f.has(ReadOnly)}
+        from ..mapper.crud_modes import server_owned
+
+        # ...nor does an edit's server-owned value (GeneratedValue / EditableOnlyWhenCreating)
+        locked = {
+            camel_case(f.name) for f in view_fields(element)
+            if read_only or f.has(ReadOnly) or server_owned(f, False)
+        }
         self.bind_state(entity, {k: v for k, v in row.items() if k not in locked})
         entity.id = stored.id if hasattr(stored, "id") else raw_id
         # the row is the EDIT form's record: a HiddenInEditor() field is not the user's to fill,

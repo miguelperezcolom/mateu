@@ -62,6 +62,9 @@ class Tab:
     #: A feature flag (optionally negated with ``!``): the tab is offered only while it is on
     #: (a :class:`~mateu_ui.uidl.FeatureFlags` answers it) — Java's @Tab(show).
     show: str | None = None
+    #: The key combination that selects the tab (``"alt+1"``) — in place, no round trip. Same
+    #: syntax as an action shortcut (Java's @Tab(shortcut)).
+    shortcut: str = ""
 
 
 @dataclass(frozen=True)
@@ -467,3 +470,140 @@ class HiddenInEditor:
 class HiddenInCreate:
     """On a Crud entity field: no input for it on the CREATE form (an id the store assigns, ...).
     Java's ``@HiddenInCreate``."""
+
+
+# ── Page blocks: the page's avatar, header and footer (Java @Avatar / @Header / @Footer) ──────
+@dataclass(frozen=True)
+class Avatar:
+    """On a COMPONENT field (e.g. a ``components.Avatar``): the page's avatar block
+    (``PageMetadata.avatar``), never drawn in the form body. The first one wins. Java's
+    ``@Avatar``; an :class:`~mateu_ui.uidl.AvatarSupplier` wins over it."""
+
+
+@dataclass(frozen=True)
+class Header:
+    """On a COMPONENT field: one of the page's header blocks (``PageMetadata.header``), never drawn
+    in the form body. Java's ``@Header``; a :class:`~mateu_ui.uidl.HeaderSupplier` wins over it."""
+
+
+@dataclass(frozen=True)
+class Footer:
+    """On a COMPONENT field: one of the page's footer blocks (``PageMetadata.footer``), never drawn
+    in the form body. Java's ``@Footer``; a :class:`~mateu_ui.uidl.FooterSupplier` wins over it."""
+
+
+# ── Listing column options (Java @ColumnWidth / @Priority / @Line / @Style) ───────────────────
+@dataclass(frozen=True)
+class ColumnWidth:
+    """On a listing row's field: a FIXED column width (``"9rem"``) — the column keeps it instead
+    of growing with its longest cell, and its cells show their own text on hover (Java's
+    ``@ColumnWidth``)."""
+
+    value: str
+
+
+@dataclass(frozen=True)
+class Priority:
+    """On a listing row's field: the column's priority (lower = more important; renderers drop
+    the least important first when space runs out); ``identifier=True`` marks the column that
+    names the row (Java's ``@Priority``)."""
+
+    value: int
+    identifier: bool = False
+
+
+@dataclass(frozen=True)
+class Line:
+    """On a listing row's field: the line of a multi-line list item the column goes on (Java's
+    ``@Line``)."""
+
+    value: int
+
+
+@dataclass(frozen=True)
+class Style:
+    """Inline CSS of the field: on a form field, the field and its wrapper; on a listing row's
+    field, the column (Java's field ``@Style``). The class-level twin is ``@style``."""
+
+    value: str
+
+
+@dataclass(frozen=True)
+class DivStyle:
+    """Inline CSS of the div AROUND a form field (its ``attributes`` entry ``divStyle``; Java's
+    ``@DivStyle``)."""
+
+    value: str
+
+
+@dataclass(frozen=True)
+class OptionsLayout:
+    """How many columns a field's options (radio buttons, checkboxes) are laid out in (Java's
+    ``@OptionsLayout``)."""
+
+    columns: int = 1
+
+
+@dataclass(frozen=True)
+class Notice:
+    """On a ``str`` field: renders the field's VALUE as an inline notice (a compact themed strip,
+    the fluent ``Notice``) — its text is ``${state.<field>}``, so a blank value hides it (Java's
+    ``@Notice`` field marker). ``theme``: info | success | warning | danger."""
+
+    theme: str = "info"
+    icon: str = ""
+    slim: bool = False
+    full_width: bool = False
+    action_label: str = ""
+    action_id: str = ""
+
+
+# ── Mapped row values (Java @Status(mappings) / @MappedValue) ──────────────────────────────────
+@dataclass(frozen=True)
+class Status:
+    """On a listing row's field: the value becomes a status chip — ``mappings`` maps a raw value
+    to a status type (NONE | INFO | SUCCESS | WARNING | DANGER), ``default`` for any other; the
+    chip's text is the value humanised (Java's ``@Status(mappings, defaultStatus)``)."""
+
+    mappings: dict
+    default: str = "NONE"
+
+    def __hash__(self):  # dict is unhashable: hash by its items
+        return hash((tuple(sorted(self.mappings.items())), self.default))
+
+
+@dataclass(frozen=True)
+class MappedValue:
+    """On a listing row's field: the value is shown MAPPED — ``mappings`` maps a raw value to the
+    text shown, ``default`` for any other (Java's ``@MappedValue``)."""
+
+    mappings: dict
+    default: str = ""
+
+    def __hash__(self):
+        return hash((tuple(sorted(self.mappings.items())), self.default))
+
+
+# ── Server-owned values (Java @GeneratedValue / @EditableOnlyWhenCreating) ────────────────────
+@dataclass(frozen=True)
+class GeneratedValue:
+    """The server generates the field's value: read-only, and a CREATION form starts with what
+    ``generator`` produces — a class with a ``generate()`` method (Java's ``ValueGenerator``,
+    instantiated per form), or any callable. On a save the client's copy is kept on a create (the
+    server handed it out) and the stored one on an edit (Java's ``@GeneratedValue``)."""
+
+    generator: object
+
+    def generate(self):
+        g = self.generator
+        if isinstance(g, type):
+            g = g()
+        if hasattr(g, "generate"):
+            return g.generate()
+        return g()
+
+
+@dataclass(frozen=True)
+class EditableOnlyWhenCreating:
+    """Editable on a creation form only: read-only on an edit, and a save of an edit keeps the
+    stored value whatever the client sends (Java's ``@EditableOnlyWhenCreating``)."""

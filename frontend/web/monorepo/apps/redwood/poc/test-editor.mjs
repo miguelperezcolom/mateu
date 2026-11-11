@@ -16,6 +16,7 @@ import {
   PREVIEW_ROUTE, isEditorPreview, previewAppIncrement, previewLoadIncrement, previewAnswerOf, previewFetch,
   stampNodeIds, nodeIdOfPath, elementOfNodeId, nodeBoxesOf, pressTracker, installEditorPreview, DRAG_THRESHOLD,
 } from './editorPreview.mjs'
+import { flatAtoms } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -56,7 +57,7 @@ test('editor mode: every atom carries the id of the wire node it came from', () 
   setEditorNodeIds(true)
   try {
     const blocks = project()
-    const atoms = blocks.flatMap((b) => b.items || [])
+    const atoms = blocks.flatMap((b) => flatAtoms(b.items))
     assert.equal(atoms.find((a) => a.isText && a.text === 'Hello').nodeId, 've-0')
     // a card block is its node's; the atoms inside it are their own nodes'
     const card = blocks.find((b) => b.isCard)

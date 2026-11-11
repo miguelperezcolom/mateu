@@ -8,6 +8,7 @@
 // the UI's locale (i18n.mjs uiLocale), the view names and Today/+ Create from the chrome catalogue.
 
 import { chromeText, uiLocale } from './i18n.mjs'
+import { surfaceAtomOf } from './surfaces.mjs'
 
 const toUtc = (iso) => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d) }
 const fromUtc = (ms) => new Date(ms).toISOString().slice(0, 10)
@@ -66,6 +67,7 @@ export function calBuiltInLabel(actionId, params, label) {
   return Array.isArray(builtIn) && label === builtIn[0] ? chromeText(builtIn[1]) : label
 }
 
+let calendarSeq = 0
 /** The calendar atom, with the four views precomputed. */
 export function calendarAtomOf(m, id, today = new Date().toISOString().slice(0, 10), nav = null, locale = uiLocale()) {
   const anchor = m.month || today
@@ -118,7 +120,9 @@ export function calendarAtomOf(m, id, today = new Date().toISOString().slice(0, 
     spSpec: JSON.stringify(spCalendarSpecOf(m, nav, today)),
     // a CalendarPage's toolbar folded into the calendar: the fallback grid keeps it as plain buttons
     navButtons: nav ? nav.buttons : [],
-    calId: 'mateuCal-' + String(id || 'calendar').replace(/[^A-Za-z0-9_-]/g, '_'),
+    // unique on the page: two calendars of one id (a YAML one and a Java island's, both «calendar»)
+    // swapped their events, views and periods
+    calId: 'mateuCal-' + String(id || 'calendar').replace(/[^A-Za-z0-9_-]/g, '_') + '-' + (++calendarSeq),
     view,
     dayActionId: dayAction,
     hasSwitcher: views.length > 1,
@@ -309,20 +313,20 @@ export function installCalendars(doc = typeof document !== 'undefined' ? documen
     if (navButton) {
       let params = {}
       try { params = JSON.parse(navButton.getAttribute('data-cal-nav-params') || '{}') } catch (e) { params = {} }
-      calendarSink(navButton.getAttribute('data-cal-nav-action'), params, {})
+      calendarSink(navButton.getAttribute('data-cal-nav-action'), params, surfaceAtomOf(cal))
       return true
     }
     if (chip) {
       if (chip.getAttribute('data-cal-clickable') !== 'true') return false
       calendarSink(chip.getAttribute('data-cal-action'), {
         _clickedEvent: { id: chip.getAttribute('data-cal-event'), title: chip.getAttribute('data-cal-title'), date: chip.getAttribute('data-cal-date') },
-      }, {})
+      }, surfaceAtomOf(cal))
       return true
     }
     const cell = target.closest('[data-cal-date]')
     const action = cal.getAttribute('data-day-action')
     if (cell && action && cell.getAttribute('data-cal-date')) {
-      calendarSink(action, { _date: cell.getAttribute('data-cal-date') }, {})
+      calendarSink(action, { _date: cell.getAttribute('data-cal-date') }, surfaceAtomOf(cal))
       return true
     }
     return false
@@ -372,6 +376,7 @@ export function spCalendarHostClassOf(spec) {
   return 'mateu-cal-sp' + (nav ? '' : ' mateu-cal-sp-fixed') + (nav && nav.goTo ? '' : ' mateu-cal-sp-nopick')
 }
 
+let spCalendarSeq = 0
 function buildSpCalendar(doc, cal, spec, ADP) {
   const old = cal.querySelector(':scope > .mateu-cal-sp')
   if (old) old.remove()
@@ -381,6 +386,9 @@ function buildSpCalendar(doc, cal, spec, ADP) {
   host.className = spCalendarHostClassOf(spec)
   host.setAttribute('data-oj-binding-provider', 'none')
   const el = doc.createElement('oj-sp-calendar')
+  // its OWN id: Spectra keys its FullCalendar parts by the element's id, and two calendars on one
+  // page without one shared them — one showed the other's events, view and period
+  el.id = 'mateuSpCal' + (++spCalendarSeq)
   el.calendarEvents = new ADP(spec.events, { keyAttributes: 'id' })
   el.calendarProviders = spec.providers
   el.visibleCalendars = spec.providers.map((p) => p.name)
@@ -394,7 +402,7 @@ function buildSpCalendar(doc, cal, spec, ADP) {
     const ids = (e.detail && e.detail.value) || []
     const hit = ids.length ? spec.actions[ids[ids.length - 1]] : null
     if (!hit || !calendarSink) return
-    calendarSink(hit.actionId, { _clickedEvent: { id: hit.id, title: hit.title, date: hit.date } }, {})
+    calendarSink(hit.actionId, { _clickedEvent: { id: hit.id, title: hit.title, date: hit.date } }, surfaceAtomOf(cal))
     setTimeout(() => { el.selected = [] }, 0)
   })
   // the toolbar: with a CalendarPage behind, its ‹ › Today and views are the page's (server-side) actions
@@ -402,16 +410,16 @@ function buildSpCalendar(doc, cal, spec, ADP) {
     if (!e.detail || e.detail.updatedFrom !== 'internal' || !spec.nav) return
     const step = spNavActionOf(spec.nav, el.selectedViewValue || spec.view, spec.anchor, String(e.detail.value || ''))
     if (step && step.kind === 'same') return
-    if (step && step.actionId && calendarSink) { calendarSink(step.actionId, step.params || {}, {}); return }
+    if (step && step.actionId && calendarSink) { calendarSink(step.actionId, step.params || {}, surfaceAtomOf(cal)); return }
     setTimeout(() => { el.focusDate = spec.focusDate }, 0)
   })
   el.addEventListener('selectedViewValueChanged', (e) => {
     if (!e.detail || e.detail.updatedFrom !== 'internal' || !spec.nav || !spec.nav.viewAction) return
     const v = e.detail.value
-    if (v && v !== spec.view && spec.nav.views.includes(v) && calendarSink) calendarSink(spec.nav.viewAction, { _view: v }, {})
+    if (v && v !== spec.view && spec.nav.views.includes(v) && calendarSink) calendarSink(spec.nav.viewAction, { _view: v }, surfaceAtomOf(cal))
   })
   el.addEventListener('spCalendarEventCreate', () => {
-    if (spec.nav && spec.nav.create && calendarSink) calendarSink(spec.nav.create, {}, {})
+    if (spec.nav && spec.nav.create && calendarSink) calendarSink(spec.nav.create, {}, surfaceAtomOf(cal))
   })
   // a date's cell (dayActionId): FullCalendar stamps data-date on it
   const dayOf = (target) => {
@@ -423,14 +431,14 @@ function buildSpCalendar(doc, cal, spec, ADP) {
     const date = dayOf(e.target)
     if (!date || !calendarSink) return
     e.preventDefault(); e.stopPropagation()
-    calendarSink(spec.dayActionId, { _date: date }, {})
+    calendarSink(spec.dayActionId, { _date: date }, surfaceAtomOf(cal))
   }, true)
   host.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' && e.key !== ' ') return
     const date = dayOf(e.target)
     if (!date || !calendarSink) return
     e.preventDefault()
-    calendarSink(spec.dayActionId, { _date: date }, {})
+    calendarSink(spec.dayActionId, { _date: date }, surfaceAtomOf(cal))
   }, true)
   let queued = false
   new MutationObserver(() => {
@@ -449,12 +457,23 @@ function buildSpCalendar(doc, cal, spec, ADP) {
   ready()
 }
 
+/** Is a Spectra calendar already mounted (or mounting) in ANOTHER calendar of the page? */
+export function spCalendarElsewhere(doc, cal) {
+  for (const other of Array.from(doc.querySelectorAll('.mateu-cal'))) {
+    if (other !== cal && other.isConnected && other.__mateuSpCal) return true
+  }
+  return false
+}
+
 function mountSpCalendars(doc) {
   if (typeof MutationObserver === 'undefined' || typeof window === 'undefined' || typeof window.require !== 'function') return
   const fill = (cal) => {
     const raw = cal.getAttribute('data-cal-sp') || ''
     if (!raw || cal.__mateuSpCal === raw) return
     cal.__mateuSpCal = raw
+    // ONE Spectra calendar per page: a second oj-sp-calendar draws the FIRST one's events (filtered by
+    // its own providers) and the first draws none — the others keep the drawn grid, which has every view
+    if (spCalendarElsewhere(doc, cal)) return
     let spec
     try { spec = JSON.parse(raw) } catch (e) { return }
     window.require(['ojs/ojarraydataprovider', 'oj-sp/calendar/loader'], (ADP) => {

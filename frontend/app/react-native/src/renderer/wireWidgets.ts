@@ -5,6 +5,7 @@
  */
 
 import { flattenColumnGroups } from './columnGroups.ts';
+import { cellText as listingCellText } from './cellText.ts';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -76,12 +77,89 @@ export function gridRowsOf(component: unknown, state: Dict | undefined, data: un
   return (page?.['content'] as Dict[]) ?? [];
 }
 
+export interface GridLeaf {
+  id: string;
+  label: string;
+  align?: string;
+  actionId?: string;
+  dataType?: string;
+  stereotype?: string;
+  /** the declared width in dp (`width: 14rem`), else undefined (the default cell width) */
+  width?: number;
+}
+
+/**
+ * A Grid's columns as a header of TWO rows when it has GridGroupColumns: the groups (each spanning
+ * its leaf columns; an ungrouped column under an empty group cell) over the leaf columns with
+ * their own labels — the group's label used to be glued to each leaf ("Loan · Borrower") with no
+ * group header row. `groups` is null for a grid without groups.
+ */
+export function gridHeader(component: unknown): { leaves: GridLeaf[]; groups: { label: string; span: number }[] | null } {
+  const m = meta(component);
+  const leaves: GridLeaf[] = [];
+  const groups: { label: string; span: number }[] = [];
+  let grouped = false;
+  const leafOf = (c: unknown): GridLeaf => {
+    const cm = meta(c);
+    const id = ((c as Dict)['id'] as string) || (cm['id'] as string) || '';
+    const w = cssLengthPx(typeof cm['width'] === 'string' ? (cm['width'] as string) : null);
+    return {
+      id,
+      label: (cm['label'] as string) ?? id,
+      align: (cm['align'] as string) || undefined,
+      actionId: (cm['actionId'] as string) || undefined,
+      dataType: (cm['dataType'] as string) || undefined,
+      stereotype: (cm['stereotype'] as string) || undefined,
+      width: w ?? undefined,
+    };
+  };
+  const leavesOfGroup = (g: unknown): unknown[] => [
+    ...(((meta(g)['columns'] as unknown[]) ?? [])),
+    ...((((g as Dict)['children'] as unknown[]) ?? [])),
+  ].flatMap((k) => (meta(k)['type'] === 'GridGroupColumn' ? leavesOfGroup(k) : [k]));
+  for (const c of (((m['content'] ?? m['columns']) as unknown[]) ?? [])) {
+    if (!c || typeof c !== 'object') continue;
+    if (meta(c)['type'] === 'GridGroupColumn') {
+      grouped = true;
+      const kids = leavesOfGroup(c).filter((k) => k && typeof k === 'object');
+      kids.forEach((k) => leaves.push(leafOf(k)));
+      groups.push({ label: (meta(c)['label'] as string) ?? '', span: kids.length });
+    } else {
+      leaves.push(leafOf(c));
+      groups.push({ label: '', span: 1 });
+    }
+  }
+  return { leaves, groups: grouped ? groups : null };
+}
+
+/** The rows a tree grid shows: depth-first, a row's children only while it is expanded. */
+export function visibleTreeRows(rows: Dict[], expanded: ReadonlySet<string>, path = '', depth = 0): { row: Dict; depth: number; key: string; hasChildren: boolean }[] {
+  return rows.flatMap((row, i) => {
+    const key = `${path}${i}`;
+    const kids = Array.isArray(row['children']) ? (row['children'] as Dict[]) : [];
+    const self = { row, depth, key, hasChildren: kids.length > 0 };
+    return expanded.has(key) ? [self, ...visibleTreeRows(kids, expanded, `${key}.`, depth + 1)] : [self];
+  });
+}
+
 /** Tree grids: rows carrying `children` are flattened depth-first with their depth. */
 export function flattenTree(rows: Dict[], depth = 0): { row: Dict; depth: number }[] {
   return rows.flatMap((row) => [
     { row, depth },
     ...(Array.isArray(row['children']) ? flattenTree(row['children'] as Dict[], depth + 1) : []),
   ]);
+}
+
+/** A Grid cell: money and dates formatted by the column's dataType (82000000 → "82,000,000.00",
+ *  an ISO date in the UI's locale), a structured value by its text, a flag as ✓. */
+export function gridCellText(value: unknown, column: { dataType?: string; stereotype?: string }): string {
+  if (value == null) return '';
+  if (typeof value === 'boolean') return value ? '✓' : '';
+  if (typeof value === 'object' && !(column.dataType === 'money' || column.stereotype === 'money')) {
+    const o = value as Dict;
+    return String(o['text'] ?? o['label'] ?? o['value'] ?? o['name'] ?? '');
+  }
+  return listingCellText(value, null, column);
 }
 
 export function cellText(row: Dict, colId: string): string {
@@ -278,3 +356,9 @@ export function menuIntent(o: MenuOptionLike): { kind: 'action' | 'route' | 'sub
   return { kind: 'none', target: '' };
 }
 
+
+/** A grid cell's action parameters, as mateu-table sends them: the ROW itself (`openWork` reads
+ *  its fields), a crud row action (`action-on-row-*`) the row under `_clickedRow`. */
+export function gridCellParameters(actionId: string, row: Record<string, unknown>): Record<string, unknown> {
+  return actionId.startsWith('action-on-row-') ? { _clickedRow: row } : { ...row };
+}

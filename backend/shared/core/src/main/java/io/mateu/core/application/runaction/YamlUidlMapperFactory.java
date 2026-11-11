@@ -131,7 +131,6 @@ final class YamlUidlMapperFactory {
     // the mapper have to agree on what is authorable.
     mapper.addMixIn(UserTrigger.class, PolymorphicMixin.class);
     mapper.addMixIn(GridContent.class, PolymorphicMixin.class);
-    mapper.addMixIn(FieldValidation.class, PolymorphicMixin.class);
     // The flow-effect Trigger family, authored as a `triggers:` list beside `layout:`/`actions:` on
     // a definition-only page (no view model). TriggerMapper already maps every Trigger record a
     // TriggersSupplier yields; SeededYamlPage IS that supplier. Without the mixin + subtypes
@@ -301,10 +300,6 @@ final class YamlUidlMapperFactory {
         // A menu leaf that RUNS rules (a RunAction naming a shell flow) instead of navigating: the
         // schema always advertised it, but without the subtype a shell authoring one did not parse.
         new NamedType(io.mateu.uidl.data.RuleLink.class, "RuleLink"),
-        new NamedType(JsValidation.class, "JsValidation"),
-        new NamedType(MinValidation.class, "MinValidation"),
-        new NamedType(MaxValidation.class, "MaxValidation"),
-        new NamedType(PatternValidation.class, "PatternValidation"),
         // The Trigger family (names = simple class names, matching the generated schema).
         new NamedType(io.mateu.uidl.fluent.OnLoadTrigger.class, "OnLoadTrigger"),
         new NamedType(io.mateu.uidl.fluent.OnCustomEventTrigger.class, "OnCustomEventTrigger"),

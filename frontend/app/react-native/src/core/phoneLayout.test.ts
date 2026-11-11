@@ -55,7 +55,7 @@ test('the crud listing lifts its create action (`new`) out of the toolbar into t
 const rail = (steps: { title: string; status: string }[]) => ({
   type: 'ClientSide',
   metadata: { type: 'VerticalLayout' },
-  style: 'flex: 0 0 15rem; border-left: 1px solid;',
+  style: 'flex: 0 0 15rem; align-self: flex-start; position: sticky; top: 1rem; border-left: 1px solid;',
   children: [
     { type: 'ClientSide', metadata: { type: 'Text', text: '1 | 2' }, children: [] },
     { type: 'ClientSide', metadata: { type: 'ProgressSteps', vertical: true, resultTitle: 'Result', steps }, children: [] },
@@ -71,6 +71,10 @@ test('a wizard rail row is recognised by its VERTICAL ProgressSteps', () => {
   const steps = { metadata: { type: 'ProgressSteps', vertical: false, steps: [] }, children: [] };
   assert.equal(wizardRailIndex([steps, form]), -1);
   assert.equal(wizardRailIndex(undefined), -1);
+  // a vertical ProgressSteps that is CONTENT of a row (components/progress) is not a rail
+  const vertical = { metadata: { type: 'ProgressSteps', vertical: true, steps: [{ title: 'A', status: 'current' }] }, children: [] };
+  assert.equal(wizardRailIndex([form, vertical]), -1);
+  assert.equal(wizardRailIndex([form, { metadata: { type: 'VerticalLayout' }, style: 'padding: 1rem', children: [vertical] }]), -1);
 });
 
 test('on a phone the rail collapses to "Step N of M · Title" above the form', () => {
@@ -80,14 +84,16 @@ test('on a phone the rail collapses to "Step N of M · Title" above the form', (
     { title: 'Plan', status: 'upcoming' },
     { title: 'Confirm', status: 'upcoming' },
   ]));
-  assert.deepEqual(first, { text: 'Step 1 of 4 · Account type', progress: 0.25 });
+  // the counter is the rail's own; the bar counts DONE steps over all of them (the result included),
+  // like the BAR style — it used to run a step ahead of it (2/3 against 1/3)
+  assert.deepEqual(first, { counter: '1 | 2', text: 'Step 1 of 4 · Account type', progress: 0 });
   const second = compactRail(rail([
     { title: 'Account type', status: 'done' },
     { title: 'Company', status: 'current' },
   ]));
-  assert.deepEqual(second, { text: 'Step 2 of 2 · Company', progress: 1 });
+  assert.deepEqual(second, { counter: '1 | 2', text: 'Step 2 of 2 · Company', progress: 1 / 3 });
   // the result step: every step done → the result title, full bar
-  assert.deepEqual(compactRail(rail([{ title: 'A', status: 'done' }, { title: 'B', status: 'done' }])), { text: 'Result', progress: 1 });
+  assert.deepEqual(compactRail(rail([{ title: 'A', status: 'done' }, { title: 'B', status: 'done' }])), { counter: '1 | 2', text: 'Result', progress: 1 });
   assert.equal(compactRail(form), null);
   assert.equal(compactRail(rail([])), null);
 });

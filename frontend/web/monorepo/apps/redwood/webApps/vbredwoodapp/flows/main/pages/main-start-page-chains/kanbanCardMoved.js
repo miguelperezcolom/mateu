@@ -20,14 +20,20 @@ define([
      * @param {Object} params
      * @param {string} params.key   the board (kanbanKeyOf)
      * @param {Object} params.move  { cardId, fromColumnId, toColumnId, toIndex }
+     * @param {string} params.surfaceId  the board's surface (an inline island's), '' = the host's
      */
-    async run(context, { key, move }) {
+    async run(context, { key, move, surfaceId }) {
       const { $application } = context;
-      const base = bridge.baseOf($application.variables.mateuRegistry)
-        || bridge.mateuBase($application.constants.mateuBaseUrl);
-      const route = $application.variables.mateuSelectedRoute;
+      // the board's owner: the host, or the SURFACE it is painted in (posted with its own outbound)
+      const contexts = $application.variables.mateuRegistry.contexts || {};
+      const owner = surfaceId && contexts[surfaceId] ? surfaceId : bridge.HOST_ID;
+      const outbound = owner === bridge.HOST_ID ? null : (contexts[owner].outbound || {});
+      const base = outbound ? outbound.baseUrl : (bridge.baseOf($application.variables.mateuRegistry)
+        || bridge.mateuBase($application.constants.mateuBaseUrl));
+      const route = outbound ? (outbound.route || '') : $application.variables.mateuSelectedRoute;
       const appState = $application.variables.mateuAppState || {};
-      const host = $application.variables.mateuRegistry.contexts[bridge.HOST_ID];
+      const reduceOpts = outbound ? { initiator: owner } : undefined;
+      const host = contexts[owner];
       const plan = bridge.kanbanMovePlanOf(host, key, move);
       if (!plan) return;
 
@@ -52,7 +58,7 @@ define([
       }
       let reg = $application.variables.mateuRegistry;
       if (increment) {
-        reg = bridge.reduceContexts(reg, increment);
+        reg = bridge.reduceContexts(reg, increment, reduceOpts);
         bridge.applyDomEffects(reg.effects, reg);
         $application.variables.mateuRegistry = reg;
       }
@@ -63,10 +69,10 @@ define([
         return;
       }
       if (plan.reloadActionId) {
-        const hostNow = reg.contexts[bridge.HOST_ID];
+        const hostNow = reg.contexts[owner];
         try {
           const loaded = await bridge.runMateuAction(base, hostNow, route, plan.reloadActionId, hostNow.state || {}, { appState });
-          reg = bridge.reduceContexts(reg, loaded);
+          reg = bridge.reduceContexts(reg, loaded, reduceOpts);
           $application.variables.mateuRegistry = reg;
         } catch (e) {
           // the move went through: the board keeps it painted until the next load

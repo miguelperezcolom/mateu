@@ -3,7 +3,7 @@
 // libs/mateu externalOptions.ts. url/headers/body are interpolated by the caller (pass a resolve
 // that runs the shared `interpolate`); the endpoint is fetched directly, no Mateu server mediating.
 
-import { withoutTrailingSlashes } from './trailingSlashes.ts';
+import { againstBase } from './backendUrl.ts';
 import { interpolateBody } from './jsonTemplate.ts';
 
 type Json = Record<string, any>;
@@ -125,11 +125,7 @@ export class RestSourceCatalogue {
 
   /** The url a fetch goes to: a relative one made absolute against {@link relativeBase}. */
   absolute(url: string): string {
-    const base = this.relativeBase;
-    if (!base || !url || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url) || url.startsWith('//')) return url;
-    const origin = /^(https?:\/\/[^/?#]+)/i.exec(base)?.[1];
-    if (!origin) return url;
-    return url.startsWith('/') ? `${origin}${url}` : `${withoutTrailingSlashes(base)}/${url}`;
+    return againstBase(url, this.relativeBase);
   }
 
   /** Store the app's REST source catalogue (`AppDto.restSources`, a list of `{name, source, …}`). */

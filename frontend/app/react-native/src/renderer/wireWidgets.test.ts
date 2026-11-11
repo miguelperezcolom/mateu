@@ -4,6 +4,9 @@ import {
   avatarColor,
   avatarGroupSplit,
   cellText,
+  gridCellText,
+  gridHeader,
+  visibleTreeRows,
   contentSlots,
   elementKind,
   flattenTree,
@@ -188,4 +191,35 @@ test('workflow: layered by precondition, edges parent → child', () => {
 test('workflow: a precondition cycle does not hang', () => {
   const { diagram } = workflowDiagram(JSON.stringify({ steps: [{ id: 'a', preconditionStepId: 'b' }, { id: 'b', preconditionStepId: 'a' }] }));
   assert.equal(diagram.nodes.length, 2);
+});
+
+test('a grid cell action sends the row as its parameters; a crud row action under _clickedRow', async () => {
+  const { gridCellParameters } = await import('./wireWidgets.ts');
+  const row = { id: 'w1', title: 'Starry Night' };
+  assert.deepEqual(gridCellParameters('openWork', row), row);
+  assert.deepEqual(gridCellParameters('action-on-row-cancel', row), { _clickedRow: row });
+});
+
+test('a grid with column groups has a group header row over its leaf columns', () => {
+  const col = (id: string, extra: Record<string, unknown> = {}) => ({ type: 'ClientSide', metadata: { type: 'GridColumn', id, label: id.toUpperCase(), ...extra } });
+  const grid = { metadata: { content: [col('work', { width: '14rem' }), { metadata: { type: 'GridGroupColumn', label: 'Loan', columns: [col('from'), col('to')] } }] } };
+  const h = gridHeader(grid);
+  assert.deepEqual(h.leaves.map((l) => l.label), ['WORK', 'FROM', 'TO']);
+  assert.equal(h.leaves[0].width, 224);
+  assert.deepEqual(h.groups, [{ label: '', span: 1 }, { label: 'Loan', span: 2 }]);
+  assert.equal(gridHeader({ metadata: { content: [col('a')] } }).groups, null);
+});
+
+test('grid cells: money formatted, flags as a tick, structured values by their text', () => {
+  assert.equal(gridCellText(82000000, { dataType: 'money' }).replace(/\\s/g, ''), '82,000,000.00');
+  assert.equal(gridCellText(true, {}), '✓');
+  assert.equal(gridCellText({ text: 'A' }, {}), 'A');
+  assert.notEqual(gridCellText('2026-11-08', { dataType: 'date' }), '');
+});
+
+test('a tree grid shows children only under an expanded row', () => {
+  const rows = [{ name: 'A', children: [{ name: 'A1' }] }, { name: 'B' }];
+  assert.deepEqual(visibleTreeRows(rows, new Set()).map((r) => r.row.name), ['A', 'B']);
+  assert.deepEqual(visibleTreeRows(rows, new Set(['0'])).map((r) => [r.row.name, r.depth]), [['A', 0], ['A1', 1], ['B', 0]]);
+  assert.equal(visibleTreeRows(rows, new Set())[0].hasChildren, true);
 });

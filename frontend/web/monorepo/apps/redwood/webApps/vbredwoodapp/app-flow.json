@@ -294,6 +294,26 @@
       "defaultValue": {},
       "description": "pesta\u00f1a activa del contenido POR BARRA (\u00e1tomos isTabs, barras anidadas incluidas): {clave de barra: id de pesta\u00f1a} \u2014 estado de CLIENTE: cambiarla solo reproyecta, no se le pregunta al servidor"
     },
+    "mateuMenuDocked": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "MENU_ON_LEFT / RAIL: the navigator is docked and always there (no hamburger to fold it) \u2014 shellChromeOf"
+    },
+    "mateuMenuRail": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "RAIL: the docked navigator is a narrow rail"
+    },
+    "mateuChromeless": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "@App(chromeless): no global header nor navigation; the Ask palette is the way around"
+    },
+    "mateuAskFab": {
+      "type": "string",
+      "defaultValue": "on",
+      "description": "Spectra's Ask FAB (oj-sp-simple-ui-shell chat.display): off in a framed app with no command center / global search"
+    },
     "mateuPageHeaderTranslations": {
       "type": "any",
       "defaultValue": {},
@@ -1018,7 +1038,8 @@
       "description": "a card of a movable kanban board was dropped elsewhere or moved from its select (installKanbans): the content page paints it and runs the board's moveActionId",
       "payloadType": {
         "key": "string",
-        "move": "object"
+        "move": "object",
+        "surfaceId": "string"
       }
     },
     "mateuTilesReordered": {

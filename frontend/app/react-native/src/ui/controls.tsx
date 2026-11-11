@@ -3,12 +3,14 @@
  * buttons, chips and checkboxes instead of ad-hoc styles. They wrap React Native Paper and keep the
  * renderer's accessibility contract (role, name, state — src/a11y).
  */
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { FieldFocusRegistrar } from './fieldFocus';
 import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { Button, Checkbox, HelperText, Icon, Text, TextInput } from 'react-native-paper';
 import { decimalDraft } from '../core/uxRules';
 import { stateLayerOn, theme, themed } from '../theme';
-import { buttonLook, toneColors, toneOf } from './looks';
+import { buttonColor, buttonLook, buttonSize, toneColors, toneOf, type BadgeLook } from './looks';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export interface MateuButtonProps {
   label: string;
@@ -25,34 +27,42 @@ export interface MateuButtonProps {
   compact?: boolean;
   style?: StyleProp<ViewStyle>;
   loading?: boolean;
+  /** a Material icon after the label (the wire's iconOnRight) */
+  iconRight?: string;
+  /** the wire's `size`: small | large */
+  size?: string | null;
 }
 
 /** A wire button as a Material button: primary → filled, secondary → tonal, tertiary → text,
- *  anything else → outlined; destructive ones in the theme's error colour. */
-export function MateuButton({ label, onPress, buttonStyle, color, disabled, accessibilityLabel, accessibilityHint, icon, compact, style, loading }: MateuButtonProps) {
+ *  anything else → outlined; `color` (error, success, warning, contrast) paints it, `size`
+ *  small/large, icons before (`icon`) and after (`iconRight`) the label. */
+export function MateuButton({ label, onPress, buttonStyle, color, disabled, accessibilityLabel, accessibilityHint, icon, compact, style, loading, iconRight, size }: MateuButtonProps) {
   const { mode, danger } = buttonLook(buttonStyle, color);
-  const dangerColors = danger
+  const paint = buttonColor(color) ?? (danger ? buttonColor('error') : null);
+  const colors = paint
     ? mode === 'contained'
-      ? { buttonColor: theme.danger, textColor: theme.onFill }
-      : { textColor: theme.danger }
+      ? { buttonColor: paint.fill, textColor: paint.onFill }
+      : { textColor: paint.fill }
     : {};
+  const dims = buttonSize(size);
+  const ink = disabled ? undefined : (colors as { textColor?: string }).textColor ?? (mode === 'contained' ? theme.onPrimary : theme.primary);
   return (
     <Button
       mode={mode}
       onPress={onPress}
       disabled={disabled}
       icon={icon}
-      compact={compact}
+      compact={compact || dims === 'small'}
       loading={loading}
-      accessibilityLabel={accessibilityLabel}
+      accessibilityLabel={accessibilityLabel ?? (iconRight ? label : undefined)}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: !!disabled }}
-      style={[mode === 'outlined' && danger ? { borderColor: theme.danger } : null, styles.button, style]}
-      contentStyle={styles.buttonContent}
-      labelStyle={styles.buttonLabel}
-      {...dangerColors}
+      style={[mode === 'outlined' && paint ? { borderColor: paint.fill } : null, styles.button, style]}
+      contentStyle={[styles.buttonContent, dims === 'small' ? styles.buttonContentSmall : dims === 'large' ? styles.buttonContentLarge : null]}
+      labelStyle={[styles.buttonLabel, dims === 'small' ? styles.buttonLabelSmall : dims === 'large' ? styles.buttonLabelLarge : null]}
+      {...colors}
     >
-      {label}
+      {iconRight ? <>{label}{' '}<MaterialCommunityIcons name={iconRight as never} size={dims === 'small' ? 14 : 16} color={ink ?? theme.disabled} /></> : label}
     </Button>
   );
 }
@@ -64,25 +74,28 @@ export function MIcon({ name, size = 24, color }: { name: string; size?: number;
 
 /** A status value as a tonal chip (success / warning / danger / info / neutral). Not a control —
  *  it reads as its text, so screen readers hear the value, not "button". */
-export function StatusChip({ label, tone, style, iconLeft, iconRight }: {
+export function StatusChip({ label, tone, style, iconLeft, iconRight, look }: {
   label: string; tone?: string | null; style?: StyleProp<ViewStyle>;
   /** Material Community Icons names drawn inside the chip, before / after the label */
   iconLeft?: string; iconRight?: string;
+  /** a wire Badge's own look (badgeLook): colours, pill, small — wins over `tone` */
+  look?: BadgeLook;
 }) {
-  const { background, ink } = toneColors(toneOf(tone));
+  const { background, ink } = look ?? toneColors(toneOf(tone));
+  const shape = look ? [look.pill ? styles.chipPill : null, look.small ? styles.chipSmall : null] : null;
   const text = (
-    <Text variant="labelMedium" style={[styles.chipText, { color: ink }]} numberOfLines={1}>
+    <Text variant={look?.small ? 'labelSmall' : 'labelMedium'} style={[styles.chipText, { color: ink }]} numberOfLines={1}>
       {label}
     </Text>
   );
   if (!iconLeft && !iconRight) {
-    return <View style={[styles.chip, { backgroundColor: background }, style]}>{text}</View>;
+    return <View style={[styles.chip, { backgroundColor: background }, shape, style]}>{text}</View>;
   }
   return (
-    <View style={[styles.chip, styles.chipWithIcons, { backgroundColor: background }, style]}>
-      {!!iconLeft && <Icon source={iconLeft} size={14} color={ink} />}
+    <View style={[styles.chip, styles.chipWithIcons, { backgroundColor: background }, shape, style]}>
+      {!!iconLeft && <Icon source={iconLeft} size={look?.small ? 12 : 14} color={ink} />}
       {text}
-      {!!iconRight && <Icon source={iconRight} size={14} color={ink} />}
+      {!!iconRight && <Icon source={iconRight} size={look?.small ? 12 : 14} color={ink} />}
     </View>
   );
 }
@@ -113,6 +126,12 @@ export function SelectBox({ checked, label, onToggle, style, disabled }: { check
 
 type PaperInputProps = React.ComponentProps<typeof TextInput>;
 
+/** @Compact: the fields of a compact page are DENSE (smaller outlined boxes, tighter rows). */
+export const DenseFields = React.createContext(false);
+
+/** The outline of every outlined field (text inputs and picker triggers alike). */
+const fieldOutline = () => (theme.scheme === 'dark' ? '#8D9199' : '#73777F');
+
 /**
  * A Material outlined text field: the label floats inside the outline, the error turns it red and
  * is spelled out underneath (HelperText). `a11y` is the field's composed accessible name/hint
@@ -124,16 +143,27 @@ export function OutlinedInput({ label, required, error, a11y, style, ...rest }: 
   error?: string;
   a11y?: Record<string, unknown>;
 }) {
+  // the field around it may be asked to take the focus (the first invalid field of a rejected save)
+  const register = useContext(FieldFocusRegistrar);
+  const input = useRef<{ focus?: () => void } | null>(null);
+  useEffect(() => {
+    register?.(() => input.current?.focus?.());
+  }, [register]);
+  const dense = React.useContext(DenseFields);
   return (
     <View>
       <TextInput
+        ref={input as never}
         mode="outlined"
         label={label ? `${label}${required ? ' *' : ''}` : undefined}
         error={!!error}
-        outlineColor={theme.border}
+        // the SAME outline as the pickers' triggers (Material's outline token, ≥ 3:1 — WCAG 1.4.11): a
+        // form's dates and selects used to look darker than its text fields
+        outlineColor={fieldOutline()}
         activeOutlineColor={theme.primary}
         outlineStyle={styles.outline}
-        style={[styles.input, style]}
+        dense={dense}
+        style={[styles.input, dense && styles.inputDense, style]}
         {...rest}
         {...(a11y as object)}
       />
@@ -147,12 +177,20 @@ export function OutlinedInput({ label, required, error, a11y, style, ...rest }: 
 }
 
 /** The decimal variant: keeps the text being typed ("1." stays "1." — see decimalDraft). */
-export function OutlinedDecimalInput({ text, onChangeText, ...rest }: Omit<React.ComponentProps<typeof OutlinedInput>, 'value' | 'onChangeText'> & { text: string; onChangeText: (t: string) => void }) {
+export function OutlinedDecimalInput({ text, onChangeText, blurredText, ...rest }: Omit<React.ComponentProps<typeof OutlinedInput>, 'value' | 'onChangeText'> & {
+  text: string; onChangeText: (t: string) => void;
+  /** what the field shows while NOT being edited (a money amount formatted: "12,450.50"); while
+   *  focused it shows the plain number being typed */
+  blurredText?: string;
+}) {
   const [draft, setDraft] = useState(text);
+  const [focused, setFocused] = useState(false);
   return (
     <OutlinedInput
       {...rest}
-      value={decimalDraft(draft, text)}
+      value={!focused && blurredText !== undefined ? blurredText : decimalDraft(draft, text)}
+      onFocus={(e) => { setDraft(text); setFocused(true); rest.onFocus?.(e); }}
+      onBlur={(e) => { setFocused(false); rest.onBlur?.(e); }}
       onChangeText={(t) => {
         setDraft(t);
         onChangeText(t);
@@ -178,6 +216,7 @@ export function OutlinedTrigger({ label, required, value, placeholder, icon = 'm
   accessibilityLabel?: string;
   expanded?: boolean;
 }) {
+  const dense = React.useContext(DenseFields);
   return (
     <View>
       <Pressable
@@ -191,7 +230,7 @@ export function OutlinedTrigger({ label, required, value, placeholder, icon = 'm
       >
         {/* drawn like Paper's outlined field (label in the notch), but as plain views: a read-only
             native input wraps a long value onto a second line inside a narrow column */}
-        <View style={[styles.trigger, !!error && { borderColor: theme.danger }, disabled && styles.triggerDisabled]}>
+        <View style={[styles.trigger, dense && styles.triggerDense, !!error && { borderColor: theme.danger }, disabled && styles.triggerDisabled]}>
           <Text variant="bodyLarge" numberOfLines={1} style={[styles.triggerValue, !value && { color: theme.faint }]}>
             {value || placeholder || ''}
           </Text>
@@ -216,14 +255,22 @@ const styles = themed(() =>
   StyleSheet.create({
     button: { borderRadius: theme.radiusPill },
     buttonContent: { minHeight: 40 },
+    buttonContentSmall: { minHeight: 32 },
+    buttonContentLarge: { minHeight: 52 },
+    buttonLabelSmall: { fontSize: 12, marginHorizontal: 12, marginVertical: 6 },
+    buttonLabelLarge: { fontSize: 16, marginHorizontal: 24 },
     buttonLabel: { marginHorizontal: 18, letterSpacing: 0.1 },
     chip: { alignSelf: 'flex-start', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 3 },
     chipText: { fontWeight: '600' },
     chipWithIcons: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    chipPill: { borderRadius: 999, paddingHorizontal: 12 },
+    chipSmall: { paddingHorizontal: 7, paddingVertical: 1 },
     input: { backgroundColor: theme.surface, fontSize: 16 },
+    inputDense: { fontSize: 14 },
+    triggerDense: { minHeight: 40 },
     outline: { borderRadius: 8 },
     helper: { paddingHorizontal: 4 },
-    trigger: { flexDirection: 'row', alignItems: 'center', minHeight: 50, marginTop: 6, paddingLeft: 16, paddingRight: 12, borderWidth: 1, borderColor: theme.scheme === 'dark' ? '#8D9199' : '#73777F', borderRadius: theme.radiusSm, backgroundColor: theme.surface, gap: 8 },
+    trigger: { flexDirection: 'row', alignItems: 'center', minHeight: 50, marginTop: 6, paddingLeft: 16, paddingRight: 12, borderWidth: 1, borderColor: fieldOutline(), borderRadius: 8, backgroundColor: theme.surface, gap: 8 },
     triggerDisabled: { opacity: 0.6 },
     triggerValue: { flex: 1, color: theme.ink },
     triggerLabel: { position: 'absolute', top: -9, left: 10, paddingHorizontal: 4, backgroundColor: theme.surface, color: theme.muted, maxWidth: '85%' },

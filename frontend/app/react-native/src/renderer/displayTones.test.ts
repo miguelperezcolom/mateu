@@ -57,6 +57,9 @@ test('a notice: unknown theme is info, the declared icon wins over the severity 
   assert.equal(danger.icon, '👥');
   assert.equal(danger.colors.bg, theme.dangerBg);
   assert.equal(noticeLook('danger', '').icon, '!');
+  // a declared emoji is drawn as it is, without the severity circle
+  assert.equal(danger.custom, true);
+  assert.equal(info.custom, false);
 });
 
 test('a meter: clamped ratio, thresholds pick the fill, caption defaults to the percentage', () => {

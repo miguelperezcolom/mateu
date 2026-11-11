@@ -1,6 +1,6 @@
 import { chromeText } from '../i18n.mjs'
 import { elementModuleUrl } from '../elements.mjs'
-import { sanitizeHtml, markdownToHtml } from '../richtext.mjs'
+import { sanitizeHtml, markdownToHtml, styleObjectOf } from '../richtext.mjs'
 import { collectTexts } from './tree.mjs'
 import { avatarOf } from './atoms.mjs'
 import { ojIconOf, GENERIC_ICON } from './shellNav.mjs'
@@ -157,7 +157,9 @@ export function pricingAtomOf(m, interp = (x) => x) {
       features: (p.features || []).map((f) => interp(str(f))),
       featured: !!p.featured,
       cardClass: 'oj-panel oj-sm-padding-6x mateu-pricing-plan' + (p.featured ? ' mateu-pricing-featured' : ''),
-      hasCta: !!p.actionId,
+      // the web draws the CTA whenever it has a label (inert without an actionId) — it was dropped
+      hasCta: !!p.actionId || !!p.ctaLabel,
+      ctaDisabled: !p.actionId,
       ctaLabel: interp(str(p.ctaLabel)) || chromeText('choose'),
       chroming: p.featured ? 'callToAction' : 'outlined',
       colClass: 'oj-flex-item oj-sm-12 oj-md-' + Math.max(3, Math.floor(12 / Math.max(1, Math.min(4, plans.length)))),
@@ -182,7 +184,10 @@ export function setOrgHierarchyProviderFactory(factory) { orgHierarchyProviderFa
 export const ORG_CARD_TEMPLATE = 'mateuOrgCard'
 
 export function orgChartAtomOf(m, interp = (x) => x) {
-  if (orgHierarchyProviderFactory) return orgHierarchyAtomOf(m, interp)
+  // `display: focus` → Spectra's hierarchy viewer (one person, managers above, reports below). The
+  // DEFAULT `tree` shows the WHOLE tree: the viewer shows only two levels (grandchildren were lost), so
+  // it is the outline, every node at its depth, clickable, in its accent colour
+  if (orgHierarchyProviderFactory && str(m.display).toLowerCase() === 'focus') return orgHierarchyAtomOf(m, interp)
   const nodes = []
   const walk = (node, depth, last) => {
     if (!node) return
@@ -191,6 +196,8 @@ export function orgChartAtomOf(m, interp = (x) => x) {
     nodes.push({
       depth,
       rowStyle: { paddingInlineStart: (depth * 2) + 'rem' },
+      // the node's accent colour (it was dropped): a bar along the card's start edge
+      cardStyle: cssColorOf(node.color) ? { borderInlineStart: '4px solid ' + cssColorOf(node.color) } : {},
       rowClass: 'mateu-org-node' + (depth ? ' mateu-org-child' : '') + (last ? ' mateu-org-last' : ''),
       title: interp(str(node.title)),
       subtitle: interp(str(node.subtitle)),
@@ -485,6 +492,8 @@ export function checklistAtomOf(m, interp = (x) => x) {
       label: interp(str(it.label)),
       value: it.done ? ['done'] : [],
       labelClass: it.done ? 'mateu-checklist-done' : '',
+      iconClass: it.done ? 'mateu-checklist-box mateu-checklist-box-done' : 'mateu-checklist-box',
+      srStatus: it.done ? ', done' : ', not done',
       readonly: !it.actionId,
       actionId: it.actionId || '',
       parameters: { _item: it, _done: !it.done },
@@ -630,7 +639,8 @@ export function menuBarAtomOf(m, interp = (x) => x) {
   }
 }
 export function contextMenuAtomOf(m, interp = (x) => x) {
-  return { isContextMenu: true, label: chromeText('moreActions'), menuItems: menuItemsOf(m.menu, interp), rightClick: !m.activateOnLeftClick }
+  // a right click on what it wraps always opens it; activateOnLeftClick makes a plain click do so too
+  return { isContextMenu: true, label: chromeText('moreActions'), menuItems: menuItemsOf(m.menu, interp), rightClick: true, leftClick: !!m.activateOnLeftClick }
 }
 /** Directory: each top-level entry a column with its title and its links (submenus flattened). */
 export function directoryAtomOf(m, interp = (x) => x) {
@@ -705,7 +715,9 @@ export function cookieConsentAtomOf(m, interp = (x) => x) {
     learnMore: interp(str(m.learnMore)) || chromeText('learnMore'),
     learnMoreLink: safeHref(m.learnMoreLink),
     hasLearnMore: !!safeHref(m.learnMoreLink),
-    bandClass: 'mateu-cookie-consent oj-panel oj-sm-padding-4x' + (position.indexOf('top') >= 0 ? ' mateu-cookie-top' : ' mateu-cookie-bottom'),
+    // a corner position (BottomRight, TopLeft…) is a box in that corner, not a full-width bar
+    bandClass: 'mateu-cookie-consent oj-panel oj-sm-padding-4x' + (position.indexOf('top') >= 0 ? ' mateu-cookie-top' : ' mateu-cookie-bottom')
+      + (position.indexOf('left') >= 0 ? ' mateu-cookie-left' : position.indexOf('right') >= 0 ? ' mateu-cookie-right' : ''),
   }
 }
 /** Whether the consent cookie is set in a cookie string (document.cookie). */
@@ -989,7 +1001,17 @@ export function bpmnDiagramOf(xml) {
     if (a && b && a.x != null && b.x != null) f.points = [[a.x + a.w, a.y + a.h / 2], [b.x, b.y + b.h / 2]]
   }
   let maxX = 0; let maxY = 0; let minX = Infinity; let minY = Infinity
-  for (const n of nodes) if (n.x != null) { maxX = Math.max(maxX, n.x + n.w); maxY = Math.max(maxY, n.y + n.h + 20); minX = Math.min(minX, n.x); minY = Math.min(minY, n.y) }
+  for (const n of nodes) {
+    if (n.x == null) continue
+    // a name drawn BELOW its shape (events, gateways) is centred on it and may be wider than it:
+    // «Loan requested» under a start event was clipped at the left edge
+    const below = n.label && n.kind !== 'task' && n.kind !== 'note'
+    const half = below ? Math.min(String(n.label).length, 18) * 3.6 : 0
+    maxX = Math.max(maxX, n.x + n.w, n.x + n.w / 2 + half)
+    maxY = Math.max(maxY, n.y + n.h + (below ? 48 : 20))
+    minX = Math.min(minX, n.x, n.x + n.w / 2 - half)
+    minY = Math.min(minY, n.y)
+  }
   for (const f of flows) for (const [x, y] of f.points) { maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); minX = Math.min(minX, x); minY = Math.min(minY, y) }
   if (!isFinite(minX)) { minX = 0; minY = 0 }
   return {
@@ -999,10 +1021,13 @@ export function bpmnDiagramOf(xml) {
     width: Math.max(100, maxX - minX + 40), height: Math.max(80, maxY - minY + 40),
   }
 }
-export function bpmnAtomOf(m, id) {
+export function bpmnAtomOf(m, id, style) {
   const diagram = bpmnDiagramOf(m.xml)
+  const box = styleObjectOf(style || m.style)
   return {
     isBpmn: true,
+    // its own size (`height: 18rem`): the diagram scales into it
+    bpmnStyle: box,
     bpmnId: 'mateuBpmn-' + str(id || 'bpmn').replace(/[^\w-]/g, '_'),
     spec: JSON.stringify(diagram),
     isEmpty: !diagram.nodes.length,
@@ -1121,6 +1146,8 @@ export function autoFitColClass(template, cells = 1) {
 }
 
 // ── HeroSection / EmptyState / ProgressBar in the content ───────────────────────────────────────
+/** The HeroSection tones the wire names (HeroSectionDto.tone). */
+export const HERO_TONES = new Set(['ocean', 'pine', 'lilac', 'teal', 'rose', 'pebble', 'slate', 'plum', 'sienna'])
 export function heroAtomOf(m, interp = (x) => x) {
   const image = m.image ? elementModuleUrl(str(m.image)) : ''
   return {
@@ -1129,7 +1156,11 @@ export function heroAtomOf(m, interp = (x) => x) {
     overline: interp(str(m.overline)),
     title: interp(str(m.title)),
     subtitle: interp(str(m.subtitle)),
-    heroClass: 'mateu-hero oj-sm-padding-10x' + (m.centered ? ' mateu-hero-centered' : '') + (image ? ' mateu-hero-image' : ''),
+    // its tone (ocean, pine, plum…): a dark tinted band with light ink (app.css .mateu-hero-tone-*)
+    heroClass: 'mateu-hero oj-sm-padding-10x' + (m.centered ? ' mateu-hero-centered' : '') + (image ? ' mateu-hero-image' : '')
+      + (HERO_TONES.has(str(m.tone)) ? ' mateu-hero-tone mateu-hero-tone-' + str(m.tone) : ''),
+    // its call-to-action buttons, drawn INSIDE the band (the visitor fills them from its children)
+    buttons: [],
     heroStyle: image ? { backgroundImage: 'linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)), url("' + image.replace(/"/g, '%22') + '")', minHeight: str(m.height) || '' } : { minHeight: str(m.height) || '' },
   }
 }
@@ -1165,6 +1196,76 @@ export function progressBarAtomOf(m, state, interp = (x) => x) {
     text: interp(str(m.text)),
     ariaLabel: interp(str(m.text)) || 'Progress',
     barClass: 'oj-sm-margin-1x-vertical' + (toneOf(m.theme) ? ' mateu-tone-' + toneOf(m.theme) : ''),
+  }
+}
+
+/** ProgressSteps → oj-train (horizontal, no descriptions): a done step is VISITED with JET's
+ *  confirmation mark (it read «Status: Not visited» and looked upcoming). With descriptions or
+ *  `vertical` (oj-train draws neither) → our own step list, same done / current / upcoming states. */
+export function progressStepsAtomOf(m, interp = (x) => x) {
+  const raw = m.steps || []
+  const current = raw.find((step) => step.status === 'current')
+  const titleOf = (step) => interp(str(step.title || step.label || step.id))
+  const steps = raw.map((step) => ({
+    id: step.id,
+    label: titleOf(step),
+    ...(step.status === 'done' ? { visited: true, messageType: 'confirmation' } : {}),
+  }))
+  const own = !!m.vertical || raw.some((step) => step.description)
+  return {
+    isProgress: true,
+    steps,
+    selectedId: current ? current.id : (steps[0] && steps[0].id),
+    trainSteps: !own,
+    ownSteps: own,
+    stepsClass: 'mateu-steps' + (m.vertical ? ' mateu-steps-vertical' : ''),
+    stepItems: raw.map((step, i) => {
+      const status = step.status === 'done' || step.status === 'current' ? step.status : 'upcoming'
+      return {
+        key: str(step.id || i),
+        number: status === 'done' ? '✓' : String(i + 1),
+        title: titleOf(step),
+        description: interp(str(step.description)),
+        hasDescription: !!step.description,
+        cls: 'mateu-step mateu-step-' + status,
+        ariaCurrent: status === 'current' ? 'step' : null,
+        srStatus: ', ' + (status === 'done' ? 'done' : status === 'current' ? 'current step' : 'upcoming'),
+      }
+    }),
+  }
+}
+
+/** The points of a sparkline (an SVG polyline in a 100×24 box); '' under two finite points. */
+export function sparkPointsOf(values, w = 100, h = 24, pad = 2) {
+  const vals = (values || []).map(Number).filter(Number.isFinite)
+  if (vals.length < 2) return ''
+  const min = Math.min(...vals)
+  const span = Math.max(...vals) - min || 1
+  const step = (w - pad * 2) / (vals.length - 1)
+  return vals.map((v, i) => (pad + i * step).toFixed(1) + ',' + (pad + (h - pad * 2) * (1 - (v - min) / span)).toFixed(1)).join(' ')
+}
+
+const STAT_TREND = {
+  up: { glyph: '▲', cls: 'oj-text-color-success', stroke: 'var(--oj-core-success-3, #508223)' },
+  down: { glyph: '▼', cls: 'oj-text-color-danger', stroke: 'var(--oj-core-danger-3, #c74634)' },
+  flat: { glyph: '→', cls: 'oj-text-color-secondary', stroke: 'var(--oj-core-neutral-3, #8a8582)' },
+}
+/** Stat → a KPI tile: label, value + unit, the delta coloured by its trend and a sparkline (only the
+ *  label and the value were drawn). Like the web's mateu-stat: an absent trend reads as up. */
+export function statAtomOf(m, interp = (x) => x) {
+  const trend = STAT_TREND[str(m.trend).toLowerCase()] || STAT_TREND[m.trend === 'neutral' ? 'flat' : 'up']
+  const points = sparkPointsOf(m.spark)
+  const delta = interp(str(m.delta))
+  return {
+    isStat: true,
+    label: interp(str(m.label)),
+    value: (m.value == null ? '' : String(interp(String(m.value)))) + (m.unit ? ' ' + interp(m.unit) : ''),
+    hasDelta: !!delta,
+    deltaText: delta ? trend.glyph + ' ' + delta : '',
+    deltaClass: 'oj-typography-body-sm ' + trend.cls,
+    hasSpark: !!points,
+    sparkPoints: points,
+    sparkStroke: trend.stroke,
   }
 }
 
@@ -1236,16 +1337,29 @@ export function withoutWindowCommands(increment) {
 }
 /** Tags every object of a surface's atoms that sends an action with the surface it belongs to, so
  *  the block dispatcher sends it there (deep: the cards of a board, the buttons of a band…). */
-export function tagSurfaceActions(value, surfaceId) {
-  if (Array.isArray(value)) return value.map((v) => tagSurfaceActions(v, surfaceId))
+export function tagSurfaceActions(value, surfaceId, top = true) {
+  if (Array.isArray(value)) return value.map((v) => tagSurfaceActions(v, surfaceId, top))
   // only plain data: a JET data provider or converter is passed through as it is
   if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) return value
   const out = {}
   // (the parameters travel to the server as they are)
-  for (const [k, v] of Object.entries(value)) out[k] = k === 'parameters' ? v : tagSurfaceActions(v, surfaceId)
-  if ('actionId' in out) out.surfaceId = surfaceId
+  for (const [k, v] of Object.entries(value)) out[k] = k === 'parameters' ? v : tagSurfaceActions(v, surfaceId, false)
+  // a layout box's cells hold ATOMS of their own (the cell copy of the template stamps their roots too)
+  if (value.isCells && Array.isArray(value.cells)) {
+    out.cells = value.cells.map((c) => ({ ...tagSurfaceActions(c, surfaceId, false), items: tagSurfaceActions(c.items || [], surfaceId, true) }))
+  }
+  // every ATOM of the surface carries it (make-html stamps it on the atom's root element as
+  // data-mateu-surface-id: the DOM pieces — a calendar's day, a map marker, a field's change — find
+  // it there, poc/surfaces.mjs), and so does any object inside that names an action of its own
+  // (`actionId`, or a `…ActionId` of a component: markerActionId, dayActionId, moveActionId…).
+  // A surface nested in this one already tagged ITS actions (withSubresources fills inside out).
+  if ((top || Object.keys(out).some(isActionKey)) && !out.surfaceId) out.surfaceId = surfaceId
+  // a table's data provider was built from the UNTAGGED rows: a cell naming an action (a Grid
+  // column's actionId link) read no surface from it and went to the host (403) — rebuilt from them
+  if (value.adp && Array.isArray(out.rows) && out.rows !== value.rows && dataProviderFactory) out.adp = dataProviderFactory(out.rows)
   return out
 }
+const isActionKey = (k) => k === 'actionId' || /ActionId$/.test(k)
 
 // ── Unknown / unsupported types: a visible placeholder, like the web renderers ───────────────────
 export function unsupportedAtomOf(type, id) {

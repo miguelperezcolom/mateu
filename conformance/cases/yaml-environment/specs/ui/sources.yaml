@@ -1,0 +1,11 @@
+# The catalogue as authored: where the endpoints live by default.
+sources:
+  - name: products
+    source:
+      url: https://api.example/v1/products?active=true
+      itemsPath: items
+  - name: categories
+    source:
+      url: https://api.example/categories
+      valuePath: code
+      labelPath: name

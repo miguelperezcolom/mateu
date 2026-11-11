@@ -1,5 +1,6 @@
 import { callMateu } from './transport.mjs'
 import { chromeText } from './i18n.mjs'
+import { dismissBanner } from './reduceContexts.mjs'
 import { markReadVars, runShellSource, shellSourcesOf, sourcedNotificationsOf } from './globalSearch.mjs'
 import { adoptServerList, markReadLocally, sessionIdsOf, inboxModelOf, withServerList, createInbox, setInboxProviderFactory } from './inbox.mjs'
 // NOTIFICATION INBOX and TOASTS WITH UNDO in the VB shell.
@@ -200,4 +201,37 @@ export function showUndoToasts(toasts, doc = typeof document !== 'undefined' ? d
     msg.addEventListener('ojClose', () => { if (msg.parentNode) msg.parentNode.removeChild(msg) })
     host.appendChild(msg)
   }
+}
+
+/**
+ * An island page's banners (content.mjs, isIslandBanner): a click on a closeable one's ✕ dismisses
+ * it, and one with a timeout dismisses itself after it — both remembered (dismissBanner), so a
+ * re-projection does not bring it back. Listened at document level (the banner is drawn by a
+ * template, in any surface's hole).
+ */
+export function installBannerDismissal(doc = typeof document !== 'undefined' ? document : null) {
+  if (!doc || doc.__mateuBannerDismissal) return
+  doc.__mateuBannerDismissal = true
+  const hide = (el) => {
+    if (!el) return
+    dismissBanner(el.getAttribute('data-mateu-banner'))
+    el.hidden = true
+    el.style.display = 'none'
+  }
+  doc.addEventListener('click', (e) => {
+    const close = e.target && e.target.closest ? e.target.closest('[data-mateu-banner-close]') : null
+    if (close) hide(close.closest('[data-mateu-banner]'))
+  }, true)
+  const timed = new WeakSet()
+  const arm = () => {
+    for (const el of doc.querySelectorAll('[data-mateu-banner-timeout]')) {
+      const ms = Number(el.getAttribute('data-mateu-banner-timeout'))
+      if (!(ms > 0) || timed.has(el)) continue
+      timed.add(el)
+      setTimeout(() => hide(el), ms)
+    }
+  }
+  const View = doc.defaultView
+  if (View && View.MutationObserver && doc.body) new View.MutationObserver(arm).observe(doc.body, { childList: true, subtree: true })
+  arm()
 }

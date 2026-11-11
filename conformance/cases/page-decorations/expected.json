@@ -1,0 +1,104 @@
+{
+  "commands" : [ {
+    "data" : "Customer",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "cssClasses" : "mateu-section",
+          "metadata" : {
+            "content" : {
+              "children" : [ {
+                "children" : [ {
+                  "children" : [ {
+                    "children" : [ {
+                      "metadata" : {
+                        "colspan" : 1,
+                        "dataType" : "string",
+                        "fieldId" : "name",
+                        "label" : "Name",
+                        "optionsColumns" : 1,
+                        "sliderMax" : 100,
+                        "stereotype" : "regular",
+                        "type" : "FormField"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "FormRow"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "autoResponsive" : true,
+                    "expandColumns" : true,
+                    "maxColumns" : 1,
+                    "type" : "FormLayout"
+                  },
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "style" : "width: 100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "type" : "Div"
+              },
+              "style" : "flex: 1; min-width: 0; width:100%;",
+              "type" : "ClientSide"
+            },
+            "type" : "Card",
+            "variants" : [ "outlined" ]
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "avatar" : {
+            "metadata" : {
+              "name" : "Ada Lovelace",
+              "type" : "Avatar"
+            },
+            "style" : ";width: 4rem;height: 4rem;",
+            "type" : "ClientSide"
+          },
+          "footer" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Data kept for five years",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "header" : [ {
+            "metadata" : {
+              "container" : "div",
+              "text" : "Gold member",
+              "type" : "Text"
+            },
+            "type" : "ClientSide"
+          } ],
+          "pageTitle" : "Page decorations page",
+          "pageType" : "form",
+          "title" : "Customer",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "name" : "Ada"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "name" : "Ada"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

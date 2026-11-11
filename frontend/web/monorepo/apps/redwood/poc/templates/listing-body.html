@@ -1547,7 +1547,7 @@
                           <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.progressText ]]"></oj-bind-text></span>
                         </div>
                       </oj-bind-if>
-                      <oj-progress-bar class="oj-sm-margin-2x-vertical" value="[[ $current.data.progressValue ]]" max="100"></oj-progress-bar>
+                      <oj-c-progress-bar class="oj-sm-margin-2x-vertical" style="width: 100%;" value="[[ $current.data.progressValue ]]" max="100"></oj-c-progress-bar>
                       <oj-bind-for-each data="[[ $current.data.items ]]">
                         <template>
                           <oj-checkboxset value="[[ $current.data.value ]]" readonly="[[ $current.data.readonly ]]" :class="[[ $current.data.labelClass ]]"
@@ -1618,7 +1618,7 @@
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isContextMenu ]]">
                     <!-- ContextMenu: its content is above; its menu, an oj-menu-button (installContextMenus also opens it on right click) -->
-                    <div class="oj-flex oj-sm-justify-content-flex-end mateu-context-menu" :data-mateu-context-menu="[[ $current.data.rightClick ]]">
+                    <div class="oj-flex oj-sm-justify-content-flex-end mateu-context-menu" :data-mateu-context-menu="[[ $current.data.rightClick ]]" :data-mateu-context-left="[[ $current.data.leftClick ? 'true' : null ]]">
                       <oj-menu-button chroming="borderless" display="icons">
                         <span slot="startIcon" class="oj-ux-ico-overflow-h"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
                         <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.hostMenuAction ]]">
@@ -1800,7 +1800,7 @@
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isProgressBar ]]">
                     <div class="oj-sm-margin-2x-bottom">
-                      <oj-progress-bar :class="[[ $current.data.barClass ]]" value="[[ $current.data.value ]]" max="100" :aria-label="[[ $current.data.ariaLabel ]]"></oj-progress-bar>
+                      <oj-c-progress-bar :class="[[ $current.data.barClass ]]" style="width: 100%;" value="[[ $current.data.value ]]" max="100" :aria-label="[[ $current.data.ariaLabel ]]"></oj-c-progress-bar>
                       <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                     </div>
                   </oj-bind-if>

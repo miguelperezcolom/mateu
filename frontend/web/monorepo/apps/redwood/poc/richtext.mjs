@@ -21,7 +21,7 @@ const escapeAttr = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;
 // `class`, `title`, `aria-hidden` and a FILTERED `style` on the allowed tags, and an <img> whose
 // src is http(s), relative or a raster data: image. Still nothing that runs: no handler, no
 // script, no url() in a style, no form.
-const STYLE_PROPS = /^(color|background-color|font-(size|weight|style|family)|text-(align|decoration|transform)|vertical-align|(margin|padding)(-(top|right|bottom|left|inline|block)(-(start|end))?)?|(min-|max-)?(width|height)|line-height|display|white-space|opacity|gap|border(-(top|right|bottom|left))?(-(width|style|color|radius))?|border-collapse|flex(-(grow|shrink|basis|wrap|direction))?|align-(items|self|content)|justify-(content|self)|order)$/i
+const STYLE_PROPS = /^(color|background(-color)?|overflow(-[xy])?|font-(size|weight|style|family)|text-(align|decoration|transform)|vertical-align|(margin|padding)(-(top|right|bottom|left|inline|block)(-(start|end))?)?|(min-|max-)?(width|height)|line-height|display|white-space|opacity|gap|border(-(top|right|bottom|left))?(-(width|style|color|radius))?|border-collapse|flex(-(grow|shrink|basis|wrap|direction))?|align-(items|self|content)|justify-(content|self)|order)$/i
 const STYLE_VALUE = /^[#\w\s.,%()+-]*$/
 const SAFE_IMG_SRC = /^(https?:|\/|\.{0,2}\/|data:image\/(png|jpe?g|gif|webp|bmp|avif);)|^[^:]*$/i
 
@@ -197,7 +197,10 @@ export function markdownToHtml(md) {
     }
     const quoted = /^\s*>\s?(.*)$/.exec(line)
     if (quoted) { flushPara(); flushList(); quote.push(quoted[1]); continue }
-    flushList(); flushQuote()
+    // a LAZY continuation: a plain line right after a list item (or a quote) belongs to it, as
+    // in CommonMark — a bullet wrapped onto a second source line fell out of the list
+    if (list && list.items.length) { list.items[list.items.length - 1] += ' ' + line.trim(); continue }
+    if (quote.length) { quote.push(line.trim()); continue }
     para.push(line.trim())
   }
   flushAll()

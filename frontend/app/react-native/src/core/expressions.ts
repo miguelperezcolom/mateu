@@ -359,7 +359,12 @@ export function evaluateExpression(expr: string, ctx: Ctx): unknown {
  *  null). Returns the template untouched when it has no placeholders. */
 export function interpolate(template: string, ctx: Ctx): string {
   if (!template || !template.includes('${')) return template;
-  return template.replace(/\$\{([^}]+)\}/g, (_, expr: string) => {
+  // the web's literal escapes: `\${…}` is the text `${…}` (a page that SHOWS a placeholder — it lost
+  // its expression and kept the backslash: "with \x"), `\\` a backslash
+  return template.replace(/\\\\|\\\$\{|\$\{([^}]+)\}/g, (match: string, expr: string | undefined) => {
+    if (match === '\\\\') return '\\';
+    if (match === '\\${') return '${';
+    if (expr === undefined) return match;
     // `${i18n.key}` is resolved by the server before the wire leaves it; one that still arrives has
     // no catalogue behind it here — show the key, never a blank.
     const key = i18nKeyOf(expr);

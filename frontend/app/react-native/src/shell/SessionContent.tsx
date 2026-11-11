@@ -12,11 +12,14 @@ import { theme, themed } from '../theme';
 import { IconButton, Snackbar, Surface, Text as PaperText } from 'react-native-paper';
 import { MateuButton } from '../ui/controls';
 import { AppRenderer } from '../renderer/AppRenderer';
-import { MateuViewHost } from '../renderer/MateuViewHost';
-import { overlayContentWithData, overlayIdOf, upsertOverlay, withOverlayState } from '../renderer/patternGaps';
+import { MateuViewHost, ViewControllerProvider } from '../renderer/MateuViewHost';
+import { ComponentRenderer } from '../renderer/ComponentRenderer';
+import type { MateuViewController } from '../core/MateuViewController';
+import { drawerSheetLook, overlayContentWithData, pageHeaderExtrasOf, overlayIdOf, upsertOverlay, withOverlayState } from '../renderer/patternGaps';
 import { interpolate } from '../core/expressions';
 import { buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
 import { TaskHost } from '../renderer/TaskHost';
+import { ConnectivityStrip } from './ConnectivityStrip';
 
 /**
  * One running Mateu UI inside a MateuAppProvider: the root load (App shell or a single view) plus the
@@ -34,6 +37,7 @@ export function SessionContent({ initialRoute, visible = true }: { initialRoute:
       <OverlayHost visible={visible} />
       <TaskHost visible={visible} />
       <ToastHost visible={visible} />
+      <ConnectivityStrip visible={visible} />
       <DirtyGuardHost />
     </>
   );
@@ -179,58 +183,197 @@ function OverlayHost({ visible = true }: { visible?: boolean }) {
   }, [session]);
 
   if (overlays.length === 0 || !visible) return null;
-  const top = overlays[overlays.length - 1];
-  const meta = ((top.component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
-  const content = overlayContentWithData({ ...meta, initialData: top.state });
-  const title = interpolate(top.title, { state: top.state });
+  // ONE modal holds every open overlay as a layer: the lower ones stay MOUNTED under the top one, so
+  // a drawer under a nested dialog keeps what was typed in it (only the top was drawn: closing the
+  // dialog remounted the drawer from its initialData — its next request sent an empty state)
+  const layers = overlays.map((entry, i) => (
+    <OverlayLayer key={`${overlayIdOf(entry.component) || i}#${entry.revision}`} entry={entry} top={i === overlays.length - 1} fallbackSession={session} />
+  ));
+  // only modeless drawers open: no modal at all — the screen behind them stays usable
+  const allModeless = overlays.every((o) => {
+    const m = ((o.component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
+    return m['type'] === 'Drawer' && m['modeless'] === true;
+  });
+  if (allModeless) return <View style={StyleSheet.absoluteFill} pointerEvents="box-none">{layers}</View>;
+  return (
+    <Modal {...modalA11y(overlayTitleOf(overlays[overlays.length - 1]) || 'Dialog')} accessibilityViewIsModal animationType="fade" transparent statusBarTranslucent onRequestClose={() => session.closeTopOverlay()}>
+      {layers}
+    </Modal>
+  );
+}
 
-  const hostOf = (fit: boolean) =>
+type OverlayEntryState = {
+  component: unknown;
+  title: string;
+  revision: number;
+  opener?: import('../core/MateuSession').OverlayOpenerContext;
+  state: Record<string, unknown>;
+};
+
+const overlayTitleOf = (entry: OverlayEntryState) => interpolate(entry.title, { state: entry.state });
+
+const asNodes = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
+
+/** One open overlay: a Dialog / ConfirmDialog (Material's dialog) or a Drawer (a bottom sheet). */
+function OverlayLayer({ entry, top, fallbackSession }: { entry: OverlayEntryState; top: boolean; fallbackSession: import('../core/MateuSession').MateuSession }) {
+  const session = entry.opener?.session ?? fallbackSession;
+  const opener = entry.opener?.controller as MateuViewController | undefined;
+  const meta = ((entry.component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
+  const type = meta['type'];
+  const content = overlayContentWithData({ ...meta, initialData: entry.state });
+  const title = overlayTitleOf(entry);
+  const subtitle = interpolate(String(meta['subtitle'] ?? ''), { state: entry.state });
+  const close = () => session.closeTopOverlay();
+
+  /** What the overlay draws OUTSIDE its content (a footer, a header, a ConfirmDialog's body) runs on
+   *  the view that opened it, with its state — the web's actions bubble to the opener. */
+  const onOpener = (node: unknown) => {
+    if (!node || typeof node !== 'object') return null;
+    if (opener) {
+      return (
+        <ViewControllerProvider value={opener}>
+          <ComponentRenderer component={node} state={opener.rendered.state ?? {}} data={opener.rendered.data} />
+        </ViewControllerProvider>
+      );
+    }
+    return <MateuViewHost session={session} serverSideNode={node} overlaid overlayOpener={entry.opener} />;
+  };
+
+  const host = (fit: boolean) =>
     content ? (
       <FitsContent.Provider value={fit}>
-        <MateuViewHost
-          key={`${overlayIdOf(top.component)}#${top.revision}#${overlays.length}`}
-          session={session}
-          serverSideNode={content}
-          overlaid
-          overlayOpener={top.opener}
-        />
+        <MateuViewHost session={session} serverSideNode={content} overlaid overlayOpener={entry.opener} />
       </FitsContent.Provider>
     ) : null;
-  const closeButton = <IconButton icon="close" accessibilityLabel={title ? `Close ${title}` : 'Close'} onPress={() => session.closeTopOverlay()} />;
+  const closeButton = <IconButton icon="close" accessibilityLabel={title ? `Close ${title}` : 'Close'} onPress={close} />;
+  // a lower layer stays drawn (dimmed by the one above) but takes no touches
+  const layer = StyleSheet.absoluteFill;
 
-  // A Dialog is Material's dialog, as tall as what it says: a two-line question used to take half the screen.
-  if (meta['type'] === 'Dialog') {
+  if (type === 'ConfirmDialog') {
+    // its buttons close it, then run their action on the opener (vaadin-confirm-dialog closes on
+    // any of its buttons; drawn in place it stayed until Cancel)
+    const press = (actionId: unknown) => {
+      close();
+      if (typeof actionId === 'string' && actionId && opener) void opener.runAction(actionId);
+    };
+    const body = asNodes((entry.component as Record<string, unknown>)?.['children']);
     return (
-      <Modal {...modalA11y(title || 'Dialog')} accessibilityViewIsModal animationType="fade" transparent statusBarTranslucent onRequestClose={() => session.closeTopOverlay()}>
-        <View style={styles.dialogBackdrop}>
-          <Surface elevation={3} style={styles.dialog}>
-            <View style={styles.overlayHeader}>
-              <PaperText variant="headlineSmall" {...headingA11y(2)} style={styles.overlayTitle} numberOfLines={2}>{title}</PaperText>
-              {closeButton}
-            </View>
-            {hostOf(true)}
-          </Surface>
-        </View>
-      </Modal>
+      <View style={[layer, styles.dialogBackdrop]} pointerEvents={top ? 'auto' : 'none'}>
+        <Surface elevation={3} style={styles.dialog}>
+          <View style={styles.overlayHeader}>
+            <PaperText variant="headlineSmall" {...headingA11y(2)} style={styles.overlayTitle} numberOfLines={3}>{interpolate(String(meta['header'] ?? ''), { state: entry.state })}</PaperText>
+          </View>
+          <View style={styles.dialogBody}>
+            {body.map((node, i) => <React.Fragment key={i}>{onOpener(node)}</React.Fragment>)}
+            {onOpener(meta['content'])}
+          </View>
+          <View style={styles.dialogFooter}>
+            {!!meta['canCancel'] && <MateuButton label={String(meta['cancelText'] ?? 'Cancel')} buttonStyle="tertiary" onPress={() => press(meta['cancelActionId'])} />}
+            {!!meta['canReject'] && <MateuButton label={String(meta['rejectText'] ?? 'No')} onPress={() => press(meta['rejectActionId'])} />}
+            <MateuButton label={String(meta['confirmText'] ?? 'OK')} buttonStyle="primary" onPress={() => press(meta['confirmActionId'])} />
+          </View>
+        </Surface>
+      </View>
     );
   }
 
-  return (
-    // a drawer: screen readers stop at its edge, and its ✕ is a named button (it was announced as
-    // bare text, unreachable as a control)
-    <Modal {...modalA11y(title || 'Dialog')} accessibilityViewIsModal animationType="slide" transparent onRequestClose={() => session.closeTopOverlay()}>
-      <View style={styles.overlayBackdrop}>
-        {/* a Material bottom sheet: drag handle, title, close */}
-        <View style={styles.overlaySheet}>
-          <View style={styles.overlayHandle} />
+  // A Dialog is Material's dialog, as tall as what it says: a two-line question used to take half the screen.
+  if (type === 'Dialog') {
+    return (
+      <View style={[layer, styles.dialogBackdrop, meta['modeless'] === true && styles.clearBackdrop]} pointerEvents={top ? 'auto' : 'none'}>
+        <Surface elevation={3} style={styles.dialog}>
           <View style={styles.overlayHeader}>
-            <PaperText variant="titleLarge" {...headingA11y(2)} style={styles.overlayTitle} numberOfLines={2}>{title}</PaperText>
+            <PaperText variant="headlineSmall" {...headingA11y(2)} style={styles.overlayTitle} numberOfLines={2}>{title}</PaperText>
             {closeButton}
           </View>
-          {hostOf(false)}
-        </View>
+          {onOpener(meta['header'])}
+          {host(true)}
+          {!!meta['footer'] && <View style={styles.dialogFooter}>{onOpener(meta['footer'])}</View>}
+        </Surface>
       </View>
-    </Modal>
+    );
+  }
+
+  const openPeer = (label: string, route: string) => { session.closeTopOverlay(); session.openView({ label, route, consumedRoute: '', serverSideType: '' }); };
+  // its header/footer run on the opener; its content is its own view
+  const body = (
+    <>
+      {onOpener(meta['header'])}
+      <View style={styles.sheetBody}>{host(false)}</View>
+      {!!meta['footer'] && <View style={styles.sheetFooter}>{onOpener(meta['footer'])}</View>}
+    </>
+  );
+  return <DrawerSheet meta={meta} title={title} subtitle={subtitle} closeButton={closeButton} body={body} top={top} onPeer={openPeer} />;
+}
+
+/**
+ * A Drawer on a phone: a Material bottom sheet (every position docks at the bottom — a side panel
+ * would leave no room for the screen it covers). Its wire options, as a sheet can take them:
+ * `subtitle` under the title; `size` (s/m/l/xl) its starting height; `maximizable` a ⤢ that takes
+ * it to the full height and back; `collapsible` a ▾/▴ handle folding it to its header; `modeless`
+ * no dimmed backdrop and the screen behind stays usable.
+ */
+function DrawerSheet({ meta, title, subtitle, closeButton, body, top, onPeer }: {
+  meta: Record<string, unknown>; title: string; subtitle: string; closeButton: React.ReactNode; body: React.ReactNode; top: boolean;
+  onPeer: (label: string, route: string) => void;
+}) {
+  const look = drawerSheetLook(meta);
+  // the General Drawer's previous/next object (PeerNav): arrows in its header
+  const peers = pageHeaderExtrasOf({ peerNav: meta['peerNav'] }, title).peers;
+  const [maximized, setMaximized] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const sheet = (
+    // a drawer: screen readers stop at its edge, and its ✕ is a named button (it was announced as
+    // bare text, unreachable as a control)
+    <View style={[styles.overlaySheet, { minHeight: collapsed ? 0 : look.minHeight }, maximized && !collapsed ? styles.overlaySheetMax : null, look.modeless ? styles.overlaySheetFloating : null]}>
+      {look.collapsible ? (
+        <IconButton
+          icon={collapsed ? 'chevron-up' : 'chevron-down'}
+          size={20}
+          style={styles.overlayFold}
+          accessibilityLabel={collapsed ? 'Expand' : 'Collapse'}
+          accessibilityState={{ expanded: !collapsed }}
+          onPress={() => setCollapsed(!collapsed)}
+        />
+      ) : <View style={styles.overlayHandle} />}
+      <View style={styles.overlayHeader}>
+        <View style={styles.overlayTitleBox}>
+          <PaperText variant="titleLarge" {...headingA11y(2)} style={styles.overlayTitle} numberOfLines={2}>{title}</PaperText>
+          {!!subtitle && <PaperText variant="bodyMedium" style={styles.overlaySubtitle} numberOfLines={2}>{subtitle}</PaperText>}
+        </View>
+        {!!peers && (['prev', 'next'] as const).map((side) => {
+          const peer = peers[side];
+          if (!peer) return null;
+          const name = side === 'prev' ? 'Previous' : 'Next';
+          return (
+            <IconButton
+              key={side}
+              icon={side === 'prev' ? 'chevron-left' : 'chevron-right'}
+              disabled={!peer.route}
+              accessibilityLabel={peer.label ? `${name}: ${peer.label}` : name}
+              onPress={() => peer.route && onPeer(peer.label, peer.route)}
+            />
+          );
+        })}
+        {look.maximizable && !collapsed && (
+          <IconButton icon={maximized ? 'arrow-collapse' : 'arrow-expand'} accessibilityLabel={maximized ? 'Restore' : 'Maximize'} onPress={() => setMaximized(!maximized)} />
+        )}
+        {closeButton}
+      </View>
+      {/* folded: the body stays mounted (its typed values survive) but takes no room */}
+      <View style={collapsed ? styles.overlayFolded : styles.overlayBody}>{body}</View>
+    </View>
+  );
+  // a layer of the overlay host: dimmed backdrop, or none at all when modeless (the screen behind
+  // stays usable — the host itself is then no modal); a lower layer takes no touches
+  return (
+    <View
+      style={look.modeless ? styles.modelessHost : [StyleSheet.absoluteFill, styles.overlayBackdrop]}
+      pointerEvents={look.modeless ? 'box-none' : top ? 'auto' : 'none'}
+      accessibilityViewIsModal={!look.modeless}
+    >
+      {sheet}
+    </View>
   );
 }
 
@@ -342,7 +485,7 @@ function MateuRoot({ initialRoute }: { initialRoute: string }) {
   }
 
   // No app shell: the root route IS a single view — host it directly.
-  return <MateuViewHost session={session} onController={(c) => { session.hasUnsavedChanges = () => c.trackDirty && c.dirty; }} target={{ label: '', route: initialRoute, consumedRoute: '_empty', serverSideType: '' }} />;
+  return <MateuViewHost session={session} onController={(c) => { session.hasUnsavedChanges = () => (c.trackDirty && c.dirty) || session.anyUnsavedChanges(); }} target={{ label: '', route: initialRoute, consumedRoute: '_empty', serverSideType: '' }} />;
 }
 
 const styles = themed(() => StyleSheet.create({
@@ -364,6 +507,19 @@ const styles = themed(() => StyleSheet.create({
   dialog: { width: '100%', maxWidth: 560, maxHeight: '85%', borderRadius: theme.radiusLg, paddingTop: 12, paddingBottom: 8, overflow: 'hidden', backgroundColor: theme.surface },
   overlaySheet: { backgroundColor: theme.surface, borderTopLeftRadius: theme.radiusLg, borderTopRightRadius: theme.radiusLg, maxHeight: '88%', minHeight: '50%', overflow: 'hidden' },
   overlayHandle: { alignSelf: 'center', width: 32, height: 4, borderRadius: 2, backgroundColor: theme.border, marginTop: 10 },
+  overlaySheetMax: { maxHeight: '100%', height: '100%', borderTopLeftRadius: 0, borderTopRightRadius: 0 },
+  overlaySheetFloating: { elevation: 12, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: -2 }, borderTopWidth: StyleSheet.hairlineWidth, borderColor: theme.border },
+  overlayFold: { alignSelf: 'center', margin: 0 },
+  overlayTitleBox: { flex: 1 },
+  overlaySubtitle: { color: theme.muted },
+  overlayBody: { flexShrink: 1, flexGrow: 1 },
+  overlayFolded: { height: 0, overflow: 'hidden' },
+  modelessHost: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'flex-end' },
   overlayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingLeft: 24, paddingRight: 8, paddingTop: 4, paddingBottom: 4 },
   overlayTitle: { flex: 1, color: theme.ink },
+  clearBackdrop: { backgroundColor: 'transparent' },
+  dialogBody: { paddingHorizontal: 24, paddingVertical: 8, gap: 8 },
+  dialogFooter: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 8, paddingHorizontal: 16, paddingTop: 8 },
+  sheetBody: { flexShrink: 1, flexGrow: 1 },
+  sheetFooter: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border, padding: 12 },
 }));

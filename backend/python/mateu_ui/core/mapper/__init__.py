@@ -255,6 +255,7 @@ from ._common import (  # noqa: F401 - the public import path of every helper
     with_action_options,
 )
 from ._base import MixinBase
+from mateu_ui.uidl.markers import Avatar as PageAvatar, Footer as PageFooter, Header as PageHeader
 from .crud_modes import hidden_in_current_form
 from .app import AppMapperMixin
 from .view import ViewMapperMixin
@@ -298,6 +299,8 @@ class ReflectionMapper(
         self.adapters: dict = {}
         #: The listing exporters (set by the SyncHandler); default = the built-in CSV writer only.
         self.exporters: Any = Exporters()
+        #: an EmbeddedView island's own data (its lookup labels); set by the SyncHandler
+        self.island_data: Any = None
         #: The translation catalogue (a TranslationRegistry, set by the SyncHandler); None = none.
         self.translations: Any = None
         #: Live UI push is on (set by SyncHandler.enable_agent_push): the app says so on the wire.
@@ -345,6 +348,10 @@ class ReflectionMapper(
             return False
         # HeaderBadge() fields are header chips, never form fields (Java's FormFieldFilter).
         if f.has(HeaderBadge):
+            return False
+        # Avatar()/Header()/Footer() fields are the PAGE's blocks, never form fields (Java's
+        # FormFieldFilter.isPageDecoration)
+        if f.has(PageAvatar) or f.has(PageHeader) or f.has(PageFooter):
             return False
         # a member the render in flight hides (a MasterDetailView's unselected detail parts)
         if is_hidden_member(f.name):

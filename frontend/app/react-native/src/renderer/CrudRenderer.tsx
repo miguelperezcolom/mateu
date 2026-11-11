@@ -1,6 +1,7 @@
 import { bodyRepeatsBar } from '../core/barTitle';
 import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, Image, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Alert, FlatList, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Image } from './BackendImage';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { buttonActionId, effectiveListingLayout, loadFailureMessage, rowCheckboxLabel } from '../core/uxRules';
@@ -47,6 +48,7 @@ import {
   firstRowAction as firstRowActionOf,
   cardLayoutOf,
   isImageColumn,
+  listColumns,
   listRowModel,
   pictureUrlOf,
   nextSort,
@@ -399,6 +401,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   // the columns at the screen edge. A declared layout is always honoured.
   const { width: windowWidth } = useWindowDimensions();
   const gridLayout = effectiveListingLayout(metadata['gridLayout'] as string | undefined, windowWidth);
+  // masterDetail on a phone: a list whose pressed row shows its detail under it
+  const masterDetail = gridLayout === 'masterDetail';
+  const [detailRow, setDetailRow] = useState<Record<string, unknown> | null>(null);
 
   const allColDefs = columnDefsOf(columns, rowOpen);
 
@@ -490,7 +495,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   // The title, the toolbar and the search scroll away with the rows on a list or cards, so the
   // phone's screen goes to the rows (Material's scrolling content), instead of leaving them half of it.
   // Where the listing's rows do not scroll by themselves (a table, an embedded listing) they stay put.
-  const headerInList = !nestedInScroll && rawRows.length > 0 && (gridLayout === 'cards' || gridLayout === 'list') && !showsPreSearch(preSearch, searched);
+  const headerInList = !nestedInScroll && rawRows.length > 0 && (gridLayout === 'cards' || gridLayout === 'list' || masterDetail) && !showsPreSearch(preSearch, searched);
   const listHeader = (
     <>
       {(!!title || !!subtitle || toolbar.length > 0 || showMove) && (
@@ -526,6 +531,20 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
       {!searchable && (allColDefs.length > 1 || filters.length > 0) && (
         <View style={styles.columnsBar}>
+          {/* Filterable without Searchable: no search bar to hang the Filters toggle on, so it sits
+              here — the filters (ranges, multi-selects) used to be unreachable */}
+          {filters.length > 0 && (
+            <PaperButton
+              mode={filtersOpen || activeFilters > 0 ? 'contained-tonal' : 'text'}
+              compact
+              icon="filter-variant"
+              accessibilityLabel={`Filters${activeFilters > 0 ? ` (${activeFilters} active)` : ''}`}
+              accessibilityState={{ expanded: filtersOpen }}
+              onPress={() => setFiltersOpen(!filtersOpen)}
+            >
+              {`Filters${activeFilters > 0 ? ` (${activeFilters})` : ''}`}
+            </PaperButton>
+          )}
           {filters.length > 0 && (
             <PaperButton mode="text" compact icon="star-outline" accessibilityLabel="Saved views" onPress={() => setViewsOpen(true)}>
               {`Views${savedViews.length ? ` (${savedViews.length})` : ''}`}
@@ -696,7 +715,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
             </View>
           )}
         </>
-      ) : gridLayout === 'list' ? (
+      ) : gridLayout === 'list' || masterDetail ? (
         // List: compact single-line rows (first column primary, the rest secondary)
         <>
           <FlatList
@@ -712,6 +731,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                   <Text style={styles.groupBandText}>{groupBandText(item)}</Text>
                 </View>
               ) : (
+                <>
                 <View style={styles.listRowWrap}>
                   {rowsSelectionEnabled && (
                     <SelectBox
@@ -723,9 +743,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                   )}
                   {(() => {
                     // a Material list item: headline, supporting text, and the statuses as chips
-                    const model = listRowModel(item, colDefs, (v, c) => cellText(v, c.valueLabels, c));
+                    const model = listRowModel(item, listColumns(colDefs), (v, c) => cellText(v, c.valueLabels, c));
                     return (
-                      <TouchableRipple {...rowA11y(item)} style={[styles.listRow, rowsSelectionEnabled && styles.listRowSelectable]} onPress={() => handleRowPress(item)}>
+                      <TouchableRipple {...rowA11y(item)} style={[styles.listRow, rowsSelectionEnabled && styles.listRowSelectable]} onPress={() => (masterDetail ? setDetailRow(detailRow === item ? null : item) : handleRowPress(item))} {...(masterDetail ? { accessibilityState: { expanded: detailRow === item } } : {})}>
                         <View style={styles.listRowInner}>
                           {!!model.leading && (
                             <Image source={{ uri: model.leading }} style={styles.listLeading} accessibilityIgnoresInvertColors importantForAccessibility="no" accessibilityElementsHidden />
@@ -752,7 +772,25 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                       </TouchableRipple>
                     );
                   })()}
+                  {/* @InlineEditing: the list layout's way into the row editor (it had none) */}
+                  {editableCols.length > 0 && (
+                    <IconButton icon="pencil-outline" accessibilityLabel="Edit row" style={styles.editPencilList} onPress={() => setEditingRow(item)} />
+                  )}
                 </View>
+                {/* masterDetail on a phone: the pressed row's detail opens under it (the pane beside
+                    the list on the web) — every column, label over value */}
+                {masterDetail && detailRow === item && (
+                  <View style={styles.mdDetail} accessibilityLiveRegion="polite">
+                    {colDefs.map((c) => (
+                      <View key={c.fieldId} style={styles.mdDetailRow}>
+                        <Text style={styles.cardLabel}>{c.label}</Text>
+                        <Text style={styles.cardValue}>{cellText(item[c.fieldId], c.valueLabels, c) || '—'}</Text>
+                      </View>
+                    ))}
+                    {!!rowOpen && <MateuButton label="Open" icon="open-in-new" onPress={() => handleRowPress(item)} style={styles.mdOpen} />}
+                  </View>
+                )}
+                </>
               )
             }
           />
@@ -1236,6 +1274,10 @@ const styles = themed(() => StyleSheet.create({
   editHeaderCell: { width: 44 },
   editPencilCell: { width: 44, alignItems: 'center', justifyContent: 'center' },
   editPencilCard: { position: 'absolute', top: 14, right: 22, zIndex: 2, margin: 0 },
+  editPencilList: { alignSelf: 'center', margin: 0 },
+  mdDetail: { paddingHorizontal: 16, paddingVertical: 12, gap: 8, backgroundColor: theme.background, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
+  mdDetailRow: { gap: 2 },
+  mdOpen: { alignSelf: 'flex-start', marginTop: 4 },
   editPencilText: { fontSize: 16, color: theme.primary },
   // bulk row selection
   checkboxCell: { width: 40, alignItems: 'center', justifyContent: 'center' },

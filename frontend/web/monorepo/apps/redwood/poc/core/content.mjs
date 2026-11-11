@@ -3,16 +3,16 @@ import { evaluateExpression } from '../rules.mjs'
 import { recordMergeAtomOf } from '../recordMerge.mjs'
 import { readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from '../prefs.mjs'
 import { elementModuleUrl, elementAttributeValue } from '../elements.mjs'
-import { collectTexts, isSectionNode, sectionHeadOf, sectionAffordancesOf, withoutSectionAffordances } from './tree.mjs'
-import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, gridTrackWeights, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, scoreboardAtomOf, richHtmlOf } from './atoms.mjs'
+import { findPageLevel, findPageLevelType, collectTexts, isSectionNode, sectionHeadOf, sectionAffordancesOf, withoutSectionAffordances } from './tree.mjs'
+import { CELL_ATOM_FLAGS, RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMimeOf, gridColClasses, gridTrackWeights, isRichAtom, mapAtomOf, matrixAtomOf, metricOf, panelColClass, scoreboardAtomOf, richHtmlOf } from './atoms.mjs'
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOf, ojIconOrGenericOf } from './shellNav.mjs'
-import { findOutsidePanes, factProjectionOf } from './pageHeader.mjs'
-import { nestedListingAtomOf, templateNestsListings, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX } from './listing.mjs'
+import { findOutsidePanes, factProjectionOf, pageHeaderExtrasOf, pageKpisOf, pageSubtitleOf } from './pageHeader.mjs'
+import { nestedListingAtomOf, templateNestsListings, pageListingNodeOf, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX, alignOf, columnWidthOf, nestedListingKeyOf, valueLabelOf } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, readOnlyDisplayOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
-import { treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
+import { safeHref, treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, progressStepsAtomOf, statAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
 import { chromeText, dateConverterOptions, moneyNumberText } from '../i18n.mjs'
 import { styleObjectOf } from '../richtext.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
@@ -30,6 +30,47 @@ function advertisedIdsOf(tree) {
   return ids
 }
 
+/** Up to this many rows (and no style of its own) a VirtualList is painted inline, item by item. */
+export const VIRTUAL_LIST_INLINE_MAX = 50
+let virtualListSeq = 0
+/** A VirtualList as JET's virtualised oj-list-view: each row its texts and its badges. */
+export function virtualListAtomOf(items, node, interp = (x) => x) {
+  const rowOf = (item, i) => {
+    const texts = []
+    const badges = []
+    const walk = (n) => {
+      if (n == null) return
+      if (typeof n !== 'object') { texts.push(String(n)); return }
+      const md = n.metadata || n
+      if (md.type === 'Badge') { badges.push({ text: interp(String(md.text || md.label || '')), cls: (BADGE_CLASSES[md.color] || 'oj-badge oj-badge-neutral oj-badge-subtle') + ' oj-sm-margin-1x-start' }); return }
+      if (md.type === 'Text' || md.type === 'Element') { if (md.text != null && md.text !== '') texts.push(interp(String(md.text))) }
+      else if (!md.type) {
+        // plain data: its title-ish value, then the rest
+        for (const [k, v] of Object.entries(md)) if (v != null && typeof v !== 'object') texts.push(String(v))
+        return
+      }
+      for (const k of n.children || []) walk(k)
+      for (const k of md.content || []) walk(k)
+    }
+    walk(item)
+    return { id: i, _rowNumber: i, primary: texts[0] || '', rest: texts.slice(1).join(' · '), badges }
+  }
+  const rows = items.map(rowOf)
+  const style = styleObjectOf(node.style || (node.metadata && node.metadata.style)) || {}
+  return {
+    isVirtualList: true,
+    ariaLabel: chromeText('calendarList'),
+    vlId: 'mateuVirtualList' + (++virtualListSeq),
+    rows,
+    provider: dataProviderFactory ? dataProviderFactory(rows) : null,
+    // its own height (it was ignored); without one, a box of a sensible height so it scrolls
+    listStyle: { height: '18rem', ...style, width: '100%' },
+  }
+}
+
+/** A fluent Grid column with an actionId: its cell reads <id>__actionCell = {text, actionId, parameters}. */
+export const GRID_ACTION_CELL_SUFFIX = '__actionCell'
+
 /** Wire Chip colors → JET badge classes (system, Redwood). PRECOMPUTED (CSP). */
 export const BADGE_CLASSES = {
   error: 'oj-badge oj-badge-danger oj-badge-subtle',
@@ -40,6 +81,15 @@ export const BADGE_CLASSES = {
   // the plain chip — Vaadin paints it in the primary tone; entityHeaderOf already reads it as info
   normal: 'oj-badge oj-badge-info oj-badge-subtle',
   info: 'oj-badge oj-badge-info oj-badge-subtle',
+}
+
+/** A Badge's chip: its colour, SOLID when `primary` (no subtle tint), smaller when `small`, round when `pill`. */
+export function badgeChipClassOf(m) {
+  let cls = BADGE_CLASSES[m && m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle'
+  if (m && m.primary) cls = cls.replace(' oj-badge-subtle', '')
+  if (m && m.small) cls += ' mateu-badge-small'
+  if (m && m.pill) cls += ' mateu-badge-pill'
+  return cls
 }
 
 /** Projection of the TaskQueue (front-office work queue): groups of cards with
@@ -126,7 +176,7 @@ export const pageEmptyStateNode = (tree) => {
   findFirst(tree, (n) => { if (n && n.metadata && n.metadata.type === 'Crud' && Array.isArray(n.metadata.preSearch)) mark(n.metadata.preSearch); return false })
   // …nor one with a call to action: the page band (oj-sp-empty-state) has no button, so its CTA
   // was lost — such an empty state is content, painted with its action
-  return findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)
+  return findPageLevel(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)
     && !n.metadata.actionId))
 }
 export function emptyStateOf(tree) {
@@ -153,7 +203,7 @@ export const NOT_FOUND_TEXTS = {
  *  exception message as the headline); if missing, the generic ones in the page's language.
  *  null if the host is not a not-found. */
 export function notFoundOf(tree, lang) {
-  const node = findByType(tree, 'NotFound')
+  const node = findPageLevelType(tree, 'NotFound')
   if (!node) return null
   const md = node.metadata || {}
   const texts = String(lang || '').toLowerCase().startsWith('es') ? NOT_FOUND_TEXTS.es : NOT_FOUND_TEXTS.en
@@ -197,8 +247,9 @@ export function isExternalRoute(route) {
 export function interpolate(text, state, scope = {}) {
   // `${i18n.clave}` is resolved by the server (or the bundle) before it gets here; if it still
   // arrives, there is no catalogue behind it: the KEY is shown, never the raw expression.
+  // An ESCAPED `\${i18n.x}` is the literal text `${i18n.x}` (it read `\x`).
   if (text != null && String(text).includes('i18n.')) {
-    text = String(text).replace(/\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g, (all, key) => key)
+    text = String(text).replace(/(\\\\|\\\$\{)|\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g, (all, escaped, key) => (escaped ? all : key))
   }
   // `${state.x}` and also `${state['x']}` / `${state["x"]}` (the row editor's position
   // arrives as ${state['_position']})
@@ -272,6 +323,130 @@ export function badgeIconsOf(m) {
   return { iconLeftClass: cls(m && m.iconOnLeft), iconRightClass: cls(m && m.iconOnRight) }
 }
 
+/** A Button's LOOK on oj-button: its style → chroming (primary = callToAction, tertiary =
+ *  borderless, else outlined; a primary error/danger = JET's own `danger` chroming), its colour
+ *  (success / error / warning / contrast, app.css .mateu-btn-*) and size (oj-button-sm / -lg) as
+ *  classes, and its icons as the startIcon / endIcon slots (the Vaadin name translated, generic
+ *  when the font has none). */
+export function buttonLookOf(m) {
+  const style = m && m.buttonStyle
+  const danger = m && (m.color === 'error' || m.variant === 'danger' || m.variant === 'error')
+  const chroming = style === 'primary' ? (danger ? 'danger' : 'callToAction')
+    : (style === 'tertiary' || style === 'tertiaryInline') ? 'borderless' : 'outlined'
+  const color = m && (m.color === 'success' || m.color === 'error' || m.color === 'warning' || m.color === 'contrast')
+    ? m.color : (m && m.variant === 'warning' ? 'warning' : danger ? 'error' : '')
+  const classes = []
+  if (color && chroming !== 'danger') classes.push('mateu-btn-' + color)
+  if (m && m.size === 'small') classes.push('oj-button-sm')
+  if (m && m.size === 'large') classes.push('oj-button-lg')
+  const look = { chroming, buttonClass: classes.join(' ') }
+  if (m && m.iconOnLeft) look.iconLeftClass = ojIconOrGenericOf(m.iconOnLeft)
+  if (m && m.iconOnRight) look.iconRightClass = ojIconOrGenericOf(m.iconOnRight)
+  return look
+}
+
+// ── LAYOUT BOXES (isCells) ──
+const FLEX_OF = { START: 'flex-start', CENTER: 'center', END: 'flex-end', STRETCH: 'stretch', BASELINE: 'baseline',
+  BETWEEN: 'space-between', AROUND: 'space-around', EVENLY: 'space-evenly' }
+/** The JET class that justifies a button bar laid out by a HorizontalLayout (start by default, as on the web). */
+export const BAR_JUSTIFY = { START: 'oj-sm-justify-content-flex-start', CENTER: 'oj-sm-justify-content-center',
+  END: 'oj-sm-justify-content-flex-end', BETWEEN: 'oj-sm-justify-content-space-between',
+  AROUND: 'oj-sm-justify-content-space-around', EVENLY: 'oj-sm-justify-content-space-around' }
+/** The wire types a layout box may hold (anything else keeps the stacked projection): the boxes
+ *  themselves, a Card (a cell of its own) and the pieces whose atoms the cell template paints. */
+export const BOX_CONTENT_TYPES = new Set(['HorizontalLayout', 'VerticalLayout', 'Container', 'Div', 'Scroller',
+  'FullWidth', 'Card', 'Text', 'Badge', 'Button', 'Anchor', 'Icon', 'Image', 'Avatar', 'AvatarGroup', 'Notice',
+  'BulletedList', 'Separator', 'Stat', 'Meter', 'ProgressBar', 'OfferCard', 'Chart', 'TrendChart', 'CalloutCard',
+  'StatusList', 'Ledger', 'TaskProgress', 'MetricCard', 'Scoreboard', 'EntityHeader', 'Skeleton', 'Markdown',
+  'BoardLayoutItem', 'DashboardPanel', 'Checklist', 'CommentThread'])
+/** Box types that lend their style to the cell they make (their children are the cell's content). */
+export const BOX_TYPES = new Set(['Container', 'Div', 'Scroller', 'VerticalLayout', 'HorizontalLayout'])
+
+/** The flex style of a layout box: a HorizontalLayout's row (gap when spacing, its vertical
+ *  alignment, justification, wrap, padding) or a VerticalLayout's column (horizontal alignment) —
+ *  on top of the node's own (filtered) wire style. */
+export function boxStyleOf(m, nodeStyle, direction) {
+  const out = {}
+  if (m.spacing) out.gap = '0.75rem'
+  if (m.padding) out.padding = '1rem'
+  if (m.wrap) out.flexWrap = 'wrap'
+  if (direction === 'row') {
+    if (FLEX_OF[m.verticalAlignment]) out.alignItems = FLEX_OF[m.verticalAlignment]
+    if (FLEX_OF[m.justification]) out.justifyContent = FLEX_OF[m.justification]
+  } else {
+    if (FLEX_OF[m.horizontalAlignment]) out.alignItems = FLEX_OF[m.horizontalAlignment]
+    if (FLEX_OF[m.justification]) out.justifyContent = FLEX_OF[m.justification]
+  }
+  return { ...out, ...styleObjectOf(nodeStyle || m.style) }
+}
+
+/** A block's atoms with every layout box opened up (its cells' atoms in order): what a reader
+ *  looking for an atom by its flag wants, whatever row it sits in. */
+export function flatAtoms(items) {
+  return (items || []).flatMap((a) => (a && a.isCells ? a.cells.flatMap((c) => c.items) : [a]))
+}
+
+/** The shares (percent) of a row's SIZED columns — each child declaring `flex: g s basis` or a
+ *  `width` — out of the reference page width (a fixed rem / px basis is its length, the rest is
+ *  shared by flex-grow); null unless there are 2+ children and every one is sized. */
+export function styledColumnPercentsOf(kids) {
+  if (!kids || kids.length < 2) return null
+  const W = 1200
+  const lengthPx = (v) => {
+    const m = /^(\d+(?:\.\d+)?)(rem|px|%)$/.exec(String(v || '').trim())
+    if (!m) return null
+    return m[2] === 'rem' ? Number(m[1]) * 16 : m[2] === 'px' ? Number(m[1]) : (Number(m[1]) * W) / 100
+  }
+  const specs = kids.map((k) => {
+    const st = String(k.style || (k.metadata && k.metadata.style) || '')
+    const flex = /(?:^|;)\s*flex\s*:\s*([^;]+)/.exec(st)
+    const width = /(?:^|;)\s*width\s*:\s*([^;]+)/.exec(st)
+    if (flex) {
+      const parts = flex[1].trim().split(/\s+/)
+      const grow = Number(parts[0])
+      const basis = parts.length >= 3 ? lengthPx(parts[2]) : null
+      if (!Number.isFinite(grow)) return null
+      return basis != null && grow === 0 ? { fixed: basis } : { grow: grow || 0, basis: basis || 0 }
+    }
+    // a 100% width is no column size (it only fills its cell)
+    if (width) { const px = lengthPx(width[1]); return px != null && px < W ? { fixed: px } : null }
+    return null
+  })
+  if (specs.some((x) => !x) || !specs.some((x) => x.fixed != null)) return null
+  const fixed = specs.reduce((a, x) => a + (x.fixed || 0) + (x.basis || 0), 0)
+  const grows = specs.reduce((a, x) => a + (x.grow || 0), 0)
+  const free = Math.max(W / 4, W - fixed)
+  return specs.map((x) => ((x.fixed != null ? x.fixed : (x.basis || 0) + (grows ? (x.grow / grows) * free : 0)) * 100) / W)
+}
+
+/** Does a box node need painting as a box of its own (not just its children stacked)? A
+ *  Scroller always (its height / scrolling), a Container / Div / VerticalLayout with a style that
+ *  survives the filter, a VerticalLayout aligned anywhere but STRETCH or with padding. */
+export function boxWanted(node) {
+  const m = node.metadata || {}
+  const t = m.type
+  if (t === 'Scroller') return true
+  // only a style that SHOWS (a zone column's flex / min-width is its parent's business)
+  const st = styleObjectOf(node.style || m.style)
+  const SHOWS = /^(background|backgroundColor|border\w*|padding\w*|height|maxHeight|minHeight|overflow\w*|color|font\w*|textAlign)$/
+  if (Object.keys(st).some((k) => SHOWS.test(k)) || (st.width && st.width !== '100%')) return true
+  if (t === 'VerticalLayout') return !!m.padding || (!!m.horizontalAlignment && m.horizontalAlignment !== 'STRETCH')
+  return false
+}
+
+/** Only wire types a cell can paint, all the way down (no island, no form, no grid…). */
+export function fitsInBox(node, depth = 0) {
+  if (!node || typeof node !== 'object') return true
+  if (node.type === 'ServerSide' && depth > 0) return false
+  const t = node.metadata && node.metadata.type
+  if (t && !BOX_CONTENT_TYPES.has(t)) return false
+  const kids = [...(node.children || [])]
+  const inner = node.metadata && node.metadata.content
+  if (Array.isArray(inner)) kids.push(...inner)
+  else if (inner && typeof inner === 'object') kids.push(inner)
+  return kids.every((k) => fitsInBox(k, depth + 1))
+}
+
 /** A Text's variants on its styled class/style: b → oj-typography-bold, i → font-style italic. */
 export function withTextVariants(m, styled) {
   const variants = Array.isArray(m && m.variants) ? m.variants : []
@@ -289,6 +464,32 @@ export const TEXT_CLASSES = {
   l: 'oj-typography-subheading-md',
   s: 'oj-typography-body-sm',
   xs: 'oj-typography-body-xs oj-text-color-secondary',
+}
+/** A content heading's size by its level (Text container h1…h6): h4 keeps the quiet subheading
+ *  every Explorer example title uses; h2 / h3 grow (they rendered like h4). */
+export const HEADING_CLASSES = {
+  h1: 'oj-typography-heading-md',
+  h2: 'oj-typography-heading-sm',
+  h3: 'oj-typography-subheading-md',
+  h4: 'oj-typography-subheading-xs',
+  h5: 'oj-typography-subheading-2xs',
+  h6: 'oj-typography-body-sm oj-typography-bold',
+}
+/** …and a heading's declared size (Text.size), which wins over the level. */
+export const HEADING_SIZE_CLASSES = {
+  xl: 'oj-typography-heading-md',
+  l: 'oj-typography-heading-sm',
+  s: 'oj-typography-subheading-2xs',
+  xs: 'oj-typography-body-sm oj-typography-bold',
+}
+/** A Notice's severity icon: its own `icon` (a name → the font's class, anything else → a glyph),
+ *  else the one of its theme. */
+export const NOTICE_ICONS = { info: 'oj-ux-ico-information', success: 'oj-ux-ico-check-circle', warning: 'oj-ux-ico-warning', danger: 'oj-ux-ico-error' }
+export function noticeIconOf(m) {
+  const icon = m && m.icon
+  if (icon) return /^[a-z][\w-]*:[\w-]+$/i.test(String(icon)) || String(icon).indexOf('oj-ux-') === 0
+    ? { noticeIconClass: ojIconOrGenericOf(icon), noticeGlyph: '' } : { noticeIconClass: '', noticeGlyph: String(icon) }
+  return { noticeIconClass: NOTICE_ICONS[m && m.theme] || NOTICE_ICONS.info, noticeGlyph: '' }
 }
 export const NOTICE_CLASSES = {
   success: 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-success-30',
@@ -335,6 +536,10 @@ export function setColumnPrefsReader(fn) { columnPrefsReader = typeof fn === 'fu
  *  the wire (AccordionPanel.active, Details.opened). Client state, like the active tab. */
 export const panelState = {}
 export function setPanelExpanded(key, expanded) { panelState[key] = !!expanded }
+// the island banners dismissed this session (their ✕ or their timeout): not painted again
+const dismissedBanners = new Set()
+export function dismissBanner(key) { if (key) dismissedBanners.add(String(key)) }
+export function isBannerDismissed(key) { return dismissedBanners.has(String(key)) }
 export function panelExpanded(key, fallback) { return key in panelState ? panelState[key] : !!fallback }
 // Other CLIENT-side view state of the content (the slide a carousel shows, the page a Grid shows,
 // the open rows of a tree Grid): a value per key; changing it re-projects (uiValueChanged chain).
@@ -389,6 +594,13 @@ export function boardTwelfthsOf(weights) {
   return out
 }
 
+/** The app-wide scopes the texts interpolate (`${appState.x}`, `${appData.x}`): the reduced
+ *  registry's (reducer: an answer's appState/appData merge into it), set by the reduce hook. */
+let appScope = { appState: {}, appData: {} }
+export function setAppScope(reg) {
+  appScope = { appState: (reg && reg.appState) || {}, appData: (reg && reg.appData) || {} }
+}
+
 export function islandContentOf(ctx, opts = {}) {
   if (!ctx || !ctx.tree) return null
   // The active tab is PER STRIP: a map {strip key: tab id} (opts.activeTabs).
@@ -396,11 +608,19 @@ export function islandContentOf(ctx, opts = {}) {
   const activeTabs = { ...(opts.activeTab ? { '': opts.activeTab } : {}), ...(opts.activeTabs || {}) }
   // NESTED strips (a TabLayout inside a tab): each strip has its key, derived from
   // the tab that contains it (tabScope) and its ordinal among siblings — see tabStripKeyOf.
-  let tabScope = ''
+  // another surface's strips and panels live in ITS scope (opts.keyScope = its id): two islands —
+  // or an island and the page — each have a top-level strip, an accordion with no id… whose keys
+  // were the same, so a click in one switched the other (the page's Code tabs, the twin accordion)
+  const keyScope = opts.keyScope ? String(opts.keyScope) : ''
+  const scoped = (key) => (keyScope ? keyScope + '|' + key : key)
+  let tabScope = keyScope
   const stripsPerScope = {}
   let tabBars = 0
   const state = ctx.state || {}
-  const interp = (t) => interpolate(t, state)
+  // `${data.x}` (this component's data), `${appState.x}` / `${appData.x}` (the app's, kept by the
+  // reducer from every answer: Return AppState / AppData) — not only `${state.x}`
+  const scope = { data: ctx.data || {}, appState: appScope.appState || {}, appData: appScope.appData || {} }
+  const interp = (t) => interpolate(t, state, scope)
   const badgeOf = (b) => ({
     label: b.label,
     badgeClass: BADGE_CLASSES[b.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
@@ -417,12 +637,41 @@ export function islandContentOf(ctx, opts = {}) {
     const route = m.route ? buttonRouteOf(m.route, state) : null
     return {
       actionId: m.actionId,
-      label: m.label || m.actionId,
+      // `Charge ${state.nights} nights`: a label follows the state like a title does
+      label: (m.label ? interp(m.label) : '') || m.actionId,
       disabled: !!m.disabled || (!!m.route && route == null),
-      chroming: m.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+      ...buttonLookOf(m),
       parameters: m.parameters || {},
       ...(route ? { route } : {}),
     }
+  }
+  // the HEADER of another surface's page (an example island, a MicroFrontend's page): the same
+  // elements the host's band draws for its own page — overline, title (or its placeholder while
+  // empty), badges, subtitle, timestamp, KPIs — as an EntityHeader-like atom inside the island
+  const islandPageHeaderOf = (pageNode) => {
+    const md = pageNode.metadata || {}
+    const pageCtx = { tree: pageNode, state, data: ctx.data || {} }
+    const extras = pageHeaderExtrasOf(pageCtx)
+    const title = interp(md.title || '')
+    const subtitle = pageSubtitleOf(pageCtx)
+    const kpis = pageKpisOf(pageCtx)
+    const stamp = extras.timestamp
+    const out = []
+    if (extras.overline) out.push({ isText: true, text: extras.overline, cls: 'oj-typography-body-xs oj-text-color-secondary mateu-island-overline' })
+    const shown = title || extras.titlePlaceholder
+    if (!shown && !subtitle && !extras.badges.length && !kpis.length && !stamp) return out
+    out.push({
+      isEntityHeader: true,
+      isIslandHeader: true,
+      title: shown,
+      titleIsPlaceholder: !title && !!extras.titlePlaceholder,
+      subtitle: [subtitle, stamp].filter(Boolean).join(' · '),
+      badges: extras.badges.map((b) => ({ label: b.label, badgeClass: BADGE_CLASSES[b.status] || 'oj-badge oj-badge-neutral oj-badge-subtle' })),
+      facts: kpis.map((k) => ({ label: k.label, value: k.value })),
+      metricLabel: '',
+      metricValue: '',
+    })
+    return out
   }
   // the symbol before the amount, two decimals in the UI's locale (libs/mateu uxShared.formatMoney)
   const money = (value, currency) => (currency || '€') + ' ' + moneyNumberText(Number(value || 0))
@@ -438,6 +687,9 @@ export function islandContentOf(ctx, opts = {}) {
   const blocks = []
   let plain = null
   let elementOrdinal = 0
+  // @Compact on this surface's own tree (its root's style carries the StyleConstants.COMPACT marker)
+  const islandCompact = ctx.kind === 'island' && [ctx.tree && ctx.tree.style, ...((ctx.tree && ctx.tree.children) || []).map((c) => c && c.style)]
+    .some((st) => typeof st === 'string' && st.replace(/\s+/g, '').indexOf('--mateu-compact:1') >= 0)
   // an embedded MicroFrontend's chrome (opts.chrome) applies to ITS page: the first Page visited
   let embeddedPageSeen = false
   // the wire node being projected (editor mode only): what an atom or a block made now came from
@@ -606,6 +858,201 @@ export function islandContentOf(ctx, opts = {}) {
     for (const child of kidsOf(panel)) visit(child, card)
     plain = null
   }
+  // ── LAYOUT BOXES: a node projected into a scratch container (never into a block); null when it
+  // made a block or an atom a cell cannot paint (the caller keeps the stacked projection)
+  const atomsInto = (nodes) => {
+    const scratch = { items: [] }
+    const before = blocks.length
+    const savedPlain = plain
+    for (const n of nodes) visit(n, scratch)
+    plain = savedPlain
+    if (blocks.length !== before) { blocks.splice(before); return null }
+    // a box inside a cell cannot be another box (VB does not recurse into a template): its cells
+    // are laid one after another inside this one
+    const flat = scratch.items.flatMap((a) => (a && a.isCells ? a.cells.flatMap((c) => c.items) : [a]))
+    return flat.every((a) => a && CELL_ATOM_FLAGS.some((f) => a[f])) ? flat : null
+  }
+  // a Card's parts in order: media, header (prefix, title, subtitle, suffix), body, footer
+  const cardPartNodes = (m) => {
+    const asNodes = (v) => (Array.isArray(v) ? v : v && typeof v === 'object' ? [v] : [])
+    return { media: asNodes(m.media), prefix: asNodes(m.headerPrefix), header: asNodes(m.header),
+      suffix: asNodes(m.headerSuffix), subtitle: asNodes(m.subtitle), footer: asNodes(m.footer) }
+  }
+  const cardTitleOf = (m) => m.title && (typeof m.title === 'string' ? m.title
+    : (m.title.metadata && m.title.metadata.text) || m.title.text || collectTexts(m.title)[0] || '')
+  // one cell of a box: a box kid lends it its style, a Card makes a card cell, anything else is its content
+  const cellOf = (kid, flexGrow) => {
+    const km = (kid && kid.metadata) || {}
+    const kt = km.type
+    let items
+    let style = {}
+    let cellClass = ''
+    if (kt === 'DashboardPanel') {
+      // a dashboard tile: a card cell with its title and subtitle over its content
+      const body = atomsInto(kidsOf(kid))
+      if (!body) return null
+      items = [
+        ...(km.title ? [{ isText: true, text: interp(km.title), cls: 'oj-typography-subheading-xs' }] : []),
+        ...(km.subtitle ? [{ isText: true, text: interp(km.subtitle), cls: 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom' }] : []),
+        ...body,
+      ]
+      cellClass = 'mateu-cell-card oj-panel'
+      style = styleObjectOf(kid.style || km.style)
+    } else if (kt === 'BoardLayoutItem') {
+      items = atomsInto(kidsOf(kid))
+      if (!items) return null
+    } else if (kt === 'Card') {
+      const parts = cardPartNodes(km)
+      const title = cardTitleOf(km)
+      const head = atomsInto([...parts.media, ...parts.prefix, ...parts.header])
+      const titleAtoms = title ? [{ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-1x-bottom' }] : []
+      const sub = atomsInto(parts.subtitle)
+      const suffix = atomsInto(parts.suffix)
+      const kids = kidsOf(kid)
+      const body = atomsInto(kids)
+      const foot = atomsInto(parts.footer)
+      if ([head, sub, suffix, body, foot].some((x) => x == null)) return null
+      items = [...head, ...titleAtoms, ...suffix, ...sub.map((a) => (a.isText ? { ...a, cls: ((a.cls || '') + ' oj-text-color-secondary').trim() } : a)), ...body, ...foot]
+      const variants = Array.isArray(km.variants) ? km.variants : []
+      cellClass = 'mateu-cell-card' + (variants.includes('outlined') ? ' mateu-card-outlined' : ' oj-panel')
+        + (variants.includes('elevated') ? ' oj-panel-shadow-md' : '') + (variants.includes('horizontal') ? ' mateu-card-horizontal' : '')
+      style = styleObjectOf(kid.style || km.style)
+    } else if (BOX_TYPES.has(kt)) {
+      const direction = kt === 'HorizontalLayout' ? 'row' : 'column'
+      items = kt === 'Div' && typeof km.content === 'string'
+        ? [{ isText: true, text: interp(km.content), cls: '' }, ...(atomsInto(kid.children || []) || [])]
+        : atomsInto(kidsOf(kid))
+      if (!items) return null
+      style = boxStyleOf(km, kid.style, direction)
+      if (direction === 'row') { style = { ...style, flexDirection: 'row', flexWrap: style.flexWrap || 'wrap' }; if (!style.alignItems) style.alignItems = 'center' }
+      if (kt === 'Scroller') style = { overflow: 'auto', ...style }
+    } else {
+      items = atomsInto([kid])
+      if (!items) return null
+      // the piece's own SIZE belongs to its cell (an OfferCard's `width: 17rem`, a chart's 22rem)
+      const own = styleObjectOf(kid.style || km.style)
+      for (const k of ['width', 'minWidth', 'maxWidth', 'flex', 'flexGrow', 'flexBasis']) if (own[k]) style[k] = own[k]
+    }
+    if (flexGrow != null && style.flexGrow == null) style.flexGrow = String(flexGrow)
+    // a cell grows when told to (flexGrows / flex-grow in its style) or when it holds wide pieces
+    // (a chart, a notice, a card…); a small piece (a badge, a stat) keeps its natural width
+    const wide = kt === 'Card' || items.some((a) => a.isChart || a.isNotice || a.isRichText || a.isEntityHeader
+      || a.isStatusList || a.isLedger || a.isCallout || a.isScoreboard || a.isTaskProgress || a.isSeparator)
+    if (style.flexGrow != null) style = { flexBasis: '0', ...style }
+    else if (wide && !style.width && !style.flex) style = { flex: '1 1 16rem', ...style }
+    return { cellClass, style, items: items.map((a, i) => ({ ...a, key: a.key || String(i) })),
+      // editor mode: the cell is its node's (the canvas selects a panel, a card, a column by it)
+      ...(editorNodeIds && kid && kid.id ? { nodeId: String(kid.id) } : {}) }
+  }
+  // a box of cells (isCells): `row` = a HorizontalLayout's children side by side, `single` = the node
+  // itself as one cell (a styled Container, a Scroller, an aligned VerticalLayout)
+  const cellsAtomOf = (node, mode) => {
+    if (!fitsInBox(node)) return null
+    const m = node.metadata || {}
+    if (mode === 'single') {
+      const cell = cellOf(node, null)
+      if (!cell || !cell.items.length) return null
+      return { isCells: true, boxClass: 'mateu-cells-column', style: {}, cells: [{ ...cell, key: '0' }],
+        ...(cell.items.some(isRichAtom) ? { isCellsRich: true } : {}) }
+    }
+    const kids = kidsOf(node).filter(Boolean)
+    const grows = Array.isArray(m.flexGrows) ? m.flexGrows : []
+    const cells = []
+    for (let i = 0; i < kids.length; i++) {
+      const cell = cellOf(kids[i], grows[i] != null ? grows[i] : null)
+      if (!cell) return null
+      if (cell.items.length) cells.push({ ...cell, key: String(i) })
+    }
+    if (!cells.length) return null
+    const style = boxStyleOf(m, node.style, 'row')
+    if (!style.gap) style.gap = '0.5rem 1rem'
+    if (style.flexWrap == null) style.flexWrap = 'wrap'
+    return { isCells: true, boxClass: '', style, cells,
+      ...(cells.some((c) => c.items.some(isRichAtom)) ? { isCellsRich: true } : {}) }
+  }
+  // a DashboardLayout as a CSS GRID box: `columns` tracks (auto-fit 16rem when 0), each tile
+  // spanning its colSpan / rowSpan — a block grid (oj-flex) has no row spans
+  const dashboardGridOf = (node) => {
+    const m = node.metadata || {}
+    const kids = kidsOf(node).filter(Boolean)
+    if (!kids.every((k) => fitsInBox(k))) return null
+    const columns = m.columns > 0 ? m.columns : 0
+    const cells = []
+    for (let i = 0; i < kids.length; i++) {
+      const cell = cellOf(kids[i], null)
+      if (!cell) return null
+      const km = kids[i].metadata || {}
+      const colSpan = Math.max(1, Math.min(columns || 12, Number(km.colSpan) || 1))
+      const rowSpan = Math.max(1, Number(km.rowSpan) || 1)
+      const { flex, ...rest } = cell.style
+      const kt = km.type
+      cells.push({ ...cell, key: String(i), style: { ...rest, minWidth: '0',
+        ...((kt === 'Scoreboard') ? { gridColumn: '1 / -1' } : colSpan > 1 ? { gridColumn: 'span ' + colSpan } : {}),
+        ...(rowSpan > 1 ? { gridRow: 'span ' + rowSpan } : {}) } })
+    }
+    if (!cells.length) return null
+    return { isCells: true, boxClass: 'mateu-cells-grid', cells,
+      style: { gridTemplateColumns: columns ? 'repeat(' + columns + ', minmax(0, 1fr))' : 'repeat(auto-fit, minmax(min(16rem, 100%), 1fr))' },
+      ...(cells.some((c) => c.items.some(isRichAtom)) ? { isCellsRich: true } : {}) }
+  }
+  // a ResponsiveGrid as a CSS GRID box: the wire's own grid-template-columns / -areas / gap, each
+  // child placed in its named area (slot) or spanning its colSpan — in place, inside a card too
+  const responsiveGridOf = (node) => {
+    const m = node.metadata || {}
+    const kids = kidsOf(node).filter(Boolean)
+    if (!kids.length || !kids.every((k) => fitsInBox(k)) || m.reorderable) return null
+    const columns = String(m.gridTemplateColumns || '').trim()
+    const areas = String(m.gridTemplateAreas || '').trim()
+    const SAFE_TRACKS = /^[\w\s.,%()+-]*$/
+    const SAFE_AREAS = /^[\w\s".-]*$/
+    if (!SAFE_TRACKS.test(columns) || !SAFE_AREAS.test(areas) || /url|expression/i.test(columns)) return null
+    const named = new Set(areas.replace(/"/g, ' ').split(/\s+/).filter((a) => a && a !== '.'))
+    const cells = []
+    for (let i = 0; i < kids.length; i++) {
+      const cell = cellOf(kids[i], null)
+      if (!cell) return null
+      const slot = kids[i].slot || (kids[i].metadata && kids[i].metadata.slot)
+      const kt = kids[i].metadata && kids[i].metadata.type
+      // its span: the wire's colSpans, a DashboardPanel's own colSpan; the KPI band takes the whole row
+      const span = (m.colSpans && m.colSpans[i]) || (kt === 'DashboardPanel' ? Number(kids[i].metadata.colSpan) || 0 : 0)
+      const { flex, ...rest } = cell.style
+      cells.push({ ...cell, key: String(i), style: { ...rest, minWidth: '0',
+        ...(slot && named.has(slot) ? { gridArea: slot } : (kt === 'Scoreboard' || kt === 'MetricCard') ? { gridColumn: '1 / -1' }
+          : span > 1 ? { gridColumn: 'span ' + span } : {}),
+        ...(kt === 'DashboardPanel' && Number(kids[i].metadata.rowSpan) > 1 ? { gridRow: 'span ' + Number(kids[i].metadata.rowSpan) } : {}) } })
+    }
+    const gap = /^[\w\s.%]*$/.test(String(m.gap || '')) && m.gap ? m.gap : '1rem'
+    return { isCells: true, boxClass: 'mateu-cells-grid mateu-cells-grid-stack', cells,
+      style: { gap, gridTemplateColumns: columns || (areas ? 'none' : 'repeat(auto-fit, minmax(min(16rem, 100%), 1fr))'),
+        ...(areas ? { gridTemplateAreas: areas } : {}) },
+      ...(cells.some((c) => c.items.some(isRichAtom)) ? { isCellsRich: true } : {}) }
+  }
+  // a BoardLayoutRow as a row box: its items share the row by their boardCols
+  const boardRowOf = (row) => {
+    const items = row.metadata && row.metadata.type === 'BoardLayoutRow' ? kidsOf(row).filter(Boolean) : [row]
+    if (!items.length || !items.every((it) => fitsInBox(it))) return null
+    const cells = []
+    for (let i = 0; i < items.length; i++) {
+      const cell = cellOf(items[i], null)
+      if (!cell) return null
+      const cols = Number(items[i].metadata && items[i].metadata.boardCols) || 1
+      cells.push({ ...cell, key: String(i), style: { ...cell.style, flex: cols + ' 1 0', minWidth: 'min(12rem, 100%)' } })
+    }
+    return { isCells: true, boxClass: '', style: { gap: '0.75rem', flexWrap: 'wrap' }, cells,
+      ...(cells.some((c) => c.items.some(isRichAtom)) ? { isCellsRich: true } : {}) }
+  }
+  // a HorizontalLayout of buttons only: its own bar, justified like the row (START by default)
+  const buttonRowOf = (node) => {
+    const kids = kidsOf(node).filter(Boolean)
+    if (!kids.length || !kids.every((k) => k.metadata && k.metadata.type === 'Button')) return null
+    const buttons = kids.flatMap((k) => groupMembersOf(k.metadata).map((b) => {
+      const button = buttonOf(b)
+      if (editorNodeIds && k.id) button.nodeId = String(k.id)
+      return button
+    }))
+    const j = node.metadata.justification
+    return { isButtons: true, fromRow: true, buttons, barClass: BAR_JUSTIFY[j] || BAR_JUSTIFY.START }
+  }
   const visit = (node, container) => {
     if (!editorNodeIds || !node || typeof node !== 'object' || !node.id) { visitNode(node, container); return }
     const outer = editorNode
@@ -672,12 +1119,60 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'HorizontalLayout') {
       const row = inlineRowOf(node)
       if (row) { atom(row, container); return }
+      // a row of buttons only: ITS OWN bar, start-aligned like the web's (it used to join the next
+      // buttons in one right-aligned bar — three rows of buttons came out as one)
+      const bar = buttonRowOf(node)
+      if (bar) { atom(bar, container); return }
+      // any other row (stacks, KPIs, offers, charts, cards…): a layout box, its children side by side
+      const box = cellsAtomOf(node, 'row')
+      if (box) { atom(box, container); return }
+      // a row of SIZED columns holding blocks (a form beside a rail: the wizard's RAIL, a main
+      // column and a 15rem aside) at the surface's level: column blocks of the oj-flex grid, each
+      // its share of the row (a fixed width out of the reference page, the rest by flex-grow)
+      if (!container) {
+        const percents = styledColumnPercentsOf(kidsOf(node).filter(Boolean))
+        if (percents) {
+          const before = blocks.length
+          projectColumns(kidsOf(node).filter(Boolean), percents)
+          for (const block of blocks.slice(before)) block.fromColumns = true
+          return
+        }
+      }
+    }
+    // a styled Container / Div, a Scroller, an aligned VerticalLayout: a box of one cell
+    if (BOX_TYPES.has(t) && t !== 'HorizontalLayout' && !isRoot && boxWanted(node)) {
+      const box = cellsAtomOf(node, 'single')
+      if (box) { atom(box, container); return }
+    }
+    // a Div whose content is a plain string (no children): its text
+    if (t === 'Div' && typeof m.content === 'string' && m.content.trim()) {
+      atom({ isText: true, text: interp(m.content), cls: '' }, container)
+      for (const child of node.children || []) visit(child, container)
+      return
     }
     // CONSOLE / MASTER-DETAIL (MasterDetailLayout, SplitLayout): children = [master, detail].
     // Same projection as the zones: two column-blocks of the oj-flex grid (list on the
     // left, detail on the right, 5/12 + 7/12), which stack below md — like OPERA's
     // Console view. Vertical (SplitLayout orientation vertical) → one below the other. Inside
     // another block there are no columns to share out: it is projected in place, in order.
+    // SPLIT LAYOUT of pieces a cell can paint: one box of two panes side by side (one above the
+    // other when vertical) with a divider between them, its height / style honoured, each pane
+    // scrolling on its own — in place, inside a card too
+    if (t === 'SplitLayout') {
+      const kids = kidsOf(node).filter(Boolean).slice(0, 2)
+      const vertical = String(m.orientation || '').toLowerCase() === 'vertical'
+      if (kids.length === 2 && kids.every((k) => fitsInBox(k))) {
+        const cells = kids.map((k) => cellOf(k, null))
+        if (cells.every(Boolean)) {
+          atom({ isCells: true, boxClass: 'mateu-split' + (vertical ? ' mateu-cells-column mateu-split-vertical' : ''),
+            style: { ...styleObjectOf(node.style || m.style) },
+            cells: cells.map((c, i) => ({ ...c, key: String(i), cellClass: ((c.cellClass || '') + ' mateu-split-pane').trim(),
+              style: { flex: '1 1 0', minWidth: '0', minHeight: '0', overflow: 'auto', ...c.style } })),
+            ...(cells.some((c) => c.items.some(isRichAtom)) ? { isCellsRich: true } : {}) }, container)
+          return
+        }
+      }
+    }
     if ((t === 'MasterDetailLayout' || t === 'SplitLayout') && !container) {
       const kids = (node.children || []).filter(Boolean)
       if (kids.length >= 2 && String(m.orientation || '').toLowerCase() !== 'vertical') {
@@ -685,6 +1180,16 @@ export function islandContentOf(ctx, opts = {}) {
         return
       }
       for (const kid of kids) visit(kid, container)
+      return
+    }
+    // a fluent / YAML FormSection / FormSubSection: its TITLE heads the fields it groups (only the
+    // reflected @Section cards drew one)
+    if ((t === 'FormSection' || t === 'FormSubSection') && m.title) {
+      const target = live(container) || plain
+      const notFirst = !!(target && target.items.length)
+      atom({ isText: true, isHeading: true, text: interp(m.title),
+        cls: (t === 'FormSection' ? 'oj-typography-subheading-sm' : 'oj-typography-subheading-xs') + (notFirst ? ' oj-sm-margin-6x-top' : '') + ' oj-sm-margin-2x-bottom' }, container)
+      for (const child of kidsOf(node)) visit(child, container)
       return
     }
     if (t === 'App') {
@@ -757,6 +1262,12 @@ export function islandContentOf(ctx, opts = {}) {
       // all read-only (the detail view): the form layout itself goes readonly and JET
       // paints each field as a value, without an input box
       for (const l of layouts) l.readonly = l.fields.every((f) => f.readonly)
+      // labelsAside (a declared single column of short labels, LabelsAsideInference): the labels go
+      // to the START of each field, in a 10rem column — Redwood's own label-edge="start"
+      for (const l of layouts) { l.labelEdge = m.labelsAside ? 'start' : 'inside'; l.labelWidth = m.labelsAside ? '10rem' : '33%' }
+      // @Compact on an ISLAND (the page's own density class is the host container's: an embedded
+      // compact form never got it): its form layouts carry the density class themselves
+      if (islandCompact) for (const l of layouts) l.densityClass = 'mateu-density-compact'
       return
     }
     if (t === 'FormField') {
@@ -815,6 +1326,15 @@ export function islandContentOf(ctx, opts = {}) {
           rowEditable,
           addActionId: rowEditable ? fieldId + '_add' : '',
           addLabel: chromeText('add'),
+          // @OnRowSelected: a click on a row (or its shortcut + the row's number) runs the action with
+          // the row in _clickedRow (tables.mjs installRowSelection reads these off the grid's root)
+          ...(m.onItemSelectionActionId ? {
+            selectActionId: m.onItemSelectionActionId,
+            selectShortcut: m.rowSelectionShortcut || '',
+            // the rows as the server sent them (the client's own keys — _rowNumber, __… — left out)
+            selectRows: JSON.stringify(rows.map((r) => (r && typeof r === 'object'
+              ? Object.fromEntries(Object.entries(r).filter(([k]) => k !== '_rowNumber' && !k.startsWith('__'))) : r))),
+          } : {}),
         }, container)
         return
       }
@@ -897,14 +1417,18 @@ export function islandContentOf(ctx, opts = {}) {
       atom({
         isTabs: true,
         // the first strip keeps the usual id (the chains refresh it by selector)
-        barId: tabBars++ ? 'mateuContentTabs-' + (tabBars - 1) : 'mateuContentTabs',
+        barId: keyScope ? 'mateuContentTabs-' + keyScope.replace(/[^a-zA-Z0-9_-]/g, '_') + '-' + tabBars++
+          : tabBars++ ? 'mateuContentTabs-' + (tabBars - 1) : 'mateuContentTabs',
         stripKey,
         selectedId: ids[current],
+        // its variant (bordered / filled…): app.css .mateu-tabs-<variant>
+        variantClass: m.variant ? 'mateu-tabs-' + String(m.variant).toLowerCase().replace(/[^a-z-]/g, '') : '',
         tabs: tabs.map((tab, i) => ({
           id: ids[i],
           // the count of its EAGER @Subresource travels with the tab («Subnets (12)»)
-          label: interp(tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1))
-            + (tab.metadata.badge ? ' (' + tab.metadata.badge + ')' : ''),
+          label: interp(tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1)),
+          // its badge (a count): a chip after the label
+          badge: tab.metadata.badge != null && String(tab.metadata.badge) !== '' ? interp(String(tab.metadata.badge)) : '',
           // @Tab(key): selecting it pushes its URL (see contentTabSelected)
           routeKey: tab.metadata.routeKey || '',
           // @Tab(shortcut): selects it by keyboard (keys.mjs)
@@ -974,6 +1498,13 @@ export function islandContentOf(ctx, opts = {}) {
     // grid in a field): a block cannot hold columns, so the grid is HOISTED — the block is cut, the
     // grid's columns follow it at the page's level and a continuation block takes the rest. Only a
     // full-width block is cut (one that is already a column keeps its grid stacked inside).
+    // ResponsiveGrid whose children a cell can paint: a CSS grid box, laid out by the wire's own
+    // tracks and named areas, in place (it used to cut the card it sat in: the grid hoisted out)
+    // (at the page's level the column blocks keep the job: templates mark them fromTemplate)
+    if (t === 'ResponsiveGrid' && (container || ctx.kind === 'island')) {
+      const grid = responsiveGridOf(node)
+      if (grid) { atom(grid, container); return }
+    }
     if (t === 'ResponsiveGrid' && container && !live(container).colClass && blocks.includes(live(container))
         && (gridTrackWeights(m.gridTemplateColumns).length >= 2
           || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() && !m.gridTemplateColumns))) {
@@ -1032,6 +1563,9 @@ export function islandContentOf(ctx, opts = {}) {
       if (classes && projectSized(kids, classes, allTags)) return
     }
     if (t === 'DashboardLayout') {
+      // a CSS grid box first (columns, colSpan AND rowSpan, in place inside a card); blocks otherwise
+      const grid = dashboardGridOf(node)
+      if (grid) { atom(grid, container); return }
       const columns = m.columns > 0 ? m.columns : 3
       const kids = kidsOf(node)
       if (projectSized(kids, kids.map((k) => panelColClass(k && k.metadata && k.metadata.colSpan, columns)))) return
@@ -1046,6 +1580,11 @@ export function islandContentOf(ctx, opts = {}) {
     // their boardCols, as column-blocks whose twelfths always add up to the row — so every row starts
     // a line of its own. Its children used to be stacked one under another, rows ignored. Inside
     // another block there are no columns to share out: stacked, in order.
+    // inside a block: each row a row box (its items side by side by their boardCols)
+    if (t === 'BoardLayout' && container) {
+      const rows = kidsOf(node).filter(Boolean).map(boardRowOf)
+      if (rows.length && rows.every(Boolean)) { rows.forEach((r) => atom(r, container)); return }
+    }
     if (t === 'BoardLayout' && !container) {
       const rows = kidsOf(node).filter(Boolean)
       const before = blocks.length
@@ -1093,6 +1632,36 @@ export function islandContentOf(ctx, opts = {}) {
       atom(chartAtomOf(m, t, interp), container)
       return
     }
+    // a Card INSIDE another block (an example card holding cards, a card in a zone): a block cannot
+    // nest in a block, and pushing it as one more block moved it out of its container — drawn after
+    // it, out of order. Inline it is its title as a heading and its content after it, where it sits.
+    // A fluent Card's slots are COMPONENTS on its metadata: media and header prefix before the title,
+    // subtitle and header suffix after it, then its content and its FOOTER (a «See availability» /
+    // «Hold for 24 h» button) — only title and content were read, the rest was lost (the footer's
+    // button ended up in the page's action row, at the very bottom).
+    const cardSlot = (slot, into) => {
+      const v = m[slot]
+      if (Array.isArray(v)) v.forEach((c) => visit(c, into))
+      else if (v && typeof v === 'object' && v.metadata) visit(v, into)
+    }
+    const cardSubtitleOf = () => {
+      const v = m.subtitle
+      if (!v) return ''
+      return interp(typeof v === 'string' ? v : (v.metadata && v.metadata.type === 'Text' ? v.metadata.text || '' : ''))
+    }
+    if (t === 'Card' && container && !isSectionNode(node)) {
+      cardSlot('media', container)
+      cardSlot('headerPrefix', container)
+      const title = m.title && (typeof m.title === 'string' ? m.title : (m.title.text || collectTexts(m.title)[0] || ''))
+      if (title) atom({ isText: true, isHeading: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-4x-top' }, container)
+      const sub = cardSubtitleOf()
+      if (sub) atom({ isText: true, text: sub, cls: 'oj-typography-body-sm oj-text-color-secondary' }, container)
+      cardSlot('headerSuffix', container)
+      for (const child of node.children || []) visit(child, container)
+      cardSlot('content', container)
+      cardSlot('footer', container)
+      return
+    }
     if (t === 'Card') {
       const card = { isCard: true, items: [] }
       // a @Section card says which section it is (data-mateu-section): the sections index (toc.mjs)
@@ -1106,13 +1675,47 @@ export function islandContentOf(ctx, opts = {}) {
       // a fluent Card's title is a COMPONENT (a Text): its texts, as in cardOf
       const title = m.title && (typeof m.title === 'string' ? m.title : (m.title.text || collectTexts(m.title)[0] || ''))
       // a section's heading IS that title (oj-sp-section draws it): not twice
-      if (title && !(card.sectionTitle && String(title).trim() === card.sectionTitle)) {
-        card.items.push({ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-2x-bottom' })
+      // its SLOTS (media, header prefix / suffix, subtitle, footer): they were never drawn
+      const parts = cardPartNodes(m)
+      const variants = Array.isArray(m.variants) ? m.variants : []
+      const horizontal = variants.includes('horizontal') && parts.media.length > 0
+      const media = horizontal ? atomsInto(parts.media) : null
+      if (!horizontal) for (const n of parts.media) visit(n, card)
+      const titleAtoms = title && !(card.sectionTitle && String(title).trim() === card.sectionTitle)
+        ? [{ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-1x-bottom' }] : []
+      const secondary = (as) => (as || []).map((a) => (a.isText ? { ...a, cls: ((a.cls || '') + ' oj-text-color-secondary').trim() } : a))
+      const subtitle = parts.subtitle.length ? atomsInto(parts.subtitle) : []
+      const prefix = parts.prefix.length || parts.header.length ? atomsInto([...parts.prefix, ...parts.header]) : []
+      const suffix = parts.suffix.length ? atomsInto(parts.suffix) : []
+      if (prefix && suffix && subtitle && (prefix.length || suffix.length)) {
+        // prefix | title + subtitle | suffix, on one line
+        const cells = []
+        if (prefix.length) cells.push({ key: 'p', cellClass: '', style: { flex: '0 0 auto' }, items: prefix })
+        cells.push({ key: 't', cellClass: '', style: { flex: '1 1 0', minWidth: '0' }, items: [...titleAtoms, ...secondary(subtitle)].map((a, i) => ({ ...a, key: String(i) })) })
+        if (suffix.length) cells.push({ key: 's', cellClass: '', style: { flex: '0 0 auto' }, items: suffix })
+        card.items.push({ isCells: true, boxClass: '', style: { gap: '0.75rem', alignItems: 'flex-start' }, cells })
+      } else {
+        card.items.push(...titleAtoms)
+        if (subtitle) card.items.push(...secondary(subtitle))
+        else for (const n of parts.subtitle) visit(n, card)
+        for (const n of [...parts.prefix, ...parts.header, ...parts.suffix]) visit(n, card)
       }
+      const cardSub = cardSubtitleOf()
+      if (cardSub) card.items.push({ isText: true, text: cardSub, cls: 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom' })
+      cardSlot('headerSuffix', card)
       for (const child of node.children || []) visit(child, card)
       const cardInner = m.content
       if (Array.isArray(cardInner)) cardInner.forEach((c) => visit(c, card))
       else if (cardInner && typeof cardInner === 'object' && cardInner.metadata) visit(cardInner, card)
+      for (const n of parts.footer) visit(n, card)
+      // HORIZONTAL: the media on the left, the rest beside it
+      const rest = flatAtoms(card.items)
+      if (horizontal && media && media.length && rest.every((a) => a && CELL_ATOM_FLAGS.some((f) => a[f]))) {
+        card.items = [{ isCells: true, boxClass: '', style: { gap: '1rem', alignItems: 'flex-start' }, cells: [
+          { key: 'm', cellClass: '', style: { flex: '0 0 auto' }, items: media },
+          { key: 'r', cellClass: '', style: { flex: '1 1 0', minWidth: '0' }, items: rest.map((a, i) => ({ ...a, key: String(i) })) },
+        ] }]
+      } else if (horizontal) for (const n of parts.media) visit(n, card)
       // a titled @Section is painted by Spectra's own section, oj-sp-section: it draws the title
       // (with its accent marker) itself, so its body is the card's atoms without that heading
       if (card.sectionTitle) {
@@ -1130,12 +1733,46 @@ export function islandContentOf(ctx, opts = {}) {
       // as an EMBEDDED MicroFrontend's chrome keeps them, on its own page (the first one met):
       // NONE draws neither, COMPACT only the toolbar, PAGE both (opts.chrome, embeddedChromeOf)
       const chrome = !embeddedPageSeen ? opts.chrome : null
+      // the page of ANOTHER surface painted in its hole (an Explorer example island, a MicroFrontend):
+      // nobody else draws its header, its banners or its buttons — the host's header is the host's
+      const surfacePage = !!opts.surface && !embeddedPageSeen
       embeddedPageSeen = true
-      const pageTitle = chrome === 'NONE' || chrome === 'COMPACT' ? '' : interp(m.title || '')
-      if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
+      const withHeader = chrome !== 'NONE' && chrome !== 'COMPACT'
+      if (surfacePage && withHeader) islandPageHeaderOf(node).forEach((a) => atom(a, container))
+      else {
+        const pageTitle = withHeader ? interp(m.title || '') : ''
+        if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
+      }
       const toolbar = chrome === 'NONE' ? [] : (m.toolbar || []).filter((b) => b && b.actionId)
-      if (toolbar.length) atom({ isButtons: true, fromPageToolbar: true, buttons: toolbar.map(buttonOf) }, container)
+      // a surface's toolbar is ITS own (fromPageToolbar is the host's, projected to the header band)
+      if (toolbar.length) atom({ isButtons: true, ...(surfacePage ? {} : { fromPageToolbar: true }), buttons: toolbar.map(buttonOf) }, container)
+      if (surfacePage) {
+        // its banners, under its header: a closeable one gets its ✕ and a timed one goes by itself
+        // (notify.mjs installBannerDismissal); one the user (or its timeout) dismissed stays dismissed
+        ;(m.banners || []).forEach((banner, i) => {
+          if (!banner) return
+          const text = [banner.title, banner.description].map((x) => interp(x || '')).filter(Boolean).join(' — ')
+          const bannerKey = scoped('banner:' + i + ':' + (banner.title || ''))
+          if (!text || isBannerDismissed(bannerKey)) return
+          atom({
+            isIslandBanner: true,
+            text,
+            noticeClass: (NOTICE_CLASSES[String(banner.theme || '').toLowerCase()] || NOTICE_CLASSES.info) + ' mateu-island-banner',
+            bannerKey,
+            closeable: !!(banner.hasCloseButton || banner.closeable),
+            closeLabel: chromeText('close'),
+            timeoutMs: banner.timeoutSeconds > 0 ? String(Math.round(banner.timeoutSeconds * 1000)) : '',
+          }, container)
+        })
+      }
       for (const child of kidsOf(node)) visit(child, container)
+      // its @Button methods (Page.metadata.buttons) close the page, as under a reflected form on
+      // the web: on another surface, or on the host page itself (opts.pageButtons, hostContentOf —
+      // a page with no field has no generic form to draw them). The embedded mediator's island
+      // paints its own action row, so it asks for neither.
+      const pageButtons = (surfacePage || opts.pageButtons)
+        ? (m.buttons || []).flatMap((b) => (b ? groupMembersOf(b) : [])).filter((b) => b && b.actionId) : []
+      if (pageButtons.length) atom({ isButtons: true, fromPageButtons: true, buttons: pageButtons.map(buttonOf) }, container)
       return
     }
     if (t === 'CustomComponent' && customComponentRegistered(m.name)) {
@@ -1173,7 +1810,8 @@ export function islandContentOf(ctx, opts = {}) {
             isH2: m.container === 'h2',
             text,
             // Text.style, filtered like an Element's HTML style (styleObjectOf): presentation only
-            ...withTextVariants(m, styledTextOf('oj-typography-subheading-xs' + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style)),
+            // its LEVEL sets the size (h1 largest … h6), a declared size wins over the level
+            ...withTextVariants(m, styledTextOf((HEADING_SIZE_CLASSES[m.size] || HEADING_CLASSES[m.container]) + (notFirst ? ' oj-sm-margin-10x-top' : ''), node.style || m.style)),
           }, container)
         } else {
           atom({ isText: true, text, ...withTextVariants(m, styledTextOf(TEXT_CLASSES[m.size] || 'oj-typography-body-md', node.style || m.style)) }, container)
@@ -1202,12 +1840,13 @@ export function islandContentOf(ctx, opts = {}) {
     // overview in its place and each panel as a collapsible panel — its title and, when open, its
     // content; the panels open by default (open) are respected, and an autoOpen one (no `open:`
     // authored) opens — stacked, it never runs out of row
-    if (t === 'FoldoutLayout' && tabScope) {
+    // (…and one inside a card or another part of the page that the page-level foldout does not take)
+    if (t === 'FoldoutLayout' && (tabScope || opts.surface || findPageLevelType(ctx.tree, 'FoldoutLayout') !== node)) {
       const bySlot = {}
       for (const child of node.children || []) bySlot[child.slot || ''] = child
       if (bySlot.overview) visit(bySlot.overview, container)
       ;(m.panels || []).forEach((panel, i) => {
-        const key = 'fold:' + (node.id || 'foldout') + ':' + i
+        const key = scoped('fold:' + (node.id || 'foldout') + ':' + i)
         const expanded = panelExpanded(key, panel.autoOpen === true || panel.open !== false)
         atom({ isCollapsible: true, collapsibleKey: key, title: interp(panel.title || ''), expanded, disabled: false }, container)
         const content = bySlot['panel-' + i]
@@ -1230,9 +1869,11 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'AccordionLayout') {
       kidsOf(node).forEach((panel, i) => {
         const pm = panel.metadata || {}
-        const key = 'acc:' + (node.id || 'accordion') + ':' + i
+        const key = scoped('acc:' + (node.id || 'accordion') + ':' + i)
         const expanded = panelExpanded(key, !!pm.active)
-        atom({ isCollapsible: true, collapsibleKey: key, title: interp(pm.label || ''), expanded, disabled: !!pm.disabled }, container)
+        atom({ isCollapsible: true, collapsibleKey: key, title: interp(pm.label || ''), expanded, disabled: !!pm.disabled,
+          // its variant (filled / bordered…): app.css .mateu-collapsible-<variant>
+          variantClass: m.variant ? 'mateu-collapsible-' + String(m.variant).toLowerCase().replace(/[^a-z-]/g, '') : '' }, container)
         if (expanded) for (const child of kidsOf(panel)) visit(child, container)
       })
       return
@@ -1245,7 +1886,7 @@ export function islandContentOf(ctx, opts = {}) {
       const title = interp(m.headerTitle || m.title || '')
       const pieces = kidsOf(node)
       if (m.collapsible) {
-        const key = 'drw:' + (m.id || (node.id && node.id !== 'fieldId' ? node.id : title || 'drawer'))
+        const key = scoped('drw:' + (m.id || (node.id && node.id !== 'fieldId' ? node.id : title || 'drawer')))
         const expanded = panelExpanded(key, m.opened !== false)
         atom({ isCollapsible: true, collapsibleKey: key, title, expanded, disabled: false }, container)
         if (expanded) for (const child of pieces) visit(child, container)
@@ -1257,7 +1898,7 @@ export function islandContentOf(ctx, opts = {}) {
     }
     if (t === 'Details') {
       const summaryTexts = m.summary ? collectTexts(m.summary) : []
-      const key = 'det:' + (node.id && node.id !== 'fieldId' ? node.id : (summaryTexts[0] || 'details'))
+      const key = scoped('det:' + (node.id && node.id !== 'fieldId' ? node.id : (summaryTexts[0] || 'details')))
       const expanded = panelExpanded(key, !!m.opened)
       atom({ isCollapsible: true, collapsibleKey: key, title: interp(summaryTexts.join(' ')), expanded, disabled: false }, container)
       if (expanded && m.content) visit(m.content, container)
@@ -1291,9 +1932,7 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'ProgressSteps') {
-      const steps = (m.steps || []).map((step) => ({ id: step.id, label: step.title || step.label || step.id }))
-      const current = (m.steps || []).find((step) => step.status === 'current')
-      atom({ isProgress: true, steps, selectedId: current ? current.id : (steps[0] && steps[0].id) }, container)
+      atom(progressStepsAtomOf(m, interp), container)
       return
     }
     if (t === 'EntityHeader') {
@@ -1306,6 +1945,7 @@ export function islandContentOf(ctx, opts = {}) {
         facts: (m.facts || []).map((f) => factProjectionOf(f, interp(f.value))),
         metricLabel: interp(m.metricLabel || ''),
         metricValue: interp(m.metricValue || ''),
+        metricCaption: interp(m.metricCaption || ''),
       }, container)
       return
     }
@@ -1324,6 +1964,7 @@ export function islandContentOf(ctx, opts = {}) {
         isNotice: true,
         text: noticeText,
         noticeClass: NOTICE_CLASSES[m.theme] || NOTICE_CLASSES.info,
+        ...noticeIconOf(m),
         buttons: [...own, ...collectButtons({ children: kids }, [])],
       }, container)
       for (const child of kids) if (!holdsButtons(child)) visit(child, container)
@@ -1332,7 +1973,10 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'Markdown') {
       // Markdown WITH formatting (headings, lists, quotes, code, bold, links…): sanitized HTML
       // that installRichText dumps into its container (VB does not stamp HTML from a binding)
-      const html = richHtmlOf('markdown', interp(m.markdown || m.text || ''))
+      // NOT interpolated: a Markdown's text is prose (a description, a code listing) where `${…}`
+      // is content, like the web renderer's mateu-markdown — interpolating it blanked the
+      // expressions out of every Explorer description and showed source code that is not the file
+      const html = richHtmlOf('markdown', String(m.markdown || m.text || ''))
       if (html) atom({ isRichText: true, label: '', html }, container)
       return
     }
@@ -1355,14 +1999,38 @@ export function islandContentOf(ctx, opts = {}) {
         : raw
       // PAGING: Grid.size rows per page (client side, the rows travel inline)
       const paging = gridPageOf(flat, tree ? 0 : (m.size || 0), uiValueOf(gridKey + ':page', 0))
-      const rows = paging.rows.map((r, i) => ({ ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }))
+      // a column's actionId makes its cells LINKS that run it with the row's values (the web's
+      // contract); the cell reads <id>__actionCell = {text, actionId, parameters}
+      const actionCols = leafColumns.filter((c) => c.actionId && !(tree && c === leafColumns[0]))
+      const rows = labelCellRows(paging.rows, leafColumns).map((r, i) => {
+        const out = { ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }
+        for (const c of actionCols) {
+          const values = {}
+          for (const k of Object.keys(r)) if (!k.startsWith('__') && k !== 'children' && !k.endsWith(LABEL_CELL_SUFFIX)) values[k] = r[k]
+          const shown = labelColumn(c) ? out[c.id + LABEL_CELL_SUFFIX] : r[c.id]
+          out[c.id + GRID_ACTION_CELL_SUFFIX] = { text: shown == null ? '' : String(shown), actionId: c.actionId, parameters: values }
+        }
+        return out
+      })
       const columns = leafColumns.map((c, i) => {
-        const def = { headerText: interp(c.label || c.id), field: c.id }
+        // sortable ONLY where declared (every column showed a sort icon)
+        const def = { headerText: interp(c.label || c.id), field: c.id, sortable: c.sortable ? 'enabled' : 'disabled' }
         if (tree && i === 0) def.template = 'cellTreeToggle'
+        else if (c.actionId) { def.field = c.id + GRID_ACTION_CELL_SUFFIX; def.template = 'cellGridAction'; def.sortable = 'disabled' }
+        // money formatted in the UI's locale, booleans Yes/No, dates localised (the raw value was shown)
+        else if (labelColumn(c)) def.field = c.id + LABEL_CELL_SUFFIX
+        // its `align` (and numbers / amounts at the end), as the listings do
+        const align = alignOf(c)
+        if (align) { def.className = 'oj-helper-text-align-' + align; def.headerClassName = 'oj-helper-text-align-' + align }
+        const width = columnWidthOf(c)
+        Object.assign(def, width)
+        if (c.frozen) def.frozenEdge = 'start'
         return def
       })
       atom({
         isGrid: true,
+        // Grid.rowStripes / columnBorders: the table's own look (oj-table draws neither by itself)
+        gridClass: 'oj-sm-margin-4x-bottom' + (m.rowStripes ? ' mateu-grid-stripes' : '') + (m.columnBorders ? ' mateu-grid-column-borders' : ''),
         fieldId: node.id || 'grid',
         label: '',
         columns,
@@ -1402,7 +2070,8 @@ export function islandContentOf(ctx, opts = {}) {
       // the wrapped part is painted as a trigger with its text; the content, as lines in the
       // shared floating window (hover.mjs) — on hover/focus (hover) or on press (click)
       const wrappedTexts = m.wrapped ? collectTexts(m.wrapped).map(interp).filter(Boolean) : []
-      const label = wrappedTexts.join(' ') || (m.wrapped && m.wrapped.metadata && m.wrapped.metadata.label) || 'Details'
+      const wm = (m.wrapped && m.wrapped.metadata) || {}
+      const label = wrappedTexts.join(' ') || wm.label || wm.text || 'Details'
       const lines = m.content ? collectTexts(m.content).map(interp).filter(Boolean) : []
       // the content WITH its structure (headings, lists, links, badges…) as sanitised HTML: the
       // popup shows that, the text lines stay as its accessible fallback
@@ -1414,6 +2083,8 @@ export function islandContentOf(ctx, opts = {}) {
         hoverText: m.trigger === 'hover' ? text : '',
         clickText: m.trigger === 'hover' ? '' : text,
         html,
+        // the wrapped button IS drawn (as the trigger): the form's action row must not repeat it
+        buttons: m.wrapped ? collectButtons(m.wrapped, []) : [],
       }, container)
       return
     }
@@ -1461,7 +2132,7 @@ export function islandContentOf(ctx, opts = {}) {
       // an oj-avatar per person up to maxItemsVisible, and «+N» for the ones that do not fit
       const all = (m.avatars || []).map(avatarOf)
       const max = m.maxItemsVisible > 0 ? m.maxItemsVisible : all.length
-      atom({ isAvatar: true, avatars: all.slice(0, max), overflow: all.length > max ? '+' + (all.length - max) : '' }, container)
+      atom({ isAvatar: true, group: true, avatars: all.slice(0, max), overflow: all.length > max ? '+' + (all.length - max) : '' }, container)
       return
     }
     if (t === 'CarouselLayout') {
@@ -1485,7 +2156,7 @@ export function islandContentOf(ctx, opts = {}) {
       atom({
         isBadge: true,
         label: interp(m.text),
-        badgeClass: BADGE_CLASSES[m.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
+        badgeClass: badgeChipClassOf(m),
         // its icons, inside the chip before/after the text (they were never drawn)
         ...badgeIconsOf(m),
       }, container)
@@ -1503,7 +2174,10 @@ export function islandContentOf(ctx, opts = {}) {
           statusLabel: it.statusLabel || '',
           statusBadgeClass: BADGE_CLASSES[it.statusColor] || 'oj-badge oj-badge-neutral oj-badge-subtle',
           note: it.note || '',
-          recommendedLabel: it.recommended ? (m.recommendedLabel || '') : '',
+          // the note in its colour (noteColor), as the web paints it
+          noteClass: 'oj-typography-body-xs ' + (STATUS_TEXT[it.noteColor] || 'oj-text-color-secondary'),
+          // a recommended card carries a FLAG (the web's tag; «Recommended» without a label)
+          recommendedLabel: it.recommended ? (m.recommendedLabel || chromeText('recommended')) : '',
           enabled: !it.disabled,
           disabled: !!it.disabled,
           actionId: m.actionId,
@@ -1518,9 +2192,18 @@ export function islandContentOf(ctx, opts = {}) {
       atom({
         isOffer: true,
         tag: interp(m.tag || ''),
+        // its image header (16:9) with the tag floating over it; without an image the tag is a chip
+        // above the title — and the features are chips, as on the web (they were joined by «·»)
+        image: m.image ? elementModuleUrl(interp(m.image)) : '',
+        hasImage: !!m.image,
+        tagOnImage: !!(m.tag && m.image),
+        tagInline: !!(m.tag && !m.image),
         title: interp(m.title || ''),
         subtitle: interp(m.subtitle || ''),
         features: (m.features || []).map(interp).join(' · '),
+        featureChips: (m.features || []).map((f, i) => ({ key: String(i), text: interp(f) })),
+        // its own style (`width: 17rem`): it was drawn full width
+        offerStyle: styleObjectOf(node.style || m.style),
         currentLabel: m.current ? (m.currentLabel || '') : '',
         addedLabel: m.added ? (m.addedLabel || '') : '',
         priceLabel: interp(m.priceLabel || ''),
@@ -1535,18 +2218,23 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'AddOnPicker') {
+      // the running total of what is added, under its label (the web's header: it was not drawn)
+      const addOnTotal = (m.items || []).filter((it) => it.added && !it.includedLabel)
+        .reduce((sum, it) => sum + (Number(it.price) || 0), 0)
       atom({
         isAddOns: true,
         actionId: m.actionId,
         currency: m.currency || '€',
         totalLabel: m.totalLabel || 'Total',
+        totalText: money(addOnTotal, m.currency),
         items: (m.items || []).map((it) => ({
           id: it.id,
           icon: it.icon || '',
           title: interp(it.title),
           description: interp(it.description || ''),
           price: it.price || 0,
-          priceText: money(it.price, m.currency) + (it.unit ? ' / ' + it.unit : ''),
+          // an INCLUDED extra shows only its label (it also read «€ 0.00»); no price, no price line
+          priceText: it.includedLabel || it.price == null ? '' : money(it.price, m.currency) + (it.unit ? ' / ' + it.unit : ''),
           includedLabel: it.includedLabel || '',
           selectable: !it.includedLabel,
           added: !!it.added,
@@ -1634,10 +2322,13 @@ export function islandContentOf(ctx, opts = {}) {
         lines: (m.lines || []).map((line) => ({
           concept: interp(line.concept),
           amountText: line.included ? (line.includedLabel || '') : money(line.amount, m.currency),
-          amountClass: (line.amount || 0) < 0 ? 'oj-text-color-success' : '',
+          // a NEGATIVE amount (a deposit, a refund) is drawn in the danger tone, as the web does
+          amountClass: !line.included && (line.amount || 0) < 0 ? 'oj-text-color-danger' : '',
         })),
         totalLabel: m.totalLabel || 'Total',
-        totalText: money(m.total, m.currency),
+        // absent total = the sum of the non-included lines (the web's contract: it read € 0.00)
+        totalText: money(m.total != null ? m.total
+          : (m.lines || []).filter((line) => !line.included).reduce((sum, line) => sum + (Number(line.amount) || 0), 0), m.currency),
       }, container)
       return
     }
@@ -1646,10 +2337,15 @@ export function islandContentOf(ctx, opts = {}) {
         isPayment: true,
         contextLabel: m.contextLabel || '',
         contextValue: interp(m.contextValue || ''),
+        // the pick is kept ON THE CLIENT (like the web's picker): installPaymentPickers marks the
+        // chosen button and the confirm sends it — it sent the server's `selected` whatever was clicked
+        selected: m.selected || '',
         methods: (m.methods || []).map((method) => ({
+          id: method.id,
           label: method.label,
           chroming: method.id === m.selected ? 'callToAction' : 'outlined',
-          actionId: m.methodActionId,
+          actionId: m.methodActionId || '',
+          local: !m.methodActionId,
           parameters: { _method: method.id },
         })),
         confirmLabel: m.confirmLabel || chromeText('confirm'),
@@ -1684,11 +2380,7 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Stat') {
-      atom({
-        isStat: true,
-        label: interp(m.label || ''),
-        value: (m.value == null ? '' : String(interp(String(m.value)))) + (m.unit ? ' ' + interp(m.unit) : ''),
-      }, container)
+      atom(statAtomOf(m, interp), container)
       // a Stat with an action drills in (as a MetricCard's «View»): it used to be inert here
       if (m.actionId) atom({ isButtons: true, buttons: [buttonOf({ actionId: m.actionId, label: chromeText('view') })] }, container)
       return
@@ -1700,7 +2392,7 @@ export function islandContentOf(ctx, opts = {}) {
       // and no action of its own: its buttons join the row, as a toolbar group's join the header
       const buttons = groupMembersOf(m).map(buttonOf)
       if (editorNodeIds && node.id) buttons.forEach((b) => { b.nodeId = String(node.id) })
-      if (last && last.isButtons && !last.fullWidth) last.buttons.push(...buttons)
+      if (last && last.isButtons && !last.fullWidth && !last.fromRow) last.buttons.push(...buttons)
       else atom({ isButtons: true, buttons }, container)
       return
     }
@@ -1726,7 +2418,7 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'MessageList') { atom(messageListAtomOf(m, interp), container); return }
     if (t === 'MessageInput') { atom(messageInputAtomOf(m, node.id), container); return }
     if (t === 'Chat') { atom(chatAtomOf(m, node.id), container); return }
-    if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id), container); return }
+    if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id, node.style), container); return }
     if (t === 'Workflow') { atom(workflowAtomOf(m), container); return }
     if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
     if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }
@@ -1734,7 +2426,13 @@ export function islandContentOf(ctx, opts = {}) {
     // a LISTING inside a templated page's content (a general overview's slot, a multimedia section, a
     // collection detail's detail…) is part of that content, drawn where it sits: not the page's own
     // listing, which the listing branch paints (hoisted, it left its slot for the top of the page)
-    if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree))) {
+    // a @Subresource / MicroFrontend surface's own listing, already projected (withSubresources)
+    if (t === 'Crud' && opts.crudAtom) {
+      atom(opts.crudAtom, container)
+      return
+    }
+    // …and so is a listing the PAGE does not own (inside a card or a tab of a plain page: an example)
+    if (t === 'Crud' && m.rowsSource && (ctx.templateSlot || templateNestsListings(ctx.tree) || pageListingNodeOf(ctx.tree) !== node)) {
       atom(nestedListingAtomOf(node, ctx), container)
       return
     }
@@ -1748,8 +2446,14 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'HeroSection' && (node.id === 'multimedia-banner' || node.id === 'hero-search')) return
     if (t === 'HeroSection') {
       // a hero in the content (the Welcome archetype paints its own with oj-sp-header-welcome-banner)
-      atom(heroAtomOf(m, interp), container)
-      for (const child of kidsOf(node)) visit(child, container)
+      // its buttons are its call to action, drawn inside the band (centred with it); anything
+      // else it holds follows it
+      const hero = heroAtomOf(m, interp)
+      const kids = kidsOf(node)
+      const isButtonKid = (k) => k && k.metadata && k.metadata.type === 'Button'
+      hero.buttons = kids.filter(isButtonKid).flatMap((k) => groupMembersOf(k.metadata).map(buttonOf))
+      atom(hero, container)
+      for (const child of kids) if (!isButtonKid(child)) visit(child, container)
       return
     }
     // an EmptyState inside the content (the host's FIRST one is the page-level oj-sp-empty-state
@@ -1758,6 +2462,14 @@ export function islandContentOf(ctx, opts = {}) {
     // slot (ctx.templateSlot: a collection detail's noSelection) is that slot's content
     if (t === 'EmptyState' && !(ctx.kind === 'host' && !ctx.templateSlot && pageEmptyStateNode(ctx.tree) === node)) {
       atom(emptyStateAtomOf(m, interp), container)
+      return
+    }
+    // a NotFound inside the content (an example's, in a card): what the page-level one says — its
+    // heading, its explanation and the way back — drawn where it sits (the page's own is notFoundOf)
+    if (t === 'NotFound' && findPageLevelType(ctx.tree, 'NotFound') !== node) {
+      atom(emptyStateAtomOf({ icon: m.icon, title: m.title || NOT_FOUND_TEXTS.en.title, description: m.message || NOT_FOUND_TEXTS.en.message }, interp), container)
+      const back = m.backRoute ? safeHref('/' + String(m.backRoute).replace(/^\/+/, '')) : ''
+      if (back) atom({ isAnchor: true, text: interp(m.backLabel || NOT_FOUND_TEXTS.en.back), href: back, target: '_self', rel: '' }, container)
       return
     }
     // a ProgressBar in the content (a wizard's own progress is its guided process, wizardOf)
@@ -1774,7 +2486,7 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'Faq') {
       // like an accordion: a collapsible header per question, the answer after it when open
       ;(m.items || []).forEach((item, i) => {
-        const key = 'faq:' + (node.id && node.id !== 'fieldId' ? node.id : 'faq') + ':' + i
+        const key = scoped('faq:' + (node.id && node.id !== 'fieldId' ? node.id : 'faq') + ':' + i)
         const expanded = panelExpanded(key, !!item.open)
         atom({ isCollapsible: true, collapsibleKey: key, title: interp(item.question || ''), expanded, disabled: false }, container)
         if (expanded) atom({ isRichText: true, label: '', html: richHtmlOf('markdown', interp(item.answer || '')) }, container)
@@ -1802,14 +2514,35 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'ContextMenu') {
+      // WHAT IT WRAPS and its menu in ONE box: a right (or, with activateOnLeftClick, a left) click
+      // on it finds the menu next to it — the wrapped Card used to be moved out as a block of its own
+      const wrapped = [...(m.wrapped ? [m.wrapped] : []), ...kidsOf(node)]
+      if (wrapped.length && wrapped.every((w) => fitsInBox(w))) {
+        const cells = wrapped.map((w) => cellOf(w, null))
+        if (cells.every(Boolean)) {
+          atom({ isCells: true, boxClass: 'mateu-cells-column mateu-context-wrap', style: {},
+            cells: [...cells.map((c, i) => ({ ...c, key: String(i) })), { key: 'menu', cellClass: '', style: {}, items: [{ ...contextMenuAtomOf(m, interp), key: '0' }] }],
+            ...(cells.some((c) => c.items.some(isRichAtom)) ? { isCellsRich: true } : {}) }, container)
+          return
+        }
+      }
       if (m.wrapped) visit(m.wrapped, container)
       for (const child of kidsOf(node)) visit(child, container)
       atom(contextMenuAtomOf(m, interp), container)
       return
     }
     if (t === 'VirtualList') {
-      // every item through the same visitor (a component), or as a line of text (plain data)
       const items = (m.page && m.page.content) || []
+      // VIRTUALISED, as the component promises: JET's oj-list-view paints only the rows in view
+      // (loadMoreOnScroll) in a box of the list's own height — all 2,000 rows were drawn and the
+      // page grew 57,000px tall. A row is its texts and badges, in a line (an oj-list-view item
+      // template cannot hold arbitrary components: VB templates do not recurse).
+      if (items.length > VIRTUAL_LIST_INLINE_MAX || (node.style || m.style)) {
+        atom(virtualListAtomOf(items, node, interp), container)
+        return
+      }
+      // a short list, unstyled: every item through the same visitor (a component), or as a line
+      // of text (plain data)
       for (const item of items) {
         if (item && typeof item === 'object' && (item.metadata || item.type)) visit(item.metadata ? item : { metadata: item }, container)
         else if (item && typeof item === 'object') {
@@ -1833,7 +2566,7 @@ export function islandContentOf(ctx, opts = {}) {
       // at a time with its pager — the slide shown is client state (uiValueChanged)
       const slides = kidsOf(node)
       if (slides.length > 1) {
-        const key = 'carousel:' + (node.id && node.id !== 'fieldId' ? node.id : 'carousel')
+        const key = scoped('carousel:' + (node.id && node.id !== 'fieldId' ? node.id : 'carousel'))
         const current = Math.max(0, Math.min(slides.length - 1, Number(uiValueOf(key, 0)) || 0))
         atom(carouselPagerAtomOf(key, current, slides.length, !!m.loop), container)
         visit(slides[current], container)
@@ -1894,8 +2627,11 @@ export function withFormActions(blocks, actions, { tree } = {}) {
   if (!blocks || !blocks.length) return blocks
   const drawn = {}
   for (const block of blocks) {
-    for (const atom of block.items || []) {
-      if (atom && atom.isButtons) for (const b of atom.buttons || []) drawn[b.actionId] = true
+    // inside a row of inline pieces or a layout box too: a «Show map» in a HorizontalLayout was
+    // drawn there AND again in the action row
+    for (const atom of flatAtoms(block.items)) {
+      if (atom && (atom.isButtons || atom.isHero || atom.isPopover)) for (const b of atom.buttons || []) drawn[b.actionId] = true
+      if (atom && atom.isRow) for (const b of atom.items || []) if (b.isButton) drawn[b.actionId] = true
     }
   }
   const inTabs = tabOnlyActionIdsOf(tree)
@@ -1926,7 +2662,7 @@ export function tabOnlyActionIdsOf(tree) {
     if (n.actionId && n.label && !n.fieldId) (tab ? inside : outside)[n.actionId] = true
     for (const [k, v] of Object.entries(n)) {
       if (k === 'switcher' && (n.type === 'Page' || n.type === 'Form')) continue
-      if (k === 'fabs' && n.type === 'Form') continue
+      if (k === 'fabs' && (n.type === 'Form' || n.type === 'Page')) continue
       if (v && typeof v === 'object') walk(v, false, tab)
     }
   }
@@ -2060,24 +2796,59 @@ export function pendingSubresourcesOf(blocks, contexts) {
 
 /** The content with each loaded @Subresource slot turned into its table (or, if it is not a
  *  listing, into its content). The ones not loaded yet stay as a slot (they paint nothing). */
-export function withSubresources(blocks, contexts) {
+export function withSubresources(blocks, contexts, opts = {}) {
+  const depth = (opts && opts.depth) || 0
+  const activeTabs = (opts && opts.activeTabs) || {}
   if (!blocks) return blocks
-  return blocks.map((block) => ({
+  // a surface laid out in COLUMNS (its blocks carry oj-md-N column classes: a wizard beside its rail,
+  // a docked panel, an overview's info column) is not flattened into the host block — the host block
+  // becomes a ROW OF BLOCKS (isBlockRow, top level only: the template paints it in the host content)
+  const columnsOf = new Map()
+  const filled = blocks.map((block) => ({
     ...block,
     items: (block.items || []).flatMap((a) => {
       if (!a || !a.isSubresource) return [a]
       const ctx = contexts && contexts[a.islandId]
       if (!ctx || !ctx.tree) return [a]
+      // a MicroFrontend that embeds a whole APP (transport embeddedAppOf): the app itself, framed —
+      // its shell (menu, pickers, header actions, shortcuts) is its own, as on its own page
+      if (ctx.embeddedApp) {
+        const href = safeHref(ctx.embeddedApp.src)
+        return href ? [{ isAppFrame: true, src: href, title: ctx.embeddedApp.title || '', frameStyle: { height: ctx.embeddedApp.height || '36rem' }, fromSurface: true }] : []
+      }
       const crud = findByType(ctx.tree, 'Crud')
       // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
       const chrome = (a.subresource && a.subresource.chrome) || null
       if (!crud) {
-        const inner = islandContentOf(ctx, chrome ? { chrome } : {})
+        let inner = islandContentOf(ctx, { ...(chrome ? { chrome } : {}), surface: true, keyScope: a.islandId, activeTabs })
+        // a surface holds surfaces of its own (an example island with component fields, a
+        // MicroFrontend inside an island…): their holes are filled the same way, and the ones still
+        // unloaded name the surface they belong to (parentId: loadSubresources registers them under it)
+        if (inner && depth < 4) {
+          inner = withSubresources(inner.map((b) => ({
+            ...b,
+            items: (b.items || []).map((x) => (x && x.isSubresource && x.subresource && !x.subresource.parentId
+              ? { ...x, subresource: { ...x.subresource, parentId: a.islandId } } : x)),
+          })), contexts, { depth: depth + 1, activeTabs })
+        }
         // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
         // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
-        const items = inner ? inner.flatMap((b) => b.items).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item)) : []
-        // a MicroFrontend's / an inline island's surface: its actions go back to IT (dispatchHostBlockAction → surface)
-        return a.subresource && a.subresource.surface ? tagSurfaceActions(items, a.islandId) : items
+        const mark = (list) => {
+          const items = (list || []).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item))
+          // a MicroFrontend's / an inline island's surface: its actions go back to IT (dispatchHostBlockAction → surface)
+          return a.subresource && a.subresource.surface ? tagSurfaceActions(items, a.islandId) : items
+        }
+        const items = mark(inner ? inner.flatMap((b) => b.items) : [])
+        if (depth === 0 && inner && inner.some((b) => /oj-md-\d/.test(b.colClass || b.blockClass || ''))) {
+          // the surface's column blocks, each with its own atoms (and card look)
+          const sub = inner.map((b) => ({ blockClass: b.colClass || b.blockClass || 'oj-flex-item oj-sm-12',
+            innerClass: b.isCard ? 'oj-panel oj-sm-margin-3x-bottom' : '',
+            items: mark(b.spSection ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || []) : b.items) }))
+          const marker = { isColumnsMarker: true, items }
+          columnsOf.set(marker, sub)
+          return [marker]
+        }
+        return items
       }
       const md = crud.metadata || {}
       const wire = leafColumnsOf(md.columns)
@@ -2085,15 +2856,20 @@ export function withSubresources(blocks, contexts) {
         .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
       const page = (((ctx.data || {}).crud || {}).page) || {}
       const rows = labelCellRows(statusBadgeRows(page.content || [], wire), wire)
-      return [{
+      const grid = {
         isGrid: true,
         isSubresourceGrid: true,
         fieldId: a.islandId,
         // NONE / COMPACT: the embedded listing's title is its page's, and that page shows none
         label: chrome === 'NONE' || chrome === 'COMPACT' ? '' : (md.title || ''),
-        columns: wire.map((c) => (c.dataType === 'status'
-          ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
-          : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id })),
+        columns: wire.map((c) => {
+          const def = c.dataType === 'status'
+            ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
+            : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id }
+          const align = alignOf(c)
+          if (align && !def.template) { def.className = 'oj-helper-text-align-' + align; def.headerClassName = 'oj-helper-text-align-' + align }
+          return def
+        }),
         rows,
         adp: dataProviderFactory ? dataProviderFactory(rows) : null,
         isEmpty: rows.length === 0,
@@ -2101,9 +2877,104 @@ export function withSubresources(blocks, contexts) {
         rowEditable: false,
         addActionId: '',
         addLabel: '',
-      }]
+        // rowsSelectionEnabled → the selection column; dragType (@DragRows) → its rows drag to a DropZone
+        selectionMode: md.rowsSelectionEnabled || md.multipleRowSelectionEnabled ? { row: 'multiple' } : { row: 'none' },
+        dragTypes: md.dragType ? [dragMimeOf(md.dragType)] : [],
+      }
+      // its gridLayout (cards / list / masterDetail / tree): the table was the only one drawn
+      Object.assign(grid, subresourceLayoutOf(crud, ctx, page, grid, a.islandId))
+      // the listing is ONE PART of its surface (DropZones beside it, texts, a header…): the rest is
+      // drawn too, the table where the listing sits — only the table was kept, the zones were lost
+      const composed = islandContentOf(ctx, { ...(chrome ? { chrome } : {}), crudAtom: grid })
+      // …and what its page DECLARES above the listing (HeaderSupplier: the drop zones of @DragRows)
+      const pageNode = findByType(ctx.tree, 'Page')
+      const declared = pageNode && pageNode.metadata && Array.isArray(pageNode.metadata.header) ? pageNode.metadata.header : []
+      const head = declared.length
+        ? islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingHeader', metadata: { type: 'VerticalLayout' }, children: declared } }) || []
+        : []
+      const items = [...head.flatMap((b) => b.items), ...(composed ? composed.flatMap((b) => b.items) : [])]
+      if (items.length <= 1) return [grid]
+      const marked = items.map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item))
+      return a.subresource && a.subresource.surface ? tagSurfaceActions(marked, a.islandId) : marked
     }),
   }))
+  if (!columnsOf.size) return filled
+  return filled.map((block) => {
+    if (!(block.items || []).some((a) => columnsOf.has(a))) return block
+    // the row: what the block had before / after each columned surface as full-width blocks, the
+    // surface's column blocks between them; `items` stays the flat list (the readers of the content)
+    const subBlocks = []
+    let run = []
+    const flush = () => { if (run.length) subBlocks.push({ blockClass: 'oj-flex-item oj-sm-12', innerClass: '', items: run }); run = [] }
+    for (const a of block.items) {
+      if (columnsOf.has(a)) { flush(); subBlocks.push(...columnsOf.get(a)) } else run.push(a)
+    }
+    flush()
+    const frameClass = block.isCard ? 'oj-panel oj-sm-margin-3x-bottom' : 'oj-sm-margin-2x-bottom'
+    // a card's title (its first atom, a subheading) heads the frame, above the columns
+    let frameTitle = ''
+    let frameTitleClass = ''
+    const lead = subBlocks[0]
+    const first = lead && !/oj-md-/.test(lead.blockClass) && lead.items[0]
+    if (block.isCard && first && first.isText && !first.isHeading && /subheading/.test(first.cls || '')) {
+      frameTitle = first.text
+      frameTitleClass = first.cls
+      lead.items = lead.items.slice(1)
+      if (!lead.items.length) subBlocks.shift()
+    }
+    return { isBlockRow: true, blockClass: block.blockClass || 'oj-flex-item oj-sm-12', frameClass, frameTitle, frameTitleClass,
+      subBlocks: subBlocks.map((b, i) => ({ ...b, key: String(i), items: b.items.map((x, j) => (x && typeof x === 'object' ? { ...x, key: x.key || String(j) } : x)) })),
+      items: block.items.flatMap((a) => (columnsOf.has(a) ? a.items : [a])) }
+  })
+}
+
+/**
+ * A surface's listing in its declared gridLayout — what to lay over its table atom: `cards` (a grid
+ * of cards: the identifier as title, the other columns as lines), `list` (one card per line, the
+ * identifier and the @Priority 1–2 columns), `masterDetail` (that list beside the picked row's
+ * fields; the pick is client state) or `tree` (rows with `children`, the first column disclosing
+ * them). {} for a table (auto / table).
+ */
+export function subresourceLayoutOf(crud, ctx, page, grid, surfaceKey) {
+  const md = (crud && crud.metadata) || {}
+  const layout = String(md.gridLayout || '')
+  const raw = page.content || []
+  if (layout === 'tree') {
+    if (!raw.some((r) => Array.isArray(r && r.children) && r.children.length)) return {}
+    const key = 'listingTree:' + surfaceKey
+    const flat = flattenTreeRows(raw, (k) => !!uiValueOf(key + ':open:' + k, false)).map((r) => ({
+      ...r,
+      ...treeDisclosureOf({ depth: r.__depth, hasChildren: r.__hasChildren, expanded: r.__expanded,
+        uiKey: key + ':open:' + r.__treeKey, uiValue: !r.__expanded }),
+    }))
+    const wire = leafColumnsOf(md.columns).filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
+    const rows = labelCellRows(flat, wire).map((r, i) => ({ ...r, _rowNumber: i }))
+    const columns = grid.columns.map((c, i) => (i === 0 ? { ...c, template: 'cellTreeToggle', sortable: 'disabled' } : { ...c, sortable: 'disabled' }))
+    return { rows, columns, adp: dataProviderFactory ? dataProviderFactory(rows) : null, isEmpty: rows.length === 0 }
+  }
+  if (layout !== 'cards' && layout !== 'list' && layout !== 'masterDetail') return {}
+  const node = { ...crud, metadata: { ...md, gridLayout: 'cards' } }
+  const nested = nestedListingAtomOf(node, { ...ctx, data: { ...(ctx.data || {}), [nestedListingKeyOf(node)]: { page } } })
+  const out = { ...nested, isGrid: false, title: grid.label || nested.title }
+  if (layout === 'cards') return out
+  // list / master-detail: the identifier titles each line, its @Priority 1–2 columns are its caption
+  const columns = leafColumnsOf(md.columns).map((c) => c.metadata || c).filter((c) => c.id && c.dataType !== 'actionGroup')
+  const captionIds = columns.filter((c) => !c.identifier && (c.priority === 1 || c.priority === 2)).map((c) => c.id)
+  const pickKey = 'listingPick:' + surfaceKey
+  const picked = uiValueOf(pickKey, 0)
+  const cards = nested.cards.map((card, i) => ({
+    ...card,
+    lines: captionIds.length ? card.lines.filter((l) => columns.some((c) => captionIds.includes(c.id) && (c.label || c.id) === l.label)) : card.lines.slice(0, 1),
+    cellClass: 'oj-flex-item oj-sm-12 oj-sm-padding-2x-bottom',
+    ...(layout === 'masterDetail' ? { uiKey: pickKey, uiValue: i, cardClass: 'mateu-nested-card' + (i === picked ? ' mateu-nested-card-picked' : '') } : {}),
+  }))
+  if (layout === 'list') return { ...out, cards }
+  const row = raw[picked] || null
+  const detail = row ? columns.map((c) => {
+    const shown = labelColumn(c) ? valueLabelOf(c, row[c.id]) : row[c.id]
+    return { label: c.label || c.id, value: shown == null ? '' : String(typeof shown === 'object' ? (shown.value ?? shown.message ?? '') : shown) }
+  }) : []
+  return { ...out, cards, hasDetail: true, detail, layoutClass: 'mateu-nested-md' }
 }
 
 /** Merges the content of the NESTED island into the blocks of the parent island:
@@ -2154,7 +3025,7 @@ export function kidsInAreaOrder(kids, areas) {
 }
 
 export function hostContentOf(ctx, islandBlocks, opts = {}) {
-  const blocks = islandContentOf(ctx, opts)
+  const blocks = islandContentOf(ctx, { ...opts, pageButtons: true })
   if (!blocks) return null
   let merged = mergeNestedContent(blocks, islandBlocks || null)
   const title = opts.title || ''

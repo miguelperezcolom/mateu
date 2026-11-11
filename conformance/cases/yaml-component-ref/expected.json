@@ -1,0 +1,31 @@
+{
+  "commands" : [ {
+    "data" : "Welcome",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "metadata" : {
+          "container" : "div",
+          "text" : "Hello",
+          "type" : "Text"
+        },
+        "type" : "ClientSide"
+      }, {
+        "metadata" : {
+          "text" : "Built from the component catalogue",
+          "theme" : "success",
+          "type" : "Notice"
+        },
+        "type" : "ClientSide"
+      } ],
+      "metadata" : {
+        "type" : "VerticalLayout"
+      },
+      "type" : "ClientSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

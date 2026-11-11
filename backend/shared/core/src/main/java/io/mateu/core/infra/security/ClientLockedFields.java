@@ -265,6 +265,86 @@ public final class ClientLockedFields {
     }
   }
 
+  /**
+   * The field ids the YAML pieces {@code tree} names REMOVE for the caller ({@code eyesOnly:} /
+   * {@code access:}, a piece hidden as a whole, a piece nested under a section the caller may not
+   * see) — the read-only ones excluded: they are drawn, with their value. What a definition-only
+   * page drops from its route seeds: the pieces are composed while the page is mapped, after the
+   * route seeded its state, so a seed of a field they hide would otherwise reach the caller. Exact,
+   * not app-wide: a YAML layout is a fixed tree, so the pieces it names are the ones it draws.
+   * Fails closed: a piece whose access keys cannot be evaluated hides all of its fields.
+   */
+  public static Set<String> hiddenByPiecesOf(Component tree, HttpRequest httpRequest) {
+    if (tree == null || !anyRestrictedSpec()) {
+      return Set.of();
+    }
+    var out = new LinkedHashSet<String>();
+    try {
+      for (var ref : refsIn(tree)) {
+        hidden(ref, httpRequest, new ArrayDeque<>(), out);
+      }
+    } catch (RuntimeException e) {
+      log.error("Could not derive the hidden fields of a tree's pieces; treating all as hidden", e);
+      for (var ref : refsIn(tree)) {
+        var all = new LinkedHashMap<String, String>();
+        lockAll(ref, httpRequest, new ArrayDeque<>(), all, new boolean[1]);
+        out.addAll(all.keySet());
+      }
+    }
+    return out;
+  }
+
+  /** The fields {@code ref} removes for the caller, its nested pieces included. */
+  private static void hidden(Ref ref, HttpRequest rq, Deque<Ref> chain, Set<String> out) {
+    if (chain.contains(ref) || chain.size() >= MAX_DEPTH) {
+      return;
+    }
+    chain.push(ref);
+    try {
+      var source = sourceOf(ref, rq);
+      if (source instanceof JsonNode node) {
+        var nested = refsIn(node);
+        Set<Ref> visible;
+        try {
+          if (YamlAccess.declaresAccess(node)) {
+            var applied = YamlAccess.apply(node, rq, null);
+            out.addAll(applied.hiddenFields());
+            if (applied.tree() == null) {
+              out.addAll(fieldIdsIn(node)); // the whole piece is hidden from the caller
+            }
+            visible = applied.tree() == null ? Set.of() : refsIn(applied.tree());
+          } else {
+            visible = nested;
+          }
+        } catch (Exception e) {
+          log.error(
+              "Could not apply the access keys of {}; all of its fields are hidden",
+              ref.label(),
+              e);
+          out.addAll(fieldIdsIn(node));
+          visible = Set.of();
+        }
+        for (var child : nested) {
+          if (visible.contains(child)) {
+            hidden(child, rq, chain, out);
+          } else {
+            var all = new LinkedHashMap<String, String>(); // under a section the caller may not see
+            lockAll(child, rq, chain, all, new boolean[1]);
+            out.addAll(all.keySet());
+          }
+        }
+      } else if (source instanceof Collection<?> code) {
+        for (var item : code) {
+          for (var nested : refsIn(item)) {
+            hidden(nested, rq, chain, out);
+          }
+        }
+      }
+    } finally {
+      chain.pop();
+    }
+  }
+
   // ── the pieces ──────────────────────────────────────────────────────────────────────────────
 
   private static ClassLoader specsClassLoader() {

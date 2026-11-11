@@ -35,14 +35,22 @@ libraries do) pins its carrier thread, and a burst of requests can stall.
 **Workaround:** run on JDK 24 or later, or set `micronaut.executors.blocking.virtual=false`. See
 [Micronaut](/java-create-your-project/micronaut/).
 
-### Helidon MP: streamed actions, MCP and YAML mounts see no principal
+### Helidon MP: an app that authenticates only in JAX-RS
 
-On Helidon MP, Mateu's streamed actions (`LongTask`), the MCP endpoint and YAML mounts run on
-Helidon's own routing, which does not carry the JAX-RS `SecurityContext`. Without extra wiring they
-see an anonymous caller, so `@EyesOnly` and YAML `access:` refuse them.
+On Helidon MP, Mateu's streamed actions (`LongTask`), the MCP endpoint, YAML mounts and the client
+log run on Helidon's own routing, ahead of Jersey. With **helidon-security** they see its principal,
+roles and scope grants included, and an app that requires a login
+(`mateu.helidon.authentication-required`) answers an anonymous caller 401 on the MCP endpoint and
+the YAML mounts. Two cases are still limited:
 
-**Workaround:** register a `PrincipalResolver` bean that builds the caller from the request. See
-[Security](/java-user-manual/advanced/security/).
+- An app that authenticates only in JAX-RS — MicroProfile JWT, or a JAX-RS `ContainerRequestFilter`,
+  without helidon-security — is not seen on the MCP endpoint and the YAML mounts: they get an
+  anonymous caller, so `@EyesOnly` and YAML `access:` refuse it.
+- A streamed action whose request carries credentials that only JAX-RS reads is handed to Jersey,
+  which authenticates it but buffers the stream: the progress arrives at the end, all at once.
+
+**Workaround:** use helidon-security for authentication, or register a `PrincipalResolver` bean that
+builds the caller from the request. See [Security](/java-user-manual/advanced/security/).
 
 ### Micronaut and Quarkus are stricter than the JSON-body rule
 
@@ -81,14 +89,36 @@ and the operating system's `prefers-color-scheme`.
 
 **Workaround:** use the Vaadin renderer if your users need a dark theme.
 
-### Redwood: federation does not know static remotes or remote custom elements
+### Redwood: a static remote that ships raw definitions is not loaded
 
-On Redwood, a federated menu (`RemoteMenu`) works against a remote that is a running Mateu backend.
-A remote that is a **static bundle**, and a remote screen that uses its own **custom web
-components**, are not loaded.
+On Redwood, a federated menu (`RemoteMenu`) works against a remote that is a running Mateu backend,
+deep links and reloads of its screens included. A remote that is a **`specsOnly` static bundle**
+(raw YAML definitions, expanded in the browser) is shown disabled: Redwood has no client-side
+expander.
 
 **Workaround:** serve the remote from a backend, or use the Vaadin renderer for that shell. See
 [Using external Mateu UIs](/java-user-manual/build/using-external-mateu-uis/).
+
+### Redwood: inside an embedded island, no `@Toc` index and no app state sent back
+
+An island (an embedded view or a `MicroFrontend` drawn inside a page) is laid out by Redwood as part
+of its host, and two things of a standalone page do not carry over:
+
+- a `@Toc` on the island's view draws no index (the island's sections are not page sections);
+- `appState` an island's answer carries is shown (`${appState.x}`), but it is not sent back with
+  later requests.
+
+**Workaround:** open the screen on its own route when it needs its index, and keep cross-request
+state in the component state instead of `appState`.
+
+### React Native: an embedded app shows its content without its shell
+
+When a page embeds a whole Mateu app (a `MicroFrontend` or island answering an `App`), React Native
+draws the app's screens but not its shell extras: its app-context selectors, header actions and
+notification bell are not there.
+
+**Workaround:** open that app on its own (as a separate UI in the hub, or its own fixed build) when
+its users need those controls.
 
 ### A remote screen's own scripts need CORS from the remote
 
@@ -137,6 +167,21 @@ React Native has no hover (popovers and tooltips open on press / long-press), no
 `Workflow`, `FormEditor` and `Bpmn` read only. IntelliJ shows `Workflow` and `FormEditor` read only,
 uses a file picker for photo capture and searches only the loaded options of a searchable picker.
 
+On a phone the React Native app also lays a few things out for the screen size:
+
+- a `Drawer` is a bottom sheet whatever its position (`size` sets its starting height,
+  `maximizable` takes it to full height, `modeless` keeps the screen behind usable);
+- a horizontal `SplitLayout` stacks its panes, with no drag handle;
+- the `@Toc` index is a row of section chips above the page, which stays on screen, instead of a
+  sticky side index, and `@Section(sticky = true)` cards are not pinned (a pinned card would cover
+  most of the screen; the index lists them first);
+- labels stay above the fields (`labelsAside` is not applied: an outlined field carries its label
+  in its outline);
+- a `masterDetail` listing shows the pressed row's detail under it;
+- a row (`HorizontalLayout`) wraps rather than running off the screen;
+- `@FileUpload` offers the photo library on a device (any file in the web build); an `accept`
+  list with no image or video type says so instead of offering a picker.
+
 **Workaround:** edit workflows and forms on the web. The full list is in the
 [renderer coverage tables](/reference/parity/#renderers).
 
@@ -171,6 +216,9 @@ Listing filters (ranges, multi-select) are applied in memory in both ports by de
 - **The Figma pipeline, the visual editor and the VS Code extension are previews**: they are not
   covered by the stability promise (see
   [How mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30)).
+- **The IntelliJ plugin and the desktop app do not draw SVG images**: an `Image` (or avatar, card
+  media) whose source is an SVG shows its `alt` text as a placeholder, because the platform offers no
+  public API to rasterise SVG. **Workaround:** serve a PNG or JPEG for the images the desktop must show.
 - **The Windows desktop installer is not code-signed**, so SmartScreen warns on its first run
   ("Windows protected your PC"). **Workaround:** check the download against the release page, then
   **More info ▸ Run anyway** — see [Installing on Windows](/native/desktop-app/#windows).

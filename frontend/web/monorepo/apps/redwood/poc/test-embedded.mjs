@@ -535,7 +535,9 @@ test('end to end in Node: the properties become the requests the real chains sen
     assert.equal(sent[0].headers.Authorization, 'Bearer host-token')
     // 2. the screen: the composed route, the seed and the app context, with the same identity
     const load = sent.find((s) => s.url.includes('/mateu/v3/sync/') && s.body.actionId !== '__load__')
-    assert.equal(load.url, 'https://erp.acme.com/mateu/mateu/v3/sync/person/7')
+    // …with the params that are not path params as its URL's query, which the server seeds
+    // (query > defaults); the route itself stays clean
+    assert.equal(load.url, 'https://erp.acme.com/mateu/mateu/v3/sync/person/7?tab=main')
     assert.equal(load.body.route, '/person/7')
     assert.deepEqual(load.body.componentState, { name: 'Seeded' })
     assert.deepEqual(load.body.appState, { hotel: 'H1' })

@@ -781,6 +781,13 @@ public sealed class BannerAttribute(BannerTheme theme = BannerTheme.Info, string
 {
     public BannerTheme Theme { get; } = theme;
     public string? Title { get; } = title;
+
+    /// <summary>Shows a dismiss button (mirrors Java's @Banner(closeable)).</summary>
+    public bool Closeable { get; init; }
+
+    /// <summary>Dismisses itself after this many seconds; 0 = never (mirrors Java's
+    /// @Banner(timeoutSeconds)).</summary>
+    public int TimeoutSeconds { get; init; }
 }
 
 /// <summary>A status chip in the page header strip (Java's @BadgeInHeader). On a string property

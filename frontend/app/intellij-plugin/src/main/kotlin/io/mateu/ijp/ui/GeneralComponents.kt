@@ -162,11 +162,8 @@ fun renderContentLayout(r: ComponentRenderer, component: JsonNode, metadata: Jso
 
 /** ResponsiveGrid: children on a grid with as many columns as `gridTemplateColumns` declares. */
 fun renderResponsiveGrid(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    val children = kids(component)
-    val cols = gridColumnCount(metadata.text("gridTemplateColumns")).coerceIn(1, children.size.coerceAtLeast(1))
-    // Spans honoured and rows sized to their own content (IJ-06): a GridLayout made every cell the
-    // size of the biggest one.
-    return renderSpanGrid(r, children.toList(), cols, state, data)
+    // the CSS tracks and named areas (ResponsiveGrids); rows sized to their own content (IJ-06)
+    return renderResponsiveGridTracks(r, kids(component), metadata, state, data)
 }
 
 /** Columns in a CSS grid-template-columns value: `repeat(3, 1fr)` → 3, `2fr 1fr` → 2, blank → 2. */
@@ -189,12 +186,15 @@ internal fun gridColumnCount(template: String): Int {
     return count.coerceAtLeast(1)
 }
 
-/** FormItem: its children (label + control) side by side. */
-fun renderFormItem(r: ComponentRenderer, component: JsonNode, state: JsonNode, data: JsonNode): JComponent =
-    JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(JBGap), 0)).apply {
-        isOpaque = false
-        kids(component).forEach { add(r.render(it, state, data)) }
-    }
+/**
+ * FormItem: its children (label + control) as one item of the form, filling the item's width — a
+ * flow row sized the field to its preferred width (a 62px "Invoice to").
+ */
+fun renderFormItem(r: ComponentRenderer, component: JsonNode, state: JsonNode, data: JsonNode): JComponent {
+    val panel = verticalPanel(2)
+    kids(component).forEachIndexed { i, child -> panel.addStackedBetween(r.render(child, state, data), 2, first = i == 0) }
+    return panel
+}
 
 /** A Tab / AccordionPanel met outside its container: a titled group of its children. */
 fun renderTitledChildren(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent =
@@ -204,10 +204,10 @@ fun renderTitledChildren(r: ComponentRenderer, component: JsonNode, metadata: Js
 
 // ── navigation ─────────────────────────────────────────────────────────────────────────────
 
-/** Breadcrumbs: linked trail, then the current item in bold. A single Breadcrumb is a link. */
+/** Breadcrumbs: linked trail, then the current item in bold. */
 fun renderBreadcrumbs(ctx: AppContext, metadata: JsonNode): JComponent {
     val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(4), 0)).apply { isOpaque = false }
-    val crumbs = if (metadata.text("type") == "Breadcrumb") listOf(metadata) else metadata.path("breadcrumbs").items()
+    val crumbs = metadata.path("breadcrumbs").items()
     crumbs.forEachIndexed { i, b ->
         if (i > 0) row.add(muted("›", smaller = false))
         val link = b.text("link")
@@ -331,25 +331,90 @@ private fun cellText(v: JsonNode): String = when {
     else -> v.toString()
 }
 
-/** Grid (the simple, non-CRUD table): GridColumn children of `content` × page rows, read-only; a
- *  column group becomes its columns headed "Group · Column" ([ColumnGroups]). */
+/**
+ * Grid (the simple, non-CRUD table): GridColumn children of `content` × page rows, read-only; a
+ * column group becomes its columns headed "Group · Column" ([ColumnGroups]). Each column keeps its
+ * width / alignment / formatting ([GridTables]); a `tree` grid shows its rows' `children` under a
+ * ▸ / ▾ toggle in the first column; a column with an `actionId` runs it with the row.
+ */
 fun renderGrid(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val columns = metadata.leafColumns("content").map { it.path("metadata").takeIf { m -> m.isObject } ?: it }
         .filter { it.text("type", "GridColumn") == "GridColumn" }
     val rows = pageRows(component, metadata, state, data)
     val ids = columns.map { it.text("id") }.ifEmpty { rows.firstOrNull()?.fieldNames()?.asSequence()?.toList() ?: emptyList() }
     val labels = if (columns.isNotEmpty()) columns.map { it.text("label", it.text("id")) } else ids
+    val tree = metadata.bool("tree")
+    val expanded = HashSet<String>()
+    var shown: List<GridTables.ShownRow> = emptyList()
     val model = object : DefaultTableModel(labels.toTypedArray(), 0) {
         override fun isCellEditable(row: Int, column: Int) = false
     }
-    rows.forEach { row -> model.addRow(ids.map { cellText(row.path(it)) }.toTypedArray()) }
+    val emptyColumn = com.fasterxml.jackson.databind.node.MissingNode.getInstance()
+    fun fill() {
+        shown = if (tree) GridTables.flatten(rows, expanded) else rows.mapIndexed { i, row -> GridTables.ShownRow(row, 0, "$i", false) }
+        model.rowCount = 0
+        shown.forEach { s ->
+            model.addRow(ids.mapIndexed { c, id ->
+                val text = GridTables.cellText(s.row.path(id), columns.getOrNull(c) ?: emptyColumn)
+                if (tree && c == 0) GridTables.treeCellText(s, text, s.key in expanded) else text
+            }.toTypedArray())
+        }
+    }
+    fill()
     val table = JBTable(model).plainCells().apply {
         setShowGrid(metadata.bool("columnBorders"))
         emptyText.text = "No data."
-        accessibleName(component.text("id").ifBlank { "Grid" })
+        accessibleName(component.text("id").ifBlank { if (tree) "Tree grid" else "Grid" })
+        tableHeader.reorderingAllowed = false
     }
-    val visible = rows.size.coerceIn(3, 15)
-    return JBScrollPane(table).fixedHeight(JBUI.scale(28) * (visible + 1))
+    val stripes = metadata.bool("rowStripes")
+    val aligns = columns.map { ColumnAlign.of(it.text("dataType"), it.text("stereotype"), it.text("align")) }
+    for (i in 0 until table.columnCount) {
+        val meta = columns.getOrNull(i)
+        table.columnModel.getColumn(i).cellRenderer =
+            GridCellRenderer(aligns.getOrElse(i) { ColumnAlign.Align.START }, stripes, meta?.text("actionId")?.isNotBlank() == true)
+    }
+    ColumnAlign.alignHeaders(table) { modelCol -> aligns.getOrElse(modelCol) { ColumnAlign.Align.START } }
+    if (columns.isNotEmpty()) GridTables.applyWidths(table, columns)
+    if (metadata.bool("compact")) table.rowHeight = JBUI.scale(22)
+    val scroll = JBScrollPane(table)
+    fun resize() {
+        val visible = shown.size.coerceIn(3, 15)
+        scroll.fixedHeight(table.rowHeight * visible + JBUI.scale(30))
+        scroll.revalidate()
+    }
+    resize()
+    table.addMouseListener(object : java.awt.event.MouseAdapter() {
+        override fun mouseClicked(e: java.awt.event.MouseEvent) {
+            val row = table.rowAtPoint(e.point).takeIf { it >= 0 } ?: return
+            val col = table.convertColumnIndexToModel(table.columnAtPoint(e.point)).takeIf { it >= 0 } ?: return
+            val s = shown.getOrNull(table.convertRowIndexToModel(row)) ?: return
+            if (tree && col == 0 && s.hasChildren) {
+                if (!expanded.remove(s.key)) expanded.add(s.key)
+                fill(); resize()
+                return
+            }
+            val actionId = columns.getOrNull(col)?.text("actionId").orEmpty()
+            if (actionId.isNotBlank()) {
+                @Suppress("UNCHECKED_CAST")
+                r.ctx.runAction(actionId, r.ctx.mapper.convertValue(s.row, Map::class.java) as Map<String, Any?>)
+            }
+        }
+    })
+    // the keyboard twin of the toggle: Right expands, Left collapses the selected row
+    if (tree) table.addKeyListener(object : java.awt.event.KeyAdapter() {
+        override fun keyPressed(e: java.awt.event.KeyEvent) {
+            val s = shown.getOrNull(table.selectedRow) ?: return
+            val selected = table.selectedRow
+            val changed = when (e.keyCode) {
+                java.awt.event.KeyEvent.VK_RIGHT -> s.hasChildren && expanded.add(s.key)
+                java.awt.event.KeyEvent.VK_LEFT -> expanded.remove(s.key)
+                else -> false
+            }
+            if (changed) { fill(); resize(); table.setRowSelectionInterval(selected, selected); e.consume() }
+        }
+    })
+    return scroll
 }
 
 /** VirtualList: the rows as a list, one line each (the row's text/label, else its first values). */
@@ -415,8 +480,15 @@ private fun avatarColor(seed: String): Color {
 /** Icon: the platform icon for known names, else the name in muted text. */
 fun renderIcon(metadata: JsonNode): JComponent {
     val name = metadata.text("icon")
-    val icon = uxActionIcon(name.substringAfter(':'))
-    return (if (icon != null) JBLabel(icon) else muted(name.substringAfter(':'), smaller = false)).accessibleName(name)
+    // the token was stripped of its `vaadin:` prefix BEFORE the lookup, so no icon ever matched and
+    // the name ("calendar") was printed; an icon without a glyph shows a symbol, never its name
+    val icon = wireIcon(name)
+    val label = when {
+        icon != null -> JBLabel(icon)
+        else -> JBLabel(plain(wireIconText(name) ?: "•"))
+    }
+    metadata.text("color").takeIf { it.isNotBlank() }?.let { c -> runCatching { java.awt.Color.decode(c) }.getOrNull()?.let { label.foreground = it } }
+    return label.accessibleName(WireIcons.bareName(name).replace('-', ' '))
 }
 
 /** Details: a disclosure — the summary toggles the content. */
@@ -501,21 +573,80 @@ fun renderCookieConsent(metadata: JsonNode): JComponent {
 /** Element: an arbitrary HTML element — rendered as HTML text; a `click` handler runs its action. */
 fun renderElement(ctx: AppContext, metadata: JsonNode): JComponent {
     val name = metadata.text("name", "div")
+    val attributes = metadata.path("attributes")
+    // an <iframe> (the Explorer's app previews): the page it frames, embedded as an app of its own
+    if (name.equals("iframe", ignoreCase = true)) return renderAppPreview(ctx, attributes.text("src"), attributes.text("title"))
     val content = metadata.text("content")
     val html = if (metadata.bool("html")) SafeHtml.sanitize(content) else com.intellij.openapi.util.text.StringUtil.escapeXmlEntities(content)
+    val on = metadata.path("on")
+    fun handler(event: String) = on.path(event).takeIf { it.isTextual && it.asText().isNotBlank() }?.asText()
+    val style = ElementStyles.parse(attributes.text("style"))
+    // a raw <button> is a BUTTON (it was an inert label): click and double-click run their actions
+    if (name.equals("button", ignoreCase = true)) {
+        val button = JButton(plain(com.intellij.openapi.util.text.StringUtil.unescapeXmlEntities(
+            com.intellij.openapi.util.text.StringUtil.removeHtmlTags(html))))
+        handler("click")?.let { action -> button.addActionListener { ctx.runAction(action, null) } }
+        handler("dblclick")?.let { action ->
+            button.addMouseListener(object : MouseAdapter() {
+                override fun mouseClicked(e: MouseEvent) { if (e.clickCount == 2) ctx.runAction(action, null) }
+            })
+        }
+        return button
+    }
     // trusted markup the plugin builds: the content inside it is sanitised or escaped above
     val label = JBLabel(if (name in setOf("h1", "h2", "h3", "h4", "b", "strong", "em", "i", "small", "code", "pre")) {
         "<html><$name>$html</$name></html>"
     } else {
         "<html>$html</html>"
     })
-    metadata.path("on").path("click").takeIf { it.isTextual && it.asText().isNotBlank() }?.let { action ->
+    ElementStyles.apply(label, style)
+    handler("click")?.let { action ->
         label.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
         label.addMouseListener(object : MouseAdapter() {
-            override fun mouseClicked(e: MouseEvent) = ctx.runAction(action.asText(), null)
+            override fun mouseClicked(e: MouseEvent) = ctx.runAction(action, null)
         })
     }
     return label
+}
+
+/**
+ * An `<iframe>` of a Mateu page (the Explorer's "App preview"): Swing has no browser frame, so the
+ * framed page's app is found (its manifest, from the full path upwards — [MountLinks]) and embedded
+ * as an island of its own, under a line naming it and an "Open ↗" that opens it in its own tab. A
+ * page that is not a Mateu app (or does not answer) leaves the line and the link. It used to draw
+ * an empty `<html></html>` label, so these examples could not be seen on desktop at all.
+ */
+internal fun renderAppPreview(ctx: AppContext, src: String, title: String): JComponent {
+    val panel = verticalPanel(0)
+    if (src.isBlank()) return panel
+    val head = JPanel(FlushFlowLayout(JBUI.scale(8))).apply { isOpaque = false }
+    head.add(muted(title.ifBlank { "App preview: $src" }, smaller = true))
+    head.add(ActionLink(plain("Open ↗")) { MountLinks.open(ctx, src, title.ifBlank { src }) })
+    panel.addStacked(head, 6)
+    val slot = JPanel(BorderLayout()).apply { isOpaque = false }
+    slot.add(muted("Loading preview…"), BorderLayout.CENTER)
+    panel.addStacked(slot, 0)
+    panel.border = JBUI.Borders.compound(IdeBorderFactory.createRoundedBorder(), JBUI.Borders.empty(8))
+    MountLinks.resolveInBackground(ctx.session.baseUrl, src) { target ->
+        slot.removeAll()
+        when (target) {
+            is MountLinks.Target.App -> {
+                val island = newIsland(ctx, remoteSession(ctx.session, target.baseUrl))
+                slot.add(island.contentPane!!, BorderLayout.CENTER)
+                // a fresh load of that app, as the frame's page load is
+                island.navigate(target.route.ifBlank { "" }, null, null, "")
+            }
+            is MountLinks.Target.Navigate -> {
+                val island = newIsland(ctx, ctx.session)
+                slot.add(island.contentPane!!, BorderLayout.CENTER)
+                island.navigate(target.route, null, null, "")
+            }
+            else -> slot.add(muted("This page is not a Mateu app the desktop can embed — open it on its own."), BorderLayout.CENTER)
+        }
+        slot.revalidate()
+        slot.repaint()
+    }
+    return panel.accessibleName(title.ifBlank { "App preview" })
 }
 
 // ── editors shown read-only ─────────────────────────────────────────────────────────────────
@@ -523,17 +654,23 @@ fun renderElement(ctx: AppContext, metadata: JsonNode): JComponent {
 /** BPMN: the process as an ordered list of its named flow nodes (start → tasks → end). */
 fun renderBpmn(metadata: JsonNode): JComponent {
     val nodes = bpmnFlowNodes(metadata.text("xml"))
+    val model = BpmnDiagrams.parse(metadata.text("xml"))
     val panel = verticalPanel(4)
     panel.addStacked(JBLabel("Process").apply { font = font.deriveFont(Font.BOLD) }, 0)
-    if (nodes.isEmpty()) panel.addStacked(muted("Empty or unreadable BPMN diagram."), 4)
-    nodes.forEachIndexed { i, (kind, label) ->
-        val glyph = when {
-            kind.endsWith("startEvent") -> "○"
-            kind.endsWith("endEvent") -> "◉"
-            kind.contains("Gateway") -> "◇"
-            else -> "▭"
+    if (model == null || model.nodes.isEmpty()) {
+        panel.addStacked(muted("Empty or unreadable BPMN diagram."), 4)
+    } else if (model.laidOut) {
+        // drawn as laid out in the XML (the web's bpmn-js view); wide processes scroll sideways
+        val canvas = BpmnCanvas(model)
+        panel.addStacked(ContentHeightScrollPane(canvas).apply {
+            border = null
+            verticalScrollBarPolicy = javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
+        }, 4)
+    } else {
+        // no layout: an outline whose gateways list their branches
+        for ((depth, text) in BpmnDiagrams.outline(model)) {
+            panel.addStacked(JBLabel(plain(text)).apply { border = JBUI.Borders.emptyLeft(depth * 18) }, 2)
         }
-        panel.addStacked(JBLabel(plain("${if (i > 0) "↓ " else ""}$glyph $label")), 2)
     }
     return panel.accessibleName("BPMN process: " + nodes.joinToString(", ") { it.second })
 }
@@ -696,7 +833,9 @@ internal fun microFrontendSession(host: AppSession, metadata: JsonNode): AppSess
  * source catalogue and credential scope.
  */
 internal fun remoteSession(host: AppSession, baseUrl: String?, appState: Map<String, Any?> = emptyMap()): AppSession {
-    val base = baseUrl.orEmpty().trimEnd('/')
+    // a PATH base url (`/fed`, `/apps/x`) is a mount of the host's own origin, as the browser reads
+    // it — taken as it came, every request of the island went to "/fed/mateu/v3/sync/…" with no host
+    val base = io.mateu.ijp.api.Urls.resolve(host.baseUrl, baseUrl.orEmpty()).trimEnd('/')
     if (base.isBlank() || base == host.baseUrl.trimEnd('/')) return host
     host.credentials.declare(host.baseUrl, listOf(base))
     val tokens = if (host.credentials.mayCarryCredentials(base)) host.apiClient.tokenProvider
@@ -705,18 +844,48 @@ internal fun remoteSession(host: AppSession, baseUrl: String?, appState: Map<Str
 }
 
 /**
+ * A context for content embedded in [host]'s page (a micro frontend, an app preview): its own
+ * slot, no window title, no error dialogs — but a failure SAYS so in the slot (an island whose
+ * backend is down used to stay an empty box, the reason only in the log).
+ */
+internal fun newIsland(host: AppContext, session: AppSession): AppContext {
+    val island = AppContext(session)
+    island.ownsSession = island.session !== host.session
+    island.titleConsumer = {}
+    island.silentErrors = true
+    island.embedsApps = true
+    val slot = island.newSlot()
+    island.contentPane = slot
+    island.onIslandFailure = { reason -> showIslandFailure(slot, session.baseUrl, reason) }
+    host.adoptIsland(island, slot)
+    return island
+}
+
+/** The muted notice a failing island leaves in its slot. */
+internal fun showIslandFailure(slot: JComponent, baseUrl: String, reason: String) {
+    slot.removeAll()
+    slot.layout = BorderLayout()
+    slot.add(muted(islandFailureText(baseUrl, reason)).accessibleName("Embedded app unavailable"), BorderLayout.CENTER)
+    slot.revalidate()
+    slot.repaint()
+}
+
+/** What a failing island says: which app, and why, in a line. */
+internal fun islandFailureText(baseUrl: String, reason: String): String {
+    val why = reason.trim().ifBlank { "no answer" }.let { if (it.length > 160) it.take(157) + "…" else it }
+    return "⚠ The embedded app at $baseUrl could not be loaded ($why)."
+}
+
+/**
  * MicroFrontend: another Mateu UI embedded as an island with its own context. Same backend → the
  * same session (and credentials); another origin → its own session, with this project's token only
  * when the app's backend named it.
  */
 fun renderMicroFrontend(ctx: AppContext, metadata: JsonNode): JComponent {
-    val island = AppContext(microFrontendSession(ctx.session, metadata))
-    island.ownsSession = island.session !== ctx.session
-    island.titleConsumer = {}
-    island.silentErrors = true
-    val slot = island.newSlot()
-    island.contentPane = slot
-    ctx.adoptIsland(island, slot)
+    val island = newIsland(ctx, microFrontendSession(ctx.session, metadata))
+    // chrome NONE / COMPACT / PAGE: a block of the host page, not a page (embeddedChrome.ts)
+    island.embeddedChrome = io.mateu.ijp.state.EmbeddedChrome.of(metadata.text("chrome"))
+    val slot = island.contentPane!!
     val resolved = metadata.path("resolved")
     if (resolved.isObject) {
         // the host resolved it (resolve = SERVER): painted without asking the remote

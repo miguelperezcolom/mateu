@@ -236,6 +236,22 @@ export function edgeScrollStep(position: number, start: number, end: number, mar
 }
 
 /** The move a drop means, or undefined when the card ends up where it was. */
+/** The board never shrinks below this (a column has to stay a drop target with room to aim at). */
+export const MIN_BOARD_HEIGHT = 240;
+/** A column's header and paddings around its cards. */
+const COLUMN_CHROME = 72;
+
+/**
+ * The board's height: what is left of the screen below it, so each column scrolls on its own —
+ * but never more than its tallest column needs (a short board embedded in a page used to take a
+ * full screen of empty columns). `tallestContent` 0 = not measured yet → the screen's height.
+ */
+export function boardHeight(remainingScreen: number, tallestContent: number): number {
+  const screen = Math.max(MIN_BOARD_HEIGHT, remainingScreen);
+  if (tallestContent <= 0) return screen;
+  return Math.min(screen, Math.max(MIN_BOARD_HEIGHT, tallestContent + COLUMN_CHROME));
+}
+
 export function moveOfDrop(columns: BoardColumn[], cardId: string, fromColumnId: string, target: DropTarget): KanbanMove | undefined {
   const index = columns.find((c) => c.id === fromColumnId)?.cards?.findIndex((c) => c.id === cardId) ?? -1;
   if (target.columnId === fromColumnId && target.index === index) return undefined;

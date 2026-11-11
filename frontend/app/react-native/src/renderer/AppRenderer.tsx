@@ -143,7 +143,7 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl
     // what the agent's render-screen into the content asks about before replacing this screen
     session.hasUnsavedChanges = () => {
       const c = topController.current;
-      return !!(c && c.trackDirty && c.dirty);
+      return !!(c && c.trackDirty && c.dirty) || session.anyUnsavedChanges();
     };
   }, [routeArg, consumedRoute, serverSideType, session]);
 
@@ -156,13 +156,13 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl
   );
   const pop = useCallback(async () => {
     const c = topController.current;
-    if (c && c.trackDirty && c.dirty && !(await session.confirmDiscard())) return;
+    if (((c && c.trackDirty && c.dirty) || session.anyUnsavedChanges()) && !(await session.confirmDiscard())) return;
     setStack((s) => s.slice(0, -1));
   }, [session]);
   // …or straight back to the section's first screen (a long press on the arrow), through the same guard
   const popToStart = useCallback(async () => {
     const c = topController.current;
-    if (c && c.trackDirty && c.dirty && !(await session.confirmDiscard())) return;
+    if (((c && c.trackDirty && c.dirty) || session.anyUnsavedChanges()) && !(await session.confirmDiscard())) return;
     setStack([]);
   }, [session]);
 
@@ -971,9 +971,9 @@ function AppOverlays({ appMeta, connectAiFab = false }: { appMeta: AppMeta; conn
       <View style={styles.appFabStack} pointerEvents="box-none">
         {fabs.map((fab, i) => (
           fab.label ? (
-            <FAB key={i} label={fab.label} accessibilityLabel={fab.label} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')} />
+            <FAB key={i} icon={materialIconOf(fab.icon)} label={fab.label} accessibilityLabel={fab.label} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')} />
           ) : (
-            <FAB key={i} icon="plus" accessibilityLabel={fab.actionId || fab.id || 'Action'} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')} />
+            <FAB key={i} icon={materialIconOf(fab.icon) ?? "plus"} accessibilityLabel={fab.actionId || fab.id || "Action"} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')} />
           )
         ))}
         {connectAi && <ConnectAiEntry meta={appMeta} asFab />}
@@ -1198,11 +1198,14 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
     }
   };
 
-  const handleMenuNav = (item: MenuItem) => {
+  const handleMenuNav = async (item: MenuItem) => {
     if (isRuleLeaf(item)) {
       runMenuLeaf(item);
       return;
     }
+    // @ConfirmOnNavigationIfDirty: a menu entry leaves the screen on view — any of its views
+    // (an embedded form included) with unsaved changes asks first
+    if (session.anyUnsavedChanges() && !(await session.confirmDiscard())) return;
     setCurrentNav({
       route: item.route ?? '',
       consumedRoute: item.consumedRoute ?? '',

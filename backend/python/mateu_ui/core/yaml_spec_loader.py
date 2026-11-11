@@ -57,6 +57,9 @@ class Spec:
     #: The definition's own ``triggers:`` (beside ``layout:``) as wire triggers — what a
     #: definition-only page fires without a click (Java's SeededYamlPage.triggers).
     triggers: tuple = ()
+    #: Ids of fields REMOVED for the caller (eyesOnly:/access:) — a subset of ``locked_fields``:
+    #: their value must not travel at all, not even as a route seed.
+    hidden_fields: frozenset = field(default_factory=frozenset)
 
     def depends_on_request(self) -> bool:
         return self.source is not None
@@ -152,6 +155,7 @@ class YamlSpecLoader:
         source = spec.source
         refused: frozenset = frozenset()
         locked: frozenset = frozenset()
+        hidden: frozenset = frozenset()
         try:
             catalogue_refused = self._catalogue_actions_refused_in(source, authorized)
             if yaml_access.declares_access(source) or catalogue_refused:
@@ -162,6 +166,7 @@ class YamlSpecLoader:
                     catalogue_refused,
                 )
                 tree, refused, locked = applied.tree, applied.refused_actions, applied.locked_fields
+                hidden = applied.hidden_fields
             else:
                 import copy
 
@@ -204,6 +209,7 @@ class YamlSpecLoader:
             tuple(a for a in declared_actions_of(tree) if a.id not in refused),
             spec.confirm_on_navigation_if_dirty,
             declared_triggers_of(tree),
+            hidden,
         )
 
     def load_spec(self, route: str | None) -> Spec | None:

@@ -16,7 +16,7 @@ import type { KanbanCard, KanbanColumn } from '../api/metadata';
 import { interpolate, interpolateUrl } from '../core/expressions';
 import {
   BoardCard, BoardColumn, ColumnGeometry, DropTarget, KanbanMove, cardRouteOf, cardsFromRows, dropTargetOf, edgeScrollStep,
-  itemsOf, moveCard, moveOfDrop, moveParameters, movesOf,
+  boardHeight, itemsOf, moveCard, moveOfDrop, moveParameters, movesOf,
 } from '../core/kanban';
 import { fetchExternalJson } from '../core/restFetch';
 import { isExternalRoute } from '../core/rowOpen';
@@ -28,7 +28,6 @@ import { openExternal } from './openExternal';
 type Dict = Record<string, unknown>;
 
 const COLUMN_WIDTH = 248;
-const MIN_BOARD_HEIGHT = 360;
 /** A finger that moved less than this while held did not drag: it asked for the picker. */
 const STILL_DP = 10;
 
@@ -135,7 +134,10 @@ export function KanbanRenderer({ component }: { component: unknown }) {
     boardOrigin.current = { x, y };
     if (andHeight) setBoardTop(y);
   });
-  const height = Math.max(MIN_BOARD_HEIGHT, window.height - (boardTop ?? 0) - insets.bottom - 8);
+  // …but never taller than its tallest column needs: a board with a few cards embedded in a page
+  // took a whole screen of empty columns and pushed what follows a screen down
+  const [tallest, setTallest] = useState(0);
+  const height = boardHeight(window.height - (boardTop ?? 0) - insets.bottom - 8, tallest);
 
   // ── what a drag needs to know, kept out of state: it changes on every frame ────────────────────
   const horizontal = useRef<ScrollView>(null);
@@ -272,7 +274,7 @@ export function KanbanRenderer({ component }: { component: unknown }) {
               <ScrollView ref={(r) => { lists.current[id] = r; }} nestedScrollEnabled scrollEnabled={!drag} style={styles.list} contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false} scrollEventThrottle={16}
                 onScroll={(e) => { if (!drag) listScroll.current[id] = e.nativeEvent.contentOffset.y; }}
-                onContentSizeChange={(_, h) => { listContent.current[id] = h; }}
+                onContentSizeChange={(_, h) => { listContent.current[id] = h; setTallest(Math.max(0, ...Object.values(listContent.current))); }}
                 onLayout={(e) => {
                   const { y, height: listHeight } = e.nativeEvent.layout;
                   columnLayout.current[id] = { x: columnLayout.current[id]?.x ?? 0, width: columnLayout.current[id]?.width ?? COLUMN_WIDTH, listTop: y, listHeight };

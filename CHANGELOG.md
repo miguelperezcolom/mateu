@@ -8,6 +8,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Security
+
+- **A route seed of a YAML field hidden from the caller no longer travels to them.** The `state:` /
+  `defaultParams:` / `fixedParams:` seeds of a definition-only page were applied after the access
+  keys, so the value of an `eyesOnly:` / `access:` field reached a caller who may not see it. Fixed in
+  Java, .NET and Python, for fields of the page and of the business components it draws (conformance
+  case `yaml-eyes-only` now seeds the hidden field).
+
 ### Changed
 
 - **.NET packages target `net10.0` only.** .NET 8 left Microsoft support on 10 November 2026, so
@@ -21,6 +29,112 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 ### Removed
 
 - `plugins-v*` releases no longer publish the plugins on their own.
+
+### Fixed — Redwood (from the Explorer review)
+
+- **Islands are their own surface.** An embedded island draws its own page header, toolbar, banners
+  (close and timeout as declared), `@Button` row, tabs (keys and active tab no longer collide with the
+  host's) and overlays; surfaces nested in surfaces load; a `MicroFrontend` answering a whole app or
+  page is framed instead of replacing the shell. Its actions, typed values, `OnValueChange` /
+  `@AutoSave` triggers, rules, shortcuts and catalogue flows go back to the island, not the host page.
+- **`@OnRowSelected` works** (row click and the keyboard combination plus a digit).
+- **Layout boxes in place**: `DashboardLayout` columns / `colSpan` / `rowSpan`, `ResponsiveGrid`
+  tracks and areas inside cards, `BoardLayout` rows, side-by-side `SplitLayout` panes (draggable), a
+  nested `Card` with all its slots, islands laid out in columns keep them (wizard rail, docked panel,
+  overviews, `@Zones`), page width full / edge drop the inner gutters.
+- **Forms**: labels aside, `@Compact` on islands, `@PlainText` as text (`@Multiline`, money
+  formatted), `listBox`, `@Help` text, growing text areas, field `colspan`, integer fields without
+  thousands separators, `${…}` in field labels.
+- **Display**: `ProgressBar` draws again (`oj-c-progress-bar`), `ProgressSteps` with done marks and a
+  vertical list, Checklist, Stat sparkline, MetricCard drill-in, OfferCard, Ledger totals, AddOnPicker
+  running total, PaymentPicker sends the chosen method, ResourceGrid, TrendChart, Gantt /
+  PlanningBoard heights and today marker, OrgChart full tree, BPMN labels, a virtualised `VirtualList`,
+  `ContextMenu`, two calendars on one page no longer swap their events.
+- **Listings**: fluent `Grid` columns as declared (formats, align, width, frozen, `actionId` links),
+  listings inside examples drawn whole with their `gridLayout` (cards, list, master/detail, tree) and
+  drops, a filter named `items` no longer hijacks every filter editor, totals-formatted rows,
+  rows-required primary actions, a row click that opens is not a selection.
+- **Text, navigation and shells**: Markdown and Code tabs are not interpolated, `\${…}` is literal,
+  wrapped list items stay in the list, a declared `BreadcrumbsSupplier` trail is drawn, query
+  parameters reach the server, distinct MENU_ON_LEFT / RAIL / TILES shells, `@App(chromeless)`,
+  Ctrl+K / ⌘K palette, no Ask FAB inside a framed preview, a crud's Cancel label as declared.
+- **Federation**: remote menu links keep the remote's prefix, fresh deep links and reloads of remote
+  screens load from the remote, a static remote is no longer POSTed to, a remote that cannot be
+  reached says so instead of "You're offline".
+
+### Fixed — React Native (from the Explorer review)
+
+- **Islands**: their toasts and errors show; they never set the window title; root-relative URLs
+  (REST sources, micro frontend base urls, images, links) go to the backend; `MicroFrontend` chrome
+  NONE / COMPACT / PAGE; an island keeps its state when its host re-renders.
+- **Overlays**: a returned Dialog / ConfirmDialog / Drawer / Notification opens over the island, open
+  overlays stay mounted, footers and headers run on the opener; drawers get subtitle, size, maximize,
+  collapse handle, modeless and peer arrows; a crud drawer's Save / Save and next reach the crud.
+- **Behaviour**: action parameters as the web sends them (calendar, org chart, checklist, timeline,
+  file list, grid cells, `Element` events), `OnValueChange` triggers, live `${…}` re-interpolation
+  (incl. `data` / `appState` / `appData`, literal `\${…}`), the dirty guard covers islands and menu
+  navigation, focus moves to the first invalid field, `@Action(js)` never posted, app FABs.
+- **Resilience**: `@Action(timeoutMillis)`, retries for reads and idempotent actions, no double
+  submit, busy buttons, plain-language errors with Retry, an offline strip, a form skeleton on slow
+  loads.
+- **Display**: real Markdown (code blocks, tables, quotes, nested lists), stack layouts by their own
+  attributes and style, cards with all their slots, button colours / sizes / icons, ~70 more wire
+  icons, tabs and accordions, charts (radar, trend area, declared width), grids (group header row,
+  formats, widths, tree rows), listing captions / master-detail / drop zones, Form header overline,
+  badges, timestamp and KPIs, `@Toc` chips, `@Compact`, fields (help text, money, checkbox groups,
+  list box, file upload, time and date-time pickers, markup preview, lookup labels).
+
+### Fixed — Desktop (IntelliJ, from the Explorer review)
+
+- **Layout**: content grows with what loads into it (it was clipped to its first height), wrapped
+  HTML measured at its width, text areas keep four lines, a tab sheet is as tall as its selected tab;
+  several plain islands on one page each search as themselves.
+- **Plumbing**: root-relative REST sources, micro frontend urls and images resolve against the
+  backend; links to another mount open that app, other origins the browser; an iframe app preview
+  embeds the app; an embedded app shell shows its navigator and screens; `MicroFrontend` chrome; page
+  header and footer components.
+- **Page level**: page width, `@Compact`, `@Toc` index with Ctrl+Alt+N, labels aside, banner close
+  and timeout, drawer subtitle / size / maximize / peer arrows / bottom dock.
+- **Widgets**: charts by kind, card anatomy, badge looks, button colours / sizes / icons and live
+  `${…}` labels, wire icons, grid formats / alignment / widths and tree rows, listing cards,
+  responsive-grid tracks and areas, accordions and foldouts that fold, hero, timeline, BPMN; fields
+  (file chooser, list box, checkbox groups, time / date-time pickers, markup preview, lookup labels,
+  placeholders, `@Help`, whole numbers without `.0`).
+- **Text**: Markdown code blocks, quotes and wrapped list items; Markdown is not interpolated;
+  `\${…}` is literal; planning-board, date-picker and number texts follow the app's locale.
+- The render probe gained a scrolling host, `settleMs` and `locale` options.
+
+### Added — .NET and Python parity
+
+- Page avatar / header / footer and their suppliers, `OverlineSupplier` / `TitlePlaceholderSupplier`,
+  `@Tab(shortcut)`, reflected listing column options (`@Priority`, `@ColumnWidth`, `@Line`, column
+  style, tooltip), `@Status(mappings)` / `@MappedValue`, `@GeneratedValue` (with a value generator) and
+  `@EditableOnlyWhenCreating`, `@WizardLabels`, an island's `data`, app-level FABs and
+  `@Fab(buttonStyle)`, `@OptionsLayout`, field and class styles and CSS classes, the `@Notice` field
+  marker, class-level rules and validations (.NET `[FormValidation]`), Python's banner `closeable` /
+  `timeout_seconds`, and the startup warning when the served renderer differs from `type: Project`.
+- 20 new conformance cases pin them (Java, .NET and Python match exactly, empty allow-lists); the
+  YAML loaders read `type: FormLayout`, FormField `placeholder` / `propertyRow`, typed route seeds.
+- Java: `@Header` / `@Footer` / `@Avatar` fields are no longer drawn in the form body as well.
+
+### Fixed — Java adapters
+
+- New parity contracts run on all five adapters: dotted-id deep links (`/people/ana.perez`), the
+  client-log rate limit, the renderer wire-major warning; Micronaut serves YAML mounts over HTTP in
+  its parity suite; WebFlux revalidates fixed-name assets.
+- Helidon: the client-log endpoint sees the Helidon security principal (per-user rate limit, user in
+  the log lines).
+- A listing's `@ColumnWidth("auto")` is an auto-width column again (it was sent as a CSS width of
+  `auto`).
+
+### Documentation
+
+- The [feature parity matrix](https://mateu.io/reference/parity/) and
+  [known issues](https://mateu.io/reference/known-issues/) follow the Explorer review: the ports'
+  closed gaps, the remaining port idioms, and each renderer's new state (embedded chrome, labels
+  aside, banner options, keyboard row selection, page level, drawers, phone adaptations).
+- `demo/demo-explorer/README.md` explains how the Explorer was used to review Redwood, React Native
+  and the desktop renderer.
 
 ## [3.0-beta.56] — 2026-11-10
 

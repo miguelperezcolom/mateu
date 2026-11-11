@@ -48,7 +48,11 @@ class DecorationMapperMixin(MixinBase):
             desc = ret if isinstance(ret, str) else None
             # Java's declarative @Banner does not emit hasIcon (the DTO default is True, but the
             # reference omits it → false to the renderer); match that so the wire is identical.
-            out.append(Banner(theme=a.theme.value, title=a.title, description=desc, has_icon=False))
+            out.append(Banner(
+                theme=a.theme.value, title=a.title, description=desc, has_icon=False,
+                has_close_button=bool(getattr(a, "closeable", False)),
+                timeout_seconds=int(getattr(a, "timeout_seconds", 0) or 0),
+            ))
         return out
 
     def badges(self, cls, instance) -> list[Badge]:
@@ -166,6 +170,61 @@ class DecorationMapperMixin(MixinBase):
             return str(value) if not marker.label else f"{marker.label} {value}"
         return None
 
+    # ── The page's own blocks: avatar, header, footer (Java's PageSectionExtractor) ───────────
+    def _page_blocks(self, cls, instance, marker) -> list:
+        if instance is None:
+            return []
+        out = []
+        for f in view_fields(cls):
+            if f.has(marker):
+                value = getattr(instance, f.name, None)
+                if value is not None:
+                    out.append(value)
+        return out
+
+    def page_avatar(self, cls, instance):
+        """The page's avatar block: an AvatarSupplier wins over an ``Avatar()`` field (the first)."""
+        from mateu_ui.uidl import AvatarSupplier
+        from mateu_ui.uidl.markers import Avatar as AvatarMarker
+
+        if isinstance(instance, AvatarSupplier):
+            value = instance.avatar()
+        else:
+            blocks = self._page_blocks(cls, instance, AvatarMarker)
+            value = blocks[0] if blocks else None
+        if value is None:
+            return None
+        mapped = self._page_block(value)
+        # the page sizes its avatar block (Java's PageMapper/FormMapper addStyle)
+        return mapped.model_copy(
+            update={"style": f"{getattr(mapped, 'style', None) or ''};width: 4rem;height: 4rem;"}
+        )
+
+    def page_header(self, cls, instance) -> list | None:
+        """The page's header blocks: a HeaderSupplier wins over the ``Header()`` fields."""
+        from mateu_ui.uidl import HeaderSupplier
+        from mateu_ui.uidl.markers import Header as HeaderMarker
+
+        blocks = (
+            list(instance.header() or []) if isinstance(instance, HeaderSupplier)
+            else self._page_blocks(cls, instance, HeaderMarker)
+        )
+        return [self._page_block(b) for b in blocks] or None
+
+    def page_footer(self, cls, instance) -> list | None:
+        """The page's footer blocks: a FooterSupplier wins over the ``Footer()`` fields."""
+        from mateu_ui.uidl import FooterSupplier
+        from mateu_ui.uidl.markers import Footer as FooterMarker
+
+        blocks = (
+            list(instance.footer() or []) if isinstance(instance, FooterSupplier)
+            else self._page_blocks(cls, instance, FooterMarker)
+        )
+        return [self._page_block(b) for b in blocks] or None
+
+    def _page_block(self, value):
+        return self.map_component(value)
+
     def fabs(self, cls) -> list[Fab]:
         out = []
         for name, fn in methods_with(cls, "__mateu_fab__"):
@@ -174,7 +233,11 @@ class DecorationMapperMixin(MixinBase):
             if not self.authorized(getattr(fn, "__mateu_eyes_only__", None)):
                 continue
             a = getattr(fn, "__mateu_fab__")
-            out.append(Fab(icon=a.icon, action_id=camel_case(name), label=a.label, order=a.order))
+            # Java's label is the method's name humanised (or its @Label) when none is given
+            out.append(Fab(
+                icon=a.icon, action_id=camel_case(name), label=a.label or humanize(name),
+                order=a.order, button_style=getattr(a, "button_style", "primary") or "primary",
+            ))
         out.sort(key=lambda f: f.order)
         return out
 

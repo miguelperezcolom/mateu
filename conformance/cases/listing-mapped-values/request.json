@@ -1,0 +1,10 @@
+{
+  "route": "/conformance/listing-mapped-values",
+  "consumedRoute": "/conformance/listing-mapped-values",
+  "actionId": "search",
+  "componentState": {
+    "searchText": "",
+    "page": 0,
+    "size": 10
+  }
+}
