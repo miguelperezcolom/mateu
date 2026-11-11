@@ -7,8 +7,8 @@
  * and the read-only diagrams (BPMN, workflow, form definition).
  *
  * Mobile adaptations, deliberately: hover becomes long-press, right-click becomes long-press,
- * multi-column layouts stack below a phone width, editors (Workflow, FormEditor, Bpmn) are shown
- * read-only. The decisions that can be made without React live in wireWidgets.ts / diagrams.ts.
+ * multi-column layouts stack below a phone width, a Bpmn diagram is shown read-only (as on the
+ * web); the Workflow and FormEditor editors live in DefinitionEditors.tsx. The decisions that can be made without React live in wireWidgets.ts / diagrams.ts.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, type GestureResponderEvent, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
@@ -24,7 +24,7 @@ import { ComponentRenderer } from './ComponentRenderer';
 import { MateuViewHost, useViewController } from './MateuViewHost';
 import { ChatPanel } from './ChatPanel';
 import { iconGlyph } from './menuCards';
-import { parseBpmn, workflowDiagram, type Diagram } from './diagrams';
+import { parseBpmn, type Diagram } from './diagrams';
 import {
   avatarColor,
   avatarGroupSplit,
@@ -39,7 +39,6 @@ import {
   gridRowsOf,
   initials,
   menuIntent,
-  parseFormDefinition,
   responsiveColumns,
   textOfHtml,
   type MenuOptionLike,
@@ -938,7 +937,9 @@ export function NestedAppRenderer({ metadata }: { metadata: Dict }) {
 
 // ── Diagrams (read-only) ───────────────────────────────────────────────────────
 
-function DiagramView({ diagram, label }: { diagram: Diagram; label: string }) {
+/** A diagram scene painted with react-native-svg; `onPressNode` makes its nodes pressable (the
+ *  workflow editor opens the pressed step). */
+export function DiagramView({ diagram, label, onPressNode }: { diagram: Diagram; label: string; onPressNode?: (id: string) => void }) {
   if (diagram.nodes.length === 0) return <Text style={styles.placeholder}>Empty diagram</Text>;
   return (
     <ScrollView horizontal style={styles.diagramBox} accessibilityLabel={label}>
@@ -951,7 +952,7 @@ function DiagramView({ diagram, label }: { diagram: Diagram; label: string }) {
             </G>
           ))}
           {diagram.nodes.map((n) => (
-            <G key={n.id}>
+            <G key={n.id} onPress={onPressNode ? () => onPressNode(n.id) : undefined}>
               {n.kind === 'start' || n.kind === 'end' || n.kind === 'event' ? (
                 <Circle
                   cx={n.x + n.w / 2}
@@ -1000,41 +1001,6 @@ function Arrow({ from, to }: { from: { x: number; y: number }; to: { x: number; 
 
 export function BpmnRenderer({ metadata }: { metadata: Dict }) {
   return <DiagramView diagram={parseBpmn(str(metadata['xml']))} label="Process diagram" />;
-}
-
-export function WorkflowRenderer({ metadata }: { metadata: Dict }) {
-  const { name, diagram } = workflowDiagram(str(metadata['value']));
-  return (
-    <View style={styles.stack}>
-      {!!name && <Text style={styles.cardTitle} {...headingA11y()}>{name}</Text>}
-      <DiagramView diagram={diagram} label={`Workflow ${name}`} />
-    </View>
-  );
-}
-
-/** FormEditor (a form-definition editor on the web): the definition shown read-only. */
-export function FormEditorRenderer({ metadata }: { metadata: Dict }) {
-  const def = parseFormDefinition(str(metadata['value']));
-  return (
-    <View style={styles.card}>
-      {!!def.name && <Text style={styles.cardTitle} {...headingA11y()}>{def.name}</Text>}
-      {!!def.description && <Text style={styles.muted}>{def.description}</Text>}
-      {def.fields.length === 0 && <Text style={styles.placeholder}>No fields yet.</Text>}
-      {def.fields.map((f, i) => (
-        <View key={i} style={styles.formDefRow}>
-          <View style={styles.flex1}>
-            <Text style={styles.bold}>
-              {f.label}
-              {f.required ? ' *' : ''}
-            </Text>
-            {!!f.description && <Text style={styles.muted}>{f.description}</Text>}
-          </View>
-          <Text style={styles.typeBadge}>{f.dataType}</Text>
-          {!!f.stereotype && <Text style={[styles.typeBadge, styles.stereoBadge]}>{f.stereotype}</Text>}
-        </View>
-      ))}
-    </View>
-  );
 }
 
 const styles = themed(() => StyleSheet.create({
@@ -1130,7 +1096,4 @@ const styles = themed(() => StyleSheet.create({
   customElement: { borderWidth: 1, borderStyle: 'dashed', borderColor: theme.border, borderRadius: theme.radiusSm, padding: 8 },
   // diagrams / form definition
   diagramBox: { borderWidth: 1, borderColor: theme.divider, borderRadius: theme.radiusMd, backgroundColor: theme.white, maxHeight: 480 },
-  formDefRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
-  typeBadge: { fontSize: 11, color: theme.onFill, backgroundColor: theme.info, borderRadius: theme.radiusPill, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
-  stereoBadge: { backgroundColor: theme.muted },
 }));

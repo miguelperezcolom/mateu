@@ -20,6 +20,7 @@ import { interpolate } from '../core/expressions';
 import { buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
 import { TaskHost } from '../renderer/TaskHost';
 import { ConnectivityStrip } from './ConnectivityStrip';
+import { KeyboardShortcutsHost } from './KeyboardShortcutsHost';
 
 /**
  * One running Mateu UI inside a MateuAppProvider: the root load (App shell or a single view) plus the
@@ -39,6 +40,7 @@ export function SessionContent({ initialRoute, visible = true }: { initialRoute:
       <ToastHost visible={visible} />
       <ConnectivityStrip visible={visible} />
       <DirtyGuardHost />
+      <KeyboardShortcutsHost visible={visible} />
     </>
   );
 }

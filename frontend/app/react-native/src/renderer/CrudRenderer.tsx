@@ -7,6 +7,7 @@ import { Text, TextInput } from '../ui/Text';
 import { buttonActionId, effectiveListingLayout, loadFailureMessage, rowCheckboxLabel } from '../core/uxRules';
 import { splitCreateAction } from '../core/phoneLayout';
 import { canMove, dropOn, moveToLabel, zoneLabel, type MountedDropZone } from './dragDrop';
+import { DraggableRow, useRowDrag } from './RowDrag';
 import { useViewController } from './MateuViewHost';
 import { SavedView } from './savedViews';
 import { interpolate, interpolateUrl } from '../core/expressions';
@@ -120,15 +121,21 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   // Bulk row selection (Crud.rowsSelectionEnabled): the selected ROW OBJECTS live in the
   // component state under crud_selected_items so they travel with every dispatched action
   // (the web's mateu-table-crud contract). A new result set clears the selection.
-  // @DragRows: rows can be "dragged" onto a DropZone — on touch, selected and MOVED through a
-  // picker of the zones on screen accepting the type (see dragDrop.ts), so selection turns on too.
+  // @DragRows: rows can be dragged onto a DropZone — a long press lifts a row (or the selection it
+  // belongs to); the "Move to…" picker of the zones on screen accepting the type does the same over
+  // the selected rows (see dragDrop.ts / RowDrag.tsx), so selection turns on too.
   const dragType = (metadata['dragType'] as string | null | undefined) ?? null;
   const rowsSelectionEnabled = metadata['rowsSelectionEnabled'] === true || !!dragType;
   const [moveOpen, setMoveOpen] = useState(false);
   const [dropZones, setDropZones] = useState<MountedDropZone[]>([]);
   useEffect(() => {
     if (!dragType) return;
-    const refresh = () => setDropZones(controller.session.dropZones.zonesAccepting(dragType));
+    // the registry also speaks during a drag (the zone under the finger): only a changed set of
+    // zones re-renders the listing, or every hover would repaint every row under the finger
+    const refresh = () => setDropZones((before) => {
+      const now = controller.session.dropZones.zonesAccepting(dragType);
+      return now.length === before.length && now.every((z, i) => z === before[i]) ? before : now;
+    });
     refresh();
     return controller.session.dropZones.subscribe(refresh);
   }, [dragType]);
@@ -491,6 +498,14 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     setMoveOpen(false);
     if (dragType && dropOn(zone, dragType, selectedRows)) syncSelection([]);
   };
+  const rowDrag = useRowDrag({
+    dragType: dropZones.length > 0 ? dragType : null,
+    registry: controller.session.dropZones,
+    selectedRows,
+    titleOf: (row) => cellText(row[colDefs[0]?.fieldId ?? ''], colDefs[0]?.valueLabels, colDefs[0]),
+    onDropped: (rows) => { if (rows === selectedRows) syncSelection([]); },
+    onStillPress: (rows) => { syncSelection(rows); setMoveOpen(true); },
+  });
 
   // The title, the toolbar and the search scroll away with the rows on a list or cards, so the
   // phone's screen goes to the rows (Material's scrolling content), instead of leaving them half of it.
@@ -614,6 +629,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   return (
     <View style={[styles.root, fits && FIT_CONTENT]}>
       {!headerInList && listHeader}
+      {rowDrag.overlay}
 
       {showsPreSearch(preSearch, searched) ? (
         <View style={styles.preSearch}>
@@ -649,6 +665,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                   <Text style={styles.groupBandText}>{groupBandText(item)}</Text>
                 </View>
               ) : (
+                <DraggableRow row={item} drag={rowDrag}>
                 <View style={styles.cardWrap}>
                 <Card mode="outlined" style={styles.cardRow}>
                 <TouchableRipple {...rowA11y(item)} borderless style={styles.cardRipple} onPress={() => handleRowPress(item)}>
@@ -706,6 +723,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                   <IconButton icon="pencil-outline" accessibilityLabel="Edit row" style={styles.editPencilCard} onPress={() => setEditingRow(item)} />
                 )}
                 </View>
+                </DraggableRow>
               )
             }
           />
@@ -732,6 +750,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                 </View>
               ) : (
                 <>
+                <DraggableRow row={item} drag={rowDrag}>
                 <View style={styles.listRowWrap}>
                   {rowsSelectionEnabled && (
                     <SelectBox
@@ -777,6 +796,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                     <IconButton icon="pencil-outline" accessibilityLabel="Edit row" style={styles.editPencilList} onPress={() => setEditingRow(item)} />
                   )}
                 </View>
+                </DraggableRow>
                 {/* masterDetail on a phone: the pressed row's detail opens under it (the pane beside
                     the list on the web) — every column, label over value */}
                 {masterDetail && detailRow === item && (
@@ -852,6 +872,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                     {editableCols.length > 0 && <View style={styles.editHeaderCell} />}
                   </View>
                 ) : (
+                  <DraggableRow row={item} drag={rowDrag}>
                   <View style={styles.tableRow}>
                     {rowsSelectionEnabled && (
                       <SelectBox
@@ -891,6 +912,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                       <IconButton icon="pencil-outline" accessibilityLabel="Edit row" style={styles.editPencilCell} onPress={() => setEditingRow(item)} />
                     )}
                   </View>
+                  </DraggableRow>
                 )
               }
             />
@@ -982,7 +1004,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
       </Dialog>
       </Portal>
 
-      {/* "Move to…": the touch equivalent of dragging the selected rows onto a DropZone. */}
+      {/* "Move to…": dragging the selected rows onto a DropZone without dragging (a screen reader's way). */}
       <Portal>
       <Dialog visible={moveOpen} onDismiss={() => setMoveOpen(false)} style={styles.dialog}>
         <Dialog.Title>{moveToLabel(selectedRows.length)}</Dialog.Title>

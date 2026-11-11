@@ -893,3 +893,21 @@ test('a Notification / ConfirmDialog an island action returns floats: the island
   // its buttons run on the view that opened it
   assert.equal(opened[0].opener.controller, c);
 });
+
+test('@Action(shortcut): the shown view registers its keys in the session; another view replaces them, dispose drops them', async () => {
+  const { session, c, calls } = harness([
+    fragment(ssc({ actions: [{ id: 'save', shortcut: 'ctrl+s' }, { id: 'cancel' }] })),
+    {},
+    fragment(ssc({ actions: [{ id: 'approve', shortcut: 'f9' }] })),
+  ]);
+  await c.initialLoad('/orders');
+  assert.equal(session.keyShortcuts.size(), 1);
+  assert.equal(session.keyShortcuts.handle({ key: 's', ctrlKey: true }, true), true);
+  await tick();
+  assert.ok(calls.some((x) => x.actionId === 'save'));
+  await c.initialLoad('/orders');
+  assert.equal(session.keyShortcuts.handle({ key: 's', ctrlKey: true }, false), false);
+  assert.equal(session.keyShortcuts.size(), 1);
+  c.dispose();
+  assert.equal(session.keyShortcuts.size(), 0);
+});
