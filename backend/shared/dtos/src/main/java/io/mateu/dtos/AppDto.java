@@ -170,7 +170,14 @@ public record AppDto(
      * entry, a background task that finished) while it is not in front. The renderer asks the
      * user's permission only from a user gesture. False otherwise.
      */
-    boolean osNotifications)
+    boolean osNotifications,
+    /**
+     * Remote push is on for this app: {@code osNotifications} is on AND the server can send pushes
+     * (a {@code PushSender} bean, or {@code mateu.push.expo.enabled=true}). A phone app then
+     * registers its push token with the reserved {@code _push-register} action, so a notification
+     * reaches the phone while the app is suspended or closed. False otherwise.
+     */
+    boolean pushNotifications)
     implements ComponentMetadataDto {
 
   public AppDto {

@@ -74,7 +74,13 @@ public static class MateuExtensions
             var registry = sp.GetRequiredService<MateuRegistry>();
             // Component adapters registered as services join the ones found by assembly scan.
             foreach (var adapter in sp.GetServices<IComponentAdapter>()) registry.RegisterAdapter(adapter);
-            return new SyncHandler(
+            // remote push: the app's sender, else Mateu's Expo sender when switched on, else off
+            var pushSender = sp.GetService<IPushSender>()
+                ?? (options.ExpoPushEffective
+                    ? new Mateu.Core.Push.ExpoPushSender(ExpoHttp, options.ExpoPushUrl,
+                        options.ExpoPushAccessToken ?? System.Environment.GetEnvironmentVariable("MATEU_PUSH_EXPO_ACCESS_TOKEN"))
+                    : null);
+            var handler = new SyncHandler(
                 registry,
                 sp.GetService<ITranslator>(),
                 // Read per call: the handler is a singleton, the identity is the current request's.
@@ -117,10 +123,18 @@ public static class MateuExtensions
                 ContentSlotsDescriptorEnabled = options.ContentSlotsDescriptorEnabled,
                 // the inbox messages of the answers: the app's IInboxStore, else Mateu's in-memory one
                 InboxStore = sp.GetService<IInboxStore>() ?? DefaultInboxStore,
+                PushSender = pushSender,
+                PushTokenStore = sp.GetService<IPushTokenStore>(),
             };
+            // PushNotifications.Send reaches this handler's sender (process lifetime)
+            if (pushSender is not null) PushNotifications.Subscribe(handler.DeliverPush);
+            return handler;
         });
         return services;
     }
+
+    /// <summary>The client Mateu's Expo sender posts with.</summary>
+    private static readonly HttpClient ExpoHttp = new() { Timeout = TimeSpan.FromSeconds(30) };
 
     /// <summary>Mateu's in-memory inbox store, one per process (shared by every mount).</summary>
     private static readonly InMemoryInboxStore DefaultInboxStore = new();

@@ -139,6 +139,22 @@ public sealed class MateuOptions
     /// <c>MATEU_SOURCES_MOCK</c> (<c>true</c>/<c>1</c>). Never switch it on in production.</summary>
     public bool? MockSources { get; set; }
 
+    /// <summary>Remote push over Expo's push service (the Mateu phone app's tokens are Expo push
+    /// tokens): Mateu's own IPushSender, used only when the app registers none. Null (the default)
+    /// reads <c>MATEU_PUSH_EXPO_ENABLED</c> (<c>true</c>/<c>1</c>); otherwise OFF, as on Java
+    /// (<c>mateu.push.expo.enabled</c>). EXPERIMENTAL.</summary>
+    public bool? ExpoPush { get; set; }
+
+    /// <summary>The Expo access token sent as a bearer token (Expo's "enhanced security"). Null (the
+    /// default) reads <c>MATEU_PUSH_EXPO_ACCESS_TOKEN</c>. EXPERIMENTAL.</summary>
+    public string? ExpoPushAccessToken { get; set; }
+
+    /// <summary>Expo's push endpoint (tests point it at a fake). Null = Expo's.</summary>
+    public string? ExpoPushUrl { get; set; }
+
+    internal bool ExpoPushEffective => ExpoPush
+        ?? System.Environment.GetEnvironmentVariable("MATEU_PUSH_EXPO_ENABLED")?.Trim().ToLowerInvariant() is "true" or "1" or "yes";
+
     /// <summary>Serve the native MCP endpoint <c>POST /mateu/mcp</c>. Null (the default) reads the
     /// environment variable <c>MATEU_MCP_ENABLED</c> (<c>true</c>/<c>1</c>); otherwise it is OFF, as
     /// on Java (<c>mateu.mcp.enabled</c>): it gives any caller a programmatic way to drive every

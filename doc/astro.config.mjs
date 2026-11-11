@@ -588,6 +588,7 @@ export default defineConfig({
 								{ slug: 'deploy/kubernetes-hetzner-cloudfleet', label: 'Kubernetes on Hetzner (Cloudfleet)' },
 								{ slug: 'deploy/install-as-app', label: 'Install as a desktop or phone app' },
 								{ slug: 'deploy/mobile-app-stores', label: 'App Store & Google Play' },
+								{ slug: 'deploy/push-notifications', label: 'Push notifications to phones' },
 								{ slug: 'mateu-about/standalone-desktop', label: 'Standalone desktop app' },
 							],
 						},

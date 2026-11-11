@@ -229,6 +229,9 @@ class AppMapperMixin(MixinBase):
             idle_session=self._idle_session(cls, shell, mount),
             # Live UI push (phase C): set by add_mateu when MCP push is on (mirrors AppDto.agentPush)
             agent_push=self.agent_push_enabled,
+            # remote push: the app opts in to OS notifications AND something sends pushes
+            push_notifications=bool(getattr(cls, "__mateu_app_os_notifications__", False))
+            and self.push_enabled,
             required_capabilities=self._required_capabilities(
                 cls,
                 sse_url=sse_url,

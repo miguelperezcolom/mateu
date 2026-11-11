@@ -7,3 +7,6 @@ Mateu.Core.ISpecsCache
 Mateu.Core.InMemoryInboxStore
 Mateu.Core.InferenceSwitches
 Mateu.Core.PartialRegistry
+Mateu.Core.Push.ExpoPushSender
+Mateu.Core.Push.InMemoryPushTokenStore
+Mateu.Core.Push.RemotePush

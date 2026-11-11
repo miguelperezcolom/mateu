@@ -25,6 +25,8 @@ import io.micronaut.serde.annotation.SerdeImport;
       // the translation catalogue (YamlUidlLoader / YamlAppLoader inject it): without it the
       // first YAML-backed request fails with "No bean of type TranslationRegistry"
       "io.mateu.core.application.i18n",
+      // remote push: the _push-register / _push-unregister runner and PushNotifications' dispatcher
+      "io.mateu.core.application.push",
       "io.mateu.core.application.runaction",
       "io.mateu.core.application.security",
       "io.mateu.core.domain.act",

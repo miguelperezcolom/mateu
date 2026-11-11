@@ -215,8 +215,12 @@ export function UiSession({
     }
   };
 
+  const liveSession = useRef<MateuSession | null>(null);
+
   /** Signs out of the provider that signed in (its own end-session), then asks again. */
   const signOutHere = async () => {
+    // the phone stops receiving this UI's pushes first (core/remotePush.ts)
+    await liveSession.current?.pushUnregister?.().catch(() => undefined);
     await provider?.logout();
     setSessionId(await rotateUiSessionId(secretStore, entry.id));
     if (manifest) setPlan(await planSignIn(manifest));
@@ -226,6 +230,7 @@ export function UiSession({
   const onSession = useCallback(
     (session: MateuSession) => {
       session.hub = { goHome: onHome, openSwitcher: onSwitch, uiName: entry.name, claimBar: setBarClaimed, hostBack: (back) => setScreenBack(back) };
+      liveSession.current = session;
       onLive?.(entry.id, session);
       if (provider) session.signOut = signOutHere;
     },

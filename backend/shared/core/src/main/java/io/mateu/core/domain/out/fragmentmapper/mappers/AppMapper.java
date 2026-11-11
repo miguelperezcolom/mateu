@@ -114,6 +114,9 @@ public final class AppMapper {
             .liveUpdates(AppShellExtrasMapper.liveUpdates(app))
             .agentPush(io.mateu.core.application.agentpush.AgentPush.enabled())
             .osNotifications(AppShellExtrasMapper.osNotifications(app))
+            .pushNotifications(
+                AppShellExtrasMapper.osNotifications(app)
+                    && io.mateu.core.application.push.Push.available())
             .idleSession(AppShellExtrasMapper.idleSession(app))
             .notificationsSource(
                 app.notifications() != null

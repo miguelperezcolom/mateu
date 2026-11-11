@@ -250,6 +250,12 @@ class SyncHandler(
         from mateu_ui.uidl.inbox_store import InMemoryInboxStore
 
         self.inbox_store = InMemoryInboxStore()
+        #: Remote push (EXPERIMENTAL): what sends pushes (None = off) and where the phones' tokens
+        #: are kept (``add_mateu(push_sender=…, push_token_store=…)``; in memory by default).
+        from mateu_ui.uidl.push import InMemoryPushTokenStore
+
+        self.push_sender = None
+        self.push_token_store = InMemoryPushTokenStore()
         #: Whether the app exposes its authoring plane (the MCP endpoint is on): the reserved
         #: __validate__ action is then served on the plain sync endpoint too (the sidecar calls it
         #: there); otherwise only to an MCP tool call or in dev mode (mateu_ui.core.authoring_gate).
@@ -443,7 +449,31 @@ class SyncHandler(
         if not any(m.persistence == "inbox" for m in increment.messages):
             return increment
         identity = self.mapper.identity_provider() if self.mapper.identity_provider else None
-        return inbox.store_messages(increment, getattr(identity, "name", None), self.inbox_store)
+        return inbox.store_messages(
+            increment, getattr(identity, "name", None), self.inbox_store, self.deliver_push
+        )
+
+    def enable_push(self, sender, store=None) -> None:
+        """Turns remote push on with ``sender`` (and ``store`` for the tokens, else the in-memory
+        default); ``PushNotifications.send`` then reaches it."""
+        from mateu_ui.uidl.push import PushNotifications
+
+        self.push_sender = sender
+        if store is not None:
+            self.push_token_store = store
+        self.mapper.push_enabled = sender is not None
+        if sender is not None:
+            PushNotifications.subscribe(self.deliver_push)
+
+    def deliver_push(self, principal: str, message) -> None:
+        """Sends a push to ``principal``'s phones, off the request thread (nothing when off)."""
+        from .. import push
+
+        if self.push_sender is None:
+            return
+        push.deliver(
+            principal, message, self.push_sender, push.default_store_warned(self.push_token_store)
+        )
 
     def _fragment_cache_candidates(self, rq: RunActionRq) -> list:
         """The routed view declaring a fragment cache policy, if any: its class for

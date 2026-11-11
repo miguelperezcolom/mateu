@@ -19,6 +19,9 @@ import { ExportScreen } from './ui/ExportScreen';
 import { HomeScreen } from './ui/HomeScreen';
 import { Switcher } from './ui/Switcher';
 import { UiSession } from './ui/UiSession';
+import { sameUi, setHubHandlesPushTaps, type PushTarget } from '../core/remotePush';
+import { onPushOpened } from '../ui/localNotifications';
+import { unregisterRemovedUi } from '../renderer/RemotePush';
 
 type Screen =
   | { name: 'home' }
@@ -181,6 +184,30 @@ export function HubApp() {
     handleUrlRef.current(url);
   }, [loaded, linkTick]);
 
+  // A tapped REMOTE push names its UI (`{ui, route}`): open that entry of the list at that route —
+  // the one that launched the app waits for the list, like a deep link. A UI no longer listed is
+  // ignored (its server is told to forget the phone when the UI is removed).
+  const pendingPush = useRef<PushTarget | null>(null);
+  const [pushTick, setPushTick] = useState(0);
+  useEffect(() => {
+    setHubHandlesPushTaps(true);
+    const off = onPushOpened((target) => {
+      pendingPush.current = target;
+      setPushTick((t) => t + 1);
+    });
+    return () => {
+      off();
+      setHubHandlesPushTaps(false);
+    };
+  }, []);
+  useEffect(() => {
+    if (!loaded || !pendingPush.current) return;
+    const { ui, route } = pendingPush.current;
+    pendingPush.current = null;
+    const entry = (entries ?? []).find((e) => sameUi(e.baseUrl, ui));
+    if (entry) void openLinked(entry, route ?? undefined);
+  }, [loaded, pushTick, entries, openLinked]);
+
   const remove = async (entry: HubEntry) => {
     const ok = await confirmDialog(
       `Remove ${entry.name}?`,
@@ -189,6 +216,12 @@ export function HubApp() {
       true,
     );
     if (!ok) return;
+    // the phone stops receiving its pushes (core/remotePush.ts): through the running session if
+    // it is open, else with what was recorded when the token was registered
+    const live = liveSessions.current.get(entry.id);
+    if (live?.pushUnregister) await live.pushUnregister().catch(() => undefined);
+    else await unregisterRemovedUi(entry.baseUrl);
+    liveSessions.current.delete(entry.id);
     setSessions((s) => s.filter((x) => x.id !== entry.id));
     if (activeId === entry.id) setActiveId(undefined);
     await uiStore.remove(entry.id);

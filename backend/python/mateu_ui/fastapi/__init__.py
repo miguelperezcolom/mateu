@@ -211,6 +211,11 @@ def add_mateu(
     login_on_start: bool | None = None,
     logout_url: str | None = None,
     forwarded_prefix_trusted: bool | None = None,
+    push_sender: Any | None = None,
+    push_token_store: Any | None = None,
+    expo_push: bool | None = None,
+    expo_push_access_token: str | None = None,
+    expo_push_url: str | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -293,6 +298,12 @@ def add_mateu(
       claim any client can make). The served page (only with ``ui``) then loads its assets and calls
       the API under that prefix; without it, the ASGI ``root_path`` (``uvicorn --root-path``) is
       the prefix.
+    - ``push_sender`` / ``push_token_store`` (EXPERIMENTAL) — remote push: a ``PushSender`` that
+      delivers pushes to phones and a ``PushTokenStore`` keeping their tokens (default: in memory,
+      lost on restart). ``expo_push=True`` (or ``MATEU_PUSH_EXPO_ENABLED=true``) uses Mateu's Expo
+      sender when no ``push_sender`` is given; ``expo_push_access_token`` (or
+      ``MATEU_PUSH_EXPO_ACCESS_TOKEN``) is its bearer token. With a sender, an ``inbox`` message to a
+      signed-in user reaches their phones while the app is suspended or closed.
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -331,6 +342,15 @@ def add_mateu(
     sign_in_providers.warn_on_startup()
     if inbox_store is not None:
         handler.inbox_store = inbox_store
+    # remote push: the app's sender, else Mateu's Expo sender when switched on, else off
+    from mateu_ui.core import push as remote_push
+
+    if push_sender is None and (remote_push.expo_enabled_from_env() if expo_push is None else expo_push):
+        push_sender = remote_push.ExpoPushSender(
+            expo_push_url, expo_push_access_token or os.environ.get("MATEU_PUSH_EXPO_ACCESS_TOKEN")
+        )
+    if push_sender is not None or push_token_store is not None:
+        handler.enable_push(push_sender, push_token_store)
     show_details = dev_mode_from_env() if dev is None else dev
     mcp_on = mcp_enabled_from_env() if mcp is None else mcp
     # the sidecar's authoring tools call __validate__ over the sync endpoint of an MCP-enabled app

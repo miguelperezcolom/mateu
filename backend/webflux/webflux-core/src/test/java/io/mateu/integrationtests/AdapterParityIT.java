@@ -46,6 +46,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void answersThePushTokenActions() {
+      contract.answersThePushTokenActions();
+    }
+
+    @Test
     void refusesANonJsonBodyOnTheSyncAndSseEndpoints() throws Exception {
       contract.refusesANonJsonBodyOnTheSyncAndSseEndpoints();
     }
