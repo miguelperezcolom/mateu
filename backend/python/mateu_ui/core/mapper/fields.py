@@ -466,11 +466,7 @@ class FieldMapperMixin(MixinBase):
             # dedicated wire field (Java's FieldMetadataExtractor.getAttributes, same order)
             attributes=(
                 ([PairRecord(key="divStyle", value=f.marker(DivStyleMarker).value)] if f.has(DivStyleMarker) else [])
-                + (
-                    [PairRecord(key="accept", value=f.marker(FileUpload).accept)]
-                    if f.has(FileUpload) and f.marker(FileUpload).accept
-                    else []
-                )
+                + (self._file_upload_attributes(f, field_id, read_only) if f.has(FileUpload) else [])
             ),
             # OptionsLayout(columns): how many columns the options spread over (Java's
             # @OptionsLayout → optionsColumns)
@@ -482,6 +478,23 @@ class FieldMapperMixin(MixinBase):
         if meta.style:
             out = out.model_copy(update={"style": meta.style})
         return out
+
+    def _file_upload_attributes(self, f, field_id: str, read_only: bool) -> list:
+        """A FileUpload() field's attributes: accept / maxBytes / multiple / storage as declared
+        (multiple also inferred for a list field), then — when a matching FileStorage is registered
+        and the field is editable — uploadUrl / uploadTicket (bound to the caller) / uploadDirect."""
+        marker = f.marker(FileUpload)
+        multiple = bool(marker.multiple) or is_list_field(f)
+        uploads = getattr(self, "uploads", None)
+        if uploads is None:
+            from ..uploads import Uploads
+
+            uploads = Uploads()
+        identity = self.identity_provider() if self.identity_provider and uploads.storages else None
+        return [
+            PairRecord(key=k, value=v)
+            for k, v in uploads.field_attributes(marker, field_id, multiple, read_only, identity)
+        ]
 
     def map_nested_form(self, f, instance, read_only: bool) -> ClientSideComponent:
         """A field holding a nested data object (Java's NestedFormFieldBuilder). ``Inline()``: its

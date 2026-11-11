@@ -771,7 +771,11 @@ export function extraWidgetOf(f, options, value) {
       converter: converterOf({ type: 'number', options: { style: 'currency', currency, minimumFractionDigits: 2 } }),
     }
   }
-  if (CAPTURE_MODES[st]) return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || '' }
+  // the accept list travels in the field's generic attributes ({key, value} pairs)
+  if (CAPTURE_MODES[st]) {
+    const declared = ((f.attributes || []).find && (f.attributes || []).find((a) => a && a.key === 'accept')) || {}
+    return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || declared.value || '' }
+  }
   // slider → oj-slider; stars → oj-rating-gauge; color → mateu-color-field (a hex string: JET's
   // oj-color-spectrum works on oj.Color objects); richText → mateu-rich-text-field (HTML, Delta read)
   if (st === 'slider') {

@@ -79,6 +79,9 @@ class MateuRegistry:
         #: The application's ListingExporter instances (one per format; Mateu ships no Excel / PDF
         #: engine — the built-in CSV writer fills in when none writes CSV).
         self.exporters: list = []
+        #: The application's FileStorage instances (EXPERIMENTAL; Mateu ships no storage adapter —
+        #: without one a FileUpload() field keeps the data-URI fallback).
+        self.file_storages: list = []
         #: Server-side micro frontend resolution (EXPERIMENTAL): the RemoteCatalogSupplier /
         #: RemoteIdentityStrategy / MicroFrontendResolutionListener subclasses found among the
         #: sources (instantiated with no arguments), and a RemoteRegistry / FragmentCacheStore /
@@ -243,6 +246,20 @@ class MateuRegistry:
                 self.exporters.append(cls())
             except Exception as e:  # noqa: BLE001 - a broken exporter exports nothing
                 _log.warning("Listing exporter %s could not be registered (%s)", cls.__name__, e)
+
+        from mateu_ui.uidl.uploads import FileStorage
+
+        if (
+            isinstance(cls, type)
+            and issubclass(cls, FileStorage)
+            and cls is not FileStorage
+            and not cls.__module__.startswith("mateu_ui.")
+            and not any(type(s) is cls for s in self.file_storages)
+        ):
+            try:
+                self.file_storages.append(cls())
+            except Exception as e:  # noqa: BLE001 - a broken store stores nothing
+                _log.warning("File storage %s could not be registered (%s)", cls.__name__, e)
 
         from mateu_ui.uidl.i18n import TranslationsSupplier
 

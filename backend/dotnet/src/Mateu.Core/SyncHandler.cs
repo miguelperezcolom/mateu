@@ -311,6 +311,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     private void EstablishRequestContext(RunActionRqDto rq)
     {
         ActionGuard.SetIdentity(identity);
+        FileUploads.SetCurrent(Uploads);
         RequestLocale.Value = locale?.Invoke();
         MateuCatalogs.Set(_restSources.Catalog, _components.Catalog, _fieldTypes.Catalog);
         // the catalogue entries whose access: the caller does not satisfy are never shipped, buttons

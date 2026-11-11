@@ -557,6 +557,44 @@ public class AdapterParityITFoundation {
         .statusCode();
   }
 
+  /**
+   * {@code POST /mateu/v3/upload} is routed on every adapter, takes the FILE as its body (a
+   * non-JSON body is not refused with 415, unlike the other Mateu POSTs) and refuses anything
+   * without a valid ticket with a JSON 403 — the ticket header is its CSRF guard. The pre-signed
+   * target request is refused the same way.
+   */
+  public void refusesAnUploadWithoutAValidTicket() {
+    given()
+        .contentType("application/pdf")
+        .header("X-Mateu-File-Name", "a.pdf")
+        .body(new byte[] {1, 2, 3})
+        .when()
+        .post("/mateu/v3/upload")
+        .then()
+        .statusCode(403)
+        .contentType(ContentType.JSON)
+        .body("error", equalTo("Forbidden"));
+    given()
+        .contentType("text/plain")
+        .header("X-Mateu-Upload-Ticket", "not.a-ticket")
+        .header("X-Mateu-File-Name", "a.txt")
+        .body("hello")
+        .when()
+        .post("/mateu/v3/upload")
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("Forbidden"));
+    given()
+        .contentType(ContentType.JSON)
+        .header("X-Mateu-Upload-Ticket", "not.a-ticket")
+        .body("{\"name\":\"a.pdf\",\"contentType\":\"application/pdf\",\"size\":3}")
+        .when()
+        .post("/mateu/v3/upload/target")
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("Forbidden"));
+  }
+
   /** Without {@code mateu.cors.allowed-origins}, no origin is ever granted access. */
   public void grantsNoCrossOriginAccessByDefault() {
     for (String path : new String[] {"/hello/mateu/v3/sync/x", "/hello/mateu/v3/sse/x"}) {

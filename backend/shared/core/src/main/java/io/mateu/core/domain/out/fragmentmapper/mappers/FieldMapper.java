@@ -65,7 +65,7 @@ public class FieldMapper {
             .onItemSelectionActionId(formField.onItemSelectionActionId())
             .rowSelectionShortcut(formField.rowSelectionShortcut())
             .inlineEditing(formField.inlineEditing())
-            .attributes(mapAttributes(formField))
+            .attributes(mapAttributes(formField, httpRequest))
             .detailPath(formField.detailPath())
             .useButtonForDetail(formField.useButtonForDetail())
             .minHeightWhenDetailVisible(formField.minHeightWhenDetailVisible())
@@ -81,9 +81,11 @@ public class FieldMapper {
         null);
   }
 
-  private static List<PairDto> mapAttributes(FormField formField) {
-    if (formField.attributes() != null) {
-      return formField.attributes().entrySet().stream()
+  private static List<PairDto> mapAttributes(FormField formField, HttpRequest httpRequest) {
+    // an editable upload field gets its upload ticket here (annotated, fluent and YAML alike)
+    var attributes = io.mateu.core.infra.uploads.UploadAttributes.of(formField, httpRequest);
+    if (attributes != null) {
+      return attributes.entrySet().stream()
           .map(e -> new PairDto(e.getKey(), e.getValue()))
           .toList();
     }

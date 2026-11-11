@@ -1563,10 +1563,54 @@
     ]
    }
   },
+  "FileStorage": {
+   "class": [],
+   "members": {
+    "store": [
+     [
+      "file",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "upload_target": [
+     [
+      "upload",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "FileUpload": {
    "class": [
     [
      "accept",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "max_bytes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "multiple",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "storage",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -2341,6 +2385,33 @@
       false
      ]
     ]
+   }
+  },
+  "IncomingFile": {
+   "class": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "content_type",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ],
+   "members": {
+    "read": []
    }
   },
   "Inline": {
@@ -4404,6 +4475,46 @@
     ]
    ]
   },
+  "StoredFile": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "parse": [
+     [
+      "value",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "to_json": [],
+    "to_value": []
+   }
+  },
   "Style": {
    "class": [
     [
@@ -4738,6 +4849,49 @@
     "on_load",
     "on_success",
     "on_value_change"
+   ]
+  },
+  "UploadRequest": {
+   "class": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "content_type",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "UploadTarget": {
+   "class": [
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "file",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "method",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "headers",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
    ]
   },
   "UseRadioButtons": {

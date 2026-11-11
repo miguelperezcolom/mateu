@@ -35,6 +35,7 @@ import '@vaadin/item'
 import './lazyFieldElements'
 import { mateuFieldStyles } from './mateu-field.styles'
 import { renderStringField } from './string'
+import { renderFileUploadField } from './string/capture'
 import { renderReadOnlyMarkupField, renderBadgeField, renderPropertyRowField, renderBulletedListField, renderPlainTextField, renderFoldoutReadOnlyField, renderReadOnlyField } from './readOnly'
 import { renderSearchableMultiField } from './searchableMulti'
 import { renderFileField } from './file'
@@ -765,6 +766,8 @@ export class MateuField extends LitElement {
         if (this.field?.readOnly && !('grid' == this.field.stereotype) && !('status' == this.field.dataType) && !(this.field?.dataType == 'money')
             && !OWN_READ_ONLY.has(this.field.stereotype ?? '')) return renderReadOnlyField(this, fieldId, value, label, labelText)
         if (this.field?.dataType == 'file') return renderFileField(this, fieldId, value, label, labelText)
+        // a multiple file upload is a List<String> (dataType array): the upload widget, not the array editor
+        if (this.field?.stereotype == 'fileUpload' && this.field?.dataType == 'array') return renderFileUploadField(this, value, label)
         if (this.field?.dataType == 'string') return renderStringField(this, fieldId, value, label, labelText)
         if (this.field?.dataType == 'number') return renderNumberField(this, fieldId, value, label, labelText)
         if (this.field?.dataType == 'integer') return renderIntegerField(this, fieldId, value, label, labelText)

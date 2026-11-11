@@ -99,6 +99,12 @@ public sealed class MateuOptions
     /// mateu.progress.reattach-grace-seconds.) EXPERIMENTAL.</summary>
     public int? ProgressReattachGraceSeconds { get; set; }
 
+    /// <summary>The secret upload tickets are signed with (<c>[FileUpload]</c> fields of a registered
+    /// <see cref="IFileStorage"/>). Null (the default) reads <c>MATEU_UPLOADS_SECRET</c>; none → a random
+    /// secret per process, fine for ONE instance — a deployment of several instances must set it, or a
+    /// ticket one instance issued is refused by the others. EXPERIMENTAL. Java: <c>mateu.uploads.secret</c>.</summary>
+    public string? UploadsSecret { get; set; }
+
     /// <summary>The client proxied REST fetches use (null → a shared client with a 60 s timeout that
     /// does not follow redirects). A client of your own should not follow them either
     /// (<c>AllowAutoRedirect = false</c>): a redirect would carry the source's headers, secrets

@@ -316,6 +316,7 @@ from .constraints import (  # noqa: F401
 )
 from .action_catalog import ActionCatalogSupplier, CatalogAction, CatalogRestAction  # noqa: F401
 from .export import ExportColumn, ExportedFile, ExportFormat, ListingExport, ListingExporter  # noqa: F401
+from .uploads import FileStorage, IncomingFile, StoredFile, UploadRequest, UploadTarget  # noqa: F401
 from .rest_sources import (  # noqa: F401
     DeclaredRestSource,
     RestDataSource,
@@ -431,6 +432,11 @@ __all__ = [
     "ExportFormat",
     "ListingExport",
     "ListingExporter",
+    "FileStorage",
+    "IncomingFile",
+    "StoredFile",
+    "UploadRequest",
+    "UploadTarget",
     "CatalogAction",
     "CatalogRestAction",
     "FieldType",

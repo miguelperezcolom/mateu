@@ -46,7 +46,7 @@ public @interface Stereotype {
 | `markdown` | Markdown editor / renderer |
 | `image` | Image display (`<img>` from a URL / data-URI value) |
 | `uploadableImage` | Image preview + upload (replace) + delete actions — see [`@UploadableImage`](#uploadableimage) |
-| `fileUpload` | Generic file upload: pick-file action, chosen file name, remove action, no preview; the value holds the file as a data URI (`@FileUpload`) |
+| `fileUpload` | Generic file upload: pick-file action, chosen file name, remove action, no preview; the value holds the file as a data URI (`@FileUpload`) — or, while the app registers a `FileStorage`, a reference to the uploaded file: see [Large file uploads](/java-ui-definition/file-uploads/) |
 | `signature` | Drawing canvas that stores the accepted strokes as a PNG data URI — see [`@Signature`](#signature) |
 | `camera` | Device camera with live preview; the shot lands as a JPEG data URI — see [`@PhotoCapture`](#photocapture) |
 | `treeSelect` | A select whose dropdown unfolds a TREE of options — see `@TreeSelect` |
