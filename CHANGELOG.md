@@ -10,6 +10,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Added
 
+- **Split buttons.** A `ButtonGroup` with a `primary` is a split button: the primary action runs
+  from the button itself and an adjacent ▾ ("More actions") opens the other buttons — fluent
+  `ButtonGroup.split(primary, more…)` / `ButtonGroup.of(label, buttons…)` / `builder().primary(…)`,
+  declared `@Toolbar(group = "save", groupPrimary = true)` (also on `@Button`), YAML
+  `type: ButtonGroup` with `primary:`. On the wire it is the primary `Button` with `split: true` and
+  the rest as `children`. Drawn by Vaadin (one `vaadin-menu-bar`), Redwood (`oj-button` + an
+  icon-only `oj-menu-button`; the Spectra header lists the primary first), React Native (Paper
+  button + menu) and the desktop (`JButton` + a ▾ with a popup menu). .NET `Button.Group`/
+  `Button.Split` + `[Toolbar(Group, GroupPrimary)]` and Python `Button.group`/`Button.split` +
+  `@toolbar(group=, group_primary=)` emit the same wire, and both now read a YAML `ButtonGroup`
+  (conformance case `button-groups`). The Explorer's Button entry shows both shapes in YAML, in
+  Java and declared. Docs: [ButtonGroup & split buttons](https://mateu.io/java-ui-definition/components/button-group/).
+
 - **Sign-in providers (server side).** A UI declares the ways to sign in —
   `mateu.auth.providers=keycloak,github` with `mateu.auth.providers.<id>.type|label|icon|issuer|
   client-id|scopes|audience|url|platforms|continue-param|tenant`, `mateu.auth.login-on-start`,
@@ -89,6 +102,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   per UI, route and listing), and the column chooser reorders columns.
 
 ### Fixed
+
+- **A toolbar group (`@Toolbar(group = …)`, a `ButtonGroup` in a toolbar) works in the page header
+  and the listing toolbar on the web.** It was drawn as one button labelled like the group that ran
+  nothing; it is now the renderer's dropdown, and the header's «⋯» overflow lists its buttons. The
+  desktop's native toolbar dropped a group altogether; it now lists its buttons.
 
 - **Multi-value fields read `optionsSource`.** `multiSelect`, `listBox`, checkbox groups, multi-select
   `combobox` and `choice` fields take their options from a REST source like a select does (by `ref`

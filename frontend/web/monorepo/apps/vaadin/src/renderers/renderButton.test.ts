@@ -78,6 +78,7 @@ describe('a split button (a ButtonGroup with a primary)', () => {
         expect(bar.items[0].text).toBe('Save')
         expect(bar.items[0].children).toBeUndefined()
         expect(bar.items[1].tooltip).toBe('More actions')
+        expect(bar.items[1].theme).toEqual(['primary', 'icon'])
         expect((bar.items[1].component as HTMLElement).textContent).toContain('More actions')
         expect(bar.items[1].children.map((c: any) => c.text)).toEqual(['Save as draft'])
         expect(bar.querySelector('vaadin-tooltip[slot="tooltip"]')).not.toBeNull()

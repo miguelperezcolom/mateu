@@ -113,4 +113,7 @@ Form.builder()
     ...
 ```
 
-**See it live in the Explorer:** [Button & ButtonGroup](https://explorer.mateu.io/components/actions-and-navigation/button)
+To put several actions behind one control — a dropdown, or a split button whose main action runs
+from the button — see [ButtonGroup & split buttons](/java-ui-definition/components/button-group/).
+
+**See it live in the Explorer:** [Button, ButtonGroup & split buttons](https://explorer.mateu.io/components/actions-and-navigation/button)

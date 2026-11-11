@@ -53,7 +53,7 @@ const renderButtonGroup = (component: ClientSideComponent, state?: ComponentStat
             id="${component.id}"
             class="mateu-button-group ${component.cssClasses ?? ''}"
             style="${component.style ?? nothing}"
-            theme="${metadata.buttonStyle ?? nothing}"
+            theme="${[metadata.buttonStyle, 'dropdown-indicators'].filter(Boolean).join(' ')}"
             slot="${component.slot ?? nothing}"
             .items=${items}
             @item-selected=${selected}
@@ -103,6 +103,8 @@ const renderSplitButton = (component: ClientSideComponent, state?: ComponentStat
         {
             component: splitArrow(more),
             tooltip: more,
+            // square, like an icon button, in the bar's own look
+            theme: [...vaadinButtonTheme(metadata).split(' ').filter(Boolean), 'icon'],
             className: 'mateu-split-more',
             children: metadata.children.map(child => ({
                 text: builtInButtonLabel(child, interpolate(child.label, state, data)),
