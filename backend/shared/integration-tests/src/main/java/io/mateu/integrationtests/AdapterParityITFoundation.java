@@ -425,6 +425,36 @@ public class AdapterParityITFoundation {
         : a;
   }
 
+  /**
+   * The phone's push token actions are served on every adapter (their runner is a core bean the
+   * adapter must discover): with no sender a registration is answered and not kept, and forgetting
+   * a token needs no sign-in.
+   */
+  public void answersThePushTokenActions() {
+    for (var actionId : new String[] {"_push-register", "_push-unregister"}) {
+      given()
+          .contentType(ContentType.JSON)
+          .body(
+              """
+              {
+                "route": "/",
+                "actionId": "%s",
+                "componentState": {},
+                "parameters": {"token": "ExponentPushToken[parity]", "platform": "android",
+                               "ui": "https://ops.example.com/hello"},
+                "appState": {}
+              }
+              """
+                  .formatted(actionId))
+          .when()
+          .post("/hello/mateu/v3/sync/_no_route")
+          .then()
+          .statusCode(200)
+          .body(containsString("\"_push\""))
+          .body(containsString("\"registered\":false"));
+    }
+  }
+
   /** The plain sync endpoint keeps answering one JSON body. */
   public void answersSyncWithJson() {
     given()
