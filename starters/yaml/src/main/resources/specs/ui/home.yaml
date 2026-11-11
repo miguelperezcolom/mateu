@@ -1,7 +1,7 @@
 # The home page: a hero with the app's title, a short intro and a call to action. The button
 # navigates because its actionable is a RouteLink — no code behind it. Open it in the Mateu visual
 # editor (IntelliJ or VS Code) to edit it on a canvas.
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.57/backend/shared/uidl/specs-schema.json
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.58/backend/shared/uidl/specs-schema.json
 pageType: landing
 type: VerticalLayout
 fullWidth: true

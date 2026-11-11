@@ -8,7 +8,7 @@
   <ItemGroup>
     <!-- Mateu.NET, the same release as the Java artifacts (3.0-beta.N is 3.0.0-beta.N on NuGet).
          Inside the Mateu repository starters/Directory.Build.targets builds the sources instead. -->
-    <PackageReference Include="Mateu.AspNetCore" Version="3.0.0-beta.57" />
-    <PackageReference Include="Mateu.Uidl" Version="3.0.0-beta.57" />
+    <PackageReference Include="Mateu.AspNetCore" Version="3.0.0-beta.58" />
+    <PackageReference Include="Mateu.Uidl" Version="3.0.0-beta.58" />
   </ItemGroup>
 </Project>
