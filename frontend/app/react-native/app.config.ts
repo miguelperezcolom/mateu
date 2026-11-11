@@ -1,5 +1,6 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 import { applyVariant, type VariantEnv } from './src/core/buildVariant.ts';
+import { applyPushConfig, type PushEnv } from './src/core/pushConfig.ts';
 
 /**
  * Build-variant overrides on top of app.json (which holds the production-safe defaults).
@@ -14,7 +15,8 @@ import { applyVariant, type VariantEnv } from './src/core/buildVariant.ts';
  * or a white-label app bound to one UI (src/core/buildVariant.ts, docs ux-patterns/mobile-app.md).
  */
 export default ({ config }: ConfigContext): ExpoConfig => {
-  const variant = applyVariant(config as ExpoConfig, process.env as VariantEnv);
+  // remote push: the FCM / APNs set-up only when the build has the credentials (src/core/pushConfig.ts)
+  const variant = applyPushConfig(applyVariant(config as ExpoConfig, process.env as VariantEnv), process.env as PushEnv);
   // An APK built outside EAS (the GitHub release workflow, .github/workflows/mobile.yml) has no remote
   // build number: the workflow passes one, and it must only grow for the APK to install as an update.
   const versionCode = Number(process.env.MATEU_ANDROID_VERSION_CODE);

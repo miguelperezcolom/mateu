@@ -6,8 +6,11 @@ import { MateuApiClient, setStreamingFetch } from '../api/MateuApiClient';
 setStreamingFetch(expoFetch as unknown as typeof fetch);
 // OS-level notifications (App.osNotifications): expo-notifications, local only (core/osNotifications.ts)
 import { setLocalNotifier } from '../core/osNotifications';
-import { platformNotifier } from '../ui/localNotifications';
+import { platformNotifier, platformPushTokens } from '../ui/localNotifications';
+import { setPushTokenSource } from '../core/remotePush';
 setLocalNotifier(platformNotifier());
+// …and REMOTE push, for a UI whose server sends pushes (core/remotePush.ts)
+setPushTokenSource(platformPushTokens());
 import { MateuSession } from '../core/MateuSession';
 import { randomUuid } from '../core/sessionId';
 import type { TokenProvider } from '../core/auth';

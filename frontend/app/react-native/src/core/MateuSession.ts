@@ -185,6 +185,10 @@ export class MateuSession {
   /** Host hook (hub sessions): sign out of THIS UI only. Absent → the global provider's sign-out. */
   signOut?: () => Promise<void>;
 
+  /** Set by the shell when the UI sends remote pushes: asks its server to forget this phone's push
+   *  token (sign-out — core/remotePush.ts). */
+  pushUnregister?: () => Promise<void>;
+
   /** Host hook (hub sessions): the shell offers "My UIs" / "Switch UI" entries when set. */
   /** The Mateu hub app around this UI. `claimBar(true)`: the app's own top bar hosts the hub's
    *  actions (switch UI), so the hub hides its bar — one bar, not two stacked. */

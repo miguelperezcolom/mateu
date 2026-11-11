@@ -1,9 +1,12 @@
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import type { LocalNotifier, NotificationPermission } from '../core/osNotifications';
+import { isRemoteTrigger, pushTargetOf, type DevicePushToken, type PushTarget, type PushTokenSource } from '../core/remotePush';
 
 /**
- * The OS-notification port bound to `expo-notifications` — LOCAL notifications only: no push token
- * is ever asked for, no push service is involved (core/osNotifications.ts).
+ * The OS-notification port bound to `expo-notifications`: the LOCAL notifications the app posts
+ * (core/osNotifications.ts) and, for a UI whose server sends pushes, the Expo push token and the
+ * taps on REMOTE pushes (core/remotePush.ts). No token is asked for unless a UI turns push on.
  *
  * The module is loaded LAZILY and its failure is tolerated: an install whose binary predates the
  * native module (its JavaScript came over the air) must not crash — it simply has no OS
@@ -18,14 +21,18 @@ const expoNotifications = (): Promise<ExpoNotifications | null> => {
   if (!loaded) {
     loaded = import('expo-notifications')
       .then(async (module) => {
-        // a notification posted while the app is in front stays quiet (we only post in the background)
+        // asked only while the app is in front: we post local ones only in the background, and a
+        // REMOTE push arriving now is not shown — the bell / the toast already tell it
         module.setNotificationHandler({
-          handleNotification: async () => ({
-            shouldShowBanner: true,
-            shouldShowList: true,
-            shouldPlaySound: false,
-            shouldSetBadge: false,
-          }),
+          handleNotification: async (notification) => {
+            const remote = isRemoteTrigger(notification.request.trigger);
+            return {
+              shouldShowBanner: !remote,
+              shouldShowList: !remote,
+              shouldPlaySound: false,
+              shouldSetBadge: false,
+            };
+          },
         });
         if (Platform.OS === 'android') {
           await module.setNotificationChannelAsync(CHANNEL, {
@@ -125,4 +132,59 @@ function nativeNotifier(): LocalNotifier {
 /** The binding of this platform. */
 export function platformNotifier(): LocalNotifier {
   return Platform.OS === 'web' ? webNotifier() : nativeNotifier();
+}
+
+/** The Expo push token of this install (null: web, no native module, no FCM/APNs set up, no
+ *  project id). Asked only once a UI turned push on and the user granted the permission. */
+export function platformPushTokens(): PushTokenSource {
+  return {
+    token: async (): Promise<DevicePushToken | null> => {
+      if (Platform.OS !== 'ios' && Platform.OS !== 'android') return null;
+      const module = await expoNotifications();
+      if (!module) return null;
+      const extra = Constants.expoConfig?.extra as { eas?: { projectId?: string } } | undefined;
+      const projectId = extra?.eas?.projectId ?? (Constants as { easConfig?: { projectId?: string } }).easConfig?.projectId;
+      if (!projectId) return null;
+      try {
+        const answer = await module.getExpoPushTokenAsync({ projectId });
+        return answer?.data ? { token: answer.data, platform: Platform.OS } : null;
+      } catch {
+        // an Android build without google-services.json, an iOS build without the push entitlement
+        return null;
+      }
+    },
+  };
+}
+
+let launchResponseRead = false;
+
+/**
+ * Taps on REMOTE pushes naming a UI (`{ui, route}`): the one that launched the app (read once per
+ * process) and any later one. Local notifications are not reported here (they carry a `scope`).
+ */
+export function onPushOpened(listener: (target: PushTarget) => void): () => void {
+  if (Platform.OS === 'web') return () => undefined;
+  let remove: (() => void) | null = null;
+  let off = false;
+  const handle = (response: { notification: { request: { content: { data?: unknown }; trigger?: unknown } } } | null) => {
+    if (!response || off) return;
+    const request = response.notification.request;
+    if (!isRemoteTrigger(request.trigger)) return;
+    const target = pushTargetOf(request.content.data);
+    if (target) listener(target);
+  };
+  void expoNotifications().then(async (module) => {
+    if (!module || off) return;
+    const subscription = module.addNotificationResponseReceivedListener((response) => handle(response));
+    remove = () => subscription.remove();
+    if (!launchResponseRead) {
+      launchResponseRead = true;
+      // the tap that launched a closed app
+      handle(module.getLastNotificationResponse?.() ?? null);
+    }
+  });
+  return () => {
+    off = true;
+    remove?.();
+  };
 }

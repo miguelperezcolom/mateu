@@ -10,6 +10,8 @@ import { elapsedText, etaText, progressA11yValue, stepCountText, stripLabel, typ
 import { uiLocale } from '../core/money';
 import { localNotifier, wireOsNotifications, type NotificationPermission } from '../core/osNotifications';
 import type { MateuSession } from '../core/MateuSession';
+import { hubHandlesPushTaps, sameUi } from '../core/remotePush';
+import { onPushOpened } from '../ui/localNotifications';
 
 const inFront = () => AppState.currentState === 'active' || AppState.currentState == null;
 
@@ -22,6 +24,11 @@ export function useTaskLifecycle(session: MateuSession): void {
   useEffect(() => wireOsNotifications(session, inFront), [session]);
   useEffect(() => localNotifier().onOpened(({ route, scope }) => {
     if (scope !== session.api.baseUrl) return;
+    if (route) session.openView({ label: '', route, consumedRoute: '', serverSideType: '' });
+  }), [session]);
+  // a tapped REMOTE push of this UI, when no hub opens it (a fixed app: the session is the app)
+  useEffect(() => onPushOpened(({ ui, route }) => {
+    if (hubHandlesPushTaps() || !sameUi(ui, session.api.baseUrl)) return;
     if (route) session.openView({ label: '', route, consumedRoute: '', serverSideType: '' });
   }), [session]);
   useEffect(() => {

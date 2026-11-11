@@ -200,7 +200,10 @@ export function UiSession({
     }
   };
 
+  const liveSession = useRef<MateuSession | null>(null);
   const signOutHere = async () => {
+    // the phone stops receiving this UI's pushes first (core/remotePush.ts)
+    await liveSession.current?.pushUnregister?.().catch(() => undefined);
     await provider?.logout();
     setSessionId(await rotateUiSessionId(secretStore, entry.id));
     setPhase({ name: 'signin' });
@@ -209,6 +212,7 @@ export function UiSession({
   const onSession = useCallback(
     (session: MateuSession) => {
       session.hub = { goHome: onHome, openSwitcher: onSwitch, uiName: entry.name, claimBar: setBarClaimed, hostBack: (back) => setScreenBack(back) };
+      liveSession.current = session;
       onLive?.(entry.id, session);
       if (provider) {
         session.signOut = async () => {
