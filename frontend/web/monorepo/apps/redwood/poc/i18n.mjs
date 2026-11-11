@@ -45,6 +45,7 @@ export const CHROME_TEXTS = {
     // WCAG 3.2.2: the @AppContext picker says beforehand that a change reloads the screen
     appContextReloads: 'Choosing another one reloads the screen',
     appContextChanging: '{label}: {value}. Reloading…',
+    singleKeyShortcuts: 'Single-key shortcuts (such as ?). Ctrl+/ always opens this list',
     enterValue: 'Enter a value.',
     selectValue: 'Select a value',
     progressOf: '{done} of {total}',
@@ -345,6 +346,7 @@ export const CHROME_TEXTS = {
     skipToContent: 'Saltar al contenido',
     appContextReloads: 'Elegir otro recarga la pantalla',
     appContextChanging: '{label}: {value}. Recargando…',
+    singleKeyShortcuts: 'Atajos de una sola tecla (como ?). Ctrl+/ siempre abre esta lista',
     enterValue: 'Introduce un valor.',
     selectValue: 'Seleccione un valor',
     progressOf: '{done} de {total}',

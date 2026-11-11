@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { appShortcutFor, isHelpKey, keyLabel, quickLaunchMatch, shortcutsMatching, worksWhileTyping } from './appShortcuts'
+import { describe, expect, it, vi } from 'vitest'
+import { appShortcutFor, isCharacterKeyShortcut, isHelpKey, keyLabel, quickLaunchMatch, setSingleKeyShortcuts, shortcutsMatching, singleKeyShortcutsOn, worksWhileTyping } from './appShortcuts'
 
 const shortcuts = [
     { key: 'f9', label: 'Reservations', route: '/reservations', code: 'RES' },
@@ -31,6 +31,28 @@ describe('app shortcuts', () => {
         expect(isHelpKey(key('?', { shiftKey: true }), false)).toBe(true)
         expect(isHelpKey(key('?', { shiftKey: true }), true)).toBe(false)
         expect(isHelpKey(key('?', { ctrlKey: true }), false)).toBe(false)
+    })
+
+    it('single-key shortcuts can be switched off; Ctrl+/ always opens the list (WCAG 2.1.4)', () => {
+        const store = new Map<string, string>()
+        vi.stubGlobal('localStorage', { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => { store.set(k, v) }, removeItem: (k: string) => { store.delete(k) } })
+        try {
+            const bare = [{ key: 'n', label: 'New', route: '/new' }, { key: 'f9', label: 'Find', route: '/find' }] as never
+            expect(isCharacterKeyShortcut('n')).toBe(true)
+            expect(isCharacterKeyShortcut('shift+n')).toBe(true)
+            expect(isCharacterKeyShortcut('ctrl+n')).toBe(false)
+            expect(isCharacterKeyShortcut('enter')).toBe(false)
+            expect(singleKeyShortcutsOn()).toBe(true)
+            expect(appShortcutFor(bare, key('n'), false)?.route).toBe('/new')
+            setSingleKeyShortcuts(false)
+            expect(singleKeyShortcutsOn()).toBe(false)
+            expect(isHelpKey(key('?', { shiftKey: true }), false)).toBe(false)
+            expect(appShortcutFor(bare, key('n'), false)).toBeUndefined()
+            expect(appShortcutFor(bare, { ...key('F9'), code: 'F9' }, false)?.route).toBe('/find')
+            expect(isHelpKey({ ...key('/', { ctrlKey: true }), code: 'Slash' }, true)).toBe(true)
+            setSingleKeyShortcuts(true)
+            expect(isHelpKey(key('?', { shiftKey: true }), false)).toBe(true)
+        } finally { vi.unstubAllGlobals() }
     })
 
     it('quick-launches by exact code, case-insensitive', () => {

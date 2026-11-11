@@ -32,6 +32,7 @@ import './mateu-chart'
 import './mateu-bpmn'
 import './mateu-debug-overlay'
 import { shortcutMatchesEvent } from './shortcuts'
+import { isCharacterKeyShortcut, singleKeyShortcutsOn } from './appShortcuts'
 import { resolveComponentState } from './common'
 import { notify as showToast } from "@application/Notifier.ts";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
@@ -1244,6 +1245,8 @@ export class MateuComponent extends ComponentElement {
     }
 
     private _shortcutMatchesEvent(shortcut: string, e: KeyboardEvent): boolean {
+        // WCAG 2.1.4: a one-character shortcut stays quiet once the user switched those off
+        if (isCharacterKeyShortcut(shortcut) && !singleKeyShortcutsOn()) return false
         return shortcutMatchesEvent(shortcut, e)
     }
 

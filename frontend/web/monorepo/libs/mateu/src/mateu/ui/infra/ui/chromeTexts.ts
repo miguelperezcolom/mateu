@@ -370,6 +370,7 @@ const en = {
     planningKeys: 'Arrow keys move it, Shift+Left/Right change its length, Enter applies, Escape cancels',
     planningPending: '{block}: {resource}, {start} to {end}',
     dropSelected: 'Move the selected rows here ({count})',
+    singleKeyShortcuts: 'Single-key shortcuts (such as ?). Ctrl+/ always opens this list',
     appContextChanging: '{label}: {value}. Reloading the app…',
 }
 
@@ -704,6 +705,7 @@ const es: Catalogue = {
     planningKeys: 'Las flechas lo mueven, Mayús+Izquierda/Derecha cambian su duración, Intro aplica, Escape cancela',
     planningPending: '{block}: {resource}, del {start} al {end}',
     dropSelected: 'Mover aquí las filas seleccionadas ({count})',
+    singleKeyShortcuts: 'Atajos de una sola tecla (como ?). Ctrl+/ siempre abre esta lista',
     appContextChanging: '{label}: {value}. Recargando la aplicación…',
 }
 
