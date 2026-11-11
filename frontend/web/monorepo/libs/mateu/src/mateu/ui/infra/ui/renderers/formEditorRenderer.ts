@@ -15,6 +15,7 @@ export const renderFormEditor = (component: ClientSideComponent) => {
                 class="${component.cssClasses ?? nothing}"
                 slot="${component.slot ?? nothing}"
                 value="${metadata.value ?? '{"name":"New Form","fields":[]}'}"
+                .fieldId="${component.id}"
         ></mateu-form-editor>
     `;
 };

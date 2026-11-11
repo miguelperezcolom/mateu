@@ -124,6 +124,16 @@ describe('mateu-workflow (DOM)', () => {
         expect(Array.from(field(el, 'Precondition step').querySelectorAll('option')).map(o => o.value)).toEqual(['', 'a', 'b'])
     })
 
+    it('an edit names the component as its fieldId, so the definition lands in the state under it', async () => {
+        const el = await mount()
+        el.fieldId = 'definition'
+        let fieldId: unknown
+        el.addEventListener('value-changed', (e) => { fieldId = (e as CustomEvent).detail.fieldId })
+        button(el, 'Add Step').click()
+        await el.updateComplete
+        expect(fieldId).toBe('definition')
+    })
+
     it('Add Step appends an ACTION below the last node, selects it and emits', async () => {
         const el = await mount()
         button(el, 'Add Step').click()
