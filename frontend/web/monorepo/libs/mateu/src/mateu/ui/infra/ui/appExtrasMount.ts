@@ -4,6 +4,7 @@ import type { AppShortcut } from '@mateu/shared/apiClients/dtos/componentmetadat
 import { appShortcutFor, isHelpKey, isTypingTarget } from '@infra/ui/appShortcuts.ts'
 import { forgetDetachedHeaderScopes, installHeaderValuesWatcher, seedHeaderValues } from '@infra/ui/headerValues.ts'
 import { syncLiveUpdates } from '@infra/ui/liveUpdates.ts'
+import { syncPresence } from '@infra/presence/presence.ts'
 import { syncAgentChannel } from '@infra/ui/agentChannel.ts'
 import { dispatchAppHeaderAction } from '@infra/ui/renderers/appHeaderActions.ts'
 import { navigateToRoute } from '@infra/ui/rowRoute.ts'
@@ -95,6 +96,8 @@ export function syncAppExtras(host: Host): void {
     // finish while the tab is hidden
     syncOsNotifications(md, host)
     syncLiveUpdates(md, baseUrl)
+    // record presence (@App(presence)): record pages report themselves (mateu-presence-chip)
+    syncPresence(md, baseUrl)
 
     // live UI push: what an agent connected through MCP sends to this tab
     syncAgentChannel(md, baseUrl, host)

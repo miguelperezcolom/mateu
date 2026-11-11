@@ -6,6 +6,7 @@ import { scopeHeaderValues, updateHeaderValue } from '@infra/ui/headerValues.ts'
 import { tabsShareIdentity } from '@infra/http/authToken.ts'
 import { inboxStore, notificationChangesOf } from '@infra/notify/inboxStore.ts'
 import type { NotificationsChanged } from '@mateu/shared/apiClients/dtos/Progress.ts'
+import { applyPresenceChange, presenceChangesOf, type PresenceChange } from '@infra/presence/presence.ts'
 
 /**
  * The APP EVENT STREAM of `@App(liveUpdates)`: header-value changes the server publishes to every
@@ -30,6 +31,8 @@ import type { NotificationsChanged } from '@mateu/shared/apiClients/dtos/Progres
 export const LEADER_KEY = 'mateu-live-leader'
 /** How the leader tab hands a live inbox change to the other tabs of the browser. */
 export const INBOX_CHANGE_KEY = 'mateu-inbox-change'
+/** How the leader tab hands a record-presence change to the other tabs of the browser. */
+export const PRESENCE_CHANGE_KEY = 'mateu-presence-change'
 
 /** Pure: which app a stream belongs to. */
 export const liveScopeOf = (baseUrl: string, serverSideType: string): string => `${baseUrl}|${serverSideType}`
@@ -70,6 +73,7 @@ let reconnectTimer: ReturnType<typeof setTimeout> | undefined
 
 const leaderKey = (of: Target): string => scopedKey(LEADER_KEY, liveScopeOf(of.baseUrl, of.serverSideType))
 const inboxKey = (of: Target): string => scopedKey(INBOX_CHANGE_KEY, liveScopeOf(of.baseUrl, of.serverSideType))
+const presenceKey = (of: Target): string => scopedKey(PRESENCE_CHANGE_KEY, liveScopeOf(of.baseUrl, of.serverSideType))
 const readLeader = (of: Target): LeaderRecord | null => safeLocalStorage.getJson<LeaderRecord | null>(leaderKey(of), null)
 
 const tick = () => {
@@ -145,6 +149,14 @@ const connect = () => {
                         // on a shared machine after a sign-out) must not stay at rest in the browser
                         safeLocalStorage.remove(inboxKey(streaming))
                     }
+                    // someone joined, left, started or stopped editing a record this user has open
+                    // (@App(presence)): the chip follows, here and in the other tabs
+                    for (const change of presenceChangesOf(increment)) {
+                        applyPresenceChange(change)
+                        if (!relays) continue
+                        safeLocalStorage.setJson(presenceKey(streaming), { at: Date.now(), tab: tabId, change })
+                        safeLocalStorage.remove(presenceKey(streaming))
+                    }
                 } catch { /* a heartbeat or a malformed chunk: skip it */ }
             }
         }
@@ -174,7 +186,8 @@ export const syncLiveUpdates = (app: App | undefined, baseUrl: string) => {
     const shared = tabsShareIdentity()
     // header values also change through ordinary answers: scoped whether or not there is a stream
     scopeHeaderValues(shared ? liveScopeOf(baseUrl, app?.serverSideType ?? '') : null)
-    const want = !!app?.liveUpdates && typeof window !== 'undefined' && typeof fetch === 'function'
+    // record presence rides the same stream: it runs for either
+    const want = !!(app?.liveUpdates || app?.presence) && typeof window !== 'undefined' && typeof fetch === 'function'
     if (!want) {
         if (target) {
             const previous = target
@@ -198,7 +211,15 @@ export const syncLiveUpdates = (app: App | undefined, baseUrl: string) => {
         window.addEventListener('pagehide', () => release())
         // an inbox change the leader tab received
         window.addEventListener('storage', (e: StorageEvent) => {
-            if (!target || ownStream || e.key !== inboxKey(target) || !e.newValue) return
+            if (!target || ownStream || !e.newValue) return
+            if (e.key === presenceKey(target)) {
+                try {
+                    const record = JSON.parse(e.newValue) as { tab?: string, change?: PresenceChange }
+                    if (record.tab !== tabId && record.change) applyPresenceChange(record.change)
+                } catch { /* not ours */ }
+                return
+            }
+            if (e.key !== inboxKey(target)) return
             try {
                 const record = JSON.parse(e.newValue) as { tab?: string, change?: NotificationsChanged }
                 if (record.tab !== tabId && record.change) inboxStore.applyChange(record.change)
