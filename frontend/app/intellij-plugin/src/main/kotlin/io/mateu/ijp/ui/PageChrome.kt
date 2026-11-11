@@ -133,6 +133,14 @@ object PageChrome {
         if (timestamp.isNotBlank()) {
             header.addStacked(JBLabel(plain(timestamp)).apply { foreground = ToneColors.secondaryText() }, 6)
         }
+        // Record presence (@App(presence)): only on a routed view's own header, never an island's
+        if (parts.texts && r.ctx.session.presence.enabled && !r.ctx.silentErrors && r.ctx.embeddedChrome == null &&
+            metadata.path("level").asInt(0) == 0
+        ) {
+            val row = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply { isOpaque = false }
+            row.add(PresenceLabel(r.ctx))
+            header.addStacked(row, 6)
+        }
         // Previous / next record (PageDto.peerNav): a side without a route is disabled. Label and route
         // are templates (`${'$'}{state.nextId ? 'artworks/' + state.nextId : ''}` on a YAML page) —
         // navigating to the raw template failed, and a route that evaluates empty means "no next".
