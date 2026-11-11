@@ -631,9 +631,34 @@ export function islandContentOf(ctx, opts = {}) {
     label: b.label,
     badgeClass: BADGE_CLASSES[b.color] || 'oj-badge oj-badge-neutral oj-badge-subtle',
   })
-  // a group (a Button with `children`, no action of its own) stands for its buttons
-  const groupMembersOf = (m) =>
-    (!m.actionId && Array.isArray(m.children) && m.children.length ? m.children.filter(Boolean) : [m])
+  // a group (a Button with `children`, no action of its own) stands for its buttons; a SPLIT
+  // button (`split`: its primary + the rest as children), where it is not drawn as one, for its
+  // primary followed by the rest
+  const groupMembersOf = (m) => {
+    const kids = Array.isArray(m.children) ? m.children.filter(Boolean) : []
+    if (m.split && kids.length) return [{ ...m, children: [], split: false }, ...kids]
+    return !m.actionId && kids.length ? kids : [m]
+  }
+  // a SPLIT button in a row of buttons: JET's own pair — the primary oj-button and an icon-only
+  // oj-menu-button named «More actions» whose oj-menu holds the rest (its items run through the
+  // shared menuItemChosen chain, like a MenuBar's submenu)
+  const splitButtonOf = (m) => ({
+    ...buttonOf(m),
+    isSplit: true,
+    moreLabel: chromeText('moreActions'),
+    menuItems: m.children.filter(Boolean).map((c, i) => {
+      const route = c.route ? buttonRouteOf(c.route, state) : null
+      return {
+        value: String(i),
+        label: (c.label ? interp(c.label) : '') || c.actionId,
+        isItem: true,
+        isSeparator: false,
+        disabled: !!c.disabled || (!!c.route && route == null) || (!c.actionId && !route),
+        target: route ? { kind: 'navigate', route: route.startsWith('/') ? route : '/' + route }
+          : c.actionId ? { kind: 'action', actionId: c.actionId, parameters: c.parameters || {} } : null,
+      }
+    }),
+  })
   const buttonOf = (m) => {
     // a Button whose actionable is a RouteLink NAVIGATES (the server's ButtonMapper puts the link's
     // route on it): the click goes to that route instead of running actionId on the server, which
@@ -2396,7 +2421,7 @@ export function islandContentOf(ctx, opts = {}) {
       const last = target && target.items.length ? target.items[target.items.length - 1] : null
       // a ButtonGroup in content travels as a Button with `children` (the toolbar group's shape)
       // and no action of its own: its buttons join the row, as a toolbar group's join the header
-      const buttons = groupMembersOf(m).map(buttonOf)
+      const buttons = m.split && (m.children || []).some(Boolean) ? [splitButtonOf(m)] : groupMembersOf(m).map(buttonOf)
       if (editorNodeIds && node.id) buttons.forEach((b) => { b.nodeId = String(node.id) })
       if (last && last.isButtons && !last.fullWidth && !last.fromRow) last.buttons.push(...buttons)
       else atom({ isButtons: true, buttons }, container)

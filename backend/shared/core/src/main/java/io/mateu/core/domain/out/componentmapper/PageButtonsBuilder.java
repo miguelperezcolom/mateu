@@ -47,6 +47,7 @@ final class PageButtonsBuilder {
       ButtonColor buttonColor,
       ButtonSize buttonSize,
       String group,
+      boolean groupPrimary,
       boolean separatorBefore,
       int order) {}
 
@@ -159,23 +160,19 @@ final class PageButtonsBuilder {
                 .build());
       } else {
         var first = group.get(0);
+        // a member marked groupPrimary makes the group a SPLIT button: it runs from the button,
+        // the others go behind the ▾
+        var primary = group.stream().filter(RawButton::groupPrimary).findFirst().orElse(null);
         result.add(
             ButtonGroup.builder()
                 .id(first.group())
                 .label(toUpperCaseFirst(first.group()))
                 .separatorBefore(first.separatorBefore())
+                .primary(primary == null ? null : buttonOf(primary))
                 .buttons(
                     group.stream()
-                        .map(
-                            r ->
-                                Button.builder()
-                                    .label(r.label())
-                                    .actionId(r.actionId())
-                                    .disabled(r.disabled())
-                                    .buttonStyle(r.buttonStyle())
-                                    .color(r.buttonColor())
-                                    .size(r.buttonSize())
-                                    .build())
+                        .filter(r -> r != primary)
+                        .map(PageButtonsBuilder::buttonOf)
                         .toList())
                 .build());
       }
@@ -183,9 +180,21 @@ final class PageButtonsBuilder {
     return result;
   }
 
+  private static Button buttonOf(RawButton r) {
+    return Button.builder()
+        .label(r.label())
+        .actionId(r.actionId())
+        .disabled(r.disabled())
+        .buttonStyle(r.buttonStyle())
+        .color(r.buttonColor())
+        .size(r.buttonSize())
+        .build();
+  }
+
   private static RawButton getRawButtonFromMethod(
       Method method, Class<?> annotationClass, boolean disabled) {
     String group = "";
+    boolean groupPrimary = false;
     boolean separatorBefore = false;
     int order = 0;
     ButtonStyle buttonStyle = null;
@@ -199,6 +208,7 @@ final class PageButtonsBuilder {
         buttonColor = ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
         buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
         group = ann.group();
+        groupPrimary = ann.groupPrimary();
         separatorBefore = ann.separatorBefore();
         order = ann.order();
       }
@@ -209,6 +219,7 @@ final class PageButtonsBuilder {
         buttonColor = ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
         buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
         group = ann.group();
+        groupPrimary = ann.groupPrimary();
         separatorBefore = ann.separatorBefore();
         order = ann.order();
       }
@@ -222,12 +233,14 @@ final class PageButtonsBuilder {
         buttonColor,
         buttonSize,
         group,
+        groupPrimary,
         separatorBefore,
         order);
   }
 
   private static RawButton getRawButtonFromField(Field field, boolean disabled) {
     String group = "";
+    boolean groupPrimary = false;
     boolean separatorBefore = false;
     int order = 0;
     ButtonStyle buttonStyle = null;
@@ -242,6 +255,7 @@ final class PageButtonsBuilder {
       buttonColor = toolbarAnn.buttonColor() != ButtonColor.none ? toolbarAnn.buttonColor() : null;
       buttonSize = toolbarAnn.buttonSize() != ButtonSize.none ? toolbarAnn.buttonSize() : null;
       group = toolbarAnn.group();
+      groupPrimary = toolbarAnn.groupPrimary();
       separatorBefore = toolbarAnn.separatorBefore();
       order = toolbarAnn.order();
     } else if (buttonAnn != null) {
@@ -249,6 +263,7 @@ final class PageButtonsBuilder {
       buttonColor = buttonAnn.buttonColor() != ButtonColor.none ? buttonAnn.buttonColor() : null;
       buttonSize = buttonAnn.buttonSize() != ButtonSize.none ? buttonAnn.buttonSize() : null;
       group = buttonAnn.group();
+      groupPrimary = buttonAnn.groupPrimary();
       separatorBefore = buttonAnn.separatorBefore();
       order = buttonAnn.order();
     }
@@ -261,6 +276,7 @@ final class PageButtonsBuilder {
         buttonColor,
         buttonSize,
         group,
+        groupPrimary,
         separatorBefore,
         order);
   }

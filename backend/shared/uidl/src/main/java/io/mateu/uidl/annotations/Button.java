@@ -42,6 +42,14 @@ public @interface Button {
    */
   String group() default "";
 
+  /**
+   * This button is its group's PRIMARY action: the group renders as a SPLIT button — this button
+   * runs from the button itself and an adjacent ▾ opens the group's other buttons — instead of a
+   * dropdown labelled with the group name. Only meaningful with a non-blank {@link #group()}; when
+   * several members claim it, the first (by {@link #order()}) wins.
+   */
+  boolean groupPrimary() default false;
+
   /** Draws a separator before this button (or its group). */
   boolean separatorBefore() default false;
 

@@ -38,7 +38,7 @@ Containers that arrange other components.
 | [`Form`](/java-ui-definition/components/form/) | a page or region with a header, fields and buttons |
 | [`FormField`](/java-ui-definition/components/form-field/) | one input, bound to `state.<id>`; its data type and stereotype pick the widget (see [below](#fields-and-field-types)) |
 | `CustomField` | a field whose value is a component, so any component can sit in a form row |
-| [`Button`](/java-ui-definition/components/button/) / `ButtonGroup` | run an action, navigate, or open a menu |
+| [`Button`](/java-ui-definition/components/button/) / [`ButtonGroup`](/java-ui-definition/components/button-group/) | run an action, navigate, or open a menu; a split button runs its main action and keeps the variants behind ▾ |
 | `DropZone` | a target that rows can be dragged onto ([drag to a destination](/ux-patterns/drag-to-a-destination/)) |
 | `AddOnPicker`, `PaymentPicker`, `ResourceGrid` | task-specific pickers ([add-on picker](/ux-patterns/addon-picker/), [payment picker](/ux-patterns/payment-picker/), [resource grid](/ux-patterns/resource-grid/)) |
 | `MessageInput` | a chat-style input ([AI chat](/ai/)) |

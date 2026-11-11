@@ -275,6 +275,9 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
         )
     if kind == "Button":
         return _button(node)
+    if kind == "ButtonGroup":
+        # a dropdown, or a SPLIT button when it has a `primary:` (Java's ButtonGroup)
+        return _button_group(node, _button)
     if kind == "Listing":
         # A listing authored as data: rows from a REST source, fetched client-side (the yaml
         # starter's products page). Before 2026-10-17 it rendered "Unsupported component".
@@ -455,6 +458,16 @@ def _button(node: dict) -> fluent.Button:
     )
 
 
+def _button_group(node: dict, button) -> fluent.Button:
+    """A YAML ``type: ButtonGroup``: its ``buttons:`` behind a dropdown labelled ``label``, or —
+    with a ``primary:`` — a SPLIT button (that button, the rest behind the ▾)."""
+    members = tuple(button(b) for b in _maps(node, "buttons"))
+    primary = node.get("primary")
+    if isinstance(primary, dict):
+        return fluent.Button.split(button(primary), *members)
+    return fluent.Button.group(str(node.get("label") or ""), *members)
+
+
 def _box(node: dict) -> dict:
     """The ``id``/``style``/``cssClasses`` every component carries."""
     return {
@@ -622,7 +635,8 @@ def _form(node: dict, partials: PartialRegistry, chain: list[str]) -> fluent.For
     an absent one leaves its wire field None / empty."""
     from mateu_ui.uidl import BannerTheme, PageBanner, PeerNav, RecordSwitcher, SwitcherType
 
-    button = _button
+    def button(b: dict) -> fluent.Button:
+        return _button_group(b, _button) if b.get("type") == "ButtonGroup" else _button(b)
 
     def theme(raw: Any) -> BannerTheme:
         for t in BannerTheme:

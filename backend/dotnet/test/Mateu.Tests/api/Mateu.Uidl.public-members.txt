@@ -251,10 +251,13 @@ Mateu.Uidl.Button ctor(System.String, System.String)
 Mateu.Uidl.Button property System.Boolean Disabled { get;init; }
 Mateu.Uidl.Button property System.Boolean Primary { get;init; }
 Mateu.Uidl.Button property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Parameters { get;init; }
+Mateu.Uidl.Button property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Button> Buttons { get;init; }
 Mateu.Uidl.Button property System.String ActionId { get;init; }
 Mateu.Uidl.Button property System.String ButtonStyle { get;init; }
 Mateu.Uidl.Button property System.String Label { get;init; }
 Mateu.Uidl.Button property System.String Route { get;init; }
+Mateu.Uidl.Button static method Mateu.Uidl.Button Group(System.String, Mateu.Uidl.Button[])
+Mateu.Uidl.Button static method Mateu.Uidl.Button Split(Mateu.Uidl.Button, Mateu.Uidl.Button[])
 Mateu.Uidl.ButtonAttribute ctor(System.String = null)
 Mateu.Uidl.ButtonAttribute property System.String Label { get; }
 Mateu.Uidl.CacheableFragmentAttribute ctor(System.Int32)
@@ -2303,11 +2306,13 @@ Mateu.Uidl.Toggle enum On
 Mateu.Uidl.ToggleExtensions static method System.Boolean Enabled(Mateu.Uidl.Toggle)
 Mateu.Uidl.ToggleExtensions static method System.Boolean Shown(Mateu.Uidl.Toggle)
 Mateu.Uidl.ToolbarAttribute ctor(System.String = null)
+Mateu.Uidl.ToolbarAttribute property System.Boolean GroupPrimary { get;init; }
 Mateu.Uidl.ToolbarAttribute property System.Boolean SeparatorBefore { get;init; }
 Mateu.Uidl.ToolbarAttribute property System.Int32 Order { get;init; }
 Mateu.Uidl.ToolbarAttribute property System.String ButtonColor { get;init; }
 Mateu.Uidl.ToolbarAttribute property System.String ButtonSize { get;init; }
 Mateu.Uidl.ToolbarAttribute property System.String ButtonStyle { get;init; }
+Mateu.Uidl.ToolbarAttribute property System.String Group { get;init; }
 Mateu.Uidl.ToolbarAttribute property System.String Label { get; }
 Mateu.Uidl.Tooltip ctor(System.String)
 Mateu.Uidl.Tooltip property Mateu.Uidl.IComponent Wrapped { get;init; }

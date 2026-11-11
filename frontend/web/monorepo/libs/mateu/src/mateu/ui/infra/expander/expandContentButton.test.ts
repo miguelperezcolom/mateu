@@ -59,4 +59,17 @@ describe('client-side expander — a ButtonGroup in content', () => {
             ],
         })
     })
+
+    it('with a primary is a SPLIT button: the primary itself, split, the rest as children', () => {
+        const wire = expandComponent({
+            type: 'ButtonGroup', id: 'save',
+            primary: { type: 'Button', label: 'Save', buttonStyle: 'primary' },
+            buttons: [{ type: 'Button', label: 'Save as draft' }],
+        } as unknown as FluentNode) as any
+        expect(wire.id).toBe('save')
+        expect(wire.metadata).toEqual({
+            type: 'Button', label: 'Save', actionId: 'save', buttonStyle: 'primary', split: true,
+            children: [{ type: 'Button', label: 'Save as draft', actionId: 'saveAsDraft' }],
+        })
+    })
 })

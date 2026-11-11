@@ -771,11 +771,32 @@
                       <div class="oj-flex oj-sm-margin-2x-top" :class="[[ $current.data.fullWidth ? 'mateu-buttons-full' : ($current.data.barClass || 'oj-sm-justify-content-flex-end') ]]">
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
+                            <oj-bind-if test="[[ !$current.data.isSplit ]]">
                             <oj-button class="oj-sm-margin-1x-start" :class="[[ $current.data.buttonClass ]]" chroming="[[ $current.data.chroming ]]"
                               disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-if test="[[ !!$current.data.iconLeftClass ]]"><span slot="startIcon" :class="[[ $current.data.iconLeftClass ]]"></span></oj-bind-if><oj-bind-if test="[[ !!$current.data.iconRightClass ]]"><span slot="endIcon" :class="[[ $current.data.iconRightClass ]]"></span></oj-bind-if><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                            <!-- a SPLIT button: the primary oj-button joined to an icon-only oj-menu-button with the rest -->
+                            <oj-bind-if test="[[ !!$current.data.isSplit ]]">
+                              <span class="mateu-split-button oj-sm-margin-1x-start" role="group">
+                                <oj-button :class="[[ $current.data.buttonClass ]]" chroming="[[ $current.data.chroming ]]"
+                                  disabled="[[ !!$current.data.disabled ]]"
+                                  :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                <oj-menu-button class="mateu-split-more" chroming="[[ $current.data.chroming ]]" display="icons" disabled="[[ !!$current.data.disabled ]]"
+                                  :title="[[ $current.data.moreLabel ]]"><oj-bind-text value="[[ $current.data.moreLabel ]]"></oj-bind-text>
+                                  <oj-menu slot="menu" on-oj-menu-action="[[ $listeners.{{menuAction}} ]]">
+                                    <oj-bind-for-each data="[[ $current.data.menuItems ]]">
+                                      <template>
+                                        <oj-option :value="[[ $current.data.value ]]" disabled="[[ $current.data.disabled ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </oj-menu>
+                                </oj-menu-button>
+                              </span>
+                            </oj-bind-if>
                           </template>
                         </oj-bind-for-each>
                       </div>

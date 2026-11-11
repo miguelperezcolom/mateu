@@ -1,0 +1,20 @@
+# Button groups as DATA. A ButtonGroup with no `primary:` is a DROPDOWN: one trigger opening its
+# buttons. With a `primary:` it is a SPLIT button: the primary runs from the button itself and the
+# ▾ next to it ("More actions") opens the rest. Every member navigates here (RouteLink), so the
+# partial needs no server code; with an actionId each one would run its action.
+content:
+  - type: HorizontalLayout
+    wrap: true
+    content:
+      - type: ButtonGroup
+        primary: {type: Button, label: Save, buttonStyle: primary, actionable: {type: RouteLink, route: home}}
+        buttons:
+          - {type: Button, label: Save as draft, actionable: {type: RouteLink, route: home}}
+          - {type: Button, label: Save and close, actionable: {type: RouteLink, route: home}}
+      - type: ButtonGroup
+        label: Export
+        iconOnLeft: "vaadin:download"
+        buttons:
+          - {type: Button, label: CSV, actionable: {type: RouteLink, route: home}}
+          - {type: Button, label: Excel, actionable: {type: RouteLink, route: home}}
+          - {type: Button, label: PDF, actionable: {type: RouteLink, route: home}}

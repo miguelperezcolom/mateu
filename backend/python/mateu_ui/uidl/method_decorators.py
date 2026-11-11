@@ -40,6 +40,8 @@ def toolbar(
     button_size: str | None = None,
     order: int = 0,
     separator_before: bool = False,
+    group: str | None = None,
+    group_primary: bool = False,
 ):
     """A method exposed as a button on the page header's TOOLBAR (Java's ``@Toolbar``): labelled
     by the decorator's argument, else the humanized method name; styled ``button_style``
@@ -49,6 +51,10 @@ def toolbar(
     separator before it and ``order`` placing it among its siblings (ascending). Advertised as an
     action like a ``@button``, with client and server validation. Supports ``@toolbar``,
     ``@toolbar("Label")`` and ``@toolbar(button_style="primary")``.
+
+    Toolbar methods sharing a non-blank ``group`` collapse into ONE dropdown labelled with the
+    group name; the member marked ``group_primary`` makes it a SPLIT button instead — that member
+    runs from the button, the others behind its ▾ (Java's ``@Toolbar(group, groupPrimary)``).
 
     Beside ``@list_toolbar_button`` it only DRESSES the bulk button (Java's ``@Toolbar`` next to
     ``@ListToolbarButton``): the button stays on the listing toolbar."""
@@ -61,7 +67,7 @@ def toolbar(
         setattr(fn, "__mateu_toolbar_style__", button_style)
         setattr(fn, "__mateu_toolbar_look__", ToolbarLook(
             button_color=button_color, button_size=button_size, order=order,
-            separator_before=separator_before,
+            separator_before=separator_before, group=group, group_primary=group_primary,
         ))
         return fn
 
@@ -76,6 +82,10 @@ class ToolbarLook:
     button_size: str | None = None
     order: int = 0
     separator_before: bool = False
+    #: Toolbar methods sharing a group collapse into one dropdown (Java's @Toolbar(group)).
+    group: str | None = None
+    #: This member is its group's primary: the group is a SPLIT button (Java's groupPrimary).
+    group_primary: bool = False
 
 
 def action(arg=None):

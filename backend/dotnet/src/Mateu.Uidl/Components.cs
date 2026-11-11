@@ -1264,10 +1264,26 @@ public sealed record Anchor(string Text, string Url) : ComponentBase
     public string? Target { get; init; }
 }
 
-/// <summary>A button dispatching an action (a method name on the view).</summary>
+/// <summary>A button dispatching an action (a method name on the view). A button carrying
+/// <see cref="Buttons"/> is a GROUP (Java's ButtonGroup): with no action of its own a dropdown
+/// labelled <see cref="Label"/> opening them; with its own <see cref="ActionId"/> a SPLIT button —
+/// it runs its action from the button and an adjacent ▾ opens the rest. Build them with
+/// <see cref="Group"/> and <see cref="Split"/>.</summary>
 public sealed record Button(string Label, string ActionId) : ComponentBase
 {
     public bool Primary { get; init; }
+
+    /// <summary>The buttons behind this one's ▾ (a dropdown group or a split button); empty = a
+    /// plain button.</summary>
+    public IReadOnlyList<Button> Buttons { get; init; } = [];
+
+    /// <summary>A dropdown: one trigger labelled <paramref name="label"/> opening
+    /// <paramref name="buttons"/> (Java's <c>ButtonGroup.of</c>).</summary>
+    public static Button Group(string label, params Button[] buttons) => new(label, "") { Buttons = buttons };
+
+    /// <summary>A split button: <paramref name="primary"/> runs from the button, the ▾ opens
+    /// <paramref name="more"/> (Java's <c>ButtonGroup.split</c>).</summary>
+    public static Button Split(Button primary, params Button[] more) => primary with { Buttons = more };
 
     /// <summary>Rendered disabled (e.g. a YAML <c>disabledUnless:</c> the caller does not satisfy, a
     /// button naming a declared action the caller may not run, or a Toggle.Disabled affordance).</summary>

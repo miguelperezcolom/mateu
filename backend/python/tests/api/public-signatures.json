@@ -6246,6 +6246,16 @@
      "separator_before",
      "KEYWORD_ONLY",
      true
+    ],
+    [
+     "group",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "group_primary",
+     "KEYWORD_ONLY",
+     true
     ]
    ]
   },
@@ -6952,8 +6962,39 @@
      "color",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "buttons",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
-   ]
+   ],
+   "members": {
+    "group": [
+     [
+      "label",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "buttons",
+      "VAR_POSITIONAL",
+      false
+     ]
+    ],
+    "split": [
+     [
+      "primary",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "more",
+      "VAR_POSITIONAL",
+      false
+     ]
+    ]
+   }
   },
   "Calendar": {
    "class": [

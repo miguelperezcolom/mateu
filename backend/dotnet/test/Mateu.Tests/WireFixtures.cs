@@ -1222,6 +1222,28 @@ public class FailingActionPage
     public object Explode() => throw new InvalidOperationException("database is down at db-01");
 }
 
+// Button groups (a split button and a dropdown), fluent, in a page toolbar and in content.
+[UI("conformance/button-groups")]
+public class ButtonGroupsPage : IComponentTreeSupplier
+{
+    public IComponent Component() => new Form
+    {
+        Title = "Button groups",
+        Toolbar =
+        [
+            Button.Split(new Button("Publish", "publish") { ButtonStyle = "primary" }, new Button("Schedule", "schedule")),
+            Button.Group("More", new Button("Print", "print"), new Button("Duplicate", "duplicate")),
+        ],
+        Content =
+        [
+            Button.Split(new Button("Save", "save"), new Button("Save as draft", "saveDraft")),
+            Button.Group("Export", new Button("CSV", "exportCsv"), new Button("PDF", "exportPdf")),
+        ],
+    };
+
+    public string? Style => null;
+}
+
 // The generic fluent building blocks ported from Java (M-A5), in one component tree.
 [UI("conformance/generic-components"), Title("Components")]
 public class GenericComponentsPage : IComponentTreeSupplier
