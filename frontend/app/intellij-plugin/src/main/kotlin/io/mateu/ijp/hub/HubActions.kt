@@ -27,6 +27,20 @@ class HubSwitchAction : DumbAwareAction() {
     }
 }
 
+/** Home: back to the open UI's home screen (reopened if its tab was closed). */
+class HomeAction : DumbAwareAction() {
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+    override fun update(e: AnActionEvent) {
+        e.presentation.isEnabledAndVisible =
+            e.project?.getService(MateuProjectService::class.java)?.hasHome() == true
+    }
+
+    override fun actionPerformed(e: AnActionEvent) {
+        e.project?.getService(MateuProjectService::class.java)?.openHome()
+    }
+}
+
 /** Share this UI: its QR code, to open it on a phone (the add link — an address, never a sign-in). */
 class HubShareAction : DumbAwareAction() {
     override fun getActionUpdateThread() = ActionUpdateThread.BGT

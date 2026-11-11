@@ -36,6 +36,39 @@ fun JPanel.addStacked(child: JComponent, gap: Int = JBGap) {
     if (gap > 0) add(Box.createVerticalStrut(JBUI.scale(gap)))
 }
 
+/** Runs [work] off the EDT: the platform's pool, or a daemon thread where there is no IDE (the
+ *  render probe, unit tests). */
+fun offEdt(work: () -> Unit) {
+    val app = com.intellij.openapi.application.ApplicationManager.getApplication()
+    if (app != null) app.executeOnPooledThread(work) else Thread(work, "mateu-off-edt").apply { isDaemon = true }.start()
+}
+
+/**
+ * [child] changed size AFTER it was stacked (an image that arrived from the network, fetched off the
+ * EDT): [addStacked] froze its maximum height — and every stacked ancestor's — at the size it had then,
+ * so a photo painted as a strip as tall as its "…" placeholder and squeezed what came after it out of
+ * its card. Re-frozen here, up to the scroll pane that hosts the page, at the new preferred heights.
+ */
+fun regrowStacked(child: JComponent) {
+    var c: java.awt.Container? = child
+    // Up to the scroll pane that SCROLLS the page. A ContentHeightScrollPane (a foldout's row of
+    // panels, a board) only scrolls sideways and takes its content's height, so the climb goes
+    // through it: stopping there left the blocks around it frozen at the old height, and a panel
+    // that grew after the page was stacked was cut at the bottom (the front office's Operaciones).
+    while (c is JComponent && (c !is javax.swing.JScrollPane || c is ContentHeightScrollPane) &&
+        (c !is javax.swing.JViewport || c.parent is ContentHeightScrollPane)) {
+        // each layout's cached sizes go first (a BoxLayout answers its old preferred height otherwise);
+        // invalidate() alone climbs only through VALID parents
+        c.invalidate()
+        if (c.isMaximumSizeSet && c.maximumSize.width == Int.MAX_VALUE) {
+            c.maximumSize = Dimension(Int.MAX_VALUE, c.preferredSize.height.coerceAtLeast(1))
+        }
+        c = c.parent
+    }
+    child.revalidate()
+    child.repaint()
+}
+
 /** Like [addStacked] but the gap goes BEFORE the child (skip for the first): stacking a list this
  *  way leaves no trailing bottom slack after the last element. */
 fun JPanel.addStackedBetween(child: JComponent, gap: Int, first: Boolean) {

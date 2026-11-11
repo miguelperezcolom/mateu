@@ -260,6 +260,9 @@ class AppContext(val session: AppSession) {
 
     private var disposed = false
 
+    /** The view was closed ([dispose]): it loads nothing any more. */
+    val isDisposed: Boolean get() = disposed
+
     /** An embedded island this view rendered, and the panel it fills. */
     private class Island(val context: AppContext, val slot: JComponent)
 
@@ -336,8 +339,10 @@ class AppContext(val session: AppSession) {
             target.layout = BorderLayout()
             target.add(node, BorderLayout.CENTER)
         }
-        target.revalidate()
-        target.repaint()
+        // Content that arrives AFTER the page was stacked (an island's load, a re-render) is taller
+        // than the placeholder whose height every stacked ancestor froze: re-grow them, or the
+        // block is cut at the old height (the front-office record's Operaciones panel).
+        io.mateu.ijp.ui.regrowStacked(target)
         refreshAccessKeys(target)
     }
 
@@ -387,15 +392,19 @@ class AppContext(val session: AppSession) {
     }
 
     // ── navigation / actions ─────────────────────────────────────────────────────────
-    fun initialLoad(route: String?) {
+    /** [intercept] sees the answer first: returning true means it took the answer elsewhere, and
+     *  nothing is painted here (the app root of a UI with no shell opens in an editor tab). */
+    fun initialLoad(route: String?, intercept: ((JsonNode) -> Boolean)? = null) {
         background(
             work = { apiClient.initialLoad(route, appState) },
             onOk = { increment ->
+                if (intercept?.invoke(increment) == true) return@background
                 currentRoute = route ?: ""
                 freshScreen = true
                 applyIncrement(increment)
             },
-            onErr = { showError("Load failed: ${it.message}") },
+            // a 401 already asked the user to sign in (MateuAuthService): a second balloon says less
+            onErr = { if (it !is io.mateu.ijp.api.UnauthorizedException) showError("Load failed: ${it.message}") },
         )
     }
 
@@ -720,6 +729,9 @@ class AppContext(val session: AppSession) {
                     if (merged != null && merged.isObject) {
                         merged.properties().forEach { (k, v) -> currentComponentState[k] = v }
                         rerenderCurrentForm()
+                        // a record page's `data:` source fills the state AFTER the server's answer:
+                        // its title ("${'$'}{state.title}") resolves only now
+                        followPageTitle()
                     }
                 }
                 // after the result merged into the state, the call's parameters still over it
@@ -737,6 +749,15 @@ class AppContext(val session: AppSession) {
                 onDone?.invoke(false)
             },
         )
+    }
+
+    /**
+     * A YAML record page is named by the server before its record arrives (the route's "28", or the
+     * listing's "Exhibitions"): once the page's own title template resolves ("Voyager 1"), the
+     * view's title — its editor tab — follows it ([WindowTitle]).
+     */
+    private fun followPageTitle() {
+        WindowTitle.resolved(lastContent, currentComponentState)?.let { if (it != lastWindowTitle) setWindowTitle(it) }
     }
 
     /**
@@ -934,9 +955,7 @@ class AppContext(val session: AppSession) {
         val commands = increment.path("commands")
         if (commands.isArray) for (cmd in commands) handleCommand(cmd)
 
-        // a YAML record page is named by the server before its record arrives ("28"): once its own
-        // title template resolves ("Voyager 1"), the view's title follows it (WindowTitle)
-        WindowTitle.resolved(lastContent, currentComponentState)?.let { if (it != lastWindowTitle) setWindowTitle(it) }
+        followPageTitle()
 
         // Action-returned banners (PageBanner/PageBanners): bare returns replace, .append accumulates.
         val banners = increment.path("banners")
@@ -1201,6 +1220,9 @@ class AppContext(val session: AppSession) {
                 dialog.contentPane.add(overlayBody(shown, overlayState, data))
                 dialog.contentPane.revalidate()
                 dialog.contentPane.repaint()
+                OverlayState.closeAfterMillis(st)?.let { ms ->
+                    javax.swing.Timer(ms.toInt()) { dialog.dispose() }.apply { isRepeats = false; start() }
+                }
             }
         }
         if (key != null) session.openOverlays[key] = refresh
@@ -1225,8 +1247,30 @@ class AppContext(val session: AppSession) {
         dialog.isVisible = true
     }
 
+    /**
+     * A wire Button pressed. One carrying a `route` (a RouteLink actionable — a YAML toolbar's «New»,
+     * a welcome tile's «Open the Met») NAVIGATES there: its `actionId` only echoes the label, and run
+     * as an action the server answered 403. A whole URL opens in the browser. Any other runs its action.
+     */
+    fun pressButton(actionId: String, route: String, parameters: Map<String, Any?> = emptyMap()) {
+        // `artworks/${'$'}{state.id}/edit`: resolved when PRESSED — the record's state arrives after the
+        // toolbar was drawn (a `data:` source, __restdata__)
+        val target = io.mateu.ijp.state.Expressions.interpolate(route, mapOf<String, Any?>("state" to currentComponentState, "appState" to appState)).trim()
+        when {
+            target.isEmpty() -> runAction(actionId, parameters.ifEmpty { null })
+            io.mateu.ijp.ui.RowOpen.isExternal(target) -> io.mateu.ijp.ui.SafeHtml.browse(target)
+            else -> openRoute(target)
+        }
+    }
+
     /** Opens a route the way a server NavigateTo does (also the page header's previous/next
      *  record links). */
+    /** Opens [href] in THIS view, whatever hosts it (a Collection Detail list opening its record beside it). */
+    fun navigateInPlace(href: String) {
+        if (href.isBlank()) return
+        SwingUtilities.invokeLater { navigate(href, "", null, "") }
+    }
+
     fun openRoute(href: String) {
         if (href.isBlank()) return
         val opener = detailOpener
@@ -1589,7 +1633,7 @@ class AppContext(val session: AppSession) {
         session.executor.submit {
             try {
                 val result = work()
-                SwingUtilities.invokeLater { runCatching { onOk(result) }.onFailure { showError("Render failed: ${it.message}") } }
+                SwingUtilities.invokeLater { runCatching { onOk(result) }.onFailure { it.printStackTrace(); showError("Render failed: ${it.message}") } }
             } catch (t: Throwable) {
                 SwingUtilities.invokeLater {
                     // a stale-screen refusal already showed its own notice (with Reload): run the

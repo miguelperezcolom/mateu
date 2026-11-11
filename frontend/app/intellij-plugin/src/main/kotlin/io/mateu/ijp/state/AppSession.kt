@@ -45,6 +45,20 @@ class AppSession(
     var appMenu: com.fasterxml.jackson.databind.JsonNode? = null
     var appTitle: String? = null
 
+    /** The app shell's @AppContext selectors (AppDto.contextSelectors), published with the menu. */
+    var contextSelectors: com.fasterxml.jackson.databind.JsonNode? = null
+
+    /** The desktop app (focused mode) shows [contextSelectors] on the main toolbar — app-wide
+     *  context, where the web shells put it (the header) — instead of at the top of the menu. */
+    var contextSelectorsInToolbar: Boolean = false
+
+    /** The app's AI chat (App.sseUrl) — published by the app shell, null when it has none. */
+    data class Assistant(val sseUrl: String, val uploadUrl: String?, val label: String)
+
+    /** The desktop app (focused mode) hosts the [Assistant] in a tool window on the right instead of
+     *  a link in the menu panel: the host sets this, the app shell calls it on every (re)render. */
+    var onAssistant: ((Assistant?) -> Unit)? = null
+
     // The app's @HomeRoute coordinates (from the App metadata): the standalone landing opens
     // THIS route — like the web shells — instead of guessing the first menu leaf.
     var homeRoute: String? = null

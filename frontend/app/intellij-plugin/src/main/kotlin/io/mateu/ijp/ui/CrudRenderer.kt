@@ -44,6 +44,8 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // the desktop — the richer widget is the platform-appropriate adaptation.
     if (metadata.text("gridLayout") == "tree") return renderTreeCrud(r, component, metadata, data)
     val ctx = r.ctx
+    // the list slot of a Collection Detail page: the collection, beside the record it opens
+    val inCollectionList = r.inCollectionList
     val panel = JPanel(BorderLayout(0, JBUI.scale(JBGap)))
     panel.border = JBUI.Borders.empty(16)
 
@@ -63,7 +65,8 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     }
     // Crud toolbar (New, export…) → the native host toolbar when available (tool window title).
     val toolbar = metadata.arr("toolbar")
-    if (toolbar.isNotEmpty() && !ctx.publishToolbar(toolbar)) header.addStacked(buttonRow(r, toolbar), 4)
+    // A listing inside a page keeps its buttons on its own header: the host toolbar is the page's.
+    if (toolbar.isNotEmpty() && (r.enclosingPages > 0 || !ctx.publishToolbar(toolbar))) header.addStacked(buttonRow(r, toolbar), 4)
     panel.add(header, BorderLayout.NORTH)
 
     // ── column specs ──
@@ -104,8 +107,13 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // page apply in memory over the component state — the web's mateu-table-crud unpaged path.
     // `showRestPage` is bound once the data handler exists (below).
     val isRestListing = metadata.path("rowsSource").isObject
+    val restPageSize = metadata.path("pageSize").asInt(0)
+    val restServerPaged = isRestListing && ctx.session.sources.serverTotalPath(metadata.path("rowsSource")) != null && restPageSize > 0
     var restRowsAll: List<JsonNode> = emptyList()
     var showRestPage: () -> Unit = {}
+    // What a search / filter / sort / page change does to a REST listing: ask the source again when
+    // it pages on the SERVER (it declares a totalPath), re-slice the rows held otherwise.
+    var refreshRest: () -> Unit = {}
 
     // Inline editing (@InlineEditing crud): committing an edited cell persists its row right away
     // through the crud's `update-row` action, like the web's renderEditableCell.
@@ -207,7 +215,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
                     if (sortField.isBlank()) emptyList<Any>()
                     else listOf(mapOf("field" to sortField, "direction" to if (sortAscending) "ascending" else "descending"))
                 ctx.currentComponentState["page"] = 0
-                if (isRestListing) showRestPage() else ctx.runAction("search", null, silent = true)
+                if (isRestListing) refreshRest() else ctx.runAction("search", null, silent = true)
             }
         })
     }
@@ -219,7 +227,12 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         when (spec.kind) {
             ColKind.STATUS -> column.cellRenderer = StatusCellRenderer(spec.tones, spec.valueLabels)
             ColKind.LINK -> column.cellRenderer = LinkCellRenderer(spec.text)
-            else -> if (isNumericColumn(spec.dataType, spec.stereotype) && !spec.editable) {
+            else -> if (spec.stereotype == "image" && !spec.editable) {
+                // an image column shows the picture, not its url (the museums' works listed the
+                // "https://ima…" text): a thumbnail, and rows tall enough to see it
+                column.cellRenderer = ImageCellRenderer(ctx.session.baseUrl)
+                table.rowHeight = maxOf(table.rowHeight, JBUI.scale(ImageCellRenderer.THUMB + 8))
+            } else if (isNumericColumn(spec.dataType, spec.stereotype) && !spec.editable) {
                 column.cellRenderer = NumberCellRenderer(spec.dataType == "money" || spec.stereotype == "money")
             }
         }
@@ -237,7 +250,10 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val multiSelection = metadata.bool("rowsSelectionEnabled")
     val openRow: (JsonNode) -> Unit = { row ->
         when (val target = RowOpen.targetOf(rowOpen, row)) {
-            is RowOpen.Target.Route -> ctx.navigate(target.route, "", null, null)
+            // like a server NavigateTo: a listing in the results panel opens the record in a central
+            // tab and stays where it is (navigated in place, the record replaced the listing)
+            // in a Collection Detail list the record opens HERE, beside the list (the page is both)
+            is RowOpen.Target.Route -> if (inCollectionList) ctx.navigateInPlace(target.route) else ctx.openRoute(target.route)
             is RowOpen.Target.Url -> SafeHtml.browse(target.url) // refuses anything but http(s)/mailto
             is RowOpen.Target.Action -> ctx.runAction(target.actionId, rowAsParams(ctx, row))
             null -> Unit
@@ -340,7 +356,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val stepRestPage = { delta: Int ->
         val current = (ctx.currentComponentState["page"] as? Number)?.toInt() ?: 0
         ctx.currentComponentState["page"] = (current + delta).coerceAtLeast(0)
-        showRestPage()
+        refreshRest()
     }
     // D-20: the platform's pager — square chevron icon buttons around "Page 1 of 20", each in the
     // Tab order with a name and a tooltip (a "‹ Prev" text button read as a web control)
@@ -380,7 +396,11 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             ctx.currentComponentState["size"] = 10
             ctx.currentComponentState["sort"] = emptyList<Any>()
             filterBar?.collectInto(ctx.currentComponentState)
-            if (isRestListing) showRestPage() else ctx.runAction("search", null)
+            if (isRestListing) {
+                // the size the listing is served at, not the server listings' default
+                if (restServerPaged) ctx.currentComponentState["size"] = restPageSize
+                refreshRest()
+            } else ctx.runAction("search", null)
         }
         searchField.textEditor.addActionListener { doSearch() }
         val searchBar = JPanel(FlushFlowLayout(JBUI.scale(JBGap))).apply {
@@ -492,10 +512,12 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             rowLinkActionId.isNotBlank() -> { i -> model.rowAt(i)?.let { ctx.runAction(rowLinkActionId, rowAsParams(ctx, it)) } }
             else -> null
         }
-        val cards = ListingCards.panel(model, metadata.text("gridLayout") == "list", { !model.isSynthetic(it) }, open)
-        resultsHost.add(JBScrollPane(cards).apply { border = null }, BorderLayout.CENTER)
+        val images = specs.withIndex().filter { it.value.stereotype == "image" }.map { it.index }.toSet()
+        val cards = ListingCards.panel(model, metadata.text("gridLayout") == "list", { !model.isSynthetic(it) }, open, images, ctx.session.baseUrl)
+        // inside a page the page scrolls: a scroll pane of its own collapsed to a strip there
+        resultsHost.add(if (r.enclosingPages > 0) cards else JBScrollPane(cards).apply { border = null }, BorderLayout.CENTER)
     } else {
-        resultsHost.add(JBScrollPane(table), BorderLayout.CENTER)
+        resultsHost.add(RowsScrollPane(table), BorderLayout.CENTER)
     }
     // `preSearch` (the smart-search page's "dashboard"): shown IN PLACE of the results until this
     // listing's first search answers; from then on the results own the spot for good (a later
@@ -539,6 +561,8 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         // `width` / `@ColumnWidth("auto")` (autoWidth) / flexGrow 0 — the desktop ignored them all;
         // an auto column needs its rows to measure, so the plan is applied on every page
         GridTables.applyWidths(table, specColumns)
+        // a listing stacked in a page froze its height when it was still empty: grow it to its rows
+        regrowStacked(resultsHost)
         val total = eff.path("totalElements").asLong(rows.size.toLong())
         val pageNumber = eff.path("pageNumber").asInt(0)
         val pageSize = eff.path("pageSize").asInt(10).coerceAtLeast(1)
@@ -564,47 +588,94 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         val columnIds = metadata.leafColumns()
             .map { it.path("metadata").text("id", it.text("id")) }
             .filter { it.isNotBlank() }
-        val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
+        // The fields a row keeps: its columns, the fields a column reads beside its own (a primary
+        // cell's caption and leading picture, a tooltip) and the ones the rowRoute needs — its record
+        // id, which nobody declares as a column. Mapped to the columns alone, `artworks/${'$'}{row.id}`
+        // never resolved and a click on a row opened nothing.
+        val rowFields = LinkedHashSet<String>().apply {
+            addAll(columnIds)
+            for (col in metadata.leafColumns()) {
+                val cm = col.path("metadata")
+                for (k in listOf("captionPath", "leadingPath", "tooltipPath")) cm.text(k).takeIf { it.isNotBlank() }?.let(::add)
+            }
+            addAll(RowOpen.rowRouteFields(metadata.text("rowRoute")))
+        }
         val mapper = ctx.session.mapper
         val crudId = component.text("id", "crud")
         val filtersMeta = metadata.arr("filters")
-        val pageSize = metadata.path("pageSize").asInt(0)
+        val pageSize = restPageSize
+        val totalPath = ctx.session.sources.serverTotalPath(rowsSource)
         showRestPage = {
             val p = RestListing.page(restRowsAll, columnIds, filtersMeta, ctx.currentComponentState, pageSize)
-            val page = mapper.createObjectNode()
-            page.replace("content", mapper.createArrayNode().also { arr -> p.content.forEach { arr.add(it) } })
-            page.put("totalElements", p.totalElements)
-            page.put("pageSize", p.pageSize)
-            page.put("pageNumber", p.pageNumber)
-            val envelope = mapper.createObjectNode()
-            envelope.replace("page", page)
-            applyData(envelope)
+            applyData(restEnvelope(mapper, p.content, p.totalElements.toLong(), p.pageSize, p.pageNumber))
         }
-        ctx.session.executor.submit {
-            try {
-                // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets
-                // server-side); direct fetch otherwise. Both resolve to the same JSON.
-                // A sampled source (sample mode) is never proxied: RestFetch.fetch answers it from the sample.
-                val json = if (ctx.session.sources.viaProxy(rowsSource)) ctx.fetchViaProxy("rows", crudId)
-                           else RestFetch.fetch(ctx.apiClient, rowsSource, exprCtx, ctx.session.sources)
-                val arr = RestFetch.valueAtPath(json, rowsResolved.text("itemsPath"))
-                val rows = ArrayList<JsonNode>()
-                if (arr != null && arr.isArray) for (item in arr) {
-                    val rowNode = mapper.createObjectNode()
-                    for (cid in columnIds) RestFetch.valueAtPath(item, cid)?.let { rowNode.replace(cid, it) }
-                    rows.add(rowNode)
+        // the pager numbers its pages with the size the listing is served at: every request names it
+        if (totalPath != null && pageSize > 0) ctx.currentComponentState.putIfAbsent("size", pageSize)
+        // an answer to an older request (a fast second Next) is dropped
+        var requestSeq = 0
+        val fetchRows: () -> Unit = {
+            val seq = ++requestSeq
+            val listingState = if (inCollectionList) collectionListState(ctx.currentComponentState, filtersMeta) else ctx.currentComponentState
+            val exprCtx = mapOf<String, Any?>("state" to listingState, "appState" to ctx.appState)
+            ctx.session.executor.submit {
+                try {
+                    // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets
+                    // server-side); direct fetch otherwise. Both resolve to the same JSON.
+                    // A sampled source (sample mode) is never proxied: RestFetch.fetch answers it from the sample.
+                    val json = if (ctx.session.sources.viaProxy(rowsSource)) ctx.fetchViaProxy("rows", crudId)
+                               else RestFetch.fetch(ctx.apiClient, rowsSource, exprCtx, ctx.session.sources)
+                    val arr = RestFetch.valueAtPath(json, rowsResolved.text("itemsPath"))
+                    val rows = ArrayList<JsonNode>()
+                    if (arr != null && arr.isArray) for (item in arr) {
+                        val rowNode = mapper.createObjectNode()
+                        for (f in rowFields) RestFetch.valueAtPath(item, f)?.let { rowNode.replace(f, it) }
+                        rows.add(rowNode)
+                    }
+                    val total = totalPath?.let { RestFetch.valueAtPath(json, it) }
+                        ?.takeIf { it.isNumber || it.isTextual }?.asText()?.toLongOrNull()
+                    javax.swing.SwingUtilities.invokeLater {
+                        if (seq != requestSeq) return@invokeLater
+                        restRowsAll = rows
+                        if (totalPath != null) {
+                            // the server paged: these rows ARE the page, and the total is its answer
+                            val page = (ctx.currentComponentState["page"] as? Number)?.toInt() ?: 0
+                            applyData(restEnvelope(mapper, rows, total ?: rows.size.toLong(),
+                                pageSize.takeIf { it > 0 } ?: rows.size.coerceAtLeast(1), page))
+                        } else {
+                            showRestPage()
+                        }
+                    }
+                } catch (t: Throwable) {
+                    println("[Mateu] external rows fetch failed: ${t.message}")
                 }
-                javax.swing.SwingUtilities.invokeLater {
-                    restRowsAll = rows
-                    showRestPage()
-                }
-            } catch (t: Throwable) {
-                println("[Mateu] external rows fetch failed: ${t.message}")
             }
         }
+        refreshRest = if (totalPath != null) fetchRows else ({ showRestPage() })
+        fetchRows()
     }
 
     return panel
+}
+
+/** The listing envelope applyData reads: `{page: {content, totalElements, pageSize, pageNumber}}`. */
+/**
+ * What a Collection Detail list reads of the page state: ITS inputs — the search, the page, the size,
+ * the sort and its own filters (a range's `_from` / `_to` too). The rest is the selected record's: the
+ * artist's `name` was read by the artists source as its name filter, so the list showed that artist only.
+ */
+internal fun collectionListState(state: Map<String, Any?>, filtersMeta: List<JsonNode>): Map<String, Any?> {
+    val filterIds = filtersMeta.map { it.text("fieldId") }.filter { it.isNotBlank() }
+    val own = setOf("searchText", "page", "size", "sort") + filterIds.flatMap { listOf(it, "${it}_from", "${it}_to") }
+    return state.filterKeys { it in own }
+}
+
+private fun restEnvelope(mapper: com.fasterxml.jackson.databind.ObjectMapper, rows: List<JsonNode>, total: Long, pageSize: Int, pageNumber: Int): JsonNode {
+    val page = mapper.createObjectNode()
+    page.replace("content", mapper.createArrayNode().also { arr -> rows.forEach { arr.add(it) } })
+    page.put("totalElements", total)
+    page.put("pageSize", pageSize)
+    page.put("pageNumber", pageNumber)
+    return mapper.createObjectNode().also { it.replace("page", page) }
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -1008,9 +1079,26 @@ private fun renderTreeCrud(r: ComponentRenderer, component: JsonNode, metadata: 
     val treeModel = javax.swing.tree.DefaultTreeModel(root)
     val tree = javax.swing.JTree(treeModel)
     tree.isRootVisible = false
+    // the other columns follow the name, muted ("Paintings · Department · Works 12 · On view 3")
+    val otherColumns = metadata.leafColumns().mapNotNull { col ->
+        val cm = col.path("metadata")
+        val id = cm.text("id", col.text("id"))
+        if (id.isBlank() || id == firstColumn || id.startsWith("_") || cm.text("dataType") in setOf("actionGroup", "menu", "action")) null
+        else id to cm.text("label", col.text("label"))
+    }
     tree.setCellRenderer { _, value, _, _, _, _, _ ->
         val row = (value as? javax.swing.tree.DefaultMutableTreeNode)?.userObject as? JsonNode
-        JBLabel(plain(row?.path(firstColumn)?.displayString() ?: "")).apply { border = JBUI.Borders.empty(2, 4) }
+        val name = row?.path(firstColumn)?.displayString() ?: ""
+        val rest = otherColumns.mapNotNull { (id, label) ->
+            val v = row?.path(id)?.takeIf { !it.isMissingNode && !it.isNull }?.displayString()?.takeIf { it.isNotBlank() }
+            v?.let { if (label.isBlank()) it else "$label $it" }
+        }
+        JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0)).apply {
+            isOpaque = false
+            border = JBUI.Borders.empty(2, 4)
+            add(JBLabel(plain(name)))
+            if (rest.isNotEmpty()) add(JBLabel(plain("· " + rest.joinToString(" · "))).apply { foreground = ToneColors.secondaryText() })
+        }
     }
     fun fill(parent: javax.swing.tree.DefaultMutableTreeNode, rows: List<JsonNode>) {
         for (row in rows) {
@@ -1029,6 +1117,26 @@ private fun renderTreeCrud(r: ComponentRenderer, component: JsonNode, metadata: 
     publish(extractRows(data))
     ctx.registerDataHandler(component.text("id").ifBlank { "crud" }) { d -> javax.swing.SwingUtilities.invokeLater { publish(extractRows(d)) } }
     ctx.registerDataHandler("crud") { d -> javax.swing.SwingUtilities.invokeLater { publish(extractRows(d)) } }
+    // A tree over a REST source (`rowsSource`, YAML listings): nobody runs a server search for it, so
+    // it fetches its rows itself — the whole items, `children` included (the table's REST path keeps
+    // the column fields only, which would drop the hierarchy).
+    val rowsSource = metadata.path("rowsSource")
+    if (rowsSource.isObject) {
+        val resolved = ctx.session.sources.resolveRestSource(rowsSource)
+        val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
+        val crudId = component.text("id", "crud")
+        ctx.session.executor.submit {
+            try {
+                val json = if (ctx.session.sources.viaProxy(rowsSource)) ctx.fetchViaProxy("rows", crudId)
+                           else RestFetch.fetch(ctx.apiClient, rowsSource, exprCtx, ctx.session.sources)
+                val arr = RestFetch.valueAtPath(json, resolved.text("itemsPath"))
+                val rows = if (arr != null && arr.isArray) arr.toList() else emptyList()
+                javax.swing.SwingUtilities.invokeLater { publish(rows) }
+            } catch (t: Throwable) {
+                println("[Mateu] tree rows fetch failed: ${t.message}")
+            }
+        }
+    }
 
     tree.addMouseListener(object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
@@ -1040,4 +1148,99 @@ private fun renderTreeCrud(r: ComponentRenderer, component: JsonNode, metadata: 
     })
     panel.add(javax.swing.JScrollPane(tree), BorderLayout.CENTER)
     return panel
+}
+
+/**
+ * A listing cell whose value is an image url / data URI (`stereotype: image`): a thumbnail [THUMB]
+ * px tall, loaded off the EDT once per url and kept in a small shared cache; the table repaints
+ * when it arrives. Until then — or when Swing cannot decode it (an SVG, a broken url) — a muted 🖼.
+ */
+internal class ImageCellRenderer(private val baseUrl: String?) : DefaultTableCellRenderer() {
+
+    override fun getTableCellRendererComponent(
+        table: javax.swing.JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int,
+    ): java.awt.Component {
+        val c = super.getTableCellRendererComponent(table, "", isSelected, hasFocus, row, column) as javax.swing.JLabel
+        c.horizontalAlignment = javax.swing.SwingConstants.CENTER
+        val src = (value as? JsonNode)?.let { if (it.isValueNode) it.asText() else null } ?: value?.toString().orEmpty()
+        c.icon = null
+        c.toolTipText = null
+        if (src.isBlank()) return c
+        val cached = CACHE[src]
+        when {
+            cached is javax.swing.Icon -> c.icon = cached
+            cached == FAILED -> c.text = "🖼"
+            else -> {
+                c.text = "…"
+                if (CACHE.putIfAbsent(src, LOADING) == null) load(src, table)
+            }
+        }
+        return c
+    }
+
+    private fun load(src: String, table: javax.swing.JTable) = LOADER.execute {
+        // A remote image is read with timeouts and retried once: ImageIO.read(URL) waits forever, so
+        // a stalled connection to a slow image server (IIIF renders on demand, 5–8 s) left the cell
+        // at "…" for good. Six downloads at a time.
+        val img = runCatching {
+            if (src.startsWith("data:")) {
+                val b64 = src.substringAfter("base64,", "")
+                if (b64.isBlank()) null else javax.imageio.ImageIO.read(java.util.Base64.getDecoder().decode(b64).inputStream())
+            } else {
+                resolveImageUrl(src, baseUrl)?.let { url ->
+                    (1..2).firstNotNullOfOrNull { runCatching { readRemote(url) }.getOrNull() }
+                }
+            }
+        }.getOrNull()
+        val icon: Any = if (img == null || img.width <= 0 || img.height <= 0) FAILED else {
+            val h = JBUI.scale(THUMB)
+            val w = (img.width.toDouble() * h / img.height).toInt().coerceIn(1, h * 2)
+            javax.swing.ImageIcon(img.getScaledInstance(w, h, java.awt.Image.SCALE_SMOOTH))
+        }
+        javax.swing.SwingUtilities.invokeLater {
+            CACHE[src] = icon
+            table.repaint()
+        }
+    }
+
+    private fun readRemote(url: String): java.awt.image.BufferedImage? {
+        val conn = java.net.URI.create(url).toURL().openConnection()
+        conn.connectTimeout = 10_000
+        conn.readTimeout = 30_000
+        conn.setRequestProperty("Accept", "image/*")
+        return conn.getInputStream().use { javax.imageio.ImageIO.read(it) }
+    }
+
+    companion object {
+        const val THUMB = 40
+        private val LOADER = java.util.concurrent.Executors.newFixedThreadPool(6) { r ->
+            Thread(r, "mateu-thumbnails").apply { isDaemon = true }
+        }
+        private val LOADING = Any()
+        private val FAILED = Any()
+        /** Shared by every listing; bounded so a long browse does not keep every thumbnail. */
+        private val CACHE: MutableMap<String, Any> = java.util.Collections.synchronizedMap(
+            object : java.util.LinkedHashMap<String, Any>(64, 0.75f, true) {
+                override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Any>?) = size > 300
+            },
+        )
+    }
+}
+
+/**
+ * The results of a listing: as tall as its rows (header + one row per entry, at least one). A
+ * listing that is the whole tab fills it anyway (BorderLayout centre); one stacked in a page with
+ * other blocks (Loans beside its workflow, a record's Documents, the hero search) used to report
+ * JTable's arbitrary viewport size — frozen by [addStacked] while still empty, so the table showed
+ * a strip of its header or three rows and cut the rest.
+ */
+internal class RowsScrollPane(private val table: javax.swing.JTable) : ContentHeightScrollPane(table) {
+    override fun getPreferredSize(): java.awt.Dimension {
+        val p = super.getPreferredSize()
+        val header = table.tableHeader?.preferredSize?.height ?: 0
+        val rows = maxOf(table.rowCount, 1) * table.rowHeight
+        val i = insets
+        val hsb = p.height - (viewport?.preferredSize?.height ?: 0) - (columnHeader?.preferredSize?.height ?: 0) - i.top - i.bottom
+        return java.awt.Dimension(p.width, header + rows + i.top + i.bottom + hsb.coerceAtLeast(0))
+    }
 }

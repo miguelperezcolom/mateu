@@ -187,6 +187,9 @@ The native shells render the same wire field:
 
 - **React Native** — selectors at the top of the drawer; session-scoped, picking a value remounts
   the current screen.
+- **Desktop app** (IntelliJ, focused mode) — one combo per selector on the top bar ("Hotel: Riu
+  Palace ▾"), next to **Home**; in a developer's IDE they sit at the top of the Mateu panel. Picking
+  a value reloads the app shell.
 
 Like the web picker, a selector with more than 7 options gains a **search box**: typing filters
 the loaded options and (debounced) asks the server for matches beyond the loaded page via the same

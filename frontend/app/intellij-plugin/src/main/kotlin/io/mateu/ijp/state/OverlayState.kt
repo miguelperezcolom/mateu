@@ -23,6 +23,15 @@ object OverlayState {
         return merged
     }
 
+    /**
+     * The delay after which the window closes itself, when this update asks for it: the last step
+     * of a LongTask streamed as a DIALOG (servers before 3.0's `Progress` commands) carries
+     * `_closeAfterMillis` for the CLIENT to close it — the web honours it, the plugin did not, and
+     * the scan's progress window stayed open for good. Null = the update does not close.
+     */
+    fun closeAfterMillis(update: JsonNode): Long? =
+        update.path("_closeAfterMillis").takeIf { it.isNumber }?.asLong()?.takeIf { it >= 0 }
+
     fun title(meta: JsonNode, state: JsonNode): String =
         Expressions.interpolate(meta.path("headerTitle").asText(""), mapOf("state" to state))
 }

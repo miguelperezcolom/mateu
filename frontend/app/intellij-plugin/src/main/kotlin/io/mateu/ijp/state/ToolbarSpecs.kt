@@ -11,8 +11,8 @@ data class ToolbarSpec(
     val disabled: Boolean,
     val primary: Boolean,
     val parameters: Map<String, Any?> = emptyMap(),
-    /** A RouteLink button (YAML toolbars): pressing it navigates there instead of running an action. */
-    val route: String? = null,
+    /** A RouteLink button's route: pressing it NAVIGATES there (see [AppContext.pressButton]). */
+    val route: String = "",
 )
 
 object ToolbarSpecs {
@@ -20,15 +20,16 @@ object ToolbarSpecs {
     fun of(buttons: List<JsonNode>, params: (JsonNode) -> Map<String, Any?>): List<ToolbarSpec> =
         buttons.mapNotNull { b ->
             val actionId = b.text("actionId", b.text("id"))
+            val route = b.text("route")
             // "Back to list" (cancel-view) is pointless in the IDE: the listing stays visible in
             // its own tool window while the detail lives in an editor tab.
-            if (actionId.isBlank() || actionId == "cancel-view") null else ToolbarSpec(
+            if ((actionId.isBlank() && route.isBlank()) || actionId == "cancel-view") null else ToolbarSpec(
                 actionId = actionId,
                 label = b.text("label", actionId),
                 disabled = b.bool("disabled"),
                 primary = b.text("buttonStyle").equals("Primary", ignoreCase = true),
                 parameters = params(b.path("parameters")),
-                route = b.text("route").ifBlank { null },
+                route = route,
             )
         }
 }

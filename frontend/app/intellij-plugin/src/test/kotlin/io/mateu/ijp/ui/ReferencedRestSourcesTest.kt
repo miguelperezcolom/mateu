@@ -21,4 +21,11 @@ class ReferencedRestSourcesTest : TestCase() {
         sources.registerRestSources(mapper.readTree("""[{"name":"late","source":{"url":"/app"}}]"""))
         assertEquals("/app", sources.restSource("late")?.path("source")?.path("url")?.asText())
     }
+
+    fun testASourceWithATotalPathPagesOnTheServer() {
+        sources.registerRestSources(mapper.readTree("""[{"name":"art","source":{"url":"/a?page=${'$'}{state.page}"},"totalPath":"totalElements"},{"name":"whole","source":{"url":"/w"}}]"""))
+        assertEquals("totalElements", sources.serverTotalPath(mapper.readTree("""{"ref":"art"}""")))
+        assertEquals("page.total", sources.serverTotalPath(mapper.readTree("""{"url":"/x","totalPath":"page.total"}""")))
+        assertNull("no totalPath: fetched whole", sources.serverTotalPath(mapper.readTree("""{"ref":"whole"}""")))
+    }
 }

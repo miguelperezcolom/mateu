@@ -61,8 +61,8 @@ class HubTest {
     }
 
     @Test
-    fun `static UIs and other wire majors are refused on the desktop`() {
-        assertTrue(HubManifest.refusal(HubManifest.Manifest("x", bundle = "manifest.json"))!!.contains("static UI"))
+    fun `other wire majors are refused on the desktop, a static bundle is not`() {
+        assertNull(HubManifest.refusal(HubManifest.Manifest("x", bundle = "manifest.json")))
         assertTrue(HubManifest.refusal(HubManifest.Manifest("x", wireVersion = "4.0"), supportedMajor = 3)!!.contains("newer Mateu"))
         assertTrue(HubManifest.refusal(HubManifest.Manifest("x", wireVersion = "2"), supportedMajor = 3)!!.contains("too old"))
         assertNull(HubManifest.refusal(HubManifest.Manifest("x", wireVersion = "3.1"), supportedMajor = 3))
@@ -129,7 +129,8 @@ class HubTest {
         assertEquals(HubFlow.Proposal.Refused("Only secure (https) addresses can be added."), HubFlow.propose("http://acme.com", HubEntries(), http))
         assertTrue((HubFlow.propose("mateu://add?u=down.io", HubEntries(), http) as HubFlow.Proposal.Refused).reason.contains("Can't reach"))
         val static = server("https://s.io/mateu/v3/manifest" to (200 to """{"name":"S","bundle":"manifest.json"}"""))
-        assertTrue((HubFlow.propose("mateu://add?u=s.io", HubEntries(), static) as HubFlow.Proposal.Refused).reason.contains("static UI"))
+        // a UI that ships a static bundle opens on the desktop too (loads from the bundle, actions to the server)
+        assertTrue(HubFlow.propose("mateu://add?u=s.io", HubEntries(), static) is HubFlow.Proposal.AddOne)
     }
 
     @Test
