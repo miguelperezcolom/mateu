@@ -284,9 +284,11 @@ object MateuProjectGenerator {
         }
         // (1) the starter
         for (p in under(r.starter)) files[p] = load(r.starter, p)
-        // (2) the sample
-        val keepSample = flavour.path("keepsSample").asBoolean(false) && o.sample != "empty"
+        // (2) the sample (the template): the Product CRUD stays unless the template drops it
+        val sampleDef = byId(manifest.path("samples"), o.sample)
+        val keepSample = flavour.path("keepsSample").asBoolean(false) && sampleDef?.path("dropsSampleFiles")?.asBoolean(false) != true
         if (!keepSample) strings(lang.path("sampleFiles")).forEach { files.remove(it) }
+        sampleDef?.let { s -> strings(s.path("removeFiles")).forEach { files.remove(it) } }
         // (3) unmount it
         val unmount = lang.path("unmount")
         if (keepSample && flavour.path("unmountsSample").asBoolean(false) && !unmount.isMissingNode) {

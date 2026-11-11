@@ -40,6 +40,14 @@ export interface AuthoringDef extends Choice {
     run?: string
 }
 
+/** A template of the gallery: what the new project starts from. */
+export interface SampleDef extends Choice {
+    /** The language's `sampleFiles` (the Product CRUD) are dropped. */
+    dropsSampleFiles?: boolean
+    /** Further starter files the template replaces with nothing. */
+    removeFiles?: string[]
+}
+
 export interface Replacement {
     from?: string
     regex?: string
@@ -68,7 +76,8 @@ export interface Manifest {
     runtimes: RuntimeDef[]
     buildTools: (Choice & { languages: string[] })[]
     renderers: (Choice & { artifactId: string })[]
-    samples: Choice[]
+    /** The template gallery (new-project.json `samples`). */
+    samples: SampleDef[]
     /** Combinations refused, with the reason (verified to fail at runtime). */
     incompatible?: { renderer?: string; sample?: string; authoring?: string; runtime?: string; reason: string }[]
     languages: Record<string, LanguageDef>
@@ -308,9 +317,11 @@ export function generateProject(sources: Sources, o: NewProjectOptions): Map<str
     for (const p of walk(join(sources.starters, r.starter), manifest.exclude)) {
         files.set(p, read(join(sources.starters, r.starter, p), isBinary(p)))
     }
-    // (2) the sample
-    const keepSample = flavour.keepsSample && o.sample !== 'empty'
+    // (2) the sample (the template): the Product CRUD stays unless the template drops it
+    const sampleDef = manifest.samples.find((s) => s.id === o.sample)
+    const keepSample = flavour.keepsSample && !sampleDef?.dropsSampleFiles
     if (!keepSample) for (const f of lang.sampleFiles) files.delete(f)
+    for (const f of sampleDef?.removeFiles ?? []) files.delete(f)
     // (3) unmount it
     if (keepSample && flavour.unmountsSample && lang.unmount) {
         for (const f of lang.unmount.removeFiles ?? []) files.delete(f)

@@ -25,7 +25,10 @@ def root = path(request.outputDirectory.toString()).resolve(request.artifactId)
 def props = request.properties
 String authoring = props.getProperty('authoring', 'code')
 String renderer = props.getProperty('renderer', 'vaadin')
-String sample = authoring == 'code' ? props.getProperty('sample', 'crud') : 'listing'
+// The template (the gallery of new-project.json `samples`); `default` = the older `sample` property
+// for code (crud unless -Dsample=empty), the flavour's first template otherwise.
+String template = props.getProperty('template', 'default')
+String sample = template != 'default' ? template : (authoring == 'code' ? props.getProperty('sample', 'crud') : null)
 String groupId = request.groupId
 String artifactId = request.artifactId
 String pkg = props.getProperty("package") ?: request.getPackage() ?: groupId
@@ -43,6 +46,9 @@ def fail = { String why ->
 }
 if (!(authoring in ['code', 'yaml', 'static'])) fail("authoring must be code, yaml or static (was '${authoring}')")
 def flavour = manifest.authoring.find { it.id == authoring }
+if (sample == null) sample = flavour.samples[0]
+if (!(sample in flavour.samples)) fail("the ${authoring} flavour offers the templates: ${flavour.samples.join(', ')} (was '${sample}')")
+def sampleDef = manifest.samples.find { it.id == sample }
 def runtime = authoring == 'code' ? manifest.runtimes.find { it.id == 'spring-mvc' } : null
 List<String> renderers = flavour.renderers ?: (runtime ?: manifest.runtimes.find { it.id == 'spring-mvc' }).renderers
 if (!(renderer in renderers)) fail("the ${authoring} flavour supports the renderers: ${renderers.join(', ')}")
@@ -69,14 +75,14 @@ def move = { from, to ->
 
 // (1) the chosen starter at the root
 move(root.resolve("variants/${authoring}"), root)
-// (2) the sample: the Empty overlay replaces the CRUD
-if (authoring == 'code' && sample == 'empty') {
-    java.sampleFiles.each { root.resolve(it).toFile().delete() }
-    def empty = gen.resolve('overlays/java/empty')
-    if (isDir(empty)) move(empty, root)
-}
-// (4) overlays: common (gitignore → .gitignore, claude/settings.json → .claude/settings.json) and the renderer's
+// (2) the template: the Product CRUD goes unless the template keeps it, then the template's removeFiles
+if (!flavour.keepsSample || sampleDef?.dropsSampleFiles) java.sampleFiles.each { root.resolve(it).toFile().delete() }
+(sampleDef?.removeFiles ?: []).each { root.resolve(it).toFile().delete() }
+// (4) overlays: common (gitignore → .gitignore, claude/settings.json → .claude/settings.json), the
+// flavour's for the template (overlays[template], else overlays['*']) and the renderer's
 move(gen.resolve('overlays/common'), root)
+String flavourOverlay = flavour.overlays?.get(sample) ?: flavour.overlays?.get('*')
+if (flavourOverlay && isDir(gen.resolve("overlays/java/${flavourOverlay}"))) move(gen.resolve("overlays/java/${flavourOverlay}"), root)
 def rendererOverlay = gen.resolve("overlays/java/${renderer}")
 if (isDir(rendererOverlay)) move(rendererOverlay, root)
 // (5) no page templates here: drop the YAML markers
@@ -127,4 +133,4 @@ if (isDir(pkgDir)) {
         }
     }
 }
-println "Mateu ${version}: ${authoring} project ${artifactId} created. Run: ${expand(flavour.run ?: runtime?.run ?: '')}"
+println "Mateu ${version}: ${authoring} project ${artifactId} (template ${sample}) created. Run: ${expand(flavour.run ?: runtime?.run ?: '')}"

@@ -665,6 +665,236 @@
           "\"repo\": \"miguelperezcolom/mateu\""
         ]
       }
+    },
+    {
+      "name": "spring-mvc, code, template dashboard (KPIs + charts, Orders listing, Product CRUD)",
+      "options": {
+        "authoring": "code",
+        "runtime": "spring-mvc",
+        "buildTool": "maven",
+        "renderer": "vaadin",
+        "sample": "dashboard",
+        "pages": [],
+        "groupId": "com.acme",
+        "artifactId": "ops-app",
+        "packageName": "com.acme.ops",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "src/main/java/com/acme/ops/Shell.java",
+        "src/main/java/com/acme/ops/Overview.java",
+        "src/main/java/com/acme/ops/Orders.java",
+        "src/main/java/com/acme/ops/OrderStore.java",
+        "src/main/java/com/acme/ops/Products.java",
+        "src/main/java/com/acme/ops/ProductStore.java",
+        ".claude/settings.json"
+      ],
+      "absent": [
+        "src/main/java/com/acme/ops/Home.java",
+        "src/main/java/com/example/app/Overview.java"
+      ],
+      "contains": {
+        "src/main/java/com/acme/ops/Shell.java": [
+          "package com.acme.ops;",
+          "@Title(\"Ops app\")",
+          "@Menu Overview overview;",
+          "@Menu Orders orders;",
+          "@Menu Products products;",
+          "return \"overview\";"
+        ],
+        "src/main/java/com/acme/ops/Overview.java": [
+          "extends Dashboard",
+          "MetricCard",
+          "@Panel("
+        ],
+        "src/main/java/com/acme/ops/Orders.java": [
+          "implements Listing<Order>, Searchable"
+        ]
+      },
+      "lacks": {
+        "src/main/java/com/acme/ops/Shell.java": [
+          "@Menu Home home;"
+        ]
+      }
+    },
+    {
+      "name": "quarkus, code, template intake (branching wizard + review, Requests listing)",
+      "options": {
+        "authoring": "code",
+        "runtime": "quarkus",
+        "buildTool": "maven",
+        "renderer": "vaadin",
+        "sample": "intake",
+        "pages": [],
+        "groupId": "com.acme",
+        "artifactId": "ops-app",
+        "packageName": "com.acme.ops",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "src/main/java/com/acme/ops/Shell.java",
+        "src/main/java/com/acme/ops/Home.java",
+        "src/main/java/com/acme/ops/Intake.java",
+        "src/main/java/com/acme/ops/Requests.java",
+        "src/main/java/com/acme/ops/RequestStore.java"
+      ],
+      "absent": [
+        "src/main/java/com/acme/ops/Products.java",
+        "src/main/java/com/acme/ops/Product.java",
+        "src/main/java/com/acme/ops/ProductStore.java",
+        "src/main/java/com/acme/ops/ProductStatus.java"
+      ],
+      "contains": {
+        "src/main/java/com/acme/ops/Intake.java": [
+          "package com.acme.ops;",
+          "extends Wizard",
+          "protected boolean stepApplies(String stepFieldName)",
+          "@WizardCompletionAction"
+        ],
+        "src/main/java/com/acme/ops/Shell.java": [
+          "@Menu Intake intake;",
+          "@Menu Requests requests;"
+        ],
+        "src/main/java/com/acme/ops/Home.java": [
+          "return \"Ops app\";",
+          "return URI.create(\"/intake\");"
+        ],
+        "pom.xml": [
+          "<artifactId>ops-app</artifactId>"
+        ]
+      }
+    },
+    {
+      "name": "spring-webflux, code, template operations (kanban board + calendar), Redwood",
+      "options": {
+        "authoring": "code",
+        "runtime": "spring-webflux",
+        "buildTool": "maven",
+        "renderer": "redwood",
+        "sample": "operations",
+        "pages": [],
+        "groupId": "com.acme",
+        "artifactId": "ops-app",
+        "packageName": "com.acme.ops",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "src/main/java/com/acme/ops/Shell.java",
+        "src/main/java/com/acme/ops/Home.java",
+        "src/main/java/com/acme/ops/Board.java",
+        "src/main/java/com/acme/ops/Schedule.java",
+        "src/main/java/com/acme/ops/Task.java",
+        "src/main/java/com/acme/ops/TaskStore.java"
+      ],
+      "absent": [
+        "src/main/java/com/acme/ops/Products.java",
+        "src/main/java/com/acme/ops/ProductStore.java"
+      ],
+      "contains": {
+        "src/main/java/com/acme/ops/Board.java": [
+          "implements ComponentTreeSupplier",
+          "moveActionId(\"moveTask\")"
+        ],
+        "src/main/java/com/acme/ops/Schedule.java": [
+          "extends CalendarPage"
+        ],
+        "src/main/java/com/acme/ops/Shell.java": [
+          "@Menu Board board;",
+          "@Menu Schedule schedule;"
+        ],
+        "pom.xml": [
+          "<artifactId>mateu-redwood</artifactId>"
+        ]
+      }
+    },
+    {
+      "name": "YAML only, served (Spring MVC), template swapi (Star Wars over a public REST API) + a page template",
+      "options": {
+        "authoring": "yaml",
+        "runtime": "spring-mvc",
+        "buildTool": "maven",
+        "renderer": "vaadin",
+        "sample": "swapi",
+        "pages": [
+          "form"
+        ],
+        "groupId": "com.acme",
+        "artifactId": "ops-app",
+        "packageName": "com.acme.ops",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "src/main/resources/specs/ui/people.yaml",
+        "src/main/resources/specs/ui/person.yaml",
+        "src/main/resources/specs/ui/planets.yaml",
+        "src/main/resources/specs/ui/planet.yaml",
+        "src/main/resources/specs/ui/sources.yaml",
+        "src/main/resources/specs/ui/form.yaml"
+      ],
+      "absent": [
+        "src/main/resources/specs/ui/products.yaml"
+      ],
+      "contains": {
+        "src/main/resources/specs/ui/sources.yaml": [
+          "https://swapi.mateu.io/api/people?",
+          "totalPath: totalElements"
+        ],
+        "src/main/resources/specs/ui/routes.yaml": [
+          "route: people/:id",
+          "data: person",
+          "route: form"
+        ],
+        "src/main/resources/specs/ui/app.yaml": [
+          "title: Ops app",
+          "route: planets",
+          "route: form"
+        ]
+      },
+      "lacks": {
+        "src/main/resources/specs/ui/routes.yaml": [
+          "route: products",
+          "__ROUTES__"
+        ],
+        "src/main/resources/specs/ui/app.yaml": [
+          "route: products",
+          "__MENU__"
+        ],
+        "src/main/resources/specs/ui/sources.yaml": [
+          "sample:"
+        ]
+      }
+    },
+    {
+      "name": "YAML only, static (no backend), template swapi",
+      "options": {
+        "authoring": "static",
+        "buildTool": "maven",
+        "renderer": "vaadin",
+        "sample": "swapi",
+        "pages": [],
+        "groupId": "com.acme",
+        "artifactId": "ops-app",
+        "packageName": "com.acme.ops",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "pom.xml",
+        "src/main/resources/specs/ui/people.yaml",
+        "src/main/resources/specs/ui/planet.yaml"
+      ],
+      "absent": [
+        "src/main/resources/specs/ui/products.yaml",
+        "src/main/java/com/acme/ops/Application.java"
+      ],
+      "contains": {
+        "src/main/resources/specs/ui/app.yaml": [
+          "title: Ops app",
+          "route: people"
+        ],
+        "pom.xml": [
+          "<staticOnly>true</staticOnly>"
+        ]
+      }
     }
   ]
 }

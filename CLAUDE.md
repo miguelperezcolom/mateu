@@ -1066,7 +1066,14 @@ overlay's `gitignore` is renamed to `.gitignore` at generation (packagers drop d
 the NuGet refs for the sources (`-p:MateuFromSources=false` opts out) and CI installs backend/python + PYTHONPATH.
 Every starter ships `AGENTS.md` + a `CLAUDE.md` that imports it (`@AGENTS.md`); `yaml`/`static` share
 byte-identical `specs/ui` (pinned by a test). A starter change flows to all three front doors — keep
-`cases.json` green. Version = the highest stable `io.mateu:mateu-bom` on Maven Central of the pin's major (before its GA, its newest pre-release), fallback the starters' pin.
+`cases.json` green. **Template gallery (2026-11-11)**: new-project.json `samples` IS the gallery
+(`crud` default, `dashboard`, `intake`, `operations`, `empty` for code on every Java runtime;
+`listing`, `swapi` for yaml/static; .NET/Python only `crud`); each non-default template is a flavour
+overlay `overlays/java/<id>` (`overlays[id]` on the flavour) plus, on the sample, `dropsSampleFiles`
+(the Product CRUD goes) / `removeFiles` (starter files it replaces with nothing) — applied by the
+Kotlin + TS engines AND `archetype-post-generate.groovy` (`-Dtemplate=`, `-Dsample=` still read; the
+archetype pom must `<include>` each new overlay). Pickers: IntelliJ "Template:" + the description
+under it, VS Code quick pick with detail, CLI `--template`. Version = the highest stable `io.mateu:mateu-bom` on Maven Central of the pin's major (before its GA, its newest pre-release), fallback the starters' pin.
 
 ## Backend testing (core integration harness)
 
