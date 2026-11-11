@@ -147,6 +147,11 @@ def render_index(
     colour, the worker of ``build_id``), unless it is switched off."""
     html = template.replace(FAVICON_MARKER, DEFAULT_FAVICON).replace(TITLE_MARKER, title)
     html = rewrite_oracle_cdn(without_markers(mount_ui(html, base_url, debug)), oracle_cdn)
+    # the ways to sign in the web clients offer (<meta name="mateu-auth">), before the PWA's head
+    from . import sign_in_providers
+
+    declared = getattr(app_type, "__mateu_mobile_app__", None) if app_type else None
+    html = sign_in_providers.head(html, declared)
     return pwa.served(html, base_url, app_type, build_id) or html
 
 

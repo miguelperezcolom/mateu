@@ -28,7 +28,17 @@ from starlette.concurrency import run_in_threadpool
 from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_ui.core.errors import dev_mode_from_env, error_increment, new_correlation_id
 from mateu_ui.core.identity import framework_identity_provider, identity_from_claims, warn_on_startup
-from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, progress, pwa, ui_page, version_skew
+from mateu_ui.core import (
+    agent_push,
+    dev_specs,
+    documents,
+    mobile_manifest,
+    progress,
+    pwa,
+    sign_in_providers,
+    ui_page,
+    version_skew,
+)
 from mateu_ui.core.naming import humanize
 from mateu_ui.core.mcp import handle_jsonrpc
 from mateu_ui.core.request_context import MateuRequest, bound_request, normalise_headers
@@ -192,6 +202,9 @@ def add_mateu(
     resolution_listeners: Sequence[Any] | None = None,
     progress_reattach_grace_seconds: float | None = None,
     inbox_store: Any | None = None,
+    sign_in: Sequence[Any] | None = None,
+    login_on_start: bool | None = None,
+    logout_url: str | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -264,6 +277,11 @@ def add_mateu(
       task at once (the old behaviour). A finished task keeps its outcome for the same period.
     - ``inbox_store`` (EXPERIMENTAL) — an ``InboxStore`` keeping the ``inbox`` messages of signed-in
       users (default: Mateu's bounded in-memory store, lost on restart).
+    - ``sign_in`` — the ways to sign in every client offers (``SignInProvider``s, display order):
+      one → straight to it, several → a sign-in chooser. The ``MATEU_AUTH_PROVIDERS`` env var (+
+      ``MATEU_AUTH_PROVIDERS_<ID>_*``) wins when it names any. ``login_on_start`` (default True; env
+      ``MATEU_AUTH_LOGIN_ON_START``) and ``logout_url`` (env ``MATEU_AUTH_LOGOUT_URL``) go with them.
+      Mateu offers the sign-in only: your app validates the token / session (see the sign-in guide).
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -298,6 +316,8 @@ def add_mateu(
         resolution_listeners=resolution_listeners,
     )
     progress.configure(progress_reattach_grace_seconds)
+    sign_in_providers.configure(sign_in, login_on_start, logout_url)
+    sign_in_providers.warn_on_startup()
     if inbox_store is not None:
         handler.inbox_store = inbox_store
     show_details = dev_mode_from_env() if dev is None else dev
