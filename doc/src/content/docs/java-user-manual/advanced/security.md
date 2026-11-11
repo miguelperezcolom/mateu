@@ -10,6 +10,23 @@ declaratively, with no filter chains or interceptors in your UI code.
 
 ---
 
+## Signing in
+
+The **sign-in is UI, so Mateu's clients do it**: declare the UI's sign-in providers —
+`mateu.auth.providers=keycloak,github` (or a `SignInProvidersSupplier` bean) — and the web
+renderers, the phone app and the desktop app offer them: one provider sends the user straight to
+it, several show a chooser. An `oidc` provider (Keycloak, Entra ID, Okta, Auth0, Cognito, Zitadel,
+any OpenID Connect issuer) is signed in by the client itself, which then sends
+`Authorization: Bearer <token>`; a `redirect` provider (GitHub, Facebook, Apple, Google on the web,
+SAML, form login) sends the browser to the login your framework owns, which sets a session cookie.
+
+**Checking who is calling is not UI**, so your framework does it, exactly as below — a resource
+server for the bearer tokens, `oauth2Login` (or its equivalent) for the redirects. Settings,
+presets, a recipe per provider and the framework configuration for each runtime:
+[Sign-in providers](/deploy/sign-in/).
+
+---
+
 ## Authorization with `@EyesOnly`
 
 :::note[Imports]
@@ -438,9 +455,9 @@ yourself — it is the client's to write.
 ## Where the browser keeps the Bearer token
 
 Every request the web client sends carries `Authorization: Bearer <token>` when a token is
-available. The bootstrap (your own login page, an `onSessionExpired`
-handler) leaves it and Mateu reads it on each request. Where it lives is a
-security trade-off, so it is configurable:
+available. The built-in sign-in of an `oidc` [sign-in provider](/deploy/sign-in/) keeps it there,
+and so can your own bootstrap (your own login page, an `onSessionExpired` handler); the client reads
+it on each request. Where it lives is a security trade-off, so it is configurable:
 
 | Storage | Survives a reload | Shared by tabs | Readable by a script injected into the page |
 |---|---|---|---|

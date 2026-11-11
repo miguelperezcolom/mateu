@@ -158,7 +158,9 @@ At the identity provider, the client needs the **device grant** switched on — 
 your client ▸ Capability config ▸ OAuth 2.0 Device Authorization Grant*. A client set up for the phone
 (public, Standard flow, PKCE **S256**) serves the desktop app as it is once that switch is on: the app
 sends a PKCE challenge with the device request too. The full list of Keycloak settings is on the
-[phone app page](/native/react-native/#3-signing-in-to-a-secured-backend).
+[phone app page](/native/react-native/#3-signing-in-to-a-secured-backend); declaring the providers
+(several give a chooser, and `platforms` says which the desktop offers) and the recipes for other
+identity providers are on [Sign-in providers](/deploy/sign-in/).
 
 ## Updates
 

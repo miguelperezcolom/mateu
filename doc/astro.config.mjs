@@ -576,6 +576,7 @@ export default defineConfig({
 							],
 						},
 						{ slug: 'deploy/environments', label: 'Environments' },
+						{ slug: 'deploy/sign-in', label: 'Sign-in providers' },
 						{ slug: 'java-user-manual/build/derived-openapi', label: 'The OpenAPI your UI implies' },
 						{ slug: 'deploy/production-checklist', label: 'Production checklist' },
 						{ slug: 'deploy/versions-across-teams', label: 'Versions across teams' },

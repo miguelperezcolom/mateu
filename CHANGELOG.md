@@ -8,6 +8,26 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+
+- **Sign-in providers (server side).** A UI declares the ways to sign in —
+  `mateu.auth.providers=keycloak,github` with `mateu.auth.providers.<id>.type|label|icon|issuer|
+  client-id|scopes|audience|url|platforms|continue-param|tenant`, `mateu.auth.login-on-start`,
+  `mateu.auth.logout-url` (env `MATEU_AUTH_*`), or in code a `SignInProvidersSupplier` bean (Java,
+  `io.mateu.uidl.security.SignInProvider`), `MateuOptions.SignIn` (.NET), `add_mateu(sign_in=[…])`
+  (Python). Well-known ids fill themselves in (`google`, `microsoft` + `tenant`, `entra`, `github`,
+  `apple`, `facebook`, `x`, `linkedin`, `gitlab` → `/oauth2/authorization/<id>`; `keycloak`, `okta`,
+  `auth0`, `cognito`, `zitadel`, `authentik` with your issuer). The mobile manifest's `auth` gains
+  `providers`, `loginOnStart` and `logoutUrl` (its `type`/`issuer`/`clientId`/`scopes` stay, = the
+  first oidc provider offered on mobile, for the published phone app), and every served page — every
+  Java adapter, YAML mounts, the Redwood page, .NET and Python — carries the web providers in
+  `<meta name="mateu-auth">`. `@MobileApp(oidcIssuer…)` / `mateu.mobile.oidc.*` keep working as the
+  native-only provider `default`. An unusable provider is skipped with a WARN at startup. Pinned
+  byte for byte by `conformance/client/sign-in.json` in the three backends and by
+  `AdapterParityITFoundation.offersTheSignInProviders` on the five adapters. Guide:
+  [Sign-in providers](https://mateu.io/deploy/sign-in/). Mateu still validates nothing: the host
+  framework does.
+
 ### Security
 
 - **A route seed of a YAML field hidden from the caller no longer travels to them.** The `state:` /

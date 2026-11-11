@@ -54,23 +54,27 @@ document.addEventListener('mateu-session-expired', e => {
 - A **403 is not a session problem** and never raises the event: the server knows who you are and
   refuses this (an undeclared action, a missing role). Redwood shows "No tienes permiso para hacer
   esto." instead of the session message.
-- With **no handler registered**, behavior is exactly as before: the request fails — the guard is
-  fully opt-in.
+- With **no handler registered** and no [sign-in providers](/deploy/sign-in/) declared, the request
+  fails — the guard is fully opt-in. With providers declared, the built-in sign-in below handles it.
 - Because the page never navigates, everything holds: form values, wizard position, scroll,
   selection. Combine with the [dirty guard](/ux-patterns/partial-forms/) and
   [autosave](/ux-patterns/autosave/) for defense in depth.
 
-## Keycloak (the generated bootstrap page): handled for you
+## Built-in sign-in: handled for you
 
-An app secured with Keycloak through Mateu's generated bootstrap page needs none of the above —
-the page does it:
+A UI that declares its [sign-in providers](/deploy/sign-in/) (Keycloak, Entra ID, Okta, Auth0,
+GitHub through your framework…) needs none of the above — the client signs in itself, and a 401
+that no `onSessionExpired` handler of yours claims is handled by it:
 
-- it **claims `mateu-session-expired`**, forces a token refresh (`updateToken(-1)`) and retries the
-  request; if the refresh fails the Keycloak session itself is gone (expired, revoked, the realm
-  was reset), so it sends the browser to the **login** instead of leaving a "session is no longer
-  valid" message whose retry resends the same dead token;
-- it refreshes on **`onTokenExpired`** and again whenever the tab **becomes visible** — browsers
-  throttle timers in background tabs and sleeping laptops, which is how a token expires unnoticed.
+- with an **OpenID Connect** provider it refreshes the access token (its refresh token) and
+  retries the request, so the action completes; it also refreshes before the token expires;
+- if there is nothing to refresh with, or the refresh is refused (the provider's session expired
+  or was revoked), it asks the user to sign in again — the provider itself, or the sign-in chooser
+  when there are several — and brings them back to the page they were on;
+- with a **framework-owned** login (`redirect` providers: Spring `oauth2Login`, SAML, form login),
+  signing in again is the framework's page, reached with `continue=` the current address.
+
+A handler you register with `onSessionExpired` still wins: it is the way to keep your own flow.
 
 ## Container-managed login (basic auth / form login): the invisible 302
 

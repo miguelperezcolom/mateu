@@ -123,8 +123,11 @@ public client serves both Mateu apps:
 | Web origins | `+` | expo web (development) |
 | Advanced ▸ Proof Key for Code Exchange Code Challenge Method | **S256** | both apps send a PKCE challenge — the desktop's device request too |
 
-The UI's manifest names the provider (`mateu.mobile.oidc.issuer` / `client-id`, or the
-`MATEU_MOBILE_OIDC_*` environment variables); the issuer must be `https` — plain `http` is accepted
+The UI's manifest names the providers — the UI's [sign-in providers](/deploy/sign-in/)
+(`mateu.auth.providers`, offered on the phone when their `platforms` include `mobile`), or the
+single one of before (`mateu.mobile.oidc.issuer` / `client-id`, or the `MATEU_MOBILE_OIDC_*`
+environment variables). Keycloak is one example; the sign-in page has the recipes for Entra ID,
+Okta, Auth0, Cognito, Zitadel and others. The issuer must be `https` — plain `http` is accepted
 only by development builds, for a provider on your own machine. Validating the token the apps send
 is the host application's job (a Spring/Quarkus/… resource server, or your FastAPI/ASP.NET auth):
 Mateu takes the roles from what the framework authenticated.

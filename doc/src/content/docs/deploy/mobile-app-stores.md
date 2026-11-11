@@ -64,9 +64,14 @@ declares:
 | `icon` | `mateu.mobile.icon` | `icon` | `@Logo` / `@FavIcon`, the shell's `logo` |
 | `themeColor` | `mateu.mobile.theme-color` | `themeColor` | `@App(accentColor)` |
 | `minAppVersion` | `mateu.mobile.min-app-version` | `minAppVersion` | `1.0.0` |
-| `auth.issuer` | `mateu.mobile.oidc.issuer` | `oidcIssuer` | no `auth` (the UI needs no sign-in) |
+| `auth` | `mateu.auth.providers` — see [Sign-in providers](/deploy/sign-in/) | — | no `auth` (the UI needs no sign-in) |
+| `auth.issuer` | `mateu.mobile.oidc.issuer` (the single provider of before) | `oidcIssuer` | the first `oidc` provider offered on mobile |
 | `auth.clientId` | `mateu.mobile.oidc.client-id` | `oidcClientId` | — |
 | `auth.scopes` | `mateu.mobile.oidc.scopes` (comma-separated) | `scopes` | `openid, profile` |
+
+`auth.providers` lists every way to sign in (the app offers those whose `platforms` include
+`mobile`: one → straight to it, several → a chooser); `auth.type`/`issuer`/`clientId`/`scopes`
+repeat the first `oidc` one for the apps that read only those.
 
 - **You don't write it by hand.** Every Mateu backend (the five Java adapters, .NET and Python)
   serves it, built from your app shell ([how each member is derived](/ux-patterns/mobile-app/#the-ui-manifest),
@@ -146,7 +151,8 @@ for what the dialog shows and how it behaves on a phone.
 If the manifest names an `auth` block, the app signs the user in with **OpenID Connect,
 Authorization Code + PKCE, in the system browser**. The app never sees the password.
 
-On your identity provider (Keycloak, Entra ID, Okta, Auth0…):
+On your identity provider (Keycloak, Entra ID, Okta, Auth0… — a recipe for each is on
+[Sign-in providers](/deploy/sign-in/#recipes)):
 
 1. Create a **public** client (no client secret, since a mobile app can't keep one) with the
    `clientId` your manifest names.

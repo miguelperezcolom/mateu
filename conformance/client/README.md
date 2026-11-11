@@ -96,6 +96,15 @@ the increment is no value at all (the server's `putIfAbsent` fills a key mapped 
 pre-rendered increment the orders give the same answer; `route-params.json` pins that, and each
 server pins its own order in its route-registry tests.
 
+## Sign-in providers
+
+`sign-in.json` is a SERVER corpus: each case's `settings` (+ optional `code`, the providers declared
+in code) → the mobile manifest's `auth` block and the served page's `<meta name="mateu-auth">`
+(`null` = absent), plus how many WARNs the resolution logs. Java's `SignInProvidersCorpusTest` is
+the reference (`-Dsignin.corpus.write=true` rewrites the expected members); .NET's
+`SignInProvidersTests` and Python's `test_sign_in_providers.py` must answer byte for byte the same,
+reading each setting as its environment variable. The clients read the shapes it pins.
+
 ## Adding a case
 
 Write it from the documented contract, run the web suite to confirm the reference answer, then run
