@@ -1,6 +1,6 @@
 # The app shell: title and menu around every screen, bound to the mount root ("") in routes.yaml.
 # Each menu entry routes to an entry of the route registry.
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.57/backend/shared/uidl/uidl-schema.json
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.58/backend/shared/uidl/uidl-schema.json
 type: AppShell
 title: My app
 variant: MENU_ON_TOP
