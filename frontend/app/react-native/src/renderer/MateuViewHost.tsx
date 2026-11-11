@@ -15,6 +15,7 @@ import { FAB } from 'react-native-paper';
 import { FAB_MARGIN, FAB_SIZE, fabBottom } from '../core/uxRules';
 import { materialIconOf } from '../ui/wireIcons';
 import { SkeletonRenderer } from './DisplayRenderer';
+import { PresenceChip } from './PresenceChip';
 
 /** The controller of the view a component belongs to — field editors write state through it,
  *  buttons dispatch actions, cruds register data handlers. */
@@ -188,7 +189,13 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
     ] as string | undefined;
   const selfScrolling = rootType === 'Page' || rootType === 'Form' || rootType === 'Crud';
   const content = (
-    <ComponentRenderer component={view.component} state={view.state} data={view.data} />
+    <>
+      {/* record presence (@App(presence)): only on a routed screen, never an island or an overlay */}
+      {!windowlessView && !overlaid && session.presence.enabled && (
+        <PresenceChip controller={controller} route={controller.currentRoute} view={controller.currentServerSideType} />
+      )}
+      <ComponentRenderer component={view.component} state={view.state} data={view.data} />
+    </>
   );
 
   const body = (
