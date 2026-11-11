@@ -28,7 +28,7 @@ from starlette.concurrency import run_in_threadpool
 from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_ui.core.errors import dev_mode_from_env, error_increment, new_correlation_id
 from mateu_ui.core.identity import framework_identity_provider, identity_from_claims, warn_on_startup
-from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, progress, pwa, ui_page, version_skew
+from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, progress, public_base, pwa, ui_page, version_skew
 from mateu_ui.core.naming import humanize
 from mateu_ui.core.mcp import handle_jsonrpc
 from mateu_ui.core.request_context import MateuRequest, bound_request, normalise_headers
@@ -178,6 +178,7 @@ def add_mateu(
     mcp_push_max_anonymous_sessions_per_address: int | None = None,
     build_id: str | None = None,
     oracle_cdn_url: str | None = None,
+    public_base_path: str | None = None,
     remotes: Sequence[Any] | None = None,
     default_timeout_ms: int | None = None,
     max_budget_ms: int | None = None,
@@ -245,6 +246,11 @@ def add_mateu(
       never bundles Oracle's files; it only re-points the URLs of the page it serves (only with
       ``ui``). Default: the ``MATEU_ORACLE_CDN_URL`` env var; blank = off; a value that is not an
       absolute http(s) URL, or carries a quote, ``<``, ``>`` or whitespace, is ignored with a warning.
+    - ``public_base_path`` — the prefix a reverse proxy strips in front of the app (``"/crm"``: the
+      proxy serves it at ``https://host/crm/`` and forwards ``/x``), so the served page writes its
+      assets, its API base and its PWA links under it. Default: the ``MATEU_PUBLIC_BASE_PATH`` env
+      var. Not needed with an ASGI ``root_path`` (``uvicorn --root-path /crm``), which is read too.
+      Java: ``mateu.public-base-path``.
     - Server-resolved micro frontends and content slots (EXPERIMENTAL; see
       ``mateu_ui.core.microfrontends``): ``remotes`` — the ``RemoteDescriptor``s the host may call
       on the user's behalf (on top of the ``RemoteCatalogSupplier`` subclasses among the sources;
@@ -597,8 +603,10 @@ def add_mateu(
     # The Progressive Web App's files (Java's Pwa): the web app manifest, the service worker, its
     # registration script and Mateu's icons — public; an unknown file is a 404 (never the page).
     # a plain def: FastAPI runs it in its threadpool, and reading a packaged file blocks
-    def pwa_file(file: str) -> Response:
-        served = pwa.asset(file, prefix, presented_by())
+    def pwa_file(file: str, request: Request) -> Response:
+        # the manifest's scope and the worker's allowed scope are the PUBLIC ones (public_base)
+        base = public_base.of(request.scope.get("root_path"), public_base_path)
+        served = pwa.asset(file, base + prefix, presented_by())
         if served is None:
             return Response(status_code=404)
         return Response(content=served.body, status_code=200, headers=served.headers)
@@ -698,6 +706,7 @@ def add_mateu(
             oracle_cdn=oracle_cdn,
             app_type=presented_by(),
             build_id=lambda: skew.build_id,
+            public_base_path=public_base_path,
         )
         log.info("Mateu UI: serving %s at %s", renderer.location, prefix or "/")
         if oracle_cdn:
@@ -862,8 +871,10 @@ class MateuUiMiddleware:
         oracle_cdn: str | None = None,
         app_type: type | None = None,
         build_id: Callable[[], str] | None = None,
+        public_base_path: str | None = None,
     ):
         self.app = app
+        self.public_base_path = public_base_path
         self.oracle_cdn = oracle_cdn
         self.app_type = app_type
         self.build_id = build_id
@@ -874,7 +885,9 @@ class MateuUiMiddleware:
         self.title = title
         self.debug = debug
 
-    def answer(self, path: str, accept: str | None) -> tuple[str, bytes, str | None] | None:
+    def answer(
+        self, path: str, accept: str | None, root_path: str | None = None
+    ) -> tuple[str, bytes, str | None] | None:
         """``(content type, body, cache control)`` for what this middleware would serve at ``path``,
         or None when the request is not ours."""
         if path != "/" and ui_page.is_asset(path):
@@ -895,6 +908,8 @@ class MateuUiMiddleware:
             self.oracle_cdn,
             self.app_type,
             self.build_id() if self.build_id else None,
+            # under a root_path / MATEU_PUBLIC_BASE_PATH the page is written for the PUBLIC path
+            public_base.of(root_path, self.public_base_path),
         )
         return "text/html; charset=utf-8", html.encode("utf-8"), ui_page.REVALIDATE_CACHE_CONTROL
 
@@ -903,7 +918,12 @@ class MateuUiMiddleware:
             await self.app(scope, receive, send)
             return
         accept = next((v.decode("latin-1") for k, v in scope.get("headers", []) if k == b"accept"), None)
-        answer = self.answer(scope["path"], accept)
+        # the path below the ASGI root_path (servers may put it in front of `path`, per the spec)
+        root_path = scope.get("root_path") or ""
+        path = scope["path"]
+        if root_path and (path == root_path or path.startswith(root_path + "/")):
+            path = path[len(root_path):] or "/"
+        answer = self.answer(path, accept, root_path)
         if answer is None:
             await self.app(scope, receive, send)
             return
@@ -976,7 +996,9 @@ class MateuApiHintMiddleware(MateuUiMiddleware):
         self.app = app
         self.base_url = "/" + mount if mount else ""
 
-    def answer(self, path: str, accept: str | None) -> tuple[str, bytes, str | None] | None:
+    def answer(
+        self, path: str, accept: str | None, root_path: str | None = None
+    ) -> tuple[str, bytes, str | None] | None:
         if path not in (self.base_url or "/", self.base_url + "/"):
             return None
         if not accept or "text/html" not in accept:

@@ -236,13 +236,20 @@ class Links:
         return Links(d + MANIFEST, d + WORKER, d + REGISTER, d + ICON_192, scope_of(base_url))
 
 
-def served(html: str | None, base_url: str | None, app_type: type | None = None, build_id: str | None = None) -> str | None:
+def served(
+    html: str | None,
+    base_url: str | None,
+    app_type: type | None = None,
+    build_id: str | None = None,
+    public_base: str | None = None,
+) -> str | None:
     """A served page with the PWA's head: ``html`` unchanged when it is switched off
     (:func:`enabled`). ``build_id`` is the app's build (``X-Mateu-Build``), so a new build installs
-    a new worker."""
+    a new worker. Under a ``public_base`` ``base_url`` is the PUBLIC path of the UI (the base
+    included), and the cacheable folders are found below the base."""
     if not enabled() or html is None:
         return html
-    return with_head(html, Links.served(base_url), app_type, build_id)
+    return with_head(html, Links.served(base_url), app_type, build_id, public_base)
 
 
 def _url_encode(value: str) -> str:
@@ -250,7 +257,9 @@ def _url_encode(value: str) -> str:
     return quote_plus(value, safe="*").replace("~", "%7E")
 
 
-def with_head(html: str | None, links: Links, app_type: type | None, build_id: str | None) -> str | None:
+def with_head(
+    html: str | None, links: Links, app_type: type | None, build_id: str | None, public_base: str | None = None
+) -> str | None:
     """``html`` with the manifest link, the theme colour, the apple-touch-icon and the worker's
     registration added to its ``<head>``. The worker's URL carries its version — a hash of the page
     and of ``build_id`` — and the folders the page loads its own files from, which it may cache. A
@@ -258,7 +267,7 @@ def with_head(html: str | None, links: Links, app_type: type | None, build_id: s
     if html is None or "</head>" not in html or 'rel="manifest"' in html:
         return html
     query = "?v=" + version(html, build_id)
-    for folder in static_folders(html):
+    for folder in static_folders(html, public_base):
         query += "&s=" + _url_encode(folder)
     for file in links.precache:
         query += "&p=" + _url_encode(file)
@@ -294,10 +303,15 @@ _LINK_REL = re.compile(r"""\srel\s*=\s*["'][^"']*\b(stylesheet|modulepreload|pre
 _LINK_HREF = re.compile(r"""\shref\s*=\s*["']([^"']+)["']""", re.IGNORECASE)
 
 
-def static_folders(html: str) -> list[str]:
+def static_folders(html: str, public_base: str | None = None) -> list[str]:
     """The folders a page loads its scripts and stylesheets from — ``/assets/``, ``/_redwood/``,
     ``https://static.oracle.com/cdn/`` — which the worker may cache whatever their request. Never a
-    ``/mateu/`` folder, and only what scripts and stylesheets name, so no data endpoint can slip in."""
+    ``/mateu/`` folder, and only what scripts and stylesheets name, so no data endpoint can slip in.
+    Under a ``public_base`` a folder is the first segment BELOW it (``/crm/assets/``), never the base
+    itself — that would be the whole app."""
+    from .public_base import normalize
+
+    base = normalize(public_base)
     urls = [m.group(1) for m in _SCRIPT_SRC.finditer(html)]
     for m in _LINK.finditer(html):
         tag = m.group()
@@ -307,7 +321,7 @@ def static_folders(html: str) -> list[str]:
                 urls.append(href.group(1))
     folders: dict[str, None] = {}
     for url in urls:
-        folder = _folder_of(url.strip())
+        folder = _folder_of(url.strip(), base)
         if folder is not None:
             folders[folder] = None
         if len(folders) >= 8:
@@ -315,19 +329,27 @@ def static_folders(html: str) -> list[str]:
     return list(folders)
 
 
-def _folder_of(url: str) -> str | None:
+def _folder_of(url: str, base: str = "") -> str | None:
     split = _origin_and_path(url)
     if split is None:
         return None
     origin, path = split
+    # a relative url resolves against the page's <base href>, written under the public base too
+    relative = not origin and not url.startswith("/")
     path = _path_of(path)
+    under = ""
+    if base and relative:
+        under = base
+    elif base and not origin and path.startswith(base + "/"):
+        under = base
+        path = path[len(base):]
     second = path.find("/", 1)
     if second < 0:
         return None  # a file at the root is no folder
     segment = path[1:second]
     if segment in ("", "mateu", "..", "."):
         return None
-    return origin + "/" + segment + "/"
+    return origin + under + "/" + segment + "/"
 
 
 def _origin_and_path(url: str) -> tuple[str, str] | None:
