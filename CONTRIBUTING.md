@@ -88,7 +88,7 @@ Every ` ```java `, ` ```csharp `, ` ```python ` and ` ```yaml ` block under
 the Python and .NET ports, the specs schema):
 
 - **Java** compiles against mateu-uidl + mateu-core (install them first:
-  `cd backend && mvn -pl shared/core -am install -DskipTests`). Samples leave their imports out;
+  `cd backend && mvn -pl shared/core,shared/test -am install -DskipTests`). Samples leave their imports out;
   the checker infers them, wraps fragments (class bodies, statements, expressions, a type header,
   bare annotations) and allows `{ ... }` / `// …` elisions. A type the page declares in another
   block is visible; a type nobody declares and Mateu does not have (`ProductService`) is assumed to

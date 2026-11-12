@@ -9,7 +9,8 @@
 //   1. Wrapping. The first of these that PARSES wins: the snippet as a compilation unit (it declares
 //      a type), as a class body (fields/methods), as a method body (statements), as an expression.
 //   2. Imports. The samples leave their imports out (reference/java-imports.md), so each one is
-//      inferred from the names the snippet uses: the Mateu packages, the JDK packages a sample
+//      inferred from the names the snippet uses: the Mateu packages (but io.mateu.test, which a
+//      test sample imports itself), the JDK packages a sample
 //      normally imports, and a few host-framework ones. A name in two packages is decided by how it
 //      is used (`@Menu` → the annotation, `new Menu(...)` → the record, `implements Listing<R>` →
 //      the interface); otherwise JDK first, then uidl data > interfaces > fluent > the rest.
@@ -152,6 +153,9 @@ public class JavaSnippetCheck {
           String fqn = n.substring(0, n.length() - 6).replace('/', '.');
           String pkg = fqn.substring(0, Math.max(0, fqn.lastIndexOf('.')));
           if (mateu ? !pkg.startsWith("io.mateu.") : !THIRD_PARTY_PACKAGES.contains(pkg)) continue;
+          // the test harness (mateu-test) is never inferred: its Row/Button/Field/Listing would shadow
+          // the uidl types of every other sample; a test sample imports io.mateu.test explicitly
+          if (pkg.equals("io.mateu.test")) continue;
           add(cl, fqn, pkg);
         }
       }
