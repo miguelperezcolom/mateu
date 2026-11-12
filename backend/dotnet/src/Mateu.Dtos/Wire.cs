@@ -309,6 +309,12 @@ public record ActionDto(
     /// <summary>A DOM event the client dispatches instead of calling the server (mirrors ActionDto.customEvent).</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public CustomEventDto? CustomEvent { get; init; }
+
+    /// <summary><c>"queue"</c> when the native app may keep the action in its offline send queue
+    /// and send it later with an Idempotency-Key; null = fail while offline (mirrors
+    /// io.mateu.dtos.ActionDto.offline). Experimental.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Offline { get; init; }
 }
 
 /// <summary>Mirrors io.mateu.dtos.ConfirmationTextsDto.</summary>

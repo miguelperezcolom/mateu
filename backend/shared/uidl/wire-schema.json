@@ -94,6 +94,9 @@
         "modalTitle" : {
           "type" : "string"
         },
+        "offline" : {
+          "type" : "string"
+        },
         "restAction" : {
           "$ref" : "#/$defs/RestActionDto"
         },

@@ -542,6 +542,7 @@ export default defineConfig({
 						{ slug: 'native/mateu-app', label: 'Mobile: the Mateu app (any UI on your phone)' },
 						{ slug: 'native/react-native', label: 'Mobile: the React Native renderer' },
 						{ slug: 'native/android-testers', label: 'Mobile: test the Android app' },
+						{ slug: 'native/offline-forms', label: 'Mobile: offline forms (send queue)' },
 						{ slug: 'ux-patterns/mobile-app', label: 'Mobile: Open on mobile (QR)' },
 						{ slug: 'native', label: 'Desktop: IntelliJ (and native overview)' },
 						{ slug: 'native/desktop-app', label: 'Desktop: the Mateu app' },

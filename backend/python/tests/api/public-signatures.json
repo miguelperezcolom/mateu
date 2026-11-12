@@ -3595,6 +3595,12 @@
     "is_empty": "property"
    }
   },
+  "OfflinePolicy": {
+   "enum": [
+    "FAIL",
+    "QUEUE"
+   ]
+  },
   "OnRowSelected": {
    "class": [
     [
@@ -5458,6 +5464,11 @@
     ],
     [
      "confirmation_required",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "offline",
      "KEYWORD_ONLY",
      true
     ]

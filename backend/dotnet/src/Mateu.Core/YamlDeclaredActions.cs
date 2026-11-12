@@ -67,6 +67,7 @@ internal static class YamlDeclaredActions
             Background = Bool(map, "background"),
             Sse = Bool(map, "sse"),
             Idempotent = Bool(map, "idempotent"),
+            Offline = string.Equals(Str(map, "offline"), "queue", StringComparison.OrdinalIgnoreCase) ? "queue" : null,
             TimeoutMillis = int.TryParse(Str(map, "timeoutMillis"), out var t) ? t : 0,
             Shortcut = Blank(Str(map, "shortcut")),
             FieldsToValidate = Blank(Str(map, "fieldsToValidate")),

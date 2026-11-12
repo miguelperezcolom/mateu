@@ -65,6 +65,7 @@ Mateu.Uidl.ActionCatalog method System.Boolean HasNoActions()
 Mateu.Uidl.ActionCatalog property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.CatalogAction> Actions { get;init; }
 Mateu.Uidl.ActionCatalog static readonly field Mateu.Uidl.ActionCatalog Empty
 Mateu.Uidl.ActionOptionsAttribute ctor()
+Mateu.Uidl.ActionOptionsAttribute property Mateu.Uidl.OfflinePolicy Offline { get;init; }
 Mateu.Uidl.ActionOptionsAttribute property System.Boolean Background { get;init; }
 Mateu.Uidl.ActionOptionsAttribute property System.Boolean ConfirmationRequired { get;init; }
 Mateu.Uidl.ActionOptionsAttribute property System.Boolean Idempotent { get;init; }
@@ -1721,6 +1722,8 @@ Mateu.Uidl.OfferCard property System.String PriceLabel { get;init; }
 Mateu.Uidl.OfferCard property System.String Subtitle { get;init; }
 Mateu.Uidl.OfferCard property System.String Tag { get;init; }
 Mateu.Uidl.OfferCard property System.String Title { get;init; }
+Mateu.Uidl.OfflinePolicy enum Fail
+Mateu.Uidl.OfflinePolicy enum Queue
 Mateu.Uidl.OnRowSelectedAttribute ctor(System.String)
 Mateu.Uidl.OnRowSelectedAttribute property System.String Shortcut { get;set; }
 Mateu.Uidl.OnRowSelectedAttribute property System.String Value { get; }

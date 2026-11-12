@@ -372,6 +372,7 @@ Mateu.Uidl.NoticeAttribute
 Mateu.Uidl.Notification
 Mateu.Uidl.NumberRange
 Mateu.Uidl.OfferCard
+Mateu.Uidl.OfflinePolicy
 Mateu.Uidl.OnRowSelectedAttribute
 Mateu.Uidl.Option
 Mateu.Uidl.OptionsLayoutAttribute

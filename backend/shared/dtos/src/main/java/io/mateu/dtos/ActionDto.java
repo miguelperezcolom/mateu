@@ -47,4 +47,9 @@ public record ActionDto(
      * existing {@link UICommandDto} — so the frontend applies them with the command applier it
      * already has. Null/empty for a normal server-dispatched action.
      */
-    List<UICommandDto> commands) {}
+    List<UICommandDto> commands,
+    /**
+     * {@code "queue"} when the native app may keep the action in its offline send queue and send it
+     * later with an {@code Idempotency-Key}; null otherwise (fail while offline).
+     */
+    String offline) {}

@@ -64,3 +64,24 @@ test('a request that never reached the network marks the backend unreachable; an
     restore();
   }
 });
+
+test('a queued write carries its Idempotency-Key, and with one it may be repeated after a 5xx (same key)', async () => {
+  const keys: (string | null)[] = [];
+  let calls = 0;
+  const restore = withFetch(async (_u, init) => {
+    calls++;
+    keys.push(new Headers(init.headers as HeadersInit).get('Idempotency-Key'));
+    return calls < 2 ? new Response('down', { status: 503 }) : new Response('{"fragments":[]}', { status: 200 });
+  });
+  try {
+    const api = new MateuApiClient('http://x', 's');
+    await api.runAction(rq('save', { idempotencyKey: 'key-0001-aaaa' }));
+    assert.deepEqual(keys, ['key-0001-aaaa', 'key-0001-aaaa']);
+    keys.length = 0;
+    calls = 1;
+    await api.runAction(rq('save'));
+    assert.deepEqual(keys, [null], 'no key: no header');
+  } finally {
+    restore();
+  }
+});

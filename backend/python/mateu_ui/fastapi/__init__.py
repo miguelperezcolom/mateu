@@ -30,7 +30,7 @@ from mateu_ui.core.errors import dev_mode_from_env, error_increment, new_correla
 from mateu_ui.core.identity import framework_identity_provider, identity_from_claims, warn_on_startup
 from mateu_ui.core import error_boundary, observability
 from mateu_ui.core.microfrontends import DefaultCorrelationIdProvider
-from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, progress, public_base, pwa, ui_page, version_skew
+from mateu_ui.core import agent_push, dev_specs, documents, idempotency_keys, mobile_manifest, progress, public_base, pwa, ui_page, version_skew
 from mateu_ui.core.naming import humanize
 from mateu_ui.core.mcp import handle_jsonrpc
 from mateu_ui.core.request_context import MateuRequest, bound_request, normalise_headers
@@ -474,8 +474,17 @@ def add_mateu(
         # one span + metrics per request (OpenTelemetry, when installed) and the audit listeners
         observation, token = observe(mateu_request, rq)
         try:
+            # a request carrying an Idempotency-Key (the mobile app's offline send queue) runs
+            # once per caller, action and key: a repeat gets the first answer back
             increment = await run_in_threadpool(
-                run_bound, mateu_request, lambda: handler.handle(rq, mateu_request.base_url)
+                run_bound,
+                mateu_request,
+                lambda: idempotency_keys.once(
+                    idempotency_keys.caller_of(mateu_request.principal),
+                    rq.action_id,
+                    request.headers.get(idempotency_keys.HEADER),
+                    lambda: handler.handle(rq, mateu_request.base_url),
+                ),
             )
         except MateuForbiddenException as refused:
             # A denied action (disabled_unless/audience not satisfied at invocation): 403 with a

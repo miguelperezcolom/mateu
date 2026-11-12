@@ -7,6 +7,8 @@ import { fromExpoDevLink, parseHubLink, type HubLink, type ParseOptions } from '
 import type { UiManifest } from './manifest';
 import type { MateuSession } from '../core/MateuSession';
 import { allowInsecure, appVersion, extraLinkHosts, metaStore, secretStore, uiStore } from './storage';
+import { OfflineQueue } from '../core/offlineQueue';
+import { usePendingCounts } from './outboxCounts';
 import { clearListingPrefs } from '../core/listingPrefs';
 import { ScreenSnapshots } from '../core/screenSnapshots';
 import { bundleKey } from './bundleCache';
@@ -55,6 +57,8 @@ const lookedLikeOurs = (url: string): boolean => /^mateu:/i.test(url) || /\/(add
  */
 export function HubApp() {
   const [entries, setEntries] = useState<HubEntry[] | null>(null);
+  // the changes each UI keeps in its offline send queue (the list's "pending" badge)
+  const pending = usePendingCounts(secretStore, (entries ?? []).map((e) => e.id));
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
   const [sessions, setSessions] = useState<OpenSession[]>([]);
   const [activeId, setActiveId] = useState<string | undefined>();
@@ -216,6 +220,8 @@ export function HubApp() {
     await uiStore.remove(entry.id);
     // what the app kept of it to open it fast goes with it
     void new ScreenSnapshots(metaStore, entry.id).clear();
+    // and so does what it had waiting to be sent: there is no UI left to send it to
+    void OfflineQueue.clear(secretStore, entry.id);
     // …and so do its listings' saved views and column choices
     void clearListingPrefs(metaStore, entry.id);
     if (entry.manifest?.bundle) void fileBundleStore.remove(bundleKey(entry.baseUrl, entry.manifest.bundle));
@@ -243,6 +249,7 @@ export function HubApp() {
           <HomeScreen
             entries={entries}
             openIds={sessions.map((s) => s.id)}
+            pending={pending}
             onOpen={(e) => open(e)}
             onAdd={(mode) => setScreen({ name: 'add', mode })}
             onAddDemo={() => setScreen({ name: 'confirm', baseUrl: DEMO_BASE_URL })}
