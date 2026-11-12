@@ -141,4 +141,15 @@ public @interface Action {
    * cases the framework cannot infer.
    */
   boolean idempotent() default false;
+
+  /**
+   * What the mobile app does when this action cannot reach the server. {@link OfflinePolicy#QUEUE}
+   * keeps it in the app's send queue and sends it when the connection is back — once: the request
+   * carries an {@code Idempotency-Key} the server remembers, so a repeat never runs twice.
+   *
+   * <p>Only for writes that still make sense LATER, possibly after other changes (a stock count, a
+   * delivery note, an inspection report) — not for a booking that may no longer be free.
+   */
+  @Experimental("offline send queue (3.0 GA)")
+  OfflinePolicy offline() default OfflinePolicy.FAIL;
 }

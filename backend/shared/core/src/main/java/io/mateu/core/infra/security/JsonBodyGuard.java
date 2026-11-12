@@ -18,8 +18,10 @@ import java.util.Locale;
  * it — and not only where a framework's JSON binding happens to refuse them (Spring's
  * {@code @RequestBody}). The renderers, the native apps and the MCP sidecar all send JSON already.
  *
- * <p>Out of scope: {@code …/mateu/v3/client-log} (a log line, rate-limited, may arrive as a beacon)
- * and the development endpoints {@code /mateu/dev/**}.
+ * <p>Out of scope: {@code …/mateu/v3/client-log} (a log line, rate-limited, may arrive as a
+ * beacon), the root {@code /mateu/v3/upload} (its body is the file; it refuses any request without
+ * its ticket header, which a cross-site page cannot send without a preflight) and the development
+ * endpoints {@code /mateu/dev/**}.
  */
 public final class JsonBodyGuard {
 
@@ -80,7 +82,11 @@ public final class JsonBodyGuard {
     if (clean.endsWith("/mateu/mcp")) {
       return true;
     }
-    return clean.contains("/mateu/v3/") && !clean.endsWith("/mateu/v3/client-log");
+    // the upload endpoint takes the FILE as its body; it is guarded by its ticket header instead
+    // (a custom header forces a preflight, like a JSON body does) — UploadEndpoint
+    return clean.contains("/mateu/v3/")
+        && !clean.endsWith("/mateu/v3/client-log")
+        && !clean.equals("/mateu/v3/upload");
   }
 
   /**

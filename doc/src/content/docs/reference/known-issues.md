@@ -15,23 +15,6 @@ never a public issue.
 
 ## Deployment
 
-### Under a path prefix: no installable app, and some limits on Redwood and three adapters
-
-A Mateu page follows a servlet context path or a trusted `X-Forwarded-Prefix`: its assets, its API
-calls and the address bar all move under the prefix (see
-[Deploy to production](/deploy/production-checklist/)). What still does not follow it:
-
-- The **installable app** (PWA). Its manifest and service worker name the mount without the
-  prefix, so the browser does not offer to install the app there.
-- **Redwood with a mount that is not the root.** A route the server sends with the mount on it (a
-  crud's `/products/new`) shows the mount twice in the address bar.
-- **Micronaut, Quarkus and Helidon MP read only the proxy's header.** Their own context-path
-  settings (`micronaut.server.context-path`, `quarkus.http.root-path`) are not applied to the page.
-
-**Workaround:** for an installable app or a Redwood app, serve the UI at the root of its host or
-give the mount the public path you want (`@UI("/admin")`). On Micronaut, Quarkus and Helidon MP,
-strip the prefix in the proxy and send `X-Forwarded-Prefix`.
-
 ### Micronaut on JDK 21–23: virtual-thread pinning under load
 
 On JDK 21–23 a virtual thread that blocks inside `synchronized` pins its carrier thread. Micronaut
@@ -61,6 +44,23 @@ unrestricted, so there they decide nothing.
 itself. See [Permissions in YAML](/define/yaml/permissions/).
 
 ## Renderers
+
+### Accessibility gaps against WCAG 2.2 AA
+
+The Redwood renderer still has no keyboard or single-pointer alternative for the planning board and
+drop zones and does not keep the focused control clear of pinned regions; on the web, dropping rows
+on a drop zone without dragging needs row selection on the listing; and the 2026-11 fixes are
+verified by component tests, not with assistive technology. The full list, per renderer, is in the [accessibility conformance report](/quality/accessibility-conformance/#known-gaps-in-one-list).
+
+**Workaround:** most have an author-side mitigation listed there (an action beside a drag-only
+board, no auto-dismissing banners for content users must read).
+
+### Right-to-left languages are not supported
+
+No renderer mirrors its layout for Arabic, Hebrew, Persian or Urdu: nothing sets `dir="rtl"`, and an
+RTL language gets Mateu's own words in English. The chrome speaks English, Spanish, French, German,
+Portuguese and Italian. What it would take is described in
+[Right-to-left languages](/java-user-manual/advanced/i18n/#right-to-left-languages).
 
 ### Redwood: light theme only
 

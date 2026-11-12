@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Mateu.AspNetCore;
 
-public static class MateuExtensions
+public static partial class MateuExtensions
 {
     /// <summary>Mateu's JSON contract: camelCase, case-insensitive, keep nulls, and raw UTF-8 —
     /// no \uXXXX escaping of non-ASCII/HTML characters — to match the Java (Jackson) output
@@ -107,6 +107,9 @@ public static class MateuExtensions
                 // registers as a service writes its format (Java: the ListingExporter beans); CSV
                 // falls back to the built-in writer.
                 Exporters = new Mateu.Core.Export.MateuExporters(sp.GetServices<IListingExporter>()),
+                // Uploads: Mateu ships no storage — every IFileStorage the app registers as a service
+                // receives the files of [FileUpload] fields (none → the data-URI fallback).
+                Uploads = UploadsOf(sp, options, accessor),
                 // Server-side micro frontend resolution (Resolve.Server, content slots): every
                 // collaborator is the app's service when it registers one, Mateu's own otherwise.
                 RequestHeader = name => accessor.HttpContext is { } ctx
@@ -125,6 +128,7 @@ public static class MateuExtensions
                 InboxStore = sp.GetService<IInboxStore>() ?? DefaultInboxStore,
                 PushSender = pushSender,
                 PushTokenStore = sp.GetService<IPushTokenStore>(),
+                PresenceStore = sp.GetService<IPresenceStore>() ?? Presence.DefaultStore,
             };
             // PushNotifications.Send reaches this handler's sender (process lifetime)
             if (pushSender is not null) PushNotifications.Subscribe(handler.DeliverPush);
@@ -198,12 +202,19 @@ public static class MateuExtensions
         {
             // Read INSIDE the boundary: a malformed body is an error toast, never a raw 500.
             var rq = new RunActionRqDto();
+            // one activity + metrics per request (ActivitySource/Meter "Mateu") and the audit listeners
+            using var observation = BeginObservation(ctx);
             var increment = await RunGuarded(ctx, rq, async () =>
             {
                 rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json, ctx.RequestAborted)
                      ?? new RunActionRqDto();
-                return await handler.HandleAsync(rq, prefix, ctx.RequestAborted);
+                // a request carrying an Idempotency-Key (the mobile app's offline send queue)
+                // runs once per caller, action and key: a repeat gets the first answer back
+                return await IdempotencyKeys.OnceAsync(CallerOf(ctx), rq.ActionId,
+                    ctx.Request.Headers[IdempotencyKeys.Header].FirstOrDefault(),
+                    () => handler.HandleAsync(rq, prefix, ctx.RequestAborted));
             });
+            EndObservation(ctx, observation);
             ctx.Response.ContentType = "application/json";
             await JsonSerializer.SerializeAsync(ctx.Response.Body, increment, Json, ctx.RequestAborted);
         }
@@ -266,24 +277,33 @@ public static class MateuExtensions
                 // the reattach grace period (_progress-resume picks it up), then cancels it. Any
                 // other action streams its single increment.
                 var slot = SyncHandler.BeginStream();
-                var increment = await RunGuarded(ctx, rq, () =>
-                    handler.HandleAsync(rq, prefix, ctx.RequestAborted));
-                if (!slot.HasStream)
-                {
-                    await Send(increment, ctx.RequestAborted);
-                    return;
-                }
-                if (increment.Commands.Count > 0 || increment.Messages.Count > 0 || increment.Fragments.Count > 0)
-                    await Send(increment, ctx.RequestAborted);
+                // observed until its LAST answer, like the Java core (a LongTask's steps included)
+                using var observation = BeginObservation(ctx);
                 try
                 {
-                    await foreach (var step in handler.ContinueStream(slot,
-                                       e => ErrorIncrement(ctx, rq, e, out _), ctx.RequestAborted, hot: true))
-                        await Send(step, ctx.RequestAborted);
+                    var increment = await RunGuarded(ctx, rq, () =>
+                        handler.HandleAsync(rq, prefix, ctx.RequestAborted));
+                    if (!slot.HasStream)
+                    {
+                        await Send(increment, ctx.RequestAborted);
+                        return;
+                    }
+                    if (increment.Commands.Count > 0 || increment.Messages.Count > 0 || increment.Fragments.Count > 0)
+                        await Send(increment, ctx.RequestAborted);
+                    try
+                    {
+                        await foreach (var step in handler.ContinueStream(slot,
+                                           e => ErrorIncrement(ctx, rq, e, out _), ctx.RequestAborted, hot: true))
+                            await Send(step, ctx.RequestAborted);
+                    }
+                    catch (OperationCanceledException) when (ctx.RequestAborted.IsCancellationRequested)
+                    {
+                        // the browser went away: a task runs on for the grace period
+                    }
                 }
-                catch (OperationCanceledException) when (ctx.RequestAborted.IsCancellationRequested)
+                finally
                 {
-                    // the browser went away: a task runs on for the grace period
+                    EndObservation(ctx, observation);
                 }
                 return;
             }
@@ -300,8 +320,23 @@ public static class MateuExtensions
                 if (SyncHandler.IsFor(change, caller))
                     queue.Writer.TryWrite(UIIncrementDto.Of(commands: [SyncHandler.NotificationsChangedCommand(change)]));
             });
-            using var heartbeat = new Timer(_ => queue.Writer.TryWrite(UIIncrementDto.Of()), null,
-                LiveUpdatesHeartbeat, LiveUpdatesHeartbeat);
+            // record presence: a change of a record THIS caller has open (any tab) — never another's
+            var presenceScope = Presence.ScopeOf(prefix, rq.ServerSideType);
+            using var presence = string.IsNullOrWhiteSpace(caller)
+                                 || !SyncHandler.PresenceEnabledFor(handler.TypeNamed(rq.ServerSideType))
+                ? null
+                : handler.PresenceStore.OnChange((scope, record) =>
+                {
+                    if (scope != presenceScope || !Presence.IsOn(handler.PresenceStore, scope, record, caller)) return;
+                    queue.Writer.TryWrite(UIIncrementDto.Of(commands:
+                        [Presence.Command(Presence.Snapshot(handler.PresenceStore, scope, record, caller))]));
+                });
+            using var heartbeat = new Timer(_ =>
+            {
+                // a tab that went silent leaves its records, even if nobody else calls
+                Presence.Sweep(handler.PresenceStore);
+                queue.Writer.TryWrite(UIIncrementDto.Of());
+            }, null, LiveUpdatesHeartbeat, LiveUpdatesHeartbeat);
             try
             {
                 await foreach (var increment in queue.Reader.ReadAllAsync(lifetime.Token))
@@ -343,7 +378,10 @@ public static class MateuExtensions
         // and icons. Public — the browser fetches them before anyone logs in, and none carries a secret.
         app.MapGet(prefix + Pwa.Dir + "{file}", async (HttpContext ctx, MateuRegistry registry, string file) =>
         {
-            var asset = Pwa.Asset(file, prefix,
+            // the manifest's scope and the worker's allowed scope are the PUBLIC ones (PublicBase)
+            var publicBase = PublicBase.Of(ctx.Request.PathBase.Value,
+                ctx.RequestServices.GetService<MateuOptions>()?.PublicBasePath);
+            var asset = Pwa.Asset(file, publicBase + prefix,
                 () => MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl),
                     ctx.RequestServices.GetService<SyncHandler>()?.MountShell(baseUrl)),
                 ctx.RequestServices.GetService<MateuOptions>()?.Pwa);
@@ -367,6 +405,9 @@ public static class MateuExtensions
         // MateuOptions.Mcp / MATEU_MCP_ENABLED turns it on, as on Java.
         var options = app.Services.GetService<MateuOptions>();
         if (options?.Mcp ?? MateuOptions.McpEnabledByEnvironment()) MapMcpEndpoint(app, prefix);
+
+        // Uploads (IFileStorage): at the ROOT, whatever the mount, and once per application.
+        MapUploadEndpoints(app);
 
         if (UiPage.ConfiguredRenderer(ui) is { } renderer) ServeUi(app, prefix, baseUrl, renderer);
         else ServeApiHint(app, prefix);
@@ -423,20 +464,22 @@ public static class MateuExtensions
         var versionSkew = app.Services.GetService<VersionSkew>();
         var signIn = SignInOf(app.Services.GetService<MateuOptions>());
         var mobileApp = MobileManifest.AppTypeOf(registry, baseUrl)?.GetCustomAttribute<MobileAppAttribute>();
+        var publicBaseOption = app.Services.GetService<MateuOptions>()?.PublicBasePath;
         // the ways to sign in the web clients offer (<meta name="mateu-auth">), then the PWA's head
-        string PwaHead(string html) => Pwa.Served(SignInProviders.Head(html, signIn, mobileApp), prefix,
+        string PwaHead(string html, string publicBase) => Pwa.Served(SignInProviders.Head(html, signIn, mobileApp), publicBase + prefix,
             MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl),
-                app.Services.GetService<SyncHandler>()?.MountShell(baseUrl)), versionSkew?.BuildId, pwaOption);
+                app.Services.GetService<SyncHandler>()?.MountShell(baseUrl)), versionSkew?.BuildId, pwaOption, publicBase);
         app.Use(async (ctx, next) =>
         {
             await next(ctx);
             if (ctx.Response.StatusCode != StatusCodes.Status404NotFound || ctx.Response.HasStarted) return;
             if (!HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method)) return;
-            // the public prefix (PathBase, or a trusted X-Forwarded-Prefix): the page's URLs go under it
-            var publicPrefix = UiPage.RequestPrefix(ctx.Request.PathBase.Value,
-                ctx.Request.Headers[UiPage.ForwardedPrefixHeader].FirstOrDefault(), prefixTrusted);
+            // under UsePathBase / MateuOptions.PublicBasePath / a trusted X-Forwarded-Prefix
+            // (ForwardedPrefixTrusted) the page is written for the PUBLIC path (PublicBase)
+            var forwarded = prefixTrusted ? ctx.Request.Headers[UiPage.ForwardedPrefixHeader].FirstOrDefault() : null;
+            var publicBase = PublicBase.Of(ctx.Request.PathBase.Value, publicBaseOption ?? forwarded);
             var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug, oracleCdn,
-                html => UiPage.UnderPrefix(PwaHead(html), publicPrefix));
+                html => PwaHead(html, publicBase), publicBase);
             if (answer is null) return;
             var (contentType, body, cacheControl) = answer.Value;
             var path = ctx.Request.Path.Value ?? "/";
@@ -480,7 +523,7 @@ public static class MateuExtensions
     /// or null when the request is not its to answer.</summary>
     internal static (string ContentType, byte[] Body, string? CacheControl)? UiAnswer(
         string path, string? accept, string prefix, RendererFiles renderer, string title, bool debug,
-        string? oracleCdn = null, Func<string, string>? head = null)
+        string? oracleCdn = null, Func<string, string>? head = null, string? publicBase = null)
     {
         // the PWA's files are its endpoint's alone: never a renderer file, never the page
         if (Pwa.IsEndpoint(path)) return null;
@@ -492,7 +535,7 @@ public static class MateuExtensions
         var isMount = path == (prefix.Length == 0 ? "/" : prefix) || path == prefix + "/";
         if (!(isMount || (UiPage.SpaCandidate(path) && UiPage.UnderMount(path, prefix)))) return null;
         if (!UiPage.AcceptsHtml(accept)) return null;
-        var html = UiPage.RenderIndex(renderer.IndexTemplate(), prefix, title, debug, oracleCdn);
+        var html = UiPage.RenderIndex(renderer.IndexTemplate(), prefix, title, debug, oracleCdn, publicBase);
         if (head is not null) html = head(html);
         return ("text/html; charset=utf-8", System.Text.Encoding.UTF8.GetBytes(html), UiPage.RevalidateCacheControl);
     }
@@ -654,6 +697,19 @@ public static class MateuExtensions
         });
     }
 
+    /// <summary>The caller an idempotency key is scoped to: the authenticated name and roles —
+    /// stable across tokens, so signing in again keeps the same scope.</summary>
+    internal static string CallerOf(HttpContext ctx)
+    {
+        // HttpContext.User is never null: an anonymous request carries an unauthenticated principal
+        var user = ctx.User;
+        var roles = user.Claims
+            .Where(c => c.Type is System.Security.Claims.ClaimTypes.Role or "role" or "roles")
+            .Select(c => c.Value).Order(StringComparer.Ordinal);
+        var name = user.Identity is { IsAuthenticated: true } identity ? identity.Name ?? "" : "";
+        return name + "\u0001" + string.Join(",", roles);
+    }
+
     /// <summary>The error boundary of the sync endpoint. A denied request answers 403 with an error
     /// message; any other exception becomes an error-message increment (HTTP 200, like the Java
     /// core) the renderer shows as a toast, instead of a raw 500 it cannot render — with the
@@ -692,6 +748,7 @@ public static class MateuExtensions
         {
             Logger(ctx, "Mateu.Security").LogWarning("Mateu request denied ({Route}, action {ActionId}): {Reason}",
                 rq.Route, rq.ActionId, MateuErrors.Unwrap(e).Message);
+            Mateu.Core.Observability.RequestObservation.Failed(MateuErrors.Unwrap(e), true, false, null);
             throw;
         }
         catch (Exception e)
@@ -710,10 +767,12 @@ public static class MateuExtensions
             // error message increment (403 on the sync endpoint), the method never ran.
             Logger(ctx, "Mateu.Security").LogWarning("Mateu request denied ({Route}, action {ActionId}): {Reason}",
                 rq.Route, rq.ActionId, MateuErrors.Unwrap(e).Message);
+            Mateu.Core.Observability.RequestObservation.Failed(MateuErrors.Unwrap(e), true, false, null);
             return UIIncrementDto.Of(messages: [new MessageDto("error", "middle", "", "Forbidden", 0)]);
         }
         var correlationId = Activity.Current?.TraceId.ToString() ?? ctx.TraceIdentifier;
         var cause = MateuErrors.Unwrap(e);
+        Mateu.Core.Observability.RequestObservation.Failed(cause, false, MateuErrors.IsForTheUser(cause), correlationId);
         var log = Logger(ctx, "Mateu.Errors");
         if (MateuErrors.IsForTheUser(cause))
             log.LogInformation("Action {ActionId} on {Route} answered a user-facing error [{CorrelationId}]: {Message}",
@@ -722,6 +781,49 @@ public static class MateuExtensions
             log.LogError(cause, "Unhandled error in action {ActionId} on {Route} [{CorrelationId}]",
                 rq.ActionId, rq.Route, correlationId);
         return MateuErrors.Increment(cause, correlationId, Detailed(ctx));
+    }
+
+    /// <summary>Begins observing a Mateu request (its activity, metrics and audit event); null when
+    /// one is already observed on this flow.</summary>
+    private static Mateu.Core.Observability.RequestObservation? BeginObservation(HttpContext ctx)
+    {
+        var observation = Mateu.Core.Observability.RequestObservation.Begin();
+        if (observation is not null)
+        {
+            try
+            {
+                var correlation = ctx.RequestServices.GetService<ICorrelationIdProvider>()
+                                  ?? new Mateu.Core.MicroFrontends.DefaultCorrelationIdProvider();
+                observation.CorrelationId = correlation.CorrelationId(new IncomingRequest(
+                    name => ctx.Request.Headers.TryGetValue(name, out var v) ? v.ToString() : null,
+                    traceIdentifier: ctx.TraceIdentifier));
+            }
+            catch (Exception)
+            {
+                // a correlation provider that fails leaves the request without one, never failed
+            }
+        }
+        return observation;
+    }
+
+    /// <summary>Ends the request's observation: the activity, the metrics and every
+    /// <see cref="IActionAuditListener"/> service (a failing one logged once per type).</summary>
+    private static void EndObservation(HttpContext ctx, Mateu.Core.Observability.RequestObservation? observation)
+    {
+        if (observation is null) return;
+        if (ctx.Response.StatusCode == StatusCodes.Status403Forbidden)
+            observation.Outcome = ActionOutcome.Forbidden;
+        var listeners = ctx.RequestServices.GetServices<IActionAuditListener>().ToList();
+        Identity? identity = null;
+        string? principal = null;
+        if (listeners.Count > 0)
+        {
+            principal = PrincipalName(ctx);
+            identity = ctx.RequestServices.GetService<MateuOptions>()?.Identity(ctx) ?? ClaimsIdentityMapper.FromUser(ctx);
+        }
+        observation.End(listeners, principal, identity, (listener, e) =>
+            Logger(ctx, "Mateu.Audit").LogWarning(e,
+                "IActionAuditListener {Listener} failed (logged once; the request went on)", listener.GetType().FullName));
     }
 
     private static bool Detailed(HttpContext ctx) =>

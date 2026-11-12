@@ -3,7 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js'
 import type { AppShortcut } from '@mateu/shared/apiClients/dtos/componentmetadata/AppShellExtras.ts'
 import { FocusTrap, trapFocus } from '@infra/a11y/focusTrap.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
-import { keyLabel, ListedShortcut, screenShortcuts } from '@infra/ui/appShortcuts.ts'
+import { keyLabel, ListedShortcut, screenShortcuts, setSingleKeyShortcuts, singleKeyShortcutsOn } from '@infra/ui/appShortcuts.ts'
 
 /**
  * The "Keyboard shortcuts" overlay (the `?` key): the app-wide shortcuts (`@AppShortcut`, with their
@@ -91,9 +91,15 @@ export class MateuShortcutsHelp extends LitElement {
                             </li>`)}
                     </ul>` : nothing}
                 <ul class="shell">
-                    <li class="static"><span class="label">${chromeText('shortcutsHelpKey')}</span><kbd>?</kbd></li>
+                    <li class="static"><span class="label">${chromeText('shortcutsHelpKey')}</span><kbd>?</kbd> <kbd>Ctrl+/</kbd></li>
                     <li class="static"><span class="label">${chromeText('shortcutsPalette')}</span><kbd>Ctrl+K</kbd></li>
                 </ul>
+                <!-- WCAG 2.1.4: one-key shortcuts can be switched off (speech input says letters) -->
+                <label class="single-keys">
+                    <input type="checkbox" .checked="${singleKeyShortcutsOn()}"
+                           @change="${(e: Event) => { setSingleKeyShortcuts((e.target as HTMLInputElement).checked); this.requestUpdate() }}">
+                    ${chromeText('singleKeyShortcuts')}
+                </label>
             </div>`
     }
 
@@ -106,6 +112,7 @@ export class MateuShortcutsHelp extends LitElement {
             background: var(--lumo-base-color, Canvas); color: var(--lumo-body-text-color, CanvasText);
             box-shadow: var(--lumo-box-shadow-xl, 0 12px 40px rgba(0, 0, 0, 0.3));
         }
+        .single-keys { display: flex; gap: .5rem; align-items: center; margin-top: var(--lumo-space-m, 1rem); cursor: pointer; }
         .head { display: flex; justify-content: space-between; align-items: center; }
         h2 { margin: 0; font-size: var(--lumo-font-size-xl, 1.375rem); }
         h3 { margin: var(--lumo-space-m, 1rem) 0 var(--lumo-space-xs, 0.25rem); font-size: var(--lumo-font-size-s, 0.875rem);

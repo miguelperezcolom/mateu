@@ -60,8 +60,72 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **`Navigable.view(id)` may return a `URI`** (or `URL`): the row then opens that address — an
   editable page declared in `routes.yaml`, another app — instead of failing in
   `FormViewSerializer`.
+### Accessibility
+
+- **The gaps of the WCAG 2.2 conformance report, fixed** (`quality/accessibility-conformance.md`
+  updated to match):
+  - 1.1.1 — charts are named images with a text alternative (a hidden data table on `Chart`, a
+    summary on `TrendChart`; a hidden text next to Redwood's `oj-chart`).
+  - 1.3.5 — `@Autocomplete("given-name")` (.NET `[Autocomplete]`, Python `Autocomplete()`, YAML /
+    fluent `FormField.autocomplete`) travels as `FormFieldDto.autocomplete`; an editable email field
+    infers `email`. Vaadin, Redwood and React Native emit it.
+  - 2.2.1 — toasts stop their clock while hovered, focused or the page is hidden; a toast with Undo or
+    Retry stays at least 10 s (React Native: until dismissed while a screen reader is on).
+  - 3.2.2 — the `@AppContext` picker says beforehand that a change reloads the app and announces it.
+  - 2.1.1 / 2.5.7 — `PlanningBoard` blocks move and resize with the keyboard and with a tool row;
+    a `DropZone` offers "Move the selected rows here" for a `@DragRows` listing's selection (web).
+  - 2.4.11 — a keyboard-focused control is scrolled clear of the pinned header, sticky sections and
+    floating buttons (web).
+  - 2.1.4 — one-key shortcuts (`?`, bare-letter shortcuts) can be switched off from the shortcuts
+    list; Ctrl+/ always opens it.
+  - 2.2.2 — an autoplaying `Carousel` has a pause/play button and starts stopped under reduced motion.
+  - The axe gate (`accessibility.spec.ts`, `a11y-audit.mjs`) now includes `wcag22aa`.
+### Added
+
+- **Offline forms on the phone (experimental).** An action declared `@Action(offline = QUEUE)`
+  (fluent `Action.offline`, YAML `offline: QUEUE`, C# `[ActionOptions(Offline = OfflinePolicy.Queue)]`,
+  Python `@action_options(offline=OfflinePolicy.QUEUE)`) travels as `ActionDto.offline: "queue"`; when
+  it fails offline or by timeout, the Mateu app keeps it in a per-UI send queue (keychain/keystore,
+  never tokens), shows it as pending (screen strip + hub list badge, view/cancel/retry) and sends it
+  in order, one at a time, when the connection is back, stopping at a refusal. Every attempt carries
+  an `Idempotency-Key`, and the Java, .NET and Python servers run a keyed request once per caller,
+  action and key (a repeat gets the first answer; failures are forgotten; in memory, 2000 entries /
+  24 h). Docs: `native/offline-forms`.
+- **Observability: an OpenTelemetry span and metrics per Mateu request, and an audit hook.** Every
+  sync/sse request is a span (`mateu <action> <route template>`: route, template, action, view,
+  outcome, correlation id) with child spans for proxied REST calls and server-resolved micro
+  frontends, plus the `mateu.request.duration` histogram and `mateu.request.errors` counter — kept
+  low-cardinality (route templates, refused/not-found requests under `_other`, a series cap). Java
+  uses the OpenTelemetry API as an OPTIONAL dependency detected at runtime (no SDK, no exporter; a
+  no-op without it; `mateu.telemetry.enabled=false` switches it off), .NET an `ActivitySource` /
+  `Meter` named `Mateu`, Python an optional `opentelemetry-api` import (`mateu-ui[otel]`). The audit
+  hook (`ActionAuditListener` / `IActionAuditListener` / `add_mateu(audit_listeners=…)`,
+  `@Experimental`) hears who did what, on which records, when and how it ended — never field values;
+  a failing listener is logged once and never fails the request. Guide: `deploy/observability`.
+- **A gallery of templates to start a new project from.** The project generator (IntelliJ **New
+  Project › Mateu**, VS Code **Mateu: New Project…**, the `mateu-archetype` and
+  `scripts/new-project.mjs`) now asks for a template: *Back office: Product CRUD* (the default),
+  *Dashboard + listings* (KPIs and charts, an Orders listing), *Wizard-driven intake* (a branching
+  wizard with a review step and a listing of what was submitted), *Operations: board + calendar* (a
+  kanban board moved on the server and a calendar page) and *Home only* for code; *Home + Product
+  listing* and *Star Wars over a public REST API* for the YAML flavours. Each is an overlay of
+  `starters/generator` over the starters, offered on every Java runtime; the archetype takes
+  `-Dtemplate=` (`-Dsample=` keeps working).
 
 ### Security
+
+- **Build provenance for everything a release distributes.** A new `provenance` job in the release
+  workflow signs a SLSA provenance attestation (Sigstore, `actions/attest-build-provenance`) for the
+  jars sent to Maven Central, the PyPI sdist and wheel, the `.nupkg` files, the IntelliJ and VS Code
+  plugin packages and every GitHub release asset (desktop installers, APK, Redwood embedded
+  component, SBOMs), and attaches a `SHA256SUMS` to the release: `gh attestation verify <file> --repo
+  miguelperezcolom/mateu`. It only downloads and attests; it is the one job with
+  `attestations: write`, and `id-token: write` stays in it and the PyPI/NuGet publish jobs
+  (`scripts/release-gates.test.mjs` pins both). PyPI trusted publishing uploads PEP 740 attestations
+  explicitly. A Developer ID macOS build now fails the release when its signature, hardened runtime,
+  stapled notarization ticket or Gatekeeper assessment does not check out, and notarization also
+  requires `MACOS_NOTARY_TEAM_ID`. New page
+  [Verify what you download](https://mateu.io/reference/verify-downloads/).
 
 - **A route seed of a YAML field hidden from the caller no longer travels to them.** The `state:` /
   `defaultParams:` / `fixedParams:` seeds of a definition-only page were applied after the access
@@ -127,6 +191,58 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Phone builds need your FCM `google-services.json` (`GOOGLE_SERVICES_JSON`) and an APNs key
   (`MATEU_IOS_PUSH=true`); the "Push notifications to phones" deploy guide has the steps.
 
+### Added
+
+- **A test harness to test your UIs without a browser** (experimental): open a route, read the
+  fields, buttons, listing rows, messages and commands, type, press, search, open or select rows,
+  follow the menu and navigation, as a user with roles for the access rules — in milliseconds, with no
+  server. Java: the new `io.mateu:mateu-test` (in `mateu-bom`; `MateuTest.builder().scan(pkg)` /
+  `.ui(…)` / `.bean(…)` / `.specs(dir)`, no Spring needed); C#: `Mateu.AspNetCore.Testing.MateuTest`;
+  Python: `mateu_ui.testing.MateuTest`. The Spring MVC starter (and the projects generated from it)
+  ships a `ProductsUiTest`. Guide: [Testing your UIs](https://mateu.io/quality/testing-your-uis/).
+
+- **Mateu's own words in French, German, Portuguese and Italian.** Everything Mateu draws by itself —
+  buttons, the filter bar, pagination, dialogs, errors, the connectivity banner, accessible labels,
+  task ETAs, the version notice — now speaks fr, de, pt and it besides English and Spanish: the web
+  client, Redwood, the React Native app, the IntelliJ plugin and Java's built-in labels (a crud's
+  *New* / *Save* / *Cancel*…, the not-found page). The language is the tag's primary subtag (`pt-BR` and
+  `pt-PT` → Portuguese, written the Brazilian way; `de-AT` → German), English for any other. Every
+  catalogue has a completeness test (keys and placeholders); the ETA corpus covers the six languages.
+  Right-to-left languages are not supported — what it would take is documented in the i18n guide.
+
+- **Record presence — "Ana is editing this record"** (`@Experimental`). `@App(presence = true)`
+  (YAML `presence: true`, .NET `[App(Presence = true)]`, Python `@app(presence=True)`): on a record
+  page each signed-in user sees who else has the same record open and who is EDITING it (unsaved
+  changes), on a warning tone, so two people do not overwrite each other. A record is its route plus
+  the view class; anonymous callers take no part; a closed tab disappears within 30 s. It rides the
+  app event stream (one per browser) and the app-level `_presence` action; kept in memory per
+  process unless the app registers a `PresenceStore` (`IPresenceStore`, `add_mateu(presence_store=…)`).
+  Rendered by Vaadin, React Native and the IntelliJ plugin. Docs: `ux-patterns/record-presence`.
+
+- **An app can run under a path prefix.** A servlet context path (`server.servlet.context-path`,
+  `spring.webflux.base-path`, `quarkus.http.root-path`, `micronaut.server.context-path`; ASP.NET
+  `UsePathBase`; an ASGI `root_path`) or a reverse proxy that serves the app at `/crm/` and strips the
+  prefix (`mateu.public-base-path=/crm`, or `mateu.trust-forwarded-prefix=true` to read the proxy's
+  `X-Forwarded-Prefix`) used to give a blank screen: the page loaded `/assets/…` from the root of
+  the host. The served page is now written for the public path — assets, `<mateu-ui baseUrl>`, the
+  installable app's links and scope — and the Vaadin and Redwood renderers put the root-relative
+  paths the server names (a `NavigateTo`, a sibling mount, a REST source of the app) under it. Java
+  (all five adapters), .NET and Python. The Vaadin bundle's lazy chunks now preload relative to
+  their importer. Guide: [Serving the app under a path prefix](https://mateu.io/deploy/under-a-path-prefix/).
+
+- **Large file uploads through a storage port (experimental).** Register a `FileStorage` (Java bean;
+  .NET `IFileStorage` service; Python `FileStorage` via `add_mateu(file_storages=…)`) and every
+  editable `@FileUpload` field uploads its file to `POST /mateu/v3/upload` — streamed into your
+  store, or straight to a pre-signed target your store issues — with a progress bar, Cancel and
+  several files (`List<String>` / `multiple`). Limits (`maxBytes`, `accept`) are enforced by the
+  server; the field's value becomes a `mateu-file:<id>?name=…` reference (`StoredFile.parse`),
+  never the bytes. Each field carries a signed, caller-bound ticket (`mateu.uploads.secret` /
+  `MATEU_UPLOADS_SECRET` — set it when you run several instances). Mateu ships no storage
+  provider. Without one a field keeps the data-URI value and now refuses a file over `maxBytes`
+  (10 MB when undeclared). Every Java adapter, .NET and Python; web, React Native and IntelliJ
+  upload, Redwood shows stored references but still stores a data URI when a file is picked. Guide:
+  *Large file uploads*; demo `demo-admin-panel` `/file-uploads-demo`.
+
 ### Changed
 
 - **.NET packages target `net10.0` only.** .NET 8 left Microsoft support on 10 November 2026, so
@@ -179,14 +295,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   nothing; it is now the renderer's dropdown, and the header's «⋯» overflow lists its buttons. The
   desktop's native toolbar dropped a group altogether; it now lists its buttons.
 
-- **Multi-value fields read `optionsSource`.** `multiSelect`, `listBox`, checkbox groups, multi-select
-  `combobox` and `choice` fields take their options from a REST source like a select does (by `ref`
-  or inline, direct or proxied), on Vaadin, React Native and IntelliJ; the picks are written back as
+- **Multi-value fields read `optionsSource`.** `multiSelect`, `listBox`, checkbox groups, tree selects,
+  multi-select `combobox` and `choice` fields take their options from a REST source like a select does (by `ref`
+  or inline, direct or proxied), on Vaadin, Redwood, React Native and IntelliJ; the picks are written back as
   the options' own values (numeric ids stay numbers). On IntelliJ a multi-select combobox with inline
   options is a checkbox group instead of a single pick.
 - **IntelliJ and the desktop app draw SVG images** (`Image`, hero backgrounds, card and menu-card
   media, image fields), rasterised with the bundled JSVG library (MIT), instead of showing the alt
-  text.
+  text; avatars paint their `image` (any format) in the circle, not only the initials.
 - **Desktop app branding on every platform:** the launchers start without IntelliJ IDEA's splash
   screen, and Help ▸ About names the app and its Mateu release. The Linux and Windows installers are
   built on CI only, so this is first verified by the next release's installers.
@@ -354,6 +470,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   limitation), and the route index is built under a lock instead of a monitor.
 
 ### Documentation
+
+- **Accessibility conformance report** ([quality/accessibility-conformance](https://mateu.io/quality/accessibility-conformance/)):
+  WCAG 2.2 Level A and AA, criterion by criterion, for the Vaadin, Redwood, React Native and desktop
+  renderers, in the structure of the ITI VPAT 2.5 (WCAG edition), with the evidence behind each
+  claim and the known gaps (web charts without a text alternative, no `autocomplete` purposes,
+  short-lived toasts, drag-only planning board and drop zones, focus hidden by pinned regions).
 
 - The [feature parity matrix](https://mateu.io/reference/parity/) and
   [known issues](https://mateu.io/reference/known-issues/) follow the Explorer review: the ports'

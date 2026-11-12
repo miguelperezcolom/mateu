@@ -23,7 +23,7 @@ import java.time.Duration
  * new token) and retried a single time.
  */
 class MateuApiClient(
-    private val baseUrl: String,
+    val baseUrl: String,
     private val sessionId: String,
     private val mapper: ObjectMapper = ObjectMapper(),
     /** Credentials: a Bearer token is sent on every Mateu call when the provider has one. */

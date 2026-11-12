@@ -196,6 +196,9 @@
         },
         "description" : {
           "type" : "string"
+        },
+        "offline" : {
+          "$ref" : "#/$defs/OfflinePolicy"
         }
       }
     },
@@ -715,6 +718,9 @@
         },
         "ai" : {
           "$ref" : "#/$defs/AppAiChat"
+        },
+        "presence" : {
+          "type" : "boolean"
         },
         "note" : {
           "type" : "string",
@@ -4225,6 +4231,9 @@
         "link" : {
           "$ref" : "#/$defs/NavLink"
         },
+        "autocomplete" : {
+          "type" : "string"
+        },
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
@@ -6860,6 +6869,10 @@
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
+    },
+    "OfflinePolicy" : {
+      "type" : "string",
+      "enum" : [ "FAIL", "QUEUE" ]
     },
     "OnCustomEventTrigger" : {
       "description" : "Runs an action when a named custom event is dispatched by another component or the page.",

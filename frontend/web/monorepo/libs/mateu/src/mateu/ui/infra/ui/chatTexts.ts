@@ -1,4 +1,4 @@
-import { chromeLanguage, chromeText, type ChromeTextKey } from './chromeTexts'
+import { chromeLanguage, chromeText, type ChromeLanguage, type ChromeTextKey } from './chromeTexts'
 
 /**
  * The chat panel's own words — a view onto the ONE chrome catalogue (chromeTexts.ts), in the page's
@@ -28,6 +28,6 @@ const KEYS = {
 
 export type ChatTextKey = keyof typeof KEYS
 
-export const chatLanguage = (explicit?: string): 'es' | 'en' => chromeLanguage(explicit)
+export const chatLanguage = (explicit?: string): ChromeLanguage => chromeLanguage(explicit)
 
 export const chatText = (key: ChatTextKey, lang?: string): string => chromeText(KEYS[key], lang)

@@ -20,6 +20,8 @@ import { plainText } from './navTree'
 import { isBackButton, isNavButton } from './toolbarButtonKinds'
 import { leaveToRoute, navigateToRoute } from './rowRoute'
 import { peerRouteLeavesApp } from './peerNavigation'
+import '@infra/presence/mateu-presence-chip.ts'
+import { presenceEnabled } from '@infra/presence/presence.ts'
 import { shellTrail, pathOfPage, Crumb, navigateLikeMenu, onShellMenuChange } from './breadcrumbTrail'
 import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
@@ -386,6 +388,24 @@ export class MateuContentHeader extends LitElement {
 
     // Previous/next peer-object arrows (the Redwood "next/previous object" header element).
     // Navigates like a breadcrumb link; a missing route disables that side.
+    /**
+     * The record-presence chip (`@App(presence)`) of a page's MAIN header — never a listing's
+     * (mateu-table-crud draws its own header) nor an embedded one. Its view is the class of the
+     * enclosing mateu-component; a page that confirms leaving with unsaved changes edits.
+     */
+    private renderPresence(level: number) {
+        if (level !== 0 || !presenceEnabled()) return nothing
+        const root = this.getRootNode() as ShadowRoot
+        if ((root?.host as HTMLElement | undefined)?.localName === 'mateu-table-crud') return nothing
+        let node: Node | null = this
+        while (node && (node as Element).localName !== 'mateu-component') {
+            node = node.parentNode instanceof ShadowRoot ? node.parentNode.host : node.parentNode
+        }
+        const component = (node as unknown as { component?: { serverSideType?: string, confirmOnNavigationIfDirty?: boolean } } | null)?.component
+        return html`<mateu-presence-chip .view="${component?.serverSideType ?? ''}"
+            ?edits="${!!component?.confirmOnNavigationIfDirty}"></mateu-presence-chip>`
+    }
+
     renderPeerNav = (declared: NonNullable<Form['peerNav']>) => {
         // a route may be a template (a YAML page's `nextRoute: customers/${state.nextId}`): resolved
         // here, so a design-system hook gets the routes it navigates to
@@ -570,6 +590,7 @@ export class MateuContentHeader extends LitElement {
 
                         ${metadata?.subtitle ? html`<span style="display: inline-block; margin-block-end: 0.83em;">${safeHtml(possiblyHtml(metadata?.subtitle, this.state ?? {}, this.data ?? {}))}</span>` : nothing}
                         ${metadata?.timestamp ? html`<span class="page-timestamp" style="display: block; color: var(--lumo-secondary-text-color, #6b7280); font-size: var(--lumo-font-size-s, .875rem);">${this.factText(metadata.timestamp)}</span>` : nothing}
+                        ${this.renderPresence(level)}
                     </div>
                     <div style="display: flex; gap: var(--lumo-space-m, 1rem); align-items: center;">
                         ${!(metadata as any).kpisBelow ? metadata?.kpis?.map((kpi) => html`

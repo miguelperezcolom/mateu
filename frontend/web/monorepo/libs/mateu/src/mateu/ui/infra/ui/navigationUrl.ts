@@ -66,23 +66,28 @@ export const isScreenChange = (
  * listing's filters. It used to take the relative branch, where both `baseUrl` and `pathPrefix`
  * carry the mount path, and the address bar became `/books/books?genre=NOVEL`: the rows were right,
  * but the next reload asked for a route that does not exist.
- *
- * <p>`contextPath` is the public prefix the page is served under (a servlet context path, a
- * proxy's `X-Forwarded-Prefix` — the server stamps it on `<mateu-ui contextPath>`): an absolute
- * route is resolved below it. `baseUrl` already carries it; `pathPrefix` (the mount, as the server
- * names its routes) does not.
  */
 export const routeTargetUrl = (
     rawRoute: string | undefined,
     baseUrlAttr: string | undefined,
     pathPrefix: string | undefined,
     origin: string,
-    contextPath?: string,
+    publicBase: string = '',
 ): URL => {
     let route = rawRoute ?? ''
+    // Under a public base (`/crm`: a context path, a prefix-stripping proxy) the page's pathPrefix
+    // carries it (`/crm/products`) but the server spells a crud's inner route with its mount only
+    // (`/products/new`): that spelling is the mount too, so it is put under the base and stripped
+    // like the plain one below (it used to become `/crm/products/products/new`).
+    if (publicBase && pathPrefix && pathPrefix.startsWith(publicBase + '/') && route.startsWith('/')) {
+        const mount = pathPrefix.substring(publicBase.length)
+        if (route === mount || route.startsWith(mount + '/') || route.startsWith(mount + '?')) {
+            route = publicBase + route
+        }
+    }
     let baseUrl = baseUrlAttr ?? ''
     if (!route || route.startsWith('/') || route.startsWith('?') || route.startsWith('#')) {
-        baseUrl = origin + (contextPath ?? '') + (pathPrefix ?? '')
+        baseUrl = origin + (pathPrefix ?? '')
     } else {
         // a relative route is a segment BELOW the base: joined with a slash. Concatenated as it
         // was, a mount-relative RouteLink `second` on the YAML mount /yaml-mount pushed

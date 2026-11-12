@@ -9,6 +9,8 @@
  * it: the store belongs to the session, not to a view. See design/progress-and-notifications.md.
  */
 
+import { chromeLanguageOf, type ChromeLanguage } from './chromeLanguage.ts';
+
 export type TaskState = 'running' | 'done' | 'failed' | 'cancelled';
 
 /** An action of a finished task ("Open report"): `route` navigates, else `actionId` runs. */
@@ -95,18 +97,22 @@ export function progressOf(data: unknown): Progress | null {
   };
 }
 
-const ETA_TEXTS = {
+const ETA_TEXTS: Record<ChromeLanguage, { underMinute: string; minutes: string; hours: string }> = {
   en: { underMinute: 'less than a minute left', minutes: 'about {n} min left', hours: 'about {n} h left' },
   es: { underMinute: 'menos de un minuto', minutes: 'unos {n} min restantes', hours: 'unas {n} h restantes' },
+  fr: { underMinute: "moins d'une minute restante", minutes: 'environ {n} min restantes', hours: 'environ {n} h restantes' },
+  de: { underMinute: 'noch weniger als eine Minute', minutes: 'noch etwa {n} Min.', hours: 'noch etwa {n} Std.' },
+  pt: { underMinute: 'menos de um minuto', minutes: 'cerca de {n} min restantes', hours: 'cerca de {n} h restantes' },
+  it: { underMinute: 'meno di un minuto', minutes: 'circa {n} min rimanenti', hours: 'circa {n} h rimanenti' },
 };
 
 /**
  * Pure: how a running task's ETA (the server's `etaSeconds`) reads — "about 2 min left" — or '' when
- * there is none (never a guess). Corpus conformance/client/eta-format.json (en/es by the UI locale).
+ * there is none (never a guess). Corpus conformance/client/eta-format.json (in the UI locale's language, chromeLanguage.ts).
  */
 export function etaText(etaSeconds: number | null | undefined, locale: string | null | undefined): string {
   if (typeof etaSeconds !== 'number' || !Number.isFinite(etaSeconds) || etaSeconds <= 0) return '';
-  const texts = (locale ?? '').toLowerCase().startsWith('es') ? ETA_TEXTS.es : ETA_TEXTS.en;
+  const texts = ETA_TEXTS[chromeLanguageOf(locale)];
   if (etaSeconds < 60) return texts.underMinute;
   // round half up (Math.round), like every renderer of the corpus
   const minutes = Math.max(1, Math.round(etaSeconds / 60));

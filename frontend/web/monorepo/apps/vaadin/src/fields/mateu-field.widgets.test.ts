@@ -297,6 +297,16 @@ describe('mateu-field: text-like widgets', () => {
         expect((root.querySelector('mateu-file-upload') as any).accept).toBe('.pdf')
     })
 
+    it('an upload field hands its ticket attributes over, and a multiple one (a list) is the same widget', async () => {
+        const attributes = [{ key: 'uploadUrl', value: '/mateu/v3/upload' }, { key: 'uploadTicket', value: 'T' },
+            { key: 'multiple', value: 'true' }]
+        const { root } = await mount({ dataType: 'array', stereotype: 'fileUpload', attributes }, { f: ['mateu-file:a?name=a.pdf'] })
+        const upload = root.querySelector('mateu-file-upload') as any
+        expect(upload).not.toBeNull()
+        expect(upload.fieldAttributes).toEqual(attributes)
+        expect(upload.value).toEqual(['mateu-file:a?name=a.pdf'])
+    })
+
     it('a color field: the picker writes the chosen color, read-only shows a swatch', async () => {
         const { root, changes } = await mount({ stereotype: 'color' }, { f: '#ff0000' })
         const input = root.querySelector('input[type="color"]') as HTMLInputElement

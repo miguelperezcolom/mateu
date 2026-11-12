@@ -177,7 +177,13 @@ public record AppDto(
      * registers its push token with the reserved {@code _push-register} action, so a notification
      * reaches the phone while the app is suspended or closed. False otherwise.
      */
-    boolean pushNotifications)
+    boolean pushNotifications,
+    /**
+     * {@code @App(presence = true)}: record pages tell who else has the same record open and who is
+     * editing it (the {@code _presence} app-level action + {@code PresenceChanged} commands on the
+     * app event stream). False otherwise.
+     */
+    boolean presence)
     implements ComponentMetadataDto {
 
   public AppDto {

@@ -17,6 +17,7 @@
  * Mirrored by the IntelliJ/desktop plugin (`hub/SignInProviders.kt`); both run the corpus
  * `conformance/client/sign-in-flow-native.json`.
  */
+import type { ChromeLanguage } from './chromeLanguage.ts';
 import { oidcConfigFrom, parseStoredTokens, tokensBelongTo, type OidcConfig, type StoredTokens } from './oidcConfig.ts';
 import type { KeyValueStore } from './sessionId.ts';
 
@@ -189,28 +190,72 @@ export interface SignInTexts {
   noPassword: string;
 }
 
-export function signInTexts(lang: 'en' | 'es'): SignInTexts {
-  return lang === 'es'
-    ? {
-        title: (n) => `Inicia sesión en ${n}`,
-        intro: 'Elige cómo quieres iniciar sesión.',
-        single: (p) => `Inicias sesión con ${p}.`,
-        continueWith: (p) => `Continuar con ${p}`,
-        lastUsed: 'Usado la última vez',
-        signIn: 'Iniciar sesión',
-        cancelled: 'Se canceló el inicio de sesión.',
-        noPassword: 'Mateu nunca ve tu contraseña.',
-      }
-    : {
-        title: (n) => `Sign in to ${n}`,
-        intro: 'Choose how to sign in.',
-        single: (p) => `You sign in with ${p}.`,
-        continueWith: (p) => `Continue with ${p}`,
-        lastUsed: 'Last used',
-        signIn: 'Sign in',
-        cancelled: 'Sign-in was cancelled.',
-        noPassword: 'Mateu never sees your password.',
-      };
+const SIGN_IN_TEXTS: Record<ChromeLanguage, SignInTexts> = {
+  en: {
+    title: (n) => `Sign in to ${n}`,
+    intro: 'Choose how to sign in.',
+    single: (p) => `You sign in with ${p}.`,
+    continueWith: (p) => `Continue with ${p}`,
+    lastUsed: 'Last used',
+    signIn: 'Sign in',
+    cancelled: 'Sign-in was cancelled.',
+    noPassword: 'Mateu never sees your password.',
+  },
+  es: {
+    title: (n) => `Inicia sesión en ${n}`,
+    intro: 'Elige cómo quieres iniciar sesión.',
+    single: (p) => `Inicias sesión con ${p}.`,
+    continueWith: (p) => `Continuar con ${p}`,
+    lastUsed: 'Usado la última vez',
+    signIn: 'Iniciar sesión',
+    cancelled: 'Se canceló el inicio de sesión.',
+    noPassword: 'Mateu nunca ve tu contraseña.',
+  },
+  fr: {
+    title: (n) => `Se connecter à ${n}`,
+    intro: 'Choisissez comment vous connecter.',
+    single: (p) => `Vous vous connectez avec ${p}.`,
+    continueWith: (p) => `Continuer avec ${p}`,
+    lastUsed: 'Utilisé la dernière fois',
+    signIn: 'Se connecter',
+    cancelled: 'La connexion a été annulée.',
+    noPassword: 'Mateu ne voit jamais votre mot de passe.',
+  },
+  de: {
+    title: (n) => `Bei ${n} anmelden`,
+    intro: 'Wählen Sie, wie Sie sich anmelden möchten.',
+    single: (p) => `Sie melden sich mit ${p} an.`,
+    continueWith: (p) => `Weiter mit ${p}`,
+    lastUsed: 'Zuletzt verwendet',
+    signIn: 'Anmelden',
+    cancelled: 'Die Anmeldung wurde abgebrochen.',
+    noPassword: 'Mateu sieht Ihr Passwort nie.',
+  },
+  pt: {
+    title: (n) => `Iniciar sessão em ${n}`,
+    intro: 'Escolha como pretende iniciar sessão.',
+    single: (p) => `Inicia sessão com ${p}.`,
+    continueWith: (p) => `Continuar com ${p}`,
+    lastUsed: 'Usado da última vez',
+    signIn: 'Iniciar sessão',
+    cancelled: 'O início de sessão foi cancelado.',
+    noPassword: 'O Mateu nunca vê a sua palavra-passe.',
+  },
+  it: {
+    title: (n) => `Accedi a ${n}`,
+    intro: 'Scegli come vuoi accedere.',
+    single: (p) => `Accedi con ${p}.`,
+    continueWith: (p) => `Continua con ${p}`,
+    lastUsed: 'Usato l\'ultima volta',
+    signIn: 'Accedi',
+    cancelled: 'Accesso annullato.',
+    noPassword: 'Mateu non vede mai la tua password.',
+  },
+};
+
+/** The sign-in chooser's own words, in the app's language (core/chromeLanguage.ts). */
+export function signInTexts(lang: ChromeLanguage): SignInTexts {
+  return SIGN_IN_TEXTS[lang] ?? SIGN_IN_TEXTS.en;
 }
 
 /** What a provider is called on screen: its label, else the identity provider's host. */

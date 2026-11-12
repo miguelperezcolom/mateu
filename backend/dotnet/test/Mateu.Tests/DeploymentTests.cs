@@ -101,25 +101,6 @@ public class DeploymentTests
     }
 
     [Fact]
-    public void Under_prefix_rewrites_the_page_like_java()
-    {
-        var html = "<html><head><base href=\"/\"><script src=\"/assets/a.js\"></script>"
-                   + "<link rel='stylesheet' href='/assets/a.css'><link href=\"//cdn.example/x.css\">"
-                   + "<script>window.vbInitConfig = { BASE_URL: '/_redwood/' };</script>"
-                   + "<meta name=\"mateu-dev\" content=\"/mateu/dev/events\"></head><body>"
-                   + "<mateu-ui baseUrl=\"/shop\" pathPrefix=\"/shop\"></mateu-ui></body></html>";
-        var output = UiPage.UnderPrefix(html, "/ctx");
-        Assert.Contains("<base href=\"/ctx/\">", output);
-        Assert.Contains("src=\"/ctx/assets/a.js\"", output);
-        Assert.Contains("href='/ctx/assets/a.css'", output);
-        Assert.Contains("href=\"//cdn.example/x.css\"", output);
-        Assert.Contains("BASE_URL: '/ctx/_redwood/'", output);
-        Assert.Contains("content=\"/ctx/mateu/dev/events\"", output);
-        Assert.Contains("<mateu-ui baseUrl=\"/ctx/shop\" contextPath=\"/ctx\" pathPrefix=\"/shop\">", output);
-        Assert.Equal(html, UiPage.UnderPrefix(html, ""));
-    }
-
-    [Fact]
     public async Task The_x_forwarded_prefix_is_ignored_unless_trusted()
     {
         if (!RendererCheckedOut) return;
@@ -143,7 +124,7 @@ public class DeploymentTests
         var page = await (await http.SendAsync(rq)).Content.ReadAsStringAsync();
         Assert.Contains("src=\"/admin/assets/", page);
         Assert.Contains("baseUrl=\"/admin\"", page);
-        Assert.Contains("contextPath=\"/admin\"", page);
+        Assert.Contains("publicBase=\"/admin\"", page);
         // the proxy strips the prefix: the assets keep being served where they always were
         Assert.Equal(HttpStatusCode.OK, (await http.GetAsync("/assets/mateu-vaadin.js")).StatusCode);
     }
@@ -157,7 +138,7 @@ public class DeploymentTests
         var page = await (await http.GetAsync("/console/")).Content.ReadAsStringAsync();
         Assert.Contains("src=\"/console/assets/", page);
         Assert.Contains("baseUrl=\"/console\"", page);
-        Assert.Contains("contextPath=\"/console\"", page);
+        Assert.Contains("publicBase=\"/console\"", page);
         Assert.Equal(HttpStatusCode.OK, (await http.GetAsync("/console/assets/mateu-vaadin.js")).StatusCode);
     }
 }

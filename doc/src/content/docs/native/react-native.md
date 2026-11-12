@@ -189,6 +189,16 @@ app with `@App(osNotifications = true)` also offers "Notify me on this device", 
 notification permission only from that tap. Those notifications are local, so a suspended or closed
 app posts none: see [what reaches the device](/ux-patterns/notification-inbox/#on-a-phone-what-reaches-the-device-while-the-app-is-away).
 
+### Push notifications
+
+A UI whose server sends pushes (`@App(osNotifications = true)` and a `PushSender`, or Mateu's Expo
+sender — wire `AppDto.pushNotifications`) gets them on the phone: once the user allows
+notifications, the app registers its **Expo push token** with that UI (`_push-register`) and
+unregisters it on sign-out, when the UI is removed from the hub or when the permission is revoked
+(`_push-unregister`). A tap opens that UI at the route the push names. The set-up (FCM and APNs
+credentials, the token store, the .NET and Python options) is in
+[Push notifications to phones](/deploy/push-notifications/).
+
 ## 5. Look and theming
 
 The app is drawn with **Material Design 3** through [React Native Paper](https://callstack.github.io/react-native-paper/)
@@ -242,6 +252,8 @@ that needs another brand changes the tokens there.
 
 The phone layouts that differ from the web on purpose (a drawer as a bottom sheet, the `@Toc` as
 chips…) are listed in [React Native: phone layouts](/reference/parity/#react-native-phone-layouts).
+Writes made without connection can wait in a send queue and go out when the connection is back,
+for the actions that declare it — see [Offline forms on the phone](/native/offline-forms/).
 
 ## 6. Compatibility
 

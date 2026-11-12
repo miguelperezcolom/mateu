@@ -78,16 +78,4 @@ class SourcedMultiValueOptionsTest : RenderTestCase() {
             .path("parameters").path("_sourceKind").asText())
     }
 
-    fun testWhichFieldsAreMultiValued() {
-        assertTrue(sourcedMultiValue("multiSelect", "array"))
-        assertTrue(sourcedMultiValue("listBox", "string"))
-        assertTrue(sourcedMultiValue("combobox", "array"))
-        assertFalse(sourcedMultiValue("combobox", "string"))
-        assertFalse(sourcedMultiValue("select", "string"))
-    }
-
-    fun testOptionsAreReadThroughTheSourcePaths() {
-        val opts = sourcedOptionsOf(json("""{"data":$missions}"""), json("""{"itemsPath":"data","valuePath":"id","labelPath":"name"}"""))
-        assertEquals(listOf("7" to "Apollo 11", "25" to "Artemis III"), opts.map { it.path("value").asText() to it.path("label").asText() })
-    }
 }

@@ -246,13 +246,13 @@
         "column" : 1
       }, {
         "code" : "unknown_property",
-        "message" : "Unknown key \"fooBar\" (ignored). Known keys here: type, id, label, dataType, stereotype, readOnly, required, autofocus, placeholder, description, options, remoteCoordinates, optionsSource, initialValue, style, cssClasses, columns, inlineEditing, onItemSelectionActionId, rowSelectionShortcut, colspan, formPosition, formStyle, formTheme, formColumns, sliderMin, sliderMax, stepButtonsVisible, step, min, max, itemIdPath, attributes, detailPath, useButtonForDetail, minHeightWhenDetailVisible, optionsColumns, mainFilter, treeLeavesOnly, multiline, propertyRow, link, note, eyesOnly, readOnlyUnless, disabledUnless, fieldType, viewModel, actions, triggers, pageType.",
+        "message" : "Unknown key \"fooBar\" (ignored). Known keys here: type, id, label, dataType, stereotype, readOnly, required, autofocus, placeholder, description, options, remoteCoordinates, optionsSource, initialValue, style, cssClasses, columns, inlineEditing, onItemSelectionActionId, rowSelectionShortcut, colspan, formPosition, formStyle, formTheme, formColumns, sliderMin, sliderMax, stepButtonsVisible, step, min, max, itemIdPath, attributes, detailPath, useButtonForDetail, minHeightWhenDetailVisible, optionsColumns, mainFilter, treeLeavesOnly, multiline, propertyRow, link, autocomplete, note, eyesOnly, readOnlyUnless, disabledUnless, fieldType, viewModel, actions, triggers, pageType.",
         "path" : "$.fooBar",
         "line" : 4,
         "column" : 1
       }, {
         "code" : "unknown_property",
-        "message" : "Unknown key \"my-key\" (ignored). Known keys here: type, id, label, dataType, stereotype, readOnly, required, autofocus, placeholder, description, options, remoteCoordinates, optionsSource, initialValue, style, cssClasses, columns, inlineEditing, onItemSelectionActionId, rowSelectionShortcut, colspan, formPosition, formStyle, formTheme, formColumns, sliderMin, sliderMax, stepButtonsVisible, step, min, max, itemIdPath, attributes, detailPath, useButtonForDetail, minHeightWhenDetailVisible, optionsColumns, mainFilter, treeLeavesOnly, multiline, propertyRow, link, note, eyesOnly, readOnlyUnless, disabledUnless, fieldType, viewModel, actions, triggers, pageType.",
+        "message" : "Unknown key \"my-key\" (ignored). Known keys here: type, id, label, dataType, stereotype, readOnly, required, autofocus, placeholder, description, options, remoteCoordinates, optionsSource, initialValue, style, cssClasses, columns, inlineEditing, onItemSelectionActionId, rowSelectionShortcut, colspan, formPosition, formStyle, formTheme, formColumns, sliderMin, sliderMax, stepButtonsVisible, step, min, max, itemIdPath, attributes, detailPath, useButtonForDetail, minHeightWhenDetailVisible, optionsColumns, mainFilter, treeLeavesOnly, multiline, propertyRow, link, autocomplete, note, eyesOnly, readOnlyUnless, disabledUnless, fieldType, viewModel, actions, triggers, pageType.",
         "path" : "$['my-key']",
         "line" : 5,
         "column" : 1

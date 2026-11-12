@@ -6,6 +6,7 @@ import { announce, buttonA11y, headingA11y } from '../a11y/a11y';
 import { theme, themed } from '../theme';
 import type { OidcConfig } from '../core/oidcConfig';
 import { providerGlyph, providerName, signInTexts, type SignInTexts } from '../core/signInProviders';
+import type { ChromeLanguage } from '../core/chromeLanguage';
 
 /** The neutral mark of a provider button: its initial in a circle, or a key — never brand artwork. */
 function ProviderMark({ provider, color }: { provider: OidcConfig; color: string }) {
@@ -39,7 +40,7 @@ export function SignInChooser({
   onChoose: (provider: OidcConfig) => void;
   busy?: boolean;
   error?: string;
-  lang: 'en' | 'es';
+  lang: ChromeLanguage;
 }) {
   const t: SignInTexts = signInTexts(lang);
   const several = providers.length > 1;

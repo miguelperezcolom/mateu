@@ -12,6 +12,8 @@ import { HubBar, PrimaryButton, SecondaryButton, UiIcon, hubStyles } from './com
 interface Props {
   entries: HubEntry[];
   openIds: string[];
+  /** Changes waiting in each UI's offline send queue, by entry id. */
+  pending?: Record<string, number>;
   onOpen: (entry: HubEntry) => void;
   onAdd: (mode: 'scan' | 'type') => void;
   onAddDemo: () => void;
@@ -26,7 +28,7 @@ interface Props {
  * Each row's actions (remove, reorder) are one tap away — its "⋮" button or a long press open them in a bottom sheet — besides the
  * edit mode, which shows them on every row at once.
  */
-export function HomeScreen({ entries, openIds, onOpen, onAdd, onAddDemo, onRemove, onMove, onExport, onAbout }: Props) {
+export function HomeScreen({ entries, openIds, pending, onOpen, onAdd, onAddDemo, onRemove, onMove, onExport, onAbout }: Props) {
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
@@ -82,6 +84,7 @@ export function HomeScreen({ entries, openIds, onOpen, onAdd, onAddDemo, onRemov
               <EntryRow
                 entry={item}
                 running={openIds.includes(item.id)}
+                pending={pending?.[item.id] ?? 0}
                 editing={editing && !query}
                 first={index === 0}
                 last={index === shown.length - 1}
@@ -224,6 +227,7 @@ function EntrySheet({
 function EntryRow({
   entry,
   running,
+  pending,
   editing,
   first,
   last,
@@ -234,6 +238,7 @@ function EntryRow({
 }: {
   entry: HubEntry;
   running: boolean;
+  pending: number;
   editing: boolean;
   first: boolean;
   last: boolean;
@@ -255,7 +260,7 @@ function EntryRow({
         onLongPress={editing ? undefined : onMore}
         delayLongPress={400}
         accessibilityRole="button"
-        accessibilityLabel={`${entry.name}, ${domain}${running ? ', open' : ''}`}
+        accessibilityLabel={`${entry.name}, ${domain}${running ? ', open' : ''}${pending ? `, ${pendingText(pending)}` : ''}`}
         accessibilityHint="Opens this UI"
         accessibilityActions={[
           ...(!first ? [{ name: 'moveUp', label: 'Move up' }] : []),
@@ -276,6 +281,7 @@ function EntryRow({
           <View style={styles.rowText}>
             <Text style={styles.rowName} numberOfLines={1}>{entry.name}</Text>
             <Text style={styles.rowDomain} numberOfLines={1}>{running ? `${domain} · open` : domain}</Text>
+            {pending > 0 && <Text style={styles.rowPending} numberOfLines={1}>{pendingText(pending)}</Text>}
           </View>
         </View>
       </TouchableRipple>
@@ -294,7 +300,11 @@ function EntryRow({
   );
 }
 
+/** The row's badge for the offline send queue. */
+const pendingText = (n: number) => (n === 1 ? '1 change pending' : `${n} changes pending`);
+
 const styles = themed(() => StyleSheet.create({
+  rowPending: { color: theme.warning, fontSize: 12, fontWeight: '600' },
   search: { marginHorizontal: theme.spacing.md, marginTop: theme.spacing.sm, backgroundColor: theme.background },
   list: { paddingVertical: theme.spacing.sm, paddingBottom: 96 },
   divider: { marginLeft: 72 },

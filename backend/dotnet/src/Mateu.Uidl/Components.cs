@@ -82,6 +82,10 @@ public sealed record FormField : ComponentBase
     /// <summary>Drawn as a read-only property row (label left, value right). (Mirrors
     /// io.mateu.uidl.data.FormField.propertyRow.)</summary>
     public bool PropertyRow { get; init; }
+
+    /// <summary>The HTML autocomplete token naming the input's purpose (WCAG 1.3.5): "email",
+    /// "given-name", "tel"… (Mirrors io.mateu.uidl.data.FormField.autocomplete.)</summary>
+    public string? Autocomplete { get; init; }
 }
 
 // ── Dashboards ─────────────────────────────────────────────────────────────────

@@ -65,19 +65,18 @@ describe('isScreenChange', () => {
 describe('routeTargetUrl under a context path (servlet context path, X-Forwarded-Prefix)', () => {
     const origin = 'https://example.com'
     const path = (u: URL) => u.pathname + u.search
-    // the server stamps baseUrl = prefix + mount, pathPrefix = mount, contextPath = prefix
+    // the server stamps baseUrl = pathPrefix = prefix + mount, publicBase = prefix (PublicBase)
     it('keeps the prefix for an absolute route', () => {
-        expect(path(routeTargetUrl('/3/edit', '/ctx/books', '/books', origin, '/ctx'))).toBe('/ctx/books/3/edit')
+        expect(path(routeTargetUrl('/3/edit', '/ctx/books', '/ctx/books', origin, '/ctx'))).toBe('/ctx/books/3/edit')
     })
     it('does not repeat the mount the server already put on the route', () => {
-        expect(path(routeTargetUrl('/books/new', '/ctx/books', '/books', origin, '/ctx'))).toBe('/ctx/books/new')
+        expect(path(routeTargetUrl('/books/new', '/ctx/books', '/ctx/books', origin, '/ctx'))).toBe('/ctx/books/new')
     })
     it('resolves a relative route against the prefixed base url', () => {
-        expect(path(routeTargetUrl('section1', '/ctx/books', '/books', origin, '/ctx'))).toBe('/ctx/books/section1')
+        expect(path(routeTargetUrl('section1', '/ctx/books', '/ctx/books', origin, '/ctx'))).toBe('/ctx/books/section1')
     })
     it('works for the root mount and a query-only route', () => {
-        expect(path(routeTargetUrl('/orders', '/ctx', '', origin, '/ctx'))).toBe('/ctx/orders')
-        expect(path(routeTargetUrl('?q=x', '/ctx', '', origin, '/ctx'))).toBe('/ctx?q=x')
+        expect(path(routeTargetUrl('?q=x', '/ctx', '/ctx', origin, '/ctx'))).toBe('/ctx?q=x')
     })
 })
 
@@ -115,5 +114,18 @@ describe('routeTargetUrl', () => {
         expect(path(routeTargetUrl('second', '/fed', '/fed', origin))).toBe('/fed/second')
         expect(path(routeTargetUrl('second', '', '', origin))).toBe('/second')
         expect(path(routeTargetUrl('a/b?x=1', '/fed', '/fed', origin))).toBe('/fed/a/b?x=1')
+    })
+
+    it('under a public base (a context path, a prefix-stripping proxy) every spelling lands under it', () => {
+        // the page writes pathPrefix=/crm/products; the server still spells inner routes /products/new
+        expect(path(routeTargetUrl('/products/new', '/crm/products', '/crm/products', origin, '/crm'))).toBe('/crm/products/new')
+        expect(path(routeTargetUrl('/products', '/crm/products', '/crm/products', origin, '/crm'))).toBe('/crm/products')
+        expect(path(routeTargetUrl('/3/edit', '/crm/products', '/crm/products', origin, '/crm'))).toBe('/crm/products/3/edit')
+        expect(path(routeTargetUrl('?page=1', '/crm/products', '/crm/products', origin, '/crm'))).toBe('/crm/products?page=1')
+        // a YAML mount: pathPrefix is the base itself, the route the whole path below it
+        expect(path(routeTargetUrl('/yaml-mount/x', '/crm/yaml-mount', '/crm', origin, '/crm'))).toBe('/crm/yaml-mount/x')
+        expect(path(routeTargetUrl('second', '/crm/yaml-mount', '/crm', origin, '/crm'))).toBe('/crm/yaml-mount/second')
+        // a root app under the base
+        expect(path(routeTargetUrl('/orders', '/crm', '/crm', origin, '/crm'))).toBe('/crm/orders')
     })
 })

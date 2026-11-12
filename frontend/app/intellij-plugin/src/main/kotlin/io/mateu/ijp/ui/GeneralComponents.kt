@@ -430,24 +430,38 @@ fun renderVirtualList(component: JsonNode, metadata: JsonNode, state: JsonNode, 
     return JBScrollPane(list).fixedHeight(JBUI.scale(24) * rows.size.coerceIn(3, 15))
 }
 
-/** Avatar: a round badge with initials (from `abbreviation`, else the name); the name as tooltip. */
-fun renderAvatar(metadata: JsonNode): JComponent {
+/**
+ * Avatar: a round badge with initials (from `abbreviation`, else the name); the name as tooltip. An
+ * `image` (data URI or url, SVG included; a root-relative one against the app's [baseUrl]) is
+ * painted in the circle instead of the initials — a remote one loaded off the EDT.
+ */
+fun renderAvatar(metadata: JsonNode, baseUrl: String? = null): JComponent {
     val name = metadata.text("name")
     val initials = metadata.text("abbreviation").ifBlank {
         name.split(Regex("\\s+")).filter { it.isNotBlank() }.take(2).joinToString("") { it.take(1).uppercase() }
     }.ifBlank { "?" }
-    return AvatarLabel(initials, avatarColor(name.ifBlank { initials })).apply {
+    val avatar = AvatarLabel(initials, avatarColor(name.ifBlank { initials })).apply {
         toolTipText = plainTip(name.ifBlank { null })
         accessibleName(name.ifBlank { initials })
     }
+    val image = metadata.text("image").trim().let { if (it.isEmpty() || it.startsWith("data:")) it else io.mateu.ijp.api.Urls.resolve(baseUrl, it) }
+    if (image.startsWith("data:")) {
+        avatar.picture = readImageSource(image)
+    } else if (isRemoteImage(image)) {
+        Thread {
+            val img = readImageSource(image)
+            if (img != null) javax.swing.SwingUtilities.invokeLater { avatar.picture = img }
+        }.apply { isDaemon = true; this.name = "mateu-avatar" }.start()
+    }
+    return avatar
 }
 
 /** AvatarGroup: the first `maxItemsVisible` avatars, then "+N". */
-fun renderAvatarGroup(metadata: JsonNode): JComponent {
+fun renderAvatarGroup(metadata: JsonNode, baseUrl: String? = null): JComponent {
     val avatars = metadata.path("avatars").items()
     val max = metadata.path("maxItemsVisible").asInt(0).let { if (it <= 0) avatars.size else it }
     val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(2), 0)).apply { isOpaque = false }
-    avatars.take(max).forEach { row.add(renderAvatar(it)) }
+    avatars.take(max).forEach { row.add(renderAvatar(it, baseUrl)) }
     if (avatars.size > max) row.add(muted("+${avatars.size - max}", smaller = false))
     return row.accessibleName(avatars.joinToString(", ") { it.text("name") }.ifBlank { "Avatars" })
 }
@@ -461,12 +475,29 @@ private class AvatarLabel(text: String, private val fill: Color) : JBLabel(plain
         minimumSize = preferredSize
     }
 
+    /** The avatar's image, painted (cover) inside the circle instead of the initials; null = initials. */
+    var picture: java.awt.image.BufferedImage? = null
+        set(value) { field = value; repaint() }
+
     override fun paintComponent(g: java.awt.Graphics) {
         val g2 = g.create() as java.awt.Graphics2D
         g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON)
-        g2.color = fill
         val s = minOf(width, height)
-        g2.fillOval((width - s) / 2, (height - s) / 2, s, s)
+        val x = (width - s) / 2
+        val y = (height - s) / 2
+        val img = picture
+        if (img != null && img.width > 0 && img.height > 0) {
+            g2.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+            g2.clip(java.awt.geom.Ellipse2D.Float(x.toFloat(), y.toFloat(), s.toFloat(), s.toFloat()))
+            val k = maxOf(s.toDouble() / img.width, s.toDouble() / img.height)
+            val w = (img.width * k).toInt()
+            val h = (img.height * k).toInt()
+            g2.drawImage(img, x + (s - w) / 2, y + (s - h) / 2, w, h, null)
+            g2.dispose()
+            return
+        }
+        g2.color = fill
+        g2.fillOval(x, y, s, s)
         g2.dispose()
         super.paintComponent(g)
     }

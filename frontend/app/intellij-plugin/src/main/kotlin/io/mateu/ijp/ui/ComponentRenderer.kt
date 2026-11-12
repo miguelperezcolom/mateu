@@ -184,8 +184,8 @@ class ComponentRenderer(val ctx: AppContext) {
             // A column group outside its Grid/Crud: its header text (inside one it is flattened).
             "GridGroupColumn" -> JBLabel(plain(metadata.text("label", metadata.text("id"))))
             "VirtualList" -> renderVirtualList(component, metadata, state, data)
-            "Avatar" -> renderAvatar(metadata)
-            "AvatarGroup" -> renderAvatarGroup(metadata)
+            "Avatar" -> renderAvatar(metadata, ctx.session.baseUrl)
+            "AvatarGroup" -> renderAvatarGroup(metadata, ctx.session.baseUrl)
             "Icon" -> renderIcon(metadata)
             "Details" -> renderDetails(this, metadata, state, data)
             "Tooltip" -> renderTooltip(this, metadata, state, data)

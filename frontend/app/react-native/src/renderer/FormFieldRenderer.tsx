@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { inputPurposeProps } from '../a11y/inputPurpose';
 import { FieldFocusRegistrar } from '../ui/fieldFocus';
 import { Modal, View, StyleSheet, ScrollView } from 'react-native';
 import { MIcon } from '../ui/controls';
@@ -39,6 +40,7 @@ import { fieldA11y, buttonA11y, modalA11y, headingA11y, announce } from '../a11y
 import { fieldPlaceholder } from '../core/uxRules';
 import { moneyInputCommit, moneyInputText, stepperValue } from '../core/uxRules';
 import { flattenColumnGroups } from './columnGroups';
+import { uploadConfigOf } from '../core/fileUploads.ts';
 
 interface Option {
   children?: Option[];
@@ -59,6 +61,8 @@ interface FieldMeta {
   label?: string;
   /** A placeholder the developer declared (FormFieldDto.placeholder) — the only one shown. */
   placeholder?: string | null;
+  /** The input's purpose, an HTML autocomplete token (FormFieldDto.autocomplete; WCAG 1.3.5). */
+  autocomplete?: string | null;
   /** @Help — read after the field name as guidance (accessibilityHint). */
   description?: string;
   dataType?: string;
@@ -183,7 +187,8 @@ function FormFieldBody({ metadata, state, onStateChange, error }: Props) {
   // Text-like inputs, selects and dates draw their label INSIDE the outline (Material outlined
   // field) and their error under it; everything else keeps the label above.
   let ownLabel = false;
-  const outlined = { label: label || fieldId, required, error, a11y };
+  // WCAG 1.3.5: the field's autocomplete token as the platform's autofill hints (every text box)
+  const outlined = { label: label || fieldId, required, error, a11y, ...(editable ? inputPurposeProps(metadata.autocomplete) : {}) } as const;
   const renderInput = () => {
     // Grid: an array-of-rows field (nested collection). Read-only shows the table; editable
     // opens a row form on tap (mobile-friendly counterpart of the web's inline editors).
@@ -282,10 +287,11 @@ function FormFieldBody({ metadata, state, onStateChange, error }: Props) {
       return <ListBoxField options={options} value={stringValue} editable={editable} onChange={commitOne} />;
     }
 
-    // @FileUpload: a file picker committing the file as a data URI (the wire contract)
+    // @FileUpload: uploaded through the app's storage port when the server issued a ticket, else a
+    // data URI (design/uploads/file-uploads-contract.md)
     if (stereotype === 'fileUpload') {
-      const accept = ((metadata as { attributes?: { key?: string; value?: string }[] }).attributes ?? []).find((a) => a.key === 'accept')?.value;
-      return <FileUploadField value={stringValue} accept={accept} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+      const config = uploadConfigOf((metadata as { attributes?: unknown }).attributes);
+      return <FileUploadField value={rawValue} config={config} editable={editable} api={controller.session.api} onChange={(v) => commit(fieldId, v)} />;
     }
 
     // Stars rating

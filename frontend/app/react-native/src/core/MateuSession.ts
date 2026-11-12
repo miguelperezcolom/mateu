@@ -16,11 +16,14 @@ import type { ChatNavigation, ChatPreviewTarget, ChatScreenSnapshot } from './ch
 import { AgentPushState } from './agentPush.ts';
 import { TaskCenter } from './taskCenter.ts';
 import { InboxStore, inboxChangeOf } from './inbox.ts';
+import { PRESENCE_ACTION, PresenceHub } from './presence.ts';
 import { TaskReattach, type ReattachHost } from './taskReattach.ts';
 import { toastOf } from './componentContext.ts';
 import { skewTexts, type SkewNotice } from './buildSkew.ts';
 import { uiLocale } from './money.ts';
 import type { StaticBundle } from './staticBundle.ts';
+import { OUTBOX_TEXTS, type DrainResult, type OfflineQueue } from './offlineQueue.ts';
+import { connectivity } from './connectivity.ts';
 
 export type MessageVariant = 'info' | 'warning' | 'error';
 
@@ -112,6 +115,8 @@ export class MateuSession {
   readonly tasks: TaskCenter;
   /** The notification inbox: the server's list + this session's own entries. */
   readonly inbox: InboxStore;
+  /** Record presence (`@App(presence)`): who else has the record on screen open (core/presence.ts). */
+  readonly presence: PresenceHub;
   /** The tasks this UI's streams reported, to resume them when a stream breaks (core/taskReattach.ts). */
   readonly reattach: TaskReattach;
   private ownOsNotifications = false;
@@ -231,6 +236,43 @@ export class MateuSession {
   /** The last screens of this UI (a hub UI without sign-in): a load shows its copy at once. */
   snapshots: ScreenSnapshots | null = null;
 
+  /** The offline send queue of this UI (`@Action(offline = QUEUE)`, offlineQueue.ts), set by the
+   *  host. Only the UI's OWN session has one: a derived session (a remote island, another backend)
+   *  answers null, so nothing it sends is queued — a queued request goes back to the backend the
+   *  queue belongs to. */
+  get outbox(): OfflineQueue | null {
+    return this.storesFromSession ? null : this.ownOutbox;
+  }
+  set outbox(queue: OfflineQueue | null) {
+    this.ownOutbox = queue;
+  }
+  private ownOutbox: OfflineQueue | null = null;
+
+  /**
+   * Sends what the queue keeps, in order, each with its own key — when the connection is back, when
+   * the UI opens, or when the user asks. An expired sign-in is handled by the transport (it asks to
+   * sign in again and repeats the request); if that cannot happen now, the item waits and the user
+   * is told. A refusal is shown and stops the queue.
+   */
+  async sendOutbox(): Promise<DrainResult | null> {
+    const queue = this.outbox;
+    if (!queue || this.api.local) return null;
+    const result = await queue.drain(
+      (request, idempotencyKey) => this.api.runAction({ ...request, idempotencyKey }),
+      () => connectivity.isOnline,
+    );
+    if (result.sent.length > 0) this.notify(null, OUTBOX_TEXTS.sent(result.sent.length), 'info');
+    const stop = result.stoppedBy;
+    if (stop?.kind === 'refused' && !this.refusalShown.has(stop.item.key)) {
+      this.refusalShown.add(stop.item.key);
+      this.notify(OUTBOX_TEXTS.refused, `${stop.item.label}: ${stop.message}`, 'error');
+    }
+    if (stop?.kind === 'signInNeeded') this.notify(null, OUTBOX_TEXTS.signIn, 'warning');
+    return result;
+  }
+  /** Refusals already told (a refused head is met again by every later drain). */
+  private refusalShown = new Set<string>();
+
   /** Event handlers answer whether they TOOK the event (false: filtered out); nothing = took it. */
   private subscriptions: { owner: unknown; eventName: string; handler: (payload: unknown) => boolean | void }[] = [];
 
@@ -267,6 +309,10 @@ export class MateuSession {
     // per UI too: an island's task (its LongTask) shows in the app's task center
     this.tasks = storesFrom?.tasks ?? new TaskCenter();
     this.inbox = storesFrom?.inbox ?? new InboxStore();
+    this.presence = storesFrom?.presence ?? new PresenceHub((body) => this.api.runAction({
+      route: body.route, consumedRoute: '', actionId: PRESENCE_ACTION, serverSideType: body.serverSideType,
+      initiatorComponentId: 'mateu-presence', componentState: {}, appState: {}, parameters: body.parameters,
+    }));
     this.reattach = storesFrom?.reattach ?? new TaskReattach();
     // Another wire MAJOR: say so plainly (once) instead of leaving a half-rendered screen to explain
     // itself. Rendering goes on — unknown fields and types are still tolerated.

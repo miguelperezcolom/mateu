@@ -25,6 +25,7 @@ import { fieldWidgetOf, rowFieldsOf, isExtraLayoutField } from './core/rowEditor
 import { fieldListOf } from './core/tree.mjs'
 import { filterDescriptorOf } from './core/listing.mjs'
 import { imageUrlOf } from './inputs.mjs'
+import { layoutFieldOf, hasOptionsSource } from './core/rowEditor.mjs'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -455,6 +456,28 @@ test('loadLookups also loads the REST options (the chains call it after every lo
   reset(); setSampleMode(true)
   const reg = await loadLookups('http://mateu', { contexts: { [HOST_ID]: formCtx({ ref: 'countries' }) }, stack: [] }, HOST_ID, {})
   assert.equal(reg.contexts[HOST_ID].data.country.content.length, 2)
+})
+
+test('options: a MULTI-value field (multiSelect / listBox / checkbox) reads its optionsSource on the page', async () => {
+  reset(); setSampleMode(true)
+  for (const stereotype of ['multiSelect', 'listBox', 'checkbox', 'combobox']) {
+    const md = { type: 'FormField', fieldId: 'countries', label: 'Countries', dataType: 'array', stereotype, optionsSource: { ref: 'countries' } }
+    // before the options land: still a multi-value widget (it used to be dropped as a list with no options)
+    const before = layoutFieldOf(md, { countries: ['FR'] }, {})
+    assert.ok(before, stereotype)
+    assert.ok(before.isMultiSelect || before.isCheckboxSet, stereotype)
+    const ctx = { id: HOST_ID, tree: { type: 'ServerSide', id: 'page', actions: [], triggers: [], children: [
+      { type: 'ClientSide', id: 'countries', metadata: md, children: [] }] }, state: { countries: ['FR'] }, data: {} }
+    const reg = await loadRestOptions({ contexts: { [HOST_ID]: ctx }, stack: [] }, HOST_ID, { fetchImpl: stubFetch(null) })
+    const after = layoutFieldOf(md, { countries: ['FR'] }, reg.contexts[HOST_ID].data)
+    assert.deepEqual(after.options.map((o) => o.label), ['Spain', 'France'], stereotype)
+    assert.deepEqual(after.value, ['FR'], stereotype)
+    // the row editor offers it too
+    assert.ok(rowFieldsOf(reg.contexts[HOST_ID], {}, {}).some((f) => f.fieldId === 'countries' && f.options.length === 2), stereotype)
+  }
+  assert.equal(hasOptionsSource({ optionsSource: { ref: 'x' } }), true)
+  assert.equal(hasOptionsSource({ optionsSource: {} }), false)
+  assert.equal(hasOptionsSource({}), false)
 })
 
 // ── REST actions ──

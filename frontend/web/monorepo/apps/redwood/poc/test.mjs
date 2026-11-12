@@ -44,7 +44,7 @@ import {
   CHAT_MIC_ARIA_KEYSHORTCUTS,
   chatConfigOf, chatTurnOf, chatTurnTextOf, chatToolStepsOf, withAttachments,
 } from './chat.mjs'
-import { CHROME_TEXTS, chromeText, chromeLanguage, setChromeLanguage, chromeTextsOf } from './i18n.mjs'
+import { CHROME_TEXTS, FULL_LANGUAGES, chromeText, chromeLanguage, setChromeLanguage, chromeTextsOf } from './i18n.mjs'
 import { nlsFiles } from './make-nls.mjs'
 import { trustShellBase } from './hostHeaders.mjs'
 // the transport tests talk to these bases as the shell's own backend (hostHeaders.storedTokenMayGoTo)
@@ -4492,8 +4492,9 @@ test('confirmación: los textos genéricos van en el idioma de la interfaz (Sí 
   // what the action declares still wins
   assert.equal(es.title, 'Activate this integration?')
   assert.deepEqual(confirmationDefaultsOf('es'), { title: 'Un momento, por favor', message: '¿Estás seguro?', confirmText: 'Sí', denyText: 'No' })
+  assert.equal(confirmationDefaultsOf('de-DE').confirmText, 'Ja')
   // a language without translation falls back to English
-  assert.equal(confirmationDefaultsOf('de-DE').confirmText, 'Yes')
+  assert.equal(confirmationDefaultsOf('ja-JP').confirmText, 'Yes')
   assert.equal(confirmationOf(host, 'activate', 'en-GB').confirmText, 'Yes')
 })
 
@@ -5147,7 +5148,14 @@ test('i18n: inglés por defecto; español por el idioma de la interfaz; huecos e
   assert.equal(chromeText('retry', null, 'es-ES'), 'Reintentar')
   assert.equal(chromeText('retry', null, 'ja'), 'Retry')
   assert.equal(chromeText('selectValue', null, 'fr'), 'Sélectionnez une valeur')
-  assert.equal(chromeText('retry', null, 'fr'), 'Retry')
+  assert.equal(chromeText('retry', null, 'fr'), 'Réessayer')
+  assert.equal(chromeText('retry', null, 'de-AT'), 'Erneut versuchen')
+  assert.equal(chromeText('retry', null, 'pt-BR'), 'Tentar novamente')
+  assert.equal(chromeText('retry', null, 'pt-PT'), 'Tentar novamente')
+  assert.equal(chromeText('retry', null, 'it'), 'Riprova')
+  // a partial language: its own words, English for the rest
+  assert.equal(chromeText('selectValue', null, 'nl'), 'Selecteer een waarde')
+  assert.equal(chromeText('retry', null, 'nl'), 'Retry')
   assert.equal(chromeText('progressOf', { done: 2, total: 7 }, 'es'), '2 de 7')
   assert.equal(chromeText('chatCalling', { name: 'x' }), 'Calling x…')
   assert.equal(chromeText('no-such-key'), 'no-such-key')
@@ -5159,11 +5167,21 @@ test('i18n: inglés por defecto; español por el idioma de la interfaz; huecos e
     assert.equal(i18nClassify({ status: 503 }).message, 'El servidor no ha podido completar la petición (error 503). Inténtalo de nuevo.')
   } finally { setChromeLanguage('en') }
   assert.equal(i18nClassify({ status: 503 }).message, 'The server could not complete the request (error 503). Try again.')
-  assert.equal(chromeTextsOf('fr').retry, 'Retry')
+  assert.equal(chromeTextsOf('fr').retry, 'Réessayer')
+  assert.equal(chromeTextsOf('nl').retry, 'Retry')
 })
 
-test('i18n: español e inglés tienen las MISMAS claves (un hueco en español sería inglés en una consola española)', () => {
-  assert.deepEqual(Object.keys(CHROME_TEXTS.es).sort((a, b) => a.localeCompare(b)), Object.keys(CHROME_TEXTS.en).sort((a, b) => a.localeCompare(b)))
+test('i18n: every full language has the SAME keys as English, with the same {placeholders} (a gap would be English in a French console)', () => {
+  const sorted = (o) => Object.keys(o).sort((a, b) => a.localeCompare(b))
+  const holes = (t) => (String(t).match(/\{\w+\}/g) || []).sort().join(',')
+  assert.deepEqual(FULL_LANGUAGES, ['en', 'es', 'fr', 'de', 'pt', 'it'])
+  for (const lang of FULL_LANGUAGES) {
+    assert.deepEqual(sorted(CHROME_TEXTS[lang]), sorted(CHROME_TEXTS.en), lang)
+    for (const [k, v] of Object.entries(CHROME_TEXTS[lang])) {
+      assert.ok(String(v).trim() !== '', lang + '.' + k + ' is empty')
+      assert.equal(holes(v), holes(CHROME_TEXTS.en[k]), lang + '.' + k + ' placeholders')
+    }
+  }
   for (const [lang, dict] of Object.entries(CHROME_TEXTS)) {
     for (const k of Object.keys(dict)) assert.ok(k in CHROME_TEXTS.en, lang + '.' + k + ' no existe en inglés')
   }

@@ -496,6 +496,10 @@ class DispatchMixin(MixinBase):
             return self.keep_alive_action(type_, rq)
         if rq.action_id == "_live-updates":
             return self.live_updates_snapshot()
+        # 2d'. Record presence: a page reports itself, the app answers who else is there (mirrors
+        # Java's PresenceActionRunner).
+        if rq.action_id == "_presence":
+            return self.presence_action(type_, rq)
 
         # 3. A wizard.
         if issubclass(type_, Wizard):

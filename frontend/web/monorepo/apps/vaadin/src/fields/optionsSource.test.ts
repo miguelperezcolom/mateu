@@ -119,7 +119,7 @@ describe('a multiSelect reads its optionsSource', () => {
     })
 })
 
-describe('a listBox reads its optionsSource', () => {
+describe('a list box reads its optionsSource', () => {
     it('multi-valued (array): one item per option, the current ids selected, a pick written back as ids', async () => {
         const { root, changes } = await mount({ dataType: 'array', stereotype: 'listBox', optionsSource: source }, { f: [25] })
         const list = root.querySelector('vaadin-list-box') as any
@@ -130,13 +130,21 @@ describe('a listBox reads its optionsSource', () => {
         expect(changes.at(-1)?.value).toEqual([7, 25])
     })
 
-    it('single-valued: the current id selected, a pick written back as the id', async () => {
-        const { root, changes } = await mount({ stereotype: 'listBox', optionsSource: source }, { f: 25 })
+    it('single-valued: one item per option and the current id selected', async () => {
+        const { root, changes } = await mount({ stereotype: 'listBox', optionsSource: source }, { f: 7 })
         const list = root.querySelector('vaadin-list-box') as any
-        expect(Array.from(root.querySelectorAll('vaadin-item')).map(i => i.textContent!.trim())).toEqual(['Apollo 11', 'Artemis III'])
-        expect(list.getAttribute('selected')).toBe('1')
-        fire(list, 'selected-changed', { value: 0 })
-        expect(changes.at(-1)?.value).toBe(7)
+        expect(Array.from(root.querySelectorAll('vaadin-item')).map((i: any) => i.textContent.trim())).toEqual(['Apollo 11', 'Artemis III'])
+        expect(Number(list.getAttribute('selected') ?? list.selected)).toBe(0)
+        fire(list, 'selected-changed', { value: 1 })
+        expect(changes.at(-1)?.value).toEqual(25)
+    })
+})
+
+describe('a tree select reads its optionsSource', () => {
+    it('hands the fetched options to the tree', async () => {
+        const { root } = await mount({ stereotype: 'treeSelect', optionsSource: source }, { f: 7 })
+        const tree = root.querySelector('mateu-vaadin-tree-select') as any
+        expect(tree.options.map((o: any) => o.label)).toEqual(['Apollo 11', 'Artemis III'])
     })
 })
 

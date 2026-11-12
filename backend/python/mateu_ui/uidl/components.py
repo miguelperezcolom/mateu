@@ -909,6 +909,9 @@ class FormField(Component):
     #: Renders as a read-only property row: label left, value right, a divider under it (Java's
     #: FormField.propertyRow).
     property_row: bool = False
+    #: The HTML autocomplete token naming the input's purpose (WCAG 1.3.5): "email",
+    #: "given-name", "tel"… (Java's FormField.autocomplete).
+    autocomplete: str | None = None
 
 
 @dataclass(frozen=True)

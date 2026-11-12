@@ -40,7 +40,7 @@ for (const route of ROUTES) {
         await page.waitForSelector('mateu-page, mateu-app, vaadin-grid', { timeout: 10000 }).catch(() => {})
         await sleep(1500)
         const results = await new AxeBuilder({ page })
-            .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+            .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
             .analyze()
         for (const v of results.violations) {
             // Same upstream carve-out as the spec: vaadin-tabs puts a <div tabindex> inside its

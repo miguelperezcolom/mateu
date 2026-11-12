@@ -96,3 +96,8 @@ export const listingPrefsStorage = (): KeyValueStore | null => listingPrefsKv;
 /** A listing's scope: the UI is the store's namespace; the route and the listing tell listings apart. */
 export const listingScopeOf = (route: string | null | undefined, listingId: string | null | undefined): string =>
   `${(route ?? '').replace(/^\/+|\/+$/g, '')}#${listingId ?? ''}`;
+
+/** Forgets the saved views and column choices kept for a UI (it was removed from the hub). */
+export const clearListingPrefsOf = async (kv: KeyValueStore, namespace: string): Promise<void> => {
+  await Promise.all(['mateu-saved-views', 'mateu-column-prefs'].map((prefix) => kv.remove(`${prefix}:${namespace}`).catch(() => undefined)));
+};

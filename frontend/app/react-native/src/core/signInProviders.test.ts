@@ -99,5 +99,14 @@ test('glyphs are neutral: an initial or a key, never brand artwork', () => {
 test('texts in English and Spanish', () => {
   assert.equal(signInTexts('en').continueWith('Google'), 'Continue with Google');
   assert.equal(signInTexts('es').continueWith('Google'), 'Continuar con Google');
+  assert.equal(signInTexts('de').continueWith('Google'), 'Weiter mit Google');
+  for (const lang of ['en', 'es', 'fr', 'de', 'pt', 'it'] as const) {
+    const texts = signInTexts(lang);
+    // every sentence names what it is given
+    assert.ok(texts.title('Acme').includes('Acme'), lang);
+    assert.ok(texts.single('id.acme.com').includes('id.acme.com'), lang);
+    assert.ok(texts.continueWith('Google').includes('Google'), lang);
+    assert.ok(texts.noPassword && texts.cancelled && texts.signIn && texts.lastUsed && texts.intro, lang);
+  }
   assert.equal(providerName({ issuer: 'https://id.acme.com/x' }), 'id.acme.com');
 });

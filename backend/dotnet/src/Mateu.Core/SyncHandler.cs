@@ -75,6 +75,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         RunActionRqDto rq, string? requestBaseUrl = null, CancellationToken cancellationToken = default)
     {
         rq = LoadActionNormalised(rq);
+        Observability.RequestObservation.Describe(new(rq.Route, rq.ActionId, rq.ServerSideType));
         if (rq.ActionId is "__restfetch__" or AppSourceAction)
         {
             EstablishRequestContext(rq);
@@ -106,6 +107,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
 
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
+        Observability.RequestObservation.Describe(new(rq.Route, rq.ActionId, rq.ServerSideType));
         var pending = MicroFrontends.MicroFrontendPending.Begin();
         var increment = StoreInbox(WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl)), Principal?.Invoke());
         return EmbeddedWindowCommands.Strip(pending.Value
@@ -316,6 +318,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     private void EstablishRequestContext(RunActionRqDto rq)
     {
         ActionGuard.SetIdentity(identity);
+        FileUploads.SetCurrent(Uploads);
         RequestLocale.Value = locale?.Invoke();
         MateuCatalogs.Set(_restSources.Catalog, _components.Catalog, _fieldTypes.Catalog);
         // the catalogue entries whose access: the caller does not satisfy are never shipped, buttons
@@ -394,6 +397,8 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         IReadOnlyDictionary<string, object?> clientState, bool routeSeeds)
     {
         type ??= registry.Resolve(rq.ServerSideType, rq.Route);
+        // the view the request resolved to, for its activity and the audit trail
+        if (type is not null && Observability.RequestObservation.Current is { } observed) observed.View = type.FullName;
         var yamlSpec = PersonalSpec(rq.Route);
         // a fresh deep link under a YAML app shell: the shell answers, aimed at the route
         if (YamlShellDeepLink(rq) is { } deepLink) return deepLink;
@@ -490,6 +495,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // endpoint) are app-level too (mirrors Java's KeepAlive/LiveUpdates action runners).
         if (rq.ActionId == ReflectionMapper.KeepAliveActionId) return KeepAlive(instance);
         if (rq.ActionId == ReflectionMapper.LiveUpdatesActionId) return LiveUpdatesSnapshot();
+        // Record presence: a page reports itself, the app answers who else is there (mirrors
+        // Java's PresenceActionRunner).
+        if (rq.ActionId == Presence.ActionId) return PresenceAction(type, rq);
         // The command palette's entity search — same app-level rail (mirrors Java's
         // GlobalSearchActionRunner).
         if (rq.ActionId == "_globalsearch") return GlobalSearch(instance, rq);

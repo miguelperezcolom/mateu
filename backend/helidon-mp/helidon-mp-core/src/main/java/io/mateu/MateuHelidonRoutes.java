@@ -367,7 +367,8 @@ public class MateuHelidonRoutes {
                     routeRegistry.get(),
                     yamlAppLoader.get(),
                     mount.basePath(),
-                    req.path().pathParameters().get("file"));
+                    req.path().pathParameters().get("file"),
+                    publicBase(req));
             if (asset == null) {
               res.status(Status.NOT_FOUND_404).send();
               return;
@@ -646,12 +647,17 @@ public class MateuHelidonRoutes {
   }
 
   private static void index(ServerRequest req, ServerResponse res, YamlMounts.Mount mount) {
-    res.header("Content-Type", "text/html;charset=UTF-8")
-        .send(
-            io.mateu.core.infra.IndexPage.underPrefix(
-                mount.indexHtml(),
-                io.mateu.core.infra.ForwardedPrefix.of(
-                    null, header(req, io.mateu.core.infra.ForwardedPrefix.HEADER))));
+    res.header("Content-Type", "text/html;charset=UTF-8").send(mount.indexHtml(publicBase(req)));
+  }
+
+  /**
+   * The public base of a request ({@link io.mateu.core.infra.PublicBase}): Helidon has no
+   * server-wide context path, so it is the configured / forwarded proxy prefix.
+   */
+  private static String publicBase(ServerRequest req) {
+    return io.mateu.core.infra.PublicBase.of(
+        io.mateu.core.infra.PublicBase.configuredContextPath(),
+        header(req, io.mateu.core.infra.PublicBase.FORWARDED_PREFIX_HEADER));
   }
 
   private static void run(

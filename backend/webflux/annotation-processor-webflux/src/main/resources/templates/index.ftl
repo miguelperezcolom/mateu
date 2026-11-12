@@ -42,13 +42,9 @@ public class ${simpleClassName}Controller {
 
     @GetMapping(value = "", produces = MediaType.TEXT_HTML_VALUE)
     public String getIndex(org.springframework.http.server.reactive.ServerHttpRequest request) {
-        // under spring.webflux.base-path / a trusted X-Forwarded-Prefix the page names its assets
-        // and API there
-        return IndexPage.underPrefix(
-                IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug)),
-                io.mateu.core.infra.ForwardedPrefix.of(
-                        request.getPath().contextPath().value(),
-                        request.getHeaders().getFirst(io.mateu.core.infra.ForwardedPrefix.HEADER)));
+        // under spring.webflux.base-path / a prefix-stripping proxy the page's URLs carry it
+        return IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug)
+                .withPublicBase(io.mateu.core.infra.PublicBase.of(request.getPath().contextPath().value(), request.getHeaders().getFirst(io.mateu.core.infra.PublicBase.FORWARDED_PREFIX_HEADER))));
     }
 
 }

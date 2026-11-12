@@ -263,6 +263,7 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
             read_only=bool(node.get("readOnly", False)),
             options=_options(node.get("options")),
             placeholder=_str(node.get("placeholder")),
+            autocomplete=_str(node.get("autocomplete")),
             property_row=bool(node.get("propertyRow", False)),
             style=node.get("style"),
             css_classes=node.get("cssClasses"),

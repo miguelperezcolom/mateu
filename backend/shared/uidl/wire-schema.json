@@ -94,6 +94,9 @@
         "modalTitle" : {
           "type" : "string"
         },
+        "offline" : {
+          "type" : "string"
+        },
         "restAction" : {
           "$ref" : "#/$defs/RestActionDto"
         },
@@ -467,6 +470,9 @@
           "$ref" : "#/$defs/RestDataSourceDto"
         },
         "osNotifications" : {
+          "type" : "boolean"
+        },
+        "presence" : {
           "type" : "boolean"
         },
         "pushNotifications" : {
@@ -2609,6 +2615,9 @@
           "items" : {
             "$ref" : "#/$defs/PairDto"
           }
+        },
+        "autocomplete" : {
+          "type" : "string"
         },
         "autofocus" : {
           "type" : "boolean"
@@ -5893,7 +5902,7 @@
     },
     "UICommandTypeDto" : {
       "type" : "string",
-      "enum" : [ "CloseModal", "SetWindowTitle", "SetFavicon", "NavigateTo", "RunAction", "AddContentToHead", "AddContentToBody", "PushStateToHistory", "DispatchEvent", "MarkAsDirty", "MarkAsClean", "DownloadFile", "Announce", "Print", "UpdateHeaderValue", "AgentPush", "Progress", "NotificationsChanged" ]
+      "enum" : [ "CloseModal", "SetWindowTitle", "SetFavicon", "NavigateTo", "RunAction", "AddContentToHead", "AddContentToBody", "PushStateToHistory", "DispatchEvent", "MarkAsDirty", "MarkAsClean", "DownloadFile", "Announce", "Print", "UpdateHeaderValue", "AgentPush", "Progress", "NotificationsChanged", "PresenceChanged" ]
     },
     "UIFragmentActionDto" : {
       "type" : "string",

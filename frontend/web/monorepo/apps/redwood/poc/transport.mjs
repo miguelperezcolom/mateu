@@ -9,7 +9,7 @@ import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isVie
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { staticRemoteLoad } from './staticRemotes.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf, routeCollisionsOf, routeCollisionMessage, mountPrefix } from './navTree.mjs'
-import { currentMount, pathOfRoute } from './mount.mjs'
+import { currentMount, pathOfRoute, underPublicBase } from './mount.mjs'
 import { restAnswerOf, loadRestOptions, adoptAppSources, adoptReferencedSources } from './restSources.mjs'
 import { observeWireVersion } from './wireVersion.mjs'
 import { chromeText } from './i18n.mjs'
@@ -35,6 +35,8 @@ export function isForeignBase(base) {
  *  the time it answers, the response is dropped silently. Background ones (quiet/isolated: widgets,
  *  remote menus) belong to no screen; `options.view` sets it by hand (null: none). */
 export async function callMateu(base, body, options = {}) {
+  // a root-relative base the server named (a sibling mount) under the app's public base (mount.mjs)
+  base = underPublicBase(base)
   // A backend of ANOTHER origin (a micro frontend's server, a federated pod) that does not answer
   // says nothing about the user's connection: its request is isolated from the connectivity tracker,
   // as the web client does (AxiosMateuApiClient, isForeignBaseUrl). A down island used to raise the

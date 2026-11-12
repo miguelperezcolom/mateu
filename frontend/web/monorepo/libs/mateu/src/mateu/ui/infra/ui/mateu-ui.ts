@@ -24,6 +24,7 @@ import { installPrintSupport } from '@infra/ui/documents.ts'
 import { unclaimedActionWarning } from '@infra/ui/unclaimedAction.ts'
 import { trustRootBaseUrl } from '@infra/http/credentialScope.ts'
 import { useMountForTokenCookie } from '@infra/http/authToken.ts'
+import { publicBase as currentPublicBase, setPublicBase } from '@infra/http/publicBase.ts'
 import { routeQueryOf } from '@infra/ui/routeQuery.ts'
 import { announceUrlChange, URL_CHANGED_EVENT } from '@infra/ui/urlChanges.ts'
 import { startTabSessionClaim } from '@infra/http/tabSession.ts'
@@ -78,11 +79,11 @@ export class MateuUi extends LitElement {
     @property()
     pathPrefix: string | undefined = undefined
 
-    // The public prefix the page is served under (a servlet context path, a proxy's
-    // X-Forwarded-Prefix): stamped by the server's index page (IndexPage.underPrefix). baseUrl
-    // already carries it; absolute routes are resolved below it (routeTargetUrl).
+    // The app's public base path ('' or '/crm': a servlet context path, a prefix-stripping proxy),
+    // written by the server's page (PublicBase). baseUrl and pathPrefix already carry it; it is
+    // what a root-relative path the SERVER names is put under (publicBase.ts).
     @property()
-    contextPath: string | undefined = undefined
+    publicBase: string | undefined = undefined
 
     // Static-bundle mode: URL of a manifest.json (produced by the mateu:bundle Maven goal). When set,
     // route loads are answered from the bundle instead of the backend, so the UI runs from static
@@ -120,7 +121,7 @@ export class MateuUi extends LitElement {
 
         if (e instanceof CustomEvent) {
             if (this.top == 'true') {
-                const targetUrl = routeTargetUrl(e.detail.route, this.baseUrl, this.pathPrefix, window.location.origin, this.contextPath)
+                const targetUrl = routeTargetUrl(e.detail.route, this.baseUrl, this.pathPrefix, window.location.origin, currentPublicBase())
                 // Path AND query: a listing's filters live in the query string, so the same path
                 // with different filters is a different destination. See nextHistoryUrl.
                 const next = nextHistoryUrl(window.location, targetUrl)
@@ -162,8 +163,12 @@ export class MateuUi extends LitElement {
         // the host page wrote this element (data never can — sanitizePolicy.ts): its backend is
         // trusted with the user's credentials (credentialScope.ts)
         trustRootBaseUrl(this.baseUrl)
-        // the Bearer token cookie is scoped to this mount (authToken.ts; first mateu-ui wins)
-        if (this.top == 'true') useMountForTokenCookie(this.baseUrl)
+        // the Bearer token cookie is scoped to this mount (authToken.ts; first mateu-ui wins), and
+        // the host page wrote what server-named root-relative paths go under
+        if (this.top == 'true') {
+            useMountForTokenCookie(this.baseUrl)
+            setPublicBase(this.publicBase)
+        }
 
         // <html lang>: the browser's until the app shell says the server's (AppDto.locale).
         applyUiLanguage()

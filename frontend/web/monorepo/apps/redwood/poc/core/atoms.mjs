@@ -392,6 +392,16 @@ export const CHART_TYPES = {
   radar: { type: 'line', polar: true }, polarArea: { type: 'bar', polar: true },
   scatter: { type: 'line', markersOnly: true }, bubble: { type: 'line', markersOnly: true },
 }
+/** A chart's text alternative: «Name. Series: label value, label value; …» (WCAG 1.1.1). */
+export function chartTextAlternativeOf(title, datasets, labels, pie) {
+  const parts = (datasets || []).map((d, si) => {
+    const values = (d.data || []).map((v, i) => (labels[i] != null ? String(labels[i]) + ' ' : '') + (v == null ? '' : String(v)))
+    const name = d.label && d.label !== title ? d.label : (!d.label && datasets.length > 1 ? 'Series ' + (si + 1) : '')
+    return (name ? name + ': ' : '') + values.join(', ')
+  })
+  return [title, parts.join('; ')].filter(Boolean).join('. ')
+}
+
 /** A Chart (series × labels) or a TrendChart (one series) → oj-chart atom: the precomputed
  *  ITEMS ({series, group, value}); in a pie each label is a series (a slice). */
 export function chartAtomOf(m, t, interp = (x) => x) {
@@ -445,6 +455,8 @@ export function chartAtomOf(m, t, interp = (x) => x) {
     color: color || '',
     // a TrendChart's colour is its series' (an item colour does not reach a line/area series)
     colors: color ? [color] : undefined,    items,
+    // WCAG 1.1.1: what the chart draws, as text a screen reader reads (a hidden span by the chart)
+    textAlternative: chartTextAlternativeOf(trend ? interp(m.title || '') : '', datasets, labels, pie),
     provider: dataProviderFactory ? dataProviderFactory(items) : null,
   }
 }

@@ -48,6 +48,32 @@ def describe(
     reference: str | None = None,
 ) -> dict:
     """The error toast (wire ``Message`` dict) for ``error``, logging it when it is a bug."""
+    known = _intended(error)
+    if known is not None:
+        return known
+    # the request's correlation id when the adapter has one (also in X-Mateu-Correlation-Id)
+    reference = _logged(error, action_id, reference)
+    show = detailed if detailed is not None else os.environ.get(DETAILED_ENV, "").lower() == "true"
+    if show:
+        source = list(_chain(error))[-1]
+        return _message(type(source).__name__, f"{source} (ref {reference})")
+    return _message(GENERIC_TITLE, GENERIC_TEXT + reference)
+
+
+def describe_without_details(
+    error: BaseException, action_id: str | None = None, reference: str | None = None
+) -> dict:
+    """:func:`describe` for an answer that must never carry the raw exception, whatever the dev
+    mode (a plain JSON body such as the upload endpoint's): the intended message, else the generic
+    one with the reference the exception is logged under."""
+    known = _intended(error)
+    if known is not None:
+        return known
+    return _message(GENERIC_TITLE, GENERIC_TEXT + _logged(error, action_id, reference))
+
+
+def _intended(error: BaseException) -> dict | None:
+    """The message an error MEANT the user to read (a UserFacingException, a validation error)."""
     for e in _chain(error):
         if isinstance(e, UserFacingException):
             return _message(e.title or "Error", e.message)
@@ -61,14 +87,19 @@ def describe(
                 )
             )
             return _message("Validation error", text)
-    # the request's correlation id when the adapter has one (also in X-Mateu-Correlation-Id)
+    return None
+
+
+def _logged(error: BaseException, action_id: str | None, reference: str | None) -> str:
+    """Logs a bug at ERROR under its reference and returns the reference."""
     reference = reference or uuid.uuid4().hex[:12]
     log.error("Error handling action %s [ref %s]", action_id, reference, exc_info=error)
-    show = detailed if detailed is not None else os.environ.get(DETAILED_ENV, "").lower() == "true"
-    if show:
-        source = list(_chain(error))[-1]
-        return _message(type(source).__name__, f"{source} (ref {reference})")
-    return _message(GENERIC_TITLE, GENERIC_TEXT + reference)
+    return reference
+
+
+def for_the_user(error: BaseException) -> bool:
+    """Whether ``error`` is shown as written (a UserFacingException or a validation error), not a bug."""
+    return any(isinstance(e, (UserFacingException, ValidationError)) for e in _chain(error))
 
 
 def _field_label(loc) -> str:

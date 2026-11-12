@@ -55,24 +55,16 @@ The browser talks to two kinds of URLs:
 
 What follows from it:
 
-- Serve the app at the **root of its host** (`https://admin.example.com/`), or give the mount the
-  public path you want (`@UI("/admin")`) and route **both** `/admin/**` **and** `/assets/**` to the
-  backend.
-- Under a **path prefix** the page follows it: the assets, the action endpoint and the address bar
-  all move under the prefix.
-  - A servlet **context path** (`server.servlet.context-path=/app` on Spring MVC,
-    `spring.webflux.base-path` on WebFlux) needs nothing else.
-  - A proxy that **strips a prefix** must say so in `X-Forwarded-Prefix`, and the app must trust it:
-    `mateu.forwarded-prefix.trusted=true` (.NET `ForwardedPrefixTrusted`, Python
-    `add_mateu(forwarded_prefix_trusted=True)`, env `MATEU_FORWARDED_PREFIX_TRUSTED`). Mateu never
-    reads the header otherwise, because any client can send it. On Spring Boot,
-    `server.forward-headers-strategy=framework` does the same (Spring turns the header into the
-    context path).
-  - The renderer's own files and Mateu's API move under the prefix. URLs your app writes itself (an
-    `Image` source, a logo, an `Element` import) do not: write them with the prefix.
-- Several Mateu apps behind one host: give each its own `@UI` path or prefix. Apps that share
-  `/assets/**` must run the **same Mateu release**. Give each a prefix of its own and they no longer
-  share it.
+- Serve the app at the **root of its host** (`https://admin.example.com/`), or under a **path
+  prefix**: a servlet context path (`server.servlet.context-path=/crm`, and each framework's
+  equivalent) works as it is, and behind a proxy that **strips** the prefix set
+  `mateu.public-base-path=/crm` (or trust the proxy's `X-Forwarded-Prefix`:
+  `mateu.trust-forwarded-prefix=true`, also spelled `mateu.forwarded-prefix.trusted`). The page is
+  then written for `/crm/…` — see [Serving the app under a path prefix](/deploy/under-a-path-prefix/).
+- Several Mateu apps behind one host: give each its own prefix (`/crm/`, `/billing/`) and each loads
+  its own `/crm/assets/…`, so they may run different Mateu releases. Apps that share the host's
+  root (each only its own `@UI` path) all load `/assets/**` from the same place, so they must run the
+  **same Mateu release**.
 - Long-running actions (`LongTask`, streamed responses) use **server-sent events**. Every event
   stream carries `X-Accel-Buffering: no` and `Cache-Control: no-cache, no-transform`, so nginx's
   default buffering is off for it and nothing compresses it on the way. A proxy that ignores those

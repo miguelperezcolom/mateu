@@ -52,15 +52,21 @@ public final class ErrorBoundary {
     var userFacing = find(error, UserFacingException.class);
     if (userFacing != null) {
       log.debug("Action {} answered a user-facing error: {}", actionId, userFacing.getMessage());
+      io.mateu.core.infra.observability.RequestObservation.outcome(
+          httpRequest, io.mateu.uidl.audit.ActionOutcome.USER_ERROR, userFacing, null);
       return message(
           userFacing.title() != null ? userFacing.title() : "Error", userFacing.getMessage());
     }
     var violations = find(error, jakarta.validation.ConstraintViolationException.class);
     if (violations != null) {
+      io.mateu.core.infra.observability.RequestObservation.outcome(
+          httpRequest, io.mateu.uidl.audit.ActionOutcome.USER_ERROR, violations, null);
       return message("Validation error", describe(violations));
     }
     var reference = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
     log.error("Error handling action {} [ref {}]", actionId, reference, error);
+    io.mateu.core.infra.observability.RequestObservation.outcome(
+        httpRequest, io.mateu.uidl.audit.ActionOutcome.ERROR, source(error), reference);
     if (MateuSettings.isTrue(DETAILED)
         || (httpRequest != null && Boolean.TRUE.equals(safeAttribute(httpRequest, DETAILED)))) {
       var source = source(error);

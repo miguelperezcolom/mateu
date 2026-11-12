@@ -282,6 +282,7 @@ internal static class YamlComponentBuilder
                 PropertyRow = Bool(map, "propertyRow"),
                 Placeholder = Str(map, "placeholder"),
                 Description = Str(map, "description"),
+                Autocomplete = Str(map, "autocomplete"),
                 // Java's YAML FormField: no slider bounds unless declared
                 SliderMin = int.TryParse(Str(map, "sliderMin"), out var sliderMin) ? sliderMin : 0,
                 SliderMax = int.TryParse(Str(map, "sliderMax"), out var sliderMax) ? sliderMax : 0,

@@ -181,6 +181,7 @@ internal sealed partial class ReflectionMapper
             Shortcuts = MapShortcuts(appType, appRoute),
             HeaderValues = MapHeaderValues(appType, app),
             LiveUpdates = app.LiveUpdates,
+            Presence = app.Presence,
             IdleSession = MapIdleSession(app, appRoute),
             // "Open on mobile" (QR for the Mateu mobile app): opt-in, mirrors AppDto.mobileQr.
             MobileQr = app.MobileQr,

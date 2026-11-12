@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * The deployment rules of the known-issues work: the page under a public prefix ({@link
- * ForwardedPrefix}, {@link IndexPage#underPrefix}), the SSE headers ({@link SseHeaders}), the extra
- * CORS paths ({@link CorsPolicy#covers}) and the media type a strict parser accepts ({@link
+ * ForwardedPrefix}, {@link PublicBase}), the SSE headers ({@link SseHeaders}), the extra CORS paths
+ * ({@link CorsPolicy#covers}) and the media type a strict parser accepts ({@link
  * JsonBodyGuard#normalized}).
  */
 class DeploymentPrefixAndStreamsTest {
@@ -38,13 +38,18 @@ class DeploymentPrefixAndStreamsTest {
       <html><head><link rel="icon" href="/assets/mateu-icon.svg" /><script src="/assets/mateu-theme.js"></script>
       <script type="module" crossorigin src="/assets/mateu-vaadin.js"></script>
       <link rel="stylesheet" href='/assets/index.css'><script src="https://cdn.example/x.js"></script>
-      <script src="//cdn.example/y.js"></script><meta name="mateu-dev" content="/mateu/dev/events">
-      </head><body><mateu-ui baseUrl="/admin" pathPrefix="/admin" style="width:100%"></mateu-ui></body></html>
+      <script src="//cdn.example/y.js"></script>
+      </head><body><!-- AQUIUI --><!-- HASTAAQUIUI --></body></html>
       """;
+
+  /** The page as a mount at {@code path} is served under {@code base} (PublicBase). */
+  private static String under(String html, String path, String base) {
+    return IndexPage.mountUi(PublicBase.rewrite(html, base), path, false, base);
+  }
 
   @Test
   void thePageNamesItsAssetsAndApiUnderThePrefix() {
-    var html = IndexPage.underPrefix(VAADIN_PAGE, "/ctx");
+    var html = under(VAADIN_PAGE, "/admin", "/ctx");
     assertThat(html)
         .contains("href=\"/ctx/assets/mateu-icon.svg\"")
         .contains("src=\"/ctx/assets/mateu-theme.js\"")
@@ -52,29 +57,29 @@ class DeploymentPrefixAndStreamsTest {
         .contains("href='/ctx/assets/index.css'")
         .contains("src=\"https://cdn.example/x.js\"")
         .contains("src=\"//cdn.example/y.js\"")
-        .contains("content=\"/ctx/mateu/dev/events\"")
-        .contains("<mateu-ui baseUrl=\"/ctx/admin\" contextPath=\"/ctx\" pathPrefix=\"/admin\"");
+        .contains("<mateu-ui baseUrl=\"/ctx/admin\" pathPrefix=\"/ctx/admin\" publicBase=\"/ctx\"");
   }
 
   @Test
   void theRootMountAndRedwoodPagesToo() {
     var root =
-        IndexPage.underPrefix(
+        under(
             "<html><head><base href=\"/\"><script>window.vbInitConfig = { BASE_URL:"
-                + " '/_redwood/', };</script></head><body><mateu-ui baseUrl=\"\""
-                + " pathPrefix=\"\"></mateu-ui></body></html>",
+                + " '/_redwood/', };</script></head><body><!-- AQUIUI --><!-- HASTAAQUIUI -->"
+                + "</body></html>",
+            "",
             "/a/b");
     assertThat(root)
         .contains("<base href=\"/a/b/\">")
         .contains("BASE_URL: '/a/b/_redwood/'")
-        .contains("<mateu-ui baseUrl=\"/a/b\" contextPath=\"/a/b\" pathPrefix=\"\"");
+        .contains("<mateu-ui baseUrl=\"/a/b\" pathPrefix=\"/a/b\" publicBase=\"/a/b\"");
   }
 
   @Test
   void noPrefixLeavesThePageAsItIs() {
-    assertThat(IndexPage.underPrefix(VAADIN_PAGE, "")).isEqualTo(VAADIN_PAGE);
-    assertThat(IndexPage.underPrefix(VAADIN_PAGE, null)).isEqualTo(VAADIN_PAGE);
-    assertThat(IndexPage.underPrefix(VAADIN_PAGE, "//evil")).isEqualTo(VAADIN_PAGE);
+    assertThat(PublicBase.rewrite(VAADIN_PAGE, "")).isEqualTo(VAADIN_PAGE);
+    assertThat(PublicBase.rewrite(VAADIN_PAGE, null)).isEqualTo(VAADIN_PAGE);
+    assertThat(PublicBase.rewrite(VAADIN_PAGE, "//evil")).isEqualTo(VAADIN_PAGE);
   }
 
   @Test

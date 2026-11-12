@@ -3,7 +3,8 @@ import { customElement, property, state } from 'lit/decorators.js';
 import PlanningResource from "@mateu/shared/apiClients/dtos/componentmetadata/PlanningResource";
 import PlanningBlock from "@mateu/shared/apiClients/dtos/componentmetadata/PlanningBlock";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
-import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts'
 import { inkOn } from '@infra/ui/inkOn.ts'
 
 interface DragState {
@@ -34,6 +35,41 @@ interface RangeState {
     anchorIdx: number
     currentIdx: number
 }
+
+/**
+ * A move or resize prepared WITHOUT dragging (WCAG 2.1.1 Keyboard, 2.5.7 Dragging Movements): the
+ * focused block's arrow keys, or the buttons of its tool row, nudge it a day or a row at a time;
+ * Enter / Apply sends the same action the drag would.
+ */
+export interface PendingChange {
+    blockId: string
+    mode: 'move' | 'resize'
+    resourceId: string
+    startIdx: number
+    endIdx: number
+    originResourceId: string
+    originStartIdx: number
+    originEndIdx: number
+}
+
+/** The pending change after one nudge (pure; tested). A move keeps the length inside the window
+ *  and walks the resource rows; a resize moves the END edge, never before the start. */
+export const nudged = (p: PendingChange, nudge: { days?: number, rows?: number, length?: number },
+                       resourceIds: string[], windowDays: number): PendingChange => {
+    if (nudge.length) {
+        const endIdx = Math.max(p.startIdx, Math.min(windowDays - 1, p.endIdx + nudge.length))
+        return { ...p, mode: 'resize', resourceId: p.originResourceId, endIdx }
+    }
+    const length = p.endIdx - p.startIdx
+    const startIdx = Math.max(0, Math.min(windowDays - 1 - length, p.startIdx + (nudge.days ?? 0)))
+    const row = resourceIds.indexOf(p.resourceId)
+    const nextRow = Math.max(0, Math.min(resourceIds.length - 1, row + (nudge.rows ?? 0)))
+    return { ...p, mode: 'move', startIdx, endIdx: startIdx + length, resourceId: resourceIds[nextRow] ?? p.resourceId }
+}
+
+/** Whether a pending change changes anything. */
+export const pendingChanged = (p: PendingChange | null) => !!p
+    && (p.resourceId !== p.originResourceId || p.startIdx !== p.originStartIdx || p.endIdx !== p.originEndIdx)
 
 /** The days of a range selection, whatever direction the pointer went (pure; tested). */
 export const rangeOf = (anchorIdx: number, currentIdx: number): { startIdx: number, endIdx: number } =>
@@ -98,11 +134,37 @@ export class MateuPlanningBoard extends LitElement {
     @state()
     private drag: DragState | null = null
 
-    static styles = css`
+    /** a move/resize prepared by keyboard or by the tool row's buttons (no dragging) */
+    @state()
+    private pending: PendingChange | null = null
+
+    /** the block whose tool row is shown (the focused one) */
+    @state()
+    private activeBlockId: string | null = null
+
+    static styles = [activatableFocusStyles, css`
         :host {
             display: block;
             width: 100%;
             font-size: var(--lumo-font-size-s, .875rem);
+        }
+        .block:focus-visible {
+            outline: 2px solid var(--lumo-primary-color, #1a73e8);
+            outline-offset: 2px;
+        }
+        .tools {
+            display: flex; flex-wrap: wrap; align-items: center; gap: .25rem; margin-bottom: .35rem;
+        }
+        .tools button {
+            font: inherit; min-width: 2rem; min-height: 2rem; cursor: pointer;
+            border: 1px solid var(--lumo-contrast-20pct, rgba(0,0,0,.15)); border-radius: var(--lumo-border-radius-m, 6px);
+            background: var(--lumo-base-color, #fff); color: var(--lumo-body-text-color, #1a1a1a);
+        }
+        .tools button.apply { background: var(--lumo-primary-color, #1a73e8); color: var(--lumo-primary-contrast-color, #fff); }
+        .tools .pending { color: var(--lumo-secondary-text-color, #666); margin: 0 .35rem; }
+        .sr-only {
+            position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
         }
         .frame {
             display: grid;
@@ -268,7 +330,7 @@ export class MateuPlanningBoard extends LitElement {
             pointer-events: none;
             z-index: 2;
         }
-    `
+    `]
 
     // --- date helpers (all local-time, no UTC conversions) ---------------------------------
 
@@ -517,6 +579,112 @@ export class MateuPlanningBoard extends LitElement {
         })
     }
 
+    // --- without dragging: keyboard and the tool row (WCAG 2.1.1, 2.5.7) ------------------------
+
+    private blockIdx(block: PlanningBlock, win: { from: Date }) {
+        return {
+            startIdx: MateuPlanningBoard.daysBetween(win.from, MateuPlanningBoard.parse(block.start!)),
+            endIdx: MateuPlanningBoard.daysBetween(win.from, MateuPlanningBoard.parse(block.end!)),
+        }
+    }
+
+    /** Nudges the active block (starting a pending change on the first nudge). */
+    nudge(blockId: string, n: { days?: number, rows?: number, length?: number }) {
+        const win = this.window()
+        const block = this.blocks.find((b) => b.id === blockId)
+        if (!win || !block || !block.start || !block.end) return
+        if (n.length ? !this.resizeActionId : !this.moveActionId) return
+        const { startIdx, endIdx } = this.blockIdx(block, win)
+        const base: PendingChange = this.pending?.blockId === blockId && (this.pending.mode === (n.length ? 'resize' : 'move'))
+            ? this.pending
+            : { blockId, mode: n.length ? 'resize' : 'move', resourceId: block.resourceId!, startIdx, endIdx,
+                originResourceId: block.resourceId!, originStartIdx: startIdx, originEndIdx: endIdx }
+        this.pending = nudged(base, n, this.resources.map((r) => r.id!), win.days)
+    }
+
+    /** Sends the pending change (the action the drag would send); false when there is none. */
+    applyPending(): boolean {
+        const p = this.pending
+        this.pending = null
+        const win = this.window()
+        if (!p || !win || !pendingChanged(p)) return false
+        const actionId = p.mode === 'resize' ? this.resizeActionId : this.moveActionId
+        if (!actionId) return false
+        this.emit(actionId, {
+            _blockId: p.blockId,
+            _resourceId: p.resourceId,
+            _start: MateuPlanningBoard.iso(MateuPlanningBoard.addDays(win.from, p.startIdx)),
+            _end: MateuPlanningBoard.iso(MateuPlanningBoard.addDays(win.from, p.endIdx)),
+        })
+        return true
+    }
+
+    cancelPending() { this.pending = null }
+
+    private onBlockKeydown(e: KeyboardEvent, block: PlanningBlock) {
+        const id = block.id!
+        const arrows: Record<string, { days?: number, rows?: number }> = {
+            ArrowLeft: { days: -1 }, ArrowRight: { days: 1 }, ArrowUp: { rows: -1 }, ArrowDown: { rows: 1 },
+        }
+        if (e.key in arrows) {
+            e.preventDefault()
+            if (e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+                this.nudge(id, { length: e.key === 'ArrowLeft' ? -1 : 1 })
+            } else {
+                this.nudge(id, arrows[e.key])
+            }
+            return
+        }
+        if (e.key === 'Escape' && this.pending) {
+            e.preventDefault()
+            e.stopPropagation()
+            this.cancelPending()
+            return
+        }
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            if (this.applyPending()) return
+            if (this.selectActionId) this.emit(this.selectActionId, { _blockId: id })
+            else if (this.openActionId) this.emit(this.openActionId, { _blockId: id })
+        }
+    }
+
+    private pendingText(): string {
+        const p = this.pending
+        const win = this.window()
+        if (!p || !win) return ''
+        const block = this.blocks.find((b) => b.id === p.blockId)
+        const resource = this.resources.find((r) => r.id === p.resourceId)
+        const day = (i: number) => MateuPlanningBoard.addDays(win.from, i).toLocaleDateString()
+        return chromeTextf('planningPending', {
+            block: block?.label ?? p.blockId, resource: resource?.label ?? p.resourceId, start: day(p.startIdx), end: day(p.endIdx),
+        })
+    }
+
+    /** The tool row of the active block: the same nudges as the arrow keys, by single pointer. */
+    private renderTools() {
+        const id = this.pending?.blockId ?? this.activeBlockId
+        if (!id || (!this.moveActionId && !this.resizeActionId)) return nothing
+        const button = (label: string, glyph: string, onClick: () => void) => html`
+            <button type="button" aria-label="${label}" title="${label}" @click="${onClick}">${glyph}</button>`
+        return html`
+            <div class="tools" role="toolbar" aria-label="${this.blocks.find((b) => b.id === id)?.label ?? ''}"
+                 @focusin="${() => { this.activeBlockId = id }}">
+                ${this.moveActionId ? html`
+                    ${button(chromeText('planningEarlier'), '◀', () => this.nudge(id, { days: -1 }))}
+                    ${button(chromeText('planningLater'), '▶', () => this.nudge(id, { days: 1 }))}
+                    ${button(chromeText('planningRowUp'), '▲', () => this.nudge(id, { rows: -1 }))}
+                    ${button(chromeText('planningRowDown'), '▼', () => this.nudge(id, { rows: 1 }))}` : nothing}
+                ${this.resizeActionId ? html`
+                    ${button(chromeText('planningShorter'), '−', () => this.nudge(id, { length: -1 }))}
+                    ${button(chromeText('planningLonger'), '+', () => this.nudge(id, { length: 1 }))}` : nothing}
+                <span class="pending" aria-live="polite">${this.pendingText()}</span>
+                ${pendingChanged(this.pending) ? html`
+                    <button type="button" class="apply" @click="${() => this.applyPending()}">${chromeText('apply')}</button>
+                    <button type="button" @click="${() => this.cancelPending()}">${chromeText('cancel')}</button>` : nothing}
+            </div>`
+    }
+
     private endDrag() {
         this.drag = null
         this.resize = null
@@ -551,6 +719,8 @@ export class MateuPlanningBoard extends LitElement {
             rows.push(this.renderRow(resource, win, days, todayVisible ? todayIdx : null))
         })
         return html`
+            ${this.renderTools()}
+            <span id="planning-keys" class="sr-only">${chromeText('planningKeys')}</span>
             <div class="frame" tabindex="0" role="region" aria-label="${chromeText('planningBoard')}" style="grid-template-columns: minmax(${8 + 4.5 * this.attributeColumns.length}rem, ${12 + 4.5 * this.attributeColumns.length}rem) repeat(${win.days}, minmax(2.2rem, 1fr));">
                 <div class="corner"><span class="res-name">${chromeText('resource')}</span>${this.attributeColumns.map(c => html`<span class="attr">${c}</span>`)}</div>
                 ${days.map((day, i) => html`
@@ -572,6 +742,7 @@ export class MateuPlanningBoard extends LitElement {
         const pctPerDay = 100 / win.days
         const blocks = this.blocks.filter(b => b.resourceId === resource.id && b.start && b.end)
         const ghost = this.drag?.moved && this.drag.targetResourceId === resource.id ? this.drag : null
+        const pending = this.pending && pendingChanged(this.pending) && this.pending.resourceId === resource.id ? this.pending : null
         return html`
             <div class="label" title="${resource.label ?? ''}">
                 <span class="res-name">${resource.icon ? icon(resource.icon) : nothing}${resource.label}</span>
@@ -603,6 +774,11 @@ export class MateuPlanningBoard extends LitElement {
                     return html`
                         <div class="block ${this.selectActionId ? 'clickable' : ''} ${this.moveActionId ? 'draggable' : ''} ${dragging ? 'dragging' : ''}"
                              title="${tooltip}"
+                             tabindex="0" role="button"
+                             aria-label="${tooltip}"
+                             aria-describedby="${this.moveActionId || this.resizeActionId ? 'planning-keys' : nothing}"
+                             @keydown="${(e: KeyboardEvent) => this.onBlockKeydown(e, block)}"
+                             @focus="${() => { this.activeBlockId = block.id! }}"
                              style="left: ${shownStart * pctPerDay}%; width: ${(shownEnd - shownStart + 1) * pctPerDay}%; ${block.color ? `--mateu-planning-block: ${block.color}; ${inkOn(block.color) ? `--mateu-planning-block-ink: ${inkOn(block.color)};` : ''}` : ''}"
                              @dblclick="${this.openActionId ? () => this.emit(this.openActionId!, { _blockId: block.id }) : nothing}"
                              @pointerdown="${(e: PointerEvent) => this.onBlockPointerDown(e, block, startIdx)}"
@@ -622,6 +798,10 @@ export class MateuPlanningBoard extends LitElement {
                     const { startIdx, endIdx } = rangeOf(this.range!.anchorIdx, this.range!.currentIdx)
                     return html`<div class="range" style="left: ${startIdx * pctPerDay}%; width: ${(endIdx - startIdx + 1) * pctPerDay}%;"></div>`
                 })() : nothing}
+                ${pending ? html`
+                    <div class="ghost pending-ghost"
+                         style="left: ${pending.startIdx * pctPerDay}%; width: ${(pending.endIdx - pending.startIdx + 1) * pctPerDay}%;"></div>
+                ` : nothing}
                 ${ghost ? html`
                     <div class="ghost"
                          style="left: ${ghost.targetStartIdx * pctPerDay}%; width: ${Math.min(ghost.duration, win.days - ghost.targetStartIdx) * pctPerDay}%;"></div>

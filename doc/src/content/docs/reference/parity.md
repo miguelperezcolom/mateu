@@ -74,6 +74,7 @@ in the same change.
 | `@Audience` persona projection (audience app-context + projection filter) | ✅ | ✅ | ✅ |
 | Capture fields (`@Signature`, `@PhotoCapture`) | ✅ | ✅ | ✅ |
 | Generic file upload field (`@FileUpload`, accept filter in the field attributes) | ✅ | ✅ | ✅ |
+| Large file uploads through a storage port (`FileStorage` / `IFileStorage` / `FileStorage`: `POST /mateu/v3/upload`, signed tickets, size/type limits, pre-signed targets) — experimental | ✅ | ✅ | ✅ |
 | Tree selects (`@TreeSelect` + hierarchical options) | ✅ | ✅ | ✅ |
 | Smart-search listing filters (enums as multi-select, date/number ranges) | ✅ | ✅ | ✅ |
 | Declarative listings (`Listing<Row>` + capabilities) | ✅ | ✅ | ✅ |
@@ -831,7 +832,7 @@ authentication) and the VS Code extension (the same visual editor bundle, `yamlV
 `specs/ui/**`, **Mateu: New File…** with the same skeletons) are supported tooling. The Figma
 design-to-code pipeline remains *preview*: it is not covered by the support promise above.
 
-**Fetch-plan edges (known renderer gaps).** The client-side fetch plan (`optionsSource`,
+**Fetch-plan edges.** The client-side fetch plan (`optionsSource`,
 `rowsSource`, `restAction`, `restData` — see [the renderer contract](/design-systems/renderer-contract/))
 is honoured; two notes:
 

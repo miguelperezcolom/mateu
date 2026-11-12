@@ -299,6 +299,11 @@ class ReflectionMapper(
         self.adapters: dict = {}
         #: The listing exporters (set by the SyncHandler); default = the built-in CSV writer only.
         self.exporters: Any = Exporters()
+        #: The application's FileStorage stores + the upload ticket secret (set by the SyncHandler /
+        #: add_mateu); default = none, so a FileUpload() field keeps the data-URI fallback.
+        from ..uploads import Uploads
+
+        self.uploads: Any = Uploads()
         #: an EmbeddedView island's own data (its lookup labels); set by the SyncHandler
         self.island_data: Any = None
         #: The translation catalogue (a TranslationRegistry, set by the SyncHandler); None = none.

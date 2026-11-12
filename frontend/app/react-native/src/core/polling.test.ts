@@ -140,3 +140,15 @@ test('polling: the condition is evaluated at fire time', () => {
   clock.advance(100);
   assert.equal(ran.length, 1);
 });
+
+test('polling: pendingCount tracks what is armed and drops to zero on navigation or stop', () => {
+  const { s } = setup();
+  assert.equal(s.pendingCount, 0);
+  s.enterScreen('Floors|floors', LOOP, true);
+  assert.equal(s.pendingCount, 1);
+  s.enterScreen('Orders|orders', [], false);
+  assert.equal(s.pendingCount, 0);
+  s.enterScreen('Floors|floors', LOOP, true);
+  s.stop();
+  assert.equal(s.pendingCount, 0);
+});

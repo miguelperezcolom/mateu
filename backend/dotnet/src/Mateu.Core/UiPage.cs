@@ -101,12 +101,17 @@ internal static class UiPage
     /// <summary>Java's <c>IndexPage.mountUi</c>: the <c>&lt;!-- AQUIUI --&gt;…&lt;!-- HASTAAQUIUI --&gt;</c>
     /// region becomes a <c>&lt;mateu-ui&gt;</c> root aimed at the mount, followed by the deferred-boot
     /// replayer. A page without the markers is returned unchanged.</summary>
-    public static string MountUi(string html, string baseUrl, bool debug = false)
+    /// Under a <paramref name="publicBase"/> (<see cref="PublicBase"/>) the root aims at the PUBLIC
+    /// path of the mount and carries <c>publicBase</c>, as on Java.
+    public static string MountUi(string html, string baseUrl, bool debug = false, string? publicBase = null)
     {
         var from = html.IndexOf(UiFrom, StringComparison.Ordinal);
         var to = html.IndexOf(UiTo, StringComparison.Ordinal);
         if (from < 0 || to < from) return html;
-        var root = "<mateu-ui baseUrl=\"" + Attr(baseUrl) + "\" pathPrefix=\"" + Attr(baseUrl) + "\""
+        var b = PublicBase.Normalize(publicBase);
+        var mount = b + baseUrl;
+        var root = "<mateu-ui baseUrl=\"" + Attr(mount) + "\" pathPrefix=\"" + Attr(mount) + "\""
+                   + (b.Length == 0 ? "" : " publicBase=\"" + Attr(b) + "\"")
                    + (debug ? " debug=\"true\"" : "") + " style=\"width:100%;height:100vh;\"></mateu-ui>";
         return html[..from] + root + DeferredBoot + html[to..];
     }
@@ -120,16 +125,6 @@ internal static class UiPage
 
     private static readonly System.Text.RegularExpressions.Regex SafePrefix =
         new(@"^(/[A-Za-z0-9._~!$&'()*+,;=:@%-]+)+$");
-
-    private static readonly System.Text.RegularExpressions.Regex RootRelative =
-        new(@"(\s(?:src|href|data-src|data-sw|data-scope)\s*=\s*)([""'])/(?!/)",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-
-    private static readonly System.Text.RegularExpressions.Regex RedwoodBase =
-        new(@"(BASE_URL\s*:\s*['""])/_redwood/");
-
-    private static readonly System.Text.RegularExpressions.Regex MateuUiBaseUrl =
-        new(@"(<mateu-ui\b[^>]*?\sbaseUrl\s*=\s*)([""'])([^""']*)\2");
 
     public static bool ForwardedPrefixTrustedByEnvironment() =>
         System.Environment.GetEnvironmentVariable(ForwardedPrefixTrustedEnvVar)?.Trim().ToLowerInvariant() == "true";
@@ -161,38 +156,18 @@ internal static class UiPage
         return NormalizePrefix(pathBase);
     }
 
-    /// <summary>Java's <c>IndexPage.underPrefix</c>: the page served under a public path prefix — every
-    /// root-relative URL it names (<c>src</c>, <c>href</c>, <c>data-src</c>, <c>data-sw</c>,
-    /// <c>data-scope</c>), Redwood's <c>BASE_URL</c> and the live-reload meta under the prefix, and the
-    /// <c>&lt;mateu-ui&gt;</c> base url too, which then also carries the prefix as <c>contextPath</c>.
-    /// Unchanged for no prefix.</summary>
-    public static string UnderPrefix(string html, string? prefix)
-    {
-        var p = NormalizePrefix(prefix);
-        if (string.IsNullOrEmpty(html) || p.Length == 0) return html;
-        html = RootRelative.Replace(html, m => m.Groups[1].Value + m.Groups[2].Value + p + "/");
-        html = RedwoodBase.Replace(html, m => m.Groups[1].Value + p + "/_redwood/");
-        html = html.Replace("content=\"/mateu/dev/events\"", "content=\"" + p + "/mateu/dev/events\"", StringComparison.Ordinal);
-        var root = MateuUiBaseUrl.Match(html);
-        if (root.Success)
-        {
-            var value = root.Groups[3].Value;
-            var based = value.Length == 0 || value.StartsWith('/') ? p + value : value;
-            html = html[..root.Index] + root.Groups[1].Value + root.Groups[2].Value + Attr(based)
-                   + root.Groups[2].Value + " contextPath=\"" + Attr(p) + "\"" + html[(root.Index + root.Length)..];
-        }
-        return html;
-    }
-
     /// <summary>The renderer's page aimed at <paramref name="baseUrl"/> (the mount, "" for the root) and titled.</summary>
     /// <remarks>Like Java's <c>IndexPage.render</c>: the favicon marker becomes
     /// <see cref="DefaultFavicon"/> and no template marker is left in the page. With
     /// <paramref name="oracleCdn"/> (an already validated mirror, see <see cref="ResolveOracleCdn"/>)
     /// Oracle's CDN URLs are re-pointed at it AFTER the markers are filled.</remarks>
+    /// Under a <paramref name="publicBase"/> the template's root-relative URLs are rewritten first
+    /// (<see cref="PublicBase.Rewrite"/>).
     public static string RenderIndex(string template, string baseUrl, string title, bool debug = false,
-        string? oracleCdn = null) =>
+        string? oracleCdn = null, string? publicBase = null) =>
         RewriteOracleCdn(WithoutMarkers(MountUi(
-            template.Replace(FaviconMarker, DefaultFavicon).Replace(TitleMarker, title), baseUrl, debug)), oracleCdn);
+            PublicBase.Rewrite(template.Replace(FaviconMarker, DefaultFavicon).Replace(TitleMarker, title), publicBase),
+            baseUrl, debug, publicBase)), oracleCdn);
 
     /// <summary>The mirror of Oracle's CDN, when not set in <c>MateuOptions.OracleCdnUrl</c> (Java:
     /// <c>mateu.oracle-cdn.url</c> / <c>MATEU_ORACLE_CDN_URL</c>).</summary>

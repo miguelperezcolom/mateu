@@ -853,6 +853,10 @@ public class ActionInstanceCreator {
         || io.mateu.core.domain.act.LiveUpdatesActionRunner.ACTION_ID.equals(actionId)) {
       return true;
     }
+    // Record presence is the shell's too: a page reports itself, the app answers who else is there.
+    if (io.mateu.core.application.presence.Presence.ACTION_ID.equals(actionId)) {
+      return true;
+    }
     // So do the live UI push channel and its pairing (the "Connect AI" control is on the shell).
     if (io.mateu.core.application.agentpush.AgentPush.CHANNEL_ACTION.equals(actionId)
         || io.mateu.core.application.agentpush.AgentPush.PAIR_ACTION.equals(actionId)

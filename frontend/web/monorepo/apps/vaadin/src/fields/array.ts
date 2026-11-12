@@ -18,7 +18,7 @@ export function renderArrayField(host: MateuField, _fieldId: string, value: Fiel
                         data-colspan="${host.field.colspan}"
                 >
                     <mateu-choice
-                            .field="${host.field}"
+                            .field="${host.field.optionsSource ? { ...host.field, options: sourcedOptions(host) } : host.field}"
                             .value="${value}"
                             .state="${host.state}"
                             .data="${host.data}"
@@ -88,7 +88,7 @@ export function renderArrayField(host: MateuField, _fieldId: string, value: Fiel
                                  ?autofocus="${host.field.wantsFocus}"
                                  data-colspan="${host.field.colspan}"
                 >
-                    ${host.field.options?.map(option => html`
+                    ${(host.field.optionsSource ? sourcedOptions(host) : host.field.options)?.map(option => html`
                         <vaadin-item>${option.label}</vaadin-item>
                     `)}
                 </vaadin-list-box>

@@ -41,9 +41,9 @@ public class ${simpleClassName}Controller {
             throw new jakarta.ws.rs.NotFoundException();
         }
         // a deep link into a YAML mount (type: UI) served next to this UI opens THAT mount
-        var yaml = io.mateu.core.infra.YamlMounts.deepLinkIndex("${path?j_string}/" + path);
+        var yaml = io.mateu.core.infra.YamlMounts.deepLinkIndex("${path?j_string}/" + path, io.mateu.core.infra.PublicBase.of(io.mateu.core.infra.PublicBase.configuredContextPath(), forwardedPrefix));
         if (yaml != null) {
-            return IndexPage.underPrefix(yaml, io.mateu.core.infra.ForwardedPrefix.of(null, forwardedPrefix));
+            return yaml;
         }
         return getIndex(forwardedPrefix);
     }
@@ -51,11 +51,9 @@ public class ${simpleClassName}Controller {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public String getIndex(@jakarta.ws.rs.HeaderParam("X-Forwarded-Prefix") String forwardedPrefix) {
-        // behind a proxy that strips a prefix (a trusted X-Forwarded-Prefix) the page names its
-        // assets and API there
-        return IndexPage.underPrefix(
-                IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug())),
-                io.mateu.core.infra.ForwardedPrefix.of(null, forwardedPrefix));
+        // under mateu.public-base-path / a prefix-stripping proxy the page's URLs carry it
+        return IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug())
+                .withPublicBase(io.mateu.core.infra.PublicBase.of(io.mateu.core.infra.PublicBase.configuredContextPath(), forwardedPrefix)));
     }
 
 }

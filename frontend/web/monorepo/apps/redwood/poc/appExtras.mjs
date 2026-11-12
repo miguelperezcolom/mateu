@@ -27,16 +27,35 @@ import { safeHref } from './core/display.mjs'
 const SC_FUNCTION_OR_MOD = (shortcut) =>
   /(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(String(shortcut || '')) || isFunctionKeyShortcut(shortcut)
 
+/** WCAG 2.1.4 Character Key Shortcuts — libs/mateu appShortcuts.ts: a ONE-character shortcut
+ *  (`?`, a bare letter) can be switched off by the user (the same localStorage key as the web);
+ *  Ctrl+/ always opens the list. */
+const SINGLE_KEY_STORAGE = 'mateu-single-key-shortcuts'
+export const isCharacterKeyShortcut = (shortcut) => {
+  const parts = String(shortcut || '').toLowerCase().split('+').map((p) => p.trim())
+  const key = parts[parts.length - 1]
+  return key.length === 1 && !parts.some((p) => p === 'ctrl' || p === 'control' || p === 'alt' || p === 'meta' || p === 'cmd')
+}
+export function singleKeyShortcutsOn(storage = extrasStorage()) {
+  try { return !storage || storage.getItem(SINGLE_KEY_STORAGE) !== 'off' } catch (e) { return true }
+}
+export function setSingleKeyShortcuts(on, storage = extrasStorage()) {
+  try { if (storage) storage.setItem(SINGLE_KEY_STORAGE, on ? 'on' : 'off') } catch (e) { /* storage blocked */ }
+}
+
 /** The app shortcut a keystroke presses: never a plain key while typing, never a key the screen owns. */
 export function appShortcutFor(shortcuts, e, typing, screenKeys = []) {
   return (shortcuts || []).find((s) => !!s.key
     && (!typing || SC_FUNCTION_OR_MOD(s.key))
+    && (!isCharacterKeyShortcut(s.key) || singleKeyShortcutsOn())
     && !screenKeys.includes(String(s.key).toLowerCase())
     && shortcutMatches(s.key, e))
 }
 
-/** «?» opens the list — never while typing. */
-export const isShortcutsHelpKey = (e, typing) => !typing && e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey
+/** «?» opens the list — never while typing, nor once single-key shortcuts are off; Ctrl+/ always. */
+export const isShortcutsHelpKey = (e, typing) =>
+  ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === '/' || e.code === 'Slash'))
+  || (!typing && e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey && singleKeyShortcutsOn())
 
 /** QUICK LAUNCH: the shortcut whose code is exactly what was typed (trimmed, case-insensitive). */
 export function quickLaunchMatch(shortcuts, query) {
@@ -343,7 +362,17 @@ function openShortcutsHelp(doc) {
     runAppShortcut(s)
   })))
   section(chromeText('shortcutsScreen'), screenShortcutsOf(doc).map((s) => row(s.label, keyHint(s.key), '', null)))
-  section('', [row(chromeText('shortcutsHelpKey'), '?', '', null)])
+  section('', [row(chromeText('shortcutsHelpKey'), '? · Ctrl+/', '', null)])
+  // WCAG 2.1.4: the switch for one-key shortcuts
+  const toggle = doc.createElement('label')
+  toggle.className = 'mateu-sc-single-keys'
+  const box = doc.createElement('input')
+  box.type = 'checkbox'
+  box.checked = singleKeyShortcutsOn()
+  box.addEventListener('change', () => setSingleKeyShortcuts(!!box.checked))
+  toggle.appendChild(box)
+  toggle.appendChild(doc.createTextNode(' ' + chromeText('singleKeyShortcuts')))
+  body.appendChild(toggle)
   if (typeof dialog.open === 'function') dialog.open()
 }
 

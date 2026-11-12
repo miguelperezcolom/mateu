@@ -186,6 +186,12 @@ export function expandComponent(authored: FluentNode): Component {
         delete metadata.id
         metadata.dataType = metadata.dataType ?? 'string'
         metadata.stereotype = metadata.stereotype ?? 'regular'
+        // WCAG 1.3.5 — Java's FieldMapper.autocompleteOf: the declared token, else `email` for an
+        // editable email field
+        const declared = typeof metadata.autocomplete === 'string' ? metadata.autocomplete.trim() : ''
+        if (declared) metadata.autocomplete = declared
+        else if (metadata.stereotype === 'email' && !metadata.readOnly) metadata.autocomplete = 'email'
+        else delete metadata.autocomplete
     }
     if (type === 'Form') {
         // the page-header keys (overline, badges, kpis, recordSwitcher, banners, fabs…) as FormMapper

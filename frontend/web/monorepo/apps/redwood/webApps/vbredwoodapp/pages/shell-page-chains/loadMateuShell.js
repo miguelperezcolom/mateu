@@ -211,6 +211,8 @@ define([
       // The live regions have to EXIST before anything writes to them: one created
       // and filled in the same tick is often not announced.
       bridge.installAnnouncer();
+      // WCAG 1.3.5: a field's autocomplete token reaches its native input (a11y.mjs)
+      bridge.installInputPurpose();
       // Esc / a click outside a create/edit drawer with unsaved edits asks first (drawers.mjs)
       bridge.installDrawerGuard();
       bridge.mountSkipLink();

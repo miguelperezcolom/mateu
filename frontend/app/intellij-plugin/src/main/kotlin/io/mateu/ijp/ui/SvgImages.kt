@@ -79,6 +79,26 @@ object SvgImages {
     }
 }
 
-/** Any image bytes → an image: SVG through JSVG, the rest through ImageIO. */
-internal fun decodeImage(bytes: ByteArray, svg: Boolean): BufferedImage? =
-    if (svg) SvgImages.read(bytes) else runCatching { javax.imageio.ImageIO.read(bytes.inputStream()) }.getOrNull()
+/** Any image bytes → an image: SVG (declared or sniffed) through JSVG, the rest through ImageIO. */
+internal fun decodeImage(bytes: ByteArray, svg: Boolean = false): BufferedImage? =
+    if (svg || SvgImages.looksLikeSvg(bytes)) SvgImages.read(bytes)
+    else runCatching { javax.imageio.ImageIO.read(bytes.inputStream()) }.getOrNull()
+
+/**
+ * The image a `src` names — a data URI (base64 or, for SVG, percent-encoded) or an http(s)/file url —
+ * decoded like [decodeImage]. Blocking: call it off the EDT for a remote url.
+ */
+internal fun readImageSource(src: String): BufferedImage? = runCatching {
+    val s = src.trim()
+    val svg = SvgImages.isSvg(s)
+    val bytes = if (s.startsWith("data:")) {
+        if (svg || !s.substringBefore(',').contains(";base64")) SvgImages.dataUriBytes(s)
+        else java.util.Base64.getDecoder().decode(s.substringAfter("base64,", ""))
+    } else {
+        val conn = java.net.URI.create(s).toURL().openConnection()
+        conn.connectTimeout = 10_000
+        conn.readTimeout = 30_000
+        conn.getInputStream().use { it.readBytes() }
+    }
+    bytes?.takeIf { it.isNotEmpty() }?.let { decodeImage(it, svg) }
+}.getOrNull()

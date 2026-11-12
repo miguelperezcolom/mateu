@@ -24,6 +24,10 @@
 # IdentityResolver (like IssuedActions) and translates the starting text through BuiltInTexts; the
 # live-updates runner filters inbox pushes by the caller through IdentityResolver — reviewed.
 # Remote push (2026-11-11): Push reads its Expo switches through MateuSettings, like AgentPush — reviewed.
+# Record presence (2026-11-11): Presence keys a tab by its caller through IdentityResolver (like
+# Inbox) and reads @App(presence) through MetaAnnotations — reviewed.
+# File uploads (2026-11-11): FieldMapper gives an editable upload field its ticket through
+# UploadAttributes (infra/uploads, where the endpoint that verifies it lives) — reviewed.
 application -> infra: io/mateu/core/application/agentpush/AgentCaller.java
 application -> infra: io/mateu/core/application/agentpush/AgentPush.java
 application -> infra: io/mateu/core/application/export/MateuBundleExporter.java
@@ -31,6 +35,7 @@ application -> infra: io/mateu/core/application/i18n/TranslationRegistry.java
 application -> infra: io/mateu/core/application/mcp/McpEndpoint.java
 application -> infra: io/mateu/core/application/mcp/McpJsonRpc.java
 application -> infra: io/mateu/core/application/notifications/Inbox.java
+application -> infra: io/mateu/core/application/presence/Presence.java
 application -> infra: io/mateu/core/application/progress/ProgressTasks.java
 application -> infra: io/mateu/core/application/push/Push.java
 application -> infra: io/mateu/core/application/runaction/ActionInstanceCreator.java
@@ -130,6 +135,7 @@ domain -> infra: io/mateu/core/domain/out/fragmentmapper/UIFragmentAssembler.jav
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ActionMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ComponentTreeSupplierMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ConstraintValidationMapper.java
+domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/FieldMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/IssuedActions.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ListingDescriptorBuilder.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/StateMapper.java

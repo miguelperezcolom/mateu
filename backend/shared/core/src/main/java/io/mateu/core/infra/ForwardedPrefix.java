@@ -12,8 +12,9 @@ import java.util.regex.Pattern;
  * {@code server.forward-headers-strategy}. A framework that already applied it (Spring's {@code
  * ForwardedHeaderFilter} turns it into the context path) needs nothing: its context path is used.
  *
- * <p>What the prefix changes is decided in {@link IndexPage#underPrefix}: the page's asset URLs and
- * the {@code <mateu-ui>} base url, so the renderer calls {@code <prefix>/mateu/v3/…}.
+ * <p>What the prefix changes is decided by {@link PublicBase}, which serves the page: {@value
+ * #TRUSTED_PROPERTY} is the other spelling of {@link PublicBase#TRUST_FORWARDED_PREFIX}, and either
+ * one turns the header on.
  */
 public final class ForwardedPrefix {
 
@@ -31,7 +32,7 @@ public final class ForwardedPrefix {
 
   /** Whether the application trusts the proxy's {@value #HEADER}. */
   public static boolean trusted() {
-    return MateuSettings.isTrue(TRUSTED_PROPERTY);
+    return PublicBase.trustsForwardedPrefix();
   }
 
   /**

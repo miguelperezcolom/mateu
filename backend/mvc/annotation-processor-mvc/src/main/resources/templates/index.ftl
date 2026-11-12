@@ -30,10 +30,9 @@ public class ${simpleClassName}Controller {
     // Deep links (/orders/42 on a reload or a shared link) are forwarded here by SpaRedirectFilter.
     @GetMapping(value = "", produces = MediaType.TEXT_HTML_VALUE)
     public String getIndex(jakarta.servlet.http.HttpServletRequest request) {
-        // under a context path / a trusted X-Forwarded-Prefix the page names its assets and API there
-        return IndexPage.underPrefix(
-                IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug)),
-                io.mateu.MateuRequestPaths.prefixOf(request));
+        // under a servlet context path / a prefix-stripping proxy the page's URLs carry it
+        return IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug)
+                .withPublicBase(io.mateu.core.infra.PublicBase.of(request.getContextPath(), request.getHeader(io.mateu.core.infra.PublicBase.FORWARDED_PREFIX_HEADER))));
     }
 
 }

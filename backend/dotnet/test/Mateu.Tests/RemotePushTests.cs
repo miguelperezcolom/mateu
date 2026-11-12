@@ -185,4 +185,61 @@ public class RemotePushTests
         }
         Assert.Equal([("ana", "/x"), ("session:s1", null)], got.Select(g => (g.Item1, g.Item2.Route)));
     }
+
+    private sealed class AnswerExpo(HttpStatusCode status, string body) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct) =>
+            Task.FromResult(new HttpResponseMessage(status) { Content = new StringContent(body, Encoding.UTF8, "application/json") });
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.InternalServerError, "{}")]
+    [InlineData(HttpStatusCode.OK, "not json")]
+    [InlineData(HttpStatusCode.OK, "{\"errors\":[]}")]
+    public async Task An_expo_answer_that_is_no_list_of_tickets_accepts_nothing(HttpStatusCode status, string body)
+    {
+        var result = await new ExpoPushSender(new HttpClient(new AnswerExpo(status, body)))
+            .SendAsync(new PushMessage("Hi"), [new PushToken("ExponentPushToken[a]")]);
+        Assert.Equal(0, result.Accepted);
+        Assert.Empty(result.UnregisteredTokens);
+    }
+
+    private sealed class ThrowingSender : IPushSender
+    {
+        public Task<PushResult> SendAsync(PushMessage message, IReadOnlyList<PushToken> tokens, CancellationToken cancellationToken = default) =>
+            throw new InvalidOperationException("down");
+    }
+
+    [Fact]
+    public async Task Delivery_drops_gone_tokens_and_never_throws()
+    {
+        var store = new InMemoryPushTokenStore();
+        store.Register("ana", new PushToken("ExponentPushToken[keep]"));
+        store.Register("ana", new PushToken("ExponentPushToken[gone]"));
+        var sender = new FakeSender();
+        sender.Gone.Add("ExponentPushToken[gone]");
+        await RemotePush.DeliverAsync("ana", new PushMessage("Hi"), sender, store);
+        Assert.Equal("ExponentPushToken[keep]", Assert.Single(store.TokensFor("ana")).Token);
+        // nobody's phones: nothing is sent
+        await RemotePush.DeliverAsync("nobody", new PushMessage("Hi"), sender, store);
+        Assert.Single(sender.Sent);
+        // a failing sender is logged, not thrown
+        await RemotePush.DeliverAsync("ana", new PushMessage("Hi"), new ThrowingSender(), store);
+    }
+
+    [Fact]
+    public void The_app_store_wins_and_the_owner_is_the_principal_else_the_session()
+    {
+        var app = new InMemoryPushTokenStore();
+        var fallback = new InMemoryPushTokenStore();
+        Assert.Same(app, RemotePush.Store(app, fallback));
+        Assert.Same(fallback, RemotePush.Store(null, fallback));
+        Assert.Same(fallback, RemotePush.Store(null, fallback));
+        Assert.Equal("ana", RemotePush.OwnerOf("ana", "s1"));
+        Assert.Equal(PushNotifications.SessionKey("s1"), RemotePush.OwnerOf(null, "s1"));
+        Assert.Null(RemotePush.OwnerOf(" ", new string('x', 200)));
+        Assert.Null(RemotePush.WebUrl("ftp://files.example.com/x"));
+        Assert.Equal("http://a.example.com/x", RemotePush.WebUrl("http://a.example.com/x"));
+        Assert.False(RemotePush.ValidToken(null));
+    }
 }

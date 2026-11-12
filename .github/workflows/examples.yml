@@ -85,7 +85,7 @@ jobs:
 
       # The New Project generator (IntelliJ wizard, VS Code command, CLI) turns the starters into
       # projects. The starters themselves are checked above; this packages what only the generator
-      # produces — the code + YAML flavour, the Empty sample, page templates, renamed packages — so a
+      # produces — the code + YAML flavour, the template gallery, page templates, renamed packages — so a
       # starter change that breaks a generated project fails here, not in a user's IDE.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -105,12 +105,18 @@ jobs:
           gen --authoring code --runtime spring-webflux --sample empty --renderer redwood --artifact redwood-webflux --out "$out/redwood-webflux"
           gen --authoring yaml --runtime spring-mvc --pages welcome,calendar --artifact yaml-pages --out "$out/yaml-pages"
           gen --authoring static --artifact static-site --out "$out/static-site"
+          # the template gallery: one runtime each, so every overlay compiles against this commit
+          gen --authoring code --runtime spring-mvc --template dashboard --artifact gallery-dashboard --out "$out/gallery-dashboard"
+          gen --authoring code --runtime quarkus --template intake --artifact gallery-intake --out "$out/gallery-intake"
+          gen --authoring code --runtime micronaut --template operations --artifact gallery-operations --out "$out/gallery-operations"
+          gen --authoring static --template swapi --artifact gallery-swapi --out "$out/gallery-swapi"
           for d in "$out"/*; do
             echo "::group::$(basename "$d")"
             (cd "$d" && mvn -B -q package -DskipTests)
             echo "::endgroup::"
           done
           test -f "$out"/static-site/target/mateu-bundle/manifest.json
+          test -f "$out"/gallery-swapi/target/mateu-bundle/manifest.json
 
       # Demos: compile only (several talk to external services or need a frontend build to RUN).
       # -Dmateu.version overrides the release pinned by the "start here" demos, so they too are

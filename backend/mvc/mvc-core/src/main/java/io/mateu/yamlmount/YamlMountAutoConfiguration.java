@@ -62,7 +62,11 @@ public class YamlMountAutoConfiguration {
               request ->
                   pwa(
                       YamlMounts.pwaAsset(
-                          routeRegistry, yamlAppLoader, basePath, request.pathVariable("file"))))
+                          routeRegistry,
+                          yamlAppLoader,
+                          basePath,
+                          request.pathVariable("file"),
+                          publicBase(request))))
           .POST(mount.apiPrefix() + "/v3/sse/**", request -> sse(service, request, basePath))
           .POST(mount.apiPrefix() + "/v3/sync/**", request -> sync(service, request, basePath));
       if (!basePath.isEmpty()) {
@@ -83,12 +87,21 @@ public class YamlMountAutoConfiguration {
     return builder.build();
   }
 
-  private static ServerResponse index(YamlMounts.Mount mount, ServerRequest request) {
+  private static ServerResponse index(
+      YamlMounts.Mount mount, org.springframework.web.servlet.function.ServerRequest request) {
     return ServerResponse.ok()
         .contentType(MediaType.TEXT_HTML)
-        .body(
-            io.mateu.core.infra.IndexPage.underPrefix(
-                mount.indexHtml(), io.mateu.MateuRequestPaths.prefixOf(request.servletRequest())));
+        .body(mount.indexHtml(publicBase(request)));
+  }
+
+  /**
+   * The public base of a request: its servlet context path, a proxy's prefix ({@link
+   * io.mateu.core.infra.PublicBase}).
+   */
+  private static String publicBase(org.springframework.web.servlet.function.ServerRequest request) {
+    return io.mateu.core.infra.PublicBase.of(
+        request.servletRequest().getContextPath(),
+        request.headers().firstHeader(io.mateu.core.infra.PublicBase.FORWARDED_PREFIX_HEADER));
   }
 
   /** The mobile app's manifest ({@link io.mateu.core.infra.MobileManifest}). */

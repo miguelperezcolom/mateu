@@ -133,6 +133,10 @@ class AppMetadata(Wire):
     #: @app(live_updates=True): the browser keeps one app event stream (``_live-updates`` over
     #: the SSE endpoint) for header-value changes (mirrors AppDto.liveUpdates).
     live_updates: bool = False
+    #: @app(presence=True): record pages tell who else has the same record open and who edits it
+    #: (the ``_presence`` app-level action + PresenceChanged commands on the app event stream;
+    #: EXPERIMENTAL — mirrors AppDto.presence).
+    presence: bool = False
     #: @app(os_notifications=True): the app opts in to OS-level notifications (a new inbox entry, a
     #: background task that finished, while the app is not in front; EXPERIMENTAL — mirrors
     #: AppDto.osNotifications).

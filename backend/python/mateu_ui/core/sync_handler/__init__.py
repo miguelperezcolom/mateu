@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from mateu_ui.core import observability
 from ..page_breadcrumbs import with_back_link_breadcrumbs
 
 from ._common import (  # noqa: F401 - the public import path of every helper
@@ -256,6 +257,11 @@ class SyncHandler(
 
         self.push_sender = None
         self.push_token_store = InMemoryPushTokenStore()
+        #: Where record presence is kept (EXPERIMENTAL): ``add_mateu(presence_store=…)`` replaces
+        #: Mateu's process-wide in-memory default.
+        from mateu_ui.core.presence import DEFAULT_STORE
+
+        self.presence_store = DEFAULT_STORE
         #: Whether the app exposes its authoring plane (the MCP endpoint is on): the reserved
         #: __validate__ action is then served on the plain sync endpoint too (the sidecar calls it
         #: there); otherwise only to an MCP tool call or in dev mode (mateu_ui.core.authoring_gate).
@@ -287,6 +293,10 @@ class SyncHandler(
         self.mapper.island_data = lambda view: self.lookup_labels(type(view), view, view)
         #: The listing exporters (the app's ListingExporter subclasses + the built-in CSV writer).
         self.mapper.exporters = Exporters(getattr(registry, "exporters", []))
+        #: The file stores (the app's FileStorage subclasses; add_mateu(file_storages=…) adds more).
+        from ..uploads import Uploads
+
+        self.mapper.uploads = Uploads(getattr(registry, "file_storages", []))
         #: The translation catalogue: TranslationsSupplier classes (code) under the
         #: `type: Translations` files of the specs directory (authored wins). ${i18n.key} in YAML
         #: definitions and in any translated text is resolved per request locale.
@@ -531,12 +541,17 @@ class SyncHandler(
             rq = rq.model_copy(update={"route": path})
         # A class-level @eyes_only view is for the authorized only, whichever way the request names
         # it — its server-side type, its route, or a sub-route of it (a crud's /new, /{id}).
+        resolved_view = False
         for named in (
             self.registry.resolve(rq.server_side_type, None) if rq.server_side_type else None,
             self.registry.resolve(None, rq.route) if rq.route is not None else None,
             (self.registry.resolve_by_prefix(rq.route) or (None,))[0] if rq.route else None,
         ):
             action_guard.ensure_class_access(self.mapper, named)
+            if named is not None and observability.current() is not None and not resolved_view:
+                # the view the request resolved to, for its span and the audit trail
+                observability.set_view(named)
+                resolved_view = True
         # The YAML access keys (the data twin of @eyes_only & co.): a refused route / declared
         # action answers 403, and fields locked for the caller lose their client-sent values.
         rq = self._guard_yaml_access(rq)

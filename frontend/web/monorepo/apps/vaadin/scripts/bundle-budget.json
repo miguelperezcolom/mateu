@@ -1,8 +1,8 @@
 {
-  "rawBytes": 2802369,
-  "gzipBytes": 683296,
-  "measuredRawBytes": 2668922,
-  "measuredGzipBytes": 650758,
+  "rawBytes": 2923428,
+  "gzipBytes": 720261,
+  "measuredRawBytes": 2784217,
+  "measuredGzipBytes": 685962,
   "note": "Ceiling = measured + 5%. Raise it only as a reviewed change, saying why.",
-  "reason": "2026-11-01: +1.3 KB gzip for locale-aware date pickers (#1004: Intl-based format/parse shared by date, date-time, range and grid editors, plus the calendar's chrome texts) \u2014 re-baselined with --update."
+  "reason": "2026-11-12: the chrome texts in French, German, Portuguese and Italian (#1160) put the eager JS at 669.9 KB gzip, over the 667.3 KB ceiling (the chromeTexts chunk is now 22.0 KB gzip). chromeText() is synchronous and the language is only known from the first answer (AppDto.locale), so the six catalogues stay in the eager chunk \u2014 re-baselined with --update."
 }

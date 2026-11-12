@@ -294,6 +294,7 @@
                         <oj-bind-if test="[[ !!$current.data.title ]]">
                           <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                         </oj-bind-if>
+                        <span class="oj-helper-hidden-accessible"><oj-bind-text value="[[ $current.data.textAlternative ]]"></oj-bind-text></span>
                         <oj-chart :type="[[ $current.data.chartType ]]" data="[[ $current.data.provider ]]"
                           coordinate-system="[[ $current.data.coordinateSystem ]]"
                           style-defaults.pie-inner-radius="[[ $current.data.innerRadius ]]"
@@ -1240,6 +1241,7 @@
                         placeholder="[[ $current.data.placeholder || '' ]]"
                         value="[[ $current.data.value ]]"
                         :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                         on-value-changed="[[ $listeners.hostInputChanged ]]"
                         on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                     </oj-bind-if>
@@ -1265,6 +1267,7 @@
                                   readonly="[[ $current.data.readonly ]]"
                                   messages-custom="[[ $current.data.messagesCustom ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isNumber ]]">
@@ -1280,6 +1283,7 @@
                                   readonly="[[ $current.data.readonly ]]"
                                   messages-custom="[[ $current.data.messagesCustom ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
                             </oj-bind-if>
                             <!-- @Searchable: one chip per id (with ✕ if it can be removed) and the button that opens its selector
@@ -1332,6 +1336,7 @@
                                   readonly="[[ $current.data.readonly ]]"
                                   messages-custom="[[ $current.data.messagesCustom ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                   on-raw-value-changed="[[ $listeners.hostInputTyped ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
                             </oj-bind-if>
@@ -1346,6 +1351,7 @@
                                   readonly="[[ $current.data.readonly ]]"
                                   messages-custom="[[ $current.data.messagesCustom ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isDateTime ]]">
@@ -1359,6 +1365,7 @@
                                   readonly="[[ $current.data.readonly ]]"
                                   messages-custom="[[ $current.data.messagesCustom ]]"
                                   :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isSelect ]]">

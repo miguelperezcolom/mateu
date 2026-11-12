@@ -8,10 +8,11 @@ on:
     types: [published]
 
 # Publishing goes to Maven Central with its own secrets; the only writes to GitHub are the
-# redwood-embedded-attach and sbom-attach jobs attaching files to the release (each its own
-# job-level contents: write, and nothing but the upload in it) and bump-examples opening its PR.
-# Every registry credential (GPG, Central, PyPI, NuGet) is scoped to the one step that uses it, and
-# the OIDC permission (id-token: write) to the small pypi / nuget jobs that only publish. Read-only
+# redwood-embedded-attach, sbom-attach and checksums-attach jobs attaching files to the release (each
+# its own job-level contents: write, and nothing but the upload in it) and bump-examples opening its
+# PR. Every registry credential (GPG, Central, PyPI, NuGet) is scoped to the one step that uses it, and
+# the OIDC permission (id-token: write) to the small pypi / nuget jobs that only publish and to the
+# provenance job, which only downloads and attests (attestations: write there alone). Read-only
 # also caps the called run_tests.yml (a called workflow cannot exceed its caller's permissions).
 permissions:
   contents: read
@@ -149,6 +150,15 @@ jobs:
         env:
           MAVEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
+
+      # The jars `deploy` just signed and uploaded, handed to the provenance job (which attests them):
+      # this job keeps no OIDC permission — it runs npm, Vite and Maven plugins.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: maven-jars
+          path: backend/**/target/*.jar
+          if-no-files-found: error
+          retention-days: 1
 
   # Once the release is VISIBLE on Maven Central — not when the tag is pushed: a starter pinned to a
   # version Central does not serve yet fails for everyone who copies it — point the starters, the
@@ -435,11 +445,14 @@ jobs:
           packages-dir: dist
           password: ${{ secrets.PYPI_API_TOKEN }}
 
+      # Trusted publishing also uploads a PEP 740 attestation (Sigstore-signed, bound to this
+      # workflow) for every file — PyPI shows it as "Verified details". The token path cannot.
       - name: Publish (trusted publishing)
         if: steps.auth.outputs.mode == 'trusted'
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
         with:
           packages-dir: dist
+          attestations: true
 
   # The .NET port ships to NuGet in LOCKSTEP with the Maven artifacts: same release, same number,
   # spelled as SemVer (tag v3.0-alpha.N → 3.0.0-alpha.N; v3.0.1 → 3.0.1). Gated on the same tests as
@@ -611,3 +624,104 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish npm/*.tgz --tag "$(cat npm/dist-tag)" --access public --provenance
+  # Build provenance (SLSA, Sigstore-signed, stored by GitHub) for what this release distributes:
+  # every asset on the GitHub Release, the jars sent to Maven Central, the Python sdist + wheel, the
+  # .nupkg files and the VS Code / IntelliJ plugin packages. `gh attestation verify <file> --repo
+  # miguelperezcolom/mateu` then proves a file came out of this workflow at this tag
+  # (doc reference/verify-downloads.md). It also writes SHA256SUMS for the release assets.
+  #
+  # Runs once everything that uploads has finished — whatever each part's outcome: an APK or a desktop
+  # app skipped for lack of secrets just has nothing to attest. Release assets are matched by NAME
+  # (only the files the workflows above attach), never "whatever is on the release". No checkout and
+  # no third-party code: only downloads, sha256sum and the attest action — the only job holding
+  # id-token: write together with attestations: write. The write to the release is checksums-attach.
+  provenance:
+    needs: [e2e, all, plugins, desktop, mobile, redwood-embedded-attach, sbom-attach, pypi-build, nuget-pack, npm-build]
+    if: ${{ !cancelled() && needs.e2e.result == 'success' && startsWith(github.event.release.tag_name, 'v') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read # gh release download
+      id-token: write # Sigstore signing certificate for the attestation
+      attestations: write # store the attestation on the repository
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true # the Maven job may have failed: attest the rest
+        with:
+          name: maven-jars
+          path: ${{ runner.temp }}/subjects/maven
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: pypi-dist
+          path: ${{ runner.temp }}/subjects/pypi
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: nupkgs
+          path: ${{ runner.temp }}/subjects/nuget
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/subjects/npm
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true # the plugins are not published for a pre-release of a later minor
+        with:
+          pattern: ide-plugin-*
+          path: ${{ runner.temp }}/subjects/plugins
+          merge-multiple: true
+      - name: Download the release assets and write SHA256SUMS
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          mkdir -p subjects/release checksums
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir subjects/release \
+            --pattern 'mateu-desktop-*' --pattern 'mateu-intellij-plugin-*' --pattern 'mateu-app-*-android.apk' \
+            --pattern 'mateu-ui-*.zip' --pattern '*.cdx.json' || echo "::warning::Could not download the release assets."
+          ( cd subjects/release && if ls ./* > /dev/null 2>&1; then sha256sum -- * > "$RUNNER_TEMP/checksums/SHA256SUMS"; fi )
+          find subjects -type f | sort
+          n=$(find subjects -type f | wc -l)
+          echo "Subjects to attest: $n"
+          [ "$n" -gt 0 ] || { echo "::error::Nothing to attest."; exit 1; }
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          # files only (a pattern matching a directory is refused); at most 1024 subjects
+          subject-path: |
+            ${{ runner.temp }}/subjects/maven/**/*.jar
+            ${{ runner.temp }}/subjects/pypi/*
+            ${{ runner.temp }}/subjects/nuget/*.nupkg
+            ${{ runner.temp }}/subjects/npm/*.tgz
+            ${{ runner.temp }}/subjects/plugins/*
+            ${{ runner.temp }}/subjects/release/*
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: checksums
+          path: ${{ runner.temp }}/checksums/SHA256SUMS
+          if-no-files-found: ignore
+          retention-days: 1
+
+  # The write half of provenance: SHA256SUMS onto the release. No checkout, no build.
+  checksums-attach:
+    needs: provenance
+    if: ${{ !cancelled() && needs.provenance.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # gh release upload
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        id: sums
+        continue-on-error: true # no release asset at all → no SHA256SUMS
+        with:
+          name: checksums
+          path: checksums
+      - name: Attach SHA256SUMS to the release
+        if: steps.sums.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" checksums/SHA256SUMS --clobber --repo "$GITHUB_REPOSITORY"

@@ -140,4 +140,33 @@ public class SignInProvidersTests
         SignInProviders.WarnOnStartup(new SignInDeclared([new SignInProvider("okta") { ClientId = "x" }]), null, logged.Add);
         Assert.Contains(logged, m => m.Contains("'okta'") && m.Contains("issuer"));
     }
+
+    [Fact]
+    public void Bad_ids_repeats_and_unusable_oidc_providers_are_skipped_with_a_warning()
+    {
+        var warnings = new List<string>();
+        var auth = SignInProviders.AuthBlock(_ => null, new SignInDeclared([
+            new SignInProvider("bad id!") { Type = "oidc", Issuer = "https://id.example.com", ClientId = "c" },
+            new SignInProvider("acme-sso") { Type = "oidc", Issuer = "https://id.example.com", ClientId = "c" },
+            new SignInProvider("acme-sso") { Type = "oidc", Issuer = "https://id.example.com", ClientId = "c" },
+            new SignInProvider("plain") { Type = "oidc", Issuer = "id.example.com", ClientId = "c" },
+            new SignInProvider("half") { Type = "oidc", Issuer = "https://id.example.com" },
+        ]), null, warnings.Add);
+        var ids = auth!["providers"]!.AsArray().Select(p => p!["id"]!.GetValue<string>()).ToList();
+        Assert.Equal(["acme-sso"], ids);
+        Assert.Equal("Acme sso", auth["providers"]![0]!["label"]!.GetValue<string>());
+        Assert.Contains(warnings, w => w.Contains("'bad id!'"));
+        Assert.Contains(warnings, w => w.Contains("'plain'") && w.Contains("http(s)"));
+        Assert.Contains(warnings, w => w.Contains("'half'") && w.Contains("client id"));
+        Assert.Equal("&lt;a href=&quot;x&quot;&gt;&#39;", SignInProviders.HtmlEscape("<a href=\"x\">'"));
+        Assert.Equal("--", SignInProviders.Humanize("--"));
+    }
+
+    [Fact]
+    public void A_startup_check_that_fails_is_logged_not_thrown()
+    {
+        var logged = new List<string>();
+        SignInProviders.WarnOnStartup(new SignInDeclared([null!]), null, logged.Add);
+        _ = SignInProviders.Warnings;
+    }
 }

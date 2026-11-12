@@ -52,7 +52,8 @@ public final class MicroFrontendResolution {
         MicroFrontendSettings.from(MateuSettings::get),
         IdentityResolver::resolve,
         MicroFrontendResolution::selfBaseUrl,
-        WireMapper.shared());
+        WireMapper.shared(),
+        io.mateu.core.infra.observability.MicroFrontendSpans::record);
   }
 
   /**

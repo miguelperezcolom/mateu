@@ -45,6 +45,24 @@
             <artifactId>reactor-core</artifactId>
             <version>3.8.7</version>
         </dependency>
+        <!--
+          OpenTelemetry API: OPTIONAL. Mateu traces and measures its requests through it when the
+          application has it (the OTel Java agent bridges it; Spring Boot's and Quarkus' OpenTelemetry
+          support bring it) and is a no-op otherwise — io.mateu.core.infra.observability detects it
+          at runtime and never loads an OTel class without it. API only: no SDK, no exporter; the
+          version comes from the Spring Boot BOM the parent imports (only 1.x API calls that exist
+          since the metrics API went stable are used).
+        -->
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-api</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk-testing</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>jakarta.inject</groupId>
             <artifactId>jakarta.inject-api</artifactId>

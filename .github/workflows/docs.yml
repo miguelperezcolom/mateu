@@ -71,7 +71,7 @@ jobs:
           EVENT: ${{ github.event_name }}
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
-          PATTERN: '^doc/src/content/docs/|^doc/scripts/(check-snippets\.mjs|snippets/)|^backend/shared/(uidl|core|dtos)/(src/main/|pom\.xml$)|^backend/shared/uidl/specs-schema\.json$|^backend/python/(mateu_|pyproject\.toml$)|^backend/dotnet/(src/|Directory\.)|^\.github/workflows/docs\.yml$'
+          PATTERN: '^doc/src/content/docs/|^doc/scripts/(check-snippets\.mjs|snippets/)|^backend/shared/(uidl|core|dtos|test)/(src/main/|pom\.xml$)|^backend/shared/uidl/specs-schema\.json$|^backend/python/(mateu_|pyproject\.toml$)|^backend/dotnet/(src/|Directory\.)|^\.github/workflows/docs\.yml$'
         run: scripts/ci-changes.sh
 
   build:
@@ -153,10 +153,10 @@ jobs:
       - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: 10.0.x
-      - name: Install mateu-uidl + mateu-core (the API the Java samples compile against)
+      - name: Install mateu-uidl + mateu-core + mateu-test (the API the Java samples compile against)
         run: >-
           mvn -B -q install -DskipTests -Dgpg.skip=true -Dmaven.javadoc.skip=true -Djacoco.skip=true
-          -Djapicmp.skip=true --file backend/pom.xml -pl shared/core -am
+          -Djapicmp.skip=true --file backend/pom.xml -pl shared/core,shared/test -am
       - name: Install mateu-ui (the API the Python samples are type-checked against)
         run: pip install "./backend/python[dev,all]" jsonschema
       - name: Check the documentation snippets

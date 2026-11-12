@@ -53,6 +53,13 @@ public sealed class MateuOptions
     /// ignored (any client can send it) and the request's <c>PathBase</c> (<c>UsePathBase</c>) is the
     /// prefix. Java: <c>mateu.forwarded-prefix.trusted</c>.</summary>
     public bool? ForwardedPrefixTrusted { get; set; }
+    /// <summary>The prefix a reverse proxy strips in front of the app (<c>/crm</c>: the proxy serves
+    /// it at <c>https://host/crm/</c> and forwards <c>/x</c>), so the served page writes its assets,
+    /// its API base and its PWA links under it. Null reads <c>MATEU_PUBLIC_BASE_PATH</c>. Not needed
+    /// with <c>app.UsePathBase</c>, nor when the app trusts the proxy's <c>X-Forwarded-Prefix</c>
+    /// (<c>UseForwardedHeaders</c> with <c>ForwardedHeaders.XForwardedPrefix</c>): both set the
+    /// request's <c>PathBase</c>, which is read too. Java: <c>mateu.public-base-path</c>.</summary>
+    public string? PublicBasePath { get; set; }
 
     /// <summary>Serve every UI as an installable Progressive Web App: the served page links a web app
     /// manifest and registers a network-first service worker (an offline shell; never the API or the
@@ -120,6 +127,12 @@ public sealed class MateuOptions
     /// else 60. 0: closing the stream cancels the task at once. (Java's
     /// mateu.progress.reattach-grace-seconds.) EXPERIMENTAL.</summary>
     public int? ProgressReattachGraceSeconds { get; set; }
+
+    /// <summary>The secret upload tickets are signed with (<c>[FileUpload]</c> fields of a registered
+    /// <see cref="IFileStorage"/>). Null (the default) reads <c>MATEU_UPLOADS_SECRET</c>; none → a random
+    /// secret per process, fine for ONE instance — a deployment of several instances must set it, or a
+    /// ticket one instance issued is refused by the others. EXPERIMENTAL. Java: <c>mateu.uploads.secret</c>.</summary>
+    public string? UploadsSecret { get; set; }
 
     /// <summary>The client proxied REST fetches use (null → a shared client with a 60 s timeout that
     /// does not follow redirects). A client of your own should not follow them either

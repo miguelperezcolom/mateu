@@ -45,6 +45,8 @@ public final class IndexPage {
    * @param debug whether {@code <mateu-ui>} gets {@code debug="true"}
    * @param uiId the fully-qualified name of the {@code @UI} class, whose declarations (theme
    *     colour, icon) the installable-app head ({@link Pwa}) reads; null when there is none
+   * @param publicBase the {@linkplain PublicBase public base} of the request ({@code ""} at the
+   *     root of the host, {@code "/crm"} under a context path or a prefix-stripping proxy)
    */
   public record Spec(
       String path,
@@ -53,7 +55,8 @@ public final class IndexPage {
       List<String> externalScripts,
       String extraHead,
       boolean debug,
-      String uiId) {
+      String uiId,
+      String publicBase) {
 
     public Spec {
       path = path == null ? "" : path;
@@ -61,6 +64,19 @@ public final class IndexPage {
       favicon = favicon == null ? "" : favicon;
       externalScripts = externalScripts == null ? List.of() : List.copyOf(externalScripts);
       extraHead = extraHead == null ? "" : extraHead;
+      publicBase = PublicBase.normalize(publicBase);
+    }
+
+    /** A page served at the root of the host (no public base). */
+    public Spec(
+        String path,
+        String title,
+        String favicon,
+        List<String> externalScripts,
+        String extraHead,
+        boolean debug,
+        String uiId) {
+      this(path, title, favicon, externalScripts, extraHead, debug, uiId, "");
     }
 
     /**
@@ -120,15 +136,20 @@ public final class IndexPage {
     }
 
     public static Spec of(String path, String title) {
-      return new Spec(path, title, "", List.of(), "", false, null);
+      return new Spec(path, title, "", List.of(), "", false, null, "");
     }
 
     public Spec withDebug(boolean debug) {
-      return new Spec(path, title, favicon, externalScripts, extraHead, debug, uiId);
+      return new Spec(path, title, favicon, externalScripts, extraHead, debug, uiId, publicBase);
     }
 
     public Spec withUiId(String uiId) {
-      return new Spec(path, title, favicon, externalScripts, extraHead, debug, uiId);
+      return new Spec(path, title, favicon, externalScripts, extraHead, debug, uiId, publicBase);
+    }
+
+    /** This page as served under {@code publicBase} ({@link PublicBase}). */
+    public Spec withPublicBase(String publicBase) {
+      return new Spec(path, title, favicon, externalScripts, extraHead, debug, uiId, publicBase);
     }
   }
 
@@ -153,10 +174,13 @@ public final class IndexPage {
     // group reference to replaceAll — an IllegalArgumentException, i.e. a 500 on every page load.
     html = html.replace("<!-- AQUIFAVICON -->", faviconOf(spec.favicon()));
     html = html.replace("AQUIELTITULODELAPAGINA", spec.title());
-    html = mountUi(html, spec.path(), spec.debug());
     if (!spec.extraHead().isEmpty()) {
       html = html.replace("</head>", spec.extraHead() + "</head>");
     }
+    // the template's own root-relative URLs (assets, a Redwood <base href>) under the public base,
+    // BEFORE the parts below, which are written for it already
+    html = PublicBase.rewrite(html, spec.publicBase());
+    html = mountUi(html, spec.path(), spec.debug(), spec.publicBase());
     var source = spec.uiId() == null ? null : MobileManifest.sourceOf(spec.uiId());
     // the ways to sign in the web clients offer (<meta name="mateu-auth">), then the
     // installable-app
@@ -165,59 +189,11 @@ public final class IndexPage {
         Pwa.served(
             io.mateu.core.infra.security.SignInProviders.head(
                 OracleCdn.apply(withoutMarkers(html)), source == null ? null : source.mobileApp()),
-            spec.path(),
-            source));
+            spec.publicBase() + spec.path(),
+            source,
+            spec.publicBase()),
+        spec.publicBase());
   }
-
-  /**
-   * A rendered page served under a public path prefix ({@link ForwardedPrefix}: a servlet context
-   * path, or a trusted {@code X-Forwarded-Prefix}): every root-relative URL the page names ({@code
-   * src}, {@code href} — Redwood's {@code <base href="/">} included —, {@code data-src}, the
-   * installable app's {@code data-sw}/{@code data-scope}, the live-reload meta), Redwood's {@code
-   * vbInitConfig.BASE_URL}, and the {@code <mateu-ui>} base url, which then also carries the prefix
-   * as {@code contextPath}: the renderers call {@code <prefix>/mateu/v3/…} and keep the prefix in
-   * the address bar. {@code html} unchanged for no prefix.
-   */
-  public static String underPrefix(String html, String prefix) {
-    var p = ForwardedPrefix.normalize(prefix);
-    if (html == null || p.isEmpty()) {
-      return html;
-    }
-    var quoted = Matcher.quoteReplacement(p);
-    html = ROOT_RELATIVE.matcher(html).replaceAll("$1$2" + quoted + "/");
-    html = REDWOOD_BASE.matcher(html).replaceAll("$1" + quoted + "/_redwood/");
-    html =
-        html.replace(
-            "content=\"" + io.mateu.core.infra.dev.DevEndpoint.EVENTS_PATH + "\"",
-            "content=\"" + p + io.mateu.core.infra.dev.DevEndpoint.EVENTS_PATH + "\"");
-    var root = MATEU_UI_BASE_URL.matcher(html);
-    if (root.find()) {
-      var value = root.group(3);
-      var based = value.startsWith("/") || value.isEmpty() ? p + value : value;
-      html =
-          html.substring(0, root.start())
-              + root.group(1)
-              + root.group(2)
-              + attr(based)
-              + root.group(2)
-              + " contextPath=\""
-              + attr(p)
-              + "\""
-              + html.substring(root.end());
-    }
-    return html;
-  }
-
-  // src="/x", href='/x', data-src, data-sw, data-scope — never a protocol-relative "//host/x"
-  private static final Pattern ROOT_RELATIVE =
-      Pattern.compile(
-          "(\\s(?:src|href|data-src|data-sw|data-scope)\\s*=\\s*)([\"'])/(?!/)",
-          Pattern.CASE_INSENSITIVE);
-
-  private static final Pattern REDWOOD_BASE = Pattern.compile("(BASE_URL\\s*:\\s*['\"])/_redwood/");
-
-  private static final Pattern MATEU_UI_BASE_URL =
-      Pattern.compile("(<mateu-ui\\b[^<>]*?\\sbaseUrl\\s*=\\s*)([\"'])([^\"']*)\\2");
 
   /**
    * The favicon a renderer page carries when the app names none (the browser tab shows Mateu's, not
@@ -267,10 +243,25 @@ public final class IndexPage {
    * to it; outside dev mode the page is untouched.
    */
   public static String devHead(String html) {
+    return devHead(html, "");
+  }
+
+  /**
+   * As {@link #devHead(String)}, for a page served under {@code publicBase} ({@link PublicBase}).
+   */
+  public static String devHead(String html, String publicBase) {
     if (!io.mateu.core.infra.dev.DevMode.enabled() || html.contains("name=\"mateu-dev\"")) {
       return html;
     }
-    return html.replace("</head>", DEV_META + "</head>");
+    var base = PublicBase.normalize(publicBase);
+    var meta =
+        base.isEmpty()
+            ? DEV_META
+            : "<meta name=\"mateu-dev\" content=\""
+                + base
+                + io.mateu.core.infra.dev.DevEndpoint.EVENTS_PATH
+                + "\">";
+    return html.replace("</head>", meta + "</head>");
   }
 
   /**
@@ -279,13 +270,27 @@ public final class IndexPage {
    * without the markers is returned unchanged.
    */
   public static String mountUi(String html, String path, boolean debug) {
+    return mountUi(html, path, debug, "");
+  }
+
+  /**
+   * As {@link #mountUi(String, String, boolean)} for a page served under {@code publicBase} ({@link
+   * PublicBase}): the root's {@code baseUrl} and {@code pathPrefix} are the PUBLIC path of the
+   * mount ({@code /crm/admin}), so every API call and the address bar derive the right URL as they
+   * are, and it carries {@code publicBase="/crm"} so a renderer can put a root-relative base the
+   * SERVER names in a response ({@code /admin}) under it too.
+   */
+  public static String mountUi(String html, String path, boolean debug, String publicBase) {
+    var base = PublicBase.normalize(publicBase);
+    var mount = base + (path == null ? "" : path);
     return mountUi(
         html,
         "<mateu-ui baseUrl=\""
-            + attr(path)
+            + attr(mount)
             + "\" pathPrefix=\""
-            + attr(path)
+            + attr(mount)
             + "\""
+            + (base.isEmpty() ? "" : " publicBase=\"" + attr(base) + "\"")
             + (debug ? " debug=\"true\"" : "")
             + " style=\"width:100%;height:100vh;\"></mateu-ui>");
   }

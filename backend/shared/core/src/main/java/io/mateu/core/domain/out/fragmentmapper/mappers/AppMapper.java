@@ -117,6 +117,7 @@ public final class AppMapper {
             .pushNotifications(
                 AppShellExtrasMapper.osNotifications(app)
                     && io.mateu.core.application.push.Push.available())
+            .presence(AppShellExtrasMapper.presence(app))
             .idleSession(AppShellExtrasMapper.idleSession(app))
             .notificationsSource(
                 app.notifications() != null

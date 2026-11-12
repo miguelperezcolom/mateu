@@ -216,7 +216,35 @@ class DisplayComponentsRenderTest : BasePlatformTestCase() {
         // rasterised by the bundled JSVG: the picture itself, named by its alt, never its base64
         val svg = java.util.Base64.getEncoder().encodeToString(
             "<svg xmlns='http://www.w3.org/2000/svg' width='40' height='20'><rect width='40' height='20' fill='red'/></svg>".toByteArray())
-        val image = render(context(), """{"type":"Image","src":"data:image/svg+xml;base64,$svg","alt":"Bay"}""")
+        val image = render(context(), """{"type":"Image","src":"data:image/svg+xml;base64,$svg","alt":"Bay"}""") as javax.swing.JLabel
+        assertNotNull(image.icon)
+        assertEquals(40, image.icon.iconWidth)
+        assertEquals(20, image.icon.iconHeight)
+        assertTrue(texts(image).none { it.contains("base64") })
+    }
+
+    fun testAPercentEncodedSvgIsDrawnInRed() {
+        val svg = java.net.URLEncoder.encode(
+            "<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'><rect width='30' height='30' fill='#ff0000'/></svg>", Charsets.UTF_8)
+            .replace("+", "%20")
+        val img = readImageSource("data:image/svg+xml,$svg")
+        assertNotNull(img)
+        assertEquals(30, img!!.width)
+        val rgb = java.awt.Color(img.getRGB(15, 15), true)
+        assertTrue(rgb.toString(), rgb.red > 200 && rgb.green < 50 && rgb.blue < 50 && rgb.alpha > 200)
+    }
+
+    fun testSvgBytesWithoutAnSvgNameAreSniffed() {
+        // a url that serves an SVG without saying so in its path (an icon endpoint)
+        val bytes = "<?xml version='1.0'?>\n<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'/>".toByteArray()
+        assertTrue(SvgImages.looksLikeSvg(bytes))
+        assertFalse(SvgImages.looksLikeSvg("<html><body>no</body></html>".toByteArray()))
+        assertEquals(12, decodeImage(bytes)?.width)
+    }
+
+    fun testAnUndrawableSvgIsTheNamedPlaceholder() {
+        val bad = java.util.Base64.getEncoder().encodeToString("<svg this is not xml".toByteArray())
+        val image = render(context(), """{"type":"Image","src":"data:image/svg+xml;base64,$bad","alt":"Bay"}""")
         assertTrue(texts(image).none { it.contains("base64") })
         val icon = all(image).filterIsInstance<javax.swing.JLabel>().mapNotNull { it.icon }.single()
         assertEquals(40, icon.iconWidth)
@@ -240,6 +268,20 @@ class DisplayComponentsRenderTest : BasePlatformTestCase() {
         assertEquals(10, SvgImages.load("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'/%3E")!!.width)
         assertTrue(SvgImages.looksLikeSvg("<?xml version='1.0'?>\n<svg/>".toByteArray()))
         assertFalse(SvgImages.looksLikeSvg(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47)))
+    }
+
+    fun testAnAvatarWithAnSvgImagePaintsThePicture() {
+        val svg = java.util.Base64.getEncoder().encodeToString(
+            "<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><rect width='64' height='64' fill='#00ff00'/></svg>".toByteArray())
+        val avatar = render(context(), """{"type":"Avatar","name":"Marta Ruiz","image":"data:image/svg+xml;base64,$svg"}""")
+        avatar.setSize(avatar.preferredSize)
+        val out = java.awt.image.BufferedImage(avatar.width, avatar.height, java.awt.image.BufferedImage.TYPE_INT_ARGB)
+        val g = out.createGraphics()
+        avatar.paint(g)
+        g.dispose()
+        val centre = java.awt.Color(out.getRGB(out.width / 2, out.height / 2), true)
+        assertTrue(centre.toString(), centre.green > 200 && centre.red < 50)
+        assertEquals("Marta Ruiz", avatar.accessibleContext.accessibleName)
     }
 
     fun testAnImageIsNamedByItsDeclaredAltText() {

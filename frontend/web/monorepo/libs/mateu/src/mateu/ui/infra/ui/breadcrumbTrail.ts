@@ -1,6 +1,6 @@
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import { menuEntryFor, menuTrail, normRoute, plainText, TrailCrumb } from "./navTree";
-import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { chromeLanguage, chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * The automatic breadcrumb trail: where a page sits, worked out from what the shell already has —
@@ -30,12 +30,6 @@ export interface PageInfo {
 const norm = normRoute
 const plain = plainText
 
-const isSpanish = (explicit?: string): boolean => {
-    const lang = explicit || (typeof document !== 'undefined' && document.documentElement?.lang)
-        || (typeof navigator !== 'undefined' && navigator.language) || ''
-    return lang.toLowerCase().startsWith('es')
-}
-
 /**
  * The menu path to `path` — see navTree.menuTrail, where it lives now so the active section and the
  * trail answer from the same rules. Re-exported here, where its callers have always found it.
@@ -62,18 +56,19 @@ export function autoTrail(menu: MenuOption[] | undefined, path: string, page: Pa
         return trail.length < 2 ? [] : trail
     }
     const rest = norm(path).slice(matched.length).split('/').filter(Boolean)
-    const es = isSpanish(page.lang)
+    // the UI language (chromeTexts' rule: the page's, else <html lang>, else the browser's)
+    const lang = chromeLanguage(page.lang)
     if (rest.length > 0) {
         const id = decodeURIComponent(rest[0])
         if (id === 'new' || id === 'create') {
-            trail.push({ text: chromeText('newRecord', es ? 'es' : 'en') })
+            trail.push({ text: chromeText('newRecord', lang) })
         } else {
             const recordRoute = matched + '/' + rest[0]
             const title = plain(page.title)
             if (rest.length === 1 && title) recordTitles.set(recordRoute, title)
             trail.push({ text: recordTitles.get(recordRoute) || id, route: recordRoute })
             if (rest[1] === 'edit') {
-                trail.push({ text: chromeText('edit', es ? 'es' : 'en') })
+                trail.push({ text: chromeText('edit', lang) })
             } else if (rest.length > 1) {
                 trail.push({ text: title || decodeURIComponent(rest[rest.length - 1]) })
             }

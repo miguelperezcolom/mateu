@@ -35,6 +35,7 @@ public final class MateuRequestPaths {
    * ForwardedPrefix#TRUSTED_PROPERTY}).
    */
   public static String prefixOf(HttpServletRequest request) {
-    return ForwardedPrefix.of(request.getContextPath(), request.getHeader(ForwardedPrefix.HEADER));
+    return io.mateu.core.infra.PublicBase.of(
+        request.getContextPath(), request.getHeader(ForwardedPrefix.HEADER));
   }
 }

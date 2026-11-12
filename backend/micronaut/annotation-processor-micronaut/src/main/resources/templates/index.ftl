@@ -41,21 +41,18 @@ public class ${simpleClassName}Controller {
         }
         // a deep link into a YAML mount (type: UI) served next to this UI opens THAT mount: this
         // catch-all and the YAML one would otherwise be equally specific
-        var yaml = io.mateu.core.infra.YamlMounts.deepLinkIndex("${path?j_string}/" + path);
+        var yaml = io.mateu.core.infra.YamlMounts.deepLinkIndex("${path?j_string}/" + path, io.mateu.core.infra.PublicBase.of(io.mateu.core.infra.PublicBase.configuredContextPath(), forwardedPrefix));
         if (yaml != null) {
-            return IndexPage.underPrefix(yaml, io.mateu.core.infra.ForwardedPrefix.of(null, forwardedPrefix));
+            return yaml;
         }
         return getIndex(forwardedPrefix);
     }
 
     @Get(produces = MediaType.TEXT_HTML)
-    public String getIndex(
-            @io.micronaut.http.annotation.Header("X-Forwarded-Prefix") @io.micronaut.core.annotation.Nullable String forwardedPrefix) {
-        // behind a proxy that strips a prefix (a trusted X-Forwarded-Prefix) the page names its
-        // assets and API there
-        return IndexPage.underPrefix(
-                IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug)),
-                io.mateu.core.infra.ForwardedPrefix.of(null, forwardedPrefix));
+    public String getIndex(@io.micronaut.http.annotation.Header("X-Forwarded-Prefix") @io.micronaut.core.annotation.Nullable String forwardedPrefix) {
+        // under micronaut.server.context-path / a prefix-stripping proxy the page's URLs carry it
+        return IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug)
+                .withPublicBase(io.mateu.core.infra.PublicBase.of(io.mateu.core.infra.PublicBase.configuredContextPath(), forwardedPrefix)));
     }
 
 }

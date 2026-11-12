@@ -1,7 +1,7 @@
 // Command-line front door to the same generator "Mateu: New Project" runs (src/newProject.ts), for
 // CI and scripting. Build first (`npm run compile`), then:
 //
-//   node scripts/new-project.mjs --authoring yaml --runtime spring-mvc --sample listing --pages form,dashboard \
+//   node scripts/new-project.mjs --authoring yaml --runtime spring-mvc --template listing --pages form,dashboard \
 //        --group com.acme --artifact my-app --package com.acme.myapp --renderer vaadin --version 0.0.1-MATEU \
 //        --out /tmp/my-app
 //
@@ -21,7 +21,9 @@ const USAGE = `Usage: node scripts/new-project.mjs --out <dir> [options]
   --runtime    spring-mvc | spring-webflux | quarkus | micronaut | helidon-mp | dotnet | python
                                                    (default: spring-mvc; ignored by static)
   --renderer   vaadin | redwood                    (default: vaadin)
-  --sample     crud | empty | listing              (default: the flavour's first sample)
+  --template   the gallery: crud | dashboard | intake | operations | empty (code),
+               listing | swapi (yaml, static)       (default: the flavour's first)
+  --sample     the same as --template (its older name)
   --pages      comma-separated page templates, e.g. form,dashboard (YAML flavours)
   --group      Maven groupId                       (default: com.example)
   --artifact   Maven artifactId                    (default: my-app)
@@ -39,6 +41,7 @@ try {
         authoring: { type: 'string', default: 'code' },
         runtime: { type: 'string', default: 'spring-mvc' },
         sample: { type: 'string' },
+        template: { type: 'string' },
         renderer: { type: 'string', default: 'vaadin' },
         'build-tool': { type: 'string', default: 'maven' },
         pages: { type: 'string', default: '' },
@@ -77,7 +80,7 @@ const options = {
     runtime: runtimeId,
     buildTool: a['build-tool'],
     renderer: resolved.renderers.length > 0 ? a.renderer : undefined,
-    sample: a.sample ?? resolved.samples[0],
+    sample: a.template ?? a.sample ?? resolved.samples[0],
     pages: a.pages ? a.pages.split(',').filter(Boolean) : [],
     groupId: a.group,
     artifactId: a.artifact,

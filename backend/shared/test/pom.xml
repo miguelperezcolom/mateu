@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>mateu-shared-parent</artifactId>
+        <groupId>io.mateu</groupId>
+        <version>0.0.1-MATEU</version>
+    </parent>
+
+    <artifactId>mateu-test</artifactId>
+
+    <name>Mateu test harness</name>
+    <description>Test your Mateu UIs without a browser: boots the Mateu core in the test JVM, opens a route and lets
+        the test read what renders, type into fields, press buttons and follow navigation. Framework-neutral (no
+        Spring, Quarkus or Micronaut needed) and test-framework neutral (failures are AssertionErrors).</description>
+
+    <url>https://mateu.io</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+    </properties>
+
+    <!-- one JUnit version for the test classpath (the parent's BOMs would mix two otherwise) -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>6.1.3</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- the harness drives the same entry point the generated controllers call -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Public API: its javadoc must pass doclint (every check except missing comments). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <doclint>all,-missing</doclint>
+                    <failOnError>true</failOnError>
+                    <failOnWarnings>false</failOnWarnings>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -70,7 +70,11 @@ public class YamlMountWebFluxAutoConfiguration {
               request ->
                   pwa(
                       YamlMounts.pwaAsset(
-                          routeRegistry, yamlAppLoader, basePath, request.pathVariable("file"))))
+                          routeRegistry,
+                          yamlAppLoader,
+                          basePath,
+                          request.pathVariable("file"),
+                          publicBase(request))))
           .POST(mount.apiPrefix() + "/v3/sse/**", request -> sse(service, request, basePath))
           .POST(mount.apiPrefix() + "/v3/sync/**", request -> sync(service, request, basePath));
       if (!basePath.isEmpty()) {
@@ -90,16 +94,22 @@ public class YamlMountWebFluxAutoConfiguration {
   }
 
   private static Mono<ServerResponse> index(
-      YamlMounts.Mount mount, org.springframework.web.reactive.function.server.ServerRequest rq) {
-    var request = rq.exchange().getRequest();
+      YamlMounts.Mount mount,
+      org.springframework.web.reactive.function.server.ServerRequest request) {
     return ServerResponse.ok()
         .contentType(MediaType.TEXT_HTML)
-        .bodyValue(
-            io.mateu.core.infra.IndexPage.underPrefix(
-                mount.indexHtml(),
-                io.mateu.core.infra.ForwardedPrefix.of(
-                    request.getPath().contextPath().value(),
-                    request.getHeaders().getFirst(io.mateu.core.infra.ForwardedPrefix.HEADER))));
+        .bodyValue(mount.indexHtml(publicBase(request)));
+  }
+
+  /**
+   * The public base of a request: spring.webflux.base-path, a proxy's prefix ({@link
+   * io.mateu.core.infra.PublicBase}).
+   */
+  private static String publicBase(
+      org.springframework.web.reactive.function.server.ServerRequest request) {
+    return io.mateu.core.infra.PublicBase.of(
+        request.requestPath().contextPath().value(),
+        request.headers().firstHeader(io.mateu.core.infra.PublicBase.FORWARDED_PREFIX_HEADER));
   }
 
   /** The mobile app's manifest ({@link io.mateu.core.infra.MobileManifest}). */

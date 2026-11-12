@@ -224,6 +224,7 @@ class AppMapperMixin(MixinBase):
             shortcuts=self._app_shortcuts(cls, shell, mount),
             header_values=self._header_values(cls, shell),
             live_updates=self._live_updates(cls, shell),
+            presence=self._presence(cls, shell),
             # OS-level notifications (experimental): opt-in, mirrors AppDto.osNotifications
             os_notifications=bool(getattr(cls, "__mateu_app_os_notifications__", False)),
             idle_session=self._idle_session(cls, shell, mount),
@@ -282,6 +283,11 @@ class AppMapperMixin(MixinBase):
                 action_id=action_id, code=code,
             ))
         return out
+
+    def _presence(self, cls, shell) -> bool:
+        if shell is not None and getattr(shell, "presence", None) is not None:
+            return bool(shell.presence)
+        return bool(getattr(cls, "__mateu_app_presence__", False))
 
     def _live_updates(self, cls, shell) -> bool:
         if shell is not None and getattr(shell, "live_updates", None) is not None:

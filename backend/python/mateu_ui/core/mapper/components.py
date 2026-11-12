@@ -8,6 +8,7 @@ from typing import Any
 import dataclasses
 
 from .. import page_templates, routed_tabs
+from ..input_purpose import input_purpose
 from ..naming import camelcasize
 
 from mateu_ui.dtos import (
@@ -497,6 +498,7 @@ class ComponentMapperMixin(MixinBase):
                     css_classes=c.css_classes,
                     options_source=self._fluent_rest_source(c.options_source),
                     property_row=c.property_row,
+                    autocomplete=input_purpose(c.autocomplete, c.stereotype, c.read_only),
                 ),
                 c,
             )

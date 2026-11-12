@@ -40,7 +40,59 @@ public record Action(
      * What the action does, in words — documentation for whoever picks it from a list (the action
      * catalogue's entries, the visual editor's pickers). Never on the wire.
      */
-    String description) {
+    String description,
+    /**
+     * What the mobile app does when the action cannot reach the server: {@code QUEUE} keeps it in
+     * its send queue and sends it once when the connection is back. Null = {@code FAIL}.
+     */
+    @io.mateu.uidl.annotations.Experimental("offline send queue (3.0 GA)")
+        io.mateu.uidl.annotations.OfflinePolicy offline) {
+
+  /** The canonical constructor before {@link #offline()} existed (binary compatibility). */
+  public Action(
+      String id,
+      boolean background,
+      boolean validationRequired,
+      boolean confirmationRequired,
+      boolean rowsSelectedRequired,
+      ConfirmationTexts confirmationTexts,
+      String modalStyle,
+      String modalTitle,
+      CustomEvent customEvent,
+      String href,
+      String js,
+      boolean sse,
+      String fieldsToValidate,
+      boolean bubble,
+      String shortcut,
+      int timeoutMillis,
+      boolean idempotent,
+      io.mateu.uidl.data.RestAction restAction,
+      java.util.List<Step> steps,
+      String description) {
+    this(
+        id,
+        background,
+        validationRequired,
+        confirmationRequired,
+        rowsSelectedRequired,
+        confirmationTexts,
+        modalStyle,
+        modalTitle,
+        customEvent,
+        href,
+        js,
+        sse,
+        fieldsToValidate,
+        bubble,
+        shortcut,
+        timeoutMillis,
+        idempotent,
+        restAction,
+        steps,
+        description,
+        null);
+  }
 
   /**
    * The fluent action declared by an {@code @Action} annotation.
@@ -68,6 +120,10 @@ public record Action(
         .shortcut(annotation.shortcut().isEmpty() ? null : annotation.shortcut())
         .timeoutMillis(annotation.timeoutMillis())
         .idempotent(annotation.idempotent())
+        .offline(
+            annotation.offline() == io.mateu.uidl.annotations.OfflinePolicy.FAIL
+                ? null
+                : annotation.offline())
         .build();
   }
 

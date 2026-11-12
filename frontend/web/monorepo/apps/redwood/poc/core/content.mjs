@@ -193,6 +193,10 @@ export function emptyStateOf(tree) {
 export const NOT_FOUND_TEXTS = {
   es: { title: 'No encontrado', message: 'Puede que se haya borrado o que el enlace no sea correcto.', back: 'Volver' },
   en: { title: 'Not found', message: 'It may have been deleted, or the link is wrong.', back: 'Go back' },
+  fr: { title: 'Introuvable', message: 'Il a peut-être été supprimé, ou le lien est incorrect.', back: 'Revenir' },
+  de: { title: 'Nicht gefunden', message: 'Möglicherweise wurde es gelöscht oder der Link ist falsch.', back: 'Zurück' },
+  pt: { title: 'Não encontrado', message: 'Pode ter sido excluído, ou o link está errado.', back: 'Voltar' },
+  it: { title: 'Non trovato', message: 'Potrebbe essere stato eliminato, oppure il link non è corretto.', back: 'Torna indietro' },
 }
 
 /** Projection of the NOT FOUND page: what the server answers when the route names a record
@@ -206,7 +210,8 @@ export function notFoundOf(tree, lang) {
   const node = findPageLevelType(tree, 'NotFound')
   if (!node) return null
   const md = node.metadata || {}
-  const texts = String(lang || '').toLowerCase().startsWith('es') ? NOT_FOUND_TEXTS.es : NOT_FOUND_TEXTS.en
+  // the primary subtag of the page's language (pt-BR → pt), English for one it does not have
+  const texts = NOT_FOUND_TEXTS[String(lang || '').trim().toLowerCase().split(/[-_]/)[0]] || NOT_FOUND_TEXTS.en
   const backRoute = md.backRoute || ''
   return {
     title: md.title || texts.title,
@@ -1418,6 +1423,7 @@ export function islandContentOf(ctx, opts = {}) {
           value: state[fieldId] == null ? '' : String(state[fieldId]),
           // its hint while empty («e.g. Mars Sample Return»), like the web renderer's
           placeholder: m.placeholder ? interp(String(m.placeholder)) : '',
+          autocomplete: m.autocomplete ? String(m.autocomplete) : null,
         }, container)
       }
       return

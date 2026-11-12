@@ -92,25 +92,6 @@ def test_a_prefix_is_normalised_like_java():
     assert ui_page.request_prefix("", "", trusted=True) == ""
 
 
-def test_under_prefix_rewrites_the_page_like_java():
-    html = (
-        '<html><head><base href="/"><script src="/assets/a.js"></script>'
-        "<link rel='stylesheet' href='/assets/a.css'><link href=\"//cdn.example/x.css\">"
-        '<script>window.vbInitConfig = { BASE_URL: \'/_redwood/\' };</script>'
-        '<meta name="mateu-dev" content="/mateu/dev/events"></head><body>'
-        '<mateu-ui baseUrl="/shop" pathPrefix="/shop"></mateu-ui></body></html>'
-    )
-    out = ui_page.under_prefix(html, "/ctx")
-    assert '<base href="/ctx/">' in out
-    assert 'src="/ctx/assets/a.js"' in out
-    assert "href='/ctx/assets/a.css'" in out
-    assert 'href="//cdn.example/x.css"' in out
-    assert "BASE_URL: '/ctx/_redwood/'" in out
-    assert 'content="/ctx/mateu/dev/events"' in out
-    assert '<mateu-ui baseUrl="/ctx/shop" contextPath="/ctx" pathPrefix="/shop">' in out
-    assert ui_page.under_prefix(html, "") == html
-
-
 @pytest.fixture(scope="module")
 def vaadin_static() -> Path:
     if not (VAADIN_STATIC / "_index.html").is_file():
@@ -135,7 +116,7 @@ def test_a_trusted_x_forwarded_prefix_puts_the_page_under_it(vaadin_static):
     c = page_client(vaadin_static, forwarded_prefix_trusted=True)
     page = c.get("/", headers={"x-forwarded-prefix": "/admin"}).text
     assert 'src="/admin/assets/' in page
-    assert 'baseUrl="/admin"' in page and 'contextPath="/admin"' in page
+    assert 'baseUrl="/admin"' in page and 'publicBase="/admin"' in page
     # the proxy strips the prefix: the assets keep being served where they always were
     assert c.get("/assets/mateu-vaadin.js").status_code == 200
 
@@ -143,12 +124,12 @@ def test_a_trusted_x_forwarded_prefix_puts_the_page_under_it(vaadin_static):
 def test_the_trust_can_come_from_the_environment(vaadin_static, monkeypatch):
     monkeypatch.setenv(ui_page.FORWARDED_PREFIX_TRUSTED_ENV_VAR, "true")
     page = page_client(vaadin_static).get("/", headers={"x-forwarded-prefix": "/admin"}).text
-    assert 'contextPath="/admin"' in page
+    assert 'publicBase="/admin"' in page
 
 
 def test_the_asgi_root_path_is_the_prefix(vaadin_static):
     c = page_client(vaadin_static, root_path="/console")
     page = c.get("/").text
     assert 'src="/console/assets/' in page
-    assert 'baseUrl="/console"' in page and 'contextPath="/console"' in page
+    assert 'baseUrl="/console"' in page and 'publicBase="/console"' in page
     assert c.get("/assets/mateu-vaadin.js").status_code == 200

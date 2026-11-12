@@ -47,6 +47,11 @@ public final class YamlMounts {
     public String indexHtml() {
       return YamlMounts.indexHtml(basePath, title, shell);
     }
+
+    /** The SPA shell page as served under {@code publicBase} ({@link PublicBase}). */
+    public String indexHtml(String publicBase) {
+      return YamlMounts.indexHtml(basePath, title, shell, publicBase);
+    }
   }
 
   /**
@@ -102,6 +107,11 @@ public final class YamlMounts {
    * io.mateu.uidl.di.MateuBeanProvider}, so generated code can call it with no injection.
    */
   public static String deepLinkIndex(String requestedPath) {
+    return deepLinkIndex(requestedPath, "");
+  }
+
+  /** As {@link #deepLinkIndex(String)}, the page served under {@code publicBase}. */
+  public static String deepLinkIndex(String requestedPath, String publicBase) {
     try {
       if (requestedPath == null
           || !io.mateu.uidl.di.MateuBeanProvider.isInitialized()
@@ -130,7 +140,7 @@ public final class YamlMounts {
           best = mount;
         }
       }
-      return best == null ? null : best.indexHtml();
+      return best == null ? null : best.indexHtml(publicBase);
     } catch (RuntimeException e) {
       return null;
     }
@@ -179,10 +189,24 @@ public final class YamlMounts {
    */
   public static Pwa.Asset pwaAsset(
       RouteRegistry routeRegistry, YamlAppLoader appLoader, String basePath, String file) {
+    return pwaAsset(routeRegistry, appLoader, basePath, file, "");
+  }
+
+  /**
+   * As {@link #pwaAsset(RouteRegistry, YamlAppLoader, String, String)} for a UI served under {@code
+   * publicBase} ({@link PublicBase}): the manifest's scope and the worker's allowed scope are the
+   * public ones.
+   */
+  public static Pwa.Asset pwaAsset(
+      RouteRegistry routeRegistry,
+      YamlAppLoader appLoader,
+      String basePath,
+      String file,
+      String publicBase) {
     var base = basePath == null ? "" : basePath;
     return Pwa.asset(
         file,
-        uiPath(base),
+        PublicBase.normalize(publicBase) + uiPath(base),
         () -> MobileManifest.sourceOf(appLoader.load(routeRegistry.rootDefinitionFor(base))));
   }
 
@@ -199,17 +223,30 @@ public final class YamlMounts {
    * theme colour and icon {@code shell} declares.
    */
   public static String indexHtml(String basePath, String title, MobileManifest.Source shell) {
+    return indexHtml(basePath, title, shell, "");
+  }
+
+  /**
+   * As {@link #indexHtml(String, String, MobileManifest.Source)} for a page served under {@code
+   * publicBase} ({@link PublicBase}: a servlet context path, a prefix-stripping proxy).
+   */
+  public static String indexHtml(
+      String basePath, String title, MobileManifest.Source shell, String publicBase) {
     ProjectRendererCheck.warnOnce(Thread.currentThread().getContextClassLoader());
+    var base = PublicBase.normalize(publicBase);
     String html = InputStreamReader.readFromClasspath(YamlMounts.class, "/static/_index.html");
     html = html.replace("<!-- AQUIFAVICON -->", IndexPage.DEFAULT_FAVICON);
     // replace, not replaceAll: the title is authored text, and a "$" in it ("Costs in $") is a
     // group reference to replaceAll — IllegalArgumentException, a 500 on every page load.
     html = html.replace("AQUIELTITULODELAPAGINA", title);
+    html = PublicBase.rewrite(html, base);
     // A nested mount's API lives at its ABSOLUTE path (/back-office/mateu/v3/…). A bare
     // "back-office" is resolved by the browser against the page, so /back-office/x posted to
     // /back-office/back-office/mateu/… and every page of a nested YAML mount answered 404. The
     // route stays the whole browser path (pathPrefix ""): a YAML mount's routes are matched with
     // the mount on them.
+    // Under a public base the browser path carries it in front: it is the pathPrefix the client
+    // strips, so the route is still the path the mount's routes are matched with.
     return IndexPage.devHead(
         Pwa.served(
             io.mateu.core.infra.security.SignInProviders.head(
@@ -218,11 +255,18 @@ public final class YamlMounts {
                         IndexPage.mountUi(
                             html,
                             "<mateu-ui baseUrl=\""
+                                + base
                                 + uiPath(basePath)
-                                + "\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>"))),
+                                + "\" pathPrefix=\""
+                                + base
+                                + "\""
+                                + (base.isEmpty() ? "" : " publicBase=\"" + base + "\"")
+                                + " style=\"width:100%;height:100vh;\"></mateu-ui>"))),
                 shell == null ? null : shell.mobileApp()),
-            uiPath(basePath),
-            shell));
+            base + uiPath(basePath),
+            shell,
+            base),
+        base);
   }
 
   /** The {@code baseUrl} of a mount's {@code <mateu-ui>}: "" or "/back-office". */

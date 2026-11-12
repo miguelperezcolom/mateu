@@ -61,7 +61,7 @@ export function renderListBoxField(host: MateuField, value: FieldValue, label: F
                 @selected-changed="${host.listItemSelected}"
                 ?autofocus="${host.field.wantsFocus}"
         >
-            ${host.field.options?.map(option => html`
+            ${(host.field.optionsSource ? sourcedOptions(host) : host.field.options)?.map(option => html`
                 <vaadin-item>${option.description || option.image || option.icon?html`
                     <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
                         ${option.icon?html`

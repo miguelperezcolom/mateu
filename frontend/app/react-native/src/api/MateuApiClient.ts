@@ -17,6 +17,7 @@ import {
 import { uiLocale } from '../core/money.ts';
 import { classifyFailure, DEFAULT_TIMEOUT_MS, HttpStatusError, isIdempotentAction, RequestTimeoutError, retryDelayMs, shouldRetry } from '../core/requestPolicy.ts';
 import { connectivity } from '../core/connectivity.ts';
+import { IDEMPOTENCY_HEADER } from '../core/offlineQueue.ts';
 
 /** A fetch whose response body is a readable STREAM (React Native's global fetch buffers the whole
  *  body). Registered by the app (expo/fetch); without one a stream is read once it has ended. */
@@ -41,6 +42,9 @@ export interface RunActionParams {
   timeoutMillis?: number;
   /** `@Action(idempotent)`: the action may be repeated after a timeout / 5xx, like a load or a search. */
   idempotent?: boolean;
+  /** The offline send queue's key (`Idempotency-Key` header): the server runs a request carrying
+   *  it once per caller + action, so it is also safe to repeat after a timeout / 5xx. */
+  idempotencyKey?: string;
 }
 
 declare const __DEV__: boolean | undefined;
@@ -288,10 +292,10 @@ export class MateuApiClient {
     const timeoutMillis = params.timeoutMillis && params.timeoutMillis > 0 ? params.timeoutMillis : DEFAULT_TIMEOUT_MS;
     // a route load, a search or an @Action(idempotent) is repeated after a timeout / 5xx (twice, with
     // backoff); anything else is sent EXACTLY once — a save that timed out may still have happened
-    const idempotent = isIdempotentAction(params.actionId ?? '', params.idempotent);
+    const idempotent = isIdempotentAction(params.actionId ?? '', params.idempotent) || !!params.idempotencyKey;
     for (let attempt = 1; ; attempt++) {
       try {
-        return await this.postOnce(url, payload, timeoutMillis);
+        return await this.postOnce(url, payload, timeoutMillis, params.idempotencyKey);
       } catch (e) {
         if (e instanceof StaleScreenError) throw e;
         if (!shouldRetry(classifyFailure(e, connectivity.isOnline), attempt, idempotent)) throw e;
@@ -303,14 +307,14 @@ export class MateuApiClient {
 
   /** One POST, bounded by `timeoutMillis` (fetch has no timeout of its own: an answer that never
    *  came left the screen waiting forever). Reports reachability to `connectivity`. */
-  private async postOnce(url: string, payload: string, timeoutMillis: number): Promise<unknown> {
+  private async postOnce(url: string, payload: string, timeoutMillis: number, idempotencyKey?: string): Promise<unknown> {
     const abort = typeof AbortController !== 'undefined' ? new AbortController() : null;
     let timedOut = false;
     const timer = abort ? setTimeout(() => { timedOut = true; abort.abort(); }, timeoutMillis) : undefined;
     try {
       // headers are rebuilt per attempt: the retry after a re-auth must carry the NEW token
       const doFetch = async () =>
-        fetch(url, { method: 'POST', headers: { ...(await this.headers()), [RENDERER_HEADER]: rendererHeaderValue() }, body: payload, ...(abort ? { signal: abort.signal } : {}) });
+        fetch(url, { method: 'POST', headers: { ...(await this.headers()), [RENDERER_HEADER]: rendererHeaderValue(), ...(idempotencyKey ? { [IDEMPOTENCY_HEADER]: idempotencyKey } : {}) }, body: payload, ...(abort ? { signal: abort.signal } : {}) });
       let response: Response;
       try {
         response = await doFetch();
