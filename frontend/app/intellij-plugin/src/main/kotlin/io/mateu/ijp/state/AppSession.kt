@@ -446,7 +446,27 @@ class AppSession(
     /** The `@App(liveUpdates)` event stream, when the app asks for it. */
     private var liveStream: LiveUpdatesStream? = null
 
+    private var liveWanted = false
+    private var presenceWanted = false
+
     fun syncLiveUpdates(wanted: Boolean) {
+        liveWanted = wanted
+        syncStream()
+    }
+
+    /** Record presence (`@App(presence)`): record views report themselves; the changes ride the stream. */
+    val presence = PresenceHub { parameters ->
+        apiClient.runAction(appRootRoute, "", Presence.ACTION_ID, appServerSideType, "mateu-presence", emptyMap(), emptyMap(), parameters)
+    }
+
+    fun syncPresence(wanted: Boolean) {
+        presenceWanted = wanted
+        presence.configure(wanted)
+        syncStream()
+    }
+
+    private fun syncStream() {
+        val wanted = liveWanted || presenceWanted
         if (wanted && liveStream == null) liveStream = LiveUpdatesStream(this).also { it.start() }
         if (!wanted) { liveStream?.stop(); liveStream = null }
     }
@@ -594,6 +614,8 @@ class AppSession(
         liveReload?.stop()
         liveReload = null
         syncLiveUpdates(false)
+        presence.dispose()
+        syncPresence(false)
         tasks.closeAll()
         agentChannel?.stop()
         agentChannel = null

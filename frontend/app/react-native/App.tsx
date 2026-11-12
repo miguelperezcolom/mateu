@@ -25,6 +25,8 @@ import { setRendererVersion } from './src/core/buildSkew';
 import { SessionContent } from './src/shell/SessionContent';
 import { fetchStaticBundle, type StaticBundle } from './src/core/staticBundle';
 import { HubApp } from './src/hub/HubApp';
+import { metaStore } from './src/hub/storage';
+import { loadListingPrefs, type ListingPrefsSnapshot } from './src/core/listingPrefs';
 import { bootModeOf } from './src/core/buildVariant';
 import { fetchManifest } from './src/hub/manifest';
 import { MateuThemeProvider } from './src/ui/MateuTheme';
@@ -263,6 +265,8 @@ function AuthGate({ config, route = MATEU_ROUTE }: { config: BootConfig; route?:
   // The base URL may serve a STATIC BUNDLE (mateu-bundle:bundle / mateu-bundle:dev) rather than a
   // Mateu server: then the app runs from its manifest.json, with no /mateu/v3 calls at all.
   const [bundle, setBundle] = useState<StaticBundle | null>(null);
+  // the listings' saved views and column choices of this backend, kept on the device
+  const [listingPrefs, setListingPrefs] = useState<ListingPrefsSnapshot | null>(null);
   const provider = React.useMemo(() => (config.oidc ? new OidcTokenProvider(config.oidc, platformStore) : null), [config.oidc]);
   // A tap on one of THIS UI's push notifications reopens it at the route the push names (a fixed
   // build has one UI: a push registered with another backend is not its own and opens nothing).
@@ -283,8 +287,10 @@ function AuthGate({ config, route = MATEU_ROUTE }: { config: BootConfig; route?:
       const found = await fetchStaticBundle(config.baseUrl);
       if (alive) setBundle(found.ok ? found.bundle : null);
       const id = await installSessionId(platformStore);
+      const prefs = await loadListingPrefs(metaStore, config.baseUrl);
       const needsSignIn = !!provider && config.oidc?.loginOnStart !== false && !(await provider.isSignedIn());
       if (!alive) return;
+      setListingPrefs(prefs);
       setSessionId(id);
       setPhase(needsSignIn ? 'signin' : 'ready');
     })();
@@ -326,7 +332,7 @@ function AuthGate({ config, route = MATEU_ROUTE }: { config: BootConfig; route?:
     );
   }
   return (
-    <MateuAppProvider config={{ baseUrl: config.baseUrl, sessionId, appState: config.appState, bundle }}>
+    <MateuAppProvider config={{ baseUrl: config.baseUrl, sessionId, appState: config.appState, bundle, listingPrefs: listingPrefs && { store: metaStore, scope: config.baseUrl, initial: listingPrefs } }}>
       <SessionContent key={pushed?.generation ?? 0} initialRoute={pushed?.route ?? route} />
     </MateuAppProvider>
   );

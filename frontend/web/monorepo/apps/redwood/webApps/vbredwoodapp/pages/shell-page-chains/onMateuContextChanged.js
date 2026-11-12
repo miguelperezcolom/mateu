@@ -5,9 +5,11 @@
 define([
   'vb/action/actionChain',
   'vb/action/actions',
+  'resources/js/mateu-bridge',
 ], (
   ActionChain,
   Actions,
+  bridge,
 ) => {
   'use strict';
 
@@ -47,6 +49,14 @@ define([
         if (picker && typeof picker.focus === 'function') picker.focus();
       };
       setTimeout(refocus, 0);
+
+      // WCAG 3.2.2: the change of context is announced (the drawer said beforehand that it reloads)
+      const selector = ($application.variables.mateuContextSelectors || []).find((s) => s.fieldName === fieldName) || {};
+      const option = (selector.options || []).find((o) => String(o.value) === String(appState[fieldName]));
+      bridge.announce(bridge.chromeText('appContextChanging', {
+        label: selector.label || fieldName,
+        value: option ? option.label : (appState[fieldName] == null ? '—' : appState[fieldName]),
+      }), { politeness: 'assertive' });
 
       const route = $application.variables.mateuSelectedRoute;
       if (route) {

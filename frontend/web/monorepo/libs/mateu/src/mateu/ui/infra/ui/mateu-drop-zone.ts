@@ -1,8 +1,8 @@
 import { css, html, LitElement, nothing } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import type DropZone from '@mateu/shared/apiClients/dtos/componentmetadata/DropZone'
-import { draggedIdsOf, dragMimeOf, dropParamsOf } from '@infra/ui/dragAndDrop.ts'
-import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { DRAG_SELECTION_EVENT, draggableSelectionOf, draggedIdsOf, dragMimeOf, dropParamsOf } from '@infra/ui/dragAndDrop.ts'
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 /**
  * A place to drop dragged listing rows (`DropZone`): a titled card wrapping its content (slotted).
@@ -16,6 +16,10 @@ export class MateuDropZone extends LitElement {
     @property({ attribute: false }) zone: DropZone | undefined
     @state() ready = false
     @state() over = false
+    /** the selected rows of a listing of the accepted type: what the button moves (no dragging) */
+    @state() selected: string[] = []
+
+    private onSelection = () => { this.selected = draggableSelectionOf(this.zone?.accept) }
 
     private get mime() { return dragMimeOf(this.zone?.accept) }
 
@@ -34,11 +38,14 @@ export class MateuDropZone extends LitElement {
         super.connectedCallback()
         document.addEventListener('dragstart', this.onDocumentDragStart, true)
         document.addEventListener('dragend', this.onDocumentDragEnd, true)
+        document.addEventListener(DRAG_SELECTION_EVENT, this.onSelection)
+        this.onSelection()
     }
 
     disconnectedCallback() {
         document.removeEventListener('dragstart', this.onDocumentDragStart, true)
         document.removeEventListener('dragend', this.onDocumentDragEnd, true)
+        document.removeEventListener(DRAG_SELECTION_EVENT, this.onSelection)
         super.disconnectedCallback()
     }
 
@@ -54,7 +61,11 @@ export class MateuDropZone extends LitElement {
         e.preventDefault()
         this.over = false
         this.ready = false
-        const ids = draggedIdsOf(e.dataTransfer?.getData(this.mime) ?? '')
+        this.drop(draggedIdsOf(e.dataTransfer?.getData(this.mime) ?? ''))
+    }
+
+    /** Runs the zone's action with these rows — from a drop, or from the button (WCAG 2.5.7). */
+    drop(ids: string[]) {
         if (!ids.length || !this.zone?.actionId) return
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: { actionId: this.zone.actionId, parameters: dropParamsOf(this.zone.parameters, ids, this.zone.accept ?? '') },
@@ -74,6 +85,9 @@ export class MateuDropZone extends LitElement {
                 ${zone.subtitle ? html`<div class="subtitle">${zone.subtitle}</div>` : nothing}
                 <slot></slot>
                 ${this.ready ? html`<div class="hint">${chromeText('dropHere')}</div>` : nothing}
+                ${this.selected.length && zone.actionId ? html`
+                    <button type="button" class="move-selected" @click="${() => this.drop(this.selected)}">
+                        ${chromeTextf('dropSelected', { count: this.selected.length })}</button>` : nothing}
             </div>`
     }
 
@@ -88,6 +102,12 @@ export class MateuDropZone extends LitElement {
         .zone.over { background: var(--lumo-primary-color-10pct, rgba(26,115,232,.1)); }
         .title { font-weight: 600; }
         .subtitle { font-size: var(--lumo-font-size-s, .875rem); color: var(--lumo-secondary-text-color, #666); margin-bottom: .25rem; }
+        .move-selected {
+            margin-top: .5rem; font: inherit; font-size: var(--lumo-font-size-s, .875rem); cursor: pointer;
+            border: 1px solid var(--lumo-primary-color, #1a73e8); color: var(--lumo-primary-text-color, #1a73e8);
+            background: var(--lumo-base-color, #fff); border-radius: var(--lumo-border-radius-m, 6px); padding: .3rem .6rem;
+        }
+        .move-selected:focus-visible { outline: 2px solid var(--lumo-primary-color, #1a73e8); outline-offset: 2px; }
         .hint { margin-top: .5rem; font-size: var(--lumo-font-size-xs, .75rem); color: var(--lumo-primary-text-color, #1a73e8); }
     `
 }

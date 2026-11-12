@@ -382,6 +382,7 @@ def app(
     ask_label: str = "",
     ask_icon: str = "",
     back_link: str | BackLink = BackLink.BREADCRUMBS,
+    presence: bool = False,
 ) -> Callable[[type], type]:
     """Application shell. ``variant`` = "" for auto (Java's @App(AUTO) decision table: grouped
     menu → MENU_ON_TOP, more than 7 top-level entries → HAMBURGER_MENU, flat leaf menu → TABS),
@@ -429,6 +430,11 @@ def app(
     ``ask_icon`` the text and icon of the AI "ask" entry (Java's ``@App(accentColor, askLabel,
     askIcon)``); blank = the renderer's own.
 
+    ``presence=True`` (EXPERIMENTAL) turns on RECORD PRESENCE: on a record page each signed-in
+    user sees who else has the same record open — and who is EDITING it, with a warning. The
+    changes ride the app event stream (one per browser); kept in memory per process unless
+    ``add_mateu(presence_store=…)`` gives a ``PresenceStore``. Mirrors Java's ``@App(presence)``.
+
     ``back_link=BackLink.PARENT`` replaces the breadcrumb trail with ONE "← Parent" link to the
     nearest route above the app that resolves to a screen, labelled with its title (Java's
     ``@App(backLink = PARENT)``)."""
@@ -449,6 +455,7 @@ def app(
         setattr(cls, "__mateu_app_mobile_qr__", mobile_qr)
         setattr(cls, "__mateu_app_requires__", list(requires) if requires else [])
         setattr(cls, "__mateu_app_live_updates__", live_updates)
+        setattr(cls, "__mateu_app_presence__", presence)
         setattr(cls, "__mateu_app_os_notifications__", os_notifications)
         setattr(cls, "__mateu_app_inbox__", inbox)
         setattr(cls, "__mateu_app_idle__", (idle_timeout_minutes, idle_warning_seconds, idle_sign_out_url))

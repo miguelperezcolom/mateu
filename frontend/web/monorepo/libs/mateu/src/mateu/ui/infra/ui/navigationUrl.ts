@@ -72,8 +72,19 @@ export const routeTargetUrl = (
     baseUrlAttr: string | undefined,
     pathPrefix: string | undefined,
     origin: string,
+    publicBase: string = '',
 ): URL => {
     let route = rawRoute ?? ''
+    // Under a public base (`/crm`: a context path, a prefix-stripping proxy) the page's pathPrefix
+    // carries it (`/crm/products`) but the server spells a crud's inner route with its mount only
+    // (`/products/new`): that spelling is the mount too, so it is put under the base and stripped
+    // like the plain one below (it used to become `/crm/products/products/new`).
+    if (publicBase && pathPrefix && pathPrefix.startsWith(publicBase + '/') && route.startsWith('/')) {
+        const mount = pathPrefix.substring(publicBase.length)
+        if (route === mount || route.startsWith(mount + '/') || route.startsWith(mount + '?')) {
+            route = publicBase + route
+        }
+    }
     let baseUrl = baseUrlAttr ?? ''
     if (!route || route.startsWith('/') || route.startsWith('?') || route.startsWith('#')) {
         baseUrl = origin + (pathPrefix ?? '')

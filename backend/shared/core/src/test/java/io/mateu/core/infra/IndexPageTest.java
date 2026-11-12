@@ -36,6 +36,22 @@ class IndexPageTest {
   }
 
   @Test
+  void underAPublicBaseThePageIsWrittenForThePublicPath() {
+    var html =
+        IndexPage.render(VITE_PAGE, IndexPage.Spec.of("/admin", "T").withPublicBase("/crm/"));
+    assertThat(html)
+        .contains("<mateu-ui baseUrl=\"/crm/admin\" pathPrefix=\"/crm/admin\" publicBase=\"/crm\"")
+        .contains("src=\"/crm/assets/mateu-vaadin.js\"")
+        .doesNotContain("=\"/assets/");
+    // a root UI under the base
+    assertThat(IndexPage.render(VITE_PAGE, IndexPage.Spec.of("", "T").withPublicBase("/crm")))
+        .contains("<mateu-ui baseUrl=\"/crm\" pathPrefix=\"/crm\" publicBase=\"/crm\"");
+    // no base: exactly as before
+    assertThat(IndexPage.render(VITE_PAGE, IndexPage.Spec.of("/admin", "T").withPublicBase("")))
+        .isEqualTo(IndexPage.render(VITE_PAGE, IndexPage.Spec.of("/admin", "T")));
+  }
+
+  @Test
   void everyPageCarriesTheDeferredBootReplayerWithAFallback() {
     var html = IndexPage.render(VB_PAGE, IndexPage.Spec.of("", "PMS"));
     assertThat(html).contains(IndexPage.DEFERRED_BOOT);

@@ -1,5 +1,6 @@
 import type { AppShortcut } from '@mateu/shared/apiClients/dtos/componentmetadata/AppShellExtras.ts'
 import { formatShortcut, shortcutMatchesEvent } from '@infra/ui/shortcuts.ts'
+import { safeLocalStorage } from '@infra/safeStorage.ts'
 
 /**
  * APP-WIDE SHORTCUTS (`@AppShortcut`, `shortcuts:` on a YAML shell) and QUICK LAUNCH — the pure
@@ -21,15 +22,36 @@ export const worksWhileTyping = (shortcut: string): boolean => {
     return parts.includes('ctrl') || parts.includes('alt') || parts.includes('meta') || /^f([1-9]|1[0-2])$/.test(key)
 }
 
+/**
+ * WCAG 2.1.4 Character Key Shortcuts: a shortcut that is ONE printable key (`?`, a bare letter)
+ * can be turned off by the user — a speech-input user says words that would fire them. Stored per
+ * browser; on by default. Combinations and function keys are not affected.
+ */
+const SINGLE_KEY_STORAGE = 'mateu-single-key-shortcuts'
+export const singleKeyShortcutsOn = (): boolean => safeLocalStorage.get(SINGLE_KEY_STORAGE) !== 'off'
+export const setSingleKeyShortcuts = (on: boolean): void => {
+    safeLocalStorage.set(SINGLE_KEY_STORAGE, on ? 'on' : 'off')
+}
+
+/** A shortcut that is ONE printable character with no Ctrl/Alt/Meta (`n`, `?`, `shift+n`). */
+export const isCharacterKeyShortcut = (shortcut: string): boolean => {
+    const parts = shortcut.toLowerCase().split('+').map((p) => p.trim())
+    const key = parts[parts.length - 1]
+    return key.length === 1 && !parts.includes('ctrl') && !parts.includes('alt') && !parts.includes('meta')
+}
+
 /** The app shortcut a keystroke presses, if any. */
 export const appShortcutFor = (shortcuts: AppShortcut[] | undefined, e: KeyLike, typing: boolean): AppShortcut | undefined =>
     (shortcuts ?? []).find((s) => !!s.key
         && (!typing || worksWhileTyping(s.key))
+        && (!isCharacterKeyShortcut(s.key) || singleKeyShortcutsOn())
         && shortcutMatchesEvent(s.key, e as KeyboardEvent))
 
-/** `?` opens the shortcuts list — never while typing (it is a character). */
+/** `?` opens the shortcuts list — never while typing (it is a character) and not when the user
+ *  turned single-key shortcuts off; Ctrl+/ (⌘/ on a Mac) always does, typing or not. */
 export const isHelpKey = (e: KeyLike, typing: boolean): boolean =>
-    !typing && e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey
+    ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === '/' || e.code === 'Slash'))
+    || (!typing && e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey && singleKeyShortcutsOn())
 
 /** QUICK LAUNCH: the shortcut whose code is exactly what was typed (case-insensitive, trimmed). */
 export const quickLaunchMatch = (shortcuts: AppShortcut[] | undefined, query: string): AppShortcut | undefined => {

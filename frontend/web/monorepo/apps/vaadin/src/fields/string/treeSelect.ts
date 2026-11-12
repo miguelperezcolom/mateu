@@ -1,6 +1,7 @@
 import { html, nothing, TemplateResult } from 'lit'
 import type { FieldLabel, FieldValue } from '../fieldEvents'
 import type { MateuField } from '../mateu-field'
+import { sourcedOptions } from './select'
 
 /** The treeSelect stereotype. */
 
@@ -20,7 +21,7 @@ export function renderTreeSelectField(host: MateuField, value: FieldValue, label
                     style="width: 100%;"
                     .fieldId="${host.field.fieldId}"
                     .value="${value}"
-                    .options="${host.field.options ?? []}"
+                    .options="${(host.field.optionsSource ? sourcedOptions(host) : host.field.options) ?? []}"
                     .leavesOnly="${host.field.treeLeavesOnly ?? false}"
             ></mateu-vaadin-tree-select>
             ${helper ? html`<span class="tree-field__helper">${helper}</span>` : nothing}

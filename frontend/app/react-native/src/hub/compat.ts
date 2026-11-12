@@ -14,6 +14,7 @@
  * - compatible: anything else, including whatever cannot be compared (a missing or unparseable
  *   version never blocks).
  */
+import { chromeLanguageOf, type ChromeLanguage } from '../core/chromeLanguage.ts';
 import { compareVersionStrings } from './version.ts';
 
 export type CompatStatus = 'compatible' | 'recommended' | 'required';
@@ -82,39 +83,95 @@ export function appCompatibility(ui: UiSide, app: AppSide): Compat {
   return { status: 'compatible', reason: null };
 }
 
-/** The sentence for the person, in English or Spanish (the device's language). */
+interface CompatSentences {
+  thisUi: string;
+  newerWire: (name: string, wire: string) => string;
+  olderWire: (name: string, wire: string) => string;
+  minAppVersion: (name: string, min: string, have: string) => string;
+  /** `uiVersion` / `appVersion` already carry their " (x)" or are ''. */
+  newerMateu: (name: string, uiVersion: string, appVersion: string) => string;
+}
+
+const COMPAT: Record<ChromeLanguage, CompatSentences> = {
+  en: {
+    thisUi: 'This UI',
+    newerWire: (n, w) => `${n} uses a newer Mateu (wire ${w}) than this version of the Mateu app understands. Update the Mateu app to open it.`,
+    olderWire: (n, w) => `${n}'s server runs a Mateu (wire ${w}) too old for this version of the app. The server needs updating.`,
+    minAppVersion: (n, min, have) => `${n} needs the Mateu app ${min} or later; you have ${have}.`,
+    newerMateu: (n, u, a) => `${n} runs a newer Mateu${u} than this app${a}. It opens, but some screens may not display correctly until you update the app.`,
+  },
+  es: {
+    thisUi: 'Esta UI',
+    newerWire: (n, w) => `${n} usa una versión de Mateu (wire ${w}) más nueva de la que entiende esta app. Actualiza la app de Mateu para abrirla.`,
+    olderWire: (n, w) => `El servidor de ${n} usa una versión de Mateu (wire ${w}) demasiado antigua para esta app. Es el servidor el que debe actualizarse.`,
+    minAppVersion: (n, min, have) => `${n} necesita la app de Mateu ${min} o posterior; tienes la ${have}.`,
+    newerMateu: (n, u, a) => `${n} usa una versión de Mateu más nueva${u} que esta app${a}. Se abrirá, pero alguna pantalla puede no verse bien hasta que actualices la app.`,
+  },
+  fr: {
+    thisUi: 'Cette UI',
+    newerWire: (n, w) => `${n} utilise une version de Mateu (wire ${w}) plus récente que celle que comprend cette app. Mettez à jour l'app Mateu pour l'ouvrir.`,
+    olderWire: (n, w) => `Le serveur de ${n} utilise une version de Mateu (wire ${w}) trop ancienne pour cette app. C'est le serveur qui doit être mis à jour.`,
+    minAppVersion: (n, min, have) => `${n} nécessite l'app Mateu ${min} ou ultérieure ; vous avez la ${have}.`,
+    newerMateu: (n, u, a) => `${n} utilise une version de Mateu plus récente${u} que cette app${a}. Elle s'ouvrira, mais certains écrans peuvent mal s'afficher tant que vous n'aurez pas mis à jour l'app.`,
+  },
+  de: {
+    thisUi: 'Diese UI',
+    newerWire: (n, w) => `${n} verwendet eine neuere Mateu-Version (wire ${w}), als diese App versteht. Aktualisieren Sie die Mateu-App, um sie zu öffnen.`,
+    olderWire: (n, w) => `Der Server von ${n} verwendet eine für diese App zu alte Mateu-Version (wire ${w}). Der Server muss aktualisiert werden.`,
+    minAppVersion: (n, min, have) => `${n} benötigt die Mateu-App ${min} oder neuer; Sie haben ${have}.`,
+    newerMateu: (n, u, a) => `${n} verwendet eine neuere Mateu-Version${u} als diese App${a}. Sie öffnet sich, aber einige Bildschirme werden möglicherweise erst nach einem Update der App richtig angezeigt.`,
+  },
+  pt: {
+    thisUi: 'Esta UI',
+    newerWire: (n, w) => `${n} usa uma versão do Mateu (wire ${w}) mais recente do que esta app entende. Atualize a app Mateu para abri-la.`,
+    olderWire: (n, w) => `O servidor de ${n} usa uma versão do Mateu (wire ${w}) antiga demais para esta app. É o servidor que precisa ser atualizado.`,
+    minAppVersion: (n, min, have) => `${n} precisa da app Mateu ${min} ou posterior; você tem a ${have}.`,
+    newerMateu: (n, u, a) => `${n} usa uma versão do Mateu mais recente${u} que esta app${a}. Ela vai abrir, mas algumas telas podem não aparecer bem até você atualizar a app.`,
+  },
+  it: {
+    thisUi: 'Questa UI',
+    newerWire: (n, w) => `${n} usa una versione di Mateu (wire ${w}) più recente di quella che questa app comprende. Aggiorna l'app Mateu per aprirla.`,
+    olderWire: (n, w) => `Il server di ${n} usa una versione di Mateu (wire ${w}) troppo vecchia per questa app. È il server che va aggiornato.`,
+    minAppVersion: (n, min, have) => `${n} richiede l'app Mateu ${min} o successiva; hai la ${have}.`,
+    newerMateu: (n, u, a) => `${n} usa una versione di Mateu più recente${u} di questa app${a}. Si aprirà, ma alcune schermate potrebbero non essere visualizzate correttamente finché non aggiorni l'app.`,
+  },
+};
+
+/** The sentence for the person, in the device's language (chromeLanguage.ts). */
 export function compatMessage(
   reason: CompatReason,
   ui: UiSide & { name?: string },
   app: AppSide,
-  lang: 'en' | 'es' = 'en',
+  lang: ChromeLanguage = 'en',
 ): string {
-  const name = ui.name || (lang === 'es' ? 'Esta UI' : 'This UI');
-  const es = lang === 'es';
+  const t = COMPAT[lang] ?? COMPAT.en;
+  const name = ui.name || t.thisUi;
   switch (reason) {
     case 'newerWire':
-      return es
-        ? `${name} usa una versión de Mateu (wire ${ui.wireVersion}) más nueva de la que entiende esta app. Actualiza la app de Mateu para abrirla.`
-        : `${name} uses a newer Mateu (wire ${ui.wireVersion}) than this version of the Mateu app understands. Update the Mateu app to open it.`;
+      return t.newerWire(name, String(ui.wireVersion));
     case 'olderWire':
-      return es
-        ? `El servidor de ${name} usa una versión de Mateu (wire ${ui.wireVersion}) demasiado antigua para esta app. Es el servidor el que debe actualizarse.`
-        : `${name}'s server runs a Mateu (wire ${ui.wireVersion}) too old for this version of the app. The server needs updating.`;
+      return t.olderWire(name, String(ui.wireVersion));
     case 'minAppVersion':
-      return es
-        ? `${name} necesita la app de Mateu ${ui.minAppVersion} o posterior; tienes la ${app.appVersion}.`
-        : `${name} needs the Mateu app ${ui.minAppVersion} or later; you have ${app.appVersion}.`;
+      return t.minAppVersion(name, String(ui.minAppVersion), String(app.appVersion));
     case 'newerMinor':
     case 'newerMateu':
-      return es
-        ? `${name} usa una versión de Mateu más nueva${ui.mateuVersion ? ` (${ui.mateuVersion})` : ''} que esta app${app.mateuVersion ? ` (${app.mateuVersion})` : ''}. Se abrirá, pero alguna pantalla puede no verse bien hasta que actualices la app.`
-        : `${name} runs a newer Mateu${ui.mateuVersion ? ` (${ui.mateuVersion})` : ''} than this app${app.mateuVersion ? ` (${app.mateuVersion})` : ''}. It opens, but some screens may not display correctly until you update the app.`;
+      return t.newerMateu(name, ui.mateuVersion ? ` (${ui.mateuVersion})` : '', app.mateuVersion ? ` (${app.mateuVersion})` : '');
   }
 }
 
+/** The hub's own words around those notices. */
+export const HUB_TEXTS: Record<ChromeLanguage, { updateTheApp: string; checkAgain: string; notNow: string }> = {
+  en: { updateTheApp: 'Update the app', checkAgain: 'Check again', notNow: 'Not now' },
+  es: { updateTheApp: 'Actualiza la app', checkAgain: 'Comprobar de nuevo', notNow: 'Ahora no' },
+  fr: { updateTheApp: "Mettez à jour l'app", checkAgain: 'Vérifier à nouveau', notNow: 'Pas maintenant' },
+  de: { updateTheApp: 'App aktualisieren', checkAgain: 'Erneut prüfen', notNow: 'Nicht jetzt' },
+  pt: { updateTheApp: 'Atualize a app', checkAgain: 'Verificar de novo', notNow: 'Agora não' },
+  it: { updateTheApp: "Aggiorna l'app", checkAgain: 'Controlla di nuovo', notNow: 'Non ora' },
+};
+
 /** The device's language as the hub speaks it. */
-export function hubLang(locale: string | undefined = currentLocale()): 'en' | 'es' {
-  return /^es\b/i.test(locale ?? '') ? 'es' : 'en';
+export function hubLang(locale: string | undefined = currentLocale()): ChromeLanguage {
+  return chromeLanguageOf(locale);
 }
 
 function currentLocale(): string | undefined {

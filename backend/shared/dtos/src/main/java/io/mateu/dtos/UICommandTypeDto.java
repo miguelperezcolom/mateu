@@ -30,5 +30,10 @@ public enum UICommandTypeDto {
    * The notification inbox changed (data: {@link NotificationsChangedDto}) — on the live-updates
    * stream, only to the sessions of the principal the change is for.
    */
-  NotificationsChanged
+  NotificationsChanged,
+  /**
+   * Who has a record open (data: {@link PresenceDto}) — the answer of the {@code _presence} action
+   * and, on the live-updates stream, a change of a record the caller has open.
+   */
+  PresenceChanged
 }

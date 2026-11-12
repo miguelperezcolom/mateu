@@ -126,6 +126,9 @@ export default interface App extends ComponentMetadata {
     /** `@App(liveUpdates)`: one app event stream per browser carries header-value changes. */
     liveUpdates?: boolean
 
+    /** `@App(presence)`: record pages tell who else has the same record open and who edits it (presence.ts). */
+    presence?: boolean
+
     /** `@App(idleTimeoutMinutes)`: the idle-session warning; absent = off. */
     idleSession?: IdleSession | null
 

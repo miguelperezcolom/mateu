@@ -44,6 +44,8 @@ REST APIs directly, as named in the [data source catalogue](/concepts/data-sourc
 
 - [Production checklist](/deploy/production-checklist/) — packaging, reverse proxies, auth,
   stateless view models, CSP, CORS.
+- [Under a path prefix](/deploy/under-a-path-prefix/) — a servlet context path, or a proxy that
+  serves the app at `/crm/` and strips the prefix.
 - [The OpenAPI your UI implies](/java-user-manual/build/derived-openapi/) — the API contract your
   screens assume, derived from them.
 

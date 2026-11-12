@@ -11,6 +11,21 @@ import java.util.List;
 
 public class FieldMapper {
 
+  /**
+   * The field's autocomplete token (WCAG 1.3.5): the declared one; else {@code email} for an email
+   * field — the only purpose Mateu can tell from the field itself. Blank means undeclared.
+   */
+  static String autocompleteOf(FormField formField) {
+    if (formField.autocomplete() != null && !formField.autocomplete().isBlank()) {
+      return formField.autocomplete().trim();
+    }
+    if (formField.stereotype() == io.mateu.uidl.data.FieldStereotype.email
+        && !formField.readOnly()) {
+      return "email";
+    }
+    return null;
+  }
+
   public static ClientSideComponentDto mapFormFieldToDto(
       FormField formField,
       String baseUrl,
@@ -65,7 +80,7 @@ public class FieldMapper {
             .onItemSelectionActionId(formField.onItemSelectionActionId())
             .rowSelectionShortcut(formField.rowSelectionShortcut())
             .inlineEditing(formField.inlineEditing())
-            .attributes(mapAttributes(formField))
+            .attributes(mapAttributes(formField, httpRequest))
             .detailPath(formField.detailPath())
             .useButtonForDetail(formField.useButtonForDetail())
             .minHeightWhenDetailVisible(formField.minHeightWhenDetailVisible())
@@ -73,6 +88,7 @@ public class FieldMapper {
             .multiline(formField.multiline())
             .propertyRow(formField.propertyRow())
             .link(mapLink(formField.link()))
+            .autocomplete(autocompleteOf(formField))
             .build(),
         formField.id(),
         List.of(),
@@ -81,9 +97,11 @@ public class FieldMapper {
         null);
   }
 
-  private static List<PairDto> mapAttributes(FormField formField) {
-    if (formField.attributes() != null) {
-      return formField.attributes().entrySet().stream()
+  private static List<PairDto> mapAttributes(FormField formField, HttpRequest httpRequest) {
+    // an editable upload field gets its upload ticket here (annotated, fluent and YAML alike)
+    var attributes = io.mateu.core.infra.uploads.UploadAttributes.of(formField, httpRequest);
+    if (attributes != null) {
+      return attributes.entrySet().stream()
           .map(e -> new PairDto(e.getKey(), e.getValue()))
           .toList();
     }

@@ -3,6 +3,12 @@ title: "File Upload"
 description: "Allow users to upload one or more files from a form field."
 ---
 
+:::tip[Large files]
+For a `@FileUpload` field that uploads to a storage port your application implements — progress,
+cancel, size and type limits enforced by the server, the value a reference instead of the bytes —
+see [Large file uploads](/java-ui-definition/file-uploads/).
+:::
+
 A form field of type `file` renders an upload widget. The user selects one or more files; each is POSTed independently to `/upload`. The server stores the file and returns an identifier; that identifier is kept in the form state alongside the original filename. When the form is submitted, the Java field contains the full list of uploaded file references.
 
 ---

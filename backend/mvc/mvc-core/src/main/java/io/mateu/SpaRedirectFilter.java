@@ -32,15 +32,30 @@ public class SpaRedirectFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     return !"GET".equalsIgnoreCase(request.getMethod())
-        || !SpaFallback.candidate(request.getRequestURI())
+        || !SpaFallback.candidate(pathWithinApp(request))
         || !SpaFallback.acceptsHtml(request.getHeader("Accept"));
+  }
+
+  /**
+   * The request path below the servlet context path: the UIs' base URLs and the forward target are
+   * context-relative, so under {@code server.servlet.context-path=/crm} the deep link {@code
+   * /crm/orders/1} is {@code /orders/1} here (it was compared whole, and forwarded nowhere).
+   */
+  static String pathWithinApp(HttpServletRequest request) {
+    var uri = request.getRequestURI();
+    var context = request.getContextPath();
+    if (uri != null && context != null && !context.isEmpty() && uri.startsWith(context)) {
+      var within = uri.substring(context.length());
+      return within.isEmpty() ? "/" : within;
+    }
+    return uri;
   }
 
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    String path = request.getRequestURI();
+    String path = pathWithinApp(request);
     var baseUrls = baseUrls();
     // The index of a UI is always served by its own controller.
     if (SpaFallback.isIndex(path, baseUrls) || hasHandler(request)) {

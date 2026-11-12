@@ -38,8 +38,9 @@ export function renderCameraField(host: MateuField, value: FieldValue, label: Fi
 
 export function renderFileUploadField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
-    // generic file upload: pick-file + name + remove, value = data URI (no preview);
-    // the accept attribute travels in the field's generic attributes
+    // generic file upload: pick-file + name + remove, value = data URI (no preview) — or, when the
+    // server gave the field an upload ticket, a real upload whose value is the store's reference;
+    // accept / maxBytes / multiple / the ticket travel in the field's generic attributes
     const accept = fieldAttribute(host.field.attributes, 'accept')
     return html`
         <vaadin-custom-field
@@ -48,7 +49,8 @@ export function renderFileUploadField(host: MateuField, value: FieldValue, label
                 .helperText="${host.helperText()}"
                 data-colspan="${host.field.colspan}"
         >
-            <mateu-file-upload .fieldId="${host.field.fieldId}" .value="${value}" .accept="${accept}"></mateu-file-upload>
+            <mateu-file-upload .fieldId="${host.field.fieldId}" .value="${value}" .accept="${accept}"
+                    .fieldAttributes="${host.field.attributes}" .baseUrl="${host.baseUrl}"></mateu-file-upload>
         </vaadin-custom-field>
     `
 }

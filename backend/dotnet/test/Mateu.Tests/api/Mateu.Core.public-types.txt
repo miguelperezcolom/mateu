@@ -5,5 +5,7 @@ Mateu.Core.DocumentStore+Parked
 Mateu.Core.Export.BuiltInCsvExporter
 Mateu.Core.ISpecsCache
 Mateu.Core.InMemoryInboxStore
+Mateu.Core.InMemoryPresenceStore
 Mateu.Core.InferenceSwitches
 Mateu.Core.PartialRegistry
+Mateu.Core.Presence

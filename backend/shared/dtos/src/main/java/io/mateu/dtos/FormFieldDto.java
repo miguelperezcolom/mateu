@@ -20,6 +20,8 @@ import lombok.Builder;
  * @param attributes Some generic attributes
  * @param colspan Colspan for this field
  * @param link Navigation link rendered as an icon at the right side of this field
+ * @param autocomplete The HTML autocomplete token naming the input's purpose (WCAG 1.3.5), e.g.
+ *     {@code email}, {@code given-name}; null when undeclared
  */
 @Builder
 public record FormFieldDto(
@@ -65,7 +67,8 @@ public record FormFieldDto(
     boolean treeLeavesOnly,
     boolean multiline,
     boolean propertyRow,
-    NavLinkDto link)
+    NavLinkDto link,
+    String autocomplete)
     implements ComponentMetadataDto {
 
   public FormFieldDto {

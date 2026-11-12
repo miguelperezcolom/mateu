@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import ClassVar
 from enum import Enum
 
 
@@ -159,6 +160,16 @@ class Help:
 
 
 @dataclass(frozen=True)
+class Autocomplete:
+    """The purpose of a field about the user (Java's ``@Autocomplete``; WCAG 1.3.5): an HTML
+    autocomplete token such as ``"email"``, ``"given-name"``, ``"tel"``, ``"postal-code"`` or
+    ``"new-password"``, or ``"off"``. An email field gets ``"email"`` without it. Travels as the
+    field's ``autocomplete``."""
+
+    value: str
+
+
+@dataclass(frozen=True)
 class SliderMin:
     """Lower bound of a slider field (Java's ``@SliderMin``; 0 by default)."""
 
@@ -226,9 +237,23 @@ class FileUpload:
     read client-side into a data URI (base64) stored as the field value, so the file travels in
     the string itself and no upload endpoint is required. Shorthand for the "fileUpload"
     stereotype. ``accept`` (e.g. ".csv") travels in the field's generic attributes list.
-    (Python analogue of Java's @FileUpload.)"""
+    (Python analogue of Java's @FileUpload.)
+
+    With a ``FileStorage`` registered (EXPERIMENTAL) the file is streamed to the store instead and
+    the value is a ``mateu-file:`` reference (``StoredFile.parse``). ``max_bytes`` = the most ONE
+    file may weigh (0 = the server default, 100 MB with a store, 10 MB as a data URI);
+    ``multiple`` = several files, the value is a list (inferred for a ``list[str]`` field);
+    ``storage`` = the ``FileStorage.name`` to use (blank = the default store);
+    ``FileUpload.INLINE`` (``"inline"``, reserved) = never through a store: the field keeps the
+    data-URI value even when stores are registered (for code that reads the bytes from the value)."""
+
+    #: the reserved storage name of a field that always keeps its file inline, as a data URI
+    INLINE: ClassVar[str] = "inline"
 
     accept: str = ""
+    max_bytes: int = 0
+    multiple: bool = False
+    storage: str = ""
 
 
 @dataclass(frozen=True)

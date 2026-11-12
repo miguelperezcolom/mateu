@@ -214,6 +214,7 @@ def app_component(
         shortcuts=mapper._app_shortcuts(_Shell, data_shell, mount),
         header_values=mapper._header_values(_Shell, data_shell),
         live_updates=mapper._live_updates(_Shell, data_shell),
+        presence=mapper._presence(_Shell, data_shell),
         idle_session=mapper._idle_session(_Shell, data_shell, mount),
         agent_push=mapper.agent_push_enabled,
         required_capabilities=mapper._required_capabilities(
@@ -352,6 +353,7 @@ class _ShellValues:
             if isinstance(v, dict) and v.get("id")
         ]
         self.live_updates = n.get("liveUpdates")
+        self.presence = n.get("presence")
         self.idle_timeout_minutes = n.get("idleTimeoutMinutes")
         self.idle_warning_seconds = n.get("idleWarningSeconds")
         self.idle_sign_out_url = _text(n.get("idleSignOutUrl"))

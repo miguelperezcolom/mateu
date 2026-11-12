@@ -12,7 +12,7 @@ import {
   MERGE_CUSTOM, mergeInitialPicks, mergeParametersOf, mergeSummaryOf, mergeResultOf, recordMergeAtomOf,
 } from './recordMerge.mjs'
 import {
-  appShortcutFor, isShortcutsHelpKey, quickLaunchMatch, appShortcutRowsOf, isTypingElement,
+  appShortcutFor, isShortcutsHelpKey, isCharacterKeyShortcut, singleKeyShortcutsOn, setSingleKeyShortcuts, quickLaunchMatch, appShortcutRowsOf, isTypingElement,
   headerChangesOf, shouldLeadLive, liveReconnectDelay, LIVE_STALE_MS, idlePhaseOf, latestActivityOf,
   recordActivityOf, IDLE_ACTIVITY_KEY, IDLE_WRITE_EVERY_MS, seedHeaderValues, updateHeaderValue,
   headerValuesList, HEADER_VALUES_KEY,
@@ -110,6 +110,24 @@ test('app shortcuts: «?» opens the list, never while typing', () => {
   assert.equal(isShortcutsHelpKey(key('?', { shiftKey: true }), true), false)
   assert.equal(isTypingElement({ localName: 'input', type: 'text' }), true)
   assert.equal(isTypingElement({ localName: 'input', type: 'radio' }), false)
+})
+
+test('WCAG 2.1.4: one-key shortcuts can be switched off; Ctrl+/ always opens the list', () => {
+  const store = new Map()
+  const real = globalThis.localStorage
+  globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, v) }
+  try {
+    assert.equal(isCharacterKeyShortcut('g'), true)
+    assert.equal(isCharacterKeyShortcut('ctrl+g'), false)
+    assert.equal(appShortcutFor(shortcuts, key('g'), false).route, '/plain')
+    setSingleKeyShortcuts(false)
+    assert.equal(singleKeyShortcutsOn(), false)
+    assert.equal(appShortcutFor(shortcuts, key('g'), false), undefined)
+    assert.equal(isShortcutsHelpKey(key('?', { shiftKey: true }), false), false)
+    assert.equal(isShortcutsHelpKey({ ...key('/', { ctrlKey: true }), code: 'Slash' }, true), true)
+    setSingleKeyShortcuts(true)
+    assert.equal(isShortcutsHelpKey(key('?', { shiftKey: true }), false), true)
+  } finally { globalThis.localStorage = real }
 })
 
 test('quick launch: an exact code; palette rows with code matches first', () => {

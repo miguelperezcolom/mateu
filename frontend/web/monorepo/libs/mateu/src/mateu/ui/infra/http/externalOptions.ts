@@ -1,6 +1,7 @@
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
 import { externalAuthHeaders } from './externalAuth.ts'
 import { declaresJson } from './jsonTemplate.ts'
+import { underPublicBase } from './publicBase.ts'
 import { ExternalRestError, serviceMessageOf } from './serviceMessage.ts'
 import { UnknownRestSourceError, getRestSource, isSampled, pathOfField, remoteCataloguesSettled, resolveRestSource, sampleOf, totalPathOf } from './restSourceCatalogue.ts'
 import type { TemplateResolver } from '../ui/interpolation.ts'
@@ -144,7 +145,8 @@ export async function fetchExternalJson(
         if (declared.ref && !getRestSource(declared.ref)) throw new UnknownRestSourceError(declared.ref)
         throw new Error('External REST fetch has no url')
     }
-    const url = resolveUrl(source.url) ?? source.url
+    // a root-relative url is the app's own endpoint: under its public base (publicBase.ts)
+    const url = underPublicBase(resolveUrl(source.url) ?? source.url)
     const headers: Record<string, string> = {}
     for (const [k, v] of Object.entries(source.headers ?? {})) headers[k] = resolve(v) ?? v
     // A registered client-side auth provider supplies dynamic headers (e.g. a bearer token from a

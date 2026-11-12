@@ -113,8 +113,10 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
     // from the field's state value. Read-only view → plain table; editable form → editable cells
     // plus the IDE's ToolbarDecorator (add/remove/reorder rows), all mutating the live state array
     // that the form's save round-trips.
-    // (a collection with choice stereotypes — checkbox, listBox — is a choice of its options, not a grid)
-    if (stereotype == "grid" || (dataType == "array" && stereotype !in setOf("multiSelect", "bulletedList", "checkbox", "listBox"))) {
+    // (a collection with choice stereotypes — checkbox, listBox — is a choice of its options, not a
+    // grid; nor is one that carries options or a REST `optionsSource`: a multi combobox, a tree select)
+    val choosesFromOptions = metadata.path("optionsSource").isObject || metadata.arr("options").isNotEmpty()
+    if (stereotype == "grid" || (dataType == "array" && !choosesFromOptions && stereotype !in setOf("multiSelect", "bulletedList", "checkbox", "listBox", "fileUpload"))) {
         if (label.isNotBlank()) {
             val caption = JBLabel(plain(label))
             caption.alignmentX = Component.LEFT_ALIGNMENT
@@ -165,7 +167,8 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
 
     // Read-only by declaration (a record's view mode) → the value as text (ReadOnlyValues); a field
     // a rule disables keeps its disabled control.
-    val readOnlyText = if (metadata.bool("readOnly") && !metadata.bool("disabled") &&
+    // (a file field keeps its own read-only drawing: stored files by name, linked to their url)
+    val readOnlyText = if (metadata.bool("readOnly") && !metadata.bool("disabled") && stereotype != "fileUpload" &&
         !io.mateu.ijp.state.Expressions.truthy(ruleAttrs["disabled"])) ReadOnlyValues.textOf(metadata, rawValue) else null
 
     // A read-only value has nothing to fill in: no required asterisk, and a quiet caption so the
@@ -188,13 +191,27 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         // the button shows the picked option's LABEL (the server sends it as `<field>-label`), not its id
         stereotype == "searchable" || (stereotype == "combobox" && metadata.path("remoteCoordinates").isObject) ->
             lookupField(ctx, fieldId, metadata, value, enabled, FieldValues.lookupLabel(data, fieldId, value))
-        stereotype == "fileUpload" -> fileUploadField(ctx, fieldId, metadata, value, enabled, label)
+        stereotype == "fileUpload" -> fileUploadField(ctx, fieldId, metadata, rawValue, enabled, label)
+        // a multi-value field (checkboxes, list box, tree select, multiSelect / multi combobox) fed by a
+        // REST `optionsSource`: the options are fetched off the EDT, then the field is drawn as with
+        // inline ones (only the single-value combo read a source before)
+        options.isEmpty() && metadata.path("optionsSource").isObject && readsSourcedOptionsAsMany(stereotype, dataType) ->
+            sourcedOptionsField(ctx, fieldId, metadata.path("optionsSource"), label) { fetched ->
+                when (stereotype) {
+                    "listBox" -> listBoxField(ctx, fieldId, fetched, rawValue, dataType == "array", enabled)
+                    "treeSelect" -> treeSelectField(ctx, fieldId, (metadata.deepCopy<JsonNode>() as com.fasterxml.jackson.databind.node.ObjectNode)
+                        .also { it.set<JsonNode>("options", com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.arrayNode().addAll(fetched)) }, value, enabled)
+                    else -> multiSelectField(ctx, fieldId, fetched, rawValue, enabled)
+                }
+            }
         // a collection as checkboxes (`checkbox`), a list box (`listBox`, one pick or several)
         stereotype == "checkbox" && options.isNotEmpty() -> multiSelectField(ctx, fieldId, options, rawValue, enabled)
         stereotype == "listBox" && options.isNotEmpty() -> listBoxField(ctx, fieldId, options, rawValue, dataType == "array", enabled)
         stereotype == "treeSelect" -> treeSelectField(ctx, fieldId, metadata, value, enabled)
         stereotype == "radio" && options.isNotEmpty() -> radioField(ctx, fieldId, options, value, enabled)
         stereotype == "multiSelect" -> multiSelectField(ctx, fieldId, options, rawValue, enabled)
+        // any other collection of options (a multi combobox): several picks, as checkboxes
+        dataType == "array" && options.isNotEmpty() -> multiSelectField(ctx, fieldId, options, rawValue, enabled)
         stereotype == "slider" -> sliderField(ctx, fieldId, metadata, value, enabled)
         stereotype == "stars" -> starsField(ctx, fieldId, value, enabled)
         stereotype == "color" -> colorField(ctx, fieldId, value, enabled)
@@ -779,37 +796,79 @@ private fun optionsCombo(ctx: AppContext, fieldId: String, options: List<JsonNod
     return combo
 }
 
+/** Whether a field fed by an `optionsSource` takes SEVERAL of its options (else the single combo). */
+internal fun readsSourcedOptionsAsMany(stereotype: String, dataType: String): Boolean =
+    stereotype in setOf("checkbox", "listBox", "treeSelect", "multiSelect") || dataType == "array"
+
+/** The `{value, label}` pairs of a REST answer, read at the resolved source's items/value/label paths. */
+internal fun restOptionPairs(json: JsonNode?, resolved: JsonNode): List<Pair<String, String>> {
+    val arr = RestFetch.valueAtPath(json, resolved.text("itemsPath"))
+    val valuePath = resolved.text("valuePath").ifBlank { "value" }
+    val labelPath = resolved.text("labelPath").ifBlank { "label" }
+    val list = ArrayList<Pair<String, String>>()
+    if (arr != null && arr.isArray) for (item in arr) {
+        val v = RestFetch.valueAtPath(item, valuePath)?.asText() ?: item.asText("")
+        val l = RestFetch.valueAtPath(item, labelPath)?.asText() ?: v
+        list.add(v to l)
+    }
+    return list
+}
+
+/**
+ * The options of a field's `optionsSource` (blocking — call it off the EDT). Proxy mode routes
+ * through the Mateu server via `__restfetch__` (no CORS, secrets server-side); direct fetch
+ * otherwise. A sampled source (sample mode) is never proxied: RestFetch.fetch answers it from the
+ * sample. A catalogue `ref` is resolved first so url, mapping paths and the proxy flag all come
+ * from the resolved source — a by-ref surface carries none of its own. Empty on failure.
+ */
+internal fun fetchRestOptions(ctx: AppContext, fieldId: String, source: JsonNode): List<Pair<String, String>> = try {
+    val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
+    val resolved = ctx.session.sources.resolveRestSource(source)
+    val json = if (ctx.session.sources.viaProxy(source)) ctx.fetchViaProxy("options", fieldId)
+               else RestFetch.fetch(ctx.apiClient, source, exprCtx, ctx.session.sources)
+    restOptionPairs(json, resolved)
+} catch (t: Throwable) {
+    println("[Mateu] external options fetch failed: ${t.message}")
+    emptyList()
+}
+
+/**
+ * A multi-value field whose options come from a REST source: "Loading options…" until they land,
+ * then the control [build] makes from them (as wire options, `{value, label}`), in place.
+ */
+private fun sourcedOptionsField(
+    ctx: AppContext, fieldId: String, source: JsonNode, label: String, build: (List<JsonNode>) -> JComponent,
+): JComponent {
+    val holder = JPanel(BorderLayout())
+    holder.isOpaque = false
+    holder.add(JBLabel(plain("Loading options…")).apply { foreground = ToneColors.secondaryText() }, BorderLayout.CENTER)
+    ctx.session.executor.submit {
+        val pairs = fetchRestOptions(ctx, fieldId, source)
+        val factory = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance
+        val opts: List<JsonNode> = pairs.map { (v, l) -> factory.objectNode().put("value", v).put("label", l) }
+        javax.swing.SwingUtilities.invokeLater {
+            holder.removeAll()
+            val control = if (opts.isEmpty()) JBLabel(plain("No options")).apply { foreground = ToneColors.secondaryText() } else build(opts)
+            // the caption named the placeholder: the control that replaces it keeps the field's name
+            control.accessibleName(label)
+            control.focusTarget()?.accessibleName(label)
+            control.putClientProperty("mateu.fieldId", fieldId)
+            holder.add(control, BorderLayout.CENTER)
+            holder.revalidate()
+            holder.repaint()
+        }
+    }
+    return holder
+}
+
 /** @RestOptions: a combo whose options are fetched CLIENT-SIDE from an arbitrary REST endpoint on
  *  the background executor; the model + selection are set on the EDT once the fetch resolves. */
 private fun restOptionsCombo(ctx: AppContext, fieldId: String, source: JsonNode, value: String, enabled: Boolean): JComponent {
     val combo = ComboBox(DefaultComboBoxModel(arrayOf<String>()))
     combo.renderer = plainItems(combo.renderer)
     combo.isEnabled = enabled
-    val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
-    // Resolve a catalogue `ref` (if any) so url, mapping paths and the proxy flag all come from the
-    // resolved source — a by-ref surface carries none of its own.
-    val resolved = ctx.session.sources.resolveRestSource(source)
     ctx.session.executor.submit {
-        val opts = try {
-            // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets
-            // server-side); direct fetch otherwise. Both resolve to the same JSON.
-            // A sampled source (sample mode) is never proxied: RestFetch.fetch answers it from the sample.
-            val json = if (ctx.session.sources.viaProxy(source)) ctx.fetchViaProxy("options", fieldId)
-                       else RestFetch.fetch(ctx.apiClient, source, exprCtx, ctx.session.sources)
-            val arr = RestFetch.valueAtPath(json, resolved.text("itemsPath"))
-            val valuePath = resolved.text("valuePath").ifBlank { "value" }
-            val labelPath = resolved.text("labelPath").ifBlank { "label" }
-            val list = ArrayList<Pair<String, String>>()
-            if (arr != null && arr.isArray) for (item in arr) {
-                val v = RestFetch.valueAtPath(item, valuePath)?.asText() ?: item.asText("")
-                val l = RestFetch.valueAtPath(item, labelPath)?.asText() ?: v
-                list.add(v to l)
-            }
-            list
-        } catch (t: Throwable) {
-            println("[Mateu] external options fetch failed: ${t.message}")
-            emptyList()
-        }
+        val opts = fetchRestOptions(ctx, fieldId, source)
         javax.swing.SwingUtilities.invokeLater {
             val values = opts.map { it.first }
             combo.model = DefaultComboBoxModel(opts.map { it.second }.toTypedArray())

@@ -128,6 +128,7 @@ export default defineConfig({
 									label: 'Cross-cutting',
 									items: [
 										{ slug: 'java-ui-definition/field-types', label: 'Field types' },
+										{ slug: 'java-ui-definition/file-uploads', label: 'Large file uploads' },
 										{ slug: 'define/yaml/translations', label: 'Translations' },
 										{ slug: 'deploy/environments', label: 'Environments' },
 										{ slug: 'define/yaml/permissions', label: 'Access & permissions' },
@@ -198,6 +199,7 @@ export default defineConfig({
 										{ slug: 'ux-patterns/action-panel', label: 'Action Panel (I want to…)' },
 										{ slug: 'ux-patterns/app-shortcuts', label: 'App Shortcuts & Quick Launch' },
 										{ slug: 'ux-patterns/live-header-values', label: 'Live Header Values' },
+										{ slug: 'ux-patterns/record-presence', label: 'Record Presence' },
 										{ slug: 'ux-patterns/app-context', label: 'App Context Selector' },
 										{ slug: 'ux-patterns/global-search' },
 										{ slug: 'ux-patterns/messages', label: 'Messages (toasts)' },
@@ -494,6 +496,7 @@ export default defineConfig({
 										{ slug: 'java-ui-definition/fluent-components' },
 										{ slug: 'java-ui-definition/client-side-logic' },
 										{ slug: 'java-ui-definition/field-types' },
+										{ slug: 'java-ui-definition/file-uploads' },
 										{ slug: 'java-ui-definition/domain-vocabulary', label: 'Build Your Domain Vocabulary' },
 										{
 											label: 'Components',
@@ -580,6 +583,7 @@ export default defineConfig({
 						{ slug: 'deploy/environments', label: 'Environments' },
 						{ slug: 'java-user-manual/build/derived-openapi', label: 'The OpenAPI your UI implies' },
 						{ slug: 'deploy/production-checklist', label: 'Production checklist' },
+						{ slug: 'deploy/under-a-path-prefix', label: 'Under a path prefix' },
 						{ slug: 'deploy/versions-across-teams', label: 'Versions across teams' },
 						{ slug: 'deploy/oracle-cdn-mirror', label: "Oracle's CDN from a mirror" },
 						{

@@ -312,6 +312,8 @@ class AppShell:
     #: The way back up from this app (twin of ``@app(back_link)``: ``"PARENT"`` / ``BackLink.PARENT``
     #: draws one "← Parent" link instead of the breadcrumb trail); None = the decorator decides.
     back_link: str | None = None
+    #: Record presence (twin of ``@app(presence)``); None = the decorator (EXPERIMENTAL).
+    presence: bool | None = None
 
 
 class MenuSupplier:

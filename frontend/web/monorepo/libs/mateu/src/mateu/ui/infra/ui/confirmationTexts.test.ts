@@ -81,8 +81,9 @@ describe('confirmationDialogTexts', () => {
         })
     })
 
-    it('falls back to English for any other language', () => {
-        expect(confirmationDialogTexts(action(null), 'fr').confirmationText).toEqual('Yes')
+    it('speaks the catalogue languages and falls back to English for any other', () => {
+        expect(confirmationDialogTexts(action(null), 'fr').confirmationText).toEqual('Oui')
+        expect(confirmationDialogTexts(action(null), 'nl').confirmationText).toEqual('Yes')
     })
 })
 

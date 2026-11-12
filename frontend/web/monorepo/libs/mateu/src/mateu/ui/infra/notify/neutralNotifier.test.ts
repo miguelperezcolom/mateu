@@ -113,6 +113,20 @@ describe('neutralNotifier', () => {
         expect(toasts()).toHaveLength(0)
     })
 
+    it('an Undo toast stays at least 10 s and does not go while hovered (WCAG 2.2.1)', () => {
+        vi.useFakeTimers()
+        neutralNotifier.show({ text: 'Deleted', undoActionId: 'restore', duration: 2000 } as never, document.body)
+        const [t] = toasts()
+        vi.advanceTimersByTime(9000)
+        expect(toasts()).toHaveLength(1)
+        t.dispatchEvent(new Event('mouseenter'))
+        vi.advanceTimersByTime(60000)
+        expect(toasts()).toHaveLength(1)
+        t.dispatchEvent(new Event('mouseleave'))
+        vi.advanceTimersByTime(2250)
+        expect(toasts()).toHaveLength(0)
+    })
+
     it('is anchored where the message asks', () => {
         neutralNotifier.show({ text: 'top', position: 'topStart' } as never, document.body)
         const [t] = toasts()
