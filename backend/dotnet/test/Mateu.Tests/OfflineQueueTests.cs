@@ -122,4 +122,33 @@ public class OfflineQueueTests
         Assert.Equal(2, runs);
         IdempotencyKeys.Clear();
     }
+    [Fact]
+    public void An_idempotency_key_is_scoped_to_the_callers_name_and_roles()
+    {
+        static Microsoft.AspNetCore.Http.HttpContext As(System.Security.Claims.ClaimsIdentity identity) =>
+            new Microsoft.AspNetCore.Http.DefaultHttpContext { User = new System.Security.Claims.ClaimsPrincipal(identity) };
+        var anonymous = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+        Assert.Equal("\u0001", MateuExtensions.CallerOf(anonymous));
+        var ann = As(new System.Security.Claims.ClaimsIdentity(new[]
+        {
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, "ann"),
+            new System.Security.Claims.Claim("roles", "staff"),
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, "admin"),
+            new System.Security.Claims.Claim("role", "clerk"),
+            new System.Security.Claims.Claim("email", "ignored"),
+        }, "test"));
+        Assert.Equal("ann\u0001admin,clerk,staff", MateuExtensions.CallerOf(ann));
+        // authenticated without a name: the roles still scope it
+        var nameless = As(new System.Security.Claims.ClaimsIdentity(new[]
+        {
+            new System.Security.Claims.Claim("role", "clerk"),
+        }, "test"));
+        Assert.Equal("\u0001clerk", MateuExtensions.CallerOf(nameless));
+        // claims of an unauthenticated identity name nobody
+        var unauthenticated = As(new System.Security.Claims.ClaimsIdentity(new[]
+        {
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, "bob"),
+        }));
+        Assert.Equal("\u0001", MateuExtensions.CallerOf(unauthenticated));
+    }
 }

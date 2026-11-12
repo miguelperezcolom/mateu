@@ -614,12 +614,13 @@ public static class MateuExtensions
     /// stable across tokens, so signing in again keeps the same scope.</summary>
     internal static string CallerOf(HttpContext ctx)
     {
+        // HttpContext.User is never null: an anonymous request carries an unauthenticated principal
         var user = ctx.User;
-        var roles = user?.Claims
-            .Where(c => c.Type == System.Security.Claims.ClaimTypes.Role || c.Type == "role" || c.Type == "roles")
-            .Select(c => c.Value).Order(StringComparer.Ordinal) ?? Enumerable.Empty<string>();
-        return (user?.Identity?.IsAuthenticated == true ? user.Identity.Name ?? "" : "")
-            + "\u0001" + string.Join(",", roles);
+        var roles = user.Claims
+            .Where(c => c.Type is System.Security.Claims.ClaimTypes.Role or "role" or "roles")
+            .Select(c => c.Value).Order(StringComparer.Ordinal);
+        var name = user.Identity is { IsAuthenticated: true } identity ? identity.Name ?? "" : "";
+        return name + "\u0001" + string.Join(",", roles);
     }
 
     /// <summary>The error boundary of the sync endpoint. A denied request answers 403 with an error
