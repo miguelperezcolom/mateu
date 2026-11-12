@@ -29,6 +29,14 @@ public static class MfeRemote
     /// tests about deadlines use their own short ones (150 ms, a slot's 100 ms).</summary>
     public const int InTime = 5000;
 
+    /// <summary>How long a remote that must MISS its deadline takes: far beyond every deadline and
+    /// bound the tests use, so no amount of scheduling noise lets it answer in time.</summary>
+    public const int NeverInTime = 30_000;
+
+    /// <summary>A bound for "the host did not wait for the slow remote": generous for a loaded
+    /// runner, and still far below <see cref="NeverInTime"/>.</summary>
+    public const int NotWaitedFor = 10_000;
+
     public static MicroFrontend Server(string remote, int? timeoutMs, string route = "/widget") =>
         new(Base + "/" + remote, route) { ServerSideType = "remote.Widget", Resolve = Resolve.Server, TimeoutMs = timeoutMs };
 
@@ -71,9 +79,9 @@ public class MfeUnregistered : IComponentTreeSupplier
 public class MfeParallel : IComponentTreeSupplier
 {
     public IComponent Component() => MfeRemote.Page(
-        MfeRemote.Server("delayed", 2000),
-        MfeRemote.Server("delayed", 2000, "/second"),
-        MfeRemote.Server("delayed", 2000, "/third"));
+        MfeRemote.Server("delayed", MfeRemote.InTime),
+        MfeRemote.Server("delayed", MfeRemote.InTime, "/second"),
+        MfeRemote.Server("delayed", MfeRemote.InTime, "/third"));
 }
 
 [UI("mfe-cache-key")]
@@ -163,6 +171,9 @@ public sealed class MfeHosts : IAsyncLifetime
     public readonly ConcurrentQueue<Dictionary<string, string?>> Requests = new();
     public readonly ConcurrentQueue<MicroFrontendResolutionEvent> Events = new();
     public int Cancelled;
+    /// <summary>The "delayed" remote's calls being answered right now, and the most seen at once.</summary>
+    public int DelayedInFlight;
+    public int DelayedMaxInFlight;
     public string RemoteBase = "";
     public HttpClient Host = null!;
     private WebApplication _remote = null!;
@@ -224,7 +235,7 @@ public sealed class MfeHosts : IAsyncLifetime
             {
                 // the content service: a PATH on this server, as content-hub is deployed — and this
                 // server's base url is the remote's (so the path lands there)
-                o.Remotes.Add(new RemoteDescriptor("content", "/_content-hub", 1000));
+                o.Remotes.Add(new RemoteDescriptor("content", "/_content-hub", MfeRemote.InTime));
                 o.SelfBaseUrl = RemoteBase;
                 o.MaxBudgetMs = 2 * MfeRemote.InTime;
                 configure(o);
@@ -279,10 +290,10 @@ public sealed class MfeHosts : IAsyncLifetime
             switch (remoteName)
             {
                 case "slow":
-                    await Task.Delay(3000, ctx.RequestAborted);
+                    await Task.Delay(MfeRemote.NeverInTime, ctx.RequestAborted);
                     break;
                 case "delayed":
-                    await Task.Delay(400, ctx.RequestAborted);
+                    await AnswerWhenAllThreeAreInFlight(ctx.RequestAborted);
                     break;
                 case "broken":
                     await Reply(ctx, 500, "boom");
@@ -328,7 +339,7 @@ public sealed class MfeHosts : IAsyncLifetime
                 }
                 if (path.EndsWith("front-office.home.lento"))
                 {
-                    try { await Task.Delay(3000, ctx.RequestAborted); }
+                    try { await Task.Delay(MfeRemote.NeverInTime, ctx.RequestAborted); }
                     catch (OperationCanceledException) { return; }
                 }
                 text = "slot " + path[(path.LastIndexOf('/') + 1)..];
@@ -338,6 +349,27 @@ public sealed class MfeHosts : IAsyncLifetime
             new ClientSideComponentDto(new TextMetadataDto(text) { Container = "p" }, "t", [], null, null, null),
             new Dictionary<string, object?>(), new Dictionary<string, object?>(), "Replace", null);
         await Reply(ctx, 200, Json(Increment(fragment, policy)));
+    }
+
+    /// <summary>The "delayed" remote holds each call until the three calls of mfe-parallel are in
+    /// flight at once (or 3 s pass — below their deadline), recording the most seen at once: asked in
+    /// a row, there would only ever be one.</summary>
+    private async Task AnswerWhenAllThreeAreInFlight(CancellationToken aborted)
+    {
+        var now = Interlocked.Increment(ref DelayedInFlight);
+        try
+        {
+            int seen;
+            while ((seen = Volatile.Read(ref DelayedMaxInFlight)) < now
+                   && Interlocked.CompareExchange(ref DelayedMaxInFlight, now, seen) != seen) { }
+            var waited = Stopwatch.StartNew();
+            while (Volatile.Read(ref DelayedMaxInFlight) < 3 && waited.ElapsedMilliseconds < 3000)
+                await Task.Delay(10, aborted);
+        }
+        finally
+        {
+            Interlocked.Decrement(ref DelayedInFlight);
+        }
     }
 
     private static UIIncrementDto Increment(UIFragmentDto? fragment, FragmentCacheDto? policy) =>
@@ -478,7 +510,8 @@ public class MicroFrontendServerResolutionTests : IClassFixture<MfeHosts>
         var before = Volatile.Read(ref _hosts.Cancelled);
         var watch = Stopwatch.StartNew();
         var (increment, _) = await Load("mfe-slow");
-        Assert.True(watch.ElapsedMilliseconds < 1500, $"the remote takes 3 s, the budget is 150 ms: {watch.ElapsedMilliseconds}");
+        Assert.True(watch.ElapsedMilliseconds < MfeRemote.NotWaitedFor,
+            $"the remote takes {MfeRemote.NeverInTime} ms, the budget is 150 ms: {watch.ElapsedMilliseconds}");
         var microFrontend = OnlyMicroFrontend(increment);
         Assert.Null(microFrontend["resolved"]);
         Assert.Equal(_hosts.RemoteBase + "/slow", (string?)microFrontend["baseUrl"]);
@@ -486,9 +519,10 @@ public class MicroFrontendServerResolutionTests : IClassFixture<MfeHosts>
         Assert.Equal(MicroFrontendResolutionOutcome.Timeout, resolution.Outcome);
         Assert.Equal("client", resolution.DegradedTo);
         Assert.Equal("slow", resolution.RemoteId);
-        // the call is cancelled: the remote sees its request aborted long before its 3 s
+        // the call is cancelled: the remote sees its request aborted long before its 30 s
         var cancelled = Stopwatch.StartNew();
-        while (Volatile.Read(ref _hosts.Cancelled) == before && cancelled.ElapsedMilliseconds < 2000) await Task.Delay(20);
+        while (Volatile.Read(ref _hosts.Cancelled) == before && cancelled.ElapsedMilliseconds < MfeRemote.NotWaitedFor)
+            await Task.Delay(20);
         Assert.True(Volatile.Read(ref _hosts.Cancelled) > before, "the remote call was not cancelled");
     }
 
@@ -518,15 +552,15 @@ public class MicroFrontendServerResolutionTests : IClassFixture<MfeHosts>
     [Fact]
     public async Task Several_fragments_are_asked_in_parallel()
     {
-        var watch = Stopwatch.StartNew();
+        Volatile.Write(ref _hosts.DelayedMaxInFlight, 0);
         var (increment, _) = await Load("mfe-parallel");
-        var elapsed = watch.ElapsedMilliseconds;
         var microFrontends = MicroFrontends(increment["fragments"]);
         Assert.Equal(3, microFrontends.Count);
         Assert.All(microFrontends, m => Assert.NotNull(m["resolved"]));
         Assert.Equal(3, Hits("delayed"));
-        // each takes 400 ms: in a row that is 1.2 s
-        Assert.True(elapsed < 1100, $"took {elapsed} ms");
+        // proved by overlap, not by a stopwatch: the remote saw the three calls in flight at once —
+        // asked in a row, it would never have seen more than one
+        Assert.Equal(3, Volatile.Read(ref _hosts.DelayedMaxInFlight));
     }
 
     [Fact]
@@ -673,7 +707,8 @@ public class MicroFrontendServerResolutionTests : IClassFixture<MfeHosts>
         Assert.Contains("Down fallback", texts);
         Assert.Contains("Slow fallback", texts);
         Assert.Empty(increment["messages"]!.AsArray());
-        Assert.True(elapsed < 1500, $"took {elapsed} ms");
+        // the slow slot takes 30 s: the screen did not wait for it
+        Assert.True(elapsed < MfeRemote.NotWaitedFor, $"took {elapsed} ms");
         Assert.Equal(
             new[] { MicroFrontendResolutionOutcome.Timeout, MicroFrontendResolutionOutcome.Error },
             Events.Select(e => e.Outcome).OrderByDescending(o => o == MicroFrontendResolutionOutcome.Timeout));
