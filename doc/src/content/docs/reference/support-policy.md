@@ -88,6 +88,10 @@ CHANGELOG. .NET 8 reached its end of support on 10 November 2026, before the GA,
   which also states the response times (acknowledgement within 3 business days, a fix for critical
   and high severity within 30 days of the assessment).
 
+- **Accessibility defects:** a GitHub issue, naming the renderer, the screen and the assistive
+  technology. What Mateu claims today is in the
+  [accessibility conformance report](/quality/accessibility-conformance/).
+
 ## Software bill of materials
 
 Every framework release attaches CycloneDX SBOMs (JSON) to its

@@ -164,6 +164,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Documentation
 
+- **Accessibility conformance report** ([quality/accessibility-conformance](https://mateu.io/quality/accessibility-conformance/)):
+  WCAG 2.2 Level A and AA, criterion by criterion, for the Vaadin, Redwood, React Native and desktop
+  renderers, in the structure of the ITI VPAT 2.5 (WCAG edition), with the evidence behind each
+  claim and the known gaps (web charts without a text alternative, no `autocomplete` purposes,
+  short-lived toasts, drag-only planning board and drop zones, focus hidden by pinned regions).
+
 - The [feature parity matrix](https://mateu.io/reference/parity/) and
   [known issues](https://mateu.io/reference/known-issues/) follow the Explorer review: the ports'
   closed gaps, the remaining port idioms, and each renderer's new state (embedded chrome, labels

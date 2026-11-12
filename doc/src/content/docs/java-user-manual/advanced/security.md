@@ -557,6 +557,7 @@ See [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-mod
 
 ## Next
 
+- [Accessibility conformance report](/quality/accessibility-conformance/) — the other statement procurement usually asks for (WCAG 2.2 AA, VPAT-style)
 - [Verify what you download](/reference/verify-downloads/) — check the signatures and build provenance of the Mateu artifacts you depend on
 - [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/) — how each service enforces its own authorization
 - [Rules](/java-user-manual/advanced/rules/) — client-side field visibility (complement to server-side `@EyesOnly`)

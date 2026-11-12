@@ -82,6 +82,16 @@ itself. See [Permissions in YAML](/define/yaml/permissions/).
 
 ## Renderers
 
+### Accessibility gaps against WCAG 2.2 AA
+
+Web charts have no text alternative, fields carry no `autocomplete` purpose, toasts (and their
+Undo) disappear after 5–10 s, the app-context select reloads the page on change, the planning
+board and drop zones are drag-only, and pinned headers can hide the focused control. The full list,
+per renderer, is in the [accessibility conformance report](/quality/accessibility-conformance/#known-gaps-in-one-list).
+
+**Workaround:** most have an author-side mitigation listed there (an action beside a drag-only
+board, no auto-dismissing banners for content users must read).
+
 ### Redwood: light theme only
 
 The Redwood renderer has no dark mode. It ignores `@App(themeToggle = true)`, a stored dark choice
