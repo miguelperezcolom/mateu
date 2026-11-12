@@ -194,6 +194,8 @@ def add_mateu(
     progress_reattach_grace_seconds: float | None = None,
     inbox_store: Any | None = None,
     presence_store: Any | None = None,
+    file_storages: Sequence[Any] | None = None,
+    uploads_secret: str | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -273,6 +275,11 @@ def add_mateu(
       users (default: Mateu's bounded in-memory store, lost on restart).
     - ``presence_store`` (EXPERIMENTAL) — a ``PresenceStore`` keeping record presence
       (``@app(presence=True)``; default: Mateu's bounded in-memory store, per process).
+    - ``file_storages`` (EXPERIMENTAL) — ``FileStorage`` instances (or classes, instantiated with no
+      arguments) on top of the subclasses found among the sources: a ``FileUpload()`` field then
+      streams its file to ``POST /mateu/v3/upload`` and stores a ``mateu-file:`` reference.
+      ``uploads_secret`` signs the upload tickets (default: the ``MATEU_UPLOADS_SECRET`` env var,
+      else random per process — a multi-instance deployment must set it).
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -307,6 +314,17 @@ def add_mateu(
         resolution_listeners=resolution_listeners,
     )
     progress.configure(progress_reattach_grace_seconds)
+    from mateu_ui.core.uploads import Uploads
+
+    storages = list(getattr(registry, "file_storages", []))
+    for store in file_storages or ():
+        if isinstance(store, type):
+            # a class: instantiated once, unless discovery already did
+            if not any(type(s) is store for s in storages):
+                storages.append(store())
+        elif store is not None and store not in storages:
+            storages.append(store)
+    handler.mapper.uploads = Uploads(storages, secret=uploads_secret)
     if inbox_store is not None:
         handler.inbox_store = inbox_store
     if presence_store is not None:
@@ -423,6 +441,16 @@ def add_mateu(
         )
 
     app.add_api_route(f"{prefix}/mateu/v3/sync/{{route:path}}", sync, methods=["POST"])
+    # File uploads (EXPERIMENTAL), at the ROOT path the fields' uploadUrl names; raw bytes, so NOT
+    # behind the JSON-body guard (the required ticket header forces a CORS preflight instead).
+    from ._uploads import add_upload_endpoints
+
+    add_upload_endpoints(
+        app,
+        lambda: handler.mapper.uploads,
+        request_of,
+        lambda: handler.mapper.identity_provider() if handler.mapper.identity_provider else None,
+    )
     app.add_api_route(f"{prefix}/mateu/v3/sync", sync, methods=["POST"])
 
     # Streamed actions: one text/event-stream "data:" event per increment, at the same

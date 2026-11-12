@@ -564,6 +564,9 @@ test('plantilla: los widgets nuevos están en cada superficie de átomos y en la
 
 test('campo de captura: lo que enseña de un fichero y cuándo un valor es imagen', () => {
   assert.equal(describeFileValue('data:application/pdf;base64,JVBERi0xLjQK'), 'application/pdf · 9 B')
+  // a file uploaded to the app's FileStorage by another renderer: its name and size
+  assert.equal(describeFileValue('mateu-file:f1?name=Big%20report.pdf&size=2097152'), 'Big report.pdf · 2.0 MB')
+  assert.equal(describeFileValue('mateu-file:f2'), 'f2')
   assert.ok(isImageValue('data:image/png;base64,AAAA') && isImageValue('/files/a.png'))
   assert.ok(!isImageValue('data:application/pdf;base64,AAAA'))
   assert.equal(captureTexts('es-ES').signAgain, 'Volver a firmar')

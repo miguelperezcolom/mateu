@@ -627,8 +627,42 @@ internal sealed partial class ReflectionMapper
         };
         // [Autocomplete]: the input's purpose (WCAG 1.3.5); an editable email field infers "email"
         meta = meta with { Autocomplete = InputPurpose.Of(p.Find<AutocompleteAttribute>()?.Value, meta.Stereotype, meta.ReadOnly) };
+        // an upload field of a registered IFileStorage, editable: where and how it uploads
+        if (stereotype == "fileUpload")
+            meta = meta with { Attributes = [.. meta.Attributes, .. UploadAttributes(p, fieldId, meta.ReadOnly || plainText)] };
         return Client(meta, fieldId, []) with { Style = p.Find<Mateu.Uidl.StyleAttribute>()?.Value };
     }
+
+    /// <summary>The upload options of a fileUpload field (design/uploads/file-uploads-contract.md §1):
+    /// the declared <c>maxBytes</c> / <c>multiple</c> / <c>storage</c>, and — only when a matching
+    /// <see cref="IFileStorage"/> is registered and the field is editable — <c>uploadUrl</c>, the signed
+    /// <c>uploadTicket</c> and <c>uploadDirect</c>. No ticket → the client keeps the data-URI fallback.</summary>
+    private static List<PairDto> UploadAttributes(PropertyInfo p, string fieldId, bool readOnly)
+    {
+        var declared = p.Find<FileUploadAttribute>();
+        var attributes = new List<PairDto>();
+        var multiple = (declared?.Multiple ?? false) || IsStringList(p.PropertyType);
+        if (declared is { MaxBytes: > 0 })
+            attributes.Add(new PairDto("maxBytes", declared.MaxBytes.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        if (multiple) attributes.Add(new PairDto("multiple", "true"));
+        if (!string.IsNullOrWhiteSpace(declared?.Storage)) attributes.Add(new PairDto("storage", declared.Storage));
+        // the reserved "inline" storage never uses a store: the value stays a data URI
+        if (readOnly || declared?.Storage == FileUploadAttribute.Inline
+            || FileUploads.Current is not { } uploads || uploads.Find(declared?.Storage) is not { } store)
+            return attributes;
+        var maxBytes = declared is { MaxBytes: > 0 } ? declared.MaxBytes : FileUploads.DefaultMaxBytes;
+        attributes.Add(new PairDto("uploadUrl", FileUploads.UploadPath));
+        attributes.Add(new PairDto("uploadTicket", uploads.Issue(store.Name, fieldId, maxBytes,
+            declared?.Accept ?? "", multiple, uploads.Caller())));
+        if (store.DirectUploads) attributes.Add(new PairDto("uploadDirect", "true"));
+        return attributes;
+    }
+
+    /// <summary>A collection of strings (List&lt;string&gt;, string[], IEnumerable&lt;string&gt;…): several files.</summary>
+    private static bool IsStringList(Type t) =>
+        t != typeof(string) && (t == typeof(string[])
+            || (t.IsGenericType && t.GetGenericArguments() is [var arg] && arg == typeof(string)
+                && typeof(System.Collections.IEnumerable).IsAssignableFrom(t)));
 
     /// <summary>Fills every [GeneratedValue] property of a fresh record with its generator's value
     /// (the generator is created with its parameterless constructor — the port's idiom for every

@@ -76,32 +76,147 @@ object FieldValues {
     }
 }
 
-/** `fileUpload`: a "Choose file…" button (filtered by `accept`), the chosen file's name, Remove. */
-fun fileUploadField(ctx: AppContext, fieldId: String, metadata: JsonNode, value: String, enabled: Boolean, label: String): JComponent {
-    val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0)).apply { isOpaque = false }
-    val name = JBLabel(plain(FieldValues.fileSummary(value))).apply { foreground = ToneColors.secondaryText() }
-    val choose = JButton("Choose file…").apply { isEnabled = enabled; accessibleName("Choose file for $label") }
-    val remove = JButton("Remove").apply { isEnabled = enabled && value.isNotBlank(); accessibleName("Remove file of $label") }
+/**
+ * `fileUpload`: a "Choose file…" button (filtered by `accept`), the chosen files, Remove. With an
+ * `uploadTicket` (the app registered a storage port) the file is STREAMED to the server — or to the
+ * store's pre-signed target — in a cancellable background task with progress, and the value becomes
+ * the `mateu-file:` reference the server answers (design/uploads/file-uploads-contract.md); without
+ * one it is read into a data URI, as before, up to `maxBytes` (10 MB when undeclared). `multiple`
+ * keeps a list. A stored file shows its name and size, linked when its url is http(s).
+ */
+fun fileUploadField(ctx: AppContext, fieldId: String, metadata: JsonNode, raw: JsonNode, enabled: Boolean, label: String): JComponent {
+    val config = FileUploads.configOf(metadata)
+    var entries = FileUploads.valuesOf(raw)
+    val panel = JPanel().apply {
+        layout = javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS)
+        isOpaque = false
+    }
+    val files = JPanel().apply {
+        layout = javax.swing.BoxLayout(this, javax.swing.BoxLayout.Y_AXIS)
+        isOpaque = false
+        alignmentX = java.awt.Component.LEFT_ALIGNMENT
+    }
+    val status = JBLabel().apply { isVisible = false; alignmentX = java.awt.Component.LEFT_ALIGNMENT }
+    val progress = javax.swing.JProgressBar(0, 100).apply { isVisible = false; isStringPainted = true }
+    val cancel = JButton("Cancel").apply { isVisible = false; accessibleName("Cancel the upload of $label") }
+    val choose = JButton(plain(if (config.multiple) "Add file…" else "Choose file…")).apply { isEnabled = enabled; accessibleName("Choose file for $label") }
+    val cancelled = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    fun commit(value: Any) {
+        ctx.putState(fieldId, value)
+        @Suppress("UNCHECKED_CAST")
+        entries = if (value is List<*>) value as List<String> else listOfNotNull((value as String).takeIf { it.isNotEmpty() })
+    }
+
+    fun showError(message: String?) {
+        status.text = message?.let { plain(it) } ?: ""
+        status.foreground = com.intellij.ui.JBColor.RED
+        status.isVisible = message != null
+    }
+
+    lateinit var redraw: () -> Unit
+    redraw = {
+        files.removeAll()
+        if (entries.isEmpty()) files.add(JBLabel(plain("No file chosen")).apply { foreground = ToneColors.secondaryText() })
+        entries.forEachIndexed { i, entry ->
+            val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0)).apply { isOpaque = false; alignmentX = java.awt.Component.LEFT_ALIGNMENT }
+            val ref = FileUploads.parse(entry)
+            val text = ref?.let { FileUploads.label(it) } ?: FieldValues.fileSummary(entry)
+            if (ref != null && FileUploads.isHttpUrl(ref.url)) {
+                row.add(com.intellij.ui.components.ActionLink(plain(text)) {
+                    SafeHtml.browse(ref.url)
+                }.accessibleName("Open $text"))
+            } else {
+                row.add(JBLabel(plain(text)).apply { foreground = ToneColors.secondaryText() })
+            }
+            if (enabled) row.add(JButton("Remove").apply {
+                accessibleName("Remove $text")
+                addActionListener {
+                    showError(null)
+                    commit(FileUploads.withoutFile(entries, i, config.multiple))
+                    redraw()
+                }
+            })
+            files.add(row)
+        }
+        choose.text = if (config.multiple || entries.isEmpty()) (if (config.multiple) "Add file…" else "Choose file…") else "Replace…"
+        files.revalidate()
+        files.repaint()
+    }
+
+    fun uploadAll(picked: List<java.io.File>) {
+        val uploader = FileUploader(ctx.apiClient.baseUrl, { url -> ctx.apiClient.credentialHeaders(url) })
+        cancelled.set(false)
+        choose.isEnabled = false
+        progress.value = 0
+        progress.isVisible = true
+        cancel.isVisible = true
+        val task = object : com.intellij.openapi.progress.Task.Backgroundable(null, "Uploading ${picked.first().name}", true) {
+            override fun run(indicator: com.intellij.openapi.progress.ProgressIndicator) {
+                indicator.isIndeterminate = false
+                for (file in picked) {
+                    indicator.text = "Uploading ${file.name}"
+                    try {
+                        val value = uploader.upload(config, file.toPath(), file.name, FileUploads.contentTypeOf(file.name), file.length(),
+                            onProgress = { f ->
+                                indicator.fraction = f
+                                javax.swing.SwingUtilities.invokeLater { progress.value = (f * 100).toInt() }
+                            },
+                            cancelled = { cancelled.get() || indicator.isCanceled })
+                        javax.swing.SwingUtilities.invokeLater { commit(FileUploads.withFile(entries, value, config.multiple)); redraw() }
+                    } catch (e: UploadCancelledException) {
+                        break
+                    } catch (e: UploadException) {
+                        javax.swing.SwingUtilities.invokeLater { showError(e.message) }
+                        break
+                    }
+                }
+            }
+
+            override fun onFinished() {
+                progress.isVisible = false
+                cancel.isVisible = false
+                choose.isEnabled = enabled
+            }
+        }
+        com.intellij.openapi.progress.ProgressManager.getInstance().run(task)
+    }
+
+    cancel.addActionListener { cancelled.set(true) }
     choose.addActionListener {
         val chooser = javax.swing.JFileChooser()
+        chooser.isMultiSelectionEnabled = config.multiple
         val exts = FieldValues.acceptedExtensions(metadata)
         if (exts.isNotEmpty()) chooser.fileFilter = javax.swing.filechooser.FileNameExtensionFilter(exts.joinToString(", ") { ".$it" }, *exts.toTypedArray())
-        if (chooser.showOpenDialog(row) != javax.swing.JFileChooser.APPROVE_OPTION) return@addActionListener
-        val file = chooser.selectedFile ?: return@addActionListener
-        val uri = FieldValues.dataUri(file.name, file.readBytes())
-        ctx.putState(fieldId, uri)
-        name.text = plain(FieldValues.fileSummary(uri))
-        remove.isEnabled = enabled
+        if (chooser.showOpenDialog(panel) != javax.swing.JFileChooser.APPROVE_OPTION) return@addActionListener
+        val picked = (if (config.multiple) chooser.selectedFiles.toList() else listOfNotNull(chooser.selectedFile)).filter { it.isFile }
+        if (picked.isEmpty()) return@addActionListener
+        showError(null)
+        if (config.uploadMode) {
+            uploadAll(picked)
+            return@addActionListener
+        }
+        // no storage port: a data URI, refused over the limit
+        val max = config.fallbackMaxBytes
+        for (file in picked) {
+            if (file.length() > max) {
+                showError(FileUploads.tooLargeMessage(max))
+                continue
+            }
+            commit(FileUploads.withFile(entries, FieldValues.dataUri(file.name, file.readBytes()), config.multiple))
+        }
+        redraw()
     }
-    remove.addActionListener {
-        ctx.putState(fieldId, "")
-        name.text = plain(FieldValues.fileSummary(""))
-        remove.isEnabled = false
-    }
-    row.add(choose)
-    row.add(remove)
-    row.add(name)
-    return row
+
+    redraw()
+    val buttons = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0)).apply { isOpaque = false; alignmentX = java.awt.Component.LEFT_ALIGNMENT }
+    if (enabled) buttons.add(choose)
+    buttons.add(progress)
+    buttons.add(cancel)
+    panel.add(files)
+    panel.add(buttons)
+    panel.add(status)
+    return panel
 }
 
 /** `listBox`: the options as a visible list (one pick, or several for a collection field). */

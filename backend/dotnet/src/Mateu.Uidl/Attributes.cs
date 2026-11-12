@@ -37,7 +37,9 @@ public sealed class PhotoCaptureAttribute : Attribute;
 /// <summary>Renders a string property as a generic file upload: a pick-file action showing the
 /// chosen file's name plus a remove action (the generic sibling of the uploadable image). The
 /// picked file is read client-side into a data URI (base64) stored as the field value, so the
-/// file travels in the string itself and no upload endpoint is required. Shorthand for the
+/// file travels in the string itself and no upload endpoint is required — unless an
+/// <see cref="IFileStorage"/> is registered: then the file is streamed to it and the value is a
+/// <see cref="StoredFile"/> reference (<c>mateu-file:…</c>). Shorthand for the
 /// "fileUpload" stereotype. (C# analogue of Java's @FileUpload.)</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class FileUploadAttribute(string accept = "") : Attribute
@@ -45,6 +47,24 @@ public sealed class FileUploadAttribute(string accept = "") : Attribute
     /// <summary>Optional accept attribute for the file input (e.g. ".csv" or "application/pdf");
     /// travels in the field's generic attributes list under the "accept" key.</summary>
     public string Accept { get; } = accept;
+
+    /// <summary>The largest file accepted, in bytes (0 = unset: the server default — 100 MB — when a
+    /// <see cref="IFileStorage"/> is registered, 10 MB in the data-URI fallback). Travels as the
+    /// <c>maxBytes</c> attribute. EXPERIMENTAL.</summary>
+    public long MaxBytes { get; set; }
+
+    /// <summary>Several files: the value is a list of references. Inferred for a <c>List&lt;string&gt;</c>
+    /// property. Travels as the <c>multiple</c> attribute. EXPERIMENTAL.</summary>
+    public bool Multiple { get; set; }
+
+    /// <summary>The <see cref="IFileStorage.Name"/> of the store to upload to; blank = the default store
+    /// (named <c>""</c>, or the only one registered). Travels as the <c>storage</c> attribute. EXPERIMENTAL.</summary>
+    public string Storage { get; set; } = "";
+
+    /// <summary>The reserved <see cref="Storage"/> name that never uses a store: the file always
+    /// travels as a data URI in the value (for code that reads the bytes from the value itself, like
+    /// the import wizard's CSV). EXPERIMENTAL.</summary>
+    public const string Inline = "inline";
 }
 
 /// <summary>Chooses how a Wizard visualizes its progress: "bar" (default) or "steps" — connected

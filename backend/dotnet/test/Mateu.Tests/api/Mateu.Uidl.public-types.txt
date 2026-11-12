@@ -234,6 +234,7 @@ Mateu.Uidl.IEditableView
 Mateu.Uidl.IEditable`2
 Mateu.Uidl.IFeatureFlags
 Mateu.Uidl.IFieldTypeCatalogSupplier
+Mateu.Uidl.IFileStorage
 Mateu.Uidl.IFilterable`1
 Mateu.Uidl.IFooterSupplier
 Mateu.Uidl.IFormTemplate
@@ -287,6 +288,7 @@ Mateu.Uidl.Identity
 Mateu.Uidl.IdentityGatedAttribute
 Mateu.Uidl.Image
 Mateu.Uidl.ImportWizard`1
+Mateu.Uidl.IncomingFile
 Mateu.Uidl.IncomingRequest
 Mateu.Uidl.InlineAttribute
 Mateu.Uidl.InlineEditingAttribute
@@ -469,6 +471,7 @@ Mateu.Uidl.StatusType
 Mateu.Uidl.Step
 Mateu.Uidl.StepAttribute
 Mateu.Uidl.StereotypeAttribute
+Mateu.Uidl.StoredFile
 Mateu.Uidl.StyleAttribute
 Mateu.Uidl.SubresourceAttribute
 Mateu.Uidl.SubresourceLoad
@@ -505,6 +508,8 @@ Mateu.Uidl.TrendChart
 Mateu.Uidl.TriggerAttribute
 Mateu.Uidl.TriggerType
 Mateu.Uidl.UIAttribute
+Mateu.Uidl.UploadRequest
+Mateu.Uidl.UploadTarget
 Mateu.Uidl.UseRadioButtonsAttribute
 Mateu.Uidl.UserFacingException
 Mateu.Uidl.ValueMappingAttribute

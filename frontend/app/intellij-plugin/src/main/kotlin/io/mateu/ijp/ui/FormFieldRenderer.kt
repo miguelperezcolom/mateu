@@ -116,7 +116,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
     // (a collection with choice stereotypes — checkbox, listBox — is a choice of its options, not a
     // grid; nor is one that carries options or a REST `optionsSource`: a multi combobox, a tree select)
     val choosesFromOptions = metadata.path("optionsSource").isObject || metadata.arr("options").isNotEmpty()
-    if (stereotype == "grid" || (dataType == "array" && !choosesFromOptions && stereotype !in setOf("multiSelect", "bulletedList", "checkbox", "listBox"))) {
+    if (stereotype == "grid" || (dataType == "array" && !choosesFromOptions && stereotype !in setOf("multiSelect", "bulletedList", "checkbox", "listBox", "fileUpload"))) {
         if (label.isNotBlank()) {
             val caption = JBLabel(plain(label))
             caption.alignmentX = Component.LEFT_ALIGNMENT
@@ -167,7 +167,8 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
 
     // Read-only by declaration (a record's view mode) → the value as text (ReadOnlyValues); a field
     // a rule disables keeps its disabled control.
-    val readOnlyText = if (metadata.bool("readOnly") && !metadata.bool("disabled") &&
+    // (a file field keeps its own read-only drawing: stored files by name, linked to their url)
+    val readOnlyText = if (metadata.bool("readOnly") && !metadata.bool("disabled") && stereotype != "fileUpload" &&
         !io.mateu.ijp.state.Expressions.truthy(ruleAttrs["disabled"])) ReadOnlyValues.textOf(metadata, rawValue) else null
 
     // A read-only value has nothing to fill in: no required asterisk, and a quiet caption so the
@@ -190,7 +191,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         // the button shows the picked option's LABEL (the server sends it as `<field>-label`), not its id
         stereotype == "searchable" || (stereotype == "combobox" && metadata.path("remoteCoordinates").isObject) ->
             lookupField(ctx, fieldId, metadata, value, enabled, FieldValues.lookupLabel(data, fieldId, value))
-        stereotype == "fileUpload" -> fileUploadField(ctx, fieldId, metadata, value, enabled, label)
+        stereotype == "fileUpload" -> fileUploadField(ctx, fieldId, metadata, rawValue, enabled, label)
         // a multi-value field (checkboxes, list box, tree select, multiSelect / multi combobox) fed by a
         // REST `optionsSource`: the options are fetched off the EDT, then the field is drawn as with
         // inline ones (only the single-value combo read a source before)

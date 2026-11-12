@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Mateu.AspNetCore;
 
-public static class MateuExtensions
+public static partial class MateuExtensions
 {
     /// <summary>Mateu's JSON contract: camelCase, case-insensitive, keep nulls, and raw UTF-8 —
     /// no \uXXXX escaping of non-ASCII/HTML characters — to match the Java (Jackson) output
@@ -101,6 +101,9 @@ public static class MateuExtensions
                 // registers as a service writes its format (Java: the ListingExporter beans); CSV
                 // falls back to the built-in writer.
                 Exporters = new Mateu.Core.Export.MateuExporters(sp.GetServices<IListingExporter>()),
+                // Uploads: Mateu ships no storage — every IFileStorage the app registers as a service
+                // receives the files of [FileUpload] fields (none → the data-URI fallback).
+                Uploads = UploadsOf(sp, options, accessor),
                 // Server-side micro frontend resolution (Resolve.Server, content slots): every
                 // collaborator is the app's service when it registers one, Mateu's own otherwise.
                 RequestHeader = name => accessor.HttpContext is { } ctx
@@ -365,6 +368,9 @@ public static class MateuExtensions
         // MateuOptions.Mcp / MATEU_MCP_ENABLED turns it on, as on Java.
         var options = app.Services.GetService<MateuOptions>();
         if (options?.Mcp ?? MateuOptions.McpEnabledByEnvironment()) MapMcpEndpoint(app, prefix);
+
+        // Uploads (IFileStorage): at the ROOT, whatever the mount, and once per application.
+        MapUploadEndpoints(app);
 
         if (UiPage.ConfiguredRenderer(ui) is { } renderer) ServeUi(app, prefix, baseUrl, renderer);
         else ServeApiHint(app, prefix);

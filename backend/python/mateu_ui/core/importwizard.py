@@ -87,7 +87,8 @@ class ImportWizard(Wizard, Generic[Row]):
 
     ``row_class()`` defaults to the ``Row`` generic argument."""
 
-    file: Annotated[str | None, Step(1), FileUpload(accept=".csv"), Label("CSV file")] = None
+    file: Annotated[str | None, Step(1), FileUpload(accept=".csv", storage=FileUpload.INLINE),
+                    Label("CSV file")] = None
     pasted: Annotated[str | None, Step(1), Stereotype("textarea"),
                       Label("...or paste the CSV")] = None
     mappings: Annotated[list[ColumnMapping], Step(2), InlineEditing(),

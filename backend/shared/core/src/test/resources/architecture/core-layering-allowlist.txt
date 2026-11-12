@@ -27,6 +27,8 @@
 # inbox runner (Inbox.principalOf, MateuForbiddenException) — reviewed.
 # Record presence (2026-11-11): Presence keys a tab by its caller through IdentityResolver (like
 # Inbox) and reads @App(presence) through MetaAnnotations — reviewed.
+# File uploads (2026-11-11): FieldMapper gives an editable upload field its ticket through
+# UploadAttributes (infra/uploads, where the endpoint that verifies it lives) — reviewed.
 application -> infra: io/mateu/core/application/agentpush/AgentCaller.java
 application -> infra: io/mateu/core/application/agentpush/AgentPush.java
 application -> infra: io/mateu/core/application/export/MateuBundleExporter.java
@@ -134,6 +136,7 @@ domain -> infra: io/mateu/core/domain/out/fragmentmapper/UIFragmentAssembler.jav
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ActionMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ComponentTreeSupplierMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ConstraintValidationMapper.java
+domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/FieldMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/IssuedActions.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ListingDescriptorBuilder.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/StateMapper.java

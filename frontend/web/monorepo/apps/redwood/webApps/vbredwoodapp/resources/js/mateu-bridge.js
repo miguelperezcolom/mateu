@@ -14172,7 +14172,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         converter: converterOf({ type: 'number', options: { style: 'currency', currency, minimumFractionDigits: 2 } }),
       }
     }
-    if (CAPTURE_MODES[st]) return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || '' }
+    // the accept list travels in the field's generic attributes ({key, value} pairs)
+    if (CAPTURE_MODES[st]) {
+      const declared = ((f.attributes || []).find && (f.attributes || []).find((a) => a && a.key === 'accept')) || {}
+      return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || declared.value || '' }
+    }
     // slider → oj-slider; stars → oj-rating-gauge; color → mateu-color-field (a hex string: JET's
     // oj-color-spectrum works on oj.Color objects); richText → mateu-rich-text-field (HTML, Delta read)
     if (st === 'slider') {
@@ -21201,14 +21205,38 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return /^data:image\//i.test(v) || /^(https?:)?\/\/|^\//.test(v)
   }
 
-  /** A readable name for a file data URI (it does not carry one: the type and size are shown). */
+  /** `N B` / `N KB` / `N MB` — the capture field's size text. */
+  function sizeText(bytes) {
+    if (bytes < 1024) return bytes + ' B'
+    if (bytes < 1048576) return (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0) + ' KB'
+    return (bytes / 1048576).toFixed(1) + ' MB'
+  }
+
+  /**
+   * A readable name for a file value: a data URI does not carry one (the type and size are shown); a
+   * `mateu-file:` reference — a file another renderer uploaded to the app's FileStorage
+   * (design/uploads/file-uploads-contract.md) — shows its name (else its id) and size.
+   */
   function describeFileValue(value) {
     const v = String(value || '')
+    if (v.indexOf('mateu-file:') === 0) {
+      const rest = v.slice('mateu-file:'.length)
+      const q = rest.indexOf('?')
+      const dec = (t) => { try { return decodeURIComponent(t) } catch (e) { return t } }
+      const params = {}
+      if (q >= 0) {
+        rest.slice(q + 1).split('&').forEach((pair) => {
+          const eq = pair.indexOf('=')
+          if (eq > 0) params[pair.slice(0, eq)] = dec(pair.slice(eq + 1))
+        })
+      }
+      const name = params.name || dec(q < 0 ? rest : rest.slice(0, q))
+      return /^\d+$/.test(params.size || '') ? name + ' · ' + sizeText(Number(params.size)) : name
+    }
     const m = v.match(/^data:([^;,]+)?(;base64)?,(.*)$/i)
     if (!m) return v ? v.split('/').pop() : ''
     const bytes = m[2] ? Math.floor((m[3].length * 3) / 4) : decodeURIComponent(m[3]).length
-    const kb = bytes < 1024 ? bytes + ' B' : (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0) + ' KB'
-    return (m[1] || 'file') + ' · ' + kb
+    return (m[1] || 'file') + ' · ' + sizeText(bytes)
   }
 
   /** Defines `<mateu-capture-field>` in `win` (once). */

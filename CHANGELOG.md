@@ -91,6 +91,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   (all five adapters), .NET and Python. The Vaadin bundle's lazy chunks now preload relative to
   their importer. Guide: [Serving the app under a path prefix](https://mateu.io/deploy/under-a-path-prefix/).
 
+- **Large file uploads through a storage port (experimental).** Register a `FileStorage` (Java bean;
+  .NET `IFileStorage` service; Python `FileStorage` via `add_mateu(file_storages=…)`) and every
+  editable `@FileUpload` field uploads its file to `POST /mateu/v3/upload` — streamed into your
+  store, or straight to a pre-signed target your store issues — with a progress bar, Cancel and
+  several files (`List<String>` / `multiple`). Limits (`maxBytes`, `accept`) are enforced by the
+  server; the field's value becomes a `mateu-file:<id>?name=…` reference (`StoredFile.parse`),
+  never the bytes. Each field carries a signed, caller-bound ticket (`mateu.uploads.secret` /
+  `MATEU_UPLOADS_SECRET` — set it when you run several instances). Mateu ships no storage
+  provider. Without one a field keeps the data-URI value and now refuses a file over `maxBytes`
+  (10 MB when undeclared). Every Java adapter, .NET and Python; web, React Native and IntelliJ
+  upload, Redwood shows stored references but still stores a data URI when a file is picked. Guide:
+  *Large file uploads*; demo `demo-admin-panel` `/file-uploads-demo`.
+
 ### Changed
 
 - **.NET packages target `net10.0` only.** .NET 8 left Microsoft support on 10 November 2026, so

@@ -40,6 +40,7 @@ import { fieldA11y, buttonA11y, modalA11y, headingA11y, announce } from '../a11y
 import { fieldPlaceholder } from '../core/uxRules';
 import { moneyInputCommit, moneyInputText, stepperValue } from '../core/uxRules';
 import { flattenColumnGroups } from './columnGroups';
+import { uploadConfigOf } from '../core/fileUploads.ts';
 
 interface Option {
   children?: Option[];
@@ -315,10 +316,11 @@ function FormFieldBody({ metadata, state, onStateChange, error }: Props) {
       return <ListBoxField options={options} value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
     }
 
-    // @FileUpload: a file picker committing the file as a data URI (the wire contract)
+    // @FileUpload: uploaded through the app's storage port when the server issued a ticket, else a
+    // data URI (design/uploads/file-uploads-contract.md)
     if (stereotype === 'fileUpload') {
-      const accept = ((metadata as { attributes?: { key?: string; value?: string }[] }).attributes ?? []).find((a) => a.key === 'accept')?.value;
-      return <FileUploadField value={stringValue} accept={accept} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+      const config = uploadConfigOf((metadata as { attributes?: unknown }).attributes);
+      return <FileUploadField value={rawValue} config={config} editable={editable} api={controller.session.api} onChange={(v) => commit(fieldId, v)} />;
     }
 
     // Stars rating

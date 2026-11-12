@@ -26,6 +26,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void refusesAnUploadWithoutAValidTicket() {
+    contract.refusesAnUploadWithoutAValidTicket();
+  }
+
+  @Test
   void refusesARestrictedActionToAnAnonymousCaller() {
     contract.refusesARestrictedActionToAnAnonymousCaller();
   }

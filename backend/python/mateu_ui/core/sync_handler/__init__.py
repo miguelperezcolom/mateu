@@ -286,6 +286,10 @@ class SyncHandler(
         self.mapper.island_data = lambda view: self.lookup_labels(type(view), view, view)
         #: The listing exporters (the app's ListingExporter subclasses + the built-in CSV writer).
         self.mapper.exporters = Exporters(getattr(registry, "exporters", []))
+        #: The file stores (the app's FileStorage subclasses; add_mateu(file_storages=…) adds more).
+        from ..uploads import Uploads
+
+        self.mapper.uploads = Uploads(getattr(registry, "file_storages", []))
         #: The translation catalogue: TranslationsSupplier classes (code) under the
         #: `type: Translations` files of the specs directory (authored wins). ${i18n.key} in YAML
         #: definitions and in any translated text is resolved per request locale.
