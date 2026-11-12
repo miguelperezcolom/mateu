@@ -98,6 +98,9 @@
         },
         "description" : {
           "type" : "string"
+        },
+        "offline" : {
+          "$ref" : "#/$defs/OfflinePolicy"
         }
       }
     },
@@ -191,6 +194,10 @@
           "type" : "string"
         }
       }
+    },
+    "OfflinePolicy" : {
+      "type" : "string",
+      "enum" : [ "FAIL", "QUEUE" ]
     },
     "RestAction" : {
       "type" : "object",

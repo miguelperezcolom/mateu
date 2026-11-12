@@ -89,13 +89,17 @@ public class RunActionUseCase {
   // ── Main entry point ──────────────────────────────────────────────────────
 
   public Flux<UIIncrementDto> handle(RunActionCommand incoming) {
-    // one span + metrics per request (OpenTelemetry, when the app has it) and the audit listeners
+    // one span + metrics per request (OpenTelemetry, when the app has it) and the audit listeners;
+    // inside it, a request carrying an Idempotency-Key (the mobile app's offline send queue) runs
+    // once per caller, action and key: a repeat gets the first answer back (IdempotencyKeys)
     return io.mateu.core.infra.observability.Observability.observe(
         incoming.route(),
         incoming.actionId(),
         incoming.serverSideType(),
         incoming.httpRequest(),
-        () -> handleRequest(incoming));
+        () ->
+            io.mateu.core.infra.idempotency.IdempotencyKeys.once(
+                incoming.httpRequest(), incoming.actionId(), () -> handleRequest(incoming)));
   }
 
   private Flux<UIIncrementDto> handleRequest(RunActionCommand incoming) {

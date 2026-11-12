@@ -30,6 +30,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   - The axe gate (`accessibility.spec.ts`, `a11y-audit.mjs`) now includes `wcag22aa`.
 ### Added
 
+- **Offline forms on the phone (experimental).** An action declared `@Action(offline = QUEUE)`
+  (fluent `Action.offline`, YAML `offline: QUEUE`, C# `[ActionOptions(Offline = OfflinePolicy.Queue)]`,
+  Python `@action_options(offline=OfflinePolicy.QUEUE)`) travels as `ActionDto.offline: "queue"`; when
+  it fails offline or by timeout, the Mateu app keeps it in a per-UI send queue (keychain/keystore,
+  never tokens), shows it as pending (screen strip + hub list badge, view/cancel/retry) and sends it
+  in order, one at a time, when the connection is back, stopping at a refusal. Every attempt carries
+  an `Idempotency-Key`, and the Java, .NET and Python servers run a keyed request once per caller,
+  action and key (a repeat gets the first answer; failures are forgotten; in memory, 2000 entries /
+  24 h). Docs: `native/offline-forms`.
 - **Observability: an OpenTelemetry span and metrics per Mateu request, and an audit hook.** Every
   sync/sse request is a span (`mateu <action> <route template>`: route, template, action, view,
   outcome, correlation id) with child spans for proxied REST calls and server-resolved micro

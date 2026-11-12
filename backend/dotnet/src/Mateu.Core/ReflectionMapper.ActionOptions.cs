@@ -25,5 +25,6 @@ internal sealed partial class ReflectionMapper
         CustomEvent = string.IsNullOrEmpty(options.CustomEventName) && string.IsNullOrEmpty(options.CustomEventDetail)
             ? action.CustomEvent
             : new CustomEventDto(options.CustomEventName ?? "", options.CustomEventDetail ?? ""),
+        Offline = options.Offline == OfflinePolicy.Queue ? "queue" : action.Offline,
     };
 }

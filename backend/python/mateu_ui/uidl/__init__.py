@@ -244,6 +244,7 @@ from .method_decorators import (  # noqa: F401
     menu_item,
     MenuDisplay,
     MenuLook,
+    OfflinePolicy,
     shortcut,
     wizard_completion_action,
 )
@@ -469,6 +470,7 @@ __all__ = [
     "UserFacingError",
     "MenuDisplay",
     "MenuLook",
+    "OfflinePolicy",
     "menu_group",
     "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageBanners", "PageWidth", "PageType",
     "Required", "Label", "Section", "Tab", "Subresource", "Stereotype", "Multiline", "Password",

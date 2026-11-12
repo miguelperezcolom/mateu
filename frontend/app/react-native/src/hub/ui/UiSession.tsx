@@ -22,6 +22,7 @@ import { uiSecretKeys, type HubEntry } from '../uiStore';
 import { hubBarSignsOut, uiSessionId, rotateUiSessionId } from '../uiSession';
 import { Notice, PrimaryButton, SecondaryButton, UiIcon, hubStyles, inkOn } from './common';
 import { UpdateAppButton } from './UpdateApp';
+import { OfflineQueue } from '../../core/offlineQueue';
 
 type Phase =
   | { name: 'manifest' }
@@ -233,6 +234,10 @@ export function UiSession({
     [entry.id, manifest?.auth],
   );
 
+  // the offline send queue (@Action(offline = QUEUE)): kept in the keychain / keystore — a queued
+  // form may hold what a signed-in screen showed — and sent when the connection is back
+  const outbox = useMemo(() => new OfflineQueue(secretStore, entry.id), [entry.id]);
+
   const name = manifest?.name ?? entry.name;
   const color = manifest?.themeColor ?? entry.themeColor;
   const ink = color ? inkOn(color) : theme.ink;
@@ -290,7 +295,7 @@ export function UiSession({
             </View>
           </View>
         )}
-        <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, listingPrefs: listingPrefs && { store: metaStore, scope: entry.id, initial: listingPrefs } }}>
+        <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox, listingPrefs: listingPrefs && { store: metaStore, scope: entry.id, initial: listingPrefs } }}>
           <SessionContent initialRoute={route} visible={visible} />
         </MateuAppProvider>
       </>

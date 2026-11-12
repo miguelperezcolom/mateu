@@ -24,11 +24,14 @@ export interface ActionFlags {
   idempotent: Record<string, boolean>;
   /** `@Action(js = …)`: a CLIENT-side script — the server method is never called for it. */
   js: Record<string, string>;
+  /** `@Action(offline = QUEUE)` (wire `offline: "queue"`): kept in the offline send queue when it
+   *  cannot reach the server (offlineQueue.ts). */
+  offline: Record<string, boolean>;
 }
 
 /** Reads the flags of the wire `actions` list; entries without an id are skipped. */
 export function actionFlagsOf(actions: unknown): ActionFlags {
-  const flags: ActionFlags = { ids: [], validationRequired: {}, rowsSelectedRequired: {}, confirmation: {}, sse: {}, bubble: {}, restData: {}, timeoutMillis: {}, idempotent: {}, js: {} };
+  const flags: ActionFlags = { ids: [], validationRequired: {}, rowsSelectedRequired: {}, confirmation: {}, sse: {}, bubble: {}, restData: {}, timeoutMillis: {}, idempotent: {}, js: {}, offline: {} };
   for (const a of asArray(actions)) {
     const id = str(a['id']);
     if (!id) continue;
@@ -44,6 +47,7 @@ export function actionFlagsOf(actions: unknown): ActionFlags {
     if (timeout > 0) flags.timeoutMillis[id] = timeout;
     if (a['idempotent'] === true) flags.idempotent[id] = true;
     if (typeof a['js'] === 'string' && a['js'].trim()) flags.js[id] = a['js'];
+    if (a['offline'] === 'queue') flags.offline[id] = true;
   }
   return flags;
 }

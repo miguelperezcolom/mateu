@@ -285,6 +285,9 @@ class Action(Wire):
     js: str | None = None
     #: A browser custom event dispatched instead of a server call (ActionDto.customEvent).
     custom_event: "CustomEventRecord | None" = None
+    #: ``"queue"`` when the native app may keep the action in its offline send queue and send it
+    #: later with an Idempotency-Key; None = fail while offline (ActionDto.offline). Experimental.
+    offline: str | None = None
 
 
 class ConfirmationTextsRecord(Wire):
