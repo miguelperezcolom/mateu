@@ -8,5 +8,6 @@ Mateu.Core.IdempotencyKeys
 Mateu.Core.InMemoryInboxStore
 Mateu.Core.InMemoryPresenceStore
 Mateu.Core.InferenceSwitches
+Mateu.Core.Observability.MateuTelemetry
 Mateu.Core.PartialRegistry
 Mateu.Core.Presence

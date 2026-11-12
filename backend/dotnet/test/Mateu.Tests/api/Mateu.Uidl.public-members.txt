@@ -45,6 +45,19 @@ Mateu.Uidl.Access property System.Collections.Generic.IReadOnlyList<System.Strin
 Mateu.Uidl.Access property System.Collections.Generic.IReadOnlyList<System.String> ScopesOrEmpty { get; }
 Mateu.Uidl.Access static method Mateu.Uidl.Access OfRoles(System.String[])
 Mateu.Uidl.ActionAttribute ctor()
+Mateu.Uidl.ActionAuditEvent ctor(System.String, Mateu.Uidl.Identity, System.String, System.String, System.String, System.Collections.Generic.IReadOnlyList<System.String>, System.DateTimeOffset, System.Int64, Mateu.Uidl.ActionOutcome, System.String, System.String)
+Mateu.Uidl.ActionAuditEvent property Mateu.Uidl.ActionOutcome Outcome { get;init; }
+Mateu.Uidl.ActionAuditEvent property Mateu.Uidl.Identity Identity { get;init; }
+Mateu.Uidl.ActionAuditEvent property System.Boolean ReservedAction { get; }
+Mateu.Uidl.ActionAuditEvent property System.Collections.Generic.IReadOnlyList<System.String> RecordIds { get;init; }
+Mateu.Uidl.ActionAuditEvent property System.DateTimeOffset At { get;init; }
+Mateu.Uidl.ActionAuditEvent property System.Int64 DurationMillis { get;init; }
+Mateu.Uidl.ActionAuditEvent property System.String ActionId { get;init; }
+Mateu.Uidl.ActionAuditEvent property System.String CorrelationId { get;init; }
+Mateu.Uidl.ActionAuditEvent property System.String ErrorReference { get;init; }
+Mateu.Uidl.ActionAuditEvent property System.String Principal { get;init; }
+Mateu.Uidl.ActionAuditEvent property System.String Route { get;init; }
+Mateu.Uidl.ActionAuditEvent property System.String View { get;init; }
 Mateu.Uidl.ActionCatalog ctor(System.Collections.Generic.IReadOnlyList<Mateu.Uidl.CatalogAction>)
 Mateu.Uidl.ActionCatalog method Mateu.Uidl.ActionCatalog MergedOver(Mateu.Uidl.ActionCatalog)
 Mateu.Uidl.ActionCatalog method Mateu.Uidl.CatalogAction Get(System.String)
@@ -66,6 +79,11 @@ Mateu.Uidl.ActionOptionsAttribute property System.String CustomEventDetail { get
 Mateu.Uidl.ActionOptionsAttribute property System.String CustomEventName { get;init; }
 Mateu.Uidl.ActionOptionsAttribute property System.String Href { get;init; }
 Mateu.Uidl.ActionOptionsAttribute property System.String Js { get;init; }
+Mateu.Uidl.ActionOutcome enum Error
+Mateu.Uidl.ActionOutcome enum Forbidden
+Mateu.Uidl.ActionOutcome enum NotFound
+Mateu.Uidl.ActionOutcome enum Ok
+Mateu.Uidl.ActionOutcome enum UserError
 Mateu.Uidl.ActionPanel ctor()
 Mateu.Uidl.ActionPanel property System.Boolean HideUnpopulatedToggle { get;init; }
 Mateu.Uidl.ActionPanel property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.ActionPanelCategory> Categories { get;init; }
@@ -1094,6 +1112,7 @@ Mateu.Uidl.HiddenInViewAttribute ctor()
 Mateu.Uidl.HorizontalLayout ctor()
 Mateu.Uidl.HorizontalLayout property System.Boolean Spacing { get;init; }
 Mateu.Uidl.HorizontalLayout property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Content { get;init; }
+Mateu.Uidl.IActionAuditListener abstract method System.Void OnAction(Mateu.Uidl.ActionAuditEvent)
 Mateu.Uidl.IActionCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.CatalogAction> ActionCatalog()
 Mateu.Uidl.IAppActionsSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.AppHeaderAction> AppActions()
 Mateu.Uidl.IAvatarSupplier abstract method Mateu.Uidl.IComponent Avatar()

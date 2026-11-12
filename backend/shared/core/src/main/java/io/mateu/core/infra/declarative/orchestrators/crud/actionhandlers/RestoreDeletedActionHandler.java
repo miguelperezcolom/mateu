@@ -43,6 +43,7 @@ public class RestoreDeletedActionHandler implements CrudOrchestratorActionHandle
             : List.of();
     if (!ids.isEmpty()) {
       orchestrator.restoreDeleted(ids, httpRequest);
+      io.mateu.core.infra.observability.RequestObservation.recordIds(httpRequest, ids);
     }
     var text =
         ids.size() == 1

@@ -28,6 +28,8 @@ from starlette.concurrency import run_in_threadpool
 from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_ui.core.errors import dev_mode_from_env, error_increment, new_correlation_id
 from mateu_ui.core.identity import framework_identity_provider, identity_from_claims, warn_on_startup
+from mateu_ui.core import error_boundary, observability
+from mateu_ui.core.microfrontends import DefaultCorrelationIdProvider
 from mateu_ui.core import agent_push, dev_specs, documents, idempotency_keys, mobile_manifest, progress, public_base, pwa, ui_page, version_skew
 from mateu_ui.core.naming import humanize
 from mateu_ui.core.mcp import handle_jsonrpc
@@ -193,6 +195,7 @@ def add_mateu(
     resolution_listeners: Sequence[Any] | None = None,
     progress_reattach_grace_seconds: float | None = None,
     inbox_store: Any | None = None,
+    audit_listeners: Sequence[Any] | None = None,
     presence_store: Any | None = None,
     file_storages: Sequence[Any] | None = None,
     uploads_secret: str | None = None,
@@ -266,6 +269,10 @@ def add_mateu(
       (``MATEU_CONTENT_SLOTS_DESCRIPTOR_ENABLED``, off) serves the reserved ``__content_slots__``
       action. ``remote_registry``, ``identity_strategies``, ``fragment_cache_store``,
       ``correlation_id_provider`` and ``resolution_listeners`` replace / add to Mateu's own.
+    - ``audit_listeners`` — :class:`~mateu_ui.uidl.ActionAuditListener` instances, each told about
+      every request once it has ended (who, what, on which records, how it ended; never a value).
+      Tracing and metrics need nothing here: they go through the OpenTelemetry API when
+      ``opentelemetry-api`` is installed (``MATEU_TELEMETRY_ENABLED=false`` switches them off).
     - ``progress_reattach_grace_seconds`` (EXPERIMENTAL) — how long a ``LongTask`` keeps running
       once nobody watches its stream (the tab reloaded or went away), so the reloaded tab can
       reattach (``_progress-tasks`` / ``_progress-resume``); then it is cancelled. Default: the
@@ -406,10 +413,46 @@ def add_mateu(
         with bound_request(mateu_request):
             return fn()
 
+    audits = list(audit_listeners or ())
+    correlation_ids = correlation_id_provider or DefaultCorrelationIdProvider()
+
+    def observe(mateu_request: MateuRequest, rq: RunActionRq):
+        """Begins observing the request (span + metrics + audit): ``(observation, token)``."""
+        try:
+            cid = correlation_ids.correlation_id(mateu_request)
+        except Exception:  # noqa: BLE001 - a failing provider leaves the request without one
+            cid = mateu_request.correlation_id
+        return observability.begin(rq.route, rq.action_id, rq.server_side_type, cid, mateu_request.headers)
+
+    async def observed_end(observation, mateu_request: MateuRequest) -> None:
+        caller = None
+        if audits:
+            try:
+                caller = await run_in_threadpool(
+                    run_bound, mateu_request,
+                    lambda: handler.mapper.identity_provider() if handler.mapper.identity_provider else None,
+                )
+            except Exception:  # noqa: BLE001 - an unknown caller is still audited, as anonymous
+                caller = None
+        observability.end(observation, audits, caller)
+
+    def observed_stream(body, observation, mateu_request: MateuRequest):
+        """The SSE body, observed until its LAST answer (a LongTask's steps included)."""
+
+        async def wrapped():
+            try:
+                async for chunk in body:
+                    yield chunk
+            finally:
+                await observed_end(observation, mateu_request)
+
+        return wrapped()
+
     def failed(error: Exception, mateu_request: MateuRequest, action_id: str | None = None) -> JSONResponse:
         # A UserFacingException / validation error shows its message; anything else a generic one
         # with the correlation id as reference, the full exception logged under it (mateu.errors).
         cid = mateu_request.correlation_id or new_correlation_id()
+        observability.failed(error, for_the_user=error_boundary.for_the_user(error), reference=cid)
         increment = error_increment(error, cid, show_details, action_id)
         return JSONResponse(
             increment.model_dump(by_alias=True, mode="json"), headers={CORRELATION_HEADER: cid}
@@ -426,6 +469,11 @@ def add_mateu(
             rq = RunActionRq.model_validate_json(body) if body else RunActionRq()
             if not rq.route:
                 rq.route = route
+        except Exception as error:  # noqa: BLE001 - the error boundary: never a raw 500
+            return failed(error, mateu_request, None)
+        # one span + metrics per request (OpenTelemetry, when installed) and the audit listeners
+        observation, token = observe(mateu_request, rq)
+        try:
             # a request carrying an Idempotency-Key (the mobile app's offline send queue) runs
             # once per caller, action and key: a repeat gets the first answer back
             increment = await run_in_threadpool(
@@ -438,12 +486,16 @@ def add_mateu(
                     lambda: handler.handle(rq, mateu_request.base_url),
                 ),
             )
-        except MateuForbiddenException:
+        except MateuForbiddenException as refused:
             # A denied action (disabled_unless/audience not satisfied at invocation): 403 with a
             # generic error message; the reason was logged by the guard and the method never ran.
+            observability.failed(refused, forbidden=True)
             return JSONResponse(status_code=403, content=_FORBIDDEN_BODY)
         except Exception as error:  # noqa: BLE001 - the error boundary: never a raw 500
             return failed(error, mateu_request, rq.action_id if rq is not None else None)
+        finally:
+            await observed_end(observation, mateu_request)
+            observability.release(token)
         return JSONResponse(
             increment.model_dump(by_alias=True, mode="json"),
             headers={CORRELATION_HEADER: mateu_request.correlation_id or ""},
@@ -491,16 +543,21 @@ def add_mateu(
         channel = agent_push.AgentChannel(
             deliver=lambda data: enqueue(("message", data)), close=lambda: enqueue(("close", None))
         )
+        observation, token = None, None
         try:
             body = await request.body()
             rq = RunActionRq.model_validate_json(body) if body else RunActionRq()
             if not rq.route:
                 rq.route = route
             parsed = rq
+            # observed until its last answer: ended when the stream ends (or here, on a refusal)
+            observation, token = observe(mateu_request, rq)
             if rq.action_id == progress.RESUME_ACTION:
-                return await _resume_response(
+                resumed = await _resume_response(
                     request, handler, mateu_request, rq, lambda fn: run_bound(mateu_request, fn)
                 )
+                await observed_end(observation, mateu_request)
+                return resumed
 
             def first_increment():
                 # a LongTask the action returns hands its stream over here (core.progress)
@@ -511,16 +568,22 @@ def add_mateu(
                         return handler.handle(parsed, mateu_request.base_url), streams
 
             first, task_streams = await run_in_threadpool(run_bound, mateu_request, first_increment)
-        except MateuForbiddenException:
+        except MateuForbiddenException as refused:
+            observability.failed(refused, forbidden=True)
+            await observed_end(observability.current(), mateu_request)
             return JSONResponse(status_code=403, content=_FORBIDDEN_BODY)
         except Exception as error:  # noqa: BLE001 - the error boundary: never a raw 500
             failure = failed(error, mateu_request, rq.action_id if rq is not None else None)
+            await observed_end(observability.current(), mateu_request)
             payload = bytes(failure.body).decode()
 
             async def one_error():
                 yield f"data: {payload}\n\n"
 
             return StreamingResponse(one_error(), media_type="text/event-stream")
+        finally:
+            if token is not None:
+                observability.release(token)
 
         def event(increment) -> str:
             return "data: " + json_module.dumps(increment.model_dump(by_alias=True, mode="json")) + "\n\n"
@@ -528,7 +591,8 @@ def add_mateu(
         headers = {"Cache-Control": "no-cache", CORRELATION_HEADER: mateu_request.correlation_id or ""}
         if rq.action_id == agent_push.CHANNEL_ACTION:
             return StreamingResponse(
-                _agent_stream(request, queue, channel, handler, event(first), event),
+                observed_stream(_agent_stream(request, queue, channel, handler, event(first), event),
+                                observation, mateu_request),
                 media_type="text/event-stream",
                 headers=headers,
             )
@@ -536,11 +600,11 @@ def add_mateu(
             # a LongTask: its updates as they come. The work runs once, hot, and outlives this
             # stream for the reattach grace period (a reload resumes it); then it is cancelled.
             return StreamingResponse(
-                _task_stream(
+                observed_stream(_task_stream(
                     request, task_streams[0], event(first), event,
                     lambda fn: run_bound(mateu_request, fn),
                     progress.task_id_of(first), handler.store_inbox_messages,
-                ),
+                ), observation, mateu_request),
                 media_type="text/event-stream",
                 headers=headers,
             )
@@ -549,7 +613,10 @@ def add_mateu(
             async def single():
                 yield event(first)
 
-            return StreamingResponse(single(), media_type="text/event-stream", headers=headers)
+            return StreamingResponse(
+                observed_stream(single(), observation, mateu_request),
+                media_type="text/event-stream", headers=headers,
+            )
 
         from mateu_ui.dtos import UICommand, UIIncrement
 
@@ -627,7 +694,10 @@ def add_mateu(
             finally:
                 unsubscribe()
 
-        return StreamingResponse(stream(), media_type="text/event-stream", headers=headers)
+        return StreamingResponse(
+            observed_stream(stream(), observation, mateu_request),
+            media_type="text/event-stream", headers=headers,
+        )
 
     app.add_api_route(f"{prefix}/mateu/v3/sse/{{route:path}}", sse, methods=["POST"])
     app.add_api_route(f"{prefix}/mateu/v3/sse", sse, methods=["POST"])

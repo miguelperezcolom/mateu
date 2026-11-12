@@ -76,6 +76,18 @@ public final class MicroFrontendServerResolver {
   private final Function<HttpRequest, CallerIdentity> callers;
   private final Function<HttpRequest, String> selfBaseUrl;
   private final ObjectMapper wire;
+  private final RequestTracing tracing;
+
+  /**
+   * Hears each resolution WITH its request — the request path's own hook (its span is a child of
+   * the request's), unlike the application's {@link MicroFrontendResolutionListener}s.
+   */
+  @FunctionalInterface
+  public interface RequestTracing {
+    RequestTracing NONE = (request, event) -> {};
+
+    void resolved(HttpRequest request, MicroFrontendResolutionEvent event);
+  }
 
   public MicroFrontendServerResolver(
       RemoteRegistry registry,
@@ -88,6 +100,33 @@ public final class MicroFrontendServerResolver {
       Function<HttpRequest, CallerIdentity> callers,
       Function<HttpRequest, String> selfBaseUrl,
       ObjectMapper wire) {
+    this(
+        registry,
+        http,
+        cache,
+        identities,
+        correlation,
+        listeners,
+        settings,
+        callers,
+        selfBaseUrl,
+        wire,
+        RequestTracing.NONE);
+  }
+
+  public MicroFrontendServerResolver(
+      RemoteRegistry registry,
+      MateuHttpClient http,
+      FragmentCacheStore cache,
+      RemoteIdentityStrategies identities,
+      CorrelationIdProvider correlation,
+      List<MicroFrontendResolutionListener> listeners,
+      MicroFrontendSettings settings,
+      Function<HttpRequest, CallerIdentity> callers,
+      Function<HttpRequest, String> selfBaseUrl,
+      ObjectMapper wire,
+      RequestTracing tracing) {
+    this.tracing = tracing != null ? tracing : RequestTracing.NONE;
     this.registry = registry;
     this.http = http;
     this.cache = cache;
@@ -163,7 +202,8 @@ public final class MicroFrontendServerResolver {
       String slotKey,
       ComponentDto fallback,
       boolean degradeToClient,
-      String problem) {}
+      String problem,
+      HttpRequest request) {}
 
   private Plan plan(MicroFrontendTree.Found found, HttpRequest request) {
     var microFrontend = found.microFrontend();
@@ -255,7 +295,8 @@ public final class MicroFrontendServerResolver {
         server.slotKey(),
         server.fallback(),
         server.degradeToClient(),
-        problem);
+        problem,
+        request);
   }
 
   private Mono<ComponentDto> fetch(
@@ -467,6 +508,11 @@ public final class MicroFrontendServerResolver {
           event.degradedTo(),
           event.durationMillis(),
           event.correlationId());
+    }
+    try {
+      tracing.resolved(plan.request(), event);
+    } catch (RuntimeException e) {
+      TRACE.debug("Could not trace a micro frontend resolution: {}", e.toString());
     }
     for (var listener : listeners) {
       try {

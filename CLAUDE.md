@@ -1116,6 +1116,30 @@ Durable rules and where they live:
   the Vaadin `_index.html` has a CSS-only pre-boot loader after `HASTAAQUIUI`, hidden by
   `mateu-ui:defined ~ .mateu-preboot` — edit `apps/vaadin/index.html` AND the committed `_index.html`.
 
+## Observability — OpenTelemetry + audit hook (2026-11-11, `deploy/observability.md`)
+
+- **Java**: `io.mateu.core.infra.observability` — `Observability.observe` wraps `RunActionUseCase.handle`
+  (one span `mateu <action> <route template>` + `mateu.request.duration`/`mateu.request.errors`);
+  `RequestObservation` (request attribute `mateu.observation`) is filled by the error boundary
+  (user_error/error + reference), the not-found paths, `RunActionUseCase` (view) and the CRUD handlers
+  (record ids: persist/delete/restore/update-row, bulk `List<Row>` params in `RunMethodActionRunner`).
+  `opentelemetry-api` is an OPTIONAL dependency of core: EVERY OTel type lives in `OtelTelemetry`
+  (never reference one elsewhere, or an app without the API gets NoClassDefFoundError); the
+  `OpenTelemetry` is the container's singleton bean, else `GlobalOpenTelemetry`. Child spans:
+  `RestProxyCalls` (`url.template` = template WITHOUT query — never the resolved url) and
+  `MicroFrontendSpans` (via `MicroFrontendServerResolver.RequestTracing`). Low cardinality in
+  `TelemetryNames` (`:id` segments, `_other` for forbidden/not_found, 1000-series cap — tests that
+  count series must reset it BEFORE each test: the other suites in the JVM fill it).
+  Audit: `io.mateu.uidl.audit.ActionAuditListener` beans (`@Experimental`), never state; a failing
+  listener WARNs once per class. Switch: `mateu.telemetry.enabled=false`. Test `ObservabilitySyncTest`
+  (in-memory SDK registered as the app's bean, `opentelemetry-sdk-testing` test scope).
+- **.NET**: `Mateu.Core/Observability/MateuTelemetry.cs` (`ActivitySource`/`Meter` "Mateu",
+  `RequestObservation` on an AsyncLocal, begun/ended by the adapter's sync + sse endpoints,
+  `RequestObservation.Failed` from `ErrorIncrement`); `IActionAuditListener` services (Mateu.Uidl).
+  Tests `ObservabilityTests`. **Python**: `mateu_ui/core/observability.py` (optional `opentelemetry`
+  import, `mateu-ui[otel]`), `add_mateu(audit_listeners=…)`, `mateu_ui.uidl.audit`; tests
+  `test_observability.py` (span tests skip without `opentelemetry-sdk`).
+
 ## New Mateu project — one generator, three front doors (2026-10-10)
 
 IntelliJ **File › New › Project › Mateu** (`io.mateu.ijp.newproject`), VS Code **Mateu: New

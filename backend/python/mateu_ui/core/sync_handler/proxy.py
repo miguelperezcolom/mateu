@@ -6,6 +6,7 @@ import copy
 import json
 import os
 import re
+from mateu_ui.core import observability
 from typing import Any, Callable
 import urllib.error
 import urllib.request
@@ -295,11 +296,26 @@ class ProxyHandlerMixin(MixinBase):
             req.add_header("Accept", "application/json")
             for name, value in (source.headers or {}).items():
                 req.add_header(name, self._interpolate(value, state))
-            with _open(req, self.proxy_timeout_seconds) as resp:
-                if resp.status >= 400:
-                    raise ProxyError(resp.status, f"HTTP {resp.status}")
-                body = resp.read().decode()
-                return json.loads(body) if body.strip() else {}
+            # a child span of the request's, by the url TEMPLATE without its query (never a secret)
+            with observability.child("mateu rest_proxy " + method, {
+                "http.request.method": method,
+                "url.template": (source.url or "").split("?", 1)[0] or None,
+                "mateu.rest_source": getattr(source, "ref", None),
+            }) as span:
+                try:
+                    with _open(req, self.proxy_timeout_seconds) as resp:
+                        span.set_attribute("http.response.status_code", resp.status)
+                        if resp.status >= 400:
+                            raise ProxyError(resp.status, f"HTTP {resp.status}")
+                        body = resp.read().decode()
+                        return json.loads(body) if body.strip() else {}
+                except urllib.error.HTTPError as e:
+                    span.set_attribute("http.response.status_code", e.code)
+                    span.failed(f"HTTP {e.code}")
+                    raise
+                except Exception as e:
+                    span.failed(type(e).__name__)
+                    raise
         except ProxyError:
             raise
         except urllib.error.HTTPError as e:  # urllib raises for a >=400 answer

@@ -89,13 +89,20 @@ public class RunActionUseCase {
   // ── Main entry point ──────────────────────────────────────────────────────
 
   public Flux<UIIncrementDto> handle(RunActionCommand incoming) {
-    // a request carrying an Idempotency-Key (the mobile app's offline send queue) runs once per
-    // caller, action and key: a repeat gets the first answer back (IdempotencyKeys)
-    return io.mateu.core.infra.idempotency.IdempotencyKeys.once(
-        incoming.httpRequest(), incoming.actionId(), () -> handleUnkeyed(incoming));
+    // one span + metrics per request (OpenTelemetry, when the app has it) and the audit listeners;
+    // inside it, a request carrying an Idempotency-Key (the mobile app's offline send queue) runs
+    // once per caller, action and key: a repeat gets the first answer back (IdempotencyKeys)
+    return io.mateu.core.infra.observability.Observability.observe(
+        incoming.route(),
+        incoming.actionId(),
+        incoming.serverSideType(),
+        incoming.httpRequest(),
+        () ->
+            io.mateu.core.infra.idempotency.IdempotencyKeys.once(
+                incoming.httpRequest(), incoming.actionId(), () -> handleRequest(incoming)));
   }
 
-  private Flux<UIIncrementDto> handleUnkeyed(RunActionCommand incoming) {
+  private Flux<UIIncrementDto> handleRequest(RunActionCommand incoming) {
     log.debug("run action {}", incoming.actionId());
     final RunActionCommand command;
     // The client names the server-side type it is talking to; only types the application exposes
@@ -262,6 +269,11 @@ public class RunActionUseCase {
               var notFound = missingOnLoad(error, command);
               if (notFound != null) {
                 // the page that was asked for does not exist: a not-found page in its place
+                io.mateu.core.infra.observability.RequestObservation.outcome(
+                    command.httpRequest(),
+                    io.mateu.uidl.audit.ActionOutcome.NOT_FOUND,
+                    notFound,
+                    null);
                 return mapToUiIncrement(NotFoundPage.forMissing(notFound, command), command);
               }
               // the user sees a UserFacingException's / validation message, or a generic one with
@@ -272,17 +284,22 @@ public class RunActionUseCase {
             })
         .switchIfEmpty(
             Mono.defer(
-                () ->
-                    NotFoundPage.isLoad(command.actionId())
-                        // a route that resolves to nothing: the same not-found page
-                        ? mapToUiIncrement(
-                            NotFoundPage.forUnknownRoute(
-                                command,
-                                yamlUidlLoader != null ? yamlUidlLoader.specProblems() : null),
-                            command)
-                        : mapToUiIncrement(
-                            Text.builder().text("Not found.").style("color: red;").build(),
-                            command)))
+                () -> {
+                  io.mateu.core.infra.observability.RequestObservation.outcome(
+                      command.httpRequest(),
+                      io.mateu.uidl.audit.ActionOutcome.NOT_FOUND,
+                      null,
+                      null);
+                  return NotFoundPage.isLoad(command.actionId())
+                      // a route that resolves to nothing: the same not-found page
+                      ? mapToUiIncrement(
+                          NotFoundPage.forUnknownRoute(
+                              command,
+                              yamlUidlLoader != null ? yamlUidlLoader.specProblems() : null),
+                          command)
+                      : mapToUiIncrement(
+                          Text.builder().text("Not found.").style("color: red;").build(), command);
+                }))
         // an embedded micro frontend (MicroFrontend.chrome) is a block of another page: whatever
         // produced them, the window's commands (title, history, favicon) are not its to send
         .map(increment -> EmbeddedWindowCommands.strip(increment, command.httpRequest()))
@@ -360,6 +377,8 @@ public class RunActionUseCase {
         .map(
             instance -> {
               io.mateu.core.domain.RoutedView.set(instance, command.httpRequest());
+              io.mateu.core.infra.observability.RequestObservation.view(
+                  command.httpRequest(), instance);
               // a page overriding a crud's sub-screen gets the crud's navigation
               var navigation = crudSubRouteNavigation();
               if (navigation != null) {
