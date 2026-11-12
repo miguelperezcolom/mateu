@@ -72,13 +72,40 @@ the device. So this release needs a **new store build** (§1, §2 — the owner 
 - New permission: Android 13+ **`POST_NOTIFICATIONS`** (asked at runtime, only when the user taps
   "Notify me on this device" in the inbox or the task sheet). iOS asks for alert permission the
   same way; no Info.plist usage string is needed for local notifications. Plugin `expo-notifications`
-  in `app.json` (monochrome icon, default channel `mateu`); `plugins/with-local-notifications-only`
-  drops the iOS push entitlement (`aps-environment`) that plugin adds — no Push capability needed.
+  in `app.json` (monochrome icon, default channel `mateu`). (This build dropped the iOS push
+  entitlement; push notifications, §0e, bring it back.)
   Checked with `npx expo prebuild --no-install`: the manifest carries POST_NOTIFICATIONS,
   versionCode 200003 / 1.0.1, Info.plist CFBundleVersion 200003.
 - Store answers: Play Data safety and Apple privacy are unchanged (nothing is collected); in Play's
   permissions declaration, `POST_NOTIFICATIONS` = notifications the user turned on for the apps they
   opened.
+
+## 0e. Pending store build: push notifications (Expo Push Service)
+
+A UI whose app class implements `PushTokenRegistry` offers push notifications; the user turns them
+on per UI ("Notifications on this phone", in that UI's drawer) and the app registers the device's
+**Expo push token** with that UI only (`src/core/pushNotifications.ts`, docs
+`native/react-native.md#push-notifications`). Native change → a **new store build** with a bumped
+`expo.version` (1.0.2 if 1.0.1 already shipped) — never over the air. What the owner sets up ONCE:
+
+- **iOS**: the Push Notifications capability. `app.json` no longer removes the `aps-environment`
+  entitlement (the `with-local-notifications-only` plugin is gone); `expo-notifications` writes it
+  (`mode: production`, `development` for the `development` variant, app.config.ts). EAS credentials:
+  `npx eas-cli credentials` → iOS → **Push Notifications: set up an APNs key** (or let `eas build`
+  create it), so Expo Push Service can deliver to the app.
+- **Android**: a Firebase project for `io.mateu.app` → its `google-services.json` as an EAS **file**
+  environment variable `MATEU_GOOGLE_SERVICES_FILE` (app.config.ts maps it to
+  `android.googleServicesFile`; the file stays out of the repository), and the project's **FCM V1
+  service account key** uploaded with `npx eas-cli credentials` → Android → Google Service Account
+  → FCM V1. Without the file the build still works: the switch says the phone cannot receive them.
+- A **fixed** build (`MATEU_VARIANT=fixed`) is somebody else's app: it needs ITS OWN EAS project id,
+  APNs key and Firebase project — the Expo token is minted for the project id the binary carries.
+- Store answers: the push token is sent only to the UI the user turned it on for (Play Data safety:
+  "Device or other IDs", collected only when the user turns it on, not shared by the app itself).
+
+Nothing of the DELIVERY can be checked without such a build on a real device: the unit tests cover
+the decisions (permission only from the tap, one key per UI, unregister on remove, tap routing), the
+backends' tests the actions.
 
 ## 1. Build
 

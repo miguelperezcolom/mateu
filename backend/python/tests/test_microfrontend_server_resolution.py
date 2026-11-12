@@ -46,6 +46,28 @@ BASE = ""
 # The deadline of a remote that is expected to ANSWER: generous, so a loaded CI runner never turns
 # "answers in time" into a timeout (the .NET port's twin flaked that way). Deadline tests use their own.
 IN_TIME = 5000
+# How long a remote that must MISS its deadline takes: far beyond every deadline and bound used here,
+# so no amount of scheduling noise lets it answer in time. Released at teardown.
+NEVER_IN_TIME_S = 30
+# A bound for "the host did not wait for the slow remote": generous for a loaded runner, still far
+# below NEVER_IN_TIME_S.
+NOT_WAITED_FOR_MS = 10_000
+RELEASE = threading.Event()
+
+# The "delayed" remote holds each call until the three calls of mfe-parallel are in flight at once
+# (or 3 s pass — below their deadline), recording the most seen at once: asked in a row, there would
+# only ever be one.
+DELAYED = {"in_flight": 0, "max_in_flight": 0}
+DELAYED_LOCK = threading.Condition()
+
+
+def _answer_when_all_three_are_in_flight():
+    with DELAYED_LOCK:
+        DELAYED["in_flight"] += 1
+        DELAYED["max_in_flight"] = max(DELAYED["max_in_flight"], DELAYED["in_flight"])
+        DELAYED_LOCK.notify_all()
+        DELAYED_LOCK.wait_for(lambda: DELAYED["max_in_flight"] >= 3, timeout=3)
+        DELAYED["in_flight"] -= 1
 
 
 # ── the remotes ───────────────────────────────────────────────────────────────────────────────
@@ -69,9 +91,9 @@ class _Remote(BaseHTTPRequestHandler):
         request = json.loads(self.rfile.read(length) or b"{}")
         remote = path[1:path.index("/", 1)]
         if remote == "slow":
-            time.sleep(3)
+            RELEASE.wait(NEVER_IN_TIME_S)
         elif remote == "delayed":
-            time.sleep(0.4)
+            _answer_when_all_three_are_in_flight()
         elif remote == "broken":
             return self._reply(500, "boom")
         policy = None
@@ -97,7 +119,7 @@ class _Remote(BaseHTTPRequestHandler):
             if path.endswith("front-office.home.caido"):
                 return self._reply(503, "down")
             if path.endswith("front-office.home.lento"):
-                time.sleep(3)
+                RELEASE.wait(NEVER_IN_TIME_S)
             text = "slot " + path[path.rindex("/") + 1:]
         fragment = {
             "targetComponentId": request.get("initiatorComponentId"),
@@ -145,7 +167,7 @@ class Remotes(RemoteCatalogSupplier):
         out.append(RemoteDescriptor("exchanged", f"{BASE}/exchanged", IN_TIME, "exchange"))
         out.append(RemoteDescriptor("unknownid", f"{BASE}/unknownid", IN_TIME, "nobody-declared-it"))
         # a path on this server, as a content hub is deployed
-        out.append(RemoteDescriptor("content", "/_content-hub", 1000))
+        out.append(RemoteDescriptor("content", "/_content-hub", IN_TIME))
         return out
 
 
@@ -223,9 +245,9 @@ class UnknownIdentity(_Page):
 @ui("mfe-parallel")
 class Parallel(_Page):
     def parts(self):
-        return [mfe("delayed", fluent.Resolve.SERVER, 2000),
-                mfe("delayed", fluent.Resolve.SERVER, 2000, "/second"),
-                mfe("delayed", fluent.Resolve.SERVER, 2000, "/third")]
+        return [mfe("delayed", fluent.Resolve.SERVER, IN_TIME),
+                mfe("delayed", fluent.Resolve.SERVER, IN_TIME, "/second"),
+                mfe("delayed", fluent.Resolve.SERVER, IN_TIME, "/third")]
 
 
 @ui("mfe-cache-key")
@@ -301,6 +323,7 @@ def host():
     # warm up: the first resolution pays the cold start; each test clears what it reads
     load(client, "mfe-fast")
     yield client, handler
+    RELEASE.set()
     server.shutdown()
     server.server_close()
 
@@ -387,7 +410,7 @@ def test_a_slow_remote_degrades_to_the_client_at_its_deadline_and_is_not_waited_
     microfrontend = only_micro_frontend(increment)
     assert "resolved" not in microfrontend
     assert microfrontend["baseUrl"] == f"{BASE}/slow"
-    assert elapsed_ms < 1500, "the remote takes 3 s, the budget is 150 ms"
+    assert elapsed_ms < NOT_WAITED_FOR_MS, "the remote takes 30 s, the budget is 150 ms"
     assert len(EVENTS) == 1
     event = EVENTS[0]
     assert (event.outcome, event.degraded_to, event.remote_id) == (Outcome.TIMEOUT, "client", "slow")
@@ -424,14 +447,15 @@ def test_an_unknown_identity_strategy_is_a_configuration_error_and_nothing_is_as
 
 def test_several_fragments_are_asked_in_parallel(host):
     client, _ = host
-    started = time.monotonic()
+    with DELAYED_LOCK:
+        DELAYED["max_in_flight"] = 0
     increment = load(client, "mfe-parallel").json()
-    elapsed_ms = (time.monotonic() - started) * 1000
     found = micro_frontends(increment)
     assert len(found) == 3 and all("resolved" in m for m in found)
     assert hits("delayed") == 3
-    # each takes 400 ms: in a row that is 1.2 s
-    assert elapsed_ms < 1100
+    # proved by overlap, not by a stopwatch: the remote saw the three calls in flight at once —
+    # asked in a row, it would never have seen more than one
+    assert DELAYED["max_in_flight"] == 3
 
 
 def test_the_remote_gets_the_users_identity_and_the_correlation_id(host):
@@ -526,7 +550,8 @@ def test_a_content_slot_that_is_down_or_slow_paints_its_fallback_and_the_screen_
     assert micro_frontends(increment) == []
     assert {"Down fallback", "Slow fallback"} <= set(texts(increment["fragments"]))
     assert increment["messages"] == []
-    assert elapsed_ms < 1500
+    # the slow slot takes 30 s: the screen did not wait for it
+    assert elapsed_ms < NOT_WAITED_FOR_MS
     assert sorted(e.outcome.value for e in EVENTS) == ["ERROR", "TIMEOUT"]
     assert all(e.degraded_to == "fallback" for e in EVENTS)
 
