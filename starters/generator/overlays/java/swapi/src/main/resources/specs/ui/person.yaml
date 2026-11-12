@@ -1,0 +1,24 @@
+# One character, read-only (route people/:id). The route's `data:` fetches the record into the
+# page state and the fields show it. The toolbar's back button navigates because its actionable is
+# a RouteLink — a back id renders as a < chevron before the title.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.58/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.name}
+subtitle: Character
+toolbar:
+  - type: Button
+    actionId: backToList
+    label: Back to People
+    actionable:
+      type: RouteLink
+      route: people
+content:
+  - type: FormLayout
+    maxColumns: 2
+    content:
+      - {type: FormField, id: homeworldName, label: Homeworld, readOnly: true}
+      - {type: FormField, id: gender, label: Gender, readOnly: true}
+      - {type: FormField, id: birthYear, label: Birth year, readOnly: true}
+      - {type: FormField, id: height, label: Height (cm), dataType: integer, readOnly: true}
+      - {type: FormField, id: mass, label: Mass (kg), dataType: number, readOnly: true}
+      - {type: FormField, id: eyeColor, label: Eyes, readOnly: true}

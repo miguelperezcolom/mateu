@@ -25,6 +25,11 @@ Pick one front door ([all of them](/java-create-your-project/) generate the same
 It is the [`starters/yaml`](https://github.com/miguelperezcolom/mateu/tree/master/starters/yaml)
 project of the repository, which CI builds and boots on every change.
 
+This page follows the default template, **Home + Product listing**. Pick **Star Wars over a public
+REST API** instead (`-Dtemplate=swapi` for the archetype) to start from people and planets listings,
+with record pages, read live from `swapi.mateu.io` — the same YAML, over a real API. See
+[the template gallery](/java-create-your-project/#start-from-a-template).
+
 ## 2. Run it
 
 ```bash
