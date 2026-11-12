@@ -57,13 +57,14 @@ public sealed class BrokenAuditListener : IActionAuditListener
 [Collection(ProcessWideStateCollection.Name)]
 public class ObservabilityTests
 {
-    private static async Task<(WebApplication App, HttpClient Http)> Start()
+    private static async Task<(WebApplication App, HttpClient Http)> Start(Action<IServiceCollection>? services = null)
     {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Services.AddMateu(typeof(ObservabilityTests).Assembly);
         builder.Services.AddSingleton<IActionAuditListener, RecordingAuditListener>();
         builder.Services.AddSingleton<IActionAuditListener, BrokenAuditListener>();
+        services?.Invoke(builder.Services);
         var app = builder.Build();
         app.MapMateu();
         await app.StartAsync();
@@ -202,6 +203,24 @@ public class ObservabilityTests
             new { crud_selected_items = new[] { new { id = "2", name = "two" } } });
         Assert.DoesNotContain("Something went wrong", body);
         Assert.Equal(["2"], RecordingAuditListener.Events.Last(e => e.ActionId == "delete").RecordIds);
+    }
+
+    [Fact]
+    public async Task A_correlation_provider_that_fails_leaves_the_request_without_one_never_failed()
+    {
+        using var recorder = new Recorder();
+        var (app, http) = await Start(s => s.AddSingleton<ICorrelationIdProvider, BrokenCorrelationIdProvider>());
+        await using var _ = app;
+        var body = await Post(http, "/obs-orders", "place", typeof(ObsOrders));
+
+        Assert.DoesNotContain("Something went wrong", body);
+        Assert.Equal("ok", recorder.Request("place").GetTagItem("mateu.outcome"));
+        Assert.Equal(ActionOutcome.Ok, RecordingAuditListener.Events.Last(e => e.ActionId == "place").Outcome);
+    }
+
+    private sealed class BrokenCorrelationIdProvider : ICorrelationIdProvider
+    {
+        public string CorrelationId(IncomingRequest request) => throw new InvalidOperationException("no ids today");
     }
 
     [Fact]
