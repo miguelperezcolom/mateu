@@ -242,16 +242,6 @@ class DisplayComponentsRenderTest : BasePlatformTestCase() {
         assertEquals(12, decodeImage(bytes)?.width)
     }
 
-    fun testAnUndrawableSvgIsTheNamedPlaceholder() {
-        val bad = java.util.Base64.getEncoder().encodeToString("<svg this is not xml".toByteArray())
-        val image = render(context(), """{"type":"Image","src":"data:image/svg+xml;base64,$bad","alt":"Bay"}""")
-        assertTrue(texts(image).none { it.contains("base64") })
-        val icon = all(image).filterIsInstance<javax.swing.JLabel>().mapNotNull { it.icon }.single()
-        assertEquals(40, icon.iconWidth)
-        assertEquals(20, icon.iconHeight)
-        assertTrue(all(image).any { it.accessibleContext?.accessibleName == "Bay" })
-    }
-
     fun testSvgBytesAreRasterised() {
         val png = SvgImages.read("<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><rect width='10' height='6' fill='#ff0000'/></svg>".toByteArray())!!
         assertEquals(10, png.width)

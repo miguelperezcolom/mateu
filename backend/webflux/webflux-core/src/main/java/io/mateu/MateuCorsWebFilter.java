@@ -23,6 +23,18 @@ public class MateuCorsWebFilter implements WebFilter {
 
   private final CorsPolicy policy;
 
+  /**
+   * The filter for the allow-list alone (no extra paths).
+   *
+   * @deprecated use {@link #MateuCorsWebFilter(String, String, String)} instead (it adds {@code
+   *     mateu.cors.paths}); kept so code built against an earlier beta still links
+   */
+  @Deprecated(since = "3.0-beta.59", forRemoval = true)
+  public MateuCorsWebFilter(String allowedOrigins, String allowCredentials) {
+    this(allowedOrigins, allowCredentials, null);
+  }
+
+  @org.springframework.beans.factory.annotation.Autowired
   public MateuCorsWebFilter(
       @Value("${" + CorsPolicy.ALLOWED_ORIGINS_PROPERTY + ":}") String allowedOrigins,
       @Value("${" + CorsPolicy.ALLOW_CREDENTIALS_PROPERTY + ":false}") String allowCredentials,

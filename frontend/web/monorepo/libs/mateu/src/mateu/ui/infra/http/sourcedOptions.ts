@@ -7,6 +7,7 @@ import { resolveRestSource, viaProxy } from './restSourceCatalogue.ts'
 /** What a control that offers a REST source's options needs: its state, a data slot, a re-render. */
 export interface SourcedOptionsHost extends EventTarget {
     state?: Record<string, unknown>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the host component's own data bag (LitElement property), any by contract
     data?: Record<string, any>
     requestUpdate(): void
 }

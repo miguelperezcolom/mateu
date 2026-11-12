@@ -104,7 +104,7 @@ test('texts in English and Spanish', () => {
     const texts = signInTexts(lang);
     // every sentence names what it is given
     assert.ok(texts.title('Acme').includes('Acme'), lang);
-    assert.ok(texts.single('id.acme.com').includes('id.acme.com'), lang);
+    assert.ok(texts.single('Acme ID').includes('Acme ID'), lang);
     assert.ok(texts.continueWith('Google').includes('Google'), lang);
     assert.ok(texts.noPassword && texts.cancelled && texts.signIn && texts.lastUsed && texts.intro, lang);
   }
