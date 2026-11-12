@@ -250,6 +250,11 @@ class SyncHandler(
         from mateu_ui.uidl.inbox_store import InMemoryInboxStore
 
         self.inbox_store = InMemoryInboxStore()
+        #: Where record presence is kept (EXPERIMENTAL): ``add_mateu(presence_store=…)`` replaces
+        #: Mateu's process-wide in-memory default.
+        from mateu_ui.core.presence import DEFAULT_STORE
+
+        self.presence_store = DEFAULT_STORE
         #: Whether the app exposes its authoring plane (the MCP endpoint is on): the reserved
         #: __validate__ action is then served on the plain sync endpoint too (the sidecar calls it
         #: there); otherwise only to an MCP tool call or in dev mode (mateu_ui.core.authoring_gate).

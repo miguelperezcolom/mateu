@@ -198,6 +198,7 @@ export default defineConfig({
 										{ slug: 'ux-patterns/action-panel', label: 'Action Panel (I want to…)' },
 										{ slug: 'ux-patterns/app-shortcuts', label: 'App Shortcuts & Quick Launch' },
 										{ slug: 'ux-patterns/live-header-values', label: 'Live Header Values' },
+										{ slug: 'ux-patterns/record-presence', label: 'Record Presence' },
 										{ slug: 'ux-patterns/app-context', label: 'App Context Selector' },
 										{ slug: 'ux-patterns/global-search' },
 										{ slug: 'ux-patterns/messages', label: 'Messages (toasts)' },

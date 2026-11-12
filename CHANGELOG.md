@@ -61,6 +61,7 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `data.mateu = {ui, route}`; a tap opens that UI at that route, in the hub and in a fixed build.
   Mateu stores no token and sends nothing. Replaces the known issue "no OS notification from a
   suspended or closed app". Needs a new store build with APNs/FCM credentials.
+
 - **Mateu's own words in French, German, Portuguese and Italian.** Everything Mateu draws by itself —
   buttons, the filter bar, pagination, dialogs, errors, the connectivity banner, accessible labels,
   task ETAs, the version notice — now speaks fr, de, pt and it besides English and Spanish: the web
@@ -69,6 +70,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `pt-PT` → Portuguese, written the Brazilian way; `de-AT` → German), English for any other. Every
   catalogue has a completeness test (keys and placeholders); the ETA corpus covers the six languages.
   Right-to-left languages are not supported — what it would take is documented in the i18n guide.
+
+- **Record presence — "Ana is editing this record"** (`@Experimental`). `@App(presence = true)`
+  (YAML `presence: true`, .NET `[App(Presence = true)]`, Python `@app(presence=True)`): on a record
+  page each signed-in user sees who else has the same record open and who is EDITING it (unsaved
+  changes), on a warning tone, so two people do not overwrite each other. A record is its route plus
+  the view class; anonymous callers take no part; a closed tab disappears within 30 s. It rides the
+  app event stream (one per browser) and the app-level `_presence` action; kept in memory per
+  process unless the app registers a `PresenceStore` (`IPresenceStore`, `add_mateu(presence_store=…)`).
+  Rendered by Vaadin, React Native and the IntelliJ plugin. Docs: `ux-patterns/record-presence`.
 
 ### Changed
 

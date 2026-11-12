@@ -56,6 +56,8 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         session.appShortcuts = io.mateu.ijp.state.AppShortcuts.of(metadata)
         session.seedHeaderValues(io.mateu.ijp.state.HeaderValues.of(metadata))
         session.syncLiveUpdates(metadata.bool("liveUpdates"))
+        // record presence (@App(presence)): who else has the record on screen open
+        session.syncPresence(metadata.bool("presence"))
         // Live UI push (AppDto.agentPush): the agent channel opens and "Connect AI" shows.
         session.syncAgentPush(io.mateu.ijp.state.AgentPush.enabled(metadata))
         val idle = io.mateu.ijp.state.IdleClock.of(metadata)

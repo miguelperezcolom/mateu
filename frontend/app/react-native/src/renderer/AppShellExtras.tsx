@@ -1,5 +1,6 @@
 import React from 'react';
 import { inboxChangeOf } from '../core/inbox';
+import { presenceChangesOf } from '../core/presence';
 import { AppState, Modal, StyleSheet, View } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
@@ -22,6 +23,8 @@ export interface ShellExtrasMeta {
   shortcuts?: AppShortcut[];
   headerValues?: HeaderValue[];
   liveUpdates?: boolean;
+  /** `@App(presence)`: record screens tell who else has the record open (core/presence.ts). */
+  presence?: boolean;
   idleSession?: IdleSession | null;
 }
 
@@ -63,8 +66,13 @@ function inboxCommandsOf(increment: unknown): unknown[] {
 
 export function useLiveUpdates(meta: ShellExtrasMeta) {
   const { session } = useAppContext();
+  // record presence: the screens report themselves; its changes ride this same stream
   React.useEffect(() => {
-    if (!meta.liveUpdates) return;
+    session.presence.configure(meta);
+    return () => session.presence.configure(null);
+  }, [meta.presence, meta.serverSideType, meta.rootRoute, session]);
+  React.useEffect(() => {
+    if (!meta.liveUpdates && !meta.presence) return;
     let controller: AbortController | null = null;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let failures = 0;
@@ -101,6 +109,8 @@ export function useLiveUpdates(meta: ShellExtrasMeta) {
               const said = session.headerValues.update(change.id, change.value);
               if (said) announceLive(said, false);
             }
+            // someone joined, left, started or stopped editing a record this user has open
+            for (const change of presenceChangesOf(increment)) session.presence.apply(change);
             // the inbox changed for this user (LiveNotifications.publish): the bell follows it
             for (const command of inboxCommandsOf(increment)) {
               const change = session.inbox.apply(inboxChangeOf(command));
@@ -138,7 +148,7 @@ export function useLiveUpdates(meta: ShellExtrasMeta) {
       sub.remove();
       stop();
     };
-  }, [meta.liveUpdates, meta.serverSideType, meta.rootRoute, session]);
+  }, [meta.liveUpdates, meta.presence, meta.serverSideType, meta.rootRoute, session]);
 }
 
 // ---- quick launch ------------------------------------------------------------------------------

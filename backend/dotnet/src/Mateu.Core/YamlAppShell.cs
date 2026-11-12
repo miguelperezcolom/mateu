@@ -88,6 +88,7 @@ internal static class YamlAppShell
             AccessKeys = Bool(root, "accessKeys"),
             MobileQr = Bool(root, "mobileQr"),
             LiveUpdates = Bool(root, "liveUpdates"),
+            Presence = Bool(root, "presence"),
             Shortcuts = Maps(root, "shortcuts").Select(s => Shortcut(s, appRoute)).OfType<AppShortcutDto>().ToList(),
             HeaderValues = Maps(root, "headerValues").Where(v => Blank(Str(v, "id")) is not null)
                 .Select(v => new HeaderValueDto(Str(v, "id")!.Trim(), Blank(Str(v, "label")), Str(v, "value"))).ToList(),

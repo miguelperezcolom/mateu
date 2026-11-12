@@ -192,6 +192,7 @@ def add_mateu(
     resolution_listeners: Sequence[Any] | None = None,
     progress_reattach_grace_seconds: float | None = None,
     inbox_store: Any | None = None,
+    presence_store: Any | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -264,6 +265,8 @@ def add_mateu(
       task at once (the old behaviour). A finished task keeps its outcome for the same period.
     - ``inbox_store`` (EXPERIMENTAL) — an ``InboxStore`` keeping the ``inbox`` messages of signed-in
       users (default: Mateu's bounded in-memory store, lost on restart).
+    - ``presence_store`` (EXPERIMENTAL) — a ``PresenceStore`` keeping record presence
+      (``@app(presence=True)``; default: Mateu's bounded in-memory store, per process).
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -300,6 +303,8 @@ def add_mateu(
     progress.configure(progress_reattach_grace_seconds)
     if inbox_store is not None:
         handler.inbox_store = inbox_store
+    if presence_store is not None:
+        handler.presence_store = presence_store
     show_details = dev_mode_from_env() if dev is None else dev
     mcp_on = mcp_enabled_from_env() if mcp is None else mcp
     # the sidecar's authoring tools call __validate__ over the sync endpoint of an MCP-enabled app
@@ -528,9 +533,27 @@ def add_mateu(
         unsubscribe_header = LiveHeaderValues.subscribe(push)
         unsubscribe_notifications = LiveNotifications.subscribe(push_notification)
 
+        # record presence: a change of a record THIS caller has open (any tab) — never another's
+        from mateu_ui.core import presence as presence_core
+
+        presence_store = handler.presence_store
+        presence_scope = presence_core.scope_of(mateu_request.base_url, rq.server_side_type)
+
+        def push_presence(scope: str, record: str) -> None:
+            if scope == presence_scope and presence_core.is_on(presence_store, scope, record, caller):
+                enqueue(("presence", presence_core.snapshot(presence_store, scope, record, caller)))
+
+        app_type = handler.registry.type_by_name(rq.server_side_type) if rq.server_side_type else None
+        unsubscribe_presence = (
+            presence_store.on_change(push_presence)
+            if caller and presence_core.enabled_for(app_type)
+            else (lambda: None)
+        )
+
         def unsubscribe() -> None:
             unsubscribe_header()
             unsubscribe_notifications()
+            unsubscribe_presence()
 
         async def stream():
             try:
@@ -544,14 +567,16 @@ def add_mateu(
                         change = await asyncio.wait_for(
                             queue.get(), timeout=min(LIVE_HEARTBEAT_SECONDS, remaining)
                         )
-                        increment = UIIncrement.of(
-                            commands=[
-                                LiveNotifications.command(change)
-                                if isinstance(change, NotificationChange)
-                                else UICommand.update_header_value(change.id, change.value)
-                            ]
-                        )
+                        if isinstance(change, tuple) and change and change[0] == "presence":
+                            command = presence_core.command(change[1])
+                        elif isinstance(change, NotificationChange):
+                            command = LiveNotifications.command(change)
+                        else:
+                            command = UICommand.update_header_value(change.id, change.value)
+                        increment = UIIncrement.of(commands=[command])
                     except asyncio.TimeoutError:
+                        # a tab that went silent leaves its records, even if nobody else calls
+                        presence_core.sweep(presence_store)
                         increment = UIIncrement.of()
                     if await request.is_disconnected():
                         break

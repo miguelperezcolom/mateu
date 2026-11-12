@@ -288,6 +288,11 @@
      "back_link",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "presence",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },
@@ -2304,6 +2309,82 @@
     ]
    }
   },
+  "InMemoryPresenceStore": {
+   "class": [],
+   "members": {
+    "expire": [
+     [
+      "seen_before",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "leave": [
+     [
+      "scope",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "record",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "tab",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "members": [
+     [
+      "scope",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "record",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "seen_after",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "on_change": [
+     [
+      "listener",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "size": [],
+    "touch": [
+     [
+      "scope",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "record",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "member",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "InboxStore": {
    "class": [],
    "members": {
@@ -3601,6 +3682,115 @@
    "class": [],
    "members": {
     "on_hydrated": []
+   }
+  },
+  "PresenceMember": {
+   "class": [
+    [
+     "principal",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "tab",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "editing",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "since",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "last_seen",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "PresenceStore": {
+   "class": [],
+   "members": {
+    "expire": [
+     [
+      "seen_before",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "leave": [
+     [
+      "scope",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "record",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "tab",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "members": [
+     [
+      "scope",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "record",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "seen_after",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "on_change": [
+     [
+      "listener",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "touch": [
+     [
+      "scope",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "record",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "member",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
    }
   },
   "PrimaryColumn": {
@@ -5159,6 +5349,11 @@
     ],
     [
      "back_link",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "presence",
      "KEYWORD_ONLY",
      true
     ]

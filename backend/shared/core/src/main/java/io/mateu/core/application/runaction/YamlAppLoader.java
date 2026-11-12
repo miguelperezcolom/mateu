@@ -236,6 +236,7 @@ public class YamlAppLoader implements io.mateu.core.infra.dev.SpecsCache {
     bool(root, "accessKeys", builder::accessKeys);
     // E2 patterns: app-wide shortcuts, live header values, the idle-session warning
     bool(root, "liveUpdates", builder::liveUpdates);
+    bool(root, "presence", builder::presence);
     if (root.hasNonNull("idleTimeoutMinutes")) {
       builder.idleTimeoutMinutes(root.get("idleTimeoutMinutes").asInt());
     }

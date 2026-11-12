@@ -91,11 +91,59 @@ public class LiveUpdatesActionRunner implements ActionRunner {
                     }
                   });
             });
+    // record presence: a change of a record THIS caller has open (in any tab) — never another's
+    Flux<UIIncrementDto> presence = presenceChanges(instance, command, caller);
     Flux<UIIncrementDto> heartbeat =
         Flux.interval(Duration.ofSeconds(HEARTBEAT_SECONDS))
-            .map(tick -> UIIncrementDto.builder().build());
+            .map(
+                tick -> {
+                  // a tab that went silent leaves its records here, even if nobody else calls
+                  io.mateu.core.application.presence.Presence.sweep();
+                  return UIIncrementDto.builder().build();
+                });
     return catchUp.concatWith(
-        Flux.merge(changes, notifications, heartbeat).take(Duration.ofMinutes(MAX_MINUTES)));
+        Flux.merge(changes, notifications, presence, heartbeat)
+            .take(Duration.ofMinutes(MAX_MINUTES)));
+  }
+
+  /** The presence changes for {@code caller}: none for an anonymous one. */
+  static Flux<UIIncrementDto> presenceChanges(
+      Object instance, RunActionCommand command, String caller) {
+    if (caller == null
+        || caller.isBlank()
+        || !io.mateu.core.application.presence.Presence.enabledFor(instance, command)) {
+      return Flux.empty();
+    }
+    var scope = io.mateu.core.application.presence.Presence.scopeOf(instance, command);
+    return Flux.create(
+        sink -> {
+          var subscription =
+              io.mateu.core.application.presence.Presence.store()
+                  .onChange(
+                      (changedScope, record) -> {
+                        if (!scope.equals(changedScope)
+                            || !io.mateu.core.application.presence.Presence.isOn(
+                                scope, record, caller)) {
+                          return;
+                        }
+                        var snapshot =
+                            io.mateu.core.application.presence.Presence.snapshot(
+                                scope, record, caller);
+                        sink.next(
+                            increment(
+                                List.of(
+                                    io.mateu.core.application.presence.Presence.command(
+                                        snapshot))));
+                      });
+          sink.onDispose(
+              () -> {
+                try {
+                  subscription.close();
+                } catch (Exception ignored) {
+                  // nothing to release
+                }
+              });
+        });
   }
 
   static UICommandDto command(String id, String value) {

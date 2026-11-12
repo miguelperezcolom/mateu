@@ -489,6 +489,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // PushTokensActionRunner).
         if (rq.ActionId is ReflectionMapper.PushRegisterActionId or ReflectionMapper.PushUnregisterActionId)
             return PushTokens(instance, rq);
+        // Record presence: a page reports itself, the app answers who else is there (mirrors
+        // Java's PresenceActionRunner).
+        if (rq.ActionId == Presence.ActionId) return PresenceAction(type, rq);
         // The command palette's entity search — same app-level rail (mirrors Java's
         // GlobalSearchActionRunner).
         if (rq.ActionId == "_globalsearch") return GlobalSearch(instance, rq);

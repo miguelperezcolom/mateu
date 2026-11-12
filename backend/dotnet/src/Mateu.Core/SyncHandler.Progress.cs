@@ -152,6 +152,41 @@ internal sealed partial class SyncHandler
     /// in-memory default.</summary>
     public IInboxStore InboxStore { get; init; } = new InMemoryInboxStore();
 
+    /// <summary>Where record presence is kept: the app's IPresenceStore service, else Mateu's
+    /// process-wide in-memory one. EXPERIMENTAL.</summary>
+    public IPresenceStore PresenceStore { get; init; } = Presence.DefaultStore;
+
+    /// <summary>Whether presence is on for the app the request names: a class carrying [App] must
+    /// say Presence = true; a data-authored shell (no class) decides on the client.</summary>
+    public Type? TypeNamed(string? fullName) => registry.TypeByName(fullName);
+
+    public static bool PresenceEnabledFor(Type? appType) =>
+        appType?.Find<AppAttribute>() is not { } app || app.Presence;
+
+    /// <summary>The _presence app-level action: records this tab on the record (route + view,
+    /// viewing | editing | leave) and answers a PresenceChanged command with the OTHER people.
+    /// Nothing for an anonymous caller, an app without [App(Presence)] or a page that is no
+    /// record. (Mirrors Java's PresenceActionRunner.)</summary>
+    private UIIncrementDto PresenceAction(Type type, RunActionRqDto rq)
+    {
+        var principal = Principal?.Invoke();
+        if (string.IsNullOrWhiteSpace(principal) || !PresenceEnabledFor(type)) return UIIncrementDto.Of();
+        var record = Presence.RecordOf(StateString(GetState(rq.Parameters, "route")),
+            StateString(GetState(rq.Parameters, "view")));
+        if (record is null) return UIIncrementDto.Of();
+        var scope = Presence.ScopeOf(RequestBaseUrl.Value, rq.ServerSideType ?? type.FullName);
+        var tab = StateString(GetState(rq.Parameters, "tab"));
+        var state = StateString(GetState(rq.Parameters, "state"));
+        Presence.Sweep(PresenceStore);
+        if (state == "leave")
+        {
+            Presence.Leave(PresenceStore, scope, record, principal, tab);
+            return UIIncrementDto.Of();
+        }
+        Presence.Touch(PresenceStore, scope, record, principal, tab, state == "editing");
+        return UIIncrementDto.Of(commands: [Presence.Command(Presence.Snapshot(PresenceStore, scope, record, principal))]);
+    }
+
     private static async IAsyncEnumerable<UIIncrementDto> Empty()
     {
         await Task.CompletedTask;
