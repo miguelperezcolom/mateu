@@ -720,7 +720,8 @@ private fun dateField(ctx: AppContext, fieldId: String, initial: String, enabled
     DateField(initial, enabled) { iso -> ctx.putState(fieldId, iso) }
 
 private fun numberField(ctx: AppContext, fieldId: String, initial: String, enabled: Boolean, integer: Boolean): JComponent {
-    val tf = JBTextField(initial)
+    // a whole decimal comes back from the state as "7900000.0": shown as typed, without the ".0"
+    val tf = JBTextField(MoneyValues.editText(initial))
     tf.isEnabled = enabled
     // Reject non-numeric keystrokes outright so letters can't be typed into a numeric field.
     (tf.document as AbstractDocument).documentFilter = NumericDocumentFilter(integer)

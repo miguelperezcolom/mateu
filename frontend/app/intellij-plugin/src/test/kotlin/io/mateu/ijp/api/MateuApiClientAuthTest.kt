@@ -70,7 +70,7 @@ class MateuApiClientAuthTest : TestCase() {
             client(provider).initialLoad("/", emptyMap())
             fail("expected UnauthorizedException")
         } catch (e: UnauthorizedException) {
-            assertTrue(e.message!!.contains("Settings | Tools | Mateu"))
+            assertTrue(e.message!!.contains("sign in to continue"))
         }
         assertEquals(1, seen.size)
     }

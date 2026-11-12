@@ -121,6 +121,13 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
+    ignore:
+      # The plugin compiles against the PLATFORM's Kotlin stdlib (kotlin.stdlib.default.dependency=false).
+      # Kotlin 2.4 emits coroutine debug metadata v2, which the 2025.2 stdlib rejects at runtime
+      # ("Debug metadata version mismatch") — the desktop app's focused mode never applied. Move the
+      # compiler with the IntelliJ platform, by hand.
+      - dependency-name: "org.jetbrains.kotlin*"
+        versions: [">= 2.3"]
     groups:
       intellij-all:
         patterns: ["*"]

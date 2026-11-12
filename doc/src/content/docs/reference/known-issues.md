@@ -82,6 +82,16 @@ itself. See [Permissions in YAML](/define/yaml/permissions/).
 
 ## Renderers
 
+### Accessibility gaps against WCAG 2.2 AA
+
+Web charts have no text alternative, fields carry no `autocomplete` purpose, toasts (and their
+Undo) disappear after 5–10 s, the app-context select reloads the page on change, the planning
+board and drop zones are drag-only, and pinned headers can hide the focused control. The full list,
+per renderer, is in the [accessibility conformance report](/quality/accessibility-conformance/#known-gaps-in-one-list).
+
+**Workaround:** most have an author-side mitigation listed there (an action beside a drag-only
+board, no auto-dismissing banners for content users must read).
+
 ### Redwood: light theme only
 
 The Redwood renderer has no dark mode. It ignores `@App(themeToggle = true)`, a stored dark choice
@@ -147,17 +157,18 @@ persist them.
 **Workaround:** none yet. Server-side defaults (the listing's declared columns and filters) are what
 a user sees after a restart.
 
-### React Native: no OS notification from a suspended or closed app
+### React Native: a suspended or closed app posts no local notification
 
-With `@App(osNotifications = true)` the phone app posts local notifications only: nothing leaves the
-device, and there is no remote push in 3.0, by design. The OS suspends a backgrounded app soon after
-it leaves the screen, so a task that ends after that, a live inbox push, or anything sent while the
-app is closed produces no OS notification.
+With `@App(osNotifications = true)` the phone app posts LOCAL notifications, which only the running
+app can post: the OS suspends a backgrounded app soon after it leaves the screen, so a task that ends
+after that, a live inbox push, or anything sent while the app is closed produces none.
 
-**Workaround:** the bell catches up as soon as the app is back in front, so keep what matters in the
-inbox (`NotificationsSupplier`, or `InboxStore` for signed-in users). To alert a closed phone, send a
-push from your own backend. See
-[what reaches the device](/ux-patterns/notification-inbox/#on-a-phone-what-reaches-the-device-while-the-app-is-away).
+**Workaround:** send a push. A UI whose app class implements `PushTokenRegistry` lets the user turn
+on *Notifications on this phone*, and its backend sends through Expo Push Service; a tap opens the
+UI at the route the push names. See
+[push notifications to the Mateu app](/ux-patterns/notification-inbox/#push-notifications-to-the-mateu-app).
+Delivery needs a store build with push credentials (APNs key, FCM); it cannot be checked in the
+simulator-free test suites.
 
 ### Touch and desktop adaptations
 

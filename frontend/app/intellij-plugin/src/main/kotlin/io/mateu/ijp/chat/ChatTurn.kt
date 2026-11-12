@@ -84,7 +84,22 @@ class ChatTurn(private val listener: Listener, private val clock: () -> Long = S
         fun failureText(error: Throwable, answeredSoFar: Boolean): String {
             val message = error.message?.takeIf { it.isNotBlank() }
             if (error is java.io.IOException && !answeredSoFar) return CONNECTION_CLOSED + (message?.let { " ($it)" } ?: "")
+            // a server error is a sentence and its reference, never the error page's JSON dumped whole
+            if (error is ChatTransport.HttpFailure) return ERROR_PREFIX + httpFailureText(error)
             return ERROR_PREFIX + (message ?: error.javaClass.simpleName)
+        }
+
+        private fun httpFailureText(f: ChatTransport.HttpFailure): String {
+            val tree = runCatching { com.fasterxml.jackson.databind.ObjectMapper().readTree(f.body) }.getOrNull()
+            val own = tree?.path("message")?.asText("")?.takeIf { it.isNotBlank() && it != "No message available" }
+            val reference = tree?.let { t -> listOf("requestId", "reference", "correlationId").firstNotNullOfOrNull { k -> t.path(k).asText("").takeIf { it.isNotBlank() } } }
+            val what = own ?: when (f.status) {
+                401, 403 -> "The assistant refused the request (HTTP ${f.status})."
+                404 -> "This UI has no assistant at that address (HTTP 404)."
+                in 500..599 -> "The assistant is not available right now (HTTP ${f.status})."
+                else -> "The assistant answered HTTP ${f.status}."
+            }
+            return what + (reference?.let { " Reference: $it" } ?: "")
         }
     }
 }

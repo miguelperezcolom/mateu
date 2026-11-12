@@ -840,6 +840,10 @@ public class ActionInstanceCreator {
     if (actionId.startsWith(io.mateu.core.domain.act.NotificationsActionRunner.ACTION_PREFIX)) {
       return true;
     }
+    // So is the mobile app's push registration (the switch lives in the app's drawer).
+    if (actionId.startsWith(io.mateu.core.domain.act.PushTokensActionRunner.ACTION_PREFIX)) {
+      return true;
+    }
     // So is the command palette's entity search.
     if (io.mateu.core.domain.act.GlobalSearchActionRunner.ACTION_ID.equals(actionId)) {
       return true;

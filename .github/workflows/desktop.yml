@@ -31,6 +31,15 @@
 #   MACOS_CERTIFICATE_P12 (base64 of a Developer ID Application .p12), MACOS_CERTIFICATE_PASSWORD,
 #   MACOS_SIGN_IDENTITY ("Developer ID Application: Name (TEAMID)")
 #   MACOS_NOTARY_APPLE_ID, MACOS_NOTARY_TEAM_ID, MACOS_NOTARY_PASSWORD (app-specific) — to notarize too
+#
+# Windows Authenticode, optional — through SignPath (job sign-windows; without it the setup ships
+# unsigned and SmartScreen warns on first run). It runs when the repository VARIABLE
+# SIGNPATH_ORGANIZATION_ID is set, and then it must succeed or nothing ships:
+#   vars.SIGNPATH_ORGANIZATION_ID, vars.SIGNPATH_PROJECT_SLUG (default mateu),
+#   vars.SIGNPATH_SIGNING_POLICY_SLUG (default release-signing),
+#   vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG (optional: the project's default otherwise)
+#   secrets.SIGNPATH_API_TOKEN (a SignPath CI user's token, submitter on that policy)
+# Only OUR setup .exe is signed; JetBrains' binaries keep JetBrains' signature (smoke-windows checks both).
 
 name: Desktop app
 
@@ -48,6 +57,8 @@ on:
       MACOS_NOTARY_TEAM_ID:
         required: false
       MACOS_NOTARY_PASSWORD:
+        required: false
+      SIGNPATH_API_TOKEN:
         required: false
   workflow_dispatch:
     inputs:
@@ -81,7 +92,7 @@ jobs:
         arch: [aarch64, intel]
     env:
       HAS_SIGNING: ${{ secrets.MACOS_CERTIFICATE_P12 != '' && secrets.MACOS_SIGN_IDENTITY != '' }}
-      HAS_NOTARY: ${{ secrets.MACOS_NOTARY_APPLE_ID != '' && secrets.MACOS_NOTARY_PASSWORD != '' }}
+      HAS_NOTARY: ${{ secrets.MACOS_NOTARY_APPLE_ID != '' && secrets.MACOS_NOTARY_TEAM_ID != '' && secrets.MACOS_NOTARY_PASSWORD != '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -136,11 +147,37 @@ jobs:
           if [ "$HAS_SIGNING" = "true" ] && [ "$HAS_NOTARY" = "true" ]; then args+=(-Pmacos.notarize.profile=mateu-notary); fi
           # through the helper: a cold IDE layout index loses com.intellij.java now and then (#2192)
           cd ../../.. && scripts/intellij-gradle.sh buildInstaller "${args[@]}" --console=plain
+      # With a Developer ID the release must really be what users are told: hardened runtime, a
+      # Developer ID authority, the JVM keeping the entitlements it needs (JIT) after the re-sign, and —
+      # when notarized — a stapled ticket Gatekeeper accepts. Without secrets: ad-hoc, reported only.
       - name: How the app is signed
         run: |
-          app=frontend/app/intellij-plugin/build/installer/Mateu.app
+          set +o pipefail # grep -q closes the pipe early; the checks below read captured text
+          dir=frontend/app/intellij-plugin/build/installer
+          app=$dir/Mateu.app
           codesign -dv --verbose=2 "$app" 2>&1 | grep -E 'Identifier|Authority|TeamIdentifier|Signature|flags' || true
-          codesign --verify --deep --strict "$app" && echo "codesign: valid"
+          codesign --verify --deep --strict "$app" || { echo "::error::codesign: the app's signature is invalid"; exit 1; }
+          echo "codesign: valid"
+          java=$(find "$app/Contents" -path '*/Contents/Home/bin/java' -type f | head -1)
+          jvm_entitlements=""
+          if [ -n "$java" ]; then jvm_entitlements=$(codesign -d --entitlements - "$java" 2>/dev/null || true); echo "JVM entitlements ($java):"; echo "$jvm_entitlements"; fi
+          if [ "$HAS_SIGNING" != "true" ]; then echo "::notice::Ad-hoc signature (no MACOS_* signing secrets): Gatekeeper will warn on first launch."; exit 0; fi
+          info=$(codesign -dv --verbose=2 "$app" 2>&1)
+          echo "$info" | grep -q '^Authority=Developer ID Application' || { echo "::error::not signed with a Developer ID Application certificate"; exit 1; }
+          echo "$info" | grep -Eq 'flags=.*runtime' || { echo "::error::hardened runtime is off (notarization needs it)"; exit 1; }
+          if [ -n "$java" ]; then
+            echo "$jvm_entitlements" | grep -q 'com.apple.security.cs.allow-jit' \
+              || echo "::warning::the bundled JVM lost the allow-jit entitlement in the re-sign — the hardened app may not start (the aarch64 smoke test tells)"
+          fi
+          if [ "$HAS_NOTARY" = "true" ]; then
+            for f in "$app" "$dir"/mateu-desktop-*-macos-*.dmg; do
+              xcrun stapler validate "$f" || { echo "::error::no stapled notarization ticket on $f"; exit 1; }
+            done
+            spctl --assess --type execute --verbose=2 "$app" || { echo "::error::Gatekeeper rejects the app"; exit 1; }
+            echo "Developer ID + notarized + stapled — Gatekeeper accepts it."
+          else
+            echo "::warning::Signed with a Developer ID but NOT notarized (MACOS_NOTARY_* secrets missing): Gatekeeper still blocks a downloaded copy."
+          fi
       # The runner is Apple silicon: only the aarch64 app can run here.
       - name: Smoke test — launch the app, the Mateu plugin must load
         if: matrix.arch == 'aarch64'
@@ -214,8 +251,63 @@ jobs:
           retention-days: 1
           compression-level: 0
 
-  smoke-windows:
+  # The setup's Authenticode, through SignPath. No checkout, no build: it hands this run's setup to
+  # SignPath (which reads the run to verify where it came from) and puts the signed one back in the
+  # artifact everything after reads, so the smoke test checks — and the release ships — the signed file.
+  sign-windows:
     needs: [linux-windows]
+    if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    permissions:
+      actions: read # SignPath reads this run's job and downloads the artifact to sign
+      contents: read
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: mateu-desktop-windows
+          path: ${{ runner.temp }}/pkg
+      - name: Upload the setup to sign
+        id: unsigned
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: mateu-desktop-windows-unsigned
+          path: ${{ runner.temp }}/pkg/mateu-desktop-*-windows-setup.exe
+          if-no-files-found: error
+          retention-days: 1
+      - name: Sign it on SignPath
+        uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3.0
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'mateu' }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG || 'release-signing' }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          # a release-signing policy may need a person to approve the request on SignPath: up to an hour
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: ${{ runner.temp }}/signed
+      - name: Put the signed setup in place of the unsigned one
+        run: |
+          set -euo pipefail
+          ls -l "$RUNNER_TEMP/signed"
+          signed=("$RUNNER_TEMP"/signed/mateu-desktop-*-windows-setup.exe)
+          [ -f "${signed[0]}" ] || { echo "SignPath returned no setup"; exit 1; }
+          cp -f "${signed[0]}" "$RUNNER_TEMP/pkg/"
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: mateu-desktop-windows
+          path: ${{ runner.temp }}/pkg/
+          overwrite: true
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+  smoke-windows:
+    needs: [linux-windows, sign-windows]
+    # sign-windows is skipped when SignPath is not configured; when it is, it has to have worked
+    if: ${{ !cancelled() && needs.linux-windows.result == 'success' && needs.sign-windows.result != 'failure' }}
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -223,6 +315,15 @@ jobs:
         with:
           name: mateu-desktop-windows
           path: ${{ runner.temp }}\pkg
+      - name: Our setup is signed when SignPath signed it
+        if: needs.sign-windows.result == 'success'
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem "$env:RUNNER_TEMP\pkg\*-windows-setup.exe" | Select-Object -First 1
+          $sig = Get-AuthenticodeSignature $setup.FullName
+          "$($setup.Name): $($sig.Status) - $($sig.SignerCertificate.Subject)"
+          if ($sig.Status -ne 'Valid') { throw "the setup is not validly signed" }
+          "✅ windows: $($setup.Name) Authenticode-signed ($($sig.SignerCertificate.Subject))" | Tee-Object -Append $env:GITHUB_STEP_SUMMARY
       - name: JetBrains' Authenticode is intact, the app starts and the Mateu plugin loads
         shell: pwsh
         run: |
@@ -247,6 +348,8 @@ jobs:
   # its smoke test.
   feed:
     needs: [macos, linux-windows, smoke-windows]
+    # explicit: an optional job skipped upstream (sign-windows) would skip this one by default
+    if: ${{ !cancelled() && needs.macos.result == 'success' && needs.linux-windows.result == 'success' && needs.smoke-windows.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -288,7 +391,7 @@ jobs:
   # then the plugin, then the feed: the feed must never name a file that is not there yet.
   attach:
     needs: [macos, linux-windows, smoke-windows, feed]
-    if: ${{ !inputs.dry_run }}
+    if: ${{ !cancelled() && !inputs.dry_run && needs.feed.result == 'success' && needs.smoke-windows.result == 'success' }}
     permissions:
       contents: write # gh release upload
     runs-on: ubuntu-latest

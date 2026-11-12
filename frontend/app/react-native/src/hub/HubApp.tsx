@@ -12,7 +12,7 @@ import { usePendingCounts } from './outboxCounts';
 import { ScreenSnapshots } from '../core/screenSnapshots';
 import { bundleKey } from './bundleCache';
 import { fileBundleStore } from './bundleFileStore';
-import { DEMO_BASE_URL, type HubEntry } from './uiStore';
+import { DEMO_BASE_URL, uiSecretKeys, type HubEntry } from './uiStore';
 import { AddScreen } from './ui/AddScreen';
 import { confirmDialog } from './ui/common';
 import { ConfirmAddScreen, ConfirmImportScreen } from './ui/ConfirmScreens';
@@ -21,6 +21,11 @@ import { ExportScreen } from './ui/ExportScreen';
 import { HomeScreen } from './ui/HomeScreen';
 import { Switcher } from './ui/Switcher';
 import { UiSession } from './ui/UiSession';
+import { MateuApiClient } from '../api/MateuApiClient';
+import { OidcTokenProvider } from '../core/oidc';
+import { disablePush, onPushOpened, type PushHost, type PushRecord } from '../core/pushNotifications';
+import { pushRegistrations } from '../ui/pushPort';
+import { uiSessionId } from './uiSession';
 
 type Screen =
   | { name: 'home' }
@@ -61,6 +66,8 @@ export function HubApp() {
   const [linkTick, setLinkTick] = useState(0);
 
   const linkOptions: ParseOptions = useMemo(() => ({ allowInsecure, extraLinkHosts }), []);
+  // push taps wait for the list (the entry of the tapped UI is looked up in it)
+  const entriesLoaded = entries !== null;
 
   useEffect(() => {
     const off = uiStore.subscribe((list) => setEntries([...list]));
@@ -120,6 +127,18 @@ export function HubApp() {
     },
     [open],
   );
+
+  // A tap on a push notification opens ITS UI (the key it carries names one entry of this list) at
+  // the route it names; a UI no longer in the list opens nothing (core/pushNotifications.ts).
+  const openLinkedRef = useRef(openLinked);
+  openLinkedRef.current = openLinked;
+  useEffect(() => {
+    if (!entriesLoaded) return;
+    return onPushOpened(pushRegistrations, (record, route) => {
+      const entry = uiStore.findByBaseUrl(record.baseUrl);
+      if (entry) void openLinkedRef.current(entry, route || undefined);
+    });
+  }, [entriesLoaded]);
 
   const handleLink = useCallback(
     (link: HubLink, source: 'scan' | 'link' | 'typed') => {
@@ -193,6 +212,8 @@ export function HubApp() {
       true,
     );
     if (!ok) return;
+    // its push notifications stop first, while its credentials are still on the phone
+    await disablePush(entry.baseUrl, pushRegistrations, (record) => pushHostForRemoved(entry, record, liveSessions.current.get(entry.id)));
     setSessions((s) => s.filter((x) => x.id !== entry.id));
     if (activeId === entry.id) setActiveId(undefined);
     await uiStore.remove(entry.id);
@@ -303,6 +324,37 @@ export function HubApp() {
       />
     </View>
   );
+}
+
+/**
+ * Where a removed UI's `_push-unregister` goes: its running session's client, or one built for it
+ * with ITS credentials only (its token store, its session id), which never opens a sign-in.
+ */
+async function pushHostForRemoved(entry: HubEntry, record: PushRecord, live: MateuSession | undefined): Promise<PushHost | null> {
+  const api = live?.api.baseUrl === record.baseUrl
+    ? live.api
+    : new MateuApiClient(
+        record.baseUrl,
+        await uiSessionId(secretStore, entry.id),
+        entry.manifest?.auth ? new OidcTokenProvider(entry.manifest.auth, secretStore, uiSecretKeys(entry.id).tokens) : null,
+      );
+  if (api !== live?.api) api.mayPrompt = () => false;
+  return {
+    baseUrl: record.baseUrl,
+    route: record.route,
+    serverSideType: record.serverSideType,
+    run: (actionId, parameters) =>
+      api.runAction({
+        route: record.route,
+        consumedRoute: record.route || '_empty',
+        actionId,
+        serverSideType: record.serverSideType,
+        initiatorComponentId: 'push-notifications',
+        componentState: {},
+        appState: {},
+        parameters,
+      }),
+  };
 }
 
 const styles = themed(() => StyleSheet.create({

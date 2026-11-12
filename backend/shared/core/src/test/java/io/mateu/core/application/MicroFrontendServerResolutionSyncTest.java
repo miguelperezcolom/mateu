@@ -67,6 +67,28 @@ class MicroFrontendServerResolutionSyncTest {
    */
   static final int IN_TIME = 5000;
 
+  /**
+   * How long a remote that must MISS its deadline takes: far beyond every deadline and bound used
+   * here, so no amount of scheduling noise lets it answer in time. Released at {@link #stop()}.
+   */
+  static final int NEVER_IN_TIME_MS = 30_000;
+
+  /**
+   * A bound for "the host did not wait for the slow remote": generous for a loaded runner, still
+   * far below {@link #NEVER_IN_TIME_MS}.
+   */
+  static final int NOT_WAITED_FOR_MS = 10_000;
+
+  static final java.util.concurrent.CountDownLatch RELEASE =
+      new java.util.concurrent.CountDownLatch(1);
+
+  /** The "delayed" remote's calls being answered right now, and the most seen at once. */
+  static final java.util.concurrent.atomic.AtomicInteger DELAYED_IN_FLIGHT =
+      new java.util.concurrent.atomic.AtomicInteger();
+
+  static final java.util.concurrent.atomic.AtomicInteger DELAYED_MAX_IN_FLIGHT =
+      new java.util.concurrent.atomic.AtomicInteger();
+
   static HttpServer remote;
   static String base;
   static TestMateu mateu;
@@ -115,6 +137,7 @@ class MicroFrontendServerResolutionSyncTest {
   static void stop() {
     System.clearProperty("mateu.self-base-url");
     System.clearProperty(MicroFrontendSettings.MAX_BUDGET);
+    RELEASE.countDown();
     mateu.close();
     remote.stop(0);
   }
@@ -140,8 +163,8 @@ class MicroFrontendServerResolutionSyncTest {
     PATH_HITS.merge(remoteName, 1, Integer::sum);
     try {
       switch (remoteName) {
-        case "slow" -> Thread.sleep(3000);
-        case "delayed" -> Thread.sleep(400);
+        case "slow" -> neverInTime();
+        case "delayed" -> answerWhenAllThreeHaveBeenInFlight();
         case "broken" -> {
           reply(exchange, 500, "boom");
           return;
@@ -179,7 +202,7 @@ class MicroFrontendServerResolutionSyncTest {
         }
         if (path.endsWith("front-office.home.lento")) {
           try {
-            Thread.sleep(3000);
+            neverInTime();
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
           }
@@ -198,6 +221,26 @@ class MicroFrontendServerResolutionSyncTest {
             UIFragmentActionDto.Replace,
             null);
     reply(exchange, 200, json(increment(fragment, policy)));
+  }
+
+  static void neverInTime() throws InterruptedException {
+    RELEASE.await(NEVER_IN_TIME_MS, java.util.concurrent.TimeUnit.MILLISECONDS);
+  }
+
+  /**
+   * The "delayed" remote holds each call until the three calls of mfe-parallel have been in flight
+   * at once (or 3 s pass — below their deadline), recording the most seen at once: asked in a row,
+   * there would only ever be one.
+   */
+  static void answerWhenAllThreeHaveBeenInFlight() throws InterruptedException {
+    var now = DELAYED_IN_FLIGHT.incrementAndGet();
+    try {
+      DELAYED_MAX_IN_FLIGHT.accumulateAndGet(now, Math::max);
+      var deadline = System.nanoTime() + 3_000_000_000L;
+      while (DELAYED_MAX_IN_FLIGHT.get() < 3 && System.nanoTime() < deadline) Thread.sleep(10);
+    } finally {
+      DELAYED_IN_FLIGHT.decrementAndGet();
+    }
   }
 
   static UIIncrementDto increment(UIFragmentDto fragment, FragmentCacheDto policy) {
@@ -252,7 +295,7 @@ class MicroFrontendServerResolutionSyncTest {
       all.add(new RemoteDescriptor("anon", base + "/anon", IN_TIME, RemoteIdentityStrategy.NONE));
       all.add(new RemoteDescriptor("exchanged", base + "/exchanged", IN_TIME, "exchange"));
       // a path on this server, as content-hub is deployed
-      all.add(new RemoteDescriptor("content", "/_content-hub", 1000, null));
+      all.add(new RemoteDescriptor("content", "/_content-hub", IN_TIME, null));
       return all;
     }
   }
@@ -372,18 +415,18 @@ class MicroFrontendServerResolutionSyncTest {
   public static class Parallel extends Page {
     List<Component> parts() {
       return List.of(
-          mfe("delayed", Resolve.SERVER, 2000),
+          mfe("delayed", Resolve.SERVER, IN_TIME),
           MicroFrontend.builder()
               .baseUrl(base + "/delayed")
               .route("/second")
               .resolve(Resolve.SERVER)
-              .timeoutMs(2000)
+              .timeoutMs(IN_TIME)
               .build(),
           MicroFrontend.builder()
               .baseUrl(base + "/delayed")
               .route("/third")
               .resolve(Resolve.SERVER)
-              .timeoutMs(2000)
+              .timeoutMs(IN_TIME)
               .build());
     }
   }
@@ -585,7 +628,9 @@ class MicroFrontendServerResolutionSyncTest {
     assertThat(microFrontend.resolved()).isNull();
     assertThat(microFrontend.server()).isNull();
     assertThat(microFrontend.baseUrl()).isEqualTo(base + "/slow");
-    assertThat(elapsedMs).as("the remote takes 3 s, the budget is 150 ms").isLessThan(1500);
+    assertThat(elapsedMs)
+        .as("the remote takes 30 s, the budget is 150 ms")
+        .isLessThan(NOT_WAITED_FOR_MS);
     assertThat(EVENTS)
         .singleElement()
         .satisfies(
@@ -624,14 +669,14 @@ class MicroFrontendServerResolutionSyncTest {
 
   @Test
   void severalFragmentsAreAskedInParallel() {
-    var started = System.nanoTime();
+    DELAYED_MAX_IN_FLIGHT.set(0);
     var increment = load("/mfe-parallel");
-    var elapsedMs = (System.nanoTime() - started) / 1_000_000;
     var microFrontends = all(increment.fragments(), MicroFrontendDto.class);
     assertThat(microFrontends).hasSize(3).allSatisfy(m -> assertThat(m.resolved()).isNotNull());
     assertThat(hits("delayed")).isEqualTo(3);
-    // each takes 400 ms: in a row that is 1.2 s
-    assertThat(elapsedMs).isLessThan(1100);
+    // proved by overlap, not by a stopwatch: the remote saw the three calls in flight at once —
+    // asked in a row, it would never have seen more than one
+    assertThat(DELAYED_MAX_IN_FLIGHT.get()).isEqualTo(3);
   }
 
   @Test
@@ -738,7 +783,8 @@ class MicroFrontendServerResolutionSyncTest {
     assertThat(all(increment.fragments(), MicroFrontendDto.class)).isEmpty();
     assertThat(texts(increment.fragments())).contains("Down fallback", "Slow fallback");
     assertThat(increment.messages()).isEmpty();
-    assertThat(elapsedMs).isLessThan(1500);
+    // the slow slot takes 30 s: the screen did not wait for it
+    assertThat(elapsedMs).isLessThan(NOT_WAITED_FOR_MS);
     assertThat(EVENTS)
         .extracting(MicroFrontendResolutionEvent::outcome)
         .containsExactlyInAnyOrder(Outcome.ERROR, Outcome.TIMEOUT);

@@ -272,6 +272,16 @@ fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode,
     scroll.viewport.isOpaque = false
     scroll.verticalScrollBarPolicy = javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
     scroll.accessibleContext.accessibleName = metadata.text("headerTitle").ifBlank { "Record" }
+    // Its height counts the sideways scroll bar only once it knows its width: stacked before that,
+    // the page froze it a bar short and the bar covered the panels' last line.
+    scroll.addComponentListener(object : java.awt.event.ComponentAdapter() {
+        private var lastWidth = -1
+        override fun componentResized(e: java.awt.event.ComponentEvent) {
+            if (scroll.width == lastWidth) return
+            lastWidth = scroll.width
+            javax.swing.SwingUtilities.invokeLater { regrowStacked(scroll) }
+        }
+    })
     // `navigation`: the record's own header — back to its parent, previous / next record. It was
     // in the wire and never drawn, so those actions could not be reached.
     val nav = metadata.path("navigation").takeIf { it.isObject } ?: return scroll
@@ -441,7 +451,8 @@ fun renderStandaloneImage(metadata: JsonNode, baseUrl: String? = null, style: St
         label.text = null
         label.foreground = null
         label.icon = iconOf(img)
-        label.revalidate()
+        // it arrives after the page stacked it at the placeholder's height: grow its ancestors
+        regrowStacked(label)
         label.repaint()
     }
     if (src.startsWith("data:")) {
@@ -462,4 +473,14 @@ fun renderStandaloneImage(metadata: JsonNode, baseUrl: String? = null, style: St
         }.apply { isDaemon = true; name = "mateu-image" }.start()
     }
     return label
+}
+
+/** An image src as an absolute http(s) url: absolute as it is, root-relative against the UI's origin,
+ *  relative against its base url. Null for anything else (a `javascript:` src is never fetched). */
+internal fun resolveImageUrl(src: String, baseUrl: String?): String? {
+    val s = src.trim()
+    if (Regex("^https?://", RegexOption.IGNORE_CASE).containsMatchIn(s)) return s
+    if (baseUrl.isNullOrBlank() || s.contains(':')) return null
+    return runCatching { java.net.URI.create(baseUrl.trimEnd('/') + "/").resolve(s).toString() }.getOrNull()
+        ?.takeIf { Regex("^https?://", RegexOption.IGNORE_CASE).containsMatchIn(it) }
 }

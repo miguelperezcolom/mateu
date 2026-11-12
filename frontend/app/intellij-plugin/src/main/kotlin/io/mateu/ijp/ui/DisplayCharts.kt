@@ -30,7 +30,9 @@ fun renderTimeline(r: ComponentRenderer, metadata: JsonNode): JComponent {
         row.isOpaque = false
         // the rail: a vertical line through every entry with a dot (or the entry's icon in a ring)
         // on it — it drew only the icons, so the entries read as an unconnected list
+        // a hex colour, else a tone name ("success") as its solid colour
         val color = runCatching { Color.decode(item.text("color")) }.getOrNull()
+            ?: ToneColors.toneOf(item.text("color")).takeIf { it != ToneColors.Tone.NEUTRAL }?.let { ToneColors.solid(it).first }
         row.add(TimelineMarker(wireIconText(item.text("icon")), color, first = index == 0, last = index == items.lastIndex), BorderLayout.WEST)
         val body = verticalPanel(2)
         val title = item.text("title")

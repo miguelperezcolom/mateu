@@ -139,6 +139,24 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             assets, pinned sha256 = `desktopIdeVersion`; the plugin still compiles against IC 2025.2) +
                             the plugin as an installable, self-updating app (hub | fixed variants, mateu://
                             links) — doc native/desktop-app.md, CI .github/workflows/desktop.yml
+                            FOCUSED MODE (2026-11-06, MateuFocusedModeActivity): (1) Kotlin stays at 2.2.x — the
+                            plugin uses the PLATFORM's stdlib and Kotlin 2.4's coroutine debug metadata v2 makes the
+                            2025.2 stdlib throw on the activity (Dependabot ignores kotlin >= 2.3); (2) on 2025.2 a
+                            ToolWindow.remove()/setAvailable() before the frame's tool-window pane exists THROWS —
+                            uncaught, one window aborted the whole activity (Services/VCS stayed) — so each window
+                            is runCatching'd and the delayed sweeps retry; (3) the main toolbar is pruned by ACTION
+                            GROUP (MainToolbarLeft/Center/Right keep io.mateu.* + SearchEverywhere + SettingsEntryPoint),
+                            hiding its Swing component by class name does nothing. A root answer with NO App shell
+                            opens in a central editor tab (MateuProjectService.loadRoot intercepts initialLoad) and the
+                            Home toolbar action (io.mateu.Home) reopens the home after its tab is closed
+                            MENU CLICKS (2026-11-11, ui/MenuTree.kt): a leaf opens on press+release over the
+                            same row, ANY clickCount — Swing's mouseClicked is dropped when the pointer moves
+                            between press and release, and going quickly from one entry to the next arrives as
+                            clickCount 2 (the row got selected, nothing opened). MateuViewManager refocuses a
+                            view only while its tab is OPEN (a closed tab disposed its AppContext; refocusing it
+                            made the entry dead). To drive the running IDE from outside (Wayland: no screen
+                            capture), attach a java agent that dispatches MouseEvents on EDT and paints the
+                            root pane to PNG (pattern: scratch UiAgent — find the JTree named "Menu")
   vscode-extension/       ← VS Code extension (visual editor host, New Project / New › Mateu wizards, Live Run)
 
 demo/             ← Runnable demo apps (Spring MVC, WebFlux, Micronaut, Quarkus, Helidon).
@@ -310,6 +328,24 @@ hub, claiming NONE of the hub's links (a branded app must never answer for every
   (corpus-pinned; desktop `hubOptions()` sets it, the phone does not): plain http for localhost/127.x/[::1]
   only; a loopback dev app may also use a loopback http icon/OIDC issuer (`HubManifest.isLoopbackBase`).
 - Docs: `deploy/mobile-app-stores.md#hub-or-fixed-mateu_variant`, `ux-patterns/mobile-app.md#the-desktop-app`.
+- **Push notifications through Expo Push Service (2026-11-11, `@Experimental`)**: the app class
+  implements `PushTokenRegistry` (uidl; `PushRegistration{token, service=expo, platform ios|android,
+  uiKey, principal}`; .NET `IPushTokenRegistry`, Python `PushTokenRegistry`) → `AppDto.pushNotifications`;
+  the phone registers with the app-level actions `_push-register`/`_push-unregister` (exempt in
+  `isAppLevelAction`; Java `PushTokensActionRunner`, .NET `SyncHandler.PushTokens`, Python
+  `push_tokens_action`: shapes checked, principal = framework identity, no registry → 403). Mateu
+  KEEPS NO TOKEN AND SENDS NOTHING (no Expo helper, by decision — the app owns store, retries,
+  receipts). RN: pure `src/core/pushNotifications.ts` (per-UI opaque `uiKey` drawn by the phone,
+  sent back as `data.mateu.ui` — a push whose key the phone does not hold opens nothing;
+  permission ONLY from the drawer switch `renderer/PushSwitch.tsx`; re-register at every start;
+  hub remove → unregister FIRST, through the live session or a client built with that UI's own
+  credentials; taps: `onPushOpened` in `HubApp` and `App.tsx` `AuthGate` (fixed/registry)), port
+  `src/ui/pushPort.ts` (shares the lazy expo-notifications loader). Build: the
+  `with-local-notifications-only` plugin is GONE (iOS needs `aps-environment`; `mode` production,
+  development for the dev variant), Android FCM via EAS file env `MATEU_GOOGLE_SERVICES_FILE`
+  (app.config.ts); APNs key + FCM V1 key in EAS credentials (RELEASE.md §0e). Delivery is unverifiable
+  without a real build + device. Tests `PushTokensSyncTest`, `PushTokensTests`, `test_push_tokens.py`,
+  `pushNotifications.test.ts`. Docs `ux-patterns/notification-inbox.md#push-notifications-to-the-mateu-app`.
 ### Micro frontends resolved in the server + `@ContentSlot` (2026-10-31, `@Experimental`)
 
 Spec `docs/specs/microfrontend-server-resolution.md`. `MicroFrontend.resolve` (`CLIENT` default =
@@ -1111,6 +1147,13 @@ in `scripts/plugin-versions.sh`, published as an ordinary version, not pre-relea
 `plugins-v*` release exists any more (2026-10-23; the tag is no longer honoured). **Plugins, desktop app, APK and OTA wait for the tests (2026-11-10)**: `publish-plugins.yml`, `desktop.yml` and `mobile.yml` have NO release trigger — `buid-and-publish.yml` calls them (`workflow_call`) after `e2e`, and their build jobs are read-only; only the upload jobs (`attach`, `android-attach`) hold `contents: write` (pinned by `scripts/release-gates.test.mjs`). A pre-release of a LATER line (`v3.1-rc.1`, `v4.0-beta.1`) publishes
 no plugin, no desktop app and no over-the-air update and does not repin the examples (the jobs' `if:`, pinned by
 `scripts/release-gates.test.mjs`); an alpha of the current line still fails the plugin publish rather than guessing.
+**Provenance (2026-11-11)**: `buid-and-publish.yml` job `provenance` (needs every publishing/attaching job, runs
+`!cancelled()` after e2e) downloads the artifacts `maven-jars` (uploaded by `all` after `deploy`), `pypi-dist`,
+`nupkgs`, `ide-plugin-*` (publish-plugins.yml) and the release assets BY NAME, and attests them with
+`actions/attest-build-provenance` + writes `SHA256SUMS` (attached by `checksums-attach`). It is the ONLY job with
+`attestations: write`; `id-token: write` only there and in `pypi`/`nuget` — never in a job that checks out or
+builds (pinned by `release-gates.test.mjs`). A new release asset or package = add its pattern/artifact there.
+A manual desktop.yml/mobile.yml re-run re-uploads assets with no attestation. Docs `reference/verify-downloads.md`.
 
 ---
 

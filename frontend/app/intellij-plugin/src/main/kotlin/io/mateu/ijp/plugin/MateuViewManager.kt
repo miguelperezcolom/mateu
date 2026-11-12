@@ -10,8 +10,6 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.ui.content.ContentFactory
 import io.mateu.ijp.state.AppContext
 import io.mateu.ijp.state.AppSession
 import java.awt.BorderLayout
@@ -19,18 +17,33 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 /**
- * Places Mateu views the IntelliJ-native way: a **Crud listing goes to the bottom "Mateu" tool
- * window** (like search/find results), while everything else — non-Crud pages and the **detail**
- * opened from a row — goes to a **central editor tab**. The view's type is detected on first content
- * ([AppContext.onFirstContent]), so we load once and then route it to the right host.
+ * Places Mateu views the IntelliJ-native way. Every screen a menu entry opens — a listing included —
+ * is a **central editor tab**: a listing is an app's main screen, not a transient result, and the
+ * bottom panel (IntelliJ's place for Find / Run / Problems) showed it as a short strip of three rows
+ * while the centre stayed unchanged. The record a listing row opens goes to the **preview tab**: one
+ * tab reused row after row (IntelliJ's own single-click preview), kept for good once it holds work —
+ * unsaved changes, an edit / new form — or the user pins it. Browse the listing beside the record
+ * with the editor's Split Right; the record's previous / next buttons walk the list too.
  *
- * Both hosts render the view's toolbar actions natively (see [viewActionGroup]): an ActionToolbar
- * strip on top of the editor tab, the title-bar actions on the bottom tool window.
+ * Each tab renders the view's toolbar natively (see [viewActionGroup]): an ActionToolbar strip on top.
  */
 class MateuViewManager(private val project: Project, private val session: AppSession) {
+    private companion object {
+        val LOG = com.intellij.openapi.diagnostic.Logger.getInstance(MateuViewManager::class.java)
+    }
 
-    // key ("sst::route") → a function that re-focuses the already-open view.
-    private val focusByKey = HashMap<String, () -> Unit>()
+
+    // key ("sst::route") → the tab showing that view, re-focused by the next click on its menu entry.
+    // Only while the tab is OPEN: closing it disposes the view, and refocusing that dead view made the
+    // entry do nothing at all on every later click (Visits, Loans… once their tab had been closed).
+    private val focusByKey = HashMap<String, MateuVirtualFile>()
+
+    private fun openTabFor(key: String): MateuVirtualFile? {
+        val file = focusByKey[key] ?: return null
+        if (FileEditorManager.getInstance(project).isFileOpen(file) && file.ctx?.isDisposed != true) return file
+        focusByKey.remove(key)
+        return null
+    }
 
     init {
         // Dirty guard on tab close (@ConfirmOnNavigationIfDirty): there is no veto API for editor
@@ -66,7 +79,7 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         )
     }
 
-    /** Menu entry → view (Crud listing to the bottom tool window, everything else to an editor tab). */
+    /** Menu entry → view, in an editor tab of its own. */
     fun openView(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?) =
         open(label, route, consumedRoute, serverSideType, actionId, preferEditor = false)
 
@@ -74,9 +87,46 @@ class MateuViewManager(private val project: Project, private val session: AppSes
     fun openRemoteView(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?, baseUrl: String) =
         open(label, route, consumedRoute, serverSideType, actionId, preferEditor = false, baseUrl = baseUrl)
 
-    /** Row detail → always a central editor tab (even if the form embeds grids). */
+    /** Row detail → the preview tab (see the class comment); a New form → a fresh tab of its own. */
     fun openDetail(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?) =
         open(label, route, consumedRoute, serverSideType, actionId, preferEditor = true)
+
+    /** The record a listing row opened last, while it is still a preview (replaced by the next row). */
+    private var detailPreview: MateuVirtualFile? = null
+    private var detailPreviewKey: String? = null
+
+    /** A preview the user started working in, or pinned, keeps its tab: the next row opens another. */
+    private fun keepsItsTab(file: MateuVirtualFile): Boolean {
+        val ctx = file.ctx ?: return true
+        if (ctx.dirty) return true
+        val route = ctx.currentRoute.orEmpty().trimEnd('/')
+        if (route.endsWith("/edit") || route.endsWith("/new")) return true
+        return FileEditorManagerEx.getInstanceEx(project).windows.any { it.isFilePinned(file) }
+    }
+
+    /** Brings an open view's tab to the front: its editor window first (a split, another window),
+     *  then the tab — a bare openFile on an open file sometimes left the current tab showing. */
+    private fun showTab(file: MateuVirtualFile) {
+        val fem = FileEditorManagerEx.getInstanceEx(project)
+        fem.windows.firstOrNull { it.isFileOpen(file) }?.setAsCurrentWindow(true)
+        fem.openFile(file, true, true)
+        if (file !in fem.selectedFiles) {
+            LOG.warn("tab '${file.presentableTitle}' was not selected after openFile: selecting its editor")
+            fem.windows.firstOrNull { it.isFileOpen(file) }?.let { w -> w.setAsCurrentWindow(true); fem.openFile(file, true, true) }
+        }
+    }
+
+    /** Closes the current preview tab unless it holds work; the next record takes its place. */
+    private fun releasePreview() {
+        val old = detailPreview ?: return
+        detailPreview = null
+        val oldKey = detailPreviewKey
+        detailPreviewKey = null
+        val fem = FileEditorManager.getInstance(project)
+        if (!fem.isFileOpen(old) || keepsItsTab(old)) return
+        oldKey?.let(focusByKey::remove)
+        fem.closeFile(old)
+    }
 
     /** The transient preview tab an assistant-rendered screen lives in (one at a time). */
     private var previewFile: MateuVirtualFile? = null
@@ -109,7 +159,8 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         // drafts can be edited side by side (each with its own context and state).
         val cacheable = !route.orEmpty().trimEnd('/').endsWith("/new")
         val key = "${baseUrl.orEmpty()}::${serverSideType.orEmpty()}::${route.orEmpty()}"
-        if (cacheable) focusByKey[key]?.let { it(); return }
+        val reused = if (cacheable) openTabFor(key) else null
+        if (reused != null) { showTab(reused); return }
 
         val title = label.ifBlank { route ?: "View" }
         val ctx = AppContext(io.mateu.ijp.ui.remoteSession(session, baseUrl))
@@ -122,6 +173,10 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         // Swallow SetWindowTitle until a host mounts (else it would clobber the navigator's tool
         // window title); the host reads ctx.lastWindowTitle on attach and takes over.
         ctx.titleConsumer = {}
+        // A menu entry's tab appears AT ONCE, showing "Loading…" until the server answers: placed on
+        // the first content, a slow or failed answer left the click looking ignored. (A row's record
+        // still waits for its content: it may replace the current preview tab.)
+        val placedNow = if (!preferEditor) placeEditor(ctx, panel, title).also { if (cacheable) focusByKey[key] = it } else null
         ctx.onFirstContent = { isCrud ->
             // Row detail / New / Edit navigations from a listing open in a central editor tab — wire
             // this for EVERY crud, so a listing hosted in the editor (e.g. the home screen) drills
@@ -129,12 +184,15 @@ class MateuViewManager(private val project: Project, private val session: AppSes
             if (isCrud) {
                 ctx.detailOpener = { dLabel, dRoute, dConsumed, dSst -> openDetail(dLabel, dRoute, dConsumed, dSst, null) }
             }
-            val focus = if (isCrud && !preferEditor) {
-                placeCrudList(ctx, panel, title)
-            } else {
-                placeEditor(ctx, panel, title)
+            // a record opened from a row is a preview; a New form is work from the start
+            val preview = preferEditor && cacheable
+            if (preview) releasePreview()
+            val file = placedNow ?: placeEditor(ctx, panel, title)
+            if (preview) {
+                detailPreview = file
+                detailPreviewKey = key
             }
-            if (cacheable) focusByKey[key] = focus
+            if (cacheable) focusByKey[key] = file
         }
         ctx.navigate(route, consumedRoute, serverSideType, actionId)
     }
@@ -148,8 +206,6 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         closePreview()
         val contexts = LinkedHashSet<AppContext>()
         FileEditorManager.getInstance(project).openFiles.filterIsInstance<MateuVirtualFile>().mapNotNullTo(contexts) { it.ctx }
-        ToolWindowManager.getInstance(project).getToolWindow(RESULTS_ID)?.contentManagerIfCreated?.contents
-            ?.mapNotNullTo(contexts) { it.getUserData(MATEU_VIEW_CTX) }
         for (ctx in contexts) {
             ctx.setDirtyState(false)
             ctx.navigate(ctx.currentRoute, ctx.currentConsumedRoute, ctx.currentServerSideType, null)
@@ -158,40 +214,8 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         session.reattachTasks()
     }
 
-    /** Crud listing → a tab in the bottom "Mateu" results tool window; actions on the title bar. */
-    private fun placeCrudList(ctx: AppContext, panel: JComponent, title: String): () -> Unit {
-        val twm = ToolWindowManager.getInstance(project)
-        // "Mateu Results" is declared in plugin.xml (MateuResultsToolWindowFactory), so it already
-        // exists — we never call the override-only ToolWindowManager.registerToolWindow.
-        val tw = twm.getToolWindow(RESULTS_ID) ?: return {}
-        // One delegating group for the whole tool window: it surfaces the SELECTED tab's actions
-        // (plain tool windows don't render per-Content action groups). Idempotent as views open.
-        tw.setTitleActions(listOf(toolWindowTitleGroup(tw)))
-        val content = ContentFactory.getInstance().createContent(io.mateu.ijp.ui.blockable(ctx, panel), title, false)
-        content.putUserData(MATEU_VIEW_CTX, ctx)
-        // This view's SetWindowTitle names its own tab (e.g. "All products").
-        ctx.titleConsumer = { t -> content.displayName = t }
-        ctx.lastWindowTitle?.let { content.displayName = it }
-        tw.contentManager.addContent(content)
-        // Tab closed: the view's periodic refreshes / subscriptions must not outlive it.
-        tw.contentManager.addContentManagerListener(object : com.intellij.ui.content.ContentManagerListener {
-            override fun contentRemoved(event: com.intellij.ui.content.ContentManagerEvent) {
-                if (event.content === content) {
-                    ctx.dispose()
-                    tw.contentManager.removeContentManagerListener(this)
-                }
-            }
-        })
-        tw.contentManager.setSelectedContent(content)
-        tw.activate(null)
-        return {
-            tw.activate(null)
-            tw.contentManager.setSelectedContent(content)
-        }
-    }
-
-    /** Non-Crud view / row detail → an editor tab with a native ActionToolbar strip on top. */
-    private fun placeEditor(ctx: AppContext, panel: JComponent, title: String): () -> Unit {
+    /** A view → an editor tab with a native ActionToolbar strip on top: the tab's file + how to refocus it. */
+    private fun placeEditor(ctx: AppContext, panel: JComponent, title: String): MateuVirtualFile {
         val toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, viewActionGroup(ctx), true)
         toolbar.targetComponent = panel
         // Refresh the strip the moment the view republishes its buttons (e.g. view → edit) —
@@ -218,13 +242,9 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         }
         ctx.lastWindowTitle?.let { file.presentableTitle = it }
         fem.openFile(file, true)
-        return { fem.openFile(file, true) }
+        return file
     }
 
-    companion object {
-        // Must match the <toolWindow id="…"> declared in plugin.xml.
-        private const val RESULTS_ID = "Mateu Results"
-    }
 }
 
 /**

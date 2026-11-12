@@ -22,11 +22,36 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Security
 
+- **Build provenance for everything a release distributes.** A new `provenance` job in the release
+  workflow signs a SLSA provenance attestation (Sigstore, `actions/attest-build-provenance`) for the
+  jars sent to Maven Central, the PyPI sdist and wheel, the `.nupkg` files, the IntelliJ and VS Code
+  plugin packages and every GitHub release asset (desktop installers, APK, Redwood embedded
+  component, SBOMs), and attaches a `SHA256SUMS` to the release: `gh attestation verify <file> --repo
+  miguelperezcolom/mateu`. It only downloads and attests; it is the one job with
+  `attestations: write`, and `id-token: write` stays in it and the PyPI/NuGet publish jobs
+  (`scripts/release-gates.test.mjs` pins both). PyPI trusted publishing uploads PEP 740 attestations
+  explicitly. A Developer ID macOS build now fails the release when its signature, hardened runtime,
+  stapled notarization ticket or Gatekeeper assessment does not check out, and notarization also
+  requires `MACOS_NOTARY_TEAM_ID`. New page
+  [Verify what you download](https://mateu.io/reference/verify-downloads/).
+
 - **A route seed of a YAML field hidden from the caller no longer travels to them.** The `state:` /
   `defaultParams:` / `fixedParams:` seeds of a definition-only page were applied after the access
   keys, so the value of an `eyesOnly:` / `access:` field reached a caller who may not see it. Fixed in
   Java, .NET and Python, for fields of the page and of the business components it draws (conformance
   case `yaml-eyes-only` now seeds the hidden field).
+
+### Added
+
+- **Push notifications on the Mateu phone app (experimental).** An app class implementing
+  `PushTokenRegistry` (.NET `IPushTokenRegistry`, Python `PushTokenRegistry`) makes the phone offer
+  *Notifications on this phone* in that UI's drawer; turning it on asks the OS for permission and
+  registers the phone's Expo push token with that UI only (app-level actions `_push-register` /
+  `_push-unregister`, wire `AppDto.pushNotifications`), turning it off or removing the UI
+  unregisters it. The backend keeps the tokens and sends through Expo Push Service with
+  `data.mateu = {ui, route}`; a tap opens that UI at that route, in the hub and in a fixed build.
+  Mateu stores no token and sends nothing. Replaces the known issue "no OS notification from a
+  suspended or closed app". Needs a new store build with APNs/FCM credentials.
 
 ### Changed
 
@@ -37,6 +62,28 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   release's tests**, like Maven Central: `buid-and-publish.yml` calls their workflows after `e2e`, so
   a release whose tests fail ships none of them. Their build jobs run with a read-only token; only
   small upload jobs, which check nothing out and build nothing, can write to the release.
+- **The desktop app's Windows setup can be signed in CI through SignPath** (`desktop.yml` job
+  `sign-windows`): set the `SIGNPATH_ORGANIZATION_ID` variable and the `SIGNPATH_API_TOKEN` secret.
+  Once configured, a failed signing stops the release and the Windows smoke test checks the setup's
+  Authenticode; unconfigured, the setup ships unsigned as before. Setup in `native/desktop-app.md`.
+
+### Fixed — Desktop app (IntelliJ, focused mode)
+
+- **The side menu always opens what you click**: the whole row is the target (a click right of a
+  short label selected the row and opened nothing), a quick click after another is no longer dropped
+  as a double click, a pointer that moves a pixel no longer loses the click, and an entry whose tab
+  was closed opens again (it refocused the closed, disposed view). The tab appears at once, showing
+  "Loading…" until the server answers.
+- **The status bar says when the app waits for a server**: IntelliJ's own background progress
+  ("Mateu: waiting for the server"), shown when a wait lasts over 150 ms.
+- **Collection Detail pages**: a row of the list opens the record beside it, in the same tab, and the
+  list no longer filters itself by the selected record's fields (the artists list showed one artist).
+- **Card listings** show each row's picture and are titled by their first text column; inside a page
+  they grow with their cards instead of collapsing to a strip.
+- Listings and foldouts stacked in a page grow with the rows and panels that arrive after it is
+  drawn (tables cut after one row, a foldout's last line under its scroll bar); KPI figures and number
+  fields show `18.000.000`, not `1.8E7`; timeline icons are IDE icons, not token text; the menu goes
+  back to the left on every start.
 
 ### Removed
 
@@ -140,6 +187,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `auto`).
 
 ### Documentation
+
+- **Accessibility conformance report** ([quality/accessibility-conformance](https://mateu.io/quality/accessibility-conformance/)):
+  WCAG 2.2 Level A and AA, criterion by criterion, for the Vaadin, Redwood, React Native and desktop
+  renderers, in the structure of the ITI VPAT 2.5 (WCAG edition), with the evidence behind each
+  claim and the known gaps (web charts without a text alternative, no `autocomplete` purposes,
+  short-lived toasts, drag-only planning board and drop zones, focus hidden by pinned regions).
 
 - The [feature parity matrix](https://mateu.io/reference/parity/) and
   [known issues](https://mateu.io/reference/known-issues/) follow the Explorer review: the ports'

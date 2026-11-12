@@ -113,6 +113,16 @@ export class MateuSession {
   /** The tasks this UI's streams reported, to resume them when a stream breaks (core/taskReattach.ts). */
   readonly reattach: TaskReattach;
   private ownOsNotifications = false;
+  private ownPushNotifications = false;
+  /** The UI takes push notifications (App.pushNotifications: its app class implements
+   *  PushTokenRegistry; core/pushNotifications.ts). */
+  get pushNotifications(): boolean {
+    return this.storesFromSession ? this.storesFromSession.pushNotifications : this.ownPushNotifications;
+  }
+  set pushNotifications(value: boolean) {
+    if (this.storesFromSession) this.storesFromSession.pushNotifications = value;
+    else this.ownPushNotifications = value;
+  }
   /** The app opted in to OS-level notifications (App.osNotifications; core/osNotifications.ts). */
   get osNotifications(): boolean {
     return this.storesFromSession ? this.storesFromSession.osNotifications : this.ownOsNotifications;

@@ -91,12 +91,35 @@ object MenuTree {
             if (entry != null) open(entry)
             else if (tree.isExpanded(path)) tree.collapsePath(path) else tree.expandPath(path)
         }
+        // Press and release on the same entry opens it. Not mouseClicked: Swing drops a click when the
+        // pointer moves a pixel between press and release, so an entry sometimes "did not react".
+        // A group row still toggles only through its handle / double click (BasicTreeUI's own).
+        // The WHOLE row is the target, as it is painted (full-width selection): getPathForLocation only
+        // hits the label's own width, so a click right of a short label («Visits», «Loans») selected the
+        // row and opened nothing.
+        fun rowPathAt(x: Int, y: Int): javax.swing.tree.TreePath? {
+            val row = tree.getClosestRowForLocation(x, y)
+            if (row < 0) return null
+            val b = tree.getRowBounds(row) ?: return null
+            return if (y >= b.y && y < b.y + b.height && x >= b.x) tree.getPathForRow(row) else null
+        }
         tree.addMouseListener(object : MouseAdapter() {
-            override fun mouseClicked(e: MouseEvent) {
-                if (e.button != MouseEvent.BUTTON1 || e.clickCount != 1) return
-                val path = tree.getPathForLocation(e.x, e.y) ?: return
+            private var pressed: javax.swing.tree.TreePath? = null
+
+            override fun mousePressed(e: MouseEvent) {
+                // ANY click count: going quickly from one entry to the next counts as the 2nd click of a
+                // series, and requiring clickCount == 1 dropped it (the entry was selected, nothing opened).
+                // Opening an entry twice is harmless — an open view's tab is just brought to the front.
+                pressed = if (e.button == MouseEvent.BUTTON1 && !e.isPopupTrigger) rowPathAt(e.x, e.y) else null
+            }
+
+            override fun mouseReleased(e: MouseEvent) {
+                val start = pressed ?: return
+                pressed = null
+                if (e.button != MouseEvent.BUTTON1 || e.isPopupTrigger) return
+                val path = rowPathAt(e.x, e.y) ?: return
                 // a group's own row toggles through its handle / double click — only leaves open on a click
-                if (nodeAt(path)?.entry != null) activate(path)
+                if (path == start && nodeAt(path)?.entry != null) activate(path)
             }
         })
         tree.addKeyListener(object : KeyAdapter() {

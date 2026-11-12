@@ -490,6 +490,10 @@ class DispatchMixin(MixinBase):
             return self.keep_alive_action(type_, rq)
         if rq.action_id == "_live-updates":
             return self.live_updates_snapshot()
+        # 2e. The mobile app's push registration — same app-level rail (mirrors Java's
+        # PushTokensActionRunner).
+        if rq.action_id in ("_push-register", "_push-unregister"):
+            return self.push_tokens_action(type_, rq)
 
         # 3. A wizard.
         if issubclass(type_, Wizard):

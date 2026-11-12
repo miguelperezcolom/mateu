@@ -75,6 +75,8 @@ private fun renderOne(jsonFile: File, pngPath: String) {
     SwingUtilities.invokeAndWait { ctx.applyIncrement(increment) }
     // loadServerSideComponent defers its putChildren via invokeLater; drain a few EDT hops.
     repeat(4) { Thread.sleep(250); SwingUtilities.invokeAndWait {} }
+    // -Dprobe.waitMs=<ms>: more time for what arrives off the EDT (remote images, REST rows)
+    System.getProperty("probe.waitMs")?.toLongOrNull()?.let { Thread.sleep(it); repeat(3) { SwingUtilities.invokeAndWait {}; Thread.sleep(50) } }
 
     // -Dprobe.followUp=<json>: a second increment applied on top (e.g. an action's response),
     // to exercise in-place updates (state-only merges, toolbar republish…).
