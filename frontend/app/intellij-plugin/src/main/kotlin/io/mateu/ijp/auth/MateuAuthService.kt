@@ -190,12 +190,16 @@ class MateuAuthService(private val project: Project) : TokenProvider {
                 when (settings.authMode) {
                     AuthMode.NONE -> "The backend at $backend requires authentication. Configure it in Settings | Tools | Mateu."
                     AuthMode.TOKEN -> "The backend at $backend rejected the configured token."
-                    AuthMode.OIDC -> "Your session with $backend has expired."
+                    // not "your session has expired": the first visit to a UI that signs in lands here too
+                    AuthMode.OIDC -> "Sign in to $backend to continue."
                 },
                 NotificationType.WARNING,
             )
             if (settings.authMode == AuthMode.OIDC) {
-                n.addAction(NotificationAction.createSimpleExpiring("Sign in…") { signIn() })
+                // signed in: the UI loads again (what was refused is still blank otherwise)
+                n.addAction(NotificationAction.createSimpleExpiring("Sign in…") {
+                    signIn { ok -> if (ok) project.getService(io.mateu.ijp.plugin.MateuProjectService::class.java).reconnect() }
+                })
             }
             n.addAction(NotificationAction.createSimpleExpiring("Open settings") {
                 ShowSettingsUtil.getInstance().showSettingsDialog(project, MateuConfigurable::class.java)

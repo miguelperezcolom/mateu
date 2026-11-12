@@ -129,6 +129,24 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             assets, pinned sha256 = `desktopIdeVersion`; the plugin still compiles against IC 2025.2) +
                             the plugin as an installable, self-updating app (hub | fixed variants, mateu://
                             links) — doc native/desktop-app.md, CI .github/workflows/desktop.yml
+                            FOCUSED MODE (2026-11-06, MateuFocusedModeActivity): (1) Kotlin stays at 2.2.x — the
+                            plugin uses the PLATFORM's stdlib and Kotlin 2.4's coroutine debug metadata v2 makes the
+                            2025.2 stdlib throw on the activity (Dependabot ignores kotlin >= 2.3); (2) on 2025.2 a
+                            ToolWindow.remove()/setAvailable() before the frame's tool-window pane exists THROWS —
+                            uncaught, one window aborted the whole activity (Services/VCS stayed) — so each window
+                            is runCatching'd and the delayed sweeps retry; (3) the main toolbar is pruned by ACTION
+                            GROUP (MainToolbarLeft/Center/Right keep io.mateu.* + SearchEverywhere + SettingsEntryPoint),
+                            hiding its Swing component by class name does nothing. A root answer with NO App shell
+                            opens in a central editor tab (MateuProjectService.loadRoot intercepts initialLoad) and the
+                            Home toolbar action (io.mateu.Home) reopens the home after its tab is closed
+                            MENU CLICKS (2026-11-11, ui/MenuTree.kt): a leaf opens on press+release over the
+                            same row, ANY clickCount — Swing's mouseClicked is dropped when the pointer moves
+                            between press and release, and going quickly from one entry to the next arrives as
+                            clickCount 2 (the row got selected, nothing opened). MateuViewManager refocuses a
+                            view only while its tab is OPEN (a closed tab disposed its AppContext; refocusing it
+                            made the entry dead). To drive the running IDE from outside (Wayland: no screen
+                            capture), attach a java agent that dispatches MouseEvents on EDT and paints the
+                            root pane to PNG (pattern: scratch UiAgent — find the JTree named "Menu")
   vscode-extension/       ← VS Code extension (visual editor host, New Project / New › Mateu wizards, Live Run)
 
 demo/             ← Runnable demo apps (Spring MVC, WebFlux, Micronaut, Quarkus, Helidon).

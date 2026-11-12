@@ -40,6 +40,12 @@ import io.mateu.ijp.ui.plain
  */
 @Service(Service.Level.PROJECT)
 class MateuProjectService(private val project: Project) : com.intellij.openapi.Disposable {
+    init {
+        // the status-bar progress while a request waits for its server: from the start, not only once a
+        // UI is open (the hub's own requests — adding a UI, reading a manifest — wait for servers too)
+        MateuServerProgress.install()
+    }
+
 
     /** The project closes: the live-updates stream and the idle watcher stop with the session. */
     override fun dispose() {
@@ -54,6 +60,27 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
 
     private var booting = false
     private var homeOpened = false
+
+    /** (Re)loads the app root of the current session (set by [boot]). */
+    private var loadRoot: () -> Unit = {}
+
+    /** Opens the UI's home again (set by [boot]) — the Home button: closing the home tab must not
+     *  leave the UI with no way back to it. */
+    private var reopenHome: (() -> Unit)? = null
+
+    /** The open UI's home: the shell's home route / first menu leaf, or the root of a UI with no
+     *  shell — in its central tab (re-focused when still open, reopened when it was closed). */
+    fun openHome() {
+        reopenHome?.invoke()
+    }
+
+    fun hasHome(): Boolean = session != null && reopenHome != null
+
+    /** Whether a root answer carries an app shell (an `App` component anywhere in it). */
+    private fun hasAppShell(node: JsonNode): Boolean {
+        if (node.path("metadata").text("type") == "App") return true
+        return node.any { it.isContainerNode && hasAppShell(it) }
+    }
 
     /**
      * Drops the current session and boots again from the settings (call on the EDT) — what a Mateu App
@@ -119,6 +146,10 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         // the running tasks remembered by the previous IDE run, before any session asks for its ledger
         io.mateu.ijp.state.TaskLedgers.attach(MateuTaskStore.getInstance())
         val s = AppSession(baseUrl, config, io.mateu.ijp.auth.MateuAuthService.getInstance(project).forCurrentUi())
+        s.contextSelectorsInToolbar = loadMateuConfig(project).focused
+        if (s.contextSelectorsInToolbar) s.onAssistant = { assistant -> MateuAssistantToolWindow.show(project, s, assistant) }
+        // route loads from the UI's static bundle, when it ships one (hub entries only)
+        if (hubEntryId != null) s.apiClient.bundle = hubBundle
         session = s
         val viewManager = MateuViewManager(project, s)
         s.openViewHandler = viewManager::openView
@@ -186,13 +217,32 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
                 )
                 .addAction(
                     com.intellij.notification.NotificationAction.createSimpleExpiring(texts.reload) {
-                        ctx.initialLoad(route)
+                        loadRoot()
                         viewManager.reloadAll()
                     },
                 )
                 .notify(project)
         }
         ctx.appShell = true
+        // The root of a UI with NO app shell (the counter demo: a plain page) is content, not a
+        // navigator: in the desktop app it opens like any page — in a central editor tab — and the
+        // side panel folds away. It used to paint inside the "Mateu" tool window, beside an empty
+        // editor area.
+        var shellLess = false
+        val openRootView = { viewManager.openView(hubEntryName ?: "Home", route, null, null, null) }
+        reopenHome = { if (shellLess) openRootView() else openHomeView(s) }
+        loadRoot = {
+            ctx.initialLoad(route) { increment ->
+                if (!standalone || hasAppShell(increment)) return@initialLoad false
+                shellLess = true
+                if (!homeOpened) {
+                    homeOpened = true
+                    openRootView()
+                    com.intellij.openapi.wm.ToolWindowManager.getInstance(project).getToolWindow("Mateu")?.hide()
+                }
+                true
+            }
+        }
         val root = ctx.newSlot()
         ctx.contentPane = root
         navigatorRoot.removeAll()
@@ -201,19 +251,19 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         navigatorRoot.repaint()
         // Loads the App fragment → renderApp publishes the menu (toolbar widget, IDE actions)
         // and draws the navigator into navigatorRoot.
-        ctx.initialLoad(route)
+        loadRoot()
         // @AppContext selector changed → rebuild the shell against the new context; open views
         // pick the new appState up on their next request (it travels with every call).
-        s.onAppContextChanged = { ctx.initialLoad(route) }
+        s.onAppContextChanged = { loadRoot() }
         // The idle warning signed out: back to the app's root, as a fresh start.
-        s.onSignedOut = { ctx.initialLoad(route) }
+        s.onSignedOut = { loadRoot() }
         // Development mode ("Run Mateu App (Live)"): the backend's manifest names its live-reload
         // events — a YAML edit, a HotSwap's reload or a restart re-renders the shell and every open
         // view, like the browser. A production backend names none: nothing is followed.
         s.liveReload = io.mateu.ijp.live.LiveReload.follow(baseUrl) {
             SwingUtilities.invokeLater {
                 if (session === s) {
-                    ctx.initialLoad(route)
+                    loadRoot()
                     viewManager.reloadAll()
                 }
             }
@@ -269,10 +319,18 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
     var hubEntryId: String? = null
         private set
 
+    /** The open hub entry's static bundle, when its manifest names one (see [boot]). */
+    private var hubBundle: io.mateu.ijp.api.StaticBundle? = null
+
+    /** The open hub entry's name (the tab title of a UI with no shell, until its own title arrives). */
+    private var hubEntryName: String? = null
+
     /** Back to "My UIs": the open UI's session, views and results close. */
     fun showHub() {
         session?.dispose()
         session = null
+        reopenHome = null
+        hubBundle = null
         project.putUserData(MATEU_SESSION, null)
         hubEntryId = null
         homeOpened = false
@@ -285,6 +343,10 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         navigatorRoot.add(io.mateu.ijp.hub.HubPanel(project, store, ::openHubEntry), BorderLayout.CENTER)
         navigatorRoot.revalidate()
         navigatorRoot.repaint()
+        // a shell-less UI folded the panel away: the list must be visible again
+        if (loadMateuConfig(project).standalone) {
+            com.intellij.openapi.wm.ToolWindowManager.getInstance(project).getToolWindow("Mateu")?.show()
+        }
     }
 
     /**
@@ -297,7 +359,11 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         showStatus("Opening ${entry.name}…")
         ApplicationManager.getApplication().executeOnPooledThread {
             val fetched = io.mateu.ijp.hub.HubManifest.fetch(entry.baseUrl, allowInsecure = io.mateu.ijp.hub.hubOptions().allowInsecure)
+            val shipped = (fetched as? io.mateu.ijp.hub.HubManifest.Fetch.Ok)?.takeUnless { it.missing }?.manifest?.bundle
+            // a static/hybrid site: its screens come from the bundle (loads), its actions from the server
+            val bundle = shipped?.let { io.mateu.ijp.hub.HubManifest.fetchBundle(entry.baseUrl, it) }
             SwingUtilities.invokeLater {
+                hubBundle = bundle
                 val manifest = (fetched as? io.mateu.ijp.hub.HubManifest.Fetch.Ok)?.takeUnless { it.missing }?.manifest
                 val refusal = manifest?.let { io.mateu.ijp.hub.HubManifest.refusal(it) }
                 if (refusal != null) {
@@ -342,6 +408,7 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
                     }
                 }
                 hubEntryId = current.id
+                hubEntryName = current.name
                 // no forgetSession: the auth service reads THIS UI's session (backend + issuer + client)
                 session?.dispose()
                 session = null
@@ -359,12 +426,11 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         io.mateu.ijp.hub.HubAdd.fromLink(project, link, io.mateu.ijp.hub.HubStore.getInstance(), ::openHubEntry)
     }
 
-    /** Closes the previous UI's screens: its editor tabs and its results panel tabs. */
+    /** Closes the previous UI's screens: its editor tabs and its assistant. */
     private fun closeViews() {
         val editors = com.intellij.openapi.fileEditor.FileEditorManager.getInstance(project)
         editors.openFiles.forEach(editors::closeFile)
-        com.intellij.openapi.wm.ToolWindowManager.getInstance(project).getToolWindow("Mateu Results")
-            ?.contentManager?.removeAllContents(true)
+        MateuAssistantToolWindow.show(project, null, null)
     }
 
     // ── registry boot screens (shown inside the navigator panel) ────────────────────────────

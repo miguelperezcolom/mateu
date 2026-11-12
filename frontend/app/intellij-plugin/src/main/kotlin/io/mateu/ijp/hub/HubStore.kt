@@ -128,7 +128,12 @@ class HubEntries(
 
 /** The persisted list (application level: one desktop app, one list). */
 @Service(Service.Level.APP)
-@State(name = "MateuHub", storages = [Storage(value = "mateu-hub.xml", roamingType = RoamingType.DISABLED)])
+// useSaveThreshold = NO: a non-roamable storage is otherwise saved at most every few minutes, and the
+// immediate save after an edit was skipped — a UI added and the app closed (or killed) soon after was lost.
+@State(
+    name = "MateuHub",
+    storages = [Storage(value = "mateu-hub.xml", roamingType = RoamingType.DISABLED, useSaveThreshold = com.intellij.util.ThreeState.NO)],
+)
 class HubStore : PersistentStateComponent<HubStore.StateBean> {
 
     /** XML-serializable shape (the platform serializer wants mutable beans with defaults). */
@@ -176,6 +181,9 @@ class HubStore : PersistentStateComponent<HubStore.StateBean> {
         val result = change(entries)
         bean.entries = entries.entries.map(::toBean).toMutableList()
         listeners.toList().forEach { it() }
+        // Written NOW: the platform only saves app state on a clean exit or when the frame loses focus
+        // (which the focused mode turns off), so a killed or crashed app lost every UI added.
+        ApplicationManager.getApplication().invokeLater { ApplicationManager.getApplication().saveSettings() }
         return result
     }
 

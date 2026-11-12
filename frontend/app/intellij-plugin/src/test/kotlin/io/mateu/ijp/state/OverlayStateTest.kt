@@ -33,4 +33,10 @@ class OverlayStateTest : TestCase() {
         val state = OverlayState.seed(json.readTree("""{"title": "Other"}"""), meta)
         assertEquals("Other", OverlayState.title(meta, state))
     }
+
+    fun testTheLastStepOfADialogStreamedLongTaskAsksToCloseIt() {
+        val last = json.readTree("""{"progressText": "Identidad leída del documento", "progressValue": 1.0, "_closeAfterMillis": 1000}""")
+        assertEquals(1000L, OverlayState.closeAfterMillis(last))
+        assertNull(OverlayState.closeAfterMillis(json.readTree("""{"progressValue": 0.5}""")))
+    }
 }

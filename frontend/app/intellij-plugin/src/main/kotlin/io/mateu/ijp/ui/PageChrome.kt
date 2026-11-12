@@ -133,15 +133,18 @@ object PageChrome {
         if (timestamp.isNotBlank()) {
             header.addStacked(JBLabel(plain(timestamp)).apply { foreground = ToneColors.secondaryText() }, 6)
         }
-        // Previous / next record (PageDto.peerNav): a side without a route is disabled.
+        // Previous / next record (PageDto.peerNav): a side without a route is disabled. Label and route
+        // are templates (`${'$'}{state.nextId ? 'artworks/' + state.nextId : ''}` on a YAML page) —
+        // navigating to the raw template failed, and a route that evaluates empty means "no next".
         val peerNav = metadata.path("peerNav")
         if (parts.texts && peerNav.isObject) {
             val row = JPanel(FlushFlowLayout(JBUI.scale(8)))
             row.isOpaque = false
             for ((labelKey, routeKey, previous) in listOf(Triple("prevLabel", "prevRoute", true), Triple("nextLabel", "nextRoute", false))) {
-                val label = peerNav.text(labelKey)
-                val route = peerNav.text(routeKey)
-                if (label.isBlank() && route.isBlank()) continue
+                val label = Expressions.interpolate(peerNav.text(labelKey), exprCtx)
+                val declared = peerNav.text(routeKey)
+                val route = Expressions.interpolate(declared, exprCtx).trim()
+                if (label.isBlank() && declared.isBlank()) continue
                 val button = javax.swing.JButton(plain(if (previous) "‹ $label" else "$label ›"))
                 button.isEnabled = route.isNotBlank()
                 button.accessibleContext.accessibleName = (if (previous) "Previous: " else "Next: ") + label
@@ -164,7 +167,9 @@ object PageChrome {
             row.isOpaque = false
             for (k in kpis) {
                 val cell = verticalPanel(0)
-                val value = JBLabel(plain(Expressions.interpolate(k.text("text"), exprCtx)))
+                // a bare number reads as a figure ("7.900.000"), like the listing's own numbers
+                val text = Expressions.interpolate(k.text("text"), exprCtx)
+                val value = JBLabel(plain(MoneyValues.figureText(text) ?: text))
                 value.font = sized(value.font, 18f, Font.BOLD)
                 cell.addStacked(value, 0)
                 cell.addStacked(JBLabel(plain(Expressions.interpolate(k.text("title"), exprCtx))).apply {
