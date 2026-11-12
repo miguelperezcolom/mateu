@@ -46,11 +46,11 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <toolWindow id="Mateu" anchor="right" canCloseContents="false"
                     factoryClass="io.mateu.ijp.plugin.MateuToolWindowFactory"
                     icon="/icons/mateu.svg"/>
-        <!-- Bottom results panel for CRUD-listing tabs. Declared here (rather than registered at
-             runtime) so we never call the override-only ToolWindowManager.registerToolWindow. -->
-        <toolWindow id="Mateu Results" anchor="bottom" canCloseContents="true"
-                    factoryClass="io.mateu.ijp.plugin.MateuResultsToolWindowFactory"
-                    icon="/icons/mateu.svg"/>
+        <!-- The desktop app's AI chat (App.sseUrl), on the right like IntelliJ's own assistant; made
+             available only while the open UI has one (MateuAssistantToolWindow.show). -->
+        <toolWindow id="Mateu Assistant" anchor="right" canCloseContents="false"
+                    factoryClass="io.mateu.ijp.plugin.MateuAssistantToolWindowFactory"
+                    icon="AllIcons.Toolwindows.ToolWindowMessages"/>
         <fileEditorProvider implementation="io.mateu.ijp.plugin.MateuFileEditorProvider"/>
         <!-- Cross-IDE web visual editor (JCEF) for specs/ui/*.yaml pages: palette + WYSIWYG canvas
              + properties in one view. Successor to the retired Swing split-preview. -->
@@ -132,6 +132,15 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
                 text="My UIs" description="Back to the list of your UIs" icon="AllIcons.Actions.SwapPanels">
             <add-to-group group-id="MainToolbarLeft" anchor="last"/>
         </action>
+        <action id="io.mateu.Home" class="io.mateu.ijp.hub.HomeAction"
+                text="Home" description="Back to this UI's home screen" icon="AllIcons.Nodes.HomeFolder">
+            <add-to-group group-id="MainToolbarLeft" anchor="last"/>
+        </action>
+        <!-- The desktop app: the UI's @AppContext selectors (hotel, company…) as combos on the top bar. -->
+        <group id="io.mateu.AppContextSelectors" class="io.mateu.ijp.plugin.MateuContextSelectors"
+               text="Application Context">
+            <add-to-group group-id="MainToolbarLeft" anchor="last"/>
+        </group>
         <action id="io.mateu.HubShare" class="io.mateu.ijp.hub.HubShareAction"
                 text="Share This UI…" description="The QR code of the open UI, to open it on a phone"/>
         <action id="io.mateu.HubAdd" class="io.mateu.ijp.hub.HubAddAction"

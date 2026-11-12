@@ -16,13 +16,37 @@ import javax.swing.JPanel
  */
 class ComponentRenderer(val ctx: AppContext) {
 
+    /**
+     * How many Page / Form renders enclose the component being rendered. The host toolbar (editor
+     * header) is the PAGE's: a listing nested in a record page (a loan's Documents) keeps its own
+     * buttons on its own header — published, its "Delete selected" sat beside the record's Save.
+     */
+    var enclosingPages = 0
+        private set
+
+    private inline fun <T> insidePage(render: () -> T): T {
+        enclosingPages++
+        try { return render() } finally { enclosingPages-- }
+    }
+
+    /**
+     * Inside the list slot of a Collection Detail page (`collection-detail-list`, laid out by
+     * PageTemplates): the collection beside the selected record. Its listing is the COLLECTION's —
+     * it does not read the record (the artist's `name` filtered the artists down to that one) and
+     * its rows open the record in place, beside it (a new tab repeated the page).
+     */
+    var inCollectionList = false
+        private set
+
     fun render(component: JsonNode?, state: JsonNode, data: JsonNode): JComponent {
         if (component == null || component.isNull || component.isMissingNode) return JPanel()
-        val widget = when (component.text("type", "ClientSide")) {
+        val collectionList = component.text("id") == "collection-detail-list" && !inCollectionList
+        if (collectionList) inCollectionList = true
+        val widget = try { when (component.text("type", "ClientSide")) {
             "ClientSide" -> renderClientSide(component, state, data)
             "ServerSide" -> ctx.loadServerSideComponent(component)
             else -> JBLabel(plain("Unknown component type: ${component.text("type")}"))
-        }
+        } } finally { if (collectionList) inCollectionList = false }
         // Tag the widget with the wire component it rendered, so the visual-builder preview can map a
         // drop back to its YAML source (see DropTargeting). Unused/harmless outside the builder.
         widget.putClientProperty(io.mateu.ijp.contract.DropTargeting.WIRE_KEY, component)
@@ -39,8 +63,8 @@ class ComponentRenderer(val ctx: AppContext) {
             ?: raw
         return when (metadata.text("type")) {
             "App" -> renderApp(this, component, metadata)
-            "Page" -> renderPage(this, component, metadata, state, data)
-            "Form" -> { updateContext(component); renderForm(this, component, metadata, state, data) }
+            "Page" -> insidePage { renderPage(this, component, metadata, state, data) }
+            "Form" -> { updateContext(component); insidePage { renderForm(this, component, metadata, state, data) } }
             "Crud" -> { updateContext(component); renderCrud(this, component, metadata, state, data) }
             "FormField" -> renderFormField(ctx, metadata, state, data)
             "CustomField" -> renderCustomField(this, component, metadata, state, data)
@@ -56,8 +80,13 @@ class ComponentRenderer(val ctx: AppContext) {
             "Map" -> renderMap(ctx, metadata)
             // A long paragraph WRAPS to its column (a one-line label cut "…link the museum's own image
             // URLs — never" mid-sentence at the card's edge); headings and short texts stay labels.
-            "Text" -> if (wrapsAsParagraph(metadata)) paragraph(metadata.text("text"), metadata.text("size")) else
-                JBLabel(plain(metadata.text("text"))).also { label ->
+            // Its `${'$'}{state.x}` / `${'$'}{appState.x}` placeholders are resolved like a field label's —
+            // without it the counter demo showed the literal "${'$'}{state.count}".
+            "Text" -> io.mateu.ijp.state.Expressions.interpolate(
+                metadata.text("text"),
+                mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState),
+            ).let { text -> if (wrapsAsParagraph(metadata)) paragraph(text, metadata.text("size")) else
+                JBLabel(plain(text)).also { label ->
                 // IJ-11: a Text in an h1–h6 container is a HEADING (a wizard's title arrives as an
                 // h2) — it rendered as body text. Bold and sized on the platform's title scale.
                 headingScale(metadata.text("container"))?.let { scale ->
@@ -73,7 +102,7 @@ class ComponentRenderer(val ctx: AppContext) {
                 // variants: b = bold, i = italic (on top of a heading's own bold)
                 val emphasis = textEmphasis(metadata.get("variants"))
                 if (emphasis != Font.PLAIN) label.font = label.font.deriveFont(label.font.style or emphasis)
-            }
+            } }
             // A horizontal divider line (<hr>) separating contents inside a section or form.
             "Separator" -> javax.swing.JSeparator()
             "FormSection" -> renderSection(this, component, metadata, state, data)
@@ -87,7 +116,8 @@ class ComponentRenderer(val ctx: AppContext) {
             "ProgressBar" -> renderProgressBar(metadata, state)
             "DashboardLayout" -> renderDashboardLayout(this, component, metadata, state, data)
             "Scoreboard" -> renderScoreboard(this, component, state, data)
-            "MetricCard" -> renderMetricCard(this, metadata)
+            // its texts are templates on a YAML page (`value: ${'$'}{state.budget}`), resolved like a Text's
+            "MetricCard" -> renderMetricCard(this, withInterpolated(metadata, "title", "value", "unit", "timeframe", "trendLabel", "description"))
             "DashboardPanel" -> renderDashboardPanel(this, component, metadata, state, data)
             "Chart" -> renderChart(metadata, component.text("style"))
             "Markdown" -> renderMarkdown(metadata)
@@ -132,7 +162,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "Ledger" -> renderLedger(metadata)
             "PaymentPicker" -> renderPaymentPicker(this, metadata)
             "ProcessMonitor" -> renderProcessMonitor(this, metadata)
-            "Image" -> renderStandaloneImage(metadata, ctx.session.baseUrl, component.text("style"))
+            "Image" -> renderStandaloneImage(withInterpolated(metadata, "src", "alt"), ctx.session.baseUrl, component.text("style"))
             // ── layouts ──
             "MasterDetailLayout" -> renderMasterDetail(this, component, state, data)
             "CarouselLayout" -> renderCarousel(this, component, metadata, state, data)
@@ -196,6 +226,17 @@ class ComponentRenderer(val ctx: AppContext) {
     private fun updateContext(component: JsonNode) {
         val id = component.text("id")
         if (id.isNotBlank()) ctx.currentComponentId = id
+    }
+
+    /** [metadata] with these text members' `${'$'}{state.x}` / `${'$'}{appState.x}` resolved — an Image's
+     *  `src: ${'$'}{state.imageLarge}` showed as a broken-image placeholder naming the template. */
+    private fun withInterpolated(metadata: JsonNode, vararg keys: String): JsonNode {
+        val obj = metadata as? com.fasterxml.jackson.databind.node.ObjectNode ?: return metadata
+        if (keys.none { obj.path(it).isTextual && obj.path(it).asText().contains("\${") }) return metadata
+        val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
+        val copy = obj.deepCopy()
+        for (k in keys) if (copy.path(k).isTextual) copy.put(k, io.mateu.ijp.state.Expressions.interpolate(copy.path(k).asText(), exprCtx))
+        return copy
     }
 
     /** Render the `children` array as a vertical stack (fallback / generic container). */

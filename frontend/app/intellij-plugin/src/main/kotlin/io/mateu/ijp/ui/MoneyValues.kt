@@ -38,6 +38,33 @@ object MoneyValues {
         return fmt.format(n)
     }
 
+    /**
+     * A bare number shown as a figure (a header KPI: "Insured for 7900000") with the UI's grouping
+     * and up to two decimals — "7.900.000"; null when [text] is not a plain number, or a whole one
+     * under 10 000 (a year).
+     */
+    fun figureText(text: String, locale: Locale = uiLocale()): String? {
+        val t = text.trim()
+        if (!Regex("-?\\d+(\\.\\d+)?([eE][-+]?\\d+)?").matches(t)) return null
+        val n = t.toDoubleOrNull() ?: return null
+        // a year or a small count stays as written ("1870" is not "1.870")
+        if (kotlin.math.abs(n) < 10_000 && n == kotlin.math.floor(n)) return null
+        val fmt = NumberFormat.getNumberInstance(locale)
+        fmt.maximumFractionDigits = 2
+        return fmt.format(n)
+    }
+
+    /**
+     * A number as the user edits it: no grouping, no exponent and no trailing ".0" — a big decimal
+     * reaches the state as "1.8E7" (Jackson's text of a double), which nobody types.
+     */
+    fun editText(text: String): String {
+        val t = text.trim()
+        if (!Regex("-?\\d+(\\.\\d+)?([eE][-+]?\\d+)?").matches(t)) return t
+        val plainText = runCatching { java.math.BigDecimal(t).stripTrailingZeros().toPlainString() }.getOrNull() ?: return t
+        return plainText
+    }
+
     fun isAmount(raw: JsonNode?): Boolean = raw != null && raw.isObject && raw.has("value")
 
     /** What the input shows: the amount's number; "" when unset. */

@@ -55,6 +55,8 @@ object MateuPlatformNotices {
         val keyed = KeyedNotices<Notification>()
         session.messagePresenter = { spec, run -> showMessage(project, spec, run, keyed) }
         session.tasks.host = PlatformTaskHost(project, session)
+        // the IDE's status-bar progress while a request waits for its server (once per process)
+        MateuServerProgress.install()
         // @App(osNotifications = true): SystemNotifications, which the platform itself gates on the
         // user's "Use system notifications" setting and on the IDE being in the background
         session.ideActive = { ApplicationManager.getApplication().isActive }

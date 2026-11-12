@@ -25,6 +25,9 @@ import io.mateu.ijp.ui.plain
  * it pops the same action tree as the menu-bar group ([appMenuActions]). Hidden until the Mateu
  * navigator boots the app and publishes its menu — i.e. it never shows in a project that has no Mateu
  * backend configured. Built on the public [ComboBoxAction] (not the internal `ExpandableComboAction`).
+ *
+ * Not in FOCUSED mode (the desktop app): there the Mateu tool window, always shown on the right,
+ * already carries the same menu, and the combo was a second copy of it in the title bar.
  */
 class MateuToolbarWidget : ComboBoxAction(), DumbAware {
 
@@ -33,7 +36,7 @@ class MateuToolbarWidget : ComboBoxAction(), DumbAware {
     override fun update(e: AnActionEvent) {
         val session = e.project?.getUserData(MATEU_SESSION)
         val menu = session?.appMenu
-        val hasMenu = menu != null && menu.isArray && !menu.isEmpty
+        val hasMenu = !FOCUSED && menu != null && menu.isArray && !menu.isEmpty
         e.presentation.isEnabledAndVisible = hasMenu
         if (hasMenu) {
             e.presentation.text = plain(session.appTitle?.takeIf { it.isNotBlank() } ?: "Mateu")
@@ -51,6 +54,9 @@ class MateuToolbarWidget : ComboBoxAction(), DumbAware {
 
     companion object {
         private val ICON = IconLoader.getIcon("/icons/mateu.svg", MateuToolbarWidget::class.java)
+
+        /** `mateu.focused` is a launch property (-D or the bundled one), fixed for the whole run. */
+        private val FOCUSED: Boolean by lazy { loadMateuConfig().focused }
     }
 }
 

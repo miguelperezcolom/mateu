@@ -20,9 +20,9 @@ import java.time.Duration
  * field is validated and anything odd is dropped: a name is plain text with a length cap, an icon an
  * https URL or a raster data URI, a colour a hex literal, a sign-in only with an https issuer.
  *
- * Unlike the phone, the desktop app does not run STATIC UIs (a bundle with no server): a manifest
- * naming a `bundle` is refused with a sentence saying so. `minAppVersion` speaks of the phone app's
- * versions and is not read here; the wire major is.
+ * A manifest naming a `bundle` (a static or hybrid site) opens like on the phone: route loads come
+ * from the bundle ([fetchBundle] → [io.mateu.ijp.api.StaticBundle]), actions go to the server.
+ * `minAppVersion` speaks of the phone app's versions and is not read here; the wire major is.
  */
 object HubManifest {
 
@@ -126,10 +126,10 @@ object HubManifest {
         return Auth(issuer, clientId, scopes, raw.get("audience")?.takeIf { it.isTextual && it.asText().isNotEmpty() }?.asText())
     }
 
-    /** Can the desktop app render that UI at all? A static site, or what [AppCompat] says is REQUIRED,
-     *  cannot. Null = it can (it may still be [compat]ibly behind: see [compat]). */
+    /** Can the desktop app render that UI at all? Not what [AppCompat] says is REQUIRED. Null = it can
+     *  (it may still be [compat]ibly behind: see [compat]). A UI that ships a static `bundle` CAN: its
+     *  loads are answered from the bundle's wire JSON ([io.mateu.ijp.api.StaticBundle]), as on the web. */
     fun refusal(manifest: Manifest, supportedMajor: Int = WireVersion.SUPPORTED_MAJOR): String? {
-        if (manifest.bundle != null) return "This is a static UI (no server behind it): the desktop app can only open UIs served by a Mateu backend."
         val result = compat(manifest, supportedMajor)
         return if (result.status == AppCompat.Status.REQUIRED) compatMessage(manifest, result, supportedMajor) else null
     }
@@ -181,6 +181,19 @@ object HubManifest {
         val json = runCatching { ObjectMapper().readTree(body) }.getOrNull()
             ?: return Fetch.Failed("The server is not a Mateu app (its manifest is not JSON).")
         return Fetch.Ok(parse(json, baseUrl, allowInsecure))
+    }
+
+    /** The UI's static bundle (`<baseUrl>/<bundle path>`), or null when it cannot be read — then the
+     *  server answers the loads, as the web falls back. Never throws. */
+    fun fetchBundle(baseUrl: String, path: String?, http: Get = HTTP): io.mateu.ijp.api.StaticBundle? {
+        val safe = io.mateu.ijp.api.StaticBundle.bundlePath(path) ?: return null
+        return runCatching {
+            val (status, body) = http.get(baseUrl.trimEnd('/') + "/" + safe)
+            if (status !in 200..299 || body.length > io.mateu.ijp.api.StaticBundle.MAX_BYTES) return null
+            val raw = ObjectMapper().readTree(body)
+            if (!io.mateu.ijp.api.StaticBundle.isBundleManifest(raw)) return null
+            io.mateu.ijp.api.StaticBundle(raw).takeUnless { it.isEmpty() }
+        }.getOrNull()
     }
 
     data class Mount(val baseUrl: String, val route: String?, val fetched: Fetch)

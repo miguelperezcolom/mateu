@@ -145,7 +145,7 @@ class MateuConfigurable(private val project: Project) :
         // A project that just got a backend: make the Mateu tool windows available and boot the app.
         val cfg = loadMateuConfig(project)
         ToolWindowManager.getInstance(project).let { twm ->
-            listOf("Mateu", "Mateu Results").forEach { id -> twm.getToolWindow(id)?.isAvailable = cfg.configured }
+            twm.getToolWindow("Mateu")?.isAvailable = cfg.configured
         }
         if (cfg.configured && !wasConfigured) project.service<MateuProjectService>().ensureBooted()
     }

@@ -59,6 +59,12 @@ object RowOpen {
         return c.actionId.isNotBlank() && c.actionId != ROW_OPEN_ACTION_ID
     }
 
+    /** The row fields a rowRoute names (`people/${'$'}{row.id}` → `id`): a row fetched from a source
+     *  carries only what the listing keeps, so these are kept too (RN's / the web's rowRouteFields). */
+    fun rowRouteFields(template: String?): List<String> =
+        if (template.isNullOrBlank()) emptyList()
+        else Regex("""\$\{\s*row\.([A-Za-z0-9_]+)""").findAll(template).map { it.groupValues[1] }.distinct().toList()
+
     /** `people/${'$'}{row.id}` against the row; null when a placeholder stays unresolved. */
     fun routeOf(template: String, row: JsonNode?): String? {
         if (row == null) return null

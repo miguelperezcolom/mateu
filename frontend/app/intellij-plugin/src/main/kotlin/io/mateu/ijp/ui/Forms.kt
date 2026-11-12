@@ -56,7 +56,9 @@ fun renderForm(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
  * align across rows because every column carries the same `weightx`.
  */
 fun renderFormLayout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
-    val maxColumns = metadata.int("maxColumns", 2).coerceAtLeast(1)
+    // 100 (or more) is the web's "as many as fit" (auto-responsive, YAML's absent maxColumns): taken
+    // literally, every field of the form sat side by side on ONE row
+    val maxColumns = metadata.int("maxColumns", 2).let { if (it >= AUTO_COLUMNS) 2 else it }.coerceAtLeast(1)
 
     val flattened = ArrayList<JsonNode>()
     val children = component.path("children")
@@ -80,8 +82,11 @@ fun renderFormLayout(r: ComponentRenderer, component: JsonNode, metadata: JsonNo
     var col = 0
     var rowIdx = 0
     for (field in flattened) {
+        // an authored FormRow, or a property row (label left, value right, a divider below), is a row
+        // of the whole form, as on the web
         val isRow = field.path("metadata").text("type") == "FormRow"
-        val span = if (isRow) maxColumns else field.path("metadata").int("colspan", 1).coerceIn(1, maxColumns)
+        val span = if (isRow || field.path("metadata").bool("propertyRow")) maxColumns
+            else field.path("metadata").int("colspan", 1).coerceIn(1, maxColumns)
         if (col + span > maxColumns) { col = 0; rowIdx++ }
         val gbc = GridBagConstraints().apply {
             gridx = col
@@ -118,6 +123,9 @@ private fun oneLineRow(r: ComponentRenderer, row: JsonNode, state: JsonNode, dat
         children.forEach { add(r.render(it, state, data)) }
     }
 }
+
+/** A FormLayout's maxColumns from this value on means "as many as fit" (the web's auto-responsive). */
+private const val AUTO_COLUMNS = 100
 
 /** FormRow → a horizontal row of its children (each field builds its own label + input). */
 fun renderFormRow(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {

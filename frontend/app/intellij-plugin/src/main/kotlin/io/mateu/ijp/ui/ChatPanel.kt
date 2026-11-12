@@ -67,6 +67,9 @@ internal class ChatPanel(
 
     private fun build(): JComponent {
         conversation.isEditable = false
+        conversation.background = UIUtil.getPanelBackground()
+        conversation.border = JBUI.Borders.empty(4, 2)
+        input.emptyText.text = "Ask the assistant…"
         conversation.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
         conversation.font = UIUtil.getLabelFont()
         conversation.accessibleName("Conversation")
@@ -105,8 +108,9 @@ internal class ChatPanel(
 
         val root = JPanel(BorderLayout(0, JBUI.scale(6)))
         root.border = JBUI.Borders.empty(10)
-        root.add(JBScrollPane(conversation), BorderLayout.CENTER)
+        root.add(JBScrollPane(conversation).apply { border = JBUI.Borders.customLine(com.intellij.ui.JBColor.border(), 1) }, BorderLayout.CENTER)
         root.add(south, BorderLayout.SOUTH)
+        repaintConversation()
         return root
     }
 
@@ -228,13 +232,33 @@ internal class ChatPanel(
 
     // ── rendering ───────────────────────────────────────────────────────────────────────────
 
+    /**
+     * Bubbles, as a chat reads: the user's on the right in the theme's selection tint, the agent's on
+     * the left on a raised surface, an error as one line in the error colour. Swing's HTML knows no
+     * border-radius or flex, so margins do the alignment. It used to be "You:" / "Agent:" over plain
+     * paragraphs, with a failed turn's whole error JSON dumped as the answer.
+     */
     private fun repaintConversation() {
-        val html = StringBuilder("<html><body>")
+        fun hex(c: java.awt.Color) = "#%02x%02x%02x".format(c.red, c.green, c.blue)
+        val userBg = hex(com.intellij.ui.JBColor(0xDCE8FA, 0x2E436E))
+        val agentBg = hex(com.intellij.ui.JBColor(0xF0F1F3, 0x393B40))
+        val fg = hex(UIUtil.getLabelForeground())
+        val muted = hex(UIUtil.getContextHelpForeground())
+        val error = hex(com.intellij.util.ui.NamedColorUtil.getErrorForeground())
+        val bubble = "padding: 6px 10px; margin-top: 6px; color: $fg;"
+        val html = StringBuilder("<html><body style='margin: 4px;'>")
+        if (entries.isEmpty()) {
+            html.append("<div style='color: $muted; margin: 12px 4px;'>Ask about this screen, or ask the assistant to do something in the app.</div>")
+        }
         for (e in entries) {
-            if (e.user) {
-                html.append("<p><b>You:</b><br>").append(SafeHtml.escape(e.text).replace("\n", "<br>")).append("</p>")
-            } else {
-                html.append("<div><b>Agent:</b><br>").append(ChatMarkdown.toHtml(e.text.ifEmpty { "…" })).append("</div><br>")
+            when {
+                e.user -> html.append("<div style='$bubble background-color: $userBg; margin-left: 64px;'>")
+                    .append(SafeHtml.escape(e.text).replace("\n", "<br>")).append("</div>")
+                e.text.startsWith(ChatTurn.ERROR_PREFIX) || e.text.startsWith("⚠️") ->
+                    html.append("<div style='padding: 6px 2px; margin-top: 6px; margin-right: 64px; color: $error;'>")
+                        .append(SafeHtml.escape(e.text)).append("</div>")
+                else -> html.append("<div style='$bubble background-color: $agentBg; margin-right: 64px;'>")
+                    .append(ChatMarkdown.toHtml(e.text.ifEmpty { "…" })).append("</div>")
             }
         }
         conversation.text = html.append("</body></html>").toString()

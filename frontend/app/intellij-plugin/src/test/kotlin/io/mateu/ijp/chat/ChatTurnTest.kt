@@ -68,5 +68,8 @@ class ChatTurnTest : TestCase() {
         assertTrue(ChatTurn.failureText(java.io.IOException(), false).startsWith(ChatTurn.CONNECTION_CLOSED))
         assertEquals(ChatTurn.ERROR_PREFIX + "boom", ChatTurn.failureText(java.io.IOException("boom"), true))
         assertEquals(ChatTurn.ERROR_PREFIX + "IllegalStateException", ChatTurn.failureText(IllegalStateException(), false))
+        // a server error: a sentence and its reference, not the error page's JSON
+        val http = ChatTransport.HttpFailure(500, """{"timestamp":"2026-11-06T15:30:53Z","path":"/ai/api/agent/stream","status":500,"error":"Internal Server Error","requestId":"b0d663b5-11770"}""")
+        assertEquals(ChatTurn.ERROR_PREFIX + "The assistant is not available right now (HTTP 500). Reference: b0d663b5-11770", ChatTurn.failureText(http, false))
     }
 }

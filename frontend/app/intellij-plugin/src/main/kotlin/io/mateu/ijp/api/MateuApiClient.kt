@@ -81,6 +81,39 @@ class MateuApiClient(
          *  remote's server then sends no window commands ([io.mateu.ijp.state.EmbeddedChrome]). */
         embeddedChrome: String? = null,
     ): JsonNode {
+        // A static bundle answers the LOADS, as on the web; an ACTION goes on to the server (a hybrid
+        // site has one) — a host that only serves files has none, and that is what the user reads.
+        val local = bundle
+        if (local != null) {
+            if (actionId.isNullOrEmpty()) local.answer(route, consumedRoute)?.let { return it }
+            try {
+                return post(route, consumedRoute, actionId, serverSideType, initiatorComponentId, componentState, appState, parameters, embeddedChrome)
+            } catch (e: NoServerException) {
+                throw RuntimeException(
+                    if (actionId.isNullOrEmpty()) "Not found: ${route?.ifEmpty { "/" } ?: "/"}"
+                    else "This UI has no server: \"$actionId\" cannot run here.",
+                )
+            }
+        }
+        return post(route, consumedRoute, actionId, serverSideType, initiatorComponentId, componentState, appState, parameters, embeddedChrome)
+    }
+
+    /** The UI's static bundle, when it ships one ([StaticBundle]): route loads are answered from it. */
+    @Volatile var bundle: StaticBundle? = null
+
+    private class NoServerException(message: String) : RuntimeException(message)
+
+    private fun post(
+        route: String?,
+        consumedRoute: String?,
+        actionId: String?,
+        serverSideType: String?,
+        initiatorComponentId: String?,
+        componentState: Map<String, Any?>,
+        appState: Map<String, Any?>,
+        parameters: Map<String, Any?>,
+        embeddedChrome: String?,
+    ): JsonNode {
         val routeStripped = when {
             route == null -> ""
             route.startsWith("/") -> route.substring(1)
@@ -120,13 +153,19 @@ class MateuApiClient(
 
         val trusted = carriesCredentials(url)
         val token = if (trusted) tokenProvider.accessToken() else null
-        var response = http.send(request(token), HttpResponse.BodyHandlers.ofString())
+        var response = try {
+            ServerActivity.track(ServerActivity.labelOf(url)) { http.send(request(token), HttpResponse.BodyHandlers.ofString()) }
+        } catch (e: java.io.IOException) {
+            if (bundle != null) throw NoServerException(e.message ?: "unreachable") else throw e
+        }
+        // a host serving only the bundle's files: no `/mateu/v3/sync` behind it
+        if (bundle != null && response.statusCode() in setOf(404, 405)) throw NoServerException("HTTP ${response.statusCode()}")
         // Session expiry / missing credentials: one chance to re-authenticate, then retry once
         // (only against a backend trusted with them: an anonymous island's 401 is not ours to fix).
         if (response.statusCode() == 401 && trusted &&
             (tokenProvider.onUnauthorized(token) || SessionGuard.handleSessionExpired())
         ) {
-            response = http.send(request(tokenProvider.accessToken()), HttpResponse.BodyHandlers.ofString())
+            response = ServerActivity.track(ServerActivity.labelOf(url)) { http.send(request(tokenProvider.accessToken()), HttpResponse.BodyHandlers.ofString()) }
         }
         if (response.statusCode() == 401) throw UnauthorizedException(url)
         val responseBody = response.body()
@@ -260,7 +299,7 @@ class MateuApiClient(
             else HttpRequest.BodyPublishers.ofString(body ?: "")
         if (method != "GET" && method != "HEAD" && !body.isNullOrBlank()) builder.header("Content-Type", "application/json")
         val request = builder.method(method, publisher).build()
-        val response = http.send(request, HttpResponse.BodyHandlers.ofString())
+        val response = ServerActivity.track(ServerActivity.labelOf(url)) { http.send(request, HttpResponse.BodyHandlers.ofString()) }
         if (response.statusCode() >= 400) throw RuntimeException("HTTP ${response.statusCode()}")
         return mapper.readTree(response.body())
     }
@@ -284,4 +323,4 @@ class MateuApiClient(
 
 /** The backend kept answering 401 after the one re-authentication attempt. */
 class UnauthorizedException(url: String) :
-    RuntimeException("Not authorized by the Mateu backend ($url). Sign in from Settings | Tools | Mateu.")
+    RuntimeException("Not authorized by the Mateu backend ($url): sign in to continue.")
