@@ -507,12 +507,15 @@
     <!-- CONTEXT drawer (@AppContext): the selectors in a standard side panel -->
     <oj-drawer-popup edge="end" opened="{{ $variables.mateuContextDrawerOpen }}">
       <div class="oj-sm-padding-6x" style="width: 320px;">
-        <h2 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $application.translations.appBundle.workContext ]]"></oj-bind-text></h2>
+        <h2 class="oj-typography-heading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $application.translations.appBundle.workContext ]]"></oj-bind-text></h2>
+        <!-- WCAG 3.2.2: said BEFORE the picker is used; onMateuContextChanged also announces the change -->
+        <p id="mateuContextReloadHint" class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $application.translations.appBundle.appContextReloads ]]"></oj-bind-text></p>
         <oj-bind-for-each data="[[ $application.variables.mateuContextSelectors ]]">
           <template>
             <div class="oj-sm-margin-4x-bottom">
               <oj-select-one class="oj-form-control-full-width"
                 :data-field="[[ $current.data.fieldName ]]"
+                :aria-describedby="[[ 'mateuContextReloadHint' ]]"
                 label-hint="[[ $current.data.label ]]"
                 value="[[ $current.data.value ]]"
                 on-value-changed="[[ $listeners.contextChanged ]]">

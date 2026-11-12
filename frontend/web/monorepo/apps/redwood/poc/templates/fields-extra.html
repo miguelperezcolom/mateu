@@ -8,6 +8,7 @@
       required="[[ $current.data.required ]]"
       readonly="[[ $current.data.readonly ]]"
       :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
       on-value-changed="[[ $listeners.{{change}} ]]"></oj-input-password>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isRadio ]]">
@@ -86,6 +87,7 @@
       required="[[ $current.data.required ]]"
       readonly="[[ $current.data.readonly ]]"
       :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
       on-value-changed="[[ $listeners.{{change}} ]]"></oj-sp-input-email>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isUrl ]]">
@@ -98,6 +100,7 @@
       required="[[ $current.data.required ]]"
       readonly="[[ $current.data.readonly ]]"
       :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
       on-value-changed="[[ $listeners.{{change}} ]]"></oj-sp-input-url>
 </oj-bind-if>
 <!-- file / image / signature / camera: JET has no component — mateu-capture-field (poc/inputs.mjs) -->
@@ -223,6 +226,7 @@
             required="[[ $current.data.required ]]"
             readonly="[[ $current.data.readonly ]]"
             :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
             on-value-changed="[[ $listeners.{{change}} ]]"></oj-input-date>
       </template>
     </oj-bind-for-each>

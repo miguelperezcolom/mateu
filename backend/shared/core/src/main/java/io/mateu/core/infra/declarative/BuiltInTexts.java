@@ -25,8 +25,9 @@ public final class BuiltInTexts {
   private BuiltInTexts() {}
 
   /**
-   * Mateu's own words, by language, keyed by their English text. Kept in step with the renderers'
-   * chrome catalogues (libs/mateu chromeTexts.ts, Redwood i18n.mjs).
+   * Mateu's own words, by language (es, fr, de, pt, it — the renderers' chrome languages), keyed by
+   * their English text. Kept in step with the renderers' chrome catalogues (libs/mateu
+   * chromeTexts.ts, Redwood i18n.mjs); every language has every key (BuiltInTextsTest).
    */
   static final Map<String, Map<String, String>> CATALOGUE =
       Map.of(
@@ -55,7 +56,95 @@ public final class BuiltInTexts {
               Map.entry("1 record deleted", "1 registro eliminado"),
               Map.entry("{0} records deleted", "{0} registros eliminados"),
               Map.entry("1 record restored", "1 registro restaurado"),
-              Map.entry("{0} records restored", "{0} registros restaurados")));
+              Map.entry("{0} records restored", "{0} registros restaurados")),
+          "fr",
+          Map.ofEntries(
+              Map.entry("New", "Nouveau"),
+              Map.entry("Save", "Enregistrer"),
+              Map.entry("Save and next", "Enregistrer et suivant"),
+              Map.entry("Cancel", "Annuler"),
+              Map.entry("Delete", "Supprimer"),
+              Map.entry("Edit", "Modifier"),
+              Map.entry("Add another", "En ajouter un autre"),
+              Map.entry("Back to list", "Retour à la liste"),
+              Map.entry("Import", "Importer"),
+              Map.entry("History", "Historique"),
+              Map.entry("Save and close", "Enregistrer et fermer"),
+              Map.entry("Skip", "Passer"),
+              Map.entry("Today", "Aujourd'hui"),
+              Map.entry("Reload", "Recharger"),
+              Map.entry("Overwrite", "Écraser"),
+              Map.entry("Cannot be empty", "Ne peut pas être vide"),
+              Map.entry("1 record deleted", "1 enregistrement supprimé"),
+              Map.entry("{0} records deleted", "{0} enregistrements supprimés"),
+              Map.entry("1 record restored", "1 enregistrement restauré"),
+              Map.entry("{0} records restored", "{0} enregistrements restaurés")),
+          "de",
+          Map.ofEntries(
+              Map.entry("New", "Neu"),
+              Map.entry("Save", "Speichern"),
+              Map.entry("Save and next", "Speichern und weiter"),
+              Map.entry("Cancel", "Abbrechen"),
+              Map.entry("Delete", "Löschen"),
+              Map.entry("Edit", "Bearbeiten"),
+              Map.entry("Add another", "Weiteren hinzufügen"),
+              Map.entry("Back to list", "Zurück zur Liste"),
+              Map.entry("Import", "Importieren"),
+              Map.entry("History", "Verlauf"),
+              Map.entry("Save and close", "Speichern und schließen"),
+              Map.entry("Skip", "Überspringen"),
+              Map.entry("Today", "Heute"),
+              Map.entry("Reload", "Neu laden"),
+              Map.entry("Overwrite", "Überschreiben"),
+              Map.entry("Cannot be empty", "Darf nicht leer sein"),
+              Map.entry("1 record deleted", "1 Datensatz gelöscht"),
+              Map.entry("{0} records deleted", "{0} Datensätze gelöscht"),
+              Map.entry("1 record restored", "1 Datensatz wiederhergestellt"),
+              Map.entry("{0} records restored", "{0} Datensätze wiederhergestellt")),
+          "pt",
+          Map.ofEntries(
+              Map.entry("New", "Novo"),
+              Map.entry("Save", "Salvar"),
+              Map.entry("Save and next", "Salvar e próximo"),
+              Map.entry("Cancel", "Cancelar"),
+              Map.entry("Delete", "Excluir"),
+              Map.entry("Edit", "Editar"),
+              Map.entry("Add another", "Adicionar outro"),
+              Map.entry("Back to list", "Voltar à lista"),
+              Map.entry("Import", "Importar"),
+              Map.entry("History", "Histórico"),
+              Map.entry("Save and close", "Salvar e fechar"),
+              Map.entry("Skip", "Pular"),
+              Map.entry("Today", "Hoje"),
+              Map.entry("Reload", "Recarregar"),
+              Map.entry("Overwrite", "Sobrescrever"),
+              Map.entry("Cannot be empty", "Não pode ficar vazio"),
+              Map.entry("1 record deleted", "1 registro excluído"),
+              Map.entry("{0} records deleted", "{0} registros excluídos"),
+              Map.entry("1 record restored", "1 registro restaurado"),
+              Map.entry("{0} records restored", "{0} registros restaurados")),
+          "it",
+          Map.ofEntries(
+              Map.entry("New", "Nuovo"),
+              Map.entry("Save", "Salva"),
+              Map.entry("Save and next", "Salva e avanti"),
+              Map.entry("Cancel", "Annulla"),
+              Map.entry("Delete", "Elimina"),
+              Map.entry("Edit", "Modifica"),
+              Map.entry("Add another", "Aggiungi un altro"),
+              Map.entry("Back to list", "Torna all'elenco"),
+              Map.entry("Import", "Importa"),
+              Map.entry("History", "Cronologia"),
+              Map.entry("Save and close", "Salva e chiudi"),
+              Map.entry("Skip", "Salta"),
+              Map.entry("Today", "Oggi"),
+              Map.entry("Reload", "Ricarica"),
+              Map.entry("Overwrite", "Sovrascrivi"),
+              Map.entry("Cannot be empty", "Non può essere vuoto"),
+              Map.entry("1 record deleted", "1 record eliminato"),
+              Map.entry("{0} records deleted", "{0} record eliminati"),
+              Map.entry("1 record restored", "1 record ripristinato"),
+              Map.entry("{0} records restored", "{0} record ripristinati")));
 
   public static String translate(String text, HttpRequest httpRequest) {
     if (text == null || text.isBlank()) {

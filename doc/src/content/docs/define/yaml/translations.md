@@ -64,7 +64,10 @@ an app shell.
 
 The request's locale is what the app's `Translator.locale(HttpRequest)` answers — by default the
 first tag of the `Accept-Language` header. It is also what the client gets as `AppDto.locale`, so
-the renderer's own chrome follows the same language.
+the renderer's own chrome follows the same language — English, Spanish, French, German, Portuguese or
+Italian, by the tag's primary subtag (`pt-BR` → Portuguese, `de-AT` → German), English for any other
+(see [the client's own words](/java-user-manual/advanced/i18n/#the-page-language-and-the-clients-own-words);
+right-to-left languages are not supported, [why](/java-user-manual/advanced/i18n/#right-to-left-languages)).
 
 For each key the catalogue is searched in this order:
 

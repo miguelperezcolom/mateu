@@ -9,7 +9,8 @@ import {
     readAppContextLabels,
     writeAppContext
 } from "@infra/appContextStore.ts";
-import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { announce } from '@infra/a11y/announcer.ts'
 import { nextIndexForKey, onActivate } from '@infra/a11y/activate.ts'
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts'
 import { contextOptionsOf, runAppSource } from '@infra/ui/appSources.ts'
@@ -77,9 +78,25 @@ export class MateuAppContextPicker extends LitElement {
         return label !== undefined ? String(label) : value
     }
 
+    /**
+     * WCAG 3.2.2 On Input: picking a value changes the context (the app reloads against it). The
+     * picker says so BEFORE it is used — the button's description and a line at the top of the
+     * panel — and the change is announced before the reload, which waits {@link RELOAD_DELAY_MS}
+     * so a screen reader can speak it. Picking the value already chosen changes nothing.
+     */
+    static readonly RELOAD_DELAY_MS = 700
+
     private pick(value: unknown, label?: string) {
+        if (String(value ?? '') === this.currentValue()) {
+            this.closePanel()
+            return
+        }
         writeAppContext(this.selector.fieldName, value, label)
-        window.location.reload()
+        this.closePanel()
+        announce(chromeTextf('appContextChanging', {
+            label: this.selector.label, value: label ?? (value === '' ? chromeText('clear') : String(value)),
+        }), { politeness: 'assertive' })
+        setTimeout(() => window.location.reload(), MateuAppContextPicker.RELOAD_DELAY_MS)
     }
 
     // ── searchable panel ─────────────────────────────────────────────────────
@@ -213,6 +230,7 @@ export class MateuAppContextPicker extends LitElement {
                  @keydown="${(e: KeyboardEvent) => { onActivate(onPick)(e); this.onOptionKeydown(e) }}">${label}</div>`
         return html`
             <div class="panel">
+                <div class="hint" aria-hidden="true">${chromeText('appContextReloads')}</div>
                 ${searchable ? html`
                     <input class="picker-search" type="text" placeholder="${chromeText('search')}" aria-label="${chromeText('search')}"
                            .value="${this.searchText}"
@@ -247,10 +265,12 @@ export class MateuAppContextPicker extends LitElement {
                 <button class="picker-button"
                         aria-label="${this.selector.label}: ${this.currentLabel()}"
                         aria-haspopup="listbox"
+                        aria-describedby="reload-hint"
                         aria-expanded="${this.opened ? 'true' : 'false'}"
                         @click="${() => this.togglePanel()}">
                     ${this.currentLabel()} <span aria-hidden="true" class="caret">▾</span>
                 </button>
+                <span id="reload-hint" class="sr-only">${chromeText('appContextReloads')}</span>
                 ${this.opened ? this.renderPanel() : nothing}
             </span>`
     }
@@ -327,6 +347,15 @@ export class MateuAppContextPicker extends LitElement {
         }
         .option--selected {
             font-weight: 600;
+        }
+        .hint {
+            font-size: var(--lumo-font-size-xs, 0.75rem);
+            color: var(--lumo-secondary-text-color, rgba(0, 0, 0, 0.6));
+            padding: 0.1rem 0.5rem 0.3rem;
+        }
+        .sr-only {
+            position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
         }
         .option--clear {
             color: var(--lumo-secondary-text-color, rgba(0, 0, 0, 0.55));

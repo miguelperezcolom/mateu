@@ -150,6 +150,18 @@ public @interface App {
   boolean liveUpdates() default false;
 
   /**
+   * RECORD PRESENCE: on a record page (a CRUD record, an {@code EditableView}, a YAML record page)
+   * each user sees who else has the same record open — and who is EDITING it (their page holds
+   * unsaved changes), with a warning — so two people do not overwrite each other ({@code @Version}
+   * still refuses the second save; this warns before). Only signed-in callers take part: the name
+   * shown is the one the host framework authenticated. The changes travel on the app event stream
+   * (one per browser, like {@link #liveUpdates()}). In memory per process unless the app registers
+   * a {@link io.mateu.uidl.interfaces.PresenceStore}. Opt-in.
+   */
+  @Experimental("record presence (3.0)")
+  boolean presence() default false;
+
+  /**
    * OS-LEVEL NOTIFICATIONS: while the app is not in front, a new unread inbox entry and a
    * background task that finished are also shown as notifications of the operating system (the Web
    * Notifications API in a browser, a local notification on a phone, a system notification from the

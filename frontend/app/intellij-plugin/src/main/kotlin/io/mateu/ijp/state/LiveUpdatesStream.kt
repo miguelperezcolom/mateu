@@ -83,6 +83,8 @@ class LiveUpdatesStream(private val session: AppSession) {
                 // the inbox pushed to this user's sessions (LiveNotifications → NotificationsChanged)
                 val inboxChanges = runCatching { InboxItems.changesOf(increment) }.getOrDefault(emptyList())
                 if (inboxChanges.isNotEmpty()) SwingUtilities.invokeLater { session.inbox.applyChanges(inboxChanges) }
+                // record presence: someone joined, left or started editing a record this user has open
+                runCatching { Presence.changesOf(increment) }.getOrDefault(emptyList()).forEach { session.presence.apply(it) }
             }
         }
     }

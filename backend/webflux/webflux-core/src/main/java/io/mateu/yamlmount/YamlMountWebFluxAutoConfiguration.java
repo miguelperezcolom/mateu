@@ -61,7 +61,7 @@ public class YamlMountWebFluxAutoConfiguration {
     for (var mount : mounts) {
       var basePath = mount.basePath();
       builder
-          .GET(mount.spaPath(), request -> index(mount))
+          .GET(mount.spaPath(), request -> index(mount, request))
           .GET(
               mount.apiPrefix() + "/v3/manifest",
               request -> manifest(YamlMounts.manifestJson(routeRegistry, yamlAppLoader, basePath)))
@@ -70,7 +70,11 @@ public class YamlMountWebFluxAutoConfiguration {
               request ->
                   pwa(
                       YamlMounts.pwaAsset(
-                          routeRegistry, yamlAppLoader, basePath, request.pathVariable("file"))))
+                          routeRegistry,
+                          yamlAppLoader,
+                          basePath,
+                          request.pathVariable("file"),
+                          publicBase(request))))
           .POST(mount.apiPrefix() + "/v3/sse/**", request -> sse(service, request, basePath))
           .POST(mount.apiPrefix() + "/v3/sync/**", request -> sync(service, request, basePath));
       if (!basePath.isEmpty()) {
@@ -83,14 +87,29 @@ public class YamlMountWebFluxAutoConfiguration {
                             // a navigation, not a data fetch (see SpaFallback.acceptsHtml)
                             && io.mateu.core.infra.SpaFallback.acceptsHtml(
                                 request.headers().firstHeader("Accept"))),
-            request -> index(mount));
+            request -> index(mount, request));
       }
     }
     return builder.build();
   }
 
-  private static Mono<ServerResponse> index(YamlMounts.Mount mount) {
-    return ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue(mount.indexHtml());
+  private static Mono<ServerResponse> index(
+      YamlMounts.Mount mount,
+      org.springframework.web.reactive.function.server.ServerRequest request) {
+    return ServerResponse.ok()
+        .contentType(MediaType.TEXT_HTML)
+        .bodyValue(mount.indexHtml(publicBase(request)));
+  }
+
+  /**
+   * The public base of a request: spring.webflux.base-path, a proxy's prefix ({@link
+   * io.mateu.core.infra.PublicBase}).
+   */
+  private static String publicBase(
+      org.springframework.web.reactive.function.server.ServerRequest request) {
+    return io.mateu.core.infra.PublicBase.of(
+        request.requestPath().contextPath().value(),
+        request.headers().firstHeader(io.mateu.core.infra.PublicBase.FORWARDED_PREFIX_HEADER));
   }
 
   /** The mobile app's manifest ({@link io.mateu.core.infra.MobileManifest}). */

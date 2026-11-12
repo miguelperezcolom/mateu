@@ -78,7 +78,7 @@ fun JLabel.labelling(component: JComponent): JLabel {
  * focusable), so "first focusable descendant" named an arrow button and left the editor unnamed —
  * found by rendering the conformance corpus (ConformanceCorpusRenderTest).
  */
-private fun JComponent.focusTarget(): JComponent? = when (this) {
+internal fun JComponent.focusTarget(): JComponent? = when (this) {
     is javax.swing.JSpinner -> (editor as? javax.swing.JSpinner.DefaultEditor)?.textField ?: firstFocusableDescendant()
     is javax.swing.JScrollPane -> (viewport?.view as? JComponent) ?: firstFocusableDescendant()
     else -> firstFocusableDescendant()

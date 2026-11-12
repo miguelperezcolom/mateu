@@ -57,7 +57,7 @@ public final class NotFoundPage {
 
   /** The page for a route whose load threw {@code exception}. */
   static NotFound forMissing(NoSuchElementException exception, RunActionCommand command) {
-    var spanish = spanish(command.httpRequest());
+    var texts = textsFor(command.httpRequest());
     var path = pathOf(command.route());
     var id = lastSegment(path);
     var message = exception.getMessage();
@@ -67,18 +67,17 @@ public final class NotFoundPage {
     if (userFacing) {
       title = message;
     } else if (id != null) {
-      title = spanish ? "No se ha encontrado " + id : "Not found: " + id;
+      title = texts.notFoundId() + id;
     } else {
-      title = spanish ? "No encontrado" : "Not found";
+      title = texts.notFound();
     }
-    return page(title, spanish, path);
+    return page(title, texts, path);
   }
 
   /** The page for a route that resolves to nothing at all. */
   static NotFound forUnknownRoute(RunActionCommand command, YamlSpecProblems problems) {
-    var spanish = spanish(command.httpRequest());
-    var page =
-        page(spanish ? "Página no encontrada" : "Page not found", spanish, pathOf(command.route()));
+    var texts = textsFor(command.httpRequest());
+    var page = page(texts.pageNotFound(), texts, pathOf(command.route()));
     return io.mateu.core.infra.dev.DevMode.enabled() && problems != null
         ? withSpecProblems(page, problems.forRoute(pathOf(command.route()).substring(1)))
         : page;
@@ -110,16 +109,13 @@ public final class NotFoundPage {
         .build();
   }
 
-  private static NotFound page(String title, boolean spanish, String path) {
+  private static NotFound page(String title, Texts texts, String path) {
     return NotFound.builder()
         .id("not-found")
         .title(title)
-        .message(
-            spanish
-                ? "Puede que se haya borrado o que el enlace no sea correcto."
-                : "It may have been deleted, or the link is wrong.")
+        .message(texts.message())
         .backRoute(parentOf(path))
-        .backLabel(spanish ? "Volver" : "Go back")
+        .backLabel(texts.back())
         .build();
   }
 
@@ -152,16 +148,76 @@ public final class NotFoundPage {
     return slash <= 0 ? "/" : path.substring(0, slash);
   }
 
-  private static boolean spanish(HttpRequest httpRequest) {
+  /** The page's words in one language (the renderers' NOT_FOUND texts — Redwood content.mjs). */
+  record Texts(
+      String notFound, String notFoundId, String pageNotFound, String message, String back) {}
+
+  static final java.util.Map<String, Texts> TEXTS =
+      java.util.Map.of(
+          "en",
+          new Texts(
+              "Not found",
+              "Not found: ",
+              "Page not found",
+              "It may have been deleted, or the link is wrong.",
+              "Go back"),
+          "es",
+          new Texts(
+              "No encontrado",
+              "No se ha encontrado ",
+              "Página no encontrada",
+              "Puede que se haya borrado o que el enlace no sea correcto.",
+              "Volver"),
+          "fr",
+          new Texts(
+              "Introuvable",
+              "Introuvable : ",
+              "Page introuvable",
+              "Il a peut-être été supprimé, ou le lien est incorrect.",
+              "Revenir"),
+          "de",
+          new Texts(
+              "Nicht gefunden",
+              "Nicht gefunden: ",
+              "Seite nicht gefunden",
+              "Möglicherweise wurde es gelöscht oder der Link ist falsch.",
+              "Zurück"),
+          "pt",
+          new Texts(
+              "Não encontrado",
+              "Não encontrado: ",
+              "Página não encontrada",
+              "Pode ter sido excluído, ou o link está errado.",
+              "Voltar"),
+          "it",
+          new Texts(
+              "Non trovato",
+              "Non trovato: ",
+              "Pagina non trovata",
+              "Potrebbe essere stato eliminato, oppure il link non è corretto.",
+              "Torna indietro"));
+
+  /**
+   * The words for the browser's language (the primary subtag of its first {@code Accept-Language}:
+   * {@code pt-BR} → pt, {@code de-AT} → de), English for one the page does not speak.
+   */
+  static Texts textsFor(HttpRequest httpRequest) {
     if (httpRequest == null) {
-      return false;
+      return TEXTS.get("en");
     }
     try {
       var acceptLanguage = httpRequest.getHeaderValue("Accept-Language");
-      return acceptLanguage != null
-          && acceptLanguage.trim().toLowerCase(java.util.Locale.ROOT).startsWith("es");
+      return TEXTS.getOrDefault(primaryLanguage(acceptLanguage), TEXTS.get("en"));
     } catch (RuntimeException e) {
-      return false;
+      return TEXTS.get("en");
     }
+  }
+
+  static String primaryLanguage(String acceptLanguage) {
+    if (acceptLanguage == null || acceptLanguage.isBlank()) {
+      return "en";
+    }
+    var first = acceptLanguage.split(",")[0].split(";")[0].trim();
+    return first.split("[-_]")[0].toLowerCase(java.util.Locale.ROOT);
   }
 }

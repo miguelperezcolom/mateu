@@ -191,7 +191,7 @@ export function rowFieldsOf(ctx, values, errors) {
       if (nested) out.push(nested)
       continue
     }
-    if (f.dataType === 'array' && !optionsOf(f, ctx.data).length) continue
+    if (f.dataType === 'array' && !optionsOf(f, ctx.data).length && !hasOptionsSource(f)) continue
     const raw = f.dataType === 'array' ? state[f.fieldId] : plainValueOf(state[f.fieldId])
     const widget = fieldWidgetOf(f, ctx.data, { lookups: true, value: raw })
     const error = errors && errors[f.fieldId]
@@ -750,8 +750,12 @@ export function extraWidgetOf(f, options, value) {
   if (st === 'radio' && options.length) return { isRadio: true }
   // a single-value list box: every option visible in a bordered list, one picked (app.css .mateu-listbox)
   if (st === 'listBox' && options.length && f.dataType !== 'array') return { isRadio: true, fieldClass: 'mateu-listbox' }
-  if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
-  if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
+  // a multi-value field fed by a REST `optionsSource` is a multi-select / checkbox set before its
+  // options land too (loadRestOptions fills data[fieldId]; the page re-projects then) — it used to
+  // be skipped, as a list with no options
+  const offered = options.length || hasOptionsSource(f)
+  if (f.dataType === 'array' && offered && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
+  if (f.dataType === 'array' && offered && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
     return { isCheckboxSet: true }
   // email / link → Spectra's typed inputs (oj-sp-input-email / oj-sp-input-url): their own
   // format validation and, read-only, the value as a mailto: / web link
@@ -771,7 +775,11 @@ export function extraWidgetOf(f, options, value) {
       converter: converterOf({ type: 'number', options: { style: 'currency', currency, minimumFractionDigits: 2 } }),
     }
   }
-  if (CAPTURE_MODES[st]) return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || '' }
+  // the accept list travels in the field's generic attributes ({key, value} pairs)
+  if (CAPTURE_MODES[st]) {
+    const declared = ((f.attributes || []).find && (f.attributes || []).find((a) => a && a.key === 'accept')) || {}
+    return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || declared.value || '' }
+  }
   // slider → oj-slider; stars → oj-rating-gauge; color → mateu-color-field (a hex string: JET's
   // oj-color-spectrum works on oj.Color objects); richText → mateu-rich-text-field (HTML, Delta read)
   if (st === 'slider') {
@@ -839,6 +847,12 @@ export function rangeEditOf(fieldId, draft, state, value) {
   return { fieldId: id, value: { ...dateRangeEndsOf(current), [m[2]]: value == null || value === '' ? null : value } }
 }
 
+/** Whether the field's options come from a REST source (`optionsSource`: a url or a catalogue `ref`). */
+export function hasOptionsSource(md) {
+  const src = md && md.optionsSource
+  return !!(src && typeof src === 'object' && (src.url || src.ref))
+}
+
 /** Does the oj-form-layout paint it? (besides the usual LAYOUT_TYPES) */
 export function isExtraLayoutField(md) {
   return !!(isDateRangeField(md) || md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
@@ -847,7 +861,7 @@ export function isExtraLayoutField(md) {
     || (md.stereotype === 'richText' && !md.readOnly)
     || ((md.stereotype === 'markdown' || md.stereotype === 'html') && !md.readOnly)
     || CAPTURE_MODES[md.stereotype]
-    || (md.dataType === 'array' && (md.options || []).length
+    || (md.dataType === 'array' && ((md.options || []).length || hasOptionsSource(md))
       && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
 }
 
@@ -891,7 +905,10 @@ export function fieldHelpOf(f) {
 export function fieldWidgetOf(f, data, opts) {
   const widget = widgetOf(f, data, opts)
   const help = fieldHelpOf(f)
-  return { ...widget, help, hasHelp: !!help }
+  // WCAG 1.3.5: the input's purpose — on the host as data-autocomplete, copied onto the native
+  // input by a11y.mjs installInputPurpose
+  const autocomplete = f && f.autocomplete && !f.readOnly ? String(f.autocomplete) : null
+  return { ...widget, help, hasHelp: !!help, autocomplete }
 }
 
 function widgetOf(f, data, { lookups, value, textWhenEmpty }) {

@@ -37,7 +37,9 @@ public sealed class PhotoCaptureAttribute : Attribute;
 /// <summary>Renders a string property as a generic file upload: a pick-file action showing the
 /// chosen file's name plus a remove action (the generic sibling of the uploadable image). The
 /// picked file is read client-side into a data URI (base64) stored as the field value, so the
-/// file travels in the string itself and no upload endpoint is required. Shorthand for the
+/// file travels in the string itself and no upload endpoint is required — unless an
+/// <see cref="IFileStorage"/> is registered: then the file is streamed to it and the value is a
+/// <see cref="StoredFile"/> reference (<c>mateu-file:…</c>). Shorthand for the
 /// "fileUpload" stereotype. (C# analogue of Java's @FileUpload.)</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class FileUploadAttribute(string accept = "") : Attribute
@@ -45,6 +47,24 @@ public sealed class FileUploadAttribute(string accept = "") : Attribute
     /// <summary>Optional accept attribute for the file input (e.g. ".csv" or "application/pdf");
     /// travels in the field's generic attributes list under the "accept" key.</summary>
     public string Accept { get; } = accept;
+
+    /// <summary>The largest file accepted, in bytes (0 = unset: the server default — 100 MB — when a
+    /// <see cref="IFileStorage"/> is registered, 10 MB in the data-URI fallback). Travels as the
+    /// <c>maxBytes</c> attribute. EXPERIMENTAL.</summary>
+    public long MaxBytes { get; set; }
+
+    /// <summary>Several files: the value is a list of references. Inferred for a <c>List&lt;string&gt;</c>
+    /// property. Travels as the <c>multiple</c> attribute. EXPERIMENTAL.</summary>
+    public bool Multiple { get; set; }
+
+    /// <summary>The <see cref="IFileStorage.Name"/> of the store to upload to; blank = the default store
+    /// (named <c>""</c>, or the only one registered). Travels as the <c>storage</c> attribute. EXPERIMENTAL.</summary>
+    public string Storage { get; set; } = "";
+
+    /// <summary>The reserved <see cref="Storage"/> name that never uses a store: the file always
+    /// travels as a data URI in the value (for code that reads the bytes from the value itself, like
+    /// the import wizard's CSV). EXPERIMENTAL.</summary>
+    public const string Inline = "inline";
 }
 
 /// <summary>Chooses how a Wizard visualizes its progress: "bar" (default) or "steps" — connected
@@ -81,6 +101,15 @@ public sealed class TextAttribute : Attribute
 public sealed class ColspanAttribute(int value) : Attribute
 {
     public int Value { get; } = value;
+}
+
+/// <summary>The purpose of a field about the user (Java's <c>@Autocomplete</c>; WCAG 1.3.5): an
+/// HTML autocomplete token such as "email", "given-name", "tel", "postal-code" or "new-password",
+/// or "off". An email field gets "email" without it. Travels as the field's <c>autocomplete</c>.</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class AutocompleteAttribute(string value) : Attribute
+{
+    public string Value { get; } = value;
 }
 
 /// <summary>The field's help text (Java's <c>@Help</c>): shown with the control and read as its
@@ -377,6 +406,13 @@ public sealed class AppAttribute(string title) : Attribute
     /// which the server pushes header-value changes (<see cref="LiveHeaderValues.Publish"/>) to every
     /// session. Opt-in. (C# analogue of Java's @App(liveUpdates).) EXPERIMENTAL.</summary>
     public bool LiveUpdates { get; set; }
+
+    /// <summary>RECORD PRESENCE: on a record page each signed-in user sees who else has the same
+    /// record open — and who is EDITING it, with a warning — so two people do not overwrite each
+    /// other. The changes travel on the app event stream (one per browser). In memory per process
+    /// unless the app registers an <see cref="IPresenceStore"/>. Opt-in. (C# analogue of Java's
+    /// @App(presence).) EXPERIMENTAL.</summary>
+    public bool Presence { get; set; }
 
     /// <summary>OS-LEVEL NOTIFICATIONS: a new inbox entry and a background task that finished also
     /// raise an operating-system notification while the app is not in front (the Web Notifications

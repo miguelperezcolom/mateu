@@ -8,6 +8,26 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Accessibility
+
+- **The gaps of the WCAG 2.2 conformance report, fixed** (`quality/accessibility-conformance.md`
+  updated to match):
+  - 1.1.1 — charts are named images with a text alternative (a hidden data table on `Chart`, a
+    summary on `TrendChart`; a hidden text next to Redwood's `oj-chart`).
+  - 1.3.5 — `@Autocomplete("given-name")` (.NET `[Autocomplete]`, Python `Autocomplete()`, YAML /
+    fluent `FormField.autocomplete`) travels as `FormFieldDto.autocomplete`; an editable email field
+    infers `email`. Vaadin, Redwood and React Native emit it.
+  - 2.2.1 — toasts stop their clock while hovered, focused or the page is hidden; a toast with Undo or
+    Retry stays at least 10 s (React Native: until dismissed while a screen reader is on).
+  - 3.2.2 — the `@AppContext` picker says beforehand that a change reloads the app and announces it.
+  - 2.1.1 / 2.5.7 — `PlanningBoard` blocks move and resize with the keyboard and with a tool row;
+    a `DropZone` offers "Move the selected rows here" for a `@DragRows` listing's selection (web).
+  - 2.4.11 — a keyboard-focused control is scrolled clear of the pinned header, sticky sections and
+    floating buttons (web).
+  - 2.1.4 — one-key shortcuts (`?`, bare-letter shortcuts) can be switched off from the shortcuts
+    list; Ctrl+/ always opens it.
+  - 2.2.2 — an autoplaying `Carousel` has a pause/play button and starts stopped under reduced motion.
+  - The axe gate (`accessibility.spec.ts`, `a11y-audit.mjs`) now includes `wcag22aa`.
 ### Added
 
 - **Observability: an OpenTelemetry span and metrics per Mateu request, and an audit hook.** Every
@@ -64,6 +84,48 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Mateu stores no token and sends nothing. Replaces the known issue "no OS notification from a
   suspended or closed app". Needs a new store build with APNs/FCM credentials.
 
+- **Mateu's own words in French, German, Portuguese and Italian.** Everything Mateu draws by itself —
+  buttons, the filter bar, pagination, dialogs, errors, the connectivity banner, accessible labels,
+  task ETAs, the version notice — now speaks fr, de, pt and it besides English and Spanish: the web
+  client, Redwood, the React Native app, the IntelliJ plugin and Java's built-in labels (a crud's
+  *New* / *Save* / *Cancel*…, the not-found page). The language is the tag's primary subtag (`pt-BR` and
+  `pt-PT` → Portuguese, written the Brazilian way; `de-AT` → German), English for any other. Every
+  catalogue has a completeness test (keys and placeholders); the ETA corpus covers the six languages.
+  Right-to-left languages are not supported — what it would take is documented in the i18n guide.
+
+- **Record presence — "Ana is editing this record"** (`@Experimental`). `@App(presence = true)`
+  (YAML `presence: true`, .NET `[App(Presence = true)]`, Python `@app(presence=True)`): on a record
+  page each signed-in user sees who else has the same record open and who is EDITING it (unsaved
+  changes), on a warning tone, so two people do not overwrite each other. A record is its route plus
+  the view class; anonymous callers take no part; a closed tab disappears within 30 s. It rides the
+  app event stream (one per browser) and the app-level `_presence` action; kept in memory per
+  process unless the app registers a `PresenceStore` (`IPresenceStore`, `add_mateu(presence_store=…)`).
+  Rendered by Vaadin, React Native and the IntelliJ plugin. Docs: `ux-patterns/record-presence`.
+
+- **An app can run under a path prefix.** A servlet context path (`server.servlet.context-path`,
+  `spring.webflux.base-path`, `quarkus.http.root-path`, `micronaut.server.context-path`; ASP.NET
+  `UsePathBase`; an ASGI `root_path`) or a reverse proxy that serves the app at `/crm/` and strips the
+  prefix (`mateu.public-base-path=/crm`, or `mateu.trust-forwarded-prefix=true` to read the proxy's
+  `X-Forwarded-Prefix`) used to give a blank screen: the page loaded `/assets/…` from the root of
+  the host. The served page is now written for the public path — assets, `<mateu-ui baseUrl>`, the
+  installable app's links and scope — and the Vaadin and Redwood renderers put the root-relative
+  paths the server names (a `NavigateTo`, a sibling mount, a REST source of the app) under it. Java
+  (all five adapters), .NET and Python. The Vaadin bundle's lazy chunks now preload relative to
+  their importer. Guide: [Serving the app under a path prefix](https://mateu.io/deploy/under-a-path-prefix/).
+
+- **Large file uploads through a storage port (experimental).** Register a `FileStorage` (Java bean;
+  .NET `IFileStorage` service; Python `FileStorage` via `add_mateu(file_storages=…)`) and every
+  editable `@FileUpload` field uploads its file to `POST /mateu/v3/upload` — streamed into your
+  store, or straight to a pre-signed target your store issues — with a progress bar, Cancel and
+  several files (`List<String>` / `multiple`). Limits (`maxBytes`, `accept`) are enforced by the
+  server; the field's value becomes a `mateu-file:<id>?name=…` reference (`StoredFile.parse`),
+  never the bytes. Each field carries a signed, caller-bound ticket (`mateu.uploads.secret` /
+  `MATEU_UPLOADS_SECRET` — set it when you run several instances). Mateu ships no storage
+  provider. Without one a field keeps the data-URI value and now refuses a file over `maxBytes`
+  (10 MB when undeclared). Every Java adapter, .NET and Python; web, React Native and IntelliJ
+  upload, Redwood shows stored references but still stores a data URI when a file is picked. Guide:
+  *Large file uploads*; demo `demo-admin-panel` `/file-uploads-demo`.
+
 ### Changed
 
 - **.NET packages target `net10.0` only.** .NET 8 left Microsoft support on 10 November 2026, so
@@ -95,6 +157,21 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   drawn (tables cut after one row, a foldout's last line under its scroll bar); KPI figures and number
   fields show `18.000.000`, not `1.8E7`; timeline icons are IDE icons, not token text; the menu goes
   back to the left on every start.
+
+### Fixed — renderer gaps
+
+- **The IntelliJ plugin and the desktop app draw SVG images.** An `Image`, an avatar, a menu card,
+  an offer card or a hero background whose source is an SVG (a `.svg` url, an `image/svg+xml` data
+  URI, base64 or percent-encoded, or an url that serves SVG without saying so) is drawn instead of
+  its `alt` placeholder — through the platform's public `ImageLoader`, which the plugin verifier
+  accepts. Avatars also paint their `image` (any format) in the circle, not only the initials.
+- **Multi-value fields read a REST `optionsSource`.** A multi-select, a checkbox group, a list box, a
+  tree select or a multi combobox fed by `@RestOptions` / `optionsSource` (or a catalogue `ref`) drew
+  no options — only the single select read a source. Fixed on Vaadin, Redwood, React Native and the
+  desktop.
+- **React Native keeps saved views and column choices on the device.** They lasted one app run; now
+  each UI's listings keep them (the web's localStorage equivalent), restored on the next open, and
+  removing the UI from the hub list clears them.
 
 ### Removed
 

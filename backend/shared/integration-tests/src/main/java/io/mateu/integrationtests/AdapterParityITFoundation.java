@@ -557,6 +557,44 @@ public class AdapterParityITFoundation {
         .statusCode();
   }
 
+  /**
+   * {@code POST /mateu/v3/upload} is routed on every adapter, takes the FILE as its body (a
+   * non-JSON body is not refused with 415, unlike the other Mateu POSTs) and refuses anything
+   * without a valid ticket with a JSON 403 — the ticket header is its CSRF guard. The pre-signed
+   * target request is refused the same way.
+   */
+  public void refusesAnUploadWithoutAValidTicket() {
+    given()
+        .contentType("application/pdf")
+        .header("X-Mateu-File-Name", "a.pdf")
+        .body(new byte[] {1, 2, 3})
+        .when()
+        .post("/mateu/v3/upload")
+        .then()
+        .statusCode(403)
+        .contentType(ContentType.JSON)
+        .body("error", equalTo("Forbidden"));
+    given()
+        .contentType("text/plain")
+        .header("X-Mateu-Upload-Ticket", "not.a-ticket")
+        .header("X-Mateu-File-Name", "a.txt")
+        .body("hello")
+        .when()
+        .post("/mateu/v3/upload")
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("Forbidden"));
+    given()
+        .contentType(ContentType.JSON)
+        .header("X-Mateu-Upload-Ticket", "not.a-ticket")
+        .body("{\"name\":\"a.pdf\",\"contentType\":\"application/pdf\",\"size\":3}")
+        .when()
+        .post("/mateu/v3/upload/target")
+        .then()
+        .statusCode(403)
+        .body("error", equalTo("Forbidden"));
+  }
+
   /** Without {@code mateu.cors.allowed-origins}, no origin is ever granted access. */
   public void grantsNoCrossOriginAccessByDefault() {
     for (String path : new String[] {"/hello/mateu/v3/sync/x", "/hello/mateu/v3/sse/x"}) {
@@ -1024,6 +1062,82 @@ public class AdapterParityITFoundation {
    */
   public void servesTheInstallableApp() {
     servesTheInstallableApp("/plain", "Plain form");
+  }
+
+  /**
+   * Behind a reverse proxy that serves the app at {@code /crm/} and strips the prefix, the page is
+   * written for the PUBLIC path ({@code io.mateu.core.infra.PublicBase}): the renderer's assets,
+   * the root's {@code baseUrl} (every API call and the address bar derive from it) and the
+   * installable-app links carry the prefix the proxy sent in {@code X-Forwarded-Prefix} — once
+   * {@code mateu.trust-forwarded-prefix=true}; without it the header is ignored (it may come from
+   * the client). The PWA files answer the public scope too.
+   */
+  public void servesThePageUnderAForwardedPrefix() {
+    // ignored unless trusted
+    given()
+        .accept("text/html")
+        .header("X-Forwarded-Prefix", "/crm")
+        .when()
+        .get("/plain")
+        .then()
+        .statusCode(200)
+        .body(containsString("<mateu-ui baseUrl=\"/plain\""))
+        .body(not(containsString("/crm/")));
+    System.setProperty(TRUST_FORWARDED_PREFIX, "true");
+    try {
+      servesUnderTheForwardedPrefix("/plain");
+      // a value that is not a plain path never reaches the markup
+      given()
+          .accept("text/html")
+          .header("X-Forwarded-Prefix", "/\"><script>alert(1)</script>")
+          .when()
+          .get("/plain")
+          .then()
+          .statusCode(200)
+          .body(containsString("<mateu-ui baseUrl=\"/plain\""))
+          .body(not(containsString("alert(1)")));
+    } finally {
+      System.clearProperty(TRUST_FORWARDED_PREFIX);
+    }
+  }
+
+  /** {@link #servesThePageUnderAForwardedPrefix()} for the YAML mount fixture. */
+  public void servesAYamlMountUnderAForwardedPrefix() {
+    System.setProperty(TRUST_FORWARDED_PREFIX, "true");
+    try {
+      servesUnderTheForwardedPrefix(YAML_MOUNT);
+    } finally {
+      System.clearProperty(TRUST_FORWARDED_PREFIX);
+    }
+  }
+
+  private static final String TRUST_FORWARDED_PREFIX = "mateu.trust-forwarded-prefix";
+
+  private static void servesUnderTheForwardedPrefix(String baseUrl) {
+    var page =
+        given()
+            .accept("text/html")
+            .header("X-Forwarded-Prefix", "/crm")
+            .when()
+            .get(baseUrl)
+            .then()
+            .statusCode(200)
+            .extract()
+            .asString();
+    if (!page.contains("<mateu-ui baseUrl=\"/crm" + baseUrl + "\"")
+        || !page.contains("publicBase=\"/crm\"")
+        || !page.contains("href=\"/crm/assets/mateu-icon.svg\"")
+        || page.contains("=\"/assets/")
+        || !page.contains("href=\"/crm" + baseUrl + "/mateu/v3/pwa/manifest.webmanifest\"")) {
+      throw new AssertionError("the page of " + baseUrl + " is not under /crm:\n" + page);
+    }
+    given()
+        .header("X-Forwarded-Prefix", "/crm")
+        .when()
+        .get(baseUrl + "/mateu/v3/pwa/sw.js")
+        .then()
+        .statusCode(200)
+        .header("Service-Worker-Allowed", equalTo("/crm" + baseUrl));
   }
 
   /** {@link #servesTheInstallableApp()} for the YAML mount fixture ({@value #YAML_MOUNT}). */

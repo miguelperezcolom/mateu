@@ -59,6 +59,22 @@ export const toastDuration = (message: ToastMessage, fallback: number): number =
     message.variant === 'error' || message.persistence === 'sticky' ? 0 : (message.duration ?? fallback)
 
 /**
+ * The shortest time a toast with a control (Undo, Retry, an action) stays on screen, in ms. WCAG
+ * 2.2.1: a declared shorter duration would take the control away before a keyboard or
+ * screen-reader user can reach it, so it is raised to this floor.
+ */
+export const ACTIONABLE_TOAST_MIN_MS = 10000
+
+/**
+ * How long a toast stays (0 = until dismissed), knowing whether it offers a control: the
+ * {@link toastDuration} rule, with {@link ACTIONABLE_TOAST_MIN_MS} as the floor of an actionable one.
+ */
+export const toastLifetime = (message: ToastMessage, hasControls: boolean): number => {
+    const duration = toastDuration(message, hasControls ? ACTIONABLE_TOAST_MIN_MS : 5000)
+    return duration > 0 && hasControls ? Math.max(duration, ACTIONABLE_TOAST_MIN_MS) : duration
+}
+
+/**
  * Toasts on screen by key, so one with the same key replaces it (a progress-ish "Syncing… → Synced",
  * a repeated warning). Each notifier registers how to close the toast it drew.
  */

@@ -251,6 +251,11 @@ class SyncHandler(
         from mateu_ui.uidl.inbox_store import InMemoryInboxStore
 
         self.inbox_store = InMemoryInboxStore()
+        #: Where record presence is kept (EXPERIMENTAL): ``add_mateu(presence_store=…)`` replaces
+        #: Mateu's process-wide in-memory default.
+        from mateu_ui.core.presence import DEFAULT_STORE
+
+        self.presence_store = DEFAULT_STORE
         #: Whether the app exposes its authoring plane (the MCP endpoint is on): the reserved
         #: __validate__ action is then served on the plain sync endpoint too (the sidecar calls it
         #: there); otherwise only to an MCP tool call or in dev mode (mateu_ui.core.authoring_gate).
@@ -282,6 +287,10 @@ class SyncHandler(
         self.mapper.island_data = lambda view: self.lookup_labels(type(view), view, view)
         #: The listing exporters (the app's ListingExporter subclasses + the built-in CSV writer).
         self.mapper.exporters = Exporters(getattr(registry, "exporters", []))
+        #: The file stores (the app's FileStorage subclasses; add_mateu(file_storages=…) adds more).
+        from ..uploads import Uploads
+
+        self.mapper.uploads = Uploads(getattr(registry, "file_storages", []))
         #: The translation catalogue: TranslationsSupplier classes (code) under the
         #: `type: Translations` files of the specs directory (authored wins). ${i18n.key} in YAML
         #: definitions and in any translated text is resolved per request locale.

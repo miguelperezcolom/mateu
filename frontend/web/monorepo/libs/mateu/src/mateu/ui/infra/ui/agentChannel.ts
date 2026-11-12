@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid'
+import { underPublicBase } from '@infra/http/publicBase.ts'
 import type App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
 import { safeSessionStorage } from '@infra/safeStorage.ts'
 import { sessionId } from '@infra/http/authToken.ts'
@@ -191,7 +192,7 @@ const connect = () => {
     controller = own
     const { baseUrl, route, serverSideType } = target
     const path = (route || '_no_route').replace(/^\/+/, '')
-    const url = baseUrl + '/mateu/v3/sse/' + path
+    const url = underPublicBase(baseUrl) + '/mateu/v3/sse/' + path
     const started = Date.now()
     let clean = false
     // the session id is read only once this tab knows it is not a duplicate (tabSession.ts)

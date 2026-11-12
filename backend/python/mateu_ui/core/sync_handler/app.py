@@ -205,6 +205,37 @@ class AppHandlerMixin(MixinBase):
             registry.unregister_push_token(registration)
         return UIIncrement.of()
 
+    def presence_action(self, type_, rq: RunActionRq) -> UIIncrement:
+        """The ``_presence`` app-level action: records this tab on the record (route + view,
+        viewing | editing | leave) and answers a PresenceChanged command with the OTHER people.
+        Nothing for an anonymous caller, an app without ``@app(presence=True)`` or a page that is
+        no record (mirrors Java's PresenceActionRunner)."""
+        from mateu_ui.core import presence
+        from mateu_ui.core.request_context import current_request
+
+        principal = self._inbox_principal()
+        if principal is None or not presence.enabled_for(type_):
+            return UIIncrement.of()
+        params = rq.parameters or {}
+
+        def text(key):
+            value = params.get(key)
+            return None if value is None else str(value)
+
+        record = presence.record_of(text("route"), text("view"))
+        if record is None:
+            return UIIncrement.of()
+        store = self.presence_store
+        request = current_request()
+        scope = presence.scope_of(request.base_url if request else None, rq.server_side_type or getattr(type_, "__qualname__", ""))
+        tab = text("tab")
+        presence.sweep(store)
+        if text("state") == "leave":
+            presence.leave(store, scope, record, principal, tab)
+            return UIIncrement.of()
+        presence.touch(store, scope, record, principal, tab, text("state") == "editing")
+        return UIIncrement.of(commands=[presence.command(presence.snapshot(store, scope, record, principal))])
+
     @staticmethod
     def live_updates_snapshot() -> UIIncrement:
         """The first increment of the ``_live-updates`` stream: the last value PUBLISHED for each

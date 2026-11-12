@@ -16,6 +16,7 @@ import { rendererHeaders } from '@infra/http/rendererIdentity.ts'
 import { isStaleScreenRefusal, observeMateuResponse, STALE_SCREEN } from '@infra/http/buildWatch.ts'
 import { isMateuRefusal } from '@infra/http/requestPolicy.ts'
 import { asAnsweredBy } from '@infra/ui/untrustedDefinition.ts'
+import { underPublicBase } from '@infra/http/publicBase.ts'
 import { observeWireVersion } from '@infra/http/wireVersion.ts'
 import { mayCarryCredentials } from '@infra/http/credentialScope.ts'
 import { readAppContext } from '@infra/appContextStore.ts'
@@ -48,7 +49,8 @@ export class SSEService implements Service {
             route = route.substring(1)
         }
 
-        const sseUrl = baseUrl + '/mateu/v3/sse/' + route
+        // under the app's public base, like the sync path (publicBase.ts)
+        const sseUrl = underPublicBase(baseUrl) + '/mateu/v3/sse/' + route
         const payload = {
             serverSideType,
             // the app-level context (@AppContext header selectors) travels with EVERY request, as on

@@ -317,7 +317,7 @@ public class MateuHelidonRoutes {
       Supplier<YamlAppLoader> yamlAppLoader,
       java.util.function.Predicate<ServerRequest> unauthenticated) {
     for (var mount : mounts) {
-      routing.get(mount.spaPath(), (req, res) -> index(res, mount));
+      routing.get(mount.spaPath(), (req, res) -> index(req, res, mount));
       routing.get(
           mount.apiPrefix() + "/v3/manifest",
           (req, res) -> {
@@ -334,7 +334,8 @@ public class MateuHelidonRoutes {
                     routeRegistry.get(),
                     yamlAppLoader.get(),
                     mount.basePath(),
-                    req.path().pathParameters().get("file"));
+                    req.path().pathParameters().get("file"),
+                    publicBase(req));
             if (asset == null) {
               res.status(Status.NOT_FOUND_404).send();
               return;
@@ -356,7 +357,7 @@ public class MateuHelidonRoutes {
                       req.headers().first(io.helidon.http.HeaderNames.ACCEPT).orElse(null))
                   && !path.startsWith("/mateu")
                   && authoredHere(routeRegistry.get(), path)) {
-                index(res, mount);
+                index(req, res, mount);
               } else {
                 res.next();
               }
@@ -372,7 +373,7 @@ public class MateuHelidonRoutes {
                       req.headers().first(io.helidon.http.HeaderNames.ACCEPT).orElse(null))) {
                 res.next();
               } else {
-                index(res, mount);
+                index(req, res, mount);
               }
             });
       }
@@ -580,8 +581,18 @@ public class MateuHelidonRoutes {
     return false;
   }
 
-  private static void index(ServerResponse res, YamlMounts.Mount mount) {
-    res.header("Content-Type", "text/html;charset=UTF-8").send(mount.indexHtml());
+  private static void index(ServerRequest req, ServerResponse res, YamlMounts.Mount mount) {
+    res.header("Content-Type", "text/html;charset=UTF-8").send(mount.indexHtml(publicBase(req)));
+  }
+
+  /**
+   * The public base of a request ({@link io.mateu.core.infra.PublicBase}): Helidon has no
+   * server-wide context path, so it is the configured / forwarded proxy prefix.
+   */
+  private static String publicBase(ServerRequest req) {
+    return io.mateu.core.infra.PublicBase.of(
+        io.mateu.core.infra.PublicBase.configuredContextPath(),
+        header(req, io.mateu.core.infra.PublicBase.FORWARDED_PREFIX_HEADER));
   }
 
   private static void run(

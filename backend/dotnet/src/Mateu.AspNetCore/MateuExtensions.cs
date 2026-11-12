@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Mateu.AspNetCore;
 
-public static class MateuExtensions
+public static partial class MateuExtensions
 {
     /// <summary>Mateu's JSON contract: camelCase, case-insensitive, keep nulls, and raw UTF-8 —
     /// no \uXXXX escaping of non-ASCII/HTML characters — to match the Java (Jackson) output
@@ -101,6 +101,9 @@ public static class MateuExtensions
                 // registers as a service writes its format (Java: the ListingExporter beans); CSV
                 // falls back to the built-in writer.
                 Exporters = new Mateu.Core.Export.MateuExporters(sp.GetServices<IListingExporter>()),
+                // Uploads: Mateu ships no storage — every IFileStorage the app registers as a service
+                // receives the files of [FileUpload] fields (none → the data-URI fallback).
+                Uploads = UploadsOf(sp, options, accessor),
                 // Server-side micro frontend resolution (Resolve.Server, content slots): every
                 // collaborator is the app's service when it registers one, Mateu's own otherwise.
                 RequestHeader = name => accessor.HttpContext is { } ctx
@@ -117,6 +120,7 @@ public static class MateuExtensions
                 ContentSlotsDescriptorEnabled = options.ContentSlotsDescriptorEnabled,
                 // the inbox messages of the answers: the app's IInboxStore, else Mateu's in-memory one
                 InboxStore = sp.GetService<IInboxStore>() ?? DefaultInboxStore,
+                PresenceStore = sp.GetService<IPresenceStore>() ?? Presence.DefaultStore,
             };
         });
         return services;
@@ -291,8 +295,23 @@ public static class MateuExtensions
                 if (SyncHandler.IsFor(change, caller))
                     queue.Writer.TryWrite(UIIncrementDto.Of(commands: [SyncHandler.NotificationsChangedCommand(change)]));
             });
-            using var heartbeat = new Timer(_ => queue.Writer.TryWrite(UIIncrementDto.Of()), null,
-                LiveUpdatesHeartbeat, LiveUpdatesHeartbeat);
+            // record presence: a change of a record THIS caller has open (any tab) — never another's
+            var presenceScope = Presence.ScopeOf(prefix, rq.ServerSideType);
+            using var presence = string.IsNullOrWhiteSpace(caller)
+                                 || !SyncHandler.PresenceEnabledFor(handler.TypeNamed(rq.ServerSideType))
+                ? null
+                : handler.PresenceStore.OnChange((scope, record) =>
+                {
+                    if (scope != presenceScope || !Presence.IsOn(handler.PresenceStore, scope, record, caller)) return;
+                    queue.Writer.TryWrite(UIIncrementDto.Of(commands:
+                        [Presence.Command(Presence.Snapshot(handler.PresenceStore, scope, record, caller))]));
+                });
+            using var heartbeat = new Timer(_ =>
+            {
+                // a tab that went silent leaves its records, even if nobody else calls
+                Presence.Sweep(handler.PresenceStore);
+                queue.Writer.TryWrite(UIIncrementDto.Of());
+            }, null, LiveUpdatesHeartbeat, LiveUpdatesHeartbeat);
             try
             {
                 await foreach (var increment in queue.Reader.ReadAllAsync(lifetime.Token))
@@ -334,7 +353,10 @@ public static class MateuExtensions
         // and icons. Public — the browser fetches them before anyone logs in, and none carries a secret.
         app.MapGet(prefix + Pwa.Dir + "{file}", async (HttpContext ctx, MateuRegistry registry, string file) =>
         {
-            var asset = Pwa.Asset(file, prefix,
+            // the manifest's scope and the worker's allowed scope are the PUBLIC ones (PublicBase)
+            var publicBase = PublicBase.Of(ctx.Request.PathBase.Value,
+                ctx.RequestServices.GetService<MateuOptions>()?.PublicBasePath);
+            var asset = Pwa.Asset(file, publicBase + prefix,
                 () => MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl),
                     ctx.RequestServices.GetService<SyncHandler>()?.MountShell(baseUrl)),
                 ctx.RequestServices.GetService<MateuOptions>()?.Pwa);
@@ -358,6 +380,9 @@ public static class MateuExtensions
         // MateuOptions.Mcp / MATEU_MCP_ENABLED turns it on, as on Java.
         var options = app.Services.GetService<MateuOptions>();
         if (options?.Mcp ?? MateuOptions.McpEnabledByEnvironment()) MapMcpEndpoint(app, prefix);
+
+        // Uploads (IFileStorage): at the ROOT, whatever the mount, and once per application.
+        MapUploadEndpoints(app);
 
         if (UiPage.ConfiguredRenderer(ui) is { } renderer) ServeUi(app, prefix, baseUrl, renderer);
         else ServeApiHint(app, prefix);
@@ -410,15 +435,20 @@ public static class MateuExtensions
         // worker version hashes the page exactly as served.
         var pwaOption = app.Services.GetService<MateuOptions>()?.Pwa;
         var versionSkew = app.Services.GetService<VersionSkew>();
-        string PwaHead(string html) => Pwa.Served(html, prefix,
+        var publicBaseOption = app.Services.GetService<MateuOptions>()?.PublicBasePath;
+        string PwaHead(string html, string publicBase) => Pwa.Served(html, publicBase + prefix,
             MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl),
-                app.Services.GetService<SyncHandler>()?.MountShell(baseUrl)), versionSkew?.BuildId, pwaOption);
+                app.Services.GetService<SyncHandler>()?.MountShell(baseUrl)), versionSkew?.BuildId, pwaOption, publicBase);
         app.Use(async (ctx, next) =>
         {
             await next(ctx);
             if (ctx.Response.StatusCode != StatusCodes.Status404NotFound || ctx.Response.HasStarted) return;
             if (!HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method)) return;
-            var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug, oracleCdn, PwaHead);
+            // under UsePathBase / a trusted X-Forwarded-Prefix / MateuOptions.PublicBasePath the page is
+            // written for the PUBLIC path (PublicBase)
+            var publicBase = PublicBase.Of(ctx.Request.PathBase.Value, publicBaseOption);
+            var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug, oracleCdn,
+                html => PwaHead(html, publicBase), publicBase);
             if (answer is null) return;
             var (contentType, body, cacheControl) = answer.Value;
             var path = ctx.Request.Path.Value ?? "/";
@@ -462,7 +492,7 @@ public static class MateuExtensions
     /// or null when the request is not its to answer.</summary>
     internal static (string ContentType, byte[] Body, string? CacheControl)? UiAnswer(
         string path, string? accept, string prefix, RendererFiles renderer, string title, bool debug,
-        string? oracleCdn = null, Func<string, string>? head = null)
+        string? oracleCdn = null, Func<string, string>? head = null, string? publicBase = null)
     {
         // the PWA's files are its endpoint's alone: never a renderer file, never the page
         if (Pwa.IsEndpoint(path)) return null;
@@ -474,7 +504,7 @@ public static class MateuExtensions
         var isMount = path == (prefix.Length == 0 ? "/" : prefix) || path == prefix + "/";
         if (!(isMount || (UiPage.SpaCandidate(path) && UiPage.UnderMount(path, prefix)))) return null;
         if (!UiPage.AcceptsHtml(accept)) return null;
-        var html = UiPage.RenderIndex(renderer.IndexTemplate(), prefix, title, debug, oracleCdn);
+        var html = UiPage.RenderIndex(renderer.IndexTemplate(), prefix, title, debug, oracleCdn, publicBase);
         if (head is not null) html = head(html);
         return ("text/html; charset=utf-8", System.Text.Encoding.UTF8.GetBytes(html), UiPage.RevalidateCacheControl);
     }
