@@ -134,10 +134,15 @@ Implement the listener and register it; it hears **every** request once it has e
 @Component
 public class AuditTrail implements ActionAuditListener {   // io.mateu.uidl.audit
 
+  record AuditRecord(String who, String view, String actionId, List<String> recordIds,
+      ActionOutcome outcome, Instant at, String correlationId) {}
+
+  private final BlockingQueue<AuditRecord> queue = new LinkedBlockingQueue<>(); // drained elsewhere
+
   @Override
   public void onAction(ActionAuditEvent event) {
     if (event.reservedAction() || event.actionId().isEmpty()) return; // plumbing and loads
-    queue.offer(new Entry(event.caller().name(), event.view(), event.actionId(),
+    queue.offer(new AuditRecord(event.caller().name(), event.view(), event.actionId(),
         event.recordIds(), event.outcome(), event.at(), event.correlationId()));
   }
 }
