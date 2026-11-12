@@ -472,6 +472,9 @@
         "osNotifications" : {
           "type" : "boolean"
         },
+        "presence" : {
+          "type" : "boolean"
+        },
         "pushNotifications" : {
           "type" : "boolean"
         },
@@ -2609,6 +2612,9 @@
           "items" : {
             "$ref" : "#/$defs/PairDto"
           }
+        },
+        "autocomplete" : {
+          "type" : "string"
         },
         "autofocus" : {
           "type" : "boolean"
@@ -5893,7 +5899,7 @@
     },
     "UICommandTypeDto" : {
       "type" : "string",
-      "enum" : [ "CloseModal", "SetWindowTitle", "SetFavicon", "NavigateTo", "RunAction", "AddContentToHead", "AddContentToBody", "PushStateToHistory", "DispatchEvent", "MarkAsDirty", "MarkAsClean", "DownloadFile", "Announce", "Print", "UpdateHeaderValue", "AgentPush", "Progress", "NotificationsChanged" ]
+      "enum" : [ "CloseModal", "SetWindowTitle", "SetFavicon", "NavigateTo", "RunAction", "AddContentToHead", "AddContentToBody", "PushStateToHistory", "DispatchEvent", "MarkAsDirty", "MarkAsClean", "DownloadFile", "Announce", "Print", "UpdateHeaderValue", "AgentPush", "Progress", "NotificationsChanged", "PresenceChanged" ]
     },
     "UIFragmentActionDto" : {
       "type" : "string",

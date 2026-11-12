@@ -101,12 +101,17 @@ internal static class UiPage
     /// <summary>Java's <c>IndexPage.mountUi</c>: the <c>&lt;!-- AQUIUI --&gt;…&lt;!-- HASTAAQUIUI --&gt;</c>
     /// region becomes a <c>&lt;mateu-ui&gt;</c> root aimed at the mount, followed by the deferred-boot
     /// replayer. A page without the markers is returned unchanged.</summary>
-    public static string MountUi(string html, string baseUrl, bool debug = false)
+    /// Under a <paramref name="publicBase"/> (<see cref="PublicBase"/>) the root aims at the PUBLIC
+    /// path of the mount and carries <c>publicBase</c>, as on Java.
+    public static string MountUi(string html, string baseUrl, bool debug = false, string? publicBase = null)
     {
         var from = html.IndexOf(UiFrom, StringComparison.Ordinal);
         var to = html.IndexOf(UiTo, StringComparison.Ordinal);
         if (from < 0 || to < from) return html;
-        var root = "<mateu-ui baseUrl=\"" + Attr(baseUrl) + "\" pathPrefix=\"" + Attr(baseUrl) + "\""
+        var b = PublicBase.Normalize(publicBase);
+        var mount = b + baseUrl;
+        var root = "<mateu-ui baseUrl=\"" + Attr(mount) + "\" pathPrefix=\"" + Attr(mount) + "\""
+                   + (b.Length == 0 ? "" : " publicBase=\"" + Attr(b) + "\"")
                    + (debug ? " debug=\"true\"" : "") + " style=\"width:100%;height:100vh;\"></mateu-ui>";
         return html[..from] + root + DeferredBoot + html[to..];
     }
@@ -116,10 +121,13 @@ internal static class UiPage
     /// <see cref="DefaultFavicon"/> and no template marker is left in the page. With
     /// <paramref name="oracleCdn"/> (an already validated mirror, see <see cref="ResolveOracleCdn"/>)
     /// Oracle's CDN URLs are re-pointed at it AFTER the markers are filled.</remarks>
+    /// Under a <paramref name="publicBase"/> the template's root-relative URLs are rewritten first
+    /// (<see cref="PublicBase.Rewrite"/>).
     public static string RenderIndex(string template, string baseUrl, string title, bool debug = false,
-        string? oracleCdn = null) =>
+        string? oracleCdn = null, string? publicBase = null) =>
         RewriteOracleCdn(WithoutMarkers(MountUi(
-            template.Replace(FaviconMarker, DefaultFavicon).Replace(TitleMarker, title), baseUrl, debug)), oracleCdn);
+            PublicBase.Rewrite(template.Replace(FaviconMarker, DefaultFavicon).Replace(TitleMarker, title), publicBase),
+            baseUrl, debug, publicBase)), oracleCdn);
 
     /// <summary>The mirror of Oracle's CDN, when not set in <c>MateuOptions.OracleCdnUrl</c> (Java:
     /// <c>mateu.oracle-cdn.url</c> / <c>MATEU_ORACLE_CDN_URL</c>).</summary>

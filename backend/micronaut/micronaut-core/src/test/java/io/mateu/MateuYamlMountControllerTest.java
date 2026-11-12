@@ -51,7 +51,7 @@ class MateuYamlMountControllerTest {
   @Test
   void servesTheShellOfTheMountAndItsDeepLinks() {
     for (String path : new String[] {"yaml-parity", "yaml-parity/page"}) {
-      var response = indexController.index(path, "text/html");
+      var response = indexController.index(path, "text/html", null);
       assertThat(response.status(), equalTo(HttpStatus.OK));
       assertThat(response.getContentType().orElseThrow().toString(), startsWith("text/html"));
       assertThat(response.body(), containsString("<mateu-ui baseUrl=\"/yaml-parity\""));
@@ -61,15 +61,17 @@ class MateuYamlMountControllerTest {
 
   @Test
   void answersNotFoundOutsideTheMountAndForItsApi() {
-    assertThat(indexController.index(null, "text/html").status(), equalTo(HttpStatus.NOT_FOUND));
     assertThat(
-        indexController.index("elsewhere", "text/html").status(), equalTo(HttpStatus.NOT_FOUND));
+        indexController.index(null, "text/html", null).status(), equalTo(HttpStatus.NOT_FOUND));
     assertThat(
-        indexController.index("yaml-parity/mateu/v3/x", "text/html").status(),
+        indexController.index("elsewhere", "text/html", null).status(),
+        equalTo(HttpStatus.NOT_FOUND));
+    assertThat(
+        indexController.index("yaml-parity/mateu/v3/x", "text/html", null).status(),
         equalTo(HttpStatus.NOT_FOUND));
     // a data fetch is never answered the index (a REST source whose endpoint does not exist yet)
     assertThat(
-        indexController.index("yaml-parity/page", "application/json, */*").status(),
+        indexController.index("yaml-parity/page", "application/json, */*", null).status(),
         equalTo(HttpStatus.NOT_FOUND));
   }
 
@@ -102,7 +104,7 @@ class MateuYamlMountControllerTest {
 
   private void servesTheInstallableApp() {
     // the shell links it…
-    var shell = indexController.index("yaml-parity", "text/html").body();
+    var shell = indexController.index("yaml-parity", "text/html", null).body();
     assertThat(
         shell,
         containsString(
@@ -110,7 +112,7 @@ class MateuYamlMountControllerTest {
     assertThat(shell, containsString("<script src=\"/yaml-parity/mateu/v3/pwa/register.js\""));
 
     // …the manifest names the mount's app shell and is scoped to the mount…
-    var manifest = controller.pwa("yaml-parity/mateu/v3/pwa/manifest.webmanifest");
+    var manifest = controller.pwa("yaml-parity/mateu/v3/pwa/manifest.webmanifest", null);
     assertThat(manifest.status(), equalTo(HttpStatus.OK));
     assertThat(
         manifest.getContentType().orElseThrow().toString(),
@@ -123,7 +125,7 @@ class MateuYamlMountControllerTest {
                 + "\"start_url\":\"/yaml-parity\",\"scope\":\"/yaml-parity\""));
 
     // …the worker, served under /mateu/v3/pwa/, is allowed to control the whole mount…
-    var worker = controller.pwa("yaml-parity/mateu/v3/pwa/sw.js");
+    var worker = controller.pwa("yaml-parity/mateu/v3/pwa/sw.js", null);
     assertThat(worker.status(), equalTo(HttpStatus.OK));
     assertThat(worker.getContentType().orElseThrow().toString(), startsWith("text/javascript"));
     assertThat(worker.getHeaders().get("Service-Worker-Allowed"), equalTo("/yaml-parity"));
@@ -133,7 +135,7 @@ class MateuYamlMountControllerTest {
         containsString("addEventListener('fetch'"));
 
     // …and the icons are plain PNGs
-    var icon = controller.pwa("yaml-parity/mateu/v3/pwa/icon-192.png");
+    var icon = controller.pwa("yaml-parity/mateu/v3/pwa/icon-192.png", null);
     assertThat(icon.status(), equalTo(HttpStatus.OK));
     assertThat(icon.getContentType().orElseThrow().toString(), equalTo("image/png"));
     assertThat(icon.body().length > 0, is(true));
@@ -142,9 +144,11 @@ class MateuYamlMountControllerTest {
   @Test
   void anUnknownInstallableAppFileOrMountIsNotFound() {
     assertThat(
-        controller.pwa("yaml-parity/mateu/v3/pwa/nope.js").status(), equalTo(HttpStatus.NOT_FOUND));
+        controller.pwa("yaml-parity/mateu/v3/pwa/nope.js", null).status(),
+        equalTo(HttpStatus.NOT_FOUND));
     assertThat(
-        controller.pwa("elsewhere/mateu/v3/pwa/sw.js").status(), equalTo(HttpStatus.NOT_FOUND));
+        controller.pwa("elsewhere/mateu/v3/pwa/sw.js", null).status(),
+        equalTo(HttpStatus.NOT_FOUND));
   }
 
   @Test

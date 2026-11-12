@@ -81,3 +81,21 @@ describe('drop zone', () => {
         expect(actions).toHaveLength(0)
     })
 })
+
+describe('drop zone without dragging (WCAG 2.1.1, 2.5.7)', () => {
+    it('offers to move the selected rows of a listing of its type, and runs the drop action with them', async () => {
+        const { publishDragSelection } = await import('@infra/ui/dragAndDrop.ts')
+        const { el, actions } = await mount()
+        expect(el.shadowRoot!.querySelector('.move-selected')).toBeNull()
+        publishDragSelection('booking', ['7', '9'])
+        await el.updateComplete
+        const button = el.shadowRoot!.querySelector('.move-selected') as HTMLButtonElement
+        expect(button.textContent).toMatch(/\(2\)/)
+        button.click()
+        expect(actions).toEqual([{ actionId: 'moveToWindow', parameters: { window: 2, _draggedIds: ['7', '9'], _dragType: 'booking' } }])
+        publishDragSelection('other', ['1'])
+        publishDragSelection('booking', [])
+        await el.updateComplete
+        expect(el.shadowRoot!.querySelector('.move-selected')).toBeNull()
+    })
+})

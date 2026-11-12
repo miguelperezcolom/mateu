@@ -205,6 +205,9 @@
     }, {
       "name" : "ai",
       "type" : "AppAiChat"
+    }, {
+      "name" : "presence",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "AppState",
@@ -1305,6 +1308,9 @@
     }, {
       "name" : "link",
       "type" : "NavLink"
+    }, {
+      "name" : "autocomplete",
+      "type" : "string"
     }, {
       "name" : "fieldType",
       "type" : "string",

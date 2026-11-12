@@ -18,7 +18,8 @@ import java.util.Base64;
 @Internal
 public class UploadStep implements WizardStep {
 
-  @FileUpload(accept = ".csv")
+  // the wizard parses the CSV from the value itself: always inline, even with a FileStorage
+  @FileUpload(accept = ".csv", storage = FileUpload.INLINE)
   @Label("CSV file")
   public String file;
 

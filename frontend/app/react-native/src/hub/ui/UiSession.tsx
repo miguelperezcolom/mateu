@@ -9,12 +9,13 @@ import { BACK_HINT, type MateuSession, type ScreenBack } from '../../core/MateuS
 import { SessionContent } from '../../shell/SessionContent';
 import { type StaticBundle } from '../../core/staticBundle';
 import { ScreenSnapshots } from '../../core/screenSnapshots';
+import { loadListingPrefs, type ListingPrefsSnapshot } from '../../core/listingPrefs';
 import { timed } from '../../core/timing';
 import { cachedStaticBundle } from '../bundleCache';
 import { theme, themed } from '../../theme';
 import { domainOf } from '../links';
 import { appSide } from '../appUpdate';
-import { appCompatibility, compatMessage, hubLang } from '../compat';
+import { appCompatibility, compatMessage, HUB_TEXTS, hubLang } from '../compat';
 import { fetchManifest, type ManifestFetch, type UiManifest } from '../manifest';
 import { allowInsecure, metaStore, secretStore, uiStore } from '../storage';
 import { uiSecretKeys, type HubEntry } from '../uiStore';
@@ -83,6 +84,7 @@ export function UiSession({
   const [barClaimed, setBarClaimed] = useState(false);
   const [manifest, setManifest] = useState<UiManifest | undefined>(entry.manifest);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [listingPrefs, setListingPrefs] = useState<ListingPrefsSnapshot | null>(null);
   /** A static UI (no server): the bundle it runs from. */
   const [bundle, setBundle] = useState<StaticBundle | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -162,7 +164,10 @@ export function UiSession({
         return;
       }
       const id = await uiSessionId(secretStore, entry.id);
+      // the listings' saved views and column choices this UI was left with (kept on the device)
+      const prefs = await loadListingPrefs(metaStore, entry.id);
       if (!alive) return;
+      setListingPrefs(prefs);
       setManifest(m.manifest);
       setBundle(found.bundle);
       setSessionId(id);
@@ -256,10 +261,10 @@ export function UiSession({
   } else if (phase.name === 'update') {
     body = (
       <View style={hubStyles.centered}>
-        <Text style={hubStyles.title} {...headingA11y(2)}>{hubLang() === 'es' ? 'Actualiza la app' : 'Update the app'}</Text>
+        <Text style={hubStyles.title} {...headingA11y(2)}>{HUB_TEXTS[hubLang()].updateTheApp}</Text>
         <Text style={hubStyles.text} accessibilityRole="alert">{phase.reason}</Text>
         {phase.canUpdate && <UpdateAppButton style={styles.wide} />}
-        <SecondaryButton label={hubLang() === 'es' ? 'Comprobar de nuevo' : 'Check again'} onPress={() => setAttempt((a) => a + 1)} />
+        <SecondaryButton label={HUB_TEXTS[hubLang()].checkAgain} onPress={() => setAttempt((a) => a + 1)} />
       </View>
     );
   } else if (phase.name === 'signin') {
@@ -286,11 +291,11 @@ export function UiSession({
             <Notice tone="info" text={compatNotice} />
             <View style={styles.compatActions}>
               <UpdateAppButton />
-              <SecondaryButton label={hubLang() === 'es' ? 'Ahora no' : 'Not now'} onPress={() => setCompatNotice(null)} />
+              <SecondaryButton label={HUB_TEXTS[hubLang()].notNow} onPress={() => setCompatNotice(null)} />
             </View>
           </View>
         )}
-        <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox }}>
+        <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox, listingPrefs: listingPrefs && { store: metaStore, scope: entry.id, initial: listingPrefs } }}>
           <SessionContent initialRoute={route} visible={visible} />
         </MateuAppProvider>
       </>

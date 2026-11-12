@@ -16,6 +16,8 @@ export default interface FormField extends ComponentMetadata {
     wantsFocus?: boolean | undefined
     label: string | undefined
     placeholder?: string | undefined
+    /** The HTML autocomplete token naming the input's purpose (WCAG 1.3.5): `email`, `given-name`… */
+    autocomplete?: string | undefined
     cssClasses?: string | undefined
     description?: string | undefined
     badges?: Badge[] | undefined

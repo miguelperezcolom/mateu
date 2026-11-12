@@ -12,6 +12,7 @@ import { requestAside } from "@infra/ui/layout/fabRail.ts"
 import type { AsidePlacement } from "@infra/ui/layout/fabRail.ts"
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { bottomObstruction, composedContains, obscuredScrollDelta } from '@infra/a11y/focusNotObscured.ts'
 
 /** Narrow viewports (the rail's NARROW_VIEWPORT): nothing pins but the section bar, and that compact. */
 const NARROW_QUERY = '(max-width: 599px)'
@@ -131,6 +132,7 @@ export class MateuPage extends LitElement {
         document.addEventListener('page-banners-received', this._bannersHandler)
         window.addEventListener('resize', this._onResize)
         document.addEventListener('keydown', this._onTocKey)
+        this.addEventListener('focusin', this._keepFocusVisible)
     }
 
     disconnectedCallback() {
@@ -138,6 +140,7 @@ export class MateuPage extends LitElement {
         document.removeEventListener('page-banners-received', this._bannersHandler)
         window.removeEventListener('resize', this._onResize)
         document.removeEventListener('keydown', this._onTocKey)
+        this.removeEventListener('focusin', this._keepFocusVisible)
         this._clearAllTimers()
         this._teardownScrollSpy()
         this._syncAside(false)
@@ -383,6 +386,49 @@ export class MateuPage extends LitElement {
         return this._tocVisible && this._tocPlacement === 'bar'
             ? this.shadowRoot?.querySelector('.page-toc') as HTMLElement | null
             : null
+    }
+
+    /** The bottom of the pinned region: the pinned header and the sticky sections butted against it. */
+    private _pinnedBottom(except?: Element): number {
+        const gap = 12
+        const header = this.shadowRoot?.querySelector('.page-header-wrap') as HTMLElement | null
+        const pinned = header && getComputedStyle(header).position === 'sticky'
+        let bottom = pinned ? header!.getBoundingClientRect().bottom : 0
+        const bar = this._tocBar()
+        if (bar) bottom = Math.max(bottom, bar.getBoundingClientRect().bottom)
+        for (const card of this._sectionCards()) {
+            if (!card.classList.contains('mateu-section--sticky') || (except && composedContains(card, except))) continue
+            const r = card.getBoundingClientRect()
+            if (r.top <= bottom + gap + 2) bottom = Math.max(bottom, r.bottom)
+        }
+        return bottom
+    }
+
+    /**
+     * WCAG 2.4.11 Focus Not Obscured: a control reached by keyboard that lands under the pinned
+     * header / sticky sections, or under a floating button, is scrolled clear of them. Only for
+     * keyboard focus (`:focus-visible`): a click already sees what it clicked.
+     */
+    private _keepFocusVisible = (e: FocusEvent) => {
+        const target = (e.composedPath()[0] as Element | undefined) ?? null
+        if (!target || typeof (target as HTMLElement).getBoundingClientRect !== 'function') return
+        try {
+            if (!(target as HTMLElement).matches(':focus-visible')) return
+        } catch { /* an engine without :focus-visible: go on */ }
+        // a control inside the pinned header or a pinned section is never behind them
+        const header = this.shadowRoot?.querySelector('.page-header-wrap')
+        if (header && composedContains(header, target)) return
+        requestAnimationFrame(() => {
+            const rect = target.getBoundingClientRect()
+            if (!rect.width && !rect.height) return
+            const top = this._pinnedBottom(target)
+            const bottom = bottomObstruction(target, rect, window.innerHeight)
+            const delta = obscuredScrollDelta(rect, top, bottom)
+            if (!delta) return
+            const container = this._scrollContainer()
+            if (container) container.scrollBy({ top: delta })
+            else window.scrollBy({ top: delta })
+        })
     }
 
     private _scrollContainer(): HTMLElement | null {

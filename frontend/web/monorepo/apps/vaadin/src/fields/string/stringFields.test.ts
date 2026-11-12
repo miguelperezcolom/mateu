@@ -88,6 +88,18 @@ describe('string fields', () => {
         expect(tagOf(draw(renderStringField(host({ stereotype }), 'f', 'v', 'Field', 'Field')))).toBe(tag)
     })
 
+    it('a field about the user carries its autocomplete token to the control (WCAG 1.3.5)', () => {
+        const auto = (field: Record<string, unknown>) =>
+            draw(renderStringField(host(field), 'f', '', 'Field', 'Field')).querySelector('*')?.getAttribute('autocomplete')
+        expect(auto({ stereotype: 'email', autocomplete: 'email' })).toBe('email')
+        expect(auto({ autocomplete: 'given-name' })).toBe('given-name')
+        expect(auto({ stereotype: 'password', autocomplete: 'new-password' })).toBe('new-password')
+        expect(auto({ stereotype: 'textarea', autocomplete: 'street-address' })).toBe('street-address')
+        expect(auto({})).toBeNull()
+        expect(draw(renderNumberField(host({ dataType: 'number', autocomplete: 'bday-year' }), 'f', '', 'Field', 'Field'))
+            .querySelector('*')?.getAttribute('autocomplete')).toBe('bday-year')
+    })
+
     it('each stereotype draws its own capture element', () => {
         const inner = (stereotype: string, sel: string) =>
             draw(renderStringField(host({ stereotype }), 'f', '', 'Field', 'Field')).querySelector(sel)

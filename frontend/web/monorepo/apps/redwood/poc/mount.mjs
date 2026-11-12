@@ -57,25 +57,46 @@ export function routeOfPath(pathname, mount) {
 /** The browser path of a Mateu route under the mount: '/orders' → '/console/orders', the home
  *  ('' or '/') → '/console' ('/' at the root). A route may carry its ?query; one that already
  *  starts with the mount (a crud's inner route) is not prefixed again. */
-export function pathOfRoute(route, mount) {
+export function pathOfRoute(route, mount, base = publicBasePath) {
   const m = normalizeMount(mount)
   let r = route == null ? '' : String(route)
   if (r.charAt(0) === '?') r = '/' + r
   if (r === '' || r === '/') return m || '/'
   if (r.startsWith('/?')) return (m || '') + r.slice(m ? 1 : 0)
   if (r.charAt(0) !== '/') r = '/' + r
+  r = spelledWithTheBase(r, m, base)
   const path = r.split('?')[0]
   if (m && (path === m || path.startsWith(m + '/'))) return r
   return m + r
 }
 
+/**
+ * Under a PUBLIC base (`/crm`: a servlet context path, a prefix-stripping proxy — the server's
+ * io.mateu.core.infra.PublicBase) the page's mount carries it (`/crm/products`), but the server
+ * spells its routes with the mount only (a crud's '/products/new', an App's homeRoute
+ * '/console/home'): that spelling IS the mount, so it gets the base in front. Anything else is
+ * returned as is.
+ */
+export function spelledWithTheBase(route, mount, base = publicBasePath) {
+  const b = normalizeMount(base)
+  const m = normalizeMount(mount)
+  const r = String(route == null ? '' : route)
+  if (!b || !m.startsWith(b + '/') || r.charAt(0) !== '/') return r
+  const bare = m.slice(b.length)
+  const path = r.split(/[?#]/)[0]
+  return path === bare || path.startsWith(bare + '/') ? b + r : r
+}
+
 // ── the mount read at boot ─────────────────────────────────────────────────────────────────────
 let mountPath = null
+// the public base ('' or '/crm') the page's <mateu-ui publicBase> names
+let publicBasePath = ''
 
 /** Reads the <mateu-ui> of the page once: the mount ('' at the root) or null (hash mode). */
 export function initMount(doc) {
   const el = doc && typeof doc.querySelector === 'function' ? doc.querySelector('mateu-ui') : null
   mountPath = el ? baseUrlOf({ baseUrl: el.getAttribute('baseUrl') }, '') : null
+  publicBasePath = el ? normalizeMount(el.getAttribute('publicBase') || el.getAttribute('publicbase')) : ''
   return mountPath
 }
 
@@ -88,7 +109,23 @@ export function bundleUrlOf(doc) {
 }
 
 /** Test hook / explicit setting: null = hash mode. */
-export function setMount(value) { mountPath = value == null ? null : normalizeMount(value) }
+export function setMount(value, base = '') {
+  mountPath = value == null ? null : normalizeMount(value)
+  publicBasePath = normalizeMount(base)
+}
+
+/** The public base ('' at the root of a host, '/crm' under a context path / a proxy prefix). */
+export function currentPublicBase() { return publicBasePath }
+
+/** A ROOT-RELATIVE base the server names (a sibling / remote mount, '/orders') under the public
+ *  base ('/crm/orders'); absolute, protocol-relative, relative, empty or already-under: as is. */
+export function underPublicBase(url, base = publicBasePath) {
+  const b = normalizeMount(base)
+  const u = url == null ? url : String(url)
+  if (!b || !u || u.charAt(0) !== '/' || u.charAt(1) === '/' || u.charAt(1) === '\\') return url
+  if (u === b || u.startsWith(b + '/') || u.startsWith(b + '?')) return u
+  return b + u
+}
 
 /** Path mode (served by a Mateu backend) vs hash mode (static serving). */
 export function isPathMode() { return mountPath != null }
@@ -101,7 +138,7 @@ export function mateuBase(devDefault) { return mountPath != null ? mountPath : d
 /** The base for STATIC things the backend serves at its root (images, logos, web-component
  *  modules, the agent's sseUrl): the origin root in path mode — they are not under the mount, just
  *  as on the Vaadin renderer —, the development constant (the backend origin) otherwise. */
-export function mateuAssetBase(devDefault) { return mountPath != null ? '' : devDefault }
+export function mateuAssetBase(devDefault) { return mountPath != null ? publicBasePath : devDefault }
 
 /** What goes in history.pushState for a route: its path under the mount, or '#route'. */
 export function urlOfRoute(route) {
@@ -137,7 +174,7 @@ export function currentRouteOf(location) {
 export function routeUnderMount(route) {
   if (mountPath == null || !route) return route || ''
   const [path, query] = String(route).split(/(?=\?)/)
-  const r = routeOfPath(path, mountPath)
+  const r = routeOfPath(spelledWithTheBase(path, mountPath), mountPath)
   return (r || (query ? '/' : '')) + (query || '')
 }
 
@@ -169,11 +206,12 @@ export function pathLeavingMountOf(route, menuRoutes = []) {
   const r = String(route == null ? '' : route)
   // `/\host` is `//host` to a browser: another site, never a path to load here
   if (r.charAt(0) !== '/' || r.charAt(1) === '/' || r.charAt(1) === '\\') return null
-  const path = r.split(/[?#]/)[0]
+  const path = spelledWithTheBase(r, mountPath).split(/[?#]/)[0]
   if (path === mountPath || path.startsWith(mountPath + '/')) return null
   const own = (m) => { const p = String(m).split('?')[0].replace(/\/+$/, '') || '/'; return path === p || (p !== '/' && path.startsWith(p + '/')) }
   if ((menuRoutes || []).some(own)) return null
-  return r
+  // another mount of the same app: under the public base too (the server names it without it)
+  return publicBasePath && !(r === publicBasePath || r.startsWith(publicBasePath + '/')) ? publicBasePath + r : r
 }
 
 /** pathLeavingMountOf for a reducer's `navigate` effect, against the registry's shell menu. */

@@ -136,6 +136,13 @@ public final class AppShellExtrasMapper {
     return annotation != null && annotation.liveUpdates();
   }
 
+  /** {@code @App(presence = true)} / YAML {@code presence: true}: record presence. */
+  public static boolean presence(AppShell app) {
+    if (app.presence() != null) return app.presence();
+    var annotation = appAnnotation(app);
+    return annotation != null && annotation.presence();
+  }
+
   /** {@code @App(osNotifications = true)}: OS-level notifications while the app is not in front. */
   public static boolean osNotifications(AppShell app) {
     var annotation = appAnnotation(app);

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { recordTiming } from '../core/timing';
-import { ActivityIndicator, Modal, Platform, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, Modal, Platform, StyleSheet, View } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text } from '../ui/Text';
 import { toastLifetime } from '../core/toastLifetime';
@@ -65,12 +65,19 @@ function ToastHost({ visible = true }: { visible?: boolean }) {
   const { session } = useAppContext();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const nextId = useRef(1);
+  // a screen reader on keeps actionable toasts until dismissed (toastLifetime, WCAG 2.2.1)
+  const screenReader = useRef(false);
+  useEffect(() => {
+    void AccessibilityInfo.isScreenReaderEnabled?.().then((on) => { screenReader.current = !!on; }).catch(() => {});
+    const sub = AccessibilityInfo.addEventListener?.('screenReaderChanged', (on: boolean) => { screenReader.current = !!on; });
+    return () => sub?.remove?.();
+  }, []);
 
   useEffect(() => {
     session.notify = (title, text, variant, options) => {
       // undoable toasts default to 10s (like the web's SSEService) so the button can be pressed;
       // an error (or a sticky notice) stays until dismissed (toastLifetime)
-      const duration = toastLifetime(variant, { ...options, undo: options?.undo ?? (options?.actions?.length ? true : undefined) });
+      const duration = toastLifetime(variant, { ...options, undo: options?.undo ?? (options?.actions?.length ? true : undefined), screenReader: screenReader.current });
       const toast: Toast = { id: nextId.current++, title, text, variant, undo: options?.undo, actions: options?.actions, key: options?.key, lifetime: duration };
       // the same key replaces the toast on screen instead of stacking a second one
       setToasts((t) => [...t.filter((x) => !(toast.key && x.key === toast.key)), toast]);

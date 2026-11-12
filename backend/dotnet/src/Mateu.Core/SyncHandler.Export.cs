@@ -23,6 +23,10 @@ internal sealed partial class SyncHandler
         }
     }
 
+    /// <summary>The file storages ([FileUpload] fields upload through them; null = none registered,
+    /// the data-URI fallback). AddMateu builds it from the IFileStorage services. EXPERIMENTAL.</summary>
+    public FileUploads? Uploads { get; init; }
+
     /// <summary>The export format an action id names, when the crud opted into it
     /// (Crud.CsvExportable / ExcelExportable / PdfExportable); null otherwise — the id is wire
     /// input, so a crud that does not offer an export never answers it.</summary>

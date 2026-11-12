@@ -52,10 +52,12 @@ docs site, and the host's login page — Mateu does not authenticate.
 
 ## Method
 
-Three kinds of evidence, labelled in the tables as **[axe]**, **[behaviour]** and **[code]**.
+Three kinds of evidence, labelled in the tables as **[axe]**, **[behaviour]** and **[code]**,
+plus **[unit]**: a component test (vitest, the DOM ones in jsdom; the Redwood poc and React Native
+node suites) that drives the behaviour without a real browser or assistive technology.
 
-**Automated markup checks [axe].** axe-core with the `wcag2a`, `wcag2aa`, `wcag21a` and
-`wcag21aa` tags.
+**Automated markup checks [axe].** axe-core with the `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`
+and (since the fixes below) `wcag22aa` tags.
 
 - `e2e/tests/shared/accessibility.spec.ts` — 8 routes covering the shapes Mateu generates (form,
   every field kind, validation, app shell, CRUD listing, tabs, sections, accordion). It is part of
@@ -94,7 +96,9 @@ Native, every field bound on the desktop) and are not re-verified for this repor
 **What was not done.** No audit by an external party. No testing with screen readers by users
 with disabilities. Assistive technology was not exercised by hand for this report (NVDA, JAWS,
 VoiceOver and TalkBack are the ones the mechanisms target). The WCAG 2.2-only axe rules
-(`wcag22aa`, e.g. target size) are not part of the gate, and nothing measures reflow at 320 CSS
+(`wcag22aa`, e.g. target size) joined the gate with the fixes below; one run of `a11y-audit.mjs`
+with them, against a SUT built before those fixes, found no violation on its 8 routes beyond the
+`vaadin-tabs` carve-out. Nothing measures reflow at 320 CSS
 pixels, text spacing or non-text contrast. Where a criterion depends on one of those, it is not
 claimed as Supports.
 
@@ -113,7 +117,7 @@ Redwood web, **RN** = React Native, **D** = Desktop.
 
 | Criterion | V | R | RN | D | Remarks |
 |---|---|---|---|---|---|
-| **1.1.1 Non-text Content** | P | P | S | P | `Image.alt` reaches every renderer (empty `alt` = decorative) — the text is the author's. Icon-only buttons carry names [code] [behaviour]. **Gap (web):** the `Chart` component draws on a bare `<canvas>` (`mateu-chart.ts`) and the trend chart's `<svg>` has no name — neither has a text alternative. React Native charts do [behaviour]. Desktop: not measured for charts. |
+| **1.1.1 Non-text Content** | S | P | S | P | `Image.alt` reaches every renderer (empty `alt` = decorative) — the text is the author's. Icon-only buttons carry names [code] [behaviour]. Charts: `mateu-chart`'s canvas is `role=img` named by the chart title (else its series) with the numbers as a visually-hidden data table, and `mateu-trend-chart`'s svg is `role=img` with a one-sentence summary (`infra/a11y/chartAlternative.ts`) [unit]. Redwood: a hidden text alternative next to `oj-chart` (`chartTextAlternativeOf`) — pinned by the poc tests, not checked in a rendered VB page. React Native charts are named [behaviour]. Desktop: not measured for charts. |
 | **1.2.1 Audio-only and Video-only (Prerecorded)** | N/A | N/A | N/A | N/A | Mateu has no audio or video component. Media an author embeds through `Html`/`Element` is the author's. |
 | **1.2.2 Captions (Prerecorded)** | N/A | N/A | N/A | N/A | As 1.2.1. |
 | **1.2.3 Audio Description or Media Alternative (Prerecorded)** | N/A | N/A | N/A | N/A | As 1.2.1. |
@@ -122,11 +126,11 @@ Redwood web, **RN** = React Native, **D** = Desktop.
 | **1.3.3 Sensory Characteristics** | S | S | S | S | Mateu's own texts do not rely on shape or position. Instructions the author writes are the author's. |
 | **1.4.1 Use of Color** | S | S | S | S | Statuses, badges, tones and validation always carry text; a colour is never the only signal in Mateu's own components. An author colouring a column with no text is the author's. |
 | **1.4.2 Audio Control** | N/A | N/A | N/A | N/A | Mateu plays no audio. |
-| **2.1.1 Keyboard** | P | P | S | S | Every widget Mateu makes clickable gets a role, a tab stop and Enter/Space (`activate.ts`) [behaviour]; kanban cards have a "Move…" menu as the keyboard's way to move [code]. **Gaps (web):** moving or resizing a block on the `PlanningBoard`, and dragging listing rows onto a `DropZone` (`@DragRows`), work with a pointer only; the signature pad is pointer-only (a drawn signature is the essential exception). Redwood: same `PlanningBoard`/`DropZone` gap; not otherwise measured beyond the probe. RN: drag has `accessibilityActions` ("Move") [code]. Desktop: Swing keyboard operation throughout. |
+| **2.1.1 Keyboard** | P | P | S | S | Every widget Mateu makes clickable gets a role, a tab stop and Enter/Space (`activate.ts`) [behaviour]; kanban cards have a "Move…" menu [code]. `PlanningBoard` blocks are focusable: arrows move a block a day or a row, Shift+Left/Right change its length, Enter applies, Escape cancels; a `DropZone` offers "Move the selected rows here" for the selected rows of a `@DragRows` listing [unit]. **Remaining gaps (web):** that DropZone button needs the listing to have row selection; the signature pad is pointer-only (a drawn signature is the essential exception). Redwood: `PlanningBoard`/`DropZone` still pointer-only. RN: drag has `accessibilityActions` ("Move") [code]. Desktop: Swing keyboard operation throughout. |
 | **2.1.2 No Keyboard Trap** | S | S | S | S | Modal overlays trap Tab on purpose and release on Esc/close, returning focus to the opener [behaviour]. No other trap is known. |
-| **2.1.4 Character Key Shortcuts** | P | P | N/A | S | The only single-character shortcut is `?` (shortcuts help, apps declaring `@AppShortcut`); it is ignored while typing in a field (`isTypingTarget`) but cannot be turned off or remapped. Access keys need Alt. **An author may bind a bare-letter `@Action(shortcut)`;** Mateu does not prevent it. |
-| **2.2.1 Timing Adjustable** | P | P | P | P | The idle-session warning (`@App(idleTimeoutMinutes)`) warns before signing out and lets the user extend with one action (focus on "Stay"). Error messages are sticky. **Gaps:** ordinary toasts disappear after 5 s and toasts with an action (Undo, Retry) after 10 s, with no pause on hover or focus (`neutralNotifier.ts`) — the Undo of `Message.undoable` and the `Restorable` undo-delete are lost after that window; `@Banner(timeoutSeconds)` auto-dismisses if the author sets it. |
-| **2.2.2 Pause, Stop, Hide** | P | S | S | S | The `Carousel` with `auto` pauses while hovered or focused but has no pause button; autoplay is the author's choice. Skeleton shimmer and busy pulses are loading indicators that end with the load. |
+| **2.1.4 Character Key Shortcuts** | S | P | N/A | S | One-key shortcuts (`?`, a bare-letter `@AppShortcut`, a one-key `@Action(shortcut)`) never fire while typing in a field and can be **turned off** with the switch in the shortcuts list (one per-browser setting shared by both web renderers); Ctrl+/ always opens the list [unit]. Access keys need Alt. Redwood: the switch covers `?` and app shortcuts; a screen's one-key `@Action(shortcut)` (`keys.mjs`) is not yet covered. |
+| **2.2.1 Timing Adjustable** | S | P | P | P | The idle-session warning (`@App(idleTimeoutMinutes)`) warns before signing out and lets the user extend with one action. Error messages are sticky. Toasts close on a clock that **stops while the toast is hovered, focused or the page is hidden** and resumes with what was left (at least 2 s); a toast with an action (Undo, Retry) stays at least 10 s (`infra/notify/dismissTimer.ts`, both web notifiers) [unit]. Redwood: the same rule on `oj-message` (`pausableToastClose`), pinned by the poc tests with a fake DOM, not in a live page. React Native: actionable toasts stay at least 10 s and stay until dismissed while a screen reader is on; plain toasts keep their 4 s. `@Banner(timeoutSeconds)` auto-dismisses if the author sets it. |
+| **2.2.2 Pause, Stop, Hide** | S | S | S | S | An autoplaying `Carousel` has a visible pause/play button, also pauses while hovered or focused, and starts stopped under `prefers-reduced-motion` [unit]. Only the web renderer autoplays. Skeleton shimmer and busy pulses are loading indicators that end with the load. |
 | **2.3.1 Three Flashes or Below Threshold** | S | S | S | S | Nothing Mateu draws flashes. |
 | **2.4.1 Bypass Blocks** | S | S | N/A | N/A | "Skip to content" is the first Tab stop and a `main` landmark wraps the content [behaviour] (`mateu-skip-link.ts`, `poc/a11y.mjs`). Natives: screen readers navigate by element; there is no repeated web-style block to bypass. |
 | **2.4.2 Page Titled** | S | S | S | S | `SetWindowTitle` sets the document / window / screen title on every route and is also announced [behaviour]. The title text is the author's (`@Title`). |
@@ -138,7 +142,7 @@ Redwood web, **RN** = React Native, **D** = Desktop.
 | **2.5.4 Motion Actuation** | N/A | N/A | N/A | N/A | Nothing is operated by device motion. |
 | **3.1.1 Language of Page** | S | S | P | P | Web: `<html lang>` is set from the server's locale (`AppDto.locale`, `chromeTexts.ts`), falling back to the browser's. Natives follow the OS language; the app's locale is not exposed to the platform's accessibility API separately. |
 | **3.2.1 On Focus** | S | S | S | S | Focus never triggers navigation or a server action. The smart-search panel opens on click or typing, not on focus, for this reason. |
-| **3.2.2 On Input** | P | P | S | S | **Gap (web):** changing the app-context selector (`@AppContext`, ≤ 7 options → native `<select>`) reloads the page immediately on change (`mateu-app-context-picker.ts`) — a change of context with no warning; on some browsers arrow keys on a closed select fire it. `@AutoSave` and the record switcher re-render content in place, which is a content change, and are the author's choice. |
+| **3.2.2 On Input** | S | P | P | S | The app-context selector (`@AppContext`) changes the context (the app reloads against it). The picker says so before it is used — its button is described by "Choosing another one reloads the app", repeated at the top of its panel — announces the change, and reloads 700 ms later; picking the current value does nothing [unit]. Redwood: the context drawer shows the same sentence (linked to each picker) and its chain announces the change — static checks only. RN: the selector's hint says it and the change is announced (not run on a device). `@AutoSave` and the record switcher re-render content in place, which is a content change, and are the author's choice. |
 | **3.2.6 Consistent Help** | S | S | S | S | Mateu's own help mechanisms (the command center, `?` shortcuts help, the AI chat button) sit in the same place on every screen of the shell. Help the author adds is the author's. |
 | **3.3.1 Error Identification** | S | S | S | S | A rejected field is marked invalid on the control, its message is tied to it and announced, and the focus moves to the first one [behaviour]. The server re-checks the same constraints and answers "There are validation errors". |
 | **3.3.2 Labels or Instructions** | S | S | S | S | Every field gets a visible label (derived from the field name if the author gives none), required fields are marked and announced, `@Help` becomes the description. Whether a derived label is meaningful is the author's. |
@@ -154,7 +158,7 @@ Redwood web, **RN** = React Native, **D** = Desktop.
 | **1.2.4 Captions (Live)** | N/A | N/A | N/A | N/A | No media components. |
 | **1.2.5 Audio Description (Prerecorded)** | N/A | N/A | N/A | N/A | No media components. |
 | **1.3.4 Orientation** | S | S | S | S | No renderer locks orientation (the mobile app declares `orientation: default`); phone widths switch to a one-column layout. |
-| **1.3.5 Identify Input Purpose** | DNS | DNS | DNS | N/A | **Gap:** Mateu emits no `autocomplete` tokens (`name`, `email`, `tel`…) for fields about the user, and offers the author no way to declare one. The email/tel stereotypes set the input type, which is not the same. Desktop: no platform equivalent. |
+| **1.3.5 Identify Input Purpose** | S | P | P | N/A | A field declares its purpose with `@Autocomplete("given-name")` (.NET `[Autocomplete]`, Python `Autocomplete()`, YAML/fluent `FormField.autocomplete`); an editable email field gets `email` without it. The token travels as `FormFieldDto.autocomplete` from all three backends and the browser expander. Vaadin: on the text, email, password, textarea and number fields [unit]. Redwood: copied from the host's `data-autocomplete` onto the native input (`installInputPurpose`) — tested on a fake DOM, not in a live page. React Native: `autoComplete` + iOS `textContentType` (mapping tested; not run on a device). Other purposes are the author's to declare. Desktop: no platform equivalent. |
 | **1.4.3 Contrast (Minimum)** | S | S | P | P | Web: axe measures contrast on every gated route with 0 violations [axe]; Redwood's dark-header actions were fixed from 1.33:1 to the inverse text colour [axe]. RN: colours come from Material 3 tonal tokens (light and dark) but are not measured by a tool. Desktop: the IDE theme draws most text; Mateu's own tones (status chips) are not measured. Colours the author sets (`@Style`, badge colours, `Element` content) are the author's. |
 | **1.4.4 Resize Text** | S | S | S | P | Web: rem-based themes, browser zoom to 200 % works. RN: system font scaling is not disabled anywhere. Desktop: follows the IDE's font settings; fixed-size Swing panels were not tested at large sizes. |
 | **1.4.5 Images of Text** | S | S | S | S | Mateu renders text as text. |
@@ -165,8 +169,8 @@ Redwood web, **RN** = React Native, **D** = Desktop.
 | **2.4.5 Multiple Ways** | S | S | S | S | The app shell gives the menu plus, when the app enables them, the ⌘K palette / command center, global search, recent screens and breadcrumbs. A mount with a single screen has nothing to offer two ways to. |
 | **2.4.6 Headings and Labels** | S | S | S | S | Every page, section and card title is a heading; labels are the author's words. |
 | **2.4.7 Focus Visible** | S | S | S | S | Design-system controls draw their focus ring; Mateu's own activatable widgets add `:focus-visible` styles inside their shadow roots (`focusStyles.ts`). RN: the platform's focus highlight for keyboard users. Desktop: Swing focus painting. |
-| **2.4.11 Focus Not Obscured (Minimum)** | P | P | S | S | **Not measured.** Pages with a pinned header and `@Section(sticky)` cards (the `@Toc` "docs" mode), floating action buttons and the connectivity banner can cover a focused control while tabbing: there is no `scroll-padding` for the pinned region. Clicks in the `@Toc` index do offset for it; keyboard focus does not. |
-| **2.5.7 Dragging Movements** | P | P | S | P | As 2.1.1: the kanban has a "Move…" menu; `PlanningBoard` move/resize and `@DragRows` → `DropZone` have no single-pointer alternative in the web renderers (an author can add an action that does the same). RN offers "Move to…" pickers. Desktop: a keyboard alternative to dragging rows was not verified. |
+| **2.4.11 Focus Not Obscured (Minimum)** | P | P | S | S | A keyboard-focused control that lands under the pinned header, the folded index bar or a pinned `@Section(sticky)` card, or under a floating button, is scrolled clear of them (`mateu-page`, `infra/a11y/focusNotObscured.ts`) [unit — the offset logic only]. **Not measured in a browser**, and the connectivity banner is not counted. Redwood: not addressed. |
+| **2.5.7 Dragging Movements** | P | P | S | P | Kanban: a "Move…" menu. `PlanningBoard`: the focused block's tool row (one day earlier/later, previous/next row, shorter/longer, Apply) [unit]. `DropZone`: "Move the selected rows here" — needs row selection on the listing. Redwood: PlanningBoard and DropZone still drag-only. RN offers "Move to…" pickers. Desktop: a keyboard alternative to dragging rows was not verified. |
 | **2.5.8 Target Size (Minimum)** | P | P | S | P | Design-system buttons are at least 24 × 24 CSS px. **Not measured:** small glyph controls Mateu draws itself — filter-chip ✕, kanban ⋯, drawer header buttons, peer-navigation arrows. RN follows Material 3 touch targets. |
 | **3.1.2 Language of Parts** | N/A | N/A | N/A | N/A | Mateu does not mix languages in its own texts; content in another language is the author's, and there is no field to mark it. |
 | **3.2.3 Consistent Navigation** | S | S | S | S | The shell's navigation is generated once per app and stays in the same place and order on every screen. |
@@ -180,15 +184,17 @@ Redwood web, **RN** = React Native, **D** = Desktop.
 
 What Mateu can change and has not, at this version:
 
-1. **Web charts have no text alternative** (1.1.1) — `mateu-chart` (canvas) and `mateu-trend-chart` (svg).
-2. **No `autocomplete` tokens** (1.3.5) — neither emitted nor declarable.
-3. **Short-lived toasts** (2.2.1) — 5 s / 10 s, no pause on hover or focus; Undo and Retry go with them.
-4. **App-context `<select>` reloads on change** (3.2.2).
-5. **Drag-only interactions** (2.1.1, 2.5.7) — `PlanningBoard` move/resize and `DropZone` on web.
-6. **Pinned regions can hide the focus** (2.4.11) — sticky header/sections, FABs.
-7. **The CI gate does not include the WCAG 2.2 axe rules**, and nothing measures reflow, text
-   spacing, non-text contrast or target size; the native probes do not run in CI.
-8. **No external audit and no hand testing with assistive technology** for this report.
+1. **Redwood still lacks** the keyboard / single-pointer alternatives for `PlanningBoard` and
+   `DropZone` (2.1.1, 2.5.7), the focus-not-obscured offset (2.4.11), and the one-key switch for a
+   screen's `@Action(shortcut)` (2.1.4).
+2. **DropZone without dragging needs row selection** on the source listing (2.1.1, 2.5.7).
+3. **The fixes of 2026-11 are verified by component tests, not in a browser or with assistive
+   technology** — charts, autocomplete, pausable toasts, the app-context picker, planning-board
+   keys, the focus offset, one-key shortcuts and the carousel button (see [unit] above). React
+   Native's were not run on a device.
+4. **Nothing measures** reflow, text spacing, non-text contrast or target size beyond axe's
+   `target-size` rule; the native probes do not run in CI.
+5. **No external audit and no hand testing with assistive technology** for this report.
 
 And two that only upstream can change: the `vaadin-tabs` and `oj-navigation-list` role-children
 findings (4.1.2).

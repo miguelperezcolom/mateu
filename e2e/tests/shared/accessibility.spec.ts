@@ -16,7 +16,7 @@ import AxeBuilder from '@axe-core/playwright';
  * adapter gets the same guarantee.
  */
 
-const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
+const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 /** Routes covering the shapes Mateu generates: form, every field kind, listing, shell, layouts. */
 const ROUTES = ['/', '/all-types', '/validation', '/app', '/items', '/tabs', '/sections', '/accordion'];

@@ -35,6 +35,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void refusesAnUploadWithoutAValidTicket() {
+    contract.refusesAnUploadWithoutAValidTicket();
+  }
+
+  @Test
   void refusesARestrictedActionToAnAnonymousCaller() {
     contract.refusesARestrictedActionToAnAnonymousCaller();
   }
@@ -130,6 +135,11 @@ class AdapterParityTest {
   @Test
   void servesTheInstallableApp() {
     contract.servesTheInstallableApp();
+  }
+
+  @Test
+  void servesThePageUnderAForwardedPrefix() {
+    contract.servesThePageUnderAForwardedPrefix();
   }
 
   @Test

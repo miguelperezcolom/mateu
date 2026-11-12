@@ -233,22 +233,25 @@ internal static class Pwa
     /// <param name="source">What the UI declares (theme colour, icon); null when unknown.</param>
     /// <param name="buildId">The build id (<c>X-Mateu-Build</c>), part of the worker's version.</param>
     /// <param name="configured"><c>MateuOptions.Pwa</c> (null: <c>MATEU_PWA_ENABLED</c>).</param>
+    /// <param name="publicBase">The app's <see cref="PublicBase"/>: <paramref name="baseUrl"/> is then
+    /// the PUBLIC path of the UI (the base included), and the cacheable folders are found below it.</param>
     public static string Served(string html, string? baseUrl, MobileManifest.Derived? source, string? buildId,
-        bool? configured = null) =>
-        !Enabled(configured) ? html : WithHead(html, Links.Served(baseUrl), source, buildId);
+        bool? configured = null, string? publicBase = null) =>
+        !Enabled(configured) ? html : WithHead(html, Links.Served(baseUrl), source, buildId, publicBase);
 
     /// <summary><paramref name="html"/> with the manifest link, the theme colour, the
     /// apple-touch-icon and the worker's registration added to its <c>&lt;head&gt;</c>. The worker's
     /// URL carries its version — a hash of the page and of <paramref name="buildId"/>, so the next
     /// build installs a new worker that drops this one's cache — and the folders the page loads its
     /// own files from, which it may cache. A page that already has a manifest link is left as it is.</summary>
-    public static string WithHead(string html, Links links, MobileManifest.Derived? source, string? buildId)
+    public static string WithHead(string html, Links links, MobileManifest.Derived? source, string? buildId,
+        string? publicBase = null)
     {
         if (!html.Contains("</head>", StringComparison.Ordinal)
             || html.Contains("rel=\"manifest\"", StringComparison.Ordinal))
             return html;
         var query = new StringBuilder("?v=").Append(Version(html, buildId));
-        foreach (var folder in StaticFolders(html)) query.Append("&s=").Append(UrlEncode(folder));
+        foreach (var folder in StaticFolders(html, publicBase)) query.Append("&s=").Append(UrlEncode(folder));
         foreach (var file in links.Precache) query.Append("&p=").Append(UrlEncode(file));
         var head = new StringBuilder();
         head.Append("<link rel=\"manifest\" href=\"").Append(Attr(links.Manifest))
@@ -298,8 +301,11 @@ internal static class Pwa
     /// <c>/_redwood/</c>, <c>https://static.oracle.com/cdn/</c> — which the worker may cache whatever
     /// their request. Never a <c>/mateu/</c> folder, and only what scripts and stylesheets name, so no
     /// data endpoint can slip in. At most 8.</summary>
-    internal static IReadOnlyList<string> StaticFolders(string html)
+    /// Under a <paramref name="publicBase"/> a folder is the first segment BELOW it
+    /// (<c>/crm/assets/</c>), never the base itself — that would be the whole app.
+    internal static IReadOnlyList<string> StaticFolders(string html, string? publicBase = null)
     {
+        var b = PublicBase.Normalize(publicBase);
         var urls = new List<string>();
         foreach (Match m in ScriptSrc.Matches(html)) urls.Add(m.Groups[1].Value);
         foreach (Match m in Link.Matches(html))
@@ -312,13 +318,13 @@ internal static class Pwa
         var folders = new List<string>();
         foreach (var url in urls)
         {
-            if (FolderOf(url.Trim()) is { } folder && !folders.Contains(folder)) folders.Add(folder);
+            if (FolderOf(url.Trim(), b) is { } folder && !folders.Contains(folder)) folders.Add(folder);
             if (folders.Count >= 8) break;
         }
         return folders;
     }
 
-    private static string? FolderOf(string url)
+    private static string? FolderOf(string url, string b)
     {
         var lower = url.ToLowerInvariant();
         var origin = "";
@@ -341,12 +347,24 @@ internal static class Pwa
         {
             path = url.StartsWith('/') ? url : "/" + (url.StartsWith("./", StringComparison.Ordinal) ? url[2..] : url);
         }
+        // a relative url resolves against the page's <base href>, written under the public base too
+        var relative = origin.Length == 0 && !url.StartsWith('/');
         path = PathOf(path);
+        var under = "";
+        if (b.Length > 0 && relative)
+        {
+            under = b;
+        }
+        else if (b.Length > 0 && origin.Length == 0 && path.StartsWith(b + "/", StringComparison.Ordinal))
+        {
+            under = b;
+            path = path[b.Length..];
+        }
         var second = path.IndexOf('/', 1);
         if (second < 0) return null; // a file at the root is no folder
         var segment = path[1..second];
         if (segment.Length == 0 || segment is "mateu" or ".." or ".") return null;
-        return origin + "/" + segment + "/";
+        return origin + under + "/" + segment + "/";
     }
 
     // ------------------------------------------------------------------------------------------

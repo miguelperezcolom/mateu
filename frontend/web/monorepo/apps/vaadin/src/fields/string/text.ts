@@ -27,6 +27,7 @@ export function renderTextareaField(host: MateuField, value: FieldValue, label: 
     return html`
         <vaadin-text-area
                 placeholder="${host.field?.placeholder ?? nothing}"
+                autocomplete="${host.field?.autocomplete ?? nothing}"
                 id="${host.field.fieldId}"
                 label="${label}"
                 .maxlength="${host.field.charLimit}"
@@ -46,6 +47,7 @@ export function renderEmailField(host: MateuField, value: FieldValue, label: Fie
     return html`
         <vaadin-email-field
                 placeholder="${host.field?.placeholder ?? nothing}"
+                autocomplete="${host.field?.autocomplete ?? nothing}"
                 id="${host.field.fieldId}"
                 label="${label}"
                 @value-changed="${host.valueChanged}"
@@ -63,6 +65,7 @@ export function renderPasswordField(host: MateuField, value: FieldValue, label: 
     return html`
         <vaadin-password-field
                 placeholder="${host.field?.placeholder ?? nothing}"
+                autocomplete="${host.field?.autocomplete ?? nothing}"
                 id="${host.field.fieldId}"
                 label="${label}"
                 @value-changed="${host.valueChanged}"
@@ -81,6 +84,7 @@ export function renderTextField(host: MateuField, value: FieldValue, label: Fiel
 return html`
     <vaadin-text-field
             placeholder="${host.field?.placeholder ?? nothing}"
+                autocomplete="${host.field?.autocomplete ?? nothing}"
             id="${host.field.fieldId}"
             label="${label}"
             @value-changed="${host.valueChanged}"

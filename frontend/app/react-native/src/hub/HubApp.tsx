@@ -9,6 +9,7 @@ import type { MateuSession } from '../core/MateuSession';
 import { allowInsecure, appVersion, extraLinkHosts, metaStore, secretStore, uiStore } from './storage';
 import { OfflineQueue } from '../core/offlineQueue';
 import { usePendingCounts } from './outboxCounts';
+import { clearListingPrefs } from '../core/listingPrefs';
 import { ScreenSnapshots } from '../core/screenSnapshots';
 import { bundleKey } from './bundleCache';
 import { fileBundleStore } from './bundleFileStore';
@@ -221,6 +222,8 @@ export function HubApp() {
     void new ScreenSnapshots(metaStore, entry.id).clear();
     // and so does what it had waiting to be sent: there is no UI left to send it to
     void OfflineQueue.clear(secretStore, entry.id);
+    // …and so do its listings' saved views and column choices
+    void clearListingPrefs(metaStore, entry.id);
     if (entry.manifest?.bundle) void fileBundleStore.remove(bundleKey(entry.baseUrl, entry.manifest.bundle));
     announce(`${entry.name} removed`);
   };

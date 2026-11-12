@@ -30,12 +30,12 @@ import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { closeDockedPanel, dataManagementWithoutPanel } from './core/spPages.mjs'
 import { safeImageSrc } from './inputs.mjs'
-import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, keepViewport, focusSelectorOf, keepsViewport, menuRoutesOf, pathLeavingMountOf, leftMountFor, requestPeerNavigation } from './mount.mjs'
+import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, keepViewport, focusSelectorOf, keepsViewport, menuRoutesOf, pathLeavingMountOf, leftMountFor, requestPeerNavigation, spelledWithTheBase, underPublicBase, currentPublicBase } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass, scoreboardTrendOf, scoreboardItemOf, scoreboardAtomOf, emptyStateAtomOf } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays, spColorKeyOf, spCalendarSpecOf, calendarPageToolbarOf, spNavActionOf, spCalendarHostClassOf } from './calendar.mjs'
-import { setChromeLanguage } from './i18n.mjs'
-import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
+import { setChromeLanguage, chromeText } from './i18n.mjs'
+import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf, toastLifetimeOf } from './notify.mjs'
 import { startPolling, actionSucceeded, setPollingRunner, timedOnLoadTriggers, notePollingRegistry } from './polling.mjs'
 import { onLoadTriggers, mediatorOf } from './reduceContexts.mjs'
 import { assignAccessKeys, keyHint, setShortcutContext, currentShortcutActions, isFunctionKeyShortcut } from './keys.mjs'
@@ -564,6 +564,9 @@ test('plantilla: los widgets nuevos están en cada superficie de átomos y en la
 
 test('campo de captura: lo que enseña de un fichero y cuándo un valor es imagen', () => {
   assert.equal(describeFileValue('data:application/pdf;base64,JVBERi0xLjQK'), 'application/pdf · 9 B')
+  // a file uploaded to the app's FileStorage by another renderer: its name and size
+  assert.equal(describeFileValue('mateu-file:f1?name=Big%20report.pdf&size=2097152'), 'Big report.pdf · 2.0 MB')
+  assert.equal(describeFileValue('mateu-file:f2'), 'f2')
   assert.ok(isImageValue('data:image/png;base64,AAAA') && isImageValue('/files/a.png'))
   assert.ok(!isImageValue('data:application/pdf;base64,AAAA'))
   assert.equal(captureTexts('es-ES').signAgain, 'Volver a firmar')
@@ -1346,9 +1349,12 @@ test('deshacer: el reducer guarda los campos undo; applyDomEffects los saca de l
   assert.equal(undo.length, 1)
   assert.equal(reg.effects.toasts, same, 'la MISMA lista: las chains la leen después')
   assert.deepEqual(reg.effects.toasts.map((t) => t.text), ['Saved'])
-  assert.deepEqual(undoMessageOf(undo[0]), { severity: 'confirmation', summary: 'Moved', autoTimeout: 10000, closeAffordance: 'defaults' })
+  assert.deepEqual(undoMessageOf(undo[0]), { severity: 'confirmation', summary: 'Moved', autoTimeout: 'off', closeAffordance: 'defaults' })
+  assert.equal(toastLifetimeOf(undo[0]), 10000)
   // an error stays until dismissed (owner, 2026-10-12), even when it can be undone
-  assert.equal(undoMessageOf({ text: 'Failed', variant: 'error', undoActionId: 'x' }).autoTimeout, 'off')
+  assert.equal(toastLifetimeOf({ text: 'Failed', variant: 'error', undoActionId: 'x' }), 0)
+  assert.equal(toastLifetimeOf({ text: 'Moved', undoActionId: 'x', duration: 3000 }), 10000, 'raised to the floor')
+  assert.equal(toastLifetimeOf({ text: 'Moved', undoActionId: 'x', duration: 30000 }), 30000)
 })
 
 test('campana y deshacer: la shell pinta la campana y el bridge su panel; JET oj-message lleva el Undo', () => {
@@ -2017,6 +2023,35 @@ test('mount: the packaged app serves an @UI at any path — API base and routes 
   assert.equal(pathOfRoute('/products', '/products'), '/products')
   // round trip
   for (const r of ['', '/a', '/a/b']) assert.equal(routeOfPath(pathOfRoute(r, '/m'), '/m'), r)
+})
+
+test('under a public base (a context path, a prefix-stripping proxy) the server\'s spellings land under it', () => {
+  // the page: <mateu-ui baseUrl="/crm/products" pathPrefix="/crm/products" publicBase="/crm">
+  const el = { getAttribute: (n) => ({ baseUrl: '/crm/products', publicBase: '/crm' })[n] ?? null }
+  initMount({ querySelector: () => el })
+  assert.equal(currentPublicBase(), '/crm')
+  assert.equal(mateuBase('http://dev'), '/crm/products')
+  // the backend's root-served static things (images, logos) sit under the base too
+  assert.equal(mateuAssetBase('http://dev'), '/crm')
+  // a crud's inner route, spelled with the mount only, is the mount
+  assert.equal(spelledWithTheBase('/products/new', '/crm/products'), '/crm/products/new')
+  assert.equal(pathOfRoute('/products/new', '/crm/products'), '/crm/products/new')
+  assert.equal(pathOfRoute('/3/edit', '/crm/products'), '/crm/products/3/edit')
+  assert.equal(urlOfRoute('/products'), '/crm/products')
+  assert.equal(routeUnderMount('/products/home'), '/home')
+  // another mount of the app loads under the base; a sibling the server names is called under it
+  assert.equal(pathLeavingMountOf('/orders'), '/crm/orders')
+  assert.equal(pathLeavingMountOf('/products/3'), null)
+  assert.equal(underPublicBase('/orders'), '/crm/orders')
+  assert.equal(underPublicBase('/crm/orders'), '/crm/orders')
+  assert.equal(underPublicBase('https://api.example'), 'https://api.example')
+  assert.equal(underPublicBase('//cdn.example'), '//cdn.example')
+  // at the root of a host nothing changes
+  setMount('/products')
+  assert.equal(currentPublicBase(), '')
+  assert.equal(pathOfRoute('/products/new', '/products'), '/products/new')
+  assert.equal(underPublicBase('/orders'), '/orders')
+  assert.equal(mateuAssetBase('http://dev'), '')
 })
 
 test('mount: read once at boot — path mode under a mount, hash mode without <mateu-ui>', () => {
@@ -2984,4 +3019,25 @@ test('Item overview page as in Redwood\'s examples: a stacked body, sections wit
   assert.equal(header && header.sectionTitle, 'Physique')
   assert.equal(sectioned.mainItems.filter((a) => a.text === 'Physique').length, 0)
   assert.ok(sectioned.mainItems.some((a) => a.text === 'Tall'))
+})
+
+test('a chart carries a text alternative a screen reader reads (WCAG 1.1.1)', () => {
+  const atom = chartAtomOf({ chartType: 'bar', chartData: { labels: ['Jan', 'Feb'], datasets: [{ label: 'Sales', data: [10, 20] }] } }, 'Chart')
+  assert.equal(atom.textAlternative, 'Sales: Jan 10, Feb 20')
+  const trend = chartAtomOf({ title: 'Load', values: [3, 9], labels: ['Mon', 'Tue'] }, 'TrendChart')
+  assert.equal(trend.textAlternative, 'Load. Mon 3, Tue 9')
+  const html = readFileSync(new URL('./templates/atoms.html', import.meta.url), 'utf8')
+  assert.match(html, /oj-helper-hidden-accessible"><oj-bind-text value="\[\[ \$current\.data\.textAlternative \]\]"/)
+})
+
+test('WCAG 3.2.2: the @AppContext drawer says beforehand that a change reloads; the chain announces the change', () => {
+  const page = readFileSync(new URL('../webApps/vbredwoodapp/pages/shell-page.html', import.meta.url), 'utf8')
+  assert.match(page, /id="mateuContextReloadHint"[^>]*><oj-bind-text value="\[\[ \$application\.translations\.appBundle\.appContextReloads \]\]"/)
+  assert.match(page, /:aria-describedby="\[\[ 'mateuContextReloadHint' \]\]"/)
+  const chain = readFileSync(new URL('../webApps/vbredwoodapp/pages/shell-page-chains/onMateuContextChanged.js', import.meta.url), 'utf8')
+  assert.match(chain, /bridge\.announce\(bridge\.chromeText\('appContextChanging'/)
+  setChromeLanguage('es')
+  try {
+    assert.equal(chromeText('appContextChanging', { label: 'Hotel', value: 'Palma' }), 'Hotel: Palma. Recargando…')
+  } finally { setChromeLanguage('') }
 })

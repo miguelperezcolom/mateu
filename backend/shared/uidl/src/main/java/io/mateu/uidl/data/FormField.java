@@ -57,11 +57,104 @@ public record FormField(
     // property-list sections (@Section(propertyList=true)): render as a read-only row with the
     // label aligned left and the plain-text value aligned right, separated by a divider line
     boolean propertyRow,
-    NavLink link)
+    NavLink link,
+    // the HTML autocomplete token of a field about the user (WCAG 1.3.5): "email", "given-name"…
+    String autocomplete)
     implements Component {
 
   public FormField {
     stereotype = stereotype != null ? stereotype : FieldStereotype.regular;
+  }
+
+  /**
+   * The canonical constructor before {@code autocomplete} was added (kept for binary
+   * compatibility).
+   */
+  public FormField(
+      String id,
+      String label,
+      FieldDataType dataType,
+      FieldStereotype stereotype,
+      boolean readOnly,
+      boolean required,
+      boolean autofocus,
+      String placeholder,
+      String description,
+      List<Option> options,
+      RemoteCoordinates remoteCoordinates,
+      RestDataSource optionsSource,
+      Object initialValue,
+      String style,
+      String cssClasses,
+      List<GridContent> columns,
+      boolean inlineEditing,
+      String onItemSelectionActionId,
+      String rowSelectionShortcut,
+      int colspan,
+      FormPosition formPosition,
+      String formStyle,
+      String formTheme,
+      int formColumns,
+      int sliderMin,
+      int sliderMax,
+      boolean stepButtonsVisible,
+      double step,
+      Double min,
+      Double max,
+      String itemIdPath,
+      Map<String, String> attributes,
+      String detailPath,
+      boolean useButtonForDetail,
+      String minHeightWhenDetailVisible,
+      int optionsColumns,
+      boolean mainFilter,
+      boolean treeLeavesOnly,
+      boolean multiline,
+      boolean propertyRow,
+      NavLink link) {
+    this(
+        id,
+        label,
+        dataType,
+        stereotype,
+        readOnly,
+        required,
+        autofocus,
+        placeholder,
+        description,
+        options,
+        remoteCoordinates,
+        optionsSource,
+        initialValue,
+        style,
+        cssClasses,
+        columns,
+        inlineEditing,
+        onItemSelectionActionId,
+        rowSelectionShortcut,
+        colspan,
+        formPosition,
+        formStyle,
+        formTheme,
+        formColumns,
+        sliderMin,
+        sliderMax,
+        stepButtonsVisible,
+        step,
+        min,
+        max,
+        itemIdPath,
+        attributes,
+        detailPath,
+        useButtonForDetail,
+        minHeightWhenDetailVisible,
+        optionsColumns,
+        mainFilter,
+        treeLeavesOnly,
+        multiline,
+        propertyRow,
+        link,
+        null);
   }
 
   @Override

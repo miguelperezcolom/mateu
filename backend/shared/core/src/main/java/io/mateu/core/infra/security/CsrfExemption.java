@@ -35,6 +35,21 @@ public final class CsrfExemption {
     return isMateuEndpoint(path) && (isJson(contentType) || isDevEndpoint(path));
   }
 
+  /**
+   * Whether a request is an upload to Mateu's root {@code /mateu/v3/upload} carrying its ticket
+   * header: the file is the body, so it is not JSON, but the custom header cannot be sent
+   * cross-site without a CORS preflight, and the endpoint refuses a request without a valid ticket
+   * bound to the caller.
+   */
+  public static boolean isMateuUpload(String path, String ticketHeader) {
+    if (path == null || ticketHeader == null || ticketHeader.isBlank()) {
+      return false;
+    }
+    int query = path.indexOf('?');
+    var raw = query >= 0 ? path.substring(0, query) : path;
+    return raw.equals("/mateu/v3/upload") && JsonBodyGuard.canonicalPath(raw).equals(raw);
+  }
+
   private static boolean isDevEndpoint(String path) {
     return path.contains("/mateu/dev/")
         && JsonBodyGuard.canonicalPath(path).contains("/mateu/dev/");

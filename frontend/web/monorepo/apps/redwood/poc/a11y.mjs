@@ -478,3 +478,44 @@ export function relaxGuidedProcessOverview() {
     if (steps && steps.contains(target) && guidedProcessWheelIsNative(steps)) event.stopPropagation()
   }, { capture: true, passive: true })
 }
+
+// ── WCAG 1.3.5 Identify Input Purpose ─────────────────────────────────────────────────────────
+//
+// A field about the user carries its autocomplete token on the wire (FormFieldDto.autocomplete).
+// The templates put it on the JET/Spectra host as `data-autocomplete` (a data attribute is safe on
+// any element, whereas not every oj-sp input declares an `autocomplete` property) and this copies it
+// onto the native <input>/<textarea> inside — the element the browser and assistive technologies read.
+
+/** Copies each host's data-autocomplete onto its inner native control. Returns how many it set. */
+export function applyInputPurpose(root) {
+  if (!root || typeof root.querySelectorAll !== 'function') return 0
+  let set = 0
+  for (const host of root.querySelectorAll('[data-autocomplete]')) {
+    const token = host.getAttribute('data-autocomplete')
+    if (!token) continue
+    const inner = host.matches && host.matches('input, textarea') ? host : host.querySelector('input, textarea')
+    if (inner && inner.getAttribute('autocomplete') !== token) {
+      inner.setAttribute('autocomplete', token)
+      set++
+    }
+  }
+  return set
+}
+
+let inputPurposeInstalled = false
+
+/** Keeps applyInputPurpose up to date as VB paints and repaints fields. */
+export function installInputPurpose(doc = typeof document !== 'undefined' ? document : null) {
+  if (inputPurposeInstalled || !doc || !doc.body || typeof MutationObserver === 'undefined') return
+  inputPurposeInstalled = true
+  let queued = false
+  const run = () => { queued = false; applyInputPurpose(doc.body) }
+  const schedule = () => {
+    if (queued) return
+    queued = true
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(run)
+    else setTimeout(run, 0)
+  }
+  new MutationObserver(schedule).observe(doc.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-autocomplete'] })
+  run()
+}

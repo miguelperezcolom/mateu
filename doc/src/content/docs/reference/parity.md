@@ -74,6 +74,7 @@ in the same change.
 | `@Audience` persona projection (audience app-context + projection filter) | ✅ | ✅ | ✅ |
 | Capture fields (`@Signature`, `@PhotoCapture`) | ✅ | ✅ | ✅ |
 | Generic file upload field (`@FileUpload`, accept filter in the field attributes) | ✅ | ✅ | ✅ |
+| Large file uploads through a storage port (`FileStorage` / `IFileStorage` / `FileStorage`: `POST /mateu/v3/upload`, signed tickets, size/type limits, pre-signed targets) — experimental | ✅ | ✅ | ✅ |
 | Tree selects (`@TreeSelect` + hierarchical options) | ✅ | ✅ | ✅ |
 | Smart-search listing filters (enums as multi-select, date/number ranges) | ✅ | ✅ | ✅ |
 | Declarative listings (`Listing<Row>` + capabilities) | ✅ | ✅ | ✅ |
@@ -452,8 +453,8 @@ of each type and fail on a placeholder — not a string match on the source.
 | High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ every type — Oracle components where they exist (oj-chart funnel, oj-avatar, oj-action-card, oj-rating-gauge, oj-checkboxset, oj-menu-button, oj-collapsible, oj-dialog…), Redwood-token atoms where JET has none (board, timeline, heatmap, org outline, BPMN); see the coverage table below | ✅ | ✅ |
 | App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
 | Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
-| Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | 🟡 apply/save/default/delete (session-scoped: kept in memory, reset on app restart) |
-| Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ (header menu show/hide + native drag-reorder, persisted) | 🟡 show/hide (session-scoped: kept in memory, reset on app restart; no reorder) |
+| Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | ✅ apply/save/default/delete (kept on the device per UI, cleared when the UI is removed) |
+| Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ (header menu show/hide + native drag-reorder, persisted) | 🟡 show/hide (kept on the device per UI; no reorder) |
 | Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
 | Column groups (`GridGroupColumn`: a header spanning several columns, in a `Grid`, a listing or a grid field) | ✅ `vaadin-grid-column-group` | ✅ flattened, the group label prefixing its columns (`Occupancy · Adults`: `oj-table` has no grouped headers) | ✅ flattened, `Group · Column` headers (a Swing header is flat) | ✅ a group header row over its columns |
 | Notification bell (inbox, unread count) | ✅ | ✅ (header bell + `oj-popup` with an `oj-list-view`) | ✅ (sidebar popup with the All / Unread / Resolved filters and category groups) | ✅ (drawer row) |
@@ -806,16 +807,14 @@ authentication) and the VS Code extension (the same visual editor bundle, `yamlV
 `specs/ui/**`, **Mateu: New File…** with the same skeletons) are supported tooling. The Figma
 design-to-code pipeline remains *preview*: it is not covered by the support promise above.
 
-**Fetch-plan edges (known renderer gaps).** The client-side fetch plan (`optionsSource`,
+**Fetch-plan edges.** The client-side fetch plan (`optionsSource`,
 `rowsSource`, `restAction`, `restData` — see [the renderer contract](/design-systems/renderer-contract/))
-is honoured with two edges:
+is honoured by every renderer:
 
-- **Multi-value `optionsSource`.** Vaadin resolves `optionsSource` on a single-select field (the
-  common reference case — a record pointing at one other entity). A **multi-value** field
-  (`multiSelect`/`listBox`/`combobox` — a record pointing at *many*) reads static `options` or a
-  remote `search-<field>` action, not `optionsSource`; a one-to-many reference to an external
-  catalogue is not wired yet. It spans three widget branches and is deliberately deferred rather
-  than half-wired.
+- **Multi-value `optionsSource`.** A single-select field and, since 2026-11, a **multi-value** one
+  (`multiSelect`, checkbox group, `listBox`, `treeSelect`, a multi `combobox` — a record pointing at
+  *many*) take their options from a REST source, inline or by catalogue `ref`, on Vaadin, Redwood,
+  React Native and the desktop.
 - **VB/Redwood REST sources.** Since 2026-10-10 the Redwood/VB core (`poc/restSources.mjs`) consumes
   the catalogue like the web: listing `rowsSource`, field `optionsSource`, route `data:` and
   `restAction`s, resolved by `ref` against `AppDto.restSources` / the bundle manifest, direct or

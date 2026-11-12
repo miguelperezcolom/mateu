@@ -134,9 +134,23 @@ public class FieldMetadataExtractor {
     // @FileUpload(accept=".csv"): the file input's accept attribute travels in the field's
     // generic attributes map — no dedicated wire field needed.
     if (MetaAnnotations.isPresent(field, FileUpload.class)) {
-      var accept = MetaAnnotations.find(field, FileUpload.class).accept();
+      var upload = MetaAnnotations.find(field, FileUpload.class);
+      var accept = upload.accept();
       if (accept != null && !accept.isEmpty()) {
         attributes.put("accept", accept);
+      }
+      // the upload options (design/uploads/file-uploads-contract.md §1); the server adds the
+      // ticket when the field is mapped (UploadAttributes)
+      if (upload.maxBytes() > 0) {
+        attributes.put("maxBytes", String.valueOf(upload.maxBytes()));
+      }
+      if (upload.multiple()
+          || field.getType().isArray()
+          || java.util.Collection.class.isAssignableFrom(field.getType())) {
+        attributes.put("multiple", "true");
+      }
+      if (upload.storage() != null && !upload.storage().isBlank()) {
+        attributes.put("storage", upload.storage());
       }
     }
     return attributes;

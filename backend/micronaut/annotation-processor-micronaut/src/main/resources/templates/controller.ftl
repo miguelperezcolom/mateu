@@ -62,8 +62,10 @@ public class ${simpleClassName}MateuController implements MateuController {
     // The installable app (io.mateu.core.infra.Pwa): web app manifest, service worker, its
     // registration script and the default icons, under v3/pwa/.
     @io.micronaut.http.annotation.Get(value = "v3/pwa/{file}", produces = MediaType.ALL)
-    public HttpResponse<byte[]> pwa(@PathVariable("file") String file) {
-        var asset = io.mateu.core.infra.Pwa.asset(file, uiId, baseUrl);
+    public HttpResponse<byte[]> pwa(@PathVariable("file") String file,
+            @io.micronaut.http.annotation.Header("X-Forwarded-Prefix") @io.micronaut.core.annotation.Nullable String forwardedPrefix) {
+        // the manifest's scope and the worker's allowed scope are the PUBLIC ones
+        var asset = io.mateu.core.infra.Pwa.asset(file, uiId, io.mateu.core.infra.PublicBase.of(io.mateu.core.infra.PublicBase.configuredContextPath(), forwardedPrefix) + baseUrl);
         if (asset == null) {
             return HttpResponse.notFound();
         }

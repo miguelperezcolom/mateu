@@ -14,6 +14,7 @@ import type { ChatNavigation, ChatPreviewTarget, ChatScreenSnapshot } from './ch
 import { AgentPushState } from './agentPush.ts';
 import { TaskCenter } from './taskCenter.ts';
 import { InboxStore, inboxChangeOf } from './inbox.ts';
+import { PRESENCE_ACTION, PresenceHub } from './presence.ts';
 import { TaskReattach, type ReattachHost } from './taskReattach.ts';
 import { toastOf } from './componentContext.ts';
 import { skewTexts, type SkewNotice } from './buildSkew.ts';
@@ -110,6 +111,8 @@ export class MateuSession {
   readonly tasks: TaskCenter;
   /** The notification inbox: the server's list + this session's own entries. */
   readonly inbox: InboxStore;
+  /** Record presence (`@App(presence)`): who else has the record on screen open (core/presence.ts). */
+  readonly presence: PresenceHub;
   /** The tasks this UI's streams reported, to resume them when a stream breaks (core/taskReattach.ts). */
   readonly reattach: TaskReattach;
   private ownOsNotifications = false;
@@ -297,6 +300,10 @@ export class MateuSession {
     // per UI too: an island's task (its LongTask) shows in the app's task center
     this.tasks = storesFrom?.tasks ?? new TaskCenter();
     this.inbox = storesFrom?.inbox ?? new InboxStore();
+    this.presence = storesFrom?.presence ?? new PresenceHub((body) => this.api.runAction({
+      route: body.route, consumedRoute: '', actionId: PRESENCE_ACTION, serverSideType: body.serverSideType,
+      initiatorComponentId: 'mateu-presence', componentState: {}, appState: {}, parameters: body.parameters,
+    }));
     this.reattach = storesFrom?.reattach ?? new TaskReattach();
     // Another wire MAJOR: say so plainly (once) instead of leaving a half-rendered screen to explain
     // itself. Rendering goes on — unknown fields and types are still tolerated.

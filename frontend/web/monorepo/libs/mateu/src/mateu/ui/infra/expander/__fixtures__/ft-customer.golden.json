@@ -65,7 +65,8 @@
           "treeLeavesOnly" : false,
           "multiline" : false,
           "propertyRow" : false,
-          "link" : null
+          "link" : null,
+          "autocomplete" : "email"
         },
         "id" : "email",
         "children" : [ ],
@@ -119,7 +120,8 @@
           "treeLeavesOnly" : false,
           "multiline" : false,
           "propertyRow" : false,
-          "link" : null
+          "link" : null,
+          "autocomplete" : "email"
         },
         "id" : "backup",
         "children" : [ ],

@@ -33,7 +33,7 @@ from mateu_ui.dtos import (
     RestDataSource,
 )
 from mateu_ui.uidl import components as fluent
-from mateu_ui.uidl import Colspan, DetailForm, Details, Help, Hidden, Inline, Max, Min, Pattern, Length, SliderMax, SliderMin
+from mateu_ui.uidl import Autocomplete, Colspan, DetailForm, Details, Help, Hidden, Inline, Max, Min, Pattern, Length, SliderMax, SliderMin
 from mateu_ui.uidl.rest_sources import RestSourceSupplier
 from mateu_ui.uidl import Text as TextMarker
 from mateu_ui.uidl import ContentSlot as ContentSlotMarker
@@ -65,6 +65,7 @@ from mateu_ui.uidl import (
 from mateu_ui.uidl import Section as SectionMarker
 
 from .. import form_columns_inference, layout_inference
+from ..input_purpose import input_purpose
 from ..rest_source_registry import source_dto
 from ..naming import (
     camel_case,
@@ -466,22 +467,39 @@ class FieldMapperMixin(MixinBase):
             # dedicated wire field (Java's FieldMetadataExtractor.getAttributes, same order)
             attributes=(
                 ([PairRecord(key="divStyle", value=f.marker(DivStyleMarker).value)] if f.has(DivStyleMarker) else [])
-                + (
-                    [PairRecord(key="accept", value=f.marker(FileUpload).accept)]
-                    if f.has(FileUpload) and f.marker(FileUpload).accept
-                    else []
-                )
+                + (self._file_upload_attributes(f, field_id, read_only) if f.has(FileUpload) else [])
             ),
             # OptionsLayout(columns): how many columns the options spread over (Java's
             # @OptionsLayout → optionsColumns)
             options_columns=f.marker(OptionsLayoutMarker).columns if f.has(OptionsLayoutMarker) else 1,
             # Style(): the field's own CSS — on the field AND its component (Java's @Style)
             style=f.marker(StyleMarker).value if f.has(StyleMarker) else None,
+            # Autocomplete(): the input's purpose (WCAG 1.3.5); an editable email field infers it
+            autocomplete=input_purpose(
+                f.marker(Autocomplete).value if f.has(Autocomplete) else None, stereotype, read_only
+            ),
         )
         out = self.client(meta, field_id, [])
         if meta.style:
             out = out.model_copy(update={"style": meta.style})
         return out
+
+    def _file_upload_attributes(self, f, field_id: str, read_only: bool) -> list:
+        """A FileUpload() field's attributes: accept / maxBytes / multiple / storage as declared
+        (multiple also inferred for a list field), then — when a matching FileStorage is registered
+        and the field is editable — uploadUrl / uploadTicket (bound to the caller) / uploadDirect."""
+        marker = f.marker(FileUpload)
+        multiple = bool(marker.multiple) or is_list_field(f)
+        uploads = getattr(self, "uploads", None)
+        if uploads is None:
+            from ..uploads import Uploads
+
+            uploads = Uploads()
+        identity = self.identity_provider() if self.identity_provider and uploads.storages else None
+        return [
+            PairRecord(key=k, value=v)
+            for k, v in uploads.field_attributes(marker, field_id, multiple, read_only, identity)
+        ]
 
     def map_nested_form(self, f, instance, read_only: bool) -> ClientSideComponent:
         """A field holding a nested data object (Java's NestedFormFieldBuilder). ``Inline()``: its

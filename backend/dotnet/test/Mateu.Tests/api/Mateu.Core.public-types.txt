@@ -6,5 +6,7 @@ Mateu.Core.Export.BuiltInCsvExporter
 Mateu.Core.ISpecsCache
 Mateu.Core.IdempotencyKeys
 Mateu.Core.InMemoryInboxStore
+Mateu.Core.InMemoryPresenceStore
 Mateu.Core.InferenceSwitches
 Mateu.Core.PartialRegistry
+Mateu.Core.Presence
