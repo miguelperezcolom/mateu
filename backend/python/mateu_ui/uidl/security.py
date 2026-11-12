@@ -184,3 +184,36 @@ class Access(_Dimensions):
     def restricts(self) -> bool:
         """Whether any dimension is declared (named so it does not read as a property)."""
         return bool(self.roles or self.groups or self.scopes or self.permissions)
+
+
+@dataclass(frozen=True)
+class SignInProvider:
+    """One way to sign in to the UI, offered by every client (web, phone, desktop): one provider
+    sends the user straight to it, several show a sign-in chooser. Java's ``SignInProvider``,
+    .NET's ``SignInProvider``. Pass them to ``add_mateu(sign_in=[...])``; the environment
+    (``MATEU_AUTH_PROVIDERS`` …) wins when it names any.
+
+    Mateu OFFERS the sign-in; it never validates a token or a session — your framework does.
+    Every member but ``id`` is optional: a well-known id (``google``, ``microsoft``, ``github``,
+    ``keycloak``…) fills in its type, label, icon and, where it has one, its issuer or url.
+
+    - ``type``: ``"oidc"`` (the client runs Authorization Code + PKCE against ``issuer`` with the
+      public ``client_id``) or ``"redirect"`` (the browser goes to ``url``, where your framework
+      owns the login and sets a session cookie).
+    - ``icon``: ``google|microsoft|apple|github|facebook|x|linkedin|gitlab|okta|auth0|keycloak|key``.
+    - ``platforms``: a subset of ``web``, ``mobile``, ``desktop`` (default: all for oidc, web for
+      redirect).
+    - ``continue_param``: False = the client adds no ``continue=<current url>`` to ``url``.
+    """
+
+    id: str
+    type: str | None = None
+    label: str | None = None
+    icon: str | None = None
+    issuer: str | None = None
+    client_id: str | None = None
+    scopes: tuple[str, ...] | list[str] | None = None
+    audience: str | None = None
+    url: str | None = None
+    platforms: tuple[str, ...] | list[str] | None = None
+    continue_param: bool | None = None

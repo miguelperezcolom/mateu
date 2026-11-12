@@ -212,9 +212,8 @@ class DisplayComponentsRenderTest : BasePlatformTestCase() {
         assertTrue(texts(image).toString(), texts(image).any { it.contains("image/png") })
     }
 
-    fun testAnSvgImageIsDrawnNotAPlaceholder() {
-        // an SVG data URI (the YAML display gallery's): ImageIO reads none, the platform's PUBLIC
-        // ImageLoader does (through a content-addressed .svg file)
+    fun testAnSvgImageIsDrawnAtItsOwnSize() {
+        // rasterised by the bundled JSVG: the picture itself, named by its alt, never its base64
         val svg = java.util.Base64.getEncoder().encodeToString(
             "<svg xmlns='http://www.w3.org/2000/svg' width='40' height='20'><rect width='40' height='20' fill='red'/></svg>".toByteArray())
         val image = render(context(), """{"type":"Image","src":"data:image/svg+xml;base64,$svg","alt":"Bay"}""") as javax.swing.JLabel
@@ -243,11 +242,22 @@ class DisplayComponentsRenderTest : BasePlatformTestCase() {
         assertEquals(12, decodeImage(bytes)?.width)
     }
 
-    fun testAnUndrawableSvgIsTheNamedPlaceholder() {
-        val bad = java.util.Base64.getEncoder().encodeToString("<svg this is not xml".toByteArray())
-        val image = render(context(), """{"type":"Image","src":"data:image/svg+xml;base64,$bad","alt":"Bay"}""")
-        assertTrue(texts(image).none { it.contains("base64") })
-        assertTrue(texts(image).toString(), texts(image).any { it.contains("Bay") })
+    fun testSvgBytesAreRasterised() {
+        val png = SvgImages.read("<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><rect width='10' height='6' fill='#ff0000'/></svg>".toByteArray())!!
+        assertEquals(10, png.width)
+        assertEquals(6, png.height)
+        val rgb = png.getRGB(5, 3)
+        assertEquals(0xFF, rgb ushr 24 and 0xFF)
+        assertEquals(0xFF, rgb ushr 16 and 0xFF)
+        assertEquals(0, rgb ushr 8 and 0xFF)
+        // a wide one is scaled to fit; a viewBox-only one gets a default size; garbage is no image
+        assertEquals(100, SvgImages.read("<svg xmlns='http://www.w3.org/2000/svg' width='400' height='200'/>".toByteArray(), maxWidth = 100)!!.width)
+        assertNotNull(SvgImages.read("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 4'/>".toByteArray()))
+        assertNull(SvgImages.read("not an svg".toByteArray()))
+        // percent-encoded data URI, and an svg recognised by its content
+        assertEquals(10, SvgImages.load("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'/%3E")!!.width)
+        assertTrue(SvgImages.looksLikeSvg("<?xml version='1.0'?>\n<svg/>".toByteArray()))
+        assertFalse(SvgImages.looksLikeSvg(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47)))
     }
 
     fun testAnAvatarWithAnSvgImagePaintsThePicture() {

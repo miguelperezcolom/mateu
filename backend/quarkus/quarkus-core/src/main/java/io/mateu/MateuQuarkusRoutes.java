@@ -63,6 +63,9 @@ public class MateuQuarkusRoutes {
   @ConfigProperty(name = CorsPolicy.ALLOW_CREDENTIALS_PROPERTY, defaultValue = "false")
   String allowCredentials;
 
+  @ConfigProperty(name = CorsPolicy.PATHS_PROPERTY)
+  Optional<String> corsPaths;
+
   @ConfigProperty(name = McpEndpoint.ENABLED_PROPERTY, defaultValue = "false")
   boolean mcpEnabled;
 
@@ -115,12 +118,17 @@ public class MateuQuarkusRoutes {
               if (CorsPolicy.appliesTo(request.path())) {
                 io.mateu.core.infra.versioning.RendererCompatibility.check(
                     request.getHeader(io.mateu.core.infra.versioning.RendererCompatibility.HEADER));
+                boolean stream = io.mateu.core.infra.SseHeaders.isStream(request.path());
                 rc.addHeadersEndHandler(
                     v -> {
                       var build = io.mateu.core.infra.versioning.AppBuild.id();
                       if (build != null) {
                         rc.response()
                             .putHeader(io.mateu.core.infra.versioning.AppBuild.HEADER, build);
+                      }
+                      if (stream) {
+                        // an event stream a buffering proxy passes on as it is written
+                        io.mateu.core.infra.SseHeaders.HEADERS.forEach(rc.response()::putHeader);
                       }
                     });
               }
@@ -129,7 +137,8 @@ public class MateuQuarkusRoutes {
   }
 
   private void cors(Router router) {
-    var policy = CorsPolicy.of(allowedOrigins.orElse(null), allowCredentials);
+    var policy =
+        CorsPolicy.of(allowedOrigins.orElse(null), allowCredentials, corsPaths.orElse(null));
     if (!policy.enabled()) {
       return;
     }
@@ -140,7 +149,7 @@ public class MateuQuarkusRoutes {
             rc -> {
               var request = rc.request();
               String origin = request.getHeader("Origin");
-              if (origin == null || !CorsPolicy.appliesTo(request.path())) {
+              if (origin == null || !policy.covers(request.path())) {
                 rc.next();
                 return;
               }
@@ -174,14 +183,23 @@ public class MateuQuarkusRoutes {
         .handler(
             rc -> {
               var request = rc.request();
+              String contentType = request.getHeader("Content-Type");
               if (io.mateu.core.infra.security.JsonBodyGuard.refuses(
-                  request.method().name(), request.path(), request.getHeader("Content-Type"))) {
+                  request.method().name(), request.path(), contentType)) {
                 rc.response()
                     .setStatusCode(
                         io.mateu.core.infra.security.JsonBodyGuard.UNSUPPORTED_MEDIA_TYPE)
                     .putHeader("Content-Type", "text/plain;charset=UTF-8")
                     .end(io.mateu.core.infra.security.JsonBodyGuard.MESSAGE);
                 return;
+              }
+              // Quarkus REST refuses a media type with blanks around its parameters
+              // ("application/json ;charset=UTF-8"), which every other adapter reads as JSON
+              var normalized = io.mateu.core.infra.security.JsonBodyGuard.normalized(contentType);
+              if (normalized != null
+                  && !normalized.equals(contentType)
+                  && io.mateu.core.infra.security.JsonBodyGuard.guards(request.path())) {
+                request.headers().set("Content-Type", normalized);
               }
               rc.next();
             });
@@ -364,7 +382,10 @@ public class MateuQuarkusRoutes {
               response
                   .setChunked(true)
                   .putHeader("Content-Type", "text/event-stream")
-                  .putHeader("Cache-Control", "no-cache");
+                  .putHeader("Cache-Control", io.mateu.core.infra.SseHeaders.NO_CACHE_NO_TRANSFORM)
+                  .putHeader(
+                      io.mateu.core.infra.SseHeaders.X_ACCEL_BUFFERING,
+                      io.mateu.core.infra.SseHeaders.NO_BUFFERING);
               var context = rc.vertx().getOrCreateContext();
               var subscription =
                   io.mateu.core.infra.dev.DevEndpoint.events()
@@ -541,6 +562,7 @@ public class MateuQuarkusRoutes {
             () -> {
               if (!response.headWritten()) {
                 response.setChunked(true).putHeader("Content-Type", "text/event-stream");
+                io.mateu.core.infra.SseHeaders.HEADERS.forEach(response::putHeader);
               }
             };
         increments.subscribe(

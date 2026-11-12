@@ -173,44 +173,6 @@ internal sealed partial class SyncHandler
         return UIIncrementDto.Of();
     }
 
-    /// <summary>The mobile app's push registration (the _push-register / _push-unregister app-level
-    /// actions; mirrors Java's PushTokensActionRunner): the parameters {token, service, platform,
-    /// uiKey} are checked — an Expo push token, "expo", ios|android, an opaque key — and handed,
-    /// with the authenticated caller, to the app class's IPushTokenRegistry. Without one: 403.
-    /// Empty increment.</summary>
-    private UIIncrementDto PushTokens(object instance, RunActionRqDto rq)
-    {
-        if (instance is not IPushTokenRegistry registry)
-        {
-            ActionGuard.Deny($"{rq.ActionId}: this UI takes no push registrations");
-            return UIIncrementDto.Of();
-        }
-        var token = StringParameter(rq, "token");
-        var service = StringParameter(rq, "service");
-        var platform = StringParameter(rq, "platform");
-        var uiKey = StringParameter(rq, "uiKey");
-        if (token is null || !ExpoPushToken.IsMatch(token) || service != PushRegistration.Expo
-            || platform is not ("ios" or "android") || uiKey is null || !PushUiKey.IsMatch(uiKey))
-            throw new UserFacingException("Invalid push registration");
-        var principal = Principal?.Invoke();
-        var registration = new PushRegistration(token, service, platform, uiKey,
-            string.IsNullOrWhiteSpace(principal) ? null : principal);
-        if (rq.ActionId == ReflectionMapper.PushRegisterActionId) registry.RegisterPushToken(registration);
-        else registry.UnregisterPushToken(registration);
-        return UIIncrementDto.Of();
-    }
-
-    /// <summary>A string parameter (a JSON string element or a plain string); anything else → null.</summary>
-    private static string? StringParameter(RunActionRqDto rq, string key) => GetState(rq.Parameters, key) switch
-    {
-        string s => s,
-        JsonElement { ValueKind: JsonValueKind.String } e => e.GetString(),
-        _ => null,
-    };
-
-    private static readonly Regex ExpoPushToken = new(@"^Expo(nent)?PushToken\[[A-Za-z0-9_\-]{8,200}\]$", RegexOptions.CultureInvariant);
-    private static readonly Regex PushUiKey = new(@"^[A-Za-z0-9_\-]{8,64}$", RegexOptions.CultureInvariant);
-
     /// <summary>The first increment of the live-updates stream: the last value published for each
     /// header value, as UpdateHeaderValue commands (empty when nothing was published). (Mirrors the
     /// catch-up of Java's LiveUpdatesActionRunner.)</summary>

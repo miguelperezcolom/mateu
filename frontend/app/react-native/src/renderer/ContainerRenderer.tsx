@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { TouchableOpacity } from '../ui/Touchable';
 import { accordionLook, drawsNothing, segmentsFit, tabLayoutLook } from './patternGaps';
@@ -159,6 +159,13 @@ export function TabsRenderer({ component, state }: { component: unknown; state: 
   const labels = tabs.map((t) => interpolate((meta(t)['label'] as string) ?? '', { state }));
   const badges = tabs.map((t) => meta(t)['badge']).map((b) => (b == null || b === '' ? '' : String(b)));
   const look = tabLayoutLook(m['variant']);
+  // @Tab(shortcut): the key selects its tab, in place (the web's data-shortcut on vaadin-tab)
+  const keyShortcuts = useViewController().session.keyShortcuts;
+  const tabShortcuts = tabs.map((t) => (meta(t)['shortcut'] as string | undefined) ?? '').join('\n');
+  useEffect(
+    () => keyShortcuts?.register(...tabShortcuts.split('\n').map((shortcut, i) => ({ shortcut, scope: 'screen' as const, run: () => setSelected(i) }))),
+    [keyShortcuts, tabShortcuts],
+  );
   // a lone tab, or tabs carrying badges: the underlined tab bar (a lone segment is a full-width
   // pill, and a segment has no room for a badge)
   const segments = !badges.some(Boolean) && segmentsFit(labels, width);

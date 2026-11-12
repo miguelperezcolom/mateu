@@ -17,6 +17,7 @@
 import { clientErrors } from './clientLog.mjs'
 import { chromeText } from './i18n.mjs'
 import { withRendererHeader, buildOfHeaders, noteResponseBuild, reportAppUpdated, staleScreenMessage } from './versionSkew.mjs'
+import { readStoredToken } from './authStore.mjs'
 import { hostHeadersFor, lastHostHeadersOf, hostAuthorizes, hostCredentials, storedTokenMayGoTo, hasHostHeaderProvider } from './hostHeaders.mjs'
 
 // ── classification ────────────────────────────────────────────────────────────────────────
@@ -345,7 +346,7 @@ async function sendOnce(url, init, timeoutMillis) {
  * The header with the token, if the bootstrap left one.
  *
  * The bootstrap page authenticates against Keycloak and stores the token in
- * `localStorage.__mateu_auth_token`, refreshing it when it expires. Until this existed, NOTHING
+ * the `__mateu_auth_token` store (authStore.mjs: a cookie by default), refreshing it when it expires. Until this existed, NOTHING
  * read it: the bridge made every call without the header, the gateway answered 401 and the classifier
  * below translated it into "Tu sesión ya no es válida" — a message true about the 401 and misleading
  * about the cause, because the session was perfectly alive and the request simply did not
@@ -356,7 +357,7 @@ async function sendOnce(url, init, timeoutMillis) {
  * the other renderer it is an axios interceptor and not a parameter of each call: a single point
  * that a fourth place cannot forget.
  *
- * `localStorage` does not exist in Node, where test.mjs runs, so it is read behind a guard; and an
+ * Neither cookies nor `localStorage` exist in Node, where test.mjs runs, so the store reads behind guards; and an
  * `Authorization` the caller has already set wins over this one, which is what allows testing
  * the path without touching storage.
  */
@@ -368,15 +369,13 @@ function authHeaders(init) {
   return token ? { Authorization: 'Bearer ' + token } : null
 }
 
-/** The token the bootstrap left, or null (no localStorage, blocked or empty). */
+/**
+ * The token the bootstrap left, or null: the `__mateu_auth_token` cookie first, then web storage
+ * (authStore.mjs — the same read order as the web renderers). Never throws: without a token it
+ * carries on and the backend says no, which is better than not calling.
+ */
 function storedToken() {
-  try {
-    return typeof localStorage !== 'undefined' ? localStorage.getItem('__mateu_auth_token') : null
-  } catch (e) {
-    // A browser with storage blocked. Without a token it carries on: the backend will say no,
-    // which is better than not calling.
-    return null
-  }
+  return readStoredToken()
 }
 
 /**
@@ -435,8 +434,19 @@ function raiseSessionExpired() {
     const detail = { retry: () => settle(true), giveUp: () => settle(false) }
     const claimed = !document.dispatchEvent(
       new CustomEvent('mateu-session-expired', { detail, cancelable: true, bubbles: false }))
-    if (!claimed) settle(false)
+    if (claimed) return
+    // nobody else re-authenticates: the built-in sign-in does when the page declares providers
+    // (signIn.mjs); without it the request fails as always
+    if (builtInReauthentication) builtInReauthentication(detail)
+    else settle(false)
   })
+}
+
+let builtInReauthentication = null
+
+/** The built-in sign-in's answer to a 401 nobody claimed ({retry, giveUp}); null removes it. */
+export function setBuiltInReauthentication(handler) {
+  builtInReauthentication = typeof handler === 'function' ? handler : null
 }
 
 /**
@@ -454,7 +464,7 @@ export async function fetchWithPolicy(url, init, options = {}) {
   // who is calling (X-Mateu-Renderer), on Mateu's own endpoints only (versionSkew.mjs)
   init = withRendererHeader(url, init)
   // The token is read on EVERY send, not once: after a 401 the bootstrap leaves a new one in
-  // localStorage and the retry has to carry that one, not the expired one.
+  // the token store and the retry has to carry that one, not the expired one.
   // The token the LAST send went out with (undefined if it did not carry ours): on a 401
   // it tells whether the refresh already arrived while the request was in flight.
   let sentToken

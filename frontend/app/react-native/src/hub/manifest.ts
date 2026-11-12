@@ -19,7 +19,8 @@
  */
 import { appCompatibility, compatMessage, mateuRelease } from './compat.ts';
 import { MIN_WIRE_VERSION } from '../core/wireVersion.ts';
-import { oidcConfigFrom, type OidcConfig } from '../core/oidcConfig.ts';
+import { type OidcConfig } from '../core/oidcConfig.ts';
+import { signInProvidersFrom } from '../core/signInProviders.ts';
 import { domainOf, normalizeBaseUrl } from './links.ts';
 import { BUNDLE_MANIFEST, bundlePath, fetchStaticBundle, type StaticBundle } from '../core/staticBundle.ts';
 
@@ -37,7 +38,11 @@ export interface UiManifest {
   minAppVersion?: string;
   /** The Mateu release serving this UI (sent by the server itself): compat.ts compares it with ours. */
   mateuVersion?: string;
+  /** The first sign-in provider this app can use (what a manifest read by app 1.0 meant). */
   auth?: OidcConfig;
+  /** EVERY sign-in provider this app can use, in the UI's order (core/signInProviders.ts); one → straight
+   *  to it, several → a chooser. Absent in a manifest cached by an older app: then `auth` alone. */
+  providers?: OidcConfig[];
   /** A STATIC UI: the bundle manifest it runs from, relative to its base URL (core/staticBundle.ts). */
   bundle?: string;
 }
@@ -100,19 +105,28 @@ export function parseManifest(raw: unknown, baseUrl: string, allowInsecure = fal
   if (typeof r['mateuVersion'] === 'string' && mateuRelease(r['mateuVersion'])) {
     manifest.mateuVersion = r['mateuVersion'];
   }
-  const auth = authOf(r['auth'], allowInsecure);
-  if (auth) manifest.auth = auth;
+  const providers = providersOf(r['auth'], allowInsecure);
+  if (providers.length) {
+    manifest.auth = providers[0];
+    manifest.providers = providers;
+  }
   const bundle = bundleOf(r['bundle']);
   if (bundle) manifest.bundle = bundle;
   return manifest;
 }
 
-/** The manifest's sign-in, when its identity provider is https too: the user's password goes there. */
-function authOf(raw: unknown, allowInsecure: boolean): UiManifest['auth'] {
-  const auth = oidcConfigFrom(raw);
-  if (!auth) return undefined;
-  const secure = /^https:\/\//i.test(auth.issuer) || (allowInsecure && /^http:\/\//i.test(auth.issuer));
-  return secure ? auth : undefined;
+/** The manifest's sign-in providers whose identity provider is https too: the user's password goes there. */
+function providersOf(raw: unknown, allowInsecure: boolean): OidcConfig[] {
+  return signInProvidersFrom(raw, 'mobile').filter(
+    (p) => /^https:\/\//i.test(p.issuer) || (allowInsecure && /^http:\/\//i.test(p.issuer)),
+  );
+}
+
+/** The sign-in providers of a manifest — also one cached by an older app, which kept only `auth`. */
+export function manifestProviders(manifest: Pick<UiManifest, 'auth' | 'providers'> | undefined): OidcConfig[] {
+  if (!manifest) return [];
+  if (manifest.providers?.length) return manifest.providers;
+  return manifest.auth ? [{ ...manifest.auth, id: manifest.auth.id ?? 'default' }] : [];
 }
 
 /** A static UI's bundle: only a plain relative .json path — never another host (core/staticBundle.ts). */

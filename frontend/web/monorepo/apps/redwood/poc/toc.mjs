@@ -31,10 +31,69 @@ function hasAside(n) {
   return /(^|[\s"'])aside([\s"']|$)/.test(areas)
 }
 
-/** The projection of the index for a host context: { on, entries: [{ index, title, key, hint, sticky, tabIndex }], cls }. */
-export function tocOf(host) {
+/** The other surfaces a tree embeds (ServerSide boundaries, a MEDIATOR App), not crossed. */
+function embeddedSurfacesOf(tree) {
+  const out = []
+  const walk = (n, isRoot) => {
+    if (!n || typeof n !== 'object') return
+    if (Array.isArray(n)) { n.forEach((x) => walk(x, false)); return }
+    if (!isRoot && (n.type === 'ServerSide'
+        || (n.type === 'ClientSide' && n.metadata && n.metadata.type === 'App' && n.metadata.variant === 'MEDIATOR'))) {
+      if (n.id) out.push(n)
+      return
+    }
+    for (const v of Object.values(n)) if (v && typeof v === 'object') walk(v, false)
+  }
+  walk(tree, true)
+  return out
+}
+
+/**
+ * The projection of the index for a host context: { on, entries: [{ index, title, key, hint, sticky, tabIndex }], cls }.
+ *
+ * An ISLAND that is the page's main content — the host has no titled section of its own and embeds
+ * exactly ONE other surface (an embedded view, an `@Inline` orchestrator, a nested mediator inside
+ * it…) — gets the index of ITS sections, read from its own context in `reg` (its @Toc declaration
+ * included; the host's, when it declares one, wins). Its sections are painted with the same
+ * `data-mateu-section` marker, so the DOM half finds them in the same order. A page with sections
+ * of its own, or with two islands, keeps the host's rule: another surface's sections are its own.
+ */
+export function tocOf(host, reg) {
   const tree = host && host.tree
   if (!tree) return TOC_EMPTY
+  const own = scanSections(tree)
+  let scan = own
+  const pageOf = findByType(tree, 'Page')
+  let islandPage = null
+  if (!own.entries.length && reg && reg.contexts) {
+    let at = tree
+    for (let depth = 0; depth < 4; depth++) {
+      const surfaces = embeddedSurfacesOf(at)
+      if (surfaces.length !== 1) break
+      const ctx = reg.contexts[surfaces[0].id]
+      const next = (ctx && ctx.tree) || ((surfaces[0].children || []).length ? surfaces[0] : null)
+      if (!next) break
+      const found = scanSections(next)
+      if (found.entries.length) { scan = found; islandPage = findByType(next, 'Page'); break }
+      at = next
+    }
+  }
+  const { entries, zoned, aside } = scan
+  // the Multimedia content page template HAS the vertical anchor navigator: always on
+  // (and so does the Advanced create and edit page, when it has no detail slot — the two exclude each other)
+  const hostDeclared = pageOf && pageOf.metadata && typeof pageOf.metadata.toc === 'boolean' ? pageOf.metadata.toc : null
+  const islandDeclared = islandPage && islandPage.metadata && typeof islandPage.metadata.toc === 'boolean' ? islandPage.metadata.toc : null
+  const declared = declaresTemplate(host, 'MultimediaContentPage') || declaresTemplate(host, 'AdvancedCreateEditPage')
+    ? true : (hostDeclared != null ? hostDeclared : islandDeclared)
+  const auto = entries.length >= TOC_AUTO_MIN_SECTIONS && !zoned
+  // tri-state: declared true forces it, declared false suppresses it, absent = auto
+  const wanted = typeof declared === 'boolean' ? declared : auto
+  const on = !aside && wanted && entries.length > 0
+  return { on, entries: on ? entries : [], cls: on ? TOC_CLASS : '' }
+}
+
+/** The titled @Section cards of ONE surface (not crossing into another), and what forbids an index. */
+function scanSections(tree) {
   const entries = []
   let zoned = false
   // Redwood's Advanced create and edit: the anchor navigator and the detail slot exclude each other —
@@ -67,16 +126,7 @@ export function tocOf(host) {
     }
   }
   walk(tree, true)
-  const page = findByType(tree, 'Page')
-  // the Multimedia content page template HAS the vertical anchor navigator: always on
-  // (and so does the Advanced create and edit page, when it has no detail slot — the two exclude each other)
-  const declared = declaresTemplate(host, 'MultimediaContentPage') || declaresTemplate(host, 'AdvancedCreateEditPage')
-    ? true : (page && page.metadata ? page.metadata.toc : null)
-  const auto = entries.length >= TOC_AUTO_MIN_SECTIONS && !zoned
-  // tri-state: declared true forces it, declared false suppresses it, absent = auto
-  const wanted = typeof declared === 'boolean' ? declared : auto
-  const on = !aside && wanted && entries.length > 0
-  return { on, entries: on ? entries : [], cls: on ? TOC_CLASS : '' }
+  return { entries, zoned, aside }
 }
 
 // ── DOM behaviour (once per document) ────────────────────────────────────────────────────────────

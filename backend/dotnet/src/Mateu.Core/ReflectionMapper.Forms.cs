@@ -831,6 +831,36 @@ internal sealed partial class ReflectionMapper
         };
     }
 
+    /// <summary>The [Toolbar] methods (already in order) as the header toolbar, grouped as Java's
+    /// PageButtonsBuilder does: methods sharing a non-blank <c>Group</c> collapse into ONE entry
+    /// at the first one's place — a dropdown labelled with the group name, or, when a member is
+    /// <c>GroupPrimary</c>, a SPLIT button (that member with the others as children).</summary>
+    private List<ButtonDto> GroupedToolbar(List<MethodInfo> methods)
+    {
+        var order = new List<string>();
+        var groups = new Dictionary<string, List<MethodInfo>>();
+        foreach (var m in methods)
+        {
+            var group = m.Find<ToolbarAttribute>()!.Group;
+            var key = string.IsNullOrWhiteSpace(group) ? "__solo__" + m.Name : group;
+            if (!groups.TryGetValue(key, out var members)) { groups[key] = members = []; order.Add(key); }
+            members.Add(m);
+        }
+        var toolbar = new List<ButtonDto>();
+        foreach (var key in order)
+        {
+            var members = groups[key];
+            var first = members[0].Find<ToolbarAttribute>()!;
+            if (string.IsNullOrWhiteSpace(first.Group)) { toolbar.Add(MapToolbarButton(members[0])); continue; }
+            var primary = members.FirstOrDefault(m => m.Find<ToolbarAttribute>()!.GroupPrimary);
+            var rest = members.Where(m => m != primary).Select(m => MapToolbarButton(m) with { SeparatorBefore = false }).ToList();
+            toolbar.Add(primary is not null
+                ? MapToolbarButton(primary) with { Children = rest, Split = true, SeparatorBefore = first.SeparatorBefore }
+                : new ButtonDto(Naming.HumanizeConstant(first.Group!), "") { Children = rest, SeparatorBefore = first.SeparatorBefore });
+        }
+        return toolbar;
+    }
+
     /// <summary>A [Toolbar] appearance member: blank or "none" means unset, so the renderer keeps
     /// its default (Java's ToolbarButtons.styleOf/colorOf/sizeOf).</summary>
     private static string? Unset(string? value) =>

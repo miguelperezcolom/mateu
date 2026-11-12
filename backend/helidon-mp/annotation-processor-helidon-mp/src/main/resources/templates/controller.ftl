@@ -3,7 +3,6 @@ package ${pkgName};
 import io.mateu.HelidonMPHttpRequest;
 import io.mateu.core.application.MateuService;
 import io.mateu.core.infra.MateuController;
-import io.mateu.core.infra.WireMapper;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
 import jakarta.enterprise.context.RequestScoped;
@@ -14,10 +13,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.StreamingOutput;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
-import java.nio.charset.StandardCharsets;
 
 // Cross-origin access is the opt-in mateu.cors.allowed-origins allow-list (io.mateu.MateuHelidonRoutes),
 // the same in every adapter.
@@ -93,18 +90,22 @@ public class ${simpleClassName}MateuController implements MateuController {
     }
 
     // Streamed actions (LongTask, Action.sse): one text/event-stream "data:" event per increment.
-    // Normally answered by io.mateu.MateuHelidonRoutes on the Helidon routing, ahead of Jersey (which
-    // buffers a StreamingOutput); this is the fallback when that routing is not in place.
+    // Normally answered by io.mateu.MateuHelidonRoutes on the Helidon routing, ahead of Jersey; it
+    // hands a call here when only JAX-RS can authenticate it (MicroProfile JWT, a
+    // ContainerRequestFilter). Sent through an SseEventSink (io.mateu.JerseySse), event by event: a
+    // StreamingOutput was buffered by Jersey until the action ended.
     @Path("v3/sse/{ignored:.*}")
     @POST
     @Produces("text/event-stream")
-    public StreamingOutput runSseStep(
+    public void runSseStep(
             @PathParam("ignored") String ignored,
             RunActionRqDto rq,
             @Context HttpHeaders headers,
             @Context UriInfo uriInfo,
             @Context SecurityContext securityContext,
-            @Context io.helidon.webserver.http.ServerRequest serverRequest)
+            @Context io.helidon.webserver.http.ServerRequest serverRequest,
+            @Context jakarta.ws.rs.sse.SseEventSink sink,
+            @Context jakarta.ws.rs.sse.Sse sse)
             throws Throwable {
         var httpRequest =
                 new HelidonMPHttpRequest(headers, uriInfo)
@@ -114,14 +115,6 @@ public class ${simpleClassName}MateuController implements MateuController {
         httpRequest.setAttribute("uiId", uiId);
         httpRequest.setAttribute("baseUrl", baseUrl);
         var increments = service.runAction(uiId, rq, baseUrl, httpRequest);
-        return output -> {
-            // closing the Stream cancels the work when the client leaves (the write fails)
-            try (var stream = increments.toStream()) {
-                for (var events = stream.iterator(); events.hasNext(); ) {
-                    output.write(WireMapper.sseEvent(events.next()).getBytes(StandardCharsets.UTF_8));
-                    output.flush();
-                }
-            }
-        };
+        io.mateu.JerseySse.stream(increments, sink, sse);
     }
 }

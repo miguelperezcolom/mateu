@@ -103,10 +103,19 @@ public final class PublicBase {
     if (configured != null && !configured.isBlank()) {
       return normalize(configured);
     }
-    if (forwardedPrefix != null && MateuSettings.isTrue(TRUST_FORWARDED_PREFIX)) {
+    if (forwardedPrefix != null && trustsForwardedPrefix()) {
       return normalize(forwardedPrefix);
     }
     return "";
+  }
+
+  /**
+   * Whether {@value #FORWARDED_PREFIX_HEADER} is honoured: {@value #TRUST_FORWARDED_PREFIX}, or its
+   * other spelling {@value ForwardedPrefix#TRUSTED_PROPERTY}.
+   */
+  public static boolean trustsForwardedPrefix() {
+    return MateuSettings.isTrue(TRUST_FORWARDED_PREFIX)
+        || MateuSettings.isTrue(ForwardedPrefix.TRUSTED_PROPERTY);
   }
 
   /**

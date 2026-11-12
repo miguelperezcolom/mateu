@@ -17,7 +17,9 @@ ACME = (
     '{"name":"Acme CRM","shortName":"CRM","icon":"/images/acme.svg","themeColor":"#1f6feb",'
     '"wireVersion":"3.0","minAppVersion":"1.0.0","auth":{"type":"oidc",'
     '"issuer":"https://auth.acme.com/realms/acme","clientId":"mateu-mobile",'
-    '"scopes":["openid","profile"]}}'
+    '"scopes":["openid","profile"],"loginOnStart":true,"providers":[{"id":"default","type":"oidc",'
+    '"label":"Sign in","icon":"key","issuer":"https://auth.acme.com/realms/acme","clientId":"mateu-mobile",'
+    '"scopes":["openid","profile"],"platforms":["mobile","desktop"]}]}}'
 )
 PLAIN = '{"name":"Plain","shortName":"Plain","wireVersion":"3.0","minAppVersion":"1.0.0"}'
 
@@ -80,12 +82,14 @@ def test_settings_win(monkeypatch):
     monkeypatch.setenv("MATEU_MOBILE_OIDC_CLIENT_ID", "app")
     monkeypatch.setenv("MATEU_MOBILE_OIDC_SCOPES", "openid email")
     body = json.loads(mobile_manifest.manifest_json(PlainApp))
-    assert body["auth"] == {
+    auth = {k: v for k, v in body["auth"].items() if k not in ("loginOnStart", "providers")}
+    assert auth == {
         "type": "oidc",
         "issuer": "https://idp.example",
         "clientId": "app",
         "scopes": ["openid", "email"],
     }
+    assert body["auth"]["providers"][0]["id"] == "default"
     # ...also over what @mobile_app declares
     monkeypatch.setenv("MATEU_MOBILE_NAME", "Acme (staging)")
     body = json.loads(mobile_manifest.manifest_json(AcmeApp))

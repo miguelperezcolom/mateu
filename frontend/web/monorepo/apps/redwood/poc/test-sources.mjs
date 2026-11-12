@@ -21,8 +21,11 @@ import { fetchNotifications } from './notify.mjs'
 import { jsonEscape, declaresJson, restAnswerOf as restAnswer, mapItemsToOptions as mapOptions, refreshActionsOf, serviceMessageOf } from './restSources.mjs'
 import { NESTED_LISTING_ACTION, NESTED_LISTING_PARAM, nestedListingKeyOf, nestedListingAtomOf, setNestedSelection, clearNestedSelection, withNestedSelection } from './core/listing.mjs'
 import { outboundActionOf } from './actionPlan.mjs'
+import { fieldWidgetOf, rowFieldsOf, isExtraLayoutField } from './core/rowEditor.mjs'
+import { fieldListOf } from './core/tree.mjs'
+import { filterDescriptorOf } from './core/listing.mjs'
 import { imageUrlOf } from './inputs.mjs'
-import { layoutFieldOf, rowFieldsOf, hasOptionsSource } from './core/rowEditor.mjs'
+import { layoutFieldOf, hasOptionsSource } from './core/rowEditor.mjs'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -395,6 +398,58 @@ test('options: direct fetch, and proxied through __restfetch__ (options, the fie
   })
   assert.deepEqual(asked, [{ _sourceKind: 'options', _sourceId: 'country' }])
   assert.deepEqual(reg.contexts[HOST_ID].data.country.content, [{ value: 'a', label: 'a' }, { value: 'b', label: 'b' }])
+})
+
+test('options: a MULTI-value field (multiSelect / listBox / multi combobox) reads its optionsSource too', async () => {
+  reset()
+  for (const stereotype of ['multiSelect', 'listBox', 'combobox']) {
+    const ctx = {
+      id: HOST_ID,
+      tree: { type: 'ServerSide', id: 'page', actions: [], triggers: [], children: [
+        { type: 'ClientSide', id: 'tags', metadata: { type: 'FormField', fieldId: 'tags', dataType: 'array', stereotype, optionsSource: { ref: 'countries' } }, children: [] },
+      ] },
+      state: { tags: ['IT'] }, data: {},
+    }
+    // before its options arrive it is already the multi-value widget, empty (not skipped, not text)…
+    const early = fieldWidgetOf(ctx.tree.children[0].metadata, ctx.data, { lookups: true, value: ['IT'] })
+    assert.equal(early.isMultiSelect, true, stereotype + ': before the options')
+    assert.deepEqual(early.options, [])
+    const f = stubFetch({ items: [{ code: 'IT', name: 'Italy' }, { code: 'PT', name: 'Portugal' }] })
+    const reg = await loadRestOptions({ contexts: { [HOST_ID]: ctx }, stack: [] }, HOST_ID, { fetchImpl: f })
+    assert.equal(f.calls.length, 1, stereotype + ': fetched once')
+    const data = reg.contexts[HOST_ID].data
+    // …and once they do, the multi-value widget offers them
+    const w = fieldWidgetOf(ctx.tree.children[0].metadata, data, { lookups: true, value: ['IT'] })
+    assert.equal(w.isMultiSelect, true, stereotype)
+    assert.deepEqual(w.options, [{ value: 'IT', label: 'Italy' }, { value: 'PT', label: 'Portugal' }])
+    // the row editor's form (rowFieldsOf) keeps it with its value as a list
+    const row = rowFieldsOf({ ...ctx, data }, {}, {}).find((x) => x.fieldId === 'tags')
+    assert.ok(row && row.isMultiSelect, stereotype + ': row editor')
+    assert.deepEqual(row.value, ['IT'])
+    // …and so does the PAGE form (a list field is a table there unless it is a multiple choice)
+    const page = { ...ctx.tree, metadata: { type: 'Form' } }
+    const pageField = fieldListOf(page, ctx.state, data).find((x) => x.fieldId === 'tags')
+    assert.ok(pageField && pageField.isMultiSelect, stereotype + ': page form')
+    assert.deepEqual(pageField.value, ['IT'])
+    assert.ok(isExtraLayoutField(ctx.tree.children[0].metadata), stereotype + ': drawn as a choice, not a table')
+  }
+})
+
+test('options: a multiSelect FILTER of a listing reads its optionsSource (the smart-filter panel)', async () => {
+  reset()
+  const filter = { type: 'FormField', fieldId: 'country', dataType: 'array', stereotype: 'multiSelect', optionsSource: { ref: 'countries' } }
+  const ctx = {
+    id: HOST_ID,
+    tree: { type: 'ServerSide', id: 'page', actions: [], triggers: [], children: [
+      { type: 'ClientSide', id: 'crud', metadata: { type: 'Crud', filters: [filter], columns: [] }, children: [] },
+    ] },
+    state: {}, data: {},
+  }
+  const f = stubFetch({ items: [{ code: 'IT', name: 'Italy' }] })
+  const reg = await loadRestOptions({ contexts: { [HOST_ID]: ctx }, stack: [] }, HOST_ID, { fetchImpl: f })
+  const d = filterDescriptorOf(filter, reg.contexts[HOST_ID].data)
+  assert.equal(d.kind, 'multi')
+  assert.deepEqual(d.options, [{ value: 'IT', label: 'Italy' }])
 })
 
 test('loadLookups also loads the REST options (the chains call it after every load)', async () => {

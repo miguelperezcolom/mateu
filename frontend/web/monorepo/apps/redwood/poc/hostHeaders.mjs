@@ -2,7 +2,7 @@
 // renderer runs as a <mateu-ui> component inside somebody else's Visual Builder app and the
 // identity belongs to THAT app, not to a bootstrap page of ours.
 //
-// The standalone app reads its token from localStorage (resilience.storedToken: the bootstrap page
+// The standalone app reads its token from its store (authStore.mjs, a cookie by default) (resilience.storedToken: the bootstrap page
 // keeps it there). A host app has no such page: it hands its identity to the component as a
 // static token, a static header object or a PROVIDER — a function (sync or async) called on every
 // send, so a host whose token rotates (the VB security provider, an OAuth refresh) is asked again

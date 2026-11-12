@@ -79,10 +79,30 @@ for (const [workflow, writers] of [['desktop.yml', ['attach']], ['mobile.yml', [
 
 test('the desktop installer releases are not framework releases', () => {
     for (const [workflow, job] of GATED) assert.equal(runs(jobIf(workflow, job), 'mateu-desktop-1.0'), false, `${workflow} ${job}`)
+    assert.equal(runs(jobIf('buid-and-publish.yml', 'npm-build'), 'mateu-desktop-1.0'), false, 'npm-build')
+})
+
+// The npm package (mateu-vaadin): built after the tests, the token only in the job that publishes.
+test('the npm package is built only after e2e passed, with no secret and no write token', () => {
+    const build = jobBlock('buid-and-publish.yml', 'npm-build')
+    assert.match(build, /\n {4}needs: e2e\n/)
+    assert.doesNotMatch(build, /secrets\.|id-token: write|contents: write/)
+})
+
+test('the npm publish job runs no third-party code and is skipped without an NPM_TOKEN', () => {
+    const publish = jobBlock('buid-and-publish.yml', 'npm')
+    assert.match(publish, /\n {4}needs: npm-build\n/)
+    assert.doesNotMatch(publish, /actions\/checkout|npm ci|npm install|npm run|contents: write/)
+    assert.match(publish, /HAS_TOKEN: \$\{\{ secrets\.NPM_TOKEN != '' \}\}/)
+    const steps = publish.split('\n      - ').slice(1).filter((s) => !s.startsWith('name: Choose the credential'))
+    assert.ok(steps.length >= 3)
+    for (const step of steps) assert.match(step, /if: steps\.auth\.outputs\.mode == 'token'/, step.split('\n')[0])
+    assert.equal((publish.match(/secrets\.NPM_TOKEN \}\}/g) ?? []).length, 1, 'the token reaches one step only')
 })
 
 // Provenance and the OIDC token (2026-11, GA): `id-token: write` mints a Sigstore / registry identity
-// for the workflow, so it lives only in the small jobs that publish (PyPI, NuGet trusted publishing)
+// for the workflow, so it lives only in the small jobs that publish (PyPI, NuGet trusted publishing,
+// npm provenance)
 // or attest (provenance) — never in a job that checks code out or runs a build tool. And
 // `attestations: write` belongs to provenance alone.
 const withoutComments = (text) => text.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n')
@@ -93,7 +113,7 @@ const jobsOf = (workflow) => {
 }
 
 for (const [workflow, idToken, attestations] of [
-    ['buid-and-publish.yml', ['pypi', 'nuget', 'provenance'], ['provenance']],
+    ['buid-and-publish.yml', ['pypi', 'nuget', 'npm', 'provenance'], ['provenance']],
     ['desktop.yml', [], []],
     ['mobile.yml', [], []],
     ['publish-plugins.yml', [], []],
@@ -106,7 +126,7 @@ for (const [workflow, idToken, attestations] of [
             assert.equal(/id-token: write/.test(block), idToken.includes(job), `${workflow} ${job} id-token`)
             assert.equal(/attestations: write/.test(block), attestations.includes(job), `${workflow} ${job} attestations`)
             if (idToken.includes(job)) {
-                assert.doesNotMatch(block, /actions\/checkout|npm |gradlew|mvn |dotnet (build|pack|restore)|python -m build/, `${job} runs no build`)
+                assert.doesNotMatch(block, /actions\/checkout|npm (ci|install|run|pack)|gradlew|mvn |dotnet (build|pack|restore)|python -m build/, `${job} runs no build`)
             }
         }
     })

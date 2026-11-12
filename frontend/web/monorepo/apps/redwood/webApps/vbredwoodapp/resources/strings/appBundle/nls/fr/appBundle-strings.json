@@ -289,5 +289,11 @@
   "inboxDismiss": "Ignorer",
   "inboxOpen": "Ouvrir",
   "inboxOther": "Autres",
-  "inboxNew": "Nouvelle notification : {title}"
+  "inboxNew": "Nouvelle notification : {title}",
+  "signInTitle": "Se connecter",
+  "signInChoose": "Choisissez comment vous connecter.",
+  "signInHint": "Connectez-vous pour continuer.",
+  "signInWith": "Continuer avec {provider}",
+  "signInFailed": "La connexion a échoué. Veuillez réessayer.",
+  "signOut": "Se déconnecter"
 }

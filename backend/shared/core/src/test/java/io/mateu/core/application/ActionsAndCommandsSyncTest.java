@@ -74,6 +74,11 @@ class ActionsAndCommandsSyncTest {
     }
 
     @Action
+    Object messageThenGo() {
+      return List.of(Message.success("Saved"), URI.create("/docs"));
+    }
+
+    @Action
     UICommand fireEvent() {
       return UICommand.dispatchEvent("guest-selected", Map.of("id", 7));
     }
@@ -401,6 +406,17 @@ class ActionsAndCommandsSyncTest {
     var navigations = commandsOfType(increment, UICommandTypeDto.NavigateTo);
     assertThat(navigations).hasSize(1);
     assertThat(navigations.get(0).data()).isEqualTo("/docs");
+    assertThat(increment.fragments()).isEmpty();
+  }
+
+  @Test
+  void aUriInsideAReturnedListNavigatesToo() {
+    // issue #1167: List.of(message, URI) showed the message and never navigated
+    var increment = run("/commands", CommandForm.class, "messageThenGo");
+    var navigations = commandsOfType(increment, UICommandTypeDto.NavigateTo);
+    assertThat(navigations).hasSize(1);
+    assertThat(navigations.get(0).data()).isEqualTo("/docs");
+    assertThat(increment.messages()).hasSize(1);
     assertThat(increment.fragments()).isEmpty();
   }
 

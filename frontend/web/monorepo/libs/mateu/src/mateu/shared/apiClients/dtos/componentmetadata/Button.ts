@@ -31,4 +31,9 @@ export default interface Button extends ComponentMetadata {
      * advertised action by id. */
     rowsSelectedRequired?: boolean
 
+    /** A SPLIT button: this button runs its own action (or follows its route) and an adjacent ▾
+     * opens its `children`. Without it, a Button with `children` is a dropdown whose trigger only
+     * opens the menu (a ButtonGroup with no primary). */
+    split?: boolean
+
 }

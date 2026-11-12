@@ -9,11 +9,11 @@ import type { MateuSession } from '../core/MateuSession';
 import { allowInsecure, appVersion, extraLinkHosts, metaStore, secretStore, uiStore } from './storage';
 import { OfflineQueue } from '../core/offlineQueue';
 import { usePendingCounts } from './outboxCounts';
-import { clearListingPrefs } from '../core/listingPrefs';
+import { clearListingPrefsOf } from '../renderer/persistedScopes';
 import { ScreenSnapshots } from '../core/screenSnapshots';
 import { bundleKey } from './bundleCache';
 import { fileBundleStore } from './bundleFileStore';
-import { DEMO_BASE_URL, uiSecretKeys, type HubEntry } from './uiStore';
+import { DEMO_BASE_URL, type HubEntry } from './uiStore';
 import { AddScreen } from './ui/AddScreen';
 import { confirmDialog } from './ui/common';
 import { ConfirmAddScreen, ConfirmImportScreen } from './ui/ConfirmScreens';
@@ -22,11 +22,9 @@ import { ExportScreen } from './ui/ExportScreen';
 import { HomeScreen } from './ui/HomeScreen';
 import { Switcher } from './ui/Switcher';
 import { UiSession } from './ui/UiSession';
-import { MateuApiClient } from '../api/MateuApiClient';
-import { OidcTokenProvider } from '../core/oidc';
-import { disablePush, onPushOpened, type PushHost, type PushRecord } from '../core/pushNotifications';
-import { pushRegistrations } from '../ui/pushPort';
-import { uiSessionId } from './uiSession';
+import { sameUi, setHubHandlesPushTaps, type PushTarget } from '../core/remotePush';
+import { onPushOpened } from '../ui/localNotifications';
+import { unregisterRemovedUi } from '../renderer/RemotePush';
 
 type Screen =
   | { name: 'home' }
@@ -67,8 +65,6 @@ export function HubApp() {
   const [linkTick, setLinkTick] = useState(0);
 
   const linkOptions: ParseOptions = useMemo(() => ({ allowInsecure, extraLinkHosts }), []);
-  // push taps wait for the list (the entry of the tapped UI is looked up in it)
-  const entriesLoaded = entries !== null;
 
   useEffect(() => {
     const off = uiStore.subscribe((list) => setEntries([...list]));
@@ -128,18 +124,6 @@ export function HubApp() {
     },
     [open],
   );
-
-  // A tap on a push notification opens ITS UI (the key it carries names one entry of this list) at
-  // the route it names; a UI no longer in the list opens nothing (core/pushNotifications.ts).
-  const openLinkedRef = useRef(openLinked);
-  openLinkedRef.current = openLinked;
-  useEffect(() => {
-    if (!entriesLoaded) return;
-    return onPushOpened(pushRegistrations, (record, route) => {
-      const entry = uiStore.findByBaseUrl(record.baseUrl);
-      if (entry) void openLinkedRef.current(entry, route || undefined);
-    });
-  }, [entriesLoaded]);
 
   const handleLink = useCallback(
     (link: HubLink, source: 'scan' | 'link' | 'typed') => {
@@ -205,6 +189,30 @@ export function HubApp() {
     handleUrlRef.current(url);
   }, [loaded, linkTick]);
 
+  // A tapped REMOTE push names its UI (`{ui, route}`): open that entry of the list at that route —
+  // the one that launched the app waits for the list, like a deep link. A UI no longer listed is
+  // ignored (its server is told to forget the phone when the UI is removed).
+  const pendingPush = useRef<PushTarget | null>(null);
+  const [pushTick, setPushTick] = useState(0);
+  useEffect(() => {
+    setHubHandlesPushTaps(true);
+    const off = onPushOpened((target) => {
+      pendingPush.current = target;
+      setPushTick((t) => t + 1);
+    });
+    return () => {
+      off();
+      setHubHandlesPushTaps(false);
+    };
+  }, []);
+  useEffect(() => {
+    if (!loaded || !pendingPush.current) return;
+    const { ui, route } = pendingPush.current;
+    pendingPush.current = null;
+    const entry = (entries ?? []).find((e) => sameUi(e.baseUrl, ui));
+    if (entry) void openLinked(entry, route ?? undefined);
+  }, [loaded, pushTick, entries, openLinked]);
+
   const remove = async (entry: HubEntry) => {
     const ok = await confirmDialog(
       `Remove ${entry.name}?`,
@@ -213,8 +221,12 @@ export function HubApp() {
       true,
     );
     if (!ok) return;
-    // its push notifications stop first, while its credentials are still on the phone
-    await disablePush(entry.baseUrl, pushRegistrations, (record) => pushHostForRemoved(entry, record, liveSessions.current.get(entry.id)));
+    // the phone stops receiving its pushes (core/remotePush.ts): through the running session if
+    // it is open, else with what was recorded when the token was registered
+    const live = liveSessions.current.get(entry.id);
+    if (live?.pushUnregister) await live.pushUnregister().catch(() => undefined);
+    else await unregisterRemovedUi(entry.baseUrl);
+    liveSessions.current.delete(entry.id);
     setSessions((s) => s.filter((x) => x.id !== entry.id));
     if (activeId === entry.id) setActiveId(undefined);
     await uiStore.remove(entry.id);
@@ -223,7 +235,7 @@ export function HubApp() {
     // and so does what it had waiting to be sent: there is no UI left to send it to
     void OfflineQueue.clear(secretStore, entry.id);
     // …and so do its listings' saved views and column choices
-    void clearListingPrefs(metaStore, entry.id);
+    void clearListingPrefsOf(metaStore, entry.baseUrl);
     if (entry.manifest?.bundle) void fileBundleStore.remove(bundleKey(entry.baseUrl, entry.manifest.bundle));
     announce(`${entry.name} removed`);
   };
@@ -327,37 +339,6 @@ export function HubApp() {
       />
     </View>
   );
-}
-
-/**
- * Where a removed UI's `_push-unregister` goes: its running session's client, or one built for it
- * with ITS credentials only (its token store, its session id), which never opens a sign-in.
- */
-async function pushHostForRemoved(entry: HubEntry, record: PushRecord, live: MateuSession | undefined): Promise<PushHost | null> {
-  const api = live?.api.baseUrl === record.baseUrl
-    ? live.api
-    : new MateuApiClient(
-        record.baseUrl,
-        await uiSessionId(secretStore, entry.id),
-        entry.manifest?.auth ? new OidcTokenProvider(entry.manifest.auth, secretStore, uiSecretKeys(entry.id).tokens) : null,
-      );
-  if (api !== live?.api) api.mayPrompt = () => false;
-  return {
-    baseUrl: record.baseUrl,
-    route: record.route,
-    serverSideType: record.serverSideType,
-    run: (actionId, parameters) =>
-      api.runAction({
-        route: record.route,
-        consumedRoute: record.route || '_empty',
-        actionId,
-        serverSideType: record.serverSideType,
-        initiatorComponentId: 'push-notifications',
-        componentState: {},
-        appState: {},
-        parameters,
-      }),
-  };
 }
 
 const styles = themed(() => StyleSheet.create({

@@ -18,6 +18,7 @@ import javax.swing.JPopupMenu
  * keep-mine/keep-theirs buttons) into the action.
  */
 fun renderButton(ctx: AppContext, metadata: JsonNode): JComponent {
+    if (isSplitButton(metadata)) return renderSplitButton(ctx, metadata)
     if (isButtonGroup(metadata)) return renderButtonGroup(ctx, metadata)
     val id = metadata.text("id")
     val actionId = metadata.text("actionId", id)
@@ -178,6 +179,57 @@ private fun renderButtonGroup(ctx: AppContext, metadata: JsonNode): JComponent {
     trigger.isEnabled = !metadata.bool("disabled")
     trigger.addActionListener { menu.show(trigger, 0, trigger.height) }
     return trigger
+}
+
+/** Client property of a split button's ▾ holding its menu. */
+const val SPLIT_BUTTON_MENU = "mateu.splitButtonMenu"
+
+/**
+ * A SPLIT button (a ButtonGroup with a primary) travels as the PRIMARY Button with `split: true`
+ * and the group's other buttons as `children`.
+ */
+fun isSplitButton(metadata: JsonNode): Boolean =
+    metadata.bool("split") && metadata.path("children").let { it.isArray && it.size() > 0 }
+
+/**
+ * The split button → the primary as an ordinary [JButton] next to a ▾ [JButton] named "More
+ * actions" that opens a [JPopupMenu] of the rest (also on ↓ / Alt+↓ / Space from the keyboard,
+ * since it is a focusable button), each item running its action or following its route.
+ */
+private fun renderSplitButton(ctx: AppContext, metadata: JsonNode): JComponent {
+    val primary = (metadata.deepCopy<JsonNode>() as com.fasterxml.jackson.databind.node.ObjectNode).apply {
+        remove("children"); remove("split")
+    }
+    val panel = javax.swing.JPanel(java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0))
+    panel.isOpaque = false
+    panel.add(renderButton(ctx, primary))
+    val more = object : JButton("▾") {
+        override fun getMaximumSize(): java.awt.Dimension = preferredSize
+    }
+    more.accessibleName("More actions")
+    more.toolTipText = "More actions"
+    more.isEnabled = !metadata.bool("disabled")
+    val menu = JPopupMenu("More actions")
+    for (child in metadata.path("children")) {
+        val childAction = child.text("actionId", child.text("id"))
+        val item = JMenuItem(plain(child.text("label", childAction)))
+        val route = child.text("route")
+        item.isEnabled = !child.bool("disabled") && (route.isNotBlank() || childAction.isNotBlank())
+        val parameters = ctx.jsonToParams(child.path("parameters"))
+        item.addActionListener { if (route.isNotBlank()) ctx.openRoute(route) else ctx.runAction(childAction, parameters.ifEmpty { null }) }
+        menu.add(item)
+    }
+    more.putClientProperty(SPLIT_BUTTON_MENU, menu)
+    val open = { menu.show(more, 0, more.height) }
+    more.addActionListener { open() }
+    more.getInputMap(JComponent.WHEN_FOCUSED).put(javax.swing.KeyStroke.getKeyStroke("DOWN"), "mateu.openSplitMenu")
+    more.getInputMap(JComponent.WHEN_FOCUSED).put(javax.swing.KeyStroke.getKeyStroke("alt DOWN"), "mateu.openSplitMenu")
+    more.actionMap.put("mateu.openSplitMenu", object : javax.swing.AbstractAction() {
+        override fun actionPerformed(e: java.awt.event.ActionEvent?) = open()
+    })
+    panel.add(more)
+    panel.accessibleName(metadata.text("label", metadata.text("actionId")))
+    return panel
 }
 
 /** A label of one or two symbols and no letters or digits (✕, ‹, ›, +, ⋯). */

@@ -30,7 +30,19 @@ from mateu_ui.core.errors import dev_mode_from_env, error_increment, new_correla
 from mateu_ui.core.identity import framework_identity_provider, identity_from_claims, warn_on_startup
 from mateu_ui.core import error_boundary, observability
 from mateu_ui.core.microfrontends import DefaultCorrelationIdProvider
-from mateu_ui.core import agent_push, dev_specs, documents, idempotency_keys, mobile_manifest, progress, public_base, pwa, ui_page, version_skew
+from mateu_ui.core import (
+    agent_push,
+    dev_specs,
+    documents,
+    idempotency_keys,
+    mobile_manifest,
+    progress,
+    public_base,
+    pwa,
+    sign_in_providers,
+    ui_page,
+    version_skew,
+)
 from mateu_ui.core.naming import humanize
 from mateu_ui.core.mcp import handle_jsonrpc
 from mateu_ui.core.request_context import MateuRequest, bound_request, normalise_headers
@@ -56,6 +68,11 @@ _FORBIDDEN_BODY = {
 
 #: The (plain text) body of the 415 a non-JSON POST to a Mateu endpoint gets.
 _JSON_BODIES_ONLY_MESSAGE = "Mateu endpoints accept only application/json bodies"
+
+# Every event stream carries these (Java's SseHeaders): nginx — and the proxies that follow its
+# convention — stops buffering the response, and nothing on the way caches or compresses it, so
+# each event reaches the browser when it is written.
+SSE_HEADERS = {"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"}
 
 
 def _is_json_content_type(content_type: str | None) -> bool:
@@ -195,6 +212,15 @@ def add_mateu(
     resolution_listeners: Sequence[Any] | None = None,
     progress_reattach_grace_seconds: float | None = None,
     inbox_store: Any | None = None,
+    sign_in: Sequence[Any] | None = None,
+    login_on_start: bool | None = None,
+    logout_url: str | None = None,
+    forwarded_prefix_trusted: bool | None = None,
+    push_sender: Any | None = None,
+    push_token_store: Any | None = None,
+    expo_push: bool | None = None,
+    expo_push_access_token: str | None = None,
+    expo_push_url: str | None = None,
     audit_listeners: Sequence[Any] | None = None,
     presence_store: Any | None = None,
     file_storages: Sequence[Any] | None = None,
@@ -280,6 +306,22 @@ def add_mateu(
       task at once (the old behaviour). A finished task keeps its outcome for the same period.
     - ``inbox_store`` (EXPERIMENTAL) — an ``InboxStore`` keeping the ``inbox`` messages of signed-in
       users (default: Mateu's bounded in-memory store, lost on restart).
+    - ``sign_in`` — the ways to sign in every client offers (``SignInProvider``s, display order):
+      one → straight to it, several → a sign-in chooser. The ``MATEU_AUTH_PROVIDERS`` env var (+
+      ``MATEU_AUTH_PROVIDERS_<ID>_*``) wins when it names any. ``login_on_start`` (default True; env
+      ``MATEU_AUTH_LOGIN_ON_START``) and ``logout_url`` (env ``MATEU_AUTH_LOGOUT_URL``) go with them.
+      Mateu offers the sign-in only: your app validates the token / session (see the sign-in guide).
+    - ``forwarded_prefix_trusted`` — honour the ``X-Forwarded-Prefix`` a prefix-stripping reverse
+      proxy sets (default: the ``MATEU_FORWARDED_PREFIX_TRUSTED`` env var, else OFF: the header is a
+      claim any client can make). The served page (only with ``ui``) then loads its assets and calls
+      the API under that prefix; without it, the ASGI ``root_path`` (``uvicorn --root-path``) is
+      the prefix.
+    - ``push_sender`` / ``push_token_store`` (EXPERIMENTAL) — remote push: a ``PushSender`` that
+      delivers pushes to phones and a ``PushTokenStore`` keeping their tokens (default: in memory,
+      lost on restart). ``expo_push=True`` (or ``MATEU_PUSH_EXPO_ENABLED=true``) uses Mateu's Expo
+      sender when no ``push_sender`` is given; ``expo_push_access_token`` (or
+      ``MATEU_PUSH_EXPO_ACCESS_TOKEN``) is its bearer token. With a sender, an ``inbox`` message to a
+      signed-in user reaches their phones while the app is suspended or closed.
     - ``presence_store`` (EXPERIMENTAL) — a ``PresenceStore`` keeping record presence
       (``@app(presence=True)``; default: Mateu's bounded in-memory store, per process).
     - ``file_storages`` (EXPERIMENTAL) — ``FileStorage`` instances (or classes, instantiated with no
@@ -321,6 +363,19 @@ def add_mateu(
         resolution_listeners=resolution_listeners,
     )
     progress.configure(progress_reattach_grace_seconds)
+    sign_in_providers.configure(sign_in, login_on_start, logout_url)
+    sign_in_providers.warn_on_startup()
+    if inbox_store is not None:
+        handler.inbox_store = inbox_store
+    # remote push: the app's sender, else Mateu's Expo sender when switched on, else off
+    from mateu_ui.core import push as remote_push
+
+    if push_sender is None and (remote_push.expo_enabled_from_env() if expo_push is None else expo_push):
+        push_sender = remote_push.ExpoPushSender(
+            expo_push_url, expo_push_access_token or os.environ.get("MATEU_PUSH_EXPO_ACCESS_TOKEN")
+        )
+    if push_sender is not None or push_token_store is not None:
+        handler.enable_push(push_sender, push_token_store)
     from mateu_ui.core.uploads import Uploads
 
     storages = list(getattr(registry, "file_storages", []))
@@ -580,7 +635,7 @@ def add_mateu(
             async def one_error():
                 yield f"data: {payload}\n\n"
 
-            return StreamingResponse(one_error(), media_type="text/event-stream")
+            return StreamingResponse(one_error(), media_type="text/event-stream", headers=SSE_HEADERS)
         finally:
             if token is not None:
                 observability.release(token)
@@ -588,7 +643,7 @@ def add_mateu(
         def event(increment) -> str:
             return "data: " + json_module.dumps(increment.model_dump(by_alias=True, mode="json")) + "\n\n"
 
-        headers = {"Cache-Control": "no-cache", CORRELATION_HEADER: mateu_request.correlation_id or ""}
+        headers = {**SSE_HEADERS, CORRELATION_HEADER: mateu_request.correlation_id or ""}
         if rq.action_id == agent_push.CHANNEL_ACTION:
             return StreamingResponse(
                 observed_stream(_agent_stream(request, queue, channel, handler, event(first), event),
@@ -838,6 +893,11 @@ def add_mateu(
             oracle_cdn=oracle_cdn,
             app_type=presented_by(),
             build_id=lambda: skew.build_id,
+            forwarded_prefix_trusted=(
+                ui_page.forwarded_prefix_trusted_from_env()
+                if forwarded_prefix_trusted is None
+                else forwarded_prefix_trusted
+            ),
             public_base_path=public_base_path,
         )
         log.info("Mateu UI: serving %s at %s", renderer.location, prefix or "/")
@@ -928,7 +988,7 @@ async def _resume_response(request: Request, handler: SyncHandler, mateu_request
     def event(increment) -> str:
         return "data: " + json_module.dumps(increment.model_dump(by_alias=True, mode="json")) + "\n\n"
 
-    headers = {"Cache-Control": "no-cache", CORRELATION_HEADER: mateu_request.correlation_id or ""}
+    headers = {**SSE_HEADERS, CORRELATION_HEADER: mateu_request.correlation_id or ""}
 
     async def single():
         if first is not None:
@@ -1003,9 +1063,11 @@ class MateuUiMiddleware:
         oracle_cdn: str | None = None,
         app_type: type | None = None,
         build_id: Callable[[], str] | None = None,
+        forwarded_prefix_trusted: bool = False,
         public_base_path: str | None = None,
     ):
         self.app = app
+        self.forwarded_prefix_trusted = forwarded_prefix_trusted
         self.public_base_path = public_base_path
         self.oracle_cdn = oracle_cdn
         self.app_type = app_type
@@ -1018,10 +1080,11 @@ class MateuUiMiddleware:
         self.debug = debug
 
     def answer(
-        self, path: str, accept: str | None, root_path: str | None = None
+        self, path: str, accept: str | None, root_path: str | None = None, forwarded_prefix: str | None = None
     ) -> tuple[str, bytes, str | None] | None:
         """``(content type, body, cache control)`` for what this middleware would serve at ``path``,
-        or None when the request is not ours."""
+        or None when the request is not ours. ``root_path`` and a trusted ``forwarded_prefix`` make the
+        public base the page is served under (``public_base.of``)."""
         if path != "/" and ui_page.is_asset(path):
             body = self.renderer.read(path)
             if body is None:
@@ -1040,8 +1103,9 @@ class MateuUiMiddleware:
             self.oracle_cdn,
             self.app_type,
             self.build_id() if self.build_id else None,
-            # under a root_path / MATEU_PUBLIC_BASE_PATH the page is written for the PUBLIC path
-            public_base.of(root_path, self.public_base_path),
+            # under a root_path / MATEU_PUBLIC_BASE_PATH / a trusted X-Forwarded-Prefix the page is
+            # written for the PUBLIC path
+            public_base.of(root_path, self.public_base_path or forwarded_prefix),
         )
         return "text/html; charset=utf-8", html.encode("utf-8"), ui_page.REVALIDATE_CACHE_CONTROL
 
@@ -1055,7 +1119,14 @@ class MateuUiMiddleware:
         path = scope["path"]
         if root_path and (path == root_path or path.startswith(root_path + "/")):
             path = path[len(root_path):] or "/"
-        answer = self.answer(path, accept, root_path)
+        # a trusted X-Forwarded-Prefix (forwarded_prefix_trusted) is the proxy prefix when no
+        # public_base_path is declared
+        forwarded = None
+        if getattr(self, "forwarded_prefix_trusted", False):
+            forwarded = next(
+                (v.decode("latin-1") for k, v in scope.get("headers", []) if k == b"x-forwarded-prefix"), None
+            )
+        answer = self.answer(path, accept, root_path, forwarded)
         if answer is None:
             await self.app(scope, receive, send)
             return
@@ -1076,7 +1147,6 @@ class MateuUiMiddleware:
             return
         content_type, body, cache_control = answer
         extra = []
-        path = scope["path"]
 
         def header(name: bytes) -> str | None:
             return next((v.decode("latin-1") for k, v in scope.get("headers", []) if k == name), None)
@@ -1129,7 +1199,7 @@ class MateuApiHintMiddleware(MateuUiMiddleware):
         self.base_url = "/" + mount if mount else ""
 
     def answer(
-        self, path: str, accept: str | None, root_path: str | None = None
+        self, path: str, accept: str | None, root_path: str | None = None, forwarded_prefix: str | None = None
     ) -> tuple[str, bytes, str | None] | None:
         if path not in (self.base_url or "/", self.base_url + "/"):
             return None
@@ -1165,7 +1235,7 @@ def _add_dev_endpoints(app: FastAPI) -> None:
             finally:
                 unsubscribe()
 
-        return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
+        return StreamingResponse(stream(), media_type="text/event-stream", headers=SSE_HEADERS)
 
     async def reload(request: Request) -> Response:
         dev_specs.reload(request.query_params.get("scope"))

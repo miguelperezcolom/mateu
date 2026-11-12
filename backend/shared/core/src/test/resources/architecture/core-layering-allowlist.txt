@@ -23,8 +23,7 @@
 # Progress and notifications (2026-11-08): ProgressTasks keys a running task by its caller through
 # IdentityResolver (like IssuedActions) and translates the starting text through BuiltInTexts; the
 # live-updates runner filters inbox pushes by the caller through IdentityResolver — reviewed.
-# Mobile push (2026-11-11): the _push-register runner reads the caller and refuses exactly like the
-# inbox runner (Inbox.principalOf, MateuForbiddenException) — reviewed.
+# Remote push (2026-11-11): Push reads its Expo switches through MateuSettings, like AgentPush — reviewed.
 # Record presence (2026-11-11): Presence keys a tab by its caller through IdentityResolver (like
 # Inbox) and reads @App(presence) through MetaAnnotations — reviewed.
 # File uploads (2026-11-11): FieldMapper gives an editable upload field its ticket through
@@ -38,6 +37,7 @@ application -> infra: io/mateu/core/application/mcp/McpJsonRpc.java
 application -> infra: io/mateu/core/application/notifications/Inbox.java
 application -> infra: io/mateu/core/application/presence/Presence.java
 application -> infra: io/mateu/core/application/progress/ProgressTasks.java
+application -> infra: io/mateu/core/application/push/Push.java
 application -> infra: io/mateu/core/application/runaction/ActionInstanceCreator.java
 application -> infra: io/mateu/core/application/runaction/ActionRegistry.java
 application -> infra: io/mateu/core/application/runaction/AppMenuResolver.java
@@ -84,7 +84,6 @@ domain -> application: io/mateu/core/domain/act/KeepAliveActionRunner.java
 domain -> application: io/mateu/core/domain/act/ListingRowActionRunner.java
 domain -> application: io/mateu/core/domain/act/LiveUpdatesActionRunner.java
 domain -> application: io/mateu/core/domain/act/NotificationsActionRunner.java
-domain -> application: io/mateu/core/domain/act/PushTokensActionRunner.java
 domain -> application: io/mateu/core/domain/act/RecordSwitcherActionRunner.java
 domain -> application: io/mateu/core/domain/act/SearchFieldActionRunner.java
 domain -> application: io/mateu/core/domain/act/crudfieldhandlers/CrudFieldHandlerHelper.java

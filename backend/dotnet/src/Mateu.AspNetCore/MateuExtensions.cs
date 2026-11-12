@@ -74,7 +74,13 @@ public static partial class MateuExtensions
             var registry = sp.GetRequiredService<MateuRegistry>();
             // Component adapters registered as services join the ones found by assembly scan.
             foreach (var adapter in sp.GetServices<IComponentAdapter>()) registry.RegisterAdapter(adapter);
-            return new SyncHandler(
+            // remote push: the app's sender, else Mateu's Expo sender when switched on, else off
+            var pushSender = sp.GetService<IPushSender>()
+                ?? (options.ExpoPushEffective
+                    ? new Mateu.Core.Push.ExpoPushSender(ExpoHttp, options.ExpoPushUrl,
+                        options.ExpoPushAccessToken ?? System.Environment.GetEnvironmentVariable("MATEU_PUSH_EXPO_ACCESS_TOKEN"))
+                    : null);
+            var handler = new SyncHandler(
                 registry,
                 sp.GetService<ITranslator>(),
                 // Read per call: the handler is a singleton, the identity is the current request's.
@@ -120,11 +126,19 @@ public static partial class MateuExtensions
                 ContentSlotsDescriptorEnabled = options.ContentSlotsDescriptorEnabled,
                 // the inbox messages of the answers: the app's IInboxStore, else Mateu's in-memory one
                 InboxStore = sp.GetService<IInboxStore>() ?? DefaultInboxStore,
+                PushSender = pushSender,
+                PushTokenStore = sp.GetService<IPushTokenStore>(),
                 PresenceStore = sp.GetService<IPresenceStore>() ?? Presence.DefaultStore,
             };
+            // PushNotifications.Send reaches this handler's sender (process lifetime)
+            if (pushSender is not null) PushNotifications.Subscribe(handler.DeliverPush);
+            return handler;
         });
         return services;
     }
+
+    /// <summary>The client Mateu's Expo sender posts with.</summary>
+    private static readonly HttpClient ExpoHttp = new() { Timeout = TimeSpan.FromSeconds(30) };
 
     /// <summary>Mateu's in-memory inbox store, one per process (shared by every mount).</summary>
     private static readonly InMemoryInboxStore DefaultInboxStore = new();
@@ -171,6 +185,13 @@ public static partial class MateuExtensions
     public static void MapMateu(this WebApplication app, string baseUrl = "", string? ui = null)
     {
         var prefix = string.IsNullOrEmpty(baseUrl) ? "" : "/" + baseUrl.Trim('/');
+        // The ways to sign in the app declares in code (the environment wins); an unusable provider
+        // is reported once, now
+        var signIn = SignInOf(app.Services.GetService<MateuOptions>());
+        SignInProviders.WarnOnStartup(signIn,
+            MobileManifest.AppTypeOf(app.Services.GetRequiredService<MateuRegistry>(), baseUrl)
+                ?.GetCustomAttribute<MobileAppAttribute>(),
+            message => app.Logger.LogWarning("{Message}", message));
         // The handler gets the MOUNT path, never an absolute origin (Java's controllers pass their
         // relative baseUrl): the browser resolves it against the page, so the shell keeps working
         // behind a TLS-terminating or Host-rewriting reverse proxy — an origin built from the
@@ -217,7 +238,7 @@ public static partial class MateuExtensions
                 return UIIncrementDto.Of();
             });
             ctx.Response.ContentType = "text/event-stream";
-            ctx.Response.Headers.CacheControl = "no-cache";
+            SseHeaders(ctx.Response);
             async Task Send(UIIncrementDto increment, CancellationToken token)
             {
                 // an embedded micro frontend's stream steps never name the window either
@@ -350,7 +371,7 @@ public static partial class MateuExtensions
             foreach (var (name, value) in MobileManifest.Headers) ctx.Response.Headers[name] = value;
             // a YAML mount (no app class) is presented by its `type: AppShell` definition
             var shell = ctx.RequestServices.GetService<SyncHandler>()?.MountShell(baseUrl);
-            await ctx.Response.WriteAsync(MobileManifest.ForMount(registry, baseUrl, shell), ctx.RequestAborted);
+            await ctx.Response.WriteAsync(MobileManifest.ForMount(registry, baseUrl, shell, signIn), ctx.RequestAborted);
         });
 
         // The installable web app (Mateu.Core.Pwa): its manifest, service worker, registration script
@@ -438,9 +459,14 @@ public static partial class MateuExtensions
         // The PWA's head goes on LAST, as on Java (after the Oracle CDN rewrite and the markers): its
         // worker version hashes the page exactly as served.
         var pwaOption = app.Services.GetService<MateuOptions>()?.Pwa;
+        var prefixTrusted = app.Services.GetService<MateuOptions>()?.ForwardedPrefixTrusted
+                            ?? UiPage.ForwardedPrefixTrustedByEnvironment();
         var versionSkew = app.Services.GetService<VersionSkew>();
+        var signIn = SignInOf(app.Services.GetService<MateuOptions>());
+        var mobileApp = MobileManifest.AppTypeOf(registry, baseUrl)?.GetCustomAttribute<MobileAppAttribute>();
         var publicBaseOption = app.Services.GetService<MateuOptions>()?.PublicBasePath;
-        string PwaHead(string html, string publicBase) => Pwa.Served(html, publicBase + prefix,
+        // the ways to sign in the web clients offer (<meta name="mateu-auth">), then the PWA's head
+        string PwaHead(string html, string publicBase) => Pwa.Served(SignInProviders.Head(html, signIn, mobileApp), publicBase + prefix,
             MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl),
                 app.Services.GetService<SyncHandler>()?.MountShell(baseUrl)), versionSkew?.BuildId, pwaOption, publicBase);
         app.Use(async (ctx, next) =>
@@ -448,9 +474,10 @@ public static partial class MateuExtensions
             await next(ctx);
             if (ctx.Response.StatusCode != StatusCodes.Status404NotFound || ctx.Response.HasStarted) return;
             if (!HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method)) return;
-            // under UsePathBase / a trusted X-Forwarded-Prefix / MateuOptions.PublicBasePath the page is
-            // written for the PUBLIC path (PublicBase)
-            var publicBase = PublicBase.Of(ctx.Request.PathBase.Value, publicBaseOption);
+            // under UsePathBase / MateuOptions.PublicBasePath / a trusted X-Forwarded-Prefix
+            // (ForwardedPrefixTrusted) the page is written for the PUBLIC path (PublicBase)
+            var forwarded = prefixTrusted ? ctx.Request.Headers[UiPage.ForwardedPrefixHeader].FirstOrDefault() : null;
+            var publicBase = PublicBase.Of(ctx.Request.PathBase.Value, publicBaseOption ?? forwarded);
             var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug, oracleCdn,
                 html => PwaHead(html, publicBase), publicBase);
             if (answer is null) return;
@@ -513,6 +540,10 @@ public static partial class MateuExtensions
         return ("text/html; charset=utf-8", System.Text.Encoding.UTF8.GetBytes(html), UiPage.RevalidateCacheControl);
     }
 
+    /// <summary>The sign-in providers declared in <see cref="MateuOptions"/> (none when no options).</summary>
+    private static SignInDeclared SignInOf(MateuOptions? options) =>
+        options is null ? SignInDeclared.None : new SignInDeclared(options.SignIn, options.LoginOnStart, options.LogoutUrl);
+
     private static void MapMcpEndpoint(WebApplication app, string prefix)
     {
         app.MapPost(prefix + "/mateu/mcp", async (HttpContext ctx, SyncHandler handler) =>
@@ -545,6 +576,20 @@ public static partial class MateuExtensions
             ctx.Response.ContentType = "application/json";
             await ctx.Response.WriteAsync(response.ToJsonString(Json));
         }).JsonBodiesOnly();
+    }
+
+    /// <summary>The headers every event stream carries (Java's <c>SseHeaders</c>): nginx — and the
+    /// proxies that follow its convention — stops buffering the response, and nothing on the way
+    /// caches or compresses it, so each event reaches the browser when it is written.</summary>
+    internal static readonly IReadOnlyDictionary<string, string> SseHeaderValues = new Dictionary<string, string>
+    {
+        ["Cache-Control"] = "no-cache, no-transform",
+        ["X-Accel-Buffering"] = "no",
+    };
+
+    private static void SseHeaders(HttpResponse response)
+    {
+        foreach (var (name, value) in SseHeaderValues) response.Headers[name] = value;
     }
 
     /// <summary>The (plain text) body of the 415 a non-JSON POST to a Mateu endpoint gets.</summary>
@@ -627,7 +672,7 @@ public static partial class MateuExtensions
         app.MapGet(DevSpecs.EventsPath, async (HttpContext ctx) =>
         {
             ctx.Response.ContentType = "text/event-stream";
-            ctx.Response.Headers.CacheControl = "no-cache";
+            SseHeaders(ctx.Response);
             var queue = System.Threading.Channels.Channel.CreateUnbounded<string>();
             queue.Writer.TryWrite(DevSpecs.Hello());
             using var subscription = DevSpecs.Subscribe(json => queue.Writer.TryWrite(json));

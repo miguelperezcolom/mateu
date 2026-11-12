@@ -29,6 +29,16 @@ public record ButtonMetadataDto(string Label, string ActionId) : ComponentMetada
     /// <summary>The button size ("small"…; Java's ButtonDto.size). Omitted when null.</summary>
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public string? Size { get; init; }
+
+    /// <summary>The buttons behind this one's ▾ — a dropdown group or a SPLIT button (Java's
+    /// ButtonDto.children). Typed as the base so each carries its "type". Omitted when null.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<ComponentMetadataDto>? Children { get; init; }
+
+    /// <summary>A SPLIT button: it runs its own action and its ▾ opens <see cref="Children"/>
+    /// (Java's ButtonDto.split). Omitted when false.</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Split { get; init; }
 }
 
 public record FormSectionMetadataDto(string Title) : ComponentMetadataDto;

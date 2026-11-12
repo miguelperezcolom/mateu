@@ -41,6 +41,12 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
             ? route.substring(consumedRoute.length() + 1)
             : route.substring(route.lastIndexOf('/') + 1);
     var view = orchestrator.view(orchestrator.toId(id), httpRequest);
+    if (view instanceof java.net.URI || view instanceof java.net.URL) {
+      // the record opens somewhere else (an editable page of routes.yaml, another app): the row
+      // navigates there, as an action returning a URI does (issue #1167 — it was read as a form
+      // and failed in FormViewSerializer)
+      return new OrchestrationResult("view", view, view);
+    }
     httpRequest.setAttribute("selectedItem", view);
     return new OrchestrationResult(
         "view", view, createViewComponent(httpRequest, view, orchestrator));

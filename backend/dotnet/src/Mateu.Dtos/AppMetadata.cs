@@ -59,9 +59,9 @@ public record AppMetadataDto(
     /// asked only from a user gesture. (Mirrors AppDto.osNotifications.) EXPERIMENTAL.</summary>
     public bool OsNotifications { get; init; }
 
-    /// <summary>True when the app class implements IPushTokenRegistry: the Mateu mobile app may
-    /// register its push token (the _push-register / _push-unregister app-level actions) and offers
-    /// "Notifications on this phone". (Mirrors AppDto.pushNotifications.) EXPERIMENTAL.</summary>
+    /// <summary>Remote push is on: OsNotifications AND the server sends pushes (an IPushSender
+    /// service, or Mateu's Expo sender) — the phone app registers its push token with
+    /// <c>_push-register</c>. (Mirrors AppDto.pushNotifications.) EXPERIMENTAL.</summary>
     public bool PushNotifications { get; init; }
 
     /// <summary>True when the app class implements IGlobalSearchSupplier — the command palette

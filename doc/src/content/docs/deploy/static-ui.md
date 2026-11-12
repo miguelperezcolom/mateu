@@ -72,9 +72,11 @@ framework's annotation processor: it writes the class index the build-time catal
 **From YAML** — add `<specsOnly>true</specsOnly>`: every definition-only route whose type the
 browser can expand (`AppShell`, `Listing`/`Crudl`, `Form`, the layouts, `Card`) ships as its **raw
 definition**, and the client-side expander turns it into the wire at runtime. Nothing is
-pre-rendered; edit a definition in `manifest.json`, refresh, see it. This needs the Vaadin renderer:
-the Redwood renderer has no client-side expander, so a Redwood bundle ignores `specsOnly` (with a
-warning) and pre-renders every route — see [Choosing the renderer](#choosing-the-renderer).
+pre-rendered; edit a definition in `manifest.json`, refresh, see it. A bundle built for the Redwood
+renderer ignores `specsOnly` (with a warning) and pre-renders every route — see
+[Choosing the renderer](#choosing-the-renderer). Redwood does expand a `specsOnly` bundle mounted
+as a **remote** of its shell (a `RemoteMenu` naming the bundle's `manifest.json`), with the same
+expander as Vaadin.
 
 Either way the output is `target/mateu-bundle/`: `index.html`, `manifest.json`, the renderer's
 static app (`assets/` for Vaadin, `_redwood/` for Redwood) and a `_redirects` SPA fallback.
@@ -194,8 +196,9 @@ booting from `manifest.json` with no backend. The menu, routes and deep links wo
 `_redirects` fallback, and a route under an app shell paints its own screen inside the shell. Things to
 know:
 
-- **Everything is pre-rendered.** The Redwood renderer has no client-side expander, so
-  `<specsOnly>` is ignored for it, with a warning, and every route is rendered at build time.
+- **Everything is pre-rendered.** `<specsOnly>` is ignored for a Redwood bundle, with a warning, and
+  every route is rendered at build time (Redwood expands raw definitions only for a static
+  *remote* of its shell).
 - **Oracle's CDN.** JET, the Spectra components and the Visual Builder runtime load from
   `static.oracle.com` at run time, as in every Redwood app.
 - **Serve it at the root of its host.** Its assets are addressed from `/_redwood/`.

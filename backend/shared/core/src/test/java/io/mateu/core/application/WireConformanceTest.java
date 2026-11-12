@@ -595,6 +595,51 @@ class WireConformanceTest {
    * one component tree. Pins their member names and where their parts travel (Tooltip/Details wrap
    * components IN the metadata; SplitLayout and ConfirmDialog carry theirs as children).
    */
+  /**
+   * Button groups, fluent: a SPLIT button (a ButtonGroup with a primary — on the wire the primary
+   * with {@code split} and the rest as children) and a dropdown (no action of its own), in a page
+   * toolbar and in content. Fluent, not {@code @Toolbar(group)}: the JVM does not promise the order
+   * of a class's methods, so a declared group's advertised actions could swap places between runs.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/button-groups")
+  public static class ButtonGroupsPage implements ComponentTreeSupplier {
+
+    @Override
+    public String style() {
+      return null;
+    }
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return io.mateu.uidl.fluent.Form.builder()
+          .title("Button groups")
+          .toolbar(
+              List.of(
+                  io.mateu.uidl.data.ButtonGroup.split(
+                      io.mateu.uidl.data.Button.builder()
+                          .label("Publish")
+                          .actionId("publish")
+                          .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary)
+                          .build(),
+                      new io.mateu.uidl.data.Button("Schedule", "schedule")),
+                  io.mateu.uidl.data.ButtonGroup.of(
+                      "More",
+                      new io.mateu.uidl.data.Button("Print", "print"),
+                      new io.mateu.uidl.data.Button("Duplicate", "duplicate"))))
+          .content(
+              List.of(
+                  io.mateu.uidl.data.ButtonGroup.split(
+                      new io.mateu.uidl.data.Button("Save", "save"),
+                      new io.mateu.uidl.data.Button("Save as draft", "saveDraft")),
+                  io.mateu.uidl.data.ButtonGroup.of(
+                      "Export",
+                      new io.mateu.uidl.data.Button("CSV", "exportCsv"),
+                      new io.mateu.uidl.data.Button("PDF", "exportPdf"))))
+          .build();
+    }
+  }
+
   @SuppressWarnings("unused")
   @UI("/conformance/generic-components")
   @Title("Components")
@@ -2584,6 +2629,7 @@ class WireConformanceTest {
           "crud-edit",
           "crud-view",
           "generic-components",
+          "button-groups",
           "triggers",
           "field-help",
           "field-hints",
@@ -2734,6 +2780,7 @@ class WireConformanceTest {
             RejectedSaveForm.class,
             FailingActionPage.class,
             GenericComponentsPage.class,
+            ButtonGroupsPage.class,
             TriggersForm.class,
             FieldHelpForm.class,
             FieldHintsPage.class,

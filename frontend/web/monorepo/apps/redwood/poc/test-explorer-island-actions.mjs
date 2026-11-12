@@ -14,7 +14,7 @@ import { stampSurfaces } from './make-html.mjs'
 import { surfaceFieldEditOf, pageFlowOf } from './shellFlows.mjs'
 import { setShortcutContexts, currentShortcutActions, setShortcutContext } from './keys.mjs'
 import { rowShortcutIndexOf } from './tables.mjs'
-import { runSurfaceAction } from './transport.mjs'
+import { runSurfaceAction, runMateuAction, requestAppStateOf } from './transport.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -190,6 +190,49 @@ test('the chains that dispatch an island atom forward its surface', () => {
   assert.match(chain('runMateuSurfaceAction.js'), /application:mateuNavigate/)
   const shell = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'pages', 'shell-page-chains', 'loadMateuShell.js'), 'utf8')
   assert.match(shell, /bridge\.setRowSelectSink\(runPageAction\)/)
+})
+
+// ── the app state an answer left travels back (requestAppStateOf) ──
+const sentBodies = async (fn) => {
+  const saved = globalThis.fetch
+  const bodies = []
+  globalThis.fetch = async (url, init) => {
+    bodies.push(JSON.parse(init.body))
+    return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ fragments: [] }) }
+  }
+  try { await fn() } finally { globalThis.fetch = saved }
+  return bodies
+}
+const islandCtxOf = (reg, id) => reg.contexts[id]
+const islandIncrement = (appState) => ({
+  fragments: [{ targetComponentId: 'isl-1', action: 'Replace',
+    component: { type: 'ServerSide', id: 'isl-1', serverSideType: 'com.example.Cart', actions: [{ id: 'add' }], children: [] },
+    state: {} }],
+  appState,
+})
+
+test('an island\'s answered appState is sent back with its next action (and the page\'s), under the @AppContext picks', async () => {
+  // a fresh registry: the app scope the answers left starts empty
+  let reg = reduceContexts({ contexts: {}, stack: [] }, {})
+  reg = reduceContexts(reg, islandIncrement({ cart: 3, hotel: 'OLD' }))
+  const ctx = islandCtxOf(reg, 'isl-1')
+  assert.ok(ctx, 'the island has its context')
+  const bodies = await sentBodies(() => runMateuAction('', ctx, '/shop', 'add', {}, { appState: { hotel: 'H1' } }))
+  assert.equal(bodies.length, 1)
+  // the answer's value travels; a pick the user made (the @AppContext hotel) beats the echoed one
+  assert.deepEqual(bodies[0].appState, { cart: 3, hotel: 'H1' })
+  assert.deepEqual(requestAppStateOf({}, {}), { cart: 3, hotel: 'OLD' })
+  reduceContexts({ contexts: {}, stack: [] }, {}) // leave the scope empty for the next tests
+})
+
+test('a MicroFrontend\'s declared appState travels with EVERY request it sends, not only its load', async () => {
+  reduceContexts({ contexts: {}, stack: [] }, {})
+  const ctx = { id: 'mf-1', kind: 'island', tree: { type: 'ServerSide', id: 'mf-1', actions: [{ id: 'pay' }], children: [] }, state: {}, data: {},
+    outbound: { route: '/checkout', baseUrl: '', serverSideType: 'com.example.Checkout', appState: { tenant: 't1', hotel: 'MF' } } }
+  const bodies = await sentBodies(() => runMateuAction('', ctx, '/page', 'pay', {}, { appState: { hotel: 'H1' } }))
+  // what the host declared for the island wins (the load already sent it so)
+  assert.deepEqual(bodies[0].appState, { hotel: 'MF', tenant: 't1' })
+  assert.equal(bodies[0].serverSideType, 'com.example.Checkout')
 })
 
 for (const [name, fn] of pending) { await fn(); passed++; console.log('  ✓ ' + name) }

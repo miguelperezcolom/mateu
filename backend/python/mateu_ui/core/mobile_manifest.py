@@ -104,20 +104,13 @@ def manifest(app_type: type | None, mateu_version: str | None = None) -> dict[st
 
     if dev_specs.enabled():
         out["devEvents"] = dev_specs.EVENTS_PATH
-    issuer = pick("MATEU_MOBILE_OIDC_ISSUER", "oidc_issuer")
-    client_id = pick("MATEU_MOBILE_OIDC_CLIENT_ID", "oidc_client_id")
-    if issuer and client_id:
-        configured = _setting("MATEU_MOBILE_OIDC_SCOPES")
-        if configured:
-            scopes = [s for s in re.split(r"[,\s]+", configured) if s]
-        else:
-            scopes = [s.strip() for s in declared.get("scopes", []) if s and s.strip()]
-        out["auth"] = {
-            "type": "oidc",
-            "issuer": issuer,
-            "clientId": client_id,
-            "scopes": scopes or list(DEFAULT_SCOPES),
-        }
+    # the ways to sign in (sign_in_providers): its first oidc provider offered on mobile also fills
+    # the auth.type/issuer/clientId/scopes the published app reads
+    from mateu_ui.core import sign_in_providers
+
+    auth = sign_in_providers.auth_block(declared=declared)
+    if auth is not None:
+        out["auth"] = auth
     return out
 
 

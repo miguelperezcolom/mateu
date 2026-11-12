@@ -540,6 +540,90 @@ jobs:
           dotnet nuget push "$RUNNER_TEMP/nupkgs/*.nupkg" --api-key "$NUGET_API_KEY" \
             --source https://api.nuget.org/v3/index.json --skip-duplicate --timeout 900
 
+  # The Vaadin renderer as the `mateu-vaadin` npm package (a self-contained ES module bundle, the same
+  # file every Mateu app serves at /assets/mateu-vaadin.js), at the release's number spelled as
+  # SemVer (scripts/npm-version.sh: v3.0-beta.N → 3.0.0-beta.N; a pre-release of a later line goes
+  # out as `next`). Built and published in TWO jobs, like PyPI and NuGet: `npm-build` installs and
+  # builds (third-party code) with no secret and no OIDC permission, and packs the tarball; `npm`
+  # only downloads it and publishes. Without the NPM_TOKEN secret the job builds the package and
+  # stops — a fork, or a repo whose npm account is not set up, gets a green run, not a failed release.
+  npm-build:
+    needs: e2e
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Package version from the release tag
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: bash scripts/npm-version.sh "$TAG" | tee -a "$GITHUB_ENV"
+      - name: Install monorepo dependencies
+        run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-vaadin --include-workspace-root --ignore-scripts
+      - name: Build and pack
+        run: |
+          set -euo pipefail
+          cd frontend/web/monorepo/apps/vaadin
+          # the version first: the build stamps it into the bundle (its X-Mateu-Renderer header)
+          npm pkg set version="$NPM_VERSION"
+          npm run build
+          # the bundle carries Lit, the Vaadin components and libs/mateu inside it: the published
+          # manifest declares no dependency (the workspace's `mateu` is not an npm package) and no
+          # build scripts
+          npm pkg delete dependencies devDependencies scripts
+          test -f dist/assets/mateu-vaadin.js
+          mkdir -p "$RUNNER_TEMP/npm"
+          npm pack --pack-destination "$RUNNER_TEMP/npm"
+          tar -tzf "$RUNNER_TEMP"/npm/*.tgz | grep -q 'package/dist/assets/mateu-vaadin.js'
+          echo "$NPM_TAG" > "$RUNNER_TEMP/npm/dist-tag"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/npm/
+          if-no-files-found: error
+          retention-days: 1
+
+  npm:
+    needs: npm-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      id-token: write # npm provenance: the package names the workflow run that built it
+    steps:
+      # Whether to publish, decided without putting the token in any environment: the step sees only
+      # whether the secret is set (a boolean), never its value.
+      - name: Choose the credential
+        id: auth
+        env:
+          HAS_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" = "true" ]; then echo "mode=token" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=none" >> "$GITHUB_OUTPUT"
+            echo "::notice::npm publish skipped — no NPM_TOKEN secret (the package was built and packed)."
+          fi
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.auth.outputs.mode == 'token'
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: steps.auth.outputs.mode == 'token'
+        with:
+          name: npm-package
+          path: npm
+      - name: Publish to npm
+        if: steps.auth.outputs.mode == 'token'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish npm/*.tgz --tag "$(cat npm/dist-tag)" --access public --provenance
   # Build provenance (SLSA, Sigstore-signed, stored by GitHub) for what this release distributes:
   # every asset on the GitHub Release, the jars sent to Maven Central, the Python sdist + wheel, the
   # .nupkg files and the VS Code / IntelliJ plugin packages. `gh attestation verify <file> --repo
@@ -552,7 +636,7 @@ jobs:
   # no third-party code: only downloads, sha256sum and the attest action — the only job holding
   # id-token: write together with attestations: write. The write to the release is checksums-attach.
   provenance:
-    needs: [e2e, all, plugins, desktop, mobile, redwood-embedded-attach, sbom-attach, pypi-build, nuget-pack]
+    needs: [e2e, all, plugins, desktop, mobile, redwood-embedded-attach, sbom-attach, pypi-build, nuget-pack, npm-build]
     if: ${{ !cancelled() && needs.e2e.result == 'success' && startsWith(github.event.release.tag_name, 'v') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -580,6 +664,11 @@ jobs:
           name: nupkgs
           path: ${{ runner.temp }}/subjects/nuget
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/subjects/npm
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         continue-on-error: true # the plugins are not published for a pre-release of a later minor
         with:
           pattern: ide-plugin-*
@@ -606,6 +695,7 @@ jobs:
             ${{ runner.temp }}/subjects/maven/**/*.jar
             ${{ runner.temp }}/subjects/pypi/*
             ${{ runner.temp }}/subjects/nuget/*.nupkg
+            ${{ runner.temp }}/subjects/npm/*.tgz
             ${{ runner.temp }}/subjects/plugins/*
             ${{ runner.temp }}/subjects/release/*
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

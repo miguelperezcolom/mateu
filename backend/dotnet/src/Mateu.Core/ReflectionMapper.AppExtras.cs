@@ -14,12 +14,6 @@ internal sealed partial class ReflectionMapper
     /// <summary>The app-level live-updates action id (Java's LiveUpdatesActionRunner.ACTION_ID).</summary>
     public const string LiveUpdatesActionId = "_live-updates";
 
-    /// <summary>The mobile app's push registration actions (Java's PushTokensActionRunner).</summary>
-    public const string PushRegisterActionId = "_push-register";
-
-    /// <summary>See <see cref="PushRegisterActionId"/>.</summary>
-    public const string PushUnregisterActionId = "_push-unregister";
-
     /// <summary>[AppShortcut]s of the app class: key lowercased, route made absolute like the menu's,
     /// a missing label derived from the route (last segment humanized) or the action id; entries
     /// with nothing to press (no key, no code) or nowhere to go (no route, no action) dropped.</summary>

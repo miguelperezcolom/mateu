@@ -6779,6 +6779,43 @@ test("an @Aside form (its sections merged into the main column) keeps each secti
   assert.ok(JSON.stringify(atoms).includes('"fieldId":"reference"') || JSON.stringify(atoms).includes('SO-1024'))
 })
 
+test('@Toc: an ISLAND that is the page\'s content gets the index of its own sections (its painted cards carry the marker)', () => {
+  const island = reduceContexts(empty(), fx('sut-walk-layout')).contexts[HOST_ID]
+  const islandCtx = { ...island, id: 'isl-1', kind: 'island' }
+  // a host page with no section of its own that embeds that view as ONE island
+  const host = { id: HOST_ID, state: {}, data: {}, tree: { type: 'ServerSide', id: 'host', children: [
+    { type: 'ClientSide', id: 'p', metadata: { type: 'Page', title: 'Check-in' }, children: [
+      { type: 'ServerSide', id: 'isl-1', serverSideType: 'com.example.Walk', children: [] },
+    ] },
+  ] } }
+  const reg = { contexts: { [HOST_ID]: host, 'isl-1': islandCtx }, stack: [] }
+  // without the registry (as before) the host sees nothing of the island
+  assert.equal(tocProjectionOf(host).on, false)
+  const toc = tocProjectionOf(host, reg)
+  assert.equal(toc.on, true, 'the island\'s toc=true applies')
+  assert.deepEqual(toc.entries.map((e) => e.title), ['Guests', 'Document', 'Contact', 'Address', 'Preferences', 'Notes', 'History'])
+  // the island's painted section cards are what the DOM half points at, in the same order
+  const blocks = islandContentOf(islandCtx)
+  assert.deepEqual(blocks.filter((b) => b.sectionTitle).map((b) => b.sectionTitle), toc.entries.map((e) => e.title))
+  // the host's own declaration wins over the island's
+  const declaredOff = JSON.parse(JSON.stringify(host))
+  declaredOff.tree.children[0].metadata.toc = false
+  assert.equal(tocProjectionOf(declaredOff, { ...reg, contexts: { ...reg.contexts, [HOST_ID]: declaredOff } }).on, false)
+  // two islands: neither is THE content — no index
+  const two = JSON.parse(JSON.stringify(host))
+  two.tree.children[0].children.push({ type: 'ServerSide', id: 'isl-2', children: [] })
+  assert.equal(tocProjectionOf(two, { ...reg, contexts: { ...reg.contexts, 'isl-2': { ...islandCtx, id: 'isl-2' } } }).on, false)
+  // a host with titled sections of its own keeps its own index (the island's are its own)
+  const own = reduceContexts(empty(), fx('sut-walk-layout')).contexts[HOST_ID]
+  const withOwn = { ...own, tree: { ...own.tree, children: own.tree.children.concat([{ type: 'ServerSide', id: 'isl-1', children: [] }]) } }
+  assert.equal(tocProjectionOf(withOwn, reg).entries.length, 7)
+  // an island nested in the island (the embedded mediator's content) is reached too
+  const mediatorCtx = { id: 'med', kind: 'island', state: {}, data: {}, tree: { type: 'ServerSide', id: 'med', children: [
+    { type: 'ServerSide', id: 'isl-1', children: [] }] } }
+  const viaMediator = { ...host, tree: { type: 'ServerSide', id: 'host', children: [{ type: 'ServerSide', id: 'med', children: [] }] } }
+  assert.equal(tocProjectionOf(viaMediator, { contexts: { [HOST_ID]: viaMediator, med: mediatorCtx, 'isl-1': islandCtx }, stack: [] }).entries.length, 7)
+})
+
 test('@Toc: tri-state — false suppresses, absent is AUTO (5+ titled sections, not a @Zones form), a short form has none', () => {
   const host = reduceContexts(empty(), fx('sut-walk-layout')).contexts[HOST_ID]
   const withToc = (value) => {

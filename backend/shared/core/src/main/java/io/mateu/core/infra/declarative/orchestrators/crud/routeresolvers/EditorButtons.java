@@ -70,6 +70,7 @@ public final class EditorButtons {
                     group.buttons() == null
                         ? List.of()
                         : group.buttons().stream().map(b -> rename(prefix, b)).toList())
+                .primary(group.primary() == null ? null : rename(prefix, group.primary()))
                 .build());
       } else {
         renamed.add(trigger);

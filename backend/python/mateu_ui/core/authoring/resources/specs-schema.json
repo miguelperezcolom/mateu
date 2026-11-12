@@ -1559,7 +1559,7 @@
       "enum" : [ "none", "success", "error", "warning", "contrast", "normal" ]
     },
     "ButtonGroup" : {
-      "description" : "A group of buttons shown together, usually collapsed into a single dropdown trigger.",
+      "description" : "A group of buttons shown together: a dropdown — one trigger labelled label opening its buttons — or, when it has a primary, a SPLIT button: the primary action runs from the button itself and an adjacent ▾ opens the other buttons (the group's label is not drawn then).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -1587,6 +1587,9 @@
           "items" : {
             "$ref" : "#/$defs/Component"
           }
+        },
+        "primary" : {
+          "$ref" : "#/$defs/Component"
         },
         "note" : {
           "type" : "string",
@@ -4312,13 +4315,16 @@
       }
     },
     "FormEditor" : {
-      "description" : "A form-definition editor component. value is the JSON FormDefinition string.",
+      "description" : "A form-definition editor component. value is the JSON FormDefinition string. id names the state key the edited definition is written to (a field of the view model).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
         "type" : {
           "type" : "string",
           "const" : "FormEditor"
+        },
+        "id" : {
+          "type" : "string"
         },
         "value" : {
           "type" : "string"
@@ -9696,13 +9702,16 @@
       }
     },
     "Workflow" : {
-      "description" : "A workflow-definition editor component. value is the JSON WorkflowDefinition string.",
+      "description" : "A workflow-definition editor component. value is the JSON WorkflowDefinition string. id names the state key the edited definition is written to (a field of the view model).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
         "type" : {
           "type" : "string",
           "const" : "Workflow"
+        },
+        "id" : {
+          "type" : "string"
         },
         "value" : {
           "type" : "string"

@@ -8,7 +8,9 @@ import { ActionCatalogue, sharedActionCatalogue } from './shellFlows.ts';
 import { headerValues as sharedHeaderValues, HeaderValuesStore } from './appShellExtras.ts';
 import { ColumnPrefsStore, sharedColumnPrefs } from '../renderer/columnPrefs.ts';
 import { SavedViewsStore, sharedSavedViews } from '../renderer/savedViews.ts';
+import { listingPrefsStorage } from '../renderer/persistedScopes.ts';
 import { DropZoneRegistry, sharedDropZones } from '../renderer/dragDrop.ts';
+import { KeyShortcutRegistry, sharedKeyShortcuts } from './keyShortcuts.ts';
 import { CredentialScope, appStateFor } from './credentialScope.ts';
 import type { ChatNavigation, ChatPreviewTarget, ChatScreenSnapshot } from './chatStream.ts';
 import { AgentPushState } from './agentPush.ts';
@@ -104,6 +106,8 @@ export class MateuSession {
   readonly savedViews: SavedViewsStore;
   /** The drop zones mounted on this app's screens. */
   readonly dropZones: DropZoneRegistry;
+  /** The hardware-keyboard shortcuts on this app's screens (core/keyShortcuts.ts). */
+  readonly keyShortcuts: KeyShortcutRegistry;
   /** The UI session (id + channel secret) the assistant chat and the live-push channel share, and
    *  the paired state the channel reports (core/agentPush.ts). One per running app. */
   readonly agent: AgentPushState;
@@ -116,16 +120,6 @@ export class MateuSession {
   /** The tasks this UI's streams reported, to resume them when a stream breaks (core/taskReattach.ts). */
   readonly reattach: TaskReattach;
   private ownOsNotifications = false;
-  private ownPushNotifications = false;
-  /** The UI takes push notifications (App.pushNotifications: its app class implements
-   *  PushTokenRegistry; core/pushNotifications.ts). */
-  get pushNotifications(): boolean {
-    return this.storesFromSession ? this.storesFromSession.pushNotifications : this.ownPushNotifications;
-  }
-  set pushNotifications(value: boolean) {
-    if (this.storesFromSession) this.storesFromSession.pushNotifications = value;
-    else this.ownPushNotifications = value;
-  }
   /** The app opted in to OS-level notifications (App.osNotifications; core/osNotifications.ts). */
   get osNotifications(): boolean {
     return this.storesFromSession ? this.storesFromSession.osNotifications : this.ownOsNotifications;
@@ -199,6 +193,14 @@ export class MateuSession {
 
   /** Host hook (hub sessions): sign out of THIS UI only. Absent → the global provider's sign-out. */
   signOut?: () => Promise<void>;
+
+  /** Set by the shell when the UI sends remote pushes: asks its server to forget this phone's push
+   *  token (sign-out — core/remotePush.ts). */
+  pushUnregister?: () => Promise<void>;
+
+  /** Set by the shell when the UI sends remote pushes: registers this phone's token now (right
+   *  after the user granted the permission). */
+  pushSync?: () => void;
 
   /** Host hook (hub sessions): the shell offers "My UIs" / "Switch UI" entries when set. */
   /** The Mateu hub app around this UI. `claimBar(true)`: the app's own top bar hosts the hub's
@@ -294,7 +296,14 @@ export class MateuSession {
     this.headerValues = storesFrom?.headerValues ?? (own ? new HeaderValuesStore() : sharedHeaderValues);
     this.columnPrefs = storesFrom?.columnPrefs ?? (own ? new ColumnPrefsStore() : sharedColumnPrefs);
     this.savedViews = storesFrom?.savedViews ?? (own ? new SavedViewsStore() : sharedSavedViews);
+    // the listing choices outlive the app: persisted per UI (its backend) on the device
+    const prefsKv = listingPrefsStorage();
+    if (prefsKv && !storesFrom) {
+      void this.columnPrefs.attach(prefsKv, baseUrl);
+      void this.savedViews.attach(prefsKv, baseUrl);
+    }
     this.dropZones = storesFrom?.dropZones ?? (own ? new DropZoneRegistry() : sharedDropZones);
+    this.keyShortcuts = storesFrom?.keyShortcuts ?? (own ? new KeyShortcutRegistry() : sharedKeyShortcuts);
     // per app instance, never process-wide: two hub UIs are two UI sessions
     this.agent = storesFrom?.agent ?? new AgentPushState();
     // per UI too: an island's task (its LongTask) shows in the app's task center

@@ -62,6 +62,24 @@ describe('isScreenChange', () => {
     })
 })
 
+describe('routeTargetUrl under a context path (servlet context path, X-Forwarded-Prefix)', () => {
+    const origin = 'https://example.com'
+    const path = (u: URL) => u.pathname + u.search
+    // the server stamps baseUrl = pathPrefix = prefix + mount, publicBase = prefix (PublicBase)
+    it('keeps the prefix for an absolute route', () => {
+        expect(path(routeTargetUrl('/3/edit', '/ctx/books', '/ctx/books', origin, '/ctx'))).toBe('/ctx/books/3/edit')
+    })
+    it('does not repeat the mount the server already put on the route', () => {
+        expect(path(routeTargetUrl('/books/new', '/ctx/books', '/ctx/books', origin, '/ctx'))).toBe('/ctx/books/new')
+    })
+    it('resolves a relative route against the prefixed base url', () => {
+        expect(path(routeTargetUrl('section1', '/ctx/books', '/ctx/books', origin, '/ctx'))).toBe('/ctx/books/section1')
+    })
+    it('works for the root mount and a query-only route', () => {
+        expect(path(routeTargetUrl('?q=x', '/ctx', '/ctx', origin, '/ctx'))).toBe('/ctx?q=x')
+    })
+})
+
 describe('routeTargetUrl', () => {
     const origin = 'http://localhost:8080'
     const path = (u: URL) => u.pathname + u.search

@@ -4,13 +4,8 @@ import java.awt.image.BufferedImage
 
 /**
  * SVG images on the desktop: ImageIO decodes no SVG, so an `Image` whose src is an `.svg` (the
- * Explorer's media, most icon sets) showed a "🖼 alt" placeholder.
- *
- * The platform's SVG entry points (JSvgDocument, SVGLoader, `com.intellij.ui.svg.loadSvg`) are
- * INTERNAL API, which the plugin verifier refuses, and the JSVG it bundles is shrunk (no public
- * parser). The PUBLIC door is `com.intellij.util.ImageLoader.loadFromUrl(URL)`: it picks the SVG
- * decoder by the path's `.svg` extension. So the bytes are written once to a content-addressed
- * `<sha256>.svg` file under the system temp dir and loaded from its `file:` URL.
+ * Explorer's media, most icon sets) showed a "🖼 alt" placeholder. An SVG is recognised here and
+ * rasterised with the bundled JSVG (see [read]).
  */
 object SvgImages {
     /** Whether [src] names an SVG: a `.svg` path/url (query ignored) or an `image/svg+xml` data URI. */
@@ -19,41 +14,58 @@ object SvgImages {
         return s.startsWith("data:image/svg+xml") || s.substringBefore('?').substringBefore('#').endsWith(".svg")
     }
 
-    /** Whether [bytes] look like an SVG document (an url without `.svg` serving one, an extension-less upload). */
-    fun looksLikeSvg(bytes: ByteArray): Boolean {
-        val head = String(bytes, 0, minOf(bytes.size, 1024), Charsets.UTF_8).trimStart('﻿', ' ', '\t', '\r', '\n')
-        return (head.startsWith("<?xml") || head.startsWith("<svg") || head.startsWith("<!--") || head.startsWith("<!DOCTYPE svg")) &&
-            head.contains("<svg")
-    }
+    /** The size an SVG with no width/height of its own (only a viewBox, or nothing) is drawn at. */
+    private const val FALLBACK_SIZE = 150
 
-    /** The SVG [bytes] as an image at its declared size (capped at [maxWidth]), or null when undrawable. */
+    /**
+     * The SVG [bytes] rasterised (JSVG, MIT, bundled in the plugin — the platform's own SVG code is
+     * internal API the plugin verifier refuses): at the document's own size, scaled down to fit
+     * [maxWidth]; null when it is not an SVG it can read. External resources are never fetched
+     * (JSVG's default resource policy), so an SVG cannot make the desktop call anywhere.
+     */
     fun read(bytes: ByteArray, maxWidth: Int = 1200): BufferedImage? = runCatching {
-        val file = cachedFile(bytes)
-        val image = com.intellij.util.ImageLoader.loadFromUrl(file.toURI().toURL()) ?: return null
-        var w = image.getWidth(null).toDouble()
-        var h = image.getHeight(null).toDouble()
-        if (w < 1 || h < 1) return null
-        if (w > maxWidth) { h *= maxWidth / w; w = maxWidth.toDouble() }
-        val out = BufferedImage(w.toInt().coerceAtLeast(1), h.toInt().coerceAtLeast(1), BufferedImage.TYPE_INT_ARGB)
-        val g = out.createGraphics()
-        g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR)
-        g.drawImage(image, 0, 0, out.width, out.height, null)
-        g.dispose()
-        out
+        val doc = com.github.weisj.jsvg.parser.SVGLoader()
+            .load(bytes.inputStream(), null, com.github.weisj.jsvg.parser.LoaderContext.createDefault())
+            ?: return null
+        val size = doc.size()
+        var w = size.width.toDouble().takeIf { it.isFinite() && it >= 1 } ?: FALLBACK_SIZE.toDouble()
+        var h = size.height.toDouble().takeIf { it.isFinite() && it >= 1 } ?: FALLBACK_SIZE.toDouble()
+        val scale = if (w > maxWidth) maxWidth / w else 1.0
+        w *= scale
+        h *= scale
+        val img = BufferedImage(w.toInt().coerceAtLeast(1), h.toInt().coerceAtLeast(1), BufferedImage.TYPE_INT_ARGB)
+        val g = img.createGraphics()
+        try {
+            g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON)
+            g.setRenderingHint(java.awt.RenderingHints.KEY_STROKE_CONTROL, java.awt.RenderingHints.VALUE_STROKE_PURE)
+            g.scale(scale, scale)
+            doc.render(null as javax.swing.JComponent?, g)
+        } finally {
+            g.dispose()
+        }
+        img
     }.getOrNull()
 
-    /** The file holding [bytes], named by their digest so a repeated image reuses it (and the loader's cache). */
-    private fun cachedFile(bytes: ByteArray): java.io.File {
-        val digest = java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
-        val dir = java.io.File(System.getProperty("java.io.tmpdir"), "mateu-svg").apply { mkdirs() }
-        val file = java.io.File(dir, "$digest.svg")
-        if (!file.isFile || file.length() != bytes.size.toLong()) {
-            // write-then-rename so a concurrent reader never sees a half-written document
-            val tmp = java.io.File.createTempFile(digest, ".part", dir)
-            tmp.writeBytes(bytes)
-            if (!tmp.renameTo(file)) { file.writeBytes(bytes); tmp.delete() }
-        }
-        return file
+    /**
+     * Any image [src] — a data URI or an http(s) url, SVG or raster — read as an image (blocking: call
+     * it off the EDT for a url); null when it cannot be read.
+     */
+    fun load(src: String): BufferedImage? {
+        val s = src.trim()
+        if (s.isEmpty()) return null
+        val svg = isSvg(s)
+        val bytes = runCatching {
+            if (s.startsWith("data:")) {
+                if (svg) dataUriBytes(s) else java.util.Base64.getDecoder().decode(s.substringAfter("base64,", ""))
+            } else java.net.URI.create(s).toURL().openStream().use { it.readBytes() }
+        }.getOrNull() ?: return null
+        return decodeImage(bytes, svg || looksLikeSvg(bytes))
+    }
+
+    /** An SVG served without telling (no .svg in the url): its text starts like XML/SVG. */
+    internal fun looksLikeSvg(bytes: ByteArray): Boolean {
+        val head = String(bytes, 0, minOf(bytes.size, 512), Charsets.UTF_8).trimStart('﻿', ' ', '\n', '\r', '\t')
+        return head.startsWith("<svg") || (head.startsWith("<?xml") && head.contains("<svg"))
     }
 
     /** A data URI's SVG bytes (base64 or percent-encoded), or null. */
@@ -67,7 +79,7 @@ object SvgImages {
     }
 }
 
-/** Any image bytes → an image: SVG (declared or sniffed) through the platform's loader, the rest through ImageIO. */
+/** Any image bytes → an image: SVG (declared or sniffed) through JSVG, the rest through ImageIO. */
 internal fun decodeImage(bytes: ByteArray, svg: Boolean = false): BufferedImage? =
     if (svg || SvgImages.looksLikeSvg(bytes)) SvgImages.read(bytes)
     else runCatching { javax.imageio.ImageIO.read(bytes.inputStream()) }.getOrNull()

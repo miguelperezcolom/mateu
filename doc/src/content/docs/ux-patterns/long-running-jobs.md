@@ -213,9 +213,7 @@ also shows as a notification of the operating system — see
 On a **phone** that is narrower than it sounds. The notification is local: the app itself has to be
 running to post it, and the OS suspends a backgrounded app soon after you leave it (within seconds on
 iOS). So you get one if the task ends during that short window, and not if it ends later or the app
-was closed. To reach a closed phone, the backend sends a
-[push notification](/ux-patterns/notification-inbox/#push-notifications-to-the-mateu-app) when the
-task ends.
+was closed. There is no remote push in 3.0, by design.
 
 Two things soften it when the user comes back: the task center reattaches to a task that is still
 running, and the bell fetches its list again at once, so a `notifyWhenDone()` entry stored for a

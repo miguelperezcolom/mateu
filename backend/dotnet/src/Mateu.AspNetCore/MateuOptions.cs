@@ -47,6 +47,12 @@ public sealed class MateuOptions
     /// Java: <c>mateu.oracle-cdn.url</c>.</summary>
     public string? OracleCdnUrl { get; set; }
 
+    /// <summary>Honour the <c>X-Forwarded-Prefix</c> a prefix-stripping reverse proxy sets: the served
+    /// page (only with <c>MapMateu(ui: …)</c>) then loads its assets and calls the API under that
+    /// prefix. Null (the default) reads <c>MATEU_FORWARDED_PREFIX_TRUSTED</c>; off, the header is
+    /// ignored (any client can send it) and the request's <c>PathBase</c> (<c>UsePathBase</c>) is the
+    /// prefix. Java: <c>mateu.forwarded-prefix.trusted</c>.</summary>
+    public bool? ForwardedPrefixTrusted { get; set; }
     /// <summary>The prefix a reverse proxy strips in front of the app (<c>/crm</c>: the proxy serves
     /// it at <c>https://host/crm/</c> and forwards <c>/x</c>), so the served page writes its assets,
     /// its API base and its PWA links under it. Null reads <c>MATEU_PUBLIC_BASE_PATH</c>. Not needed
@@ -62,6 +68,21 @@ public sealed class MateuOptions
     /// Switched off, the worker's URL answers a worker that unregisters itself. Java:
     /// <c>mateu.pwa.enabled</c>.</summary>
     public bool? Pwa { get; set; }
+
+    /// <summary>The ways to sign in every client offers (web, phone, desktop), in display order: one
+    /// provider → straight to it, several → a sign-in chooser. Used when the environment variable
+    /// <c>MATEU_AUTH_PROVIDERS</c> names none (it wins, with <c>MATEU_AUTH_PROVIDERS_&lt;ID&gt;_*</c>).
+    /// Mateu offers the sign-in only: your authentication (JWT bearer, cookies…) validates what the
+    /// client then sends. Java: <c>mateu.auth.providers</c> / <c>SignInProvidersSupplier</c>.</summary>
+    public List<SignInProvider> SignIn { get; set; } = [];
+
+    /// <summary>Sign in before the first screen (true, the default) or only when a call is refused
+    /// with a 401 (false). <c>MATEU_AUTH_LOGIN_ON_START</c> wins.</summary>
+    public bool? LoginOnStart { get; set; }
+
+    /// <summary>Where the browser goes to sign out of a session the host owns (cookies). Null = none.
+    /// <c>MATEU_AUTH_LOGOUT_URL</c> wins.</summary>
+    public string? LogoutUrl { get; set; }
 
     /// <summary>The remotes the server may resolve micro frontends against (<c>MicroFrontend.Resolve =
     /// Resolve.Server</c>, content slots), merged over the <see cref="IRemoteCatalogSupplier"/> services
@@ -130,6 +151,22 @@ public sealed class MateuOptions
     /// app metadata — the browser's direct one. Null (the default) reads the environment variable
     /// <c>MATEU_SOURCES_MOCK</c> (<c>true</c>/<c>1</c>). Never switch it on in production.</summary>
     public bool? MockSources { get; set; }
+
+    /// <summary>Remote push over Expo's push service (the Mateu phone app's tokens are Expo push
+    /// tokens): Mateu's own IPushSender, used only when the app registers none. Null (the default)
+    /// reads <c>MATEU_PUSH_EXPO_ENABLED</c> (<c>true</c>/<c>1</c>); otherwise OFF, as on Java
+    /// (<c>mateu.push.expo.enabled</c>). EXPERIMENTAL.</summary>
+    public bool? ExpoPush { get; set; }
+
+    /// <summary>The Expo access token sent as a bearer token (Expo's "enhanced security"). Null (the
+    /// default) reads <c>MATEU_PUSH_EXPO_ACCESS_TOKEN</c>. EXPERIMENTAL.</summary>
+    public string? ExpoPushAccessToken { get; set; }
+
+    /// <summary>Expo's push endpoint (tests point it at a fake). Null = Expo's.</summary>
+    public string? ExpoPushUrl { get; set; }
+
+    internal bool ExpoPushEffective => ExpoPush
+        ?? System.Environment.GetEnvironmentVariable("MATEU_PUSH_EXPO_ENABLED")?.Trim().ToLowerInvariant() is "true" or "1" or "yes";
 
     /// <summary>Serve the native MCP endpoint <c>POST /mateu/mcp</c>. Null (the default) reads the
     /// environment variable <c>MATEU_MCP_ENABLED</c> (<c>true</c>/<c>1</c>); otherwise it is OFF, as

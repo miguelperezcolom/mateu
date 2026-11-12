@@ -50,9 +50,11 @@ export function renderArrayField(host: MateuField, _fieldId: string, value: Fiel
 `
         }
         if (host.field?.stereotype == 'listBox') {
-            if (host.field?.remoteCoordinates) {
-                const coords = host.field.remoteCoordinates;
-                host.requestRemoteOptions(coords.action)
+            if (host.field?.remoteCoordinates || host.field?.optionsSource) {
+                // options the server sends (remote coordinates) or a REST source fetched here: both
+                // land in data[id].content, which selectedIndexes / listItemsSelected read
+                if (host.field.optionsSource) sourcedOptions(host)
+                else host.requestRemoteOptions(host.field.remoteCoordinates!.action)
 
                 return html`
                     <vaadin-custom-field

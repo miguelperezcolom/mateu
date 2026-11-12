@@ -212,7 +212,7 @@ internal sealed partial class ReflectionMapper(ITranslator? translator = null, F
         // [Toolbar] methods: the header toolbar (Java's @Toolbar); advertised before the buttons
         var toolbarMethods = declaredMethods.Where(m => m.Find<ToolbarAttribute>() != null && Offered(m))
             .OrderBy(m => m.Find<ToolbarAttribute>()!.Order).ToList();
-        var toolbar = toolbarMethods.Select(MapToolbarButton).ToList();
+        var toolbar = GroupedToolbar(toolbarMethods);
         var buttonMethods = toolbarMethods
             .Concat(declaredMethods.Where(m => m.Find<ButtonAttribute>() != null && m.Find<ToolbarAttribute>() == null && Offered(m)))
             .ToList();

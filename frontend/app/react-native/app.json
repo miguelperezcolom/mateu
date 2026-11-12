@@ -107,13 +107,13 @@
       ],
       "expo-web-browser",
       "expo-secure-store",
+      "./plugins/with-local-notifications-only",
       [
         "expo-notifications",
         {
           "icon": "./assets/monochrome-icon.png",
           "color": "#2563EB",
-          "defaultChannel": "mateu",
-          "mode": "production"
+          "defaultChannel": "mateu"
         }
       ],
       "./plugins/with-async-storage-size"

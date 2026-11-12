@@ -273,10 +273,13 @@ Mateu.Uidl.Button ctor(System.String, System.String)
 Mateu.Uidl.Button property System.Boolean Disabled { get;init; }
 Mateu.Uidl.Button property System.Boolean Primary { get;init; }
 Mateu.Uidl.Button property System.Collections.Generic.IReadOnlyDictionary<System.String,System.Object> Parameters { get;init; }
+Mateu.Uidl.Button property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Button> Buttons { get;init; }
 Mateu.Uidl.Button property System.String ActionId { get;init; }
 Mateu.Uidl.Button property System.String ButtonStyle { get;init; }
 Mateu.Uidl.Button property System.String Label { get;init; }
 Mateu.Uidl.Button property System.String Route { get;init; }
+Mateu.Uidl.Button static method Mateu.Uidl.Button Group(System.String, Mateu.Uidl.Button[])
+Mateu.Uidl.Button static method Mateu.Uidl.Button Split(Mateu.Uidl.Button, Mateu.Uidl.Button[])
 Mateu.Uidl.ButtonAttribute ctor(System.String = null)
 Mateu.Uidl.ButtonAttribute property System.String Label { get; }
 Mateu.Uidl.CacheableFragmentAttribute ctor(System.Int32)
@@ -1205,8 +1208,10 @@ Mateu.Uidl.IPresenceStore abstract method System.Collections.Generic.IReadOnlyLi
 Mateu.Uidl.IPresenceStore abstract method System.Void Leave(System.String, System.String, System.String, System.String)
 Mateu.Uidl.IPresenceStore virtual method System.IDisposable OnChange(System.Action<System.String,System.String>)
 Mateu.Uidl.IPresenceStore virtual method System.Void Expire(System.DateTimeOffset)
-Mateu.Uidl.IPushTokenRegistry abstract method System.Void RegisterPushToken(Mateu.Uidl.PushRegistration)
-Mateu.Uidl.IPushTokenRegistry abstract method System.Void UnregisterPushToken(Mateu.Uidl.PushRegistration)
+Mateu.Uidl.IPushSender abstract method System.Threading.Tasks.Task<Mateu.Uidl.PushResult> SendAsync(Mateu.Uidl.PushMessage, System.Collections.Generic.IReadOnlyList<Mateu.Uidl.PushToken>, System.Threading.CancellationToken = null)
+Mateu.Uidl.IPushTokenStore abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.PushToken> TokensFor(System.String)
+Mateu.Uidl.IPushTokenStore abstract method System.Void Register(System.String, Mateu.Uidl.PushToken)
+Mateu.Uidl.IPushTokenStore abstract method System.Void Unregister(System.String)
 Mateu.Uidl.IRecordSwitcherSupplier abstract method Mateu.Uidl.RecordSwitcher Switcher()
 Mateu.Uidl.IRecordSwitcherSupplier abstract method System.Object SwitchTo(System.String)
 Mateu.Uidl.IRecordSwitcherSupplier const field System.String ActionId
@@ -1902,13 +1907,27 @@ Mateu.Uidl.ProgressSteps ctor()
 Mateu.Uidl.ProgressSteps property System.Boolean Vertical { get;init; }
 Mateu.Uidl.ProgressSteps property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Step> Steps { get;init; }
 Mateu.Uidl.ProgressSteps property System.String ResultTitle { get;init; }
-Mateu.Uidl.PushRegistration const field System.String Expo
-Mateu.Uidl.PushRegistration ctor(System.String, System.String, System.String, System.String, System.String)
-Mateu.Uidl.PushRegistration property System.String Platform { get;init; }
-Mateu.Uidl.PushRegistration property System.String Principal { get;init; }
-Mateu.Uidl.PushRegistration property System.String Service { get;init; }
-Mateu.Uidl.PushRegistration property System.String Token { get;init; }
-Mateu.Uidl.PushRegistration property System.String UiKey { get;init; }
+Mateu.Uidl.PushMessage ctor(System.String, System.String = null, System.String = null, System.String = null)
+Mateu.Uidl.PushMessage property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> Data { get;init; }
+Mateu.Uidl.PushMessage property System.String Id { get;init; }
+Mateu.Uidl.PushMessage property System.String Route { get;init; }
+Mateu.Uidl.PushMessage property System.String Text { get;init; }
+Mateu.Uidl.PushMessage property System.String Title { get;init; }
+Mateu.Uidl.PushMessage static method Mateu.Uidl.PushMessage Of(Mateu.Uidl.AppNotification)
+Mateu.Uidl.PushNotifications static method System.IDisposable Subscribe(System.Action<System.String,Mateu.Uidl.PushMessage>)
+Mateu.Uidl.PushNotifications static method System.String SessionKey(System.String)
+Mateu.Uidl.PushNotifications static method System.Void Send(System.String, Mateu.Uidl.AppNotification)
+Mateu.Uidl.PushNotifications static method System.Void Send(System.String, Mateu.Uidl.PushMessage)
+Mateu.Uidl.PushNotifications static method System.Void SendToSession(System.String, Mateu.Uidl.PushMessage)
+Mateu.Uidl.PushResult ctor(System.Int32, System.Collections.Generic.IReadOnlyList<System.String>)
+Mateu.Uidl.PushResult property System.Collections.Generic.IReadOnlyList<System.String> UnregisteredTokens { get;init; }
+Mateu.Uidl.PushResult property System.Int32 Accepted { get;init; }
+Mateu.Uidl.PushResult static property Mateu.Uidl.PushResult None { get; }
+Mateu.Uidl.PushToken ctor(System.String, System.String = null, System.String = null, System.String = null)
+Mateu.Uidl.PushToken property System.String DeviceId { get;init; }
+Mateu.Uidl.PushToken property System.String Platform { get;init; }
+Mateu.Uidl.PushToken property System.String Token { get;init; }
+Mateu.Uidl.PushToken property System.String Ui { get;init; }
 Mateu.Uidl.QueueGroup ctor()
 Mateu.Uidl.QueueGroup property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.QueueItem> Items { get;init; }
 Mateu.Uidl.QueueGroup property System.String Label { get;init; }
@@ -2136,6 +2155,18 @@ Mateu.Uidl.Separator ctor()
 Mateu.Uidl.SeparatorBeforeAttribute ctor()
 Mateu.Uidl.ShortcutAttribute ctor(System.String)
 Mateu.Uidl.ShortcutAttribute property System.String Keys { get; }
+Mateu.Uidl.SignInProvider ctor(System.String)
+Mateu.Uidl.SignInProvider property System.Boolean? ContinueParam { get;init; }
+Mateu.Uidl.SignInProvider property System.Collections.Generic.IReadOnlyList<System.String> Platforms { get;init; }
+Mateu.Uidl.SignInProvider property System.Collections.Generic.IReadOnlyList<System.String> Scopes { get;init; }
+Mateu.Uidl.SignInProvider property System.String Audience { get;init; }
+Mateu.Uidl.SignInProvider property System.String ClientId { get;init; }
+Mateu.Uidl.SignInProvider property System.String Icon { get;init; }
+Mateu.Uidl.SignInProvider property System.String Id { get;init; }
+Mateu.Uidl.SignInProvider property System.String Issuer { get;init; }
+Mateu.Uidl.SignInProvider property System.String Label { get;init; }
+Mateu.Uidl.SignInProvider property System.String Type { get;init; }
+Mateu.Uidl.SignInProvider property System.String Url { get;init; }
 Mateu.Uidl.SignatureAttribute ctor()
 Mateu.Uidl.SizeAttribute ctor(Mateu.Uidl.SizeMode)
 Mateu.Uidl.SizeAttribute property Mateu.Uidl.SizeMode Value { get; }
@@ -2337,11 +2368,13 @@ Mateu.Uidl.Toggle enum On
 Mateu.Uidl.ToggleExtensions static method System.Boolean Enabled(Mateu.Uidl.Toggle)
 Mateu.Uidl.ToggleExtensions static method System.Boolean Shown(Mateu.Uidl.Toggle)
 Mateu.Uidl.ToolbarAttribute ctor(System.String = null)
+Mateu.Uidl.ToolbarAttribute property System.Boolean GroupPrimary { get;init; }
 Mateu.Uidl.ToolbarAttribute property System.Boolean SeparatorBefore { get;init; }
 Mateu.Uidl.ToolbarAttribute property System.Int32 Order { get;init; }
 Mateu.Uidl.ToolbarAttribute property System.String ButtonColor { get;init; }
 Mateu.Uidl.ToolbarAttribute property System.String ButtonSize { get;init; }
 Mateu.Uidl.ToolbarAttribute property System.String ButtonStyle { get;init; }
+Mateu.Uidl.ToolbarAttribute property System.String Group { get;init; }
 Mateu.Uidl.ToolbarAttribute property System.String Label { get; }
 Mateu.Uidl.Tooltip ctor(System.String)
 Mateu.Uidl.Tooltip property Mateu.Uidl.IComponent Wrapped { get;init; }

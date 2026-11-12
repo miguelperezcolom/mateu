@@ -1,5 +1,5 @@
 
-import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";import{i as s,r as c}from"./chromeTexts.js";import{B as l,H as u,I as d,z as f}from"./mateu-vaadin.js";var p,m=(e,t,n,r)=>{if(t.length){let n=Math.max(e.startIdx,Math.min(r-1,e.endIdx+t.length));return{...e,mode:`resize`,resourceId:e.originResourceId,endIdx:n}}let i=e.endIdx-e.startIdx,a=Math.max(0,Math.min(r-1-i,e.startIdx+(t.days??0))),o=n.indexOf(e.resourceId),s=Math.max(0,Math.min(n.length-1,o+(t.rows??0)));return{...e,mode:`move`,startIdx:a,endIdx:a+i,resourceId:n[s]??e.resourceId}},h=e=>!!e&&(e.resourceId!==e.originResourceId||e.startIdx!==e.originStartIdx||e.endIdx!==e.originEndIdx),g=(e,t)=>({startIdx:Math.min(e,t),endIdx:Math.max(e,t)}),_=(e,t,n,r)=>e===`start`?{startIdx:Math.min(r,n),endIdx:n}:{startIdx:t,endIdx:Math.max(r,t)},v=class extends o{static{p=this}constructor(...e){super(...e),this.resources=[],this.blocks=[],this.attributeColumns=[],this.resize=null,this.range=null,this.drag=null,this.pending=null,this.activeBlockId=null,this.dragStartX=0,this.dragStartY=0,this.laneRects=[],this.onDragKeydown=e=>{e.key===`Escape`&&(this.drag||this.resize||this.range)&&(e.stopPropagation(),this.endDrag())}}static{this.styles=[f,i`
+import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";import{i as s,r as c}from"./chromeTexts.js";import{G as l,J as u,Y as d,Z as f}from"./mateu-vaadin.js";var p,m=(e,t,n,r)=>{if(t.length){let n=Math.max(e.startIdx,Math.min(r-1,e.endIdx+t.length));return{...e,mode:`resize`,resourceId:e.originResourceId,endIdx:n}}let i=e.endIdx-e.startIdx,a=Math.max(0,Math.min(r-1-i,e.startIdx+(t.days??0))),o=n.indexOf(e.resourceId),s=Math.max(0,Math.min(n.length-1,o+(t.rows??0)));return{...e,mode:`move`,startIdx:a,endIdx:a+i,resourceId:n[s]??e.resourceId}},h=e=>!!e&&(e.resourceId!==e.originResourceId||e.startIdx!==e.originStartIdx||e.endIdx!==e.originEndIdx),g=(e,t)=>({startIdx:Math.min(e,t),endIdx:Math.max(e,t)}),_=(e,t,n,r)=>e===`start`?{startIdx:Math.min(r,n),endIdx:n}:{startIdx:t,endIdx:Math.max(r,t)},v=class extends o{static{p=this}constructor(...e){super(...e),this.resources=[],this.blocks=[],this.attributeColumns=[],this.resize=null,this.range=null,this.drag=null,this.pending=null,this.activeBlockId=null,this.dragStartX=0,this.dragStartY=0,this.laneRects=[],this.onDragKeydown=e=>{e.key===`Escape`&&(this.drag||this.resize||this.range)&&(e.stopPropagation(),this.endDrag())}}static{this.styles=[u,i`
         :host {
             display: block;
             width: 100%;
@@ -218,7 +218,7 @@ import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";im
             </div>
         `}isWeekend(e){return e.getDay()===0||e.getDay()===6}renderRow(n,r,i,a){let o=100/r.days,s=this.blocks.filter(e=>e.resourceId===n.id&&e.start&&e.end),c=this.drag?.moved&&this.drag.targetResourceId===n.id?this.drag:null,u=this.pending&&h(this.pending)&&this.pending.resourceId===n.id?this.pending:null;return t`
             <div class="label" title="${n.label??``}">
-                <span class="res-name">${n.icon?l(n.icon):e}${n.label}</span>
+                <span class="res-name">${n.icon?d(n.icon):e}${n.label}</span>
                 ${this.attributeColumns.map((e,r)=>t`<span class="attr">${(n.attributes??[])[r]??``}</span>`)}
             </div>
             <div class="lane" data-resource-id="${n.id}">
@@ -238,7 +238,7 @@ import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";im
                              aria-describedby="${this.moveActionId||this.resizeActionId?`planning-keys`:e}"
                              @keydown="${e=>this.onBlockKeydown(e,n)}"
                              @focus="${()=>{this.activeBlockId=n.id}}"
-                             style="left: ${m*o}%; width: ${(h-m+1)*o}%; ${n.color?`--mateu-planning-block: ${n.color}; ${d(n.color)?`--mateu-planning-block-ink: ${d(n.color)};`:``}`:``}"
+                             style="left: ${m*o}%; width: ${(h-m+1)*o}%; ${n.color?`--mateu-planning-block: ${n.color}; ${l(n.color)?`--mateu-planning-block-ink: ${l(n.color)};`:``}`:``}"
                              @dblclick="${this.openActionId?()=>this.emit(this.openActionId,{_blockId:n.id}):e}"
                              @pointerdown="${e=>this.onBlockPointerDown(e,n,i)}"
                              @pointermove="${e=>this.onBlockPointerMove(e)}"
@@ -247,7 +247,7 @@ import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";im
                         >${this.resizeActionId?t`<span class="handle start"
                                 @pointerdown="${e=>this.onHandlePointerDown(e,n,`start`,i,a)}"
                                 @pointermove="${e=>this.onHandlePointerMove(e)}"
-                                @pointerup="${e=>this.onHandlePointerUp(e)}"></span>`:e}${n.icon?l(n.icon):e}${n.label}${this.resizeActionId?t`<span class="handle end"
+                                @pointerup="${e=>this.onHandlePointerUp(e)}"></span>`:e}${n.icon?d(n.icon):e}${n.label}${this.resizeActionId?t`<span class="handle end"
                                 @pointerdown="${e=>this.onHandlePointerDown(e,n,`end`,i,a)}"
                                 @pointermove="${e=>this.onHandlePointerMove(e)}"
                                 @pointerup="${e=>this.onHandlePointerUp(e)}"></span>`:e}</div>
@@ -262,4 +262,4 @@ import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";im
                          style="left: ${c.targetStartIdx*o}%; width: ${Math.min(c.duration,r.days-c.targetStartIdx)*o}%;"></div>
                 `:e}
             </div>
-        `}};u([n({type:Array})],v.prototype,`resources`,void 0),u([n({type:Array})],v.prototype,`blocks`,void 0),u([n()],v.prototype,`from`,void 0),u([n()],v.prototype,`to`,void 0),u([n()],v.prototype,`moveActionId`,void 0),u([n()],v.prototype,`selectActionId`,void 0),u([n({type:Array})],v.prototype,`attributeColumns`,void 0),u([n()],v.prototype,`resizeActionId`,void 0),u([n()],v.prototype,`openActionId`,void 0),u([n()],v.prototype,`rangeSelectActionId`,void 0),u([r()],v.prototype,`resize`,void 0),u([r()],v.prototype,`range`,void 0),u([r()],v.prototype,`drag`,void 0),u([r()],v.prototype,`pending`,void 0),u([r()],v.prototype,`activeBlockId`,void 0),v=p=u([a(`mateu-planning-board`)],v);export{v as MateuPlanningBoard,m as nudged,h as pendingChanged,g as rangeOf,_ as resizedDays};
+        `}};f([n({type:Array})],v.prototype,`resources`,void 0),f([n({type:Array})],v.prototype,`blocks`,void 0),f([n()],v.prototype,`from`,void 0),f([n()],v.prototype,`to`,void 0),f([n()],v.prototype,`moveActionId`,void 0),f([n()],v.prototype,`selectActionId`,void 0),f([n({type:Array})],v.prototype,`attributeColumns`,void 0),f([n()],v.prototype,`resizeActionId`,void 0),f([n()],v.prototype,`openActionId`,void 0),f([n()],v.prototype,`rangeSelectActionId`,void 0),f([r()],v.prototype,`resize`,void 0),f([r()],v.prototype,`range`,void 0),f([r()],v.prototype,`drag`,void 0),f([r()],v.prototype,`pending`,void 0),f([r()],v.prototype,`activeBlockId`,void 0),v=p=f([a(`mateu-planning-board`)],v);export{v as MateuPlanningBoard,m as nudged,h as pendingChanged,g as rangeOf,_ as resizedDays};

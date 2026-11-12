@@ -13,6 +13,7 @@ import io.mateu.uidl.data.ButtonGroup;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class ButtonMapper {
 
@@ -53,20 +54,39 @@ public class ButtonMapper {
    * content button. Before, the dispatcher had no branch for it and the group was dropped silently.
    */
   public static ClientSideComponentDto mapButtonGroupToDto(ButtonGroup group) {
-    var buttons = group.buttons() != null ? group.buttons() : List.<Button>of();
     return new ClientSideComponentDto(
-        ButtonDto.builder()
-            .label(group.label())
-            .iconOnLeft(group.iconOnLeft())
-            .iconOnRight(group.iconOnRight())
-            .separatorBefore(group.separatorBefore())
-            .children(buttons.stream().map(b -> (ButtonDto) mapButtonToDto(b).metadata()).toList())
-            .build(),
+        groupToDto(group, b -> (ButtonDto) mapButtonToDto(b).metadata()),
         group.id() != null ? group.id() : UUID.randomUUID().toString(),
         List.of(),
         null,
         null,
         null);
+  }
+
+  /**
+   * The wire shape of a {@link ButtonGroup}, wherever it sits: a {@code Button} carrying the
+   * group's buttons as {@code children}. A dropdown has no action of its own (the group's label and
+   * icons); a SPLIT button (a {@code primary}) is the primary button itself — its label, action,
+   * route, look — with {@code split} set. {@code member} maps each button the way its surface does.
+   */
+  public static ButtonDto groupToDto(ButtonGroup group, Function<Button, ButtonDto> member) {
+    var children =
+        (group.buttons() != null ? group.buttons() : List.<Button>of())
+            .stream().filter(java.util.Objects::nonNull).map(member).toList();
+    if (group.primary() != null) {
+      return member.apply(group.primary()).toBuilder()
+          .children(children)
+          .split(true)
+          .separatorBefore(group.separatorBefore() || group.primary().separatorBefore())
+          .build();
+    }
+    return ButtonDto.builder()
+        .label(group.label())
+        .iconOnLeft(group.iconOnLeft())
+        .iconOnRight(group.iconOnRight())
+        .separatorBefore(group.separatorBefore())
+        .children(children)
+        .build();
   }
 
   /**

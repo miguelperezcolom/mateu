@@ -39,6 +39,34 @@ public final class JsonBodyGuard {
   }
 
   /**
+   * {@code contentType} without blanks around its parts ({@code "application/json ;charset=UTF-8"}
+   * → {@code "application/json;charset=UTF-8"}): the spelling a strict media-type parser (Quarkus
+   * REST) accepts, with the same meaning. Null for null.
+   */
+  public static String normalized(String contentType) {
+    if (contentType == null) {
+      return null;
+    }
+    var parts = contentType.split(";", -1);
+    var out = new StringBuilder();
+    for (int i = 0; i < parts.length; i++) {
+      var part = parts[i].trim();
+      if (i > 0) {
+        if (part.isEmpty()) {
+          continue;
+        }
+        int eq = part.indexOf('=');
+        if (eq >= 0) {
+          part = part.substring(0, eq).trim() + "=" + part.substring(eq + 1).trim();
+        }
+        out.append(';');
+      }
+      out.append(part);
+    }
+    return out.toString();
+  }
+
+  /**
    * Whether {@code path} is one of the endpoints the guard covers (any method). The decision is
    * taken on the {@link #canonicalPath canonical form} of the path — percent-decoded, without
    * segment parameters, dot segments or empty segments, case-folded — because that is (at most)

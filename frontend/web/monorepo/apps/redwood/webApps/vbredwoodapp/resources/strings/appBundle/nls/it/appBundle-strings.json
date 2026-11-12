@@ -289,5 +289,11 @@
   "inboxDismiss": "Ignora",
   "inboxOpen": "Apri",
   "inboxOther": "Altre",
-  "inboxNew": "Nuova notifica: {title}"
+  "inboxNew": "Nuova notifica: {title}",
+  "signInTitle": "Accedi",
+  "signInChoose": "Scegli come vuoi accedere.",
+  "signInHint": "Accedi per continuare.",
+  "signInWith": "Continua con {provider}",
+  "signInFailed": "Accesso non riuscito. Riprova.",
+  "signOut": "Esci"
 }

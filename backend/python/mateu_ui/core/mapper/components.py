@@ -975,12 +975,7 @@ class ComponentMapperMixin(MixinBase):
             ]
             return self._fluent_client(ProcessMonitorMetadata(items=items), c)
         if isinstance(c, fluent.Button):
-            meta = ButtonMetadata(
-                label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,
-                button_style=c.button_style, parameters=c.parameters, route=c.route,
-                color=c.color,
-            )
-            return self._fluent_client(meta, c)
+            return self._fluent_client(self._content_button(c), c)
         if isinstance(c, fluent.ListingComponent):
             # A listing authored as data (YAML type: Listing): a client-side Crud over a REST
             # source, the shape Java's CrudlMapper emits for a definition-only listing.
@@ -1355,9 +1350,33 @@ class ComponentMapperMixin(MixinBase):
             children=[self._org_node(child) for child in n.children],
         )
 
+    def _content_button(self, c, in_group: bool = False) -> ButtonMetadata:
+        """A content button (Java's ButtonMapper). A group (``buttons``) carries them as children:
+        with no action of its own a dropdown (its label only), else a SPLIT button — the primary
+        itself with ``split`` (Java's ButtonMapper.groupToDto). A group's buttons, like Java's,
+        are "normal"-coloured when they declare no colour."""
+        children = [self._content_button(m, True) for m in c.buttons] if c.buttons else None
+        if children is not None and not c.action_id:
+            return ButtonMetadata(label=self.T(c.label), action_id="", children=children)
+        grouped = in_group or children is not None
+        return ButtonMetadata(
+            label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,
+            button_style=c.button_style, parameters=c.parameters, route=c.route,
+            color=(c.color or "normal") if grouped else c.color,
+            children=children, split=children is not None,
+        )
+
     def _form_button(self, b) -> Button:
         # Java's FormMapper.mapToButtonDto: the resolved action id (declared, else derived from
-        # the label), the style/colour a well-known id implies, the route of a RouteLink button
+        # the label), the style/colour a well-known id implies, the route of a RouteLink button;
+        # a group (``buttons``) carries them as children — a dropdown, or a SPLIT button when it
+        # has an action of its own
+        members = getattr(b, "buttons", ()) or ()
+        if members and not b.action_id:
+            return Button(label=self.T(b.label), action_id="", children=[self._form_button(m) for m in members])
+        if members:
+            return self._form_button(dataclasses.replace(b, buttons=())).model_copy(
+                update={"children": [self._form_button(m) for m in members], "split": True})
         action_id = b.action_id or camelcasize(b.label) or ""
         style = b.button_style
         if style is None and action_id in ("save", "create"):

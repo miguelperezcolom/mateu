@@ -227,11 +227,12 @@ class AppMapperMixin(MixinBase):
             presence=self._presence(cls, shell),
             # OS-level notifications (experimental): opt-in, mirrors AppDto.osNotifications
             os_notifications=bool(getattr(cls, "__mateu_app_os_notifications__", False)),
-            # the mobile app may register its push token (mirrors AppDto.pushNotifications)
-            push_notifications=_is_push_registry(cls),
             idle_session=self._idle_session(cls, shell, mount),
             # Live UI push (phase C): set by add_mateu when MCP push is on (mirrors AppDto.agentPush)
             agent_push=self.agent_push_enabled,
+            # remote push: the app opts in to OS notifications AND something sends pushes
+            push_notifications=bool(getattr(cls, "__mateu_app_os_notifications__", False))
+            and self.push_enabled,
             required_capabilities=self._required_capabilities(
                 cls,
                 sse_url=sse_url,
@@ -701,10 +702,3 @@ def _app_presentation(cls) -> dict:
         "ask_label": declared["ask_label"],
         "ask_icon": declared["ask_icon"],
     }
-
-
-def _is_push_registry(cls) -> bool:
-    """The app class takes the mobile app's push registrations (``PushTokenRegistry``)."""
-    from mateu_ui.uidl.push import PushTokenRegistry
-
-    return isinstance(cls, type) and issubclass(cls, PushTokenRegistry)

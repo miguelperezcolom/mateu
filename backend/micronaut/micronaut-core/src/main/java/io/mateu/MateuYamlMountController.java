@@ -10,6 +10,7 @@ import io.mateu.dtos.UIIncrementDto;
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.context.condition.Condition;
 import io.micronaut.context.condition.ConditionContext;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -146,10 +147,12 @@ public class MateuYamlMountController {
     return response.contentType(asset.contentType());
   }
 
-  @Post("/{+path:.*mateu/v3/sync/.*}")
+  // consumes ALL + the body as text (MicronautBodies): application/*+json is JSON too
+  @Post(value = "/{+path:.*mateu/v3/sync/.*}", consumes = MediaType.ALL)
   public Mono<UIIncrementDto> sync(
-      @PathVariable("path") String path, @Body RunActionRqDto rq, HttpRequest<?> request)
+      @PathVariable("path") String path, @Body @Nullable String body, HttpRequest<?> request)
       throws Throwable {
+    var rq = MicronautBodies.runActionRq(body);
     var mount = YamlMounts.mountForApiPath(mounts(), request.getPath());
     if (mount == null) {
       return Mono.empty();
@@ -164,10 +167,11 @@ public class MateuYamlMountController {
   }
 
   @Produces(MediaType.TEXT_EVENT_STREAM)
-  @Post("/{+path:.*mateu/v3/sse/.*}")
+  @Post(value = "/{+path:.*mateu/v3/sse/.*}", consumes = MediaType.ALL)
   public Mono<HttpResponse<?>> sse(
-      @PathVariable("path") String path, @Body RunActionRqDto rq, HttpRequest<?> request)
+      @PathVariable("path") String path, @Body @Nullable String body, HttpRequest<?> request)
       throws Throwable {
+    var rq = MicronautBodies.runActionRq(body);
     var mount = YamlMounts.mountForApiPath(mounts(), request.getPath());
     if (mount == null) {
       return Mono.just(

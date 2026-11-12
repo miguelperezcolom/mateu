@@ -284,6 +284,13 @@ export const CHROME_TEXTS = {
     idleStay: 'Stay signed in',
     idleSignOut: 'Sign out',
     idleSigningOut: 'Signing out…',
+    // ── the built-in sign-in (signIn.mjs) ──
+    signInTitle: 'Sign in',
+    signInChoose: 'Choose how you want to sign in.',
+    signInHint: 'Sign in to continue.',
+    signInWith: 'Continue with {provider}',
+    signInFailed: 'Signing in did not work. Please try again.',
+    signOut: 'Sign out',
     // ── task center (tasks.mjs) ──
     tasks: 'Tasks',
     tasksRunning: '{n} running',
@@ -573,6 +580,12 @@ export const CHROME_TEXTS = {
     idleStay: 'Seguir conectado',
     idleSignOut: 'Cerrar sesión',
     idleSigningOut: 'Cerrando sesión…',
+    signInTitle: 'Iniciar sesión',
+    signInChoose: 'Elige cómo quieres iniciar sesión.',
+    signInHint: 'Inicia sesión para continuar.',
+    signInWith: 'Continuar con {provider}',
+    signInFailed: 'No se ha podido iniciar sesión. Inténtalo de nuevo.',
+    signOut: 'Cerrar sesión',
     tasks: 'Tareas',
     tasksRunning: '{n} en curso',
     tasksTitle: 'Tareas, {n} en curso',
@@ -896,6 +909,13 @@ export const CHROME_TEXTS = {
     inboxOpen: 'Ouvrir',
     inboxOther: 'Autres',
     inboxNew: 'Nouvelle notification : {title}',
+    // ── the built-in sign-in (signIn.mjs) ──
+    signInTitle: 'Se connecter',
+    signInChoose: 'Choisissez comment vous connecter.',
+    signInHint: 'Connectez-vous pour continuer.',
+    signInWith: 'Continuer avec {provider}',
+    signInFailed: 'La connexion a échoué. Veuillez réessayer.',
+    signOut: 'Se déconnecter',
   },
   de: {
     close: 'Schließen',
@@ -1189,6 +1209,13 @@ export const CHROME_TEXTS = {
     inboxOpen: 'Öffnen',
     inboxOther: 'Sonstige',
     inboxNew: 'Neue Benachrichtigung: {title}',
+    // ── the built-in sign-in (signIn.mjs) ──
+    signInTitle: 'Anmelden',
+    signInChoose: 'Wählen Sie, wie Sie sich anmelden möchten.',
+    signInHint: 'Melden Sie sich an, um fortzufahren.',
+    signInWith: 'Weiter mit {provider}',
+    signInFailed: 'Die Anmeldung hat nicht funktioniert. Bitte versuchen Sie es erneut.',
+    signOut: 'Abmelden',
   },
   pt: {
     close: 'Fechar',
@@ -1482,6 +1509,13 @@ export const CHROME_TEXTS = {
     inboxOpen: 'Abrir',
     inboxOther: 'Outras',
     inboxNew: 'Nova notificação: {title}',
+    // ── the built-in sign-in (signIn.mjs) ──
+    signInTitle: 'Iniciar sessão',
+    signInChoose: 'Escolha como pretende iniciar sessão.',
+    signInHint: 'Inicie sessão para continuar.',
+    signInWith: 'Continuar com {provider}',
+    signInFailed: 'Não foi possível iniciar sessão. Tente novamente.',
+    signOut: 'Terminar sessão',
   },
   it: {
     close: 'Chiudi',
@@ -1775,6 +1809,13 @@ export const CHROME_TEXTS = {
     inboxOpen: 'Apri',
     inboxOther: 'Altre',
     inboxNew: 'Nuova notifica: {title}',
+    // ── the built-in sign-in (signIn.mjs) ──
+    signInTitle: 'Accedi',
+    signInChoose: 'Scegli come vuoi accedere.',
+    signInHint: 'Accedi per continuare.',
+    signInWith: 'Continua con {provider}',
+    signInFailed: 'Accesso non riuscito. Riprova.',
+    signOut: 'Esci',
   },
   // partial languages: only the words they have (the rest falls back to English)
   ca: { selectValue: 'Seleccioneu un valor' },

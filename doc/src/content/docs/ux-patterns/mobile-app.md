@@ -120,8 +120,11 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 [Java imports](/reference/java-imports/).
 :::
 
-`auth` is emitted only when **both** the issuer and the client id resolve; blank values count as
-unset. The .NET and Python ports have no app logo, favicon or accent colour, so there `icon` and
+`auth` lists the UI's [sign-in providers](/deploy/sign-in/) (`mateu.auth.providers`, which win
+when set; `auth.providers`, offered by the app when their `platforms` include `mobile`). The three
+`auth.*` rows above are the single provider of before: it becomes provider `default`, emitted only
+when **both** the issuer and the client id resolve (blank values count as unset), and
+`auth.issuer`/`clientId`/`scopes` always repeat the first `oidc` provider offered on mobile. The .NET and Python ports have no app logo, favicon or accent colour, so there `icon` and
 `themeColor` come only from `MobileApp` or the environment.
 
 ```java
@@ -153,9 +156,8 @@ the rest from the settings.
 
 :::note[Settings are JVM properties or environment variables]
 In Java the settings are read the way Mateu's other switches are (`MateuSettings`): a JVM system
-property (`-Dmateu.mobile.oidc.issuer=…`) or the environment variable (`MATEU_MOBILE_OIDC_ISSUER`).
-A key in Spring's `application.properties` or Quarkus' `application.properties` is **not** read —
-set the environment variable in each environment's deployment instead.
+property (`-Dmateu.mobile.oidc.issuer=…`), the framework's configuration (`application.properties`
+of Spring, Quarkus…) or the environment variable (`MATEU_MOBILE_OIDC_ISSUER`).
 :::
 
 :::caution[Secured apps: let the manifest through]

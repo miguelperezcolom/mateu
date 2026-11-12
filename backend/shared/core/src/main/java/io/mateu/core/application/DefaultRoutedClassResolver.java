@@ -23,6 +23,11 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
   private final RouteRegistry routeRegistry;
   private volatile RoutedClassIndex index;
 
+  // a lock, not a monitor: building the index walks the container's beans on the first request,
+  // and a virtual thread blocked inside synchronized pins its carrier on JDK 21-23
+  private final java.util.concurrent.locks.ReentrantLock indexLock =
+      new java.util.concurrent.locks.ReentrantLock();
+
   /**
    * Routed classes examined one by one since the JVM started (building an index, then only the
    * parameterised routes a lookup tries) — {@code RequestBudgetTest} pins that a warm request does
@@ -192,12 +197,15 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
   private RoutedClassIndex index() {
     var current = index;
     if (current == null) {
-      synchronized (this) {
+      indexLock.lock();
+      try {
         current = index;
         if (current == null) {
           current = new RoutedClassIndex(providers);
           index = current;
         }
+      } finally {
+        indexLock.unlock();
       }
     }
     return current;

@@ -24,6 +24,12 @@ define([
     async run(context, { actionId, route }) {
       const { $application, $page } = context;
 
+      // the built-in sign-in's "Sign out" (bridge signIn.mjs): local, never sent to the server
+      if (actionId === bridge.SIGN_OUT_ACTION) {
+        await bridge.signOut();
+        return;
+      }
+
       // a header action (or a dropdown child — its oj-option value is actionId || route) that
       // declares a ROUTE navigates in-app instead of dispatching (bridge.headerActionRouteOf)
       const target = bridge.headerActionRouteOf($application.variables.mateuHeaderActions,

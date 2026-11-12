@@ -423,7 +423,7 @@ define([
       // the floating action buttons (@Fab) of the page and of the app
       vars.mateuFabs = bridge.fabsOf(reg.shell, hostAfter);
       // the sticky sections index (@Toc) follows the host (a section can appear with an action)
-      vars.mateuToc = bridge.tocOf(hostAfter);
+      vars.mateuToc = bridge.tocOf(hostAfter, reg);
       // inside a master (P1) the header carries the MASTER's title (the record) and the
       // tab's own label moves to the subtitle (withinAppLevels)
       const summary = bridge.withinAppLevels(bridge.summarizeHost(reg, route), reg.appLevels);

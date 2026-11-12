@@ -12,8 +12,6 @@ import io.mateu.uidl.annotations.MobileApp;
 import io.mateu.uidl.annotations.PageTitle;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.fluent.AppShell;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -189,15 +187,10 @@ public final class MobileManifest {
     if (io.mateu.core.infra.dev.DevMode.enabled()) {
       manifest.put("devEvents", io.mateu.core.infra.dev.DevEndpoint.EVENTS_PATH);
     }
-    String issuer = first(MateuSettings.get(OIDC_ISSUER), attr(declared, MobileApp::oidcIssuer));
-    String clientId =
-        first(MateuSettings.get(OIDC_CLIENT_ID), attr(declared, MobileApp::oidcClientId));
-    if (issuer != null && clientId != null) {
-      Map<String, Object> auth = new LinkedHashMap<>();
-      auth.put("type", "oidc");
-      auth.put("issuer", issuer);
-      auth.put("clientId", clientId);
-      auth.put("scopes", scopes(declared));
+    // the ways to sign in (io.mateu.core.infra.security.SignInProviders): its first oidc provider
+    // offered on mobile also fills the auth.type/issuer/clientId/scopes the published app reads
+    var auth = io.mateu.core.infra.security.SignInProviders.authBlock(declared);
+    if (auth != null) {
       manifest.put("auth", auth);
     }
     return manifest;
@@ -226,30 +219,6 @@ public final class MobileManifest {
     } catch (JsonProcessingException e) {
       throw new IllegalStateException(e);
     }
-  }
-
-  private static List<String> scopes(MobileApp declared) {
-    String configured = MateuSettings.get(OIDC_SCOPES);
-    if (configured != null) {
-      var parsed = split(configured);
-      if (!parsed.isEmpty()) {
-        return parsed;
-      }
-    }
-    if (declared != null) {
-      var parsed = new ArrayList<String>();
-      for (String scope : declared.scopes()) {
-        parsed.addAll(split(scope));
-      }
-      if (!parsed.isEmpty()) {
-        return parsed;
-      }
-    }
-    return DEFAULT_SCOPES;
-  }
-
-  private static List<String> split(String value) {
-    return Arrays.stream(value.split("[,\\s]+")).filter(s -> !s.isBlank()).distinct().toList();
   }
 
   private static <A extends java.lang.annotation.Annotation> String value(

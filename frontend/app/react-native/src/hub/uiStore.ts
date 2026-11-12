@@ -33,9 +33,10 @@ export interface HubEntry {
 }
 
 /** The secure-store keys of one UI. SecureStore keys allow only [A-Za-z0-9._-]. */
-export function uiSecretKeys(id: string): { tokens: string; sessionId: string } {
+export function uiSecretKeys(id: string): { tokens: string; sessionId: string; signInProvider: string } {
   const safe = id.replace(/[^A-Za-z0-9._-]/g, '_');
-  return { tokens: `mateu.ui.${safe}.tokens`, sessionId: `mateu.ui.${safe}.sessionId` };
+  // signInProvider: the id of the provider this UI was last signed in with (the chooser lists it first)
+  return { tokens: `mateu.ui.${safe}.tokens`, sessionId: `mateu.ui.${safe}.sessionId`, signInProvider: `mateu.ui.${safe}.signInProvider` };
 }
 
 const randomId = (): string => {
@@ -210,6 +211,7 @@ export class UiStore {
     const keys = uiSecretKeys(id);
     await this.secrets.remove(keys.tokens).catch(() => {});
     await this.secrets.remove(keys.sessionId).catch(() => {});
+    await this.secrets.remove(keys.signInProvider).catch(() => {});
   }
 
   /** Moves an entry by `delta` positions (clamped). */

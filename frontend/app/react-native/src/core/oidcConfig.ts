@@ -20,6 +20,12 @@ export interface OidcConfig {
   audience?: string;
   /** Sign in before the first screen (default true); false = sign in only when a 401 asks. */
   loginOnStart?: boolean;
+  /** Which of the UI's sign-in providers (`auth.providers[].id`; `default` for the single legacy keys). */
+  id?: string;
+  /** What the chooser calls it ("Acme SSO"). */
+  label?: string;
+  /** A brand token (signInProviders.ts PROVIDER_ICONS); drawn as a neutral glyph, never brand artwork. */
+  icon?: string;
 }
 
 export const DEFAULT_SCOPES = ['openid', 'profile', 'email', 'offline_access'];

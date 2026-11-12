@@ -167,8 +167,6 @@ internal sealed partial class ReflectionMapper
             NotificationsEnabled = typeof(INotificationsSupplier).IsAssignableFrom(appType) || app.Inbox,
             // OS-level notifications: opt-in, mirrors AppDto.osNotifications.
             OsNotifications = app.OsNotifications,
-            // The mobile app may register its push token: mirrors AppDto.pushNotifications.
-            PushNotifications = typeof(IPushTokenRegistry).IsAssignableFrom(appType),
             // ⌘K palette entity search: the app class implements IGlobalSearchSupplier → the
             // palette also asks _globalsearch (mirrors AppMapper's globalSearchEnabled).
             GlobalSearchEnabled = typeof(IGlobalSearchSupplier).IsAssignableFrom(appType),

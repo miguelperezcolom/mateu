@@ -15,8 +15,11 @@ import {
   updateRequired,
 } from './src/core/AppRegistry';
 import { onSignedOut, setTokenProvider } from './src/core/auth';
-import { OidcTokenProvider } from './src/core/oidc';
-import { oidcConfigFrom, oidcConfigFromEnv, type OidcConfig } from './src/core/oidcConfig';
+import { OIDC_TOKENS_KEY, OidcTokenProvider } from './src/core/oidc';
+import { oidcConfigFromEnv, type OidcConfig } from './src/core/oidcConfig';
+import { rememberProvider, signInPlanFrom, signInProvidersFrom, signInTexts, SIGN_IN_PROVIDER_KEY, type SignInPlan } from './src/core/signInProviders';
+import { SignInChooser } from './src/ui/SignInChooser';
+import { hubLang } from './src/hub/compat';
 import { platformStore } from './src/core/secureStore';
 import { installSessionId } from './src/core/sessionId';
 import { installSecureRandom } from './src/core/secureRandom';
@@ -25,14 +28,10 @@ import { setRendererVersion } from './src/core/buildSkew';
 import { SessionContent } from './src/shell/SessionContent';
 import { fetchStaticBundle, type StaticBundle } from './src/core/staticBundle';
 import { HubApp } from './src/hub/HubApp';
-import { metaStore } from './src/hub/storage';
-import { loadListingPrefs, type ListingPrefsSnapshot } from './src/core/listingPrefs';
 import { bootModeOf } from './src/core/buildVariant';
-import { fetchManifest } from './src/hub/manifest';
+import { fetchManifest, manifestProviders } from './src/hub/manifest';
 import { MateuThemeProvider } from './src/ui/MateuTheme';
 import { StatusBar } from 'expo-status-bar';
-import { onPushOpened } from './src/core/pushNotifications';
-import { pushRegistrations } from './src/ui/pushPort';
 
 // Hermes has no crypto.getRandomValues: expo-crypto's is the secure source (core/secureRandom.ts)
 installSecureRandom(ExpoCrypto.getRandomValues);
@@ -77,16 +76,22 @@ const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
 interface BootConfig {
   baseUrl: string;
   appState: Record<string, unknown>;
-  /** Sign-in for a secured backend (registry `auth` block, or EXPO_PUBLIC_MATEU_OIDC_* in dev). */
-  oidc: OidcConfig | null;
+  /** Sign-in providers of a secured backend (registry `auth` block — `providers` or the single keys —,
+   *  the UI manifest's for a fixed build, or EXPO_PUBLIC_MATEU_OIDC_* in dev). Empty = no sign-in. */
+  providers: OidcConfig[];
 }
+
+const devProviders = (env: Record<string, string | undefined>): OidcConfig[] => {
+  const c = oidcConfigFromEnv(env);
+  return c ? [{ ...c, id: 'default' }] : [];
+};
 
 const DEV_CONFIG: BootConfig = {
   baseUrl:
     process.env.EXPO_PUBLIC_MATEU_BACKEND_URL?.replace(/\/+$/, '') ||
     `http://${Platform.OS === 'web' || !devHost ? 'localhost' : devHost}:${MATEU_BACKEND_PORT}`,
   appState: { tenantId: '1111', profile: 'dev' },
-  oidc: oidcConfigFromEnv({
+  providers: devProviders({
     EXPO_PUBLIC_MATEU_OIDC_ISSUER: process.env.EXPO_PUBLIC_MATEU_OIDC_ISSUER,
     EXPO_PUBLIC_MATEU_OIDC_CLIENT_ID: process.env.EXPO_PUBLIC_MATEU_OIDC_CLIENT_ID,
     EXPO_PUBLIC_MATEU_OIDC_SCOPES: process.env.EXPO_PUBLIC_MATEU_OIDC_SCOPES,
@@ -99,7 +104,7 @@ function configFromEntry(entry: RegistryEntry): BootConfig {
   return {
     baseUrl: entry.baseUrl.replace(/\/+$/, ''),
     appState: { ...(entry.parameters ?? {}) },
-    oidc: oidcConfigFrom(entry.auth),
+    providers: signInProvidersFrom(entry.auth, 'mobile'),
   };
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -221,7 +226,7 @@ function FixedBoot({ baseUrl, route }: { baseUrl: string; route: string }) {
   useEffect(() => {
     let alive = true;
     void fetchManifest(baseUrl).then((found) => {
-      if (alive) setConfig({ baseUrl, appState: {}, oidc: found.ok ? found.manifest.auth ?? null : null });
+      if (alive) setConfig({ baseUrl, appState: {}, providers: found.ok ? manifestProviders(found.manifest) : [] });
     });
     return () => {
       alive = false;
@@ -265,50 +270,68 @@ function AuthGate({ config, route = MATEU_ROUTE }: { config: BootConfig; route?:
   // The base URL may serve a STATIC BUNDLE (mateu-bundle:bundle / mateu-bundle:dev) rather than a
   // Mateu server: then the app runs from its manifest.json, with no /mateu/v3 calls at all.
   const [bundle, setBundle] = useState<StaticBundle | null>(null);
-  // the listings' saved views and column choices of this backend, kept on the device
-  const [listingPrefs, setListingPrefs] = useState<ListingPrefsSnapshot | null>(null);
-  const provider = React.useMemo(() => (config.oidc ? new OidcTokenProvider(config.oidc, platformStore) : null), [config.oidc]);
-  // A tap on one of THIS UI's push notifications reopens it at the route the push names (a fixed
-  // build has one UI: a push registered with another backend is not its own and opens nothing).
-  const [pushed, setPushed] = useState<{ route: string; generation: number } | null>(null);
-  useEffect(
-    () =>
-      onPushOpened(pushRegistrations, (record, pushedRoute) => {
-        if (record.baseUrl !== config.baseUrl) return;
-        setPushed((p) => ({ route: pushedRoute || route, generation: (p?.generation ?? 0) + 1 }));
-      }),
-    [config.baseUrl, route],
-  );
+  // Which of the providers this install uses: the one its stored tokens name, the only one, or the
+  // user's pick in the chooser (signInProviders.ts). Tokens live under ONE key, stamped with the
+  // provider's issuer and client: a provider never reads what another minted.
+  const [plan, setPlan] = useState<SignInPlan | null>(null);
+  const [provider, setProvider] = useState<OidcTokenProvider | null>(null);
+  const [busy, setBusy] = useState(false);
+  const tokensKey = OIDC_TOKENS_KEY;
+  const lazy = config.providers[0]?.loginOnStart === false;
+  // the registry boot rebuilds its config on every render: what matters is the providers' content
+  const providersKey = JSON.stringify(config.providers);
 
   useEffect(() => {
     let alive = true;
-    setTokenProvider(provider ?? undefined);
     void (async () => {
       const found = await fetchStaticBundle(config.baseUrl);
       if (alive) setBundle(found.ok ? found.bundle : null);
       const id = await installSessionId(platformStore);
-      const prefs = await loadListingPrefs(metaStore, config.baseUrl);
-      const needsSignIn = !!provider && config.oidc?.loginOnStart !== false && !(await provider.isSignedIn());
+      const p = await signInPlanFrom(config.providers, platformStore, tokensKey, SIGN_IN_PROVIDER_KEY);
+      // a lazy UI (loginOnStart false) with several providers and none chosen: the first one answers a 401
+      const chosen = p.provider ?? (lazy ? config.providers[0] : undefined);
+      const current = chosen ? new OidcTokenProvider(chosen, platformStore, tokensKey) : null;
+      setTokenProvider(current ?? undefined);
+      const needsSignIn = p.mode !== 'none' && !lazy && !(current && (await current.isSignedIn()));
       if (!alive) return;
-      setListingPrefs(prefs);
+      setPlan(p);
+      setProvider(current);
       setSessionId(id);
       setPhase(needsSignIn ? 'signin' : 'ready');
     })();
-    const off = onSignedOut(() => setPhase(provider ? 'signin' : 'ready'));
     return () => {
       alive = false;
-      off();
       setTokenProvider(undefined);
     };
-  }, [provider, config.oidc, config.baseUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [providersKey, config.baseUrl, tokensKey, lazy]);
 
-  const signIn = async () => {
+  useEffect(
+    () =>
+      onSignedOut(() => {
+        void signInPlanFrom(config.providers, platformStore, tokensKey, SIGN_IN_PROVIDER_KEY).then(setPlan);
+        setPhase(config.providers.length ? 'signin' : 'ready');
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [providersKey, tokensKey],
+  );
+
+  const signIn = async (chosen: OidcConfig) => {
+    if (busy) return;
     setSignInError('');
+    setBusy(true);
+    const target = provider && provider.config === chosen ? provider : new OidcTokenProvider(chosen, platformStore, tokensKey);
     try {
-      if (await provider!.login()) setPhase('ready');
-      else setSignInError('Sign-in was cancelled.');
+      if (await target.login()) {
+        await rememberProvider(platformStore, SIGN_IN_PROVIDER_KEY, chosen);
+        setProvider(target);
+        setTokenProvider(target);
+        setPhase('ready');
+      } else setSignInError(signInTexts(hubLang()).cancelled);
     } catch (e) {
       setSignInError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -322,18 +345,21 @@ function AuthGate({ config, route = MATEU_ROUTE }: { config: BootConfig; route?:
   if (phase === 'signin') {
     return (
       <View style={styles.centered}>
-        <Text style={styles.updateTitle} accessibilityRole="header">Sign in</Text>
-        <Text style={styles.updateDetail}>This app needs you to sign in with your organisation account.</Text>
-        <TouchableOpacity accessibilityRole="button" style={styles.updateButton} onPress={() => void signIn()}>
-          <Text style={styles.updateButtonText}>Sign in</Text>
-        </TouchableOpacity>
-        {!!signInError && <Text style={[styles.errorDetail, styles.signInError]}>{signInError}</Text>}
+        <SignInChooser
+          uiName={Constants.expoConfig?.name ?? 'Mateu'}
+          providers={plan?.ordered ?? []}
+          lastUsed={plan?.lastUsed}
+          onChoose={(p) => void signIn(p)}
+          busy={busy}
+          error={signInError}
+          lang={hubLang()}
+        />
       </View>
     );
   }
   return (
-    <MateuAppProvider config={{ baseUrl: config.baseUrl, sessionId, appState: config.appState, bundle, listingPrefs: listingPrefs && { store: metaStore, scope: config.baseUrl, initial: listingPrefs } }}>
-      <SessionContent key={pushed?.generation ?? 0} initialRoute={pushed?.route ?? route} />
+    <MateuAppProvider config={{ baseUrl: config.baseUrl, sessionId, appState: config.appState, bundle }}>
+      <SessionContent initialRoute={route} />
     </MateuAppProvider>
   );
 }

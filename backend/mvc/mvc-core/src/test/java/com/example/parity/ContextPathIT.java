@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import io.restassured.RestAssured;
@@ -63,7 +64,8 @@ class ContextPathIT {
         .get("/crm/hello/some/deep/link")
         .then()
         .statusCode(200)
-        .body(containsString("<mateu-ui baseUrl=\"/crm/hello\""));
+        .body(containsString("<mateu-ui baseUrl=\"/crm/hello\""))
+        .body(not(containsString("=\"/assets/")));
   }
 
   @Test
@@ -74,7 +76,9 @@ class ContextPathIT {
         .when()
         .post("/crm/plain/mateu/v3/sync/_no_route")
         .then()
-        .statusCode(200);
+        .statusCode(200)
+        .header("Content-Type", startsWith("application/json"))
+        .body(containsString("\"fragments\""));
     given().when().get("/crm/assets/fixed.js").then().statusCode(200);
     given()
         .when()

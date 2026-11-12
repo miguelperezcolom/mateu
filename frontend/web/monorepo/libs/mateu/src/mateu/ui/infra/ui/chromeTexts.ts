@@ -355,6 +355,13 @@ const en = {
     idleStay: 'Stay signed in',
     idleSignOut: 'Sign out',
     idleSigningOut: 'Signing out…',
+    // the built-in sign-in (infra/auth): the chooser and the header's Sign out
+    signInTitle: 'Sign in',
+    signInChoose: 'Choose how you want to sign in.',
+    signInHint: 'Sign in to continue.',
+    signInWith: 'Continue with {provider}',
+    signInFailed: 'Signing in did not work. Please try again.',
+    signOut: 'Sign out',
     // record presence (@App(presence)): who else has this record open
     presenceAnd: ' and ',
     presenceMore: '{names} and {n} more',
@@ -712,6 +719,12 @@ const es: Catalogue = {
     idleStay: 'Seguir conectado',
     idleSignOut: 'Cerrar sesión',
     idleSigningOut: 'Cerrando sesión…',
+    signInTitle: 'Iniciar sesión',
+    signInChoose: 'Elige cómo quieres iniciar sesión.',
+    signInHint: 'Inicia sesión para continuar.',
+    signInWith: 'Continuar con {provider}',
+    signInFailed: 'No se ha podido iniciar sesión. Inténtalo de nuevo.',
+    signOut: 'Cerrar sesión',
     presenceAnd: ' y ',
     presenceMore: '{names} y {n} más',
     presenceEditing: '{names} está editando este registro',
@@ -1100,6 +1113,12 @@ const fr: Catalogue = {
     presenceViewingMany: '{names} le consultent',
     presenceStartedEditing: '{name} a commencé à modifier cet enregistrement',
     presenceLabel: 'Également sur cet enregistrement',
+    signInTitle: 'Se connecter',
+    signInChoose: 'Choisissez comment vous connecter.',
+    signInHint: 'Connectez-vous pour continuer.',
+    signInWith: 'Continuer avec {provider}',
+    signInFailed: 'La connexion a échoué. Veuillez réessayer.',
+    signOut: 'Se déconnecter',
 }
 
 const de: Catalogue = {
@@ -1454,6 +1473,12 @@ const de: Catalogue = {
     presenceViewingMany: '{names} sehen ihn sich an',
     presenceStartedEditing: '{name} hat begonnen, diesen Datensatz zu bearbeiten',
     presenceLabel: 'Ebenfalls in diesem Datensatz',
+    signInTitle: 'Anmelden',
+    signInChoose: 'Wählen Sie, wie Sie sich anmelden möchten.',
+    signInHint: 'Melden Sie sich an, um fortzufahren.',
+    signInWith: 'Weiter mit {provider}',
+    signInFailed: 'Die Anmeldung hat nicht funktioniert. Bitte versuchen Sie es erneut.',
+    signOut: 'Abmelden',
 }
 
 const pt: Catalogue = {
@@ -1808,6 +1833,12 @@ const pt: Catalogue = {
     presenceViewingMany: '{names} estão vendo',
     presenceStartedEditing: '{name} começou a editar este registro',
     presenceLabel: 'Também neste registro',
+    signInTitle: 'Iniciar sessão',
+    signInChoose: 'Escolha como pretende iniciar sessão.',
+    signInHint: 'Inicie sessão para continuar.',
+    signInWith: 'Continuar com {provider}',
+    signInFailed: 'Não foi possível iniciar sessão. Tente novamente.',
+    signOut: 'Terminar sessão',
 }
 
 const it: Catalogue = {
@@ -2162,6 +2193,12 @@ const it: Catalogue = {
     presenceViewingMany: '{names} lo stanno guardando',
     presenceStartedEditing: '{name} ha iniziato a modificare questo record',
     presenceLabel: 'Anche su questo record',
+    signInTitle: 'Accedi',
+    signInChoose: 'Scegli come vuoi accedere.',
+    signInHint: 'Accedi per continuare.',
+    signInWith: 'Continua con {provider}',
+    signInFailed: 'Accesso non riuscito. Riprova.',
+    signOut: 'Esci',
 }
 
 /** The languages Mateu's chrome speaks. A language outside this list falls back to English. */

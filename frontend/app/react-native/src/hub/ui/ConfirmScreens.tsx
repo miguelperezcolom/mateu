@@ -6,7 +6,8 @@ import { theme, themed } from '../../theme';
 import { domainOf } from '../links';
 import { appSide } from '../appUpdate';
 import { appCompatibility, compatMessage, hubLang } from '../compat';
-import { fetchManifest, resolveMount, type UiManifest } from '../manifest';
+import { fetchManifest, manifestProviders, resolveMount, type UiManifest } from '../manifest';
+import { providerName } from '../../core/signInProviders';
 import { UpdateAppButton } from './UpdateApp';
 import type { HubEntry } from '../uiStore';
 import { HubBar, HubCard, Notice, PrimaryButton, UiIcon, hubStyles } from './common';
@@ -122,7 +123,10 @@ function ManifestCard({ manifest, missing, appVersion, onAdd }: { manifest: UiMa
   const app = { ...appSide(), appVersion };
   const compat = appCompatibility(manifest, app);
   const message = compat.reason ? compatMessage(compat.reason, manifest, app, hubLang()) : null;
-  const issuer = manifest.auth ? domainOf(manifest.auth.issuer) : null;
+  // where the user will sign in: the identity provider's host, or the providers it offers
+  const providers = manifestProviders(manifest);
+  const issuer =
+    providers.length === 1 ? domainOf(providers[0].issuer) : providers.length > 1 ? providers.map(providerName).join(', ') : null;
   return (
     <>
       <HubCard style={styles.appRow}>

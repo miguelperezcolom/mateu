@@ -161,7 +161,8 @@ public class PmsHome { … }
 ```
 
 Works on Vaadin and Redwood; the IntelliJ plugin maps it to Swing **mnemonics** (its native
-access keys); React Native has no hardware-key model, so the flag is ignored there. .NET:
+access keys); React Native ignores the flag (its web build answers the screens' shortcuts, but
+has no access keys mode). .NET:
 `[App(AccessKeys = true)]`; Python: `@app(access_keys=True)`.
 
 On **Redwood**, `@Action(shortcut)` (combinations with Ctrl, Alt or Meta) and `@Tab(shortcut)` work

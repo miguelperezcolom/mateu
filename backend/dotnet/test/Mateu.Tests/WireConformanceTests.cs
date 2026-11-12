@@ -292,6 +292,7 @@ public class WireConformanceTests
         { "crud-edit", typeof(ProductsCrud) },
         { "crud-view", typeof(ProductsCrud) },
         { "generic-components", typeof(Wire.GenericComponentsPage) },
+        { "button-groups", typeof(Wire.ButtonGroupsPage) },
         { "more-components", typeof(Wire.MoreComponentsPage) },
         { "dialog-placement", typeof(Wire.DialogPlacementPage) },
         { "action-extras", typeof(Wire.ActionExtrasPage) },

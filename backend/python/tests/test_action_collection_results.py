@@ -30,6 +30,10 @@ class CounterView:
         return (Message("Bumped"), self, PageBanner(title="Heads up"))
 
     @button()
+    def tell_and_go(self):
+        return [Message("Saved"), "/docs"]
+
+    @button()
     def just_bump(self):
         self.count = self.count + 1
         return self
@@ -75,3 +79,11 @@ def test_any_position_and_a_tuple_work_and_the_rest_keeps_its_order():
     assert state_of(inc)["count"] == 5
     assert [m.text for m in inc.messages] == ["Bumped"]
     assert [b.title for b in inc.banners] == ["Heads up"]
+
+
+def test_a_route_inside_a_returned_list_navigates_too():
+    # issue #1167 (Java dropped the URI of List.of(message, URI)): every port navigates
+    inc = run("tellAndGo")
+    dumped = inc.model_dump(by_alias=True, mode="json")
+    assert [c["data"] for c in dumped["commands"] if c["type"] == "NavigateTo"] == ["/docs"]
+    assert len(dumped["messages"]) == 1

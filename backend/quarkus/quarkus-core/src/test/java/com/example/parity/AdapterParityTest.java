@@ -21,6 +21,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void answersThePushTokenActions() {
+    contract.answersThePushTokenActions();
+  }
+
+  @Test
   void refusesANonJsonBodyOnTheSyncAndSseEndpoints() throws Exception {
     contract.refusesANonJsonBodyOnTheSyncAndSseEndpoints();
   }
@@ -87,6 +92,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void ignoresAnUntrustedForwardedPrefix() {
+    contract.ignoresAnUntrustedForwardedPrefix();
+  }
+
+  @Test
   void answersDeepLinksWithTheIndex() {
     contract.answersDeepLinksWithTheIndex();
   }
@@ -124,6 +134,11 @@ class AdapterParityTest {
   @Test
   void servesTheInstallableApp() {
     contract.servesTheInstallableApp();
+  }
+
+  @Test
+  void offersTheSignInProviders() {
+    contract.offersTheSignInProviders();
   }
 
   @Test

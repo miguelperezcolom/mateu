@@ -23,11 +23,13 @@ import { installLiveReload } from '@infra/dev/liveReload.ts'
 import { installPrintSupport } from '@infra/ui/documents.ts'
 import { unclaimedActionWarning } from '@infra/ui/unclaimedAction.ts'
 import { trustRootBaseUrl } from '@infra/http/credentialScope.ts'
+import { useMountForTokenCookie } from '@infra/http/authToken.ts'
 import { publicBase as currentPublicBase, setPublicBase } from '@infra/http/publicBase.ts'
 import { routeQueryOf } from '@infra/ui/routeQuery.ts'
 import { announceUrlChange, URL_CHANGED_EVENT } from '@infra/ui/urlChanges.ts'
 import { startTabSessionClaim } from '@infra/http/tabSession.ts'
 import { rememberedTasks } from '@infra/progress/taskMemory.ts'
+import { signInGate } from '@infra/auth/signIn.ts'
 
 // A duplicated tab copied this tab's sessionStorage, its UI session id included: find out FIRST
 // (before any request carries the id) whether another tab holds it, and take a fresh one if so.
@@ -101,6 +103,10 @@ export class MateuUi extends LitElement {
     @property({ type: Boolean })
     debug = false
 
+    /** True while the built-in sign-in runs before the first load (infra/auth): nothing loads yet. */
+    @state()
+    signingIn = false
+
     private upstreamSubscription: Subscription | undefined;
 
     /** URL the user is currently sitting on, so a cancelled back/forward can be undone. */
@@ -157,8 +163,10 @@ export class MateuUi extends LitElement {
         // the host page wrote this element (data never can — sanitizePolicy.ts): its backend is
         // trusted with the user's credentials (credentialScope.ts)
         trustRootBaseUrl(this.baseUrl)
-        // the host page wrote it too: what server-named root-relative paths go under
+        // the Bearer token cookie is scoped to this mount (authToken.ts; first mateu-ui wins), and
+        // the host page wrote what server-named root-relative paths go under
         if (this.top == 'true') {
+            useMountForTokenCookie(this.baseUrl)
             setPublicBase(this.publicBase)
         }
 
@@ -211,7 +219,19 @@ export class MateuUi extends LitElement {
             if (this.bundleUrl) {
                 loadBundleManifest(this.bundleUrl)
             }
-            this.loadUrl(window)
+            // The page declares sign-in providers (<meta name="mateu-auth">): complete a callback /
+            // sign in first, then load. Without the meta this is null and the app loads at once.
+            const gate = signInGate(this.baseUrl)
+            if (gate) {
+                this.signingIn = true
+                void gate.then((proceed) => {
+                    if (!proceed) return
+                    this.signingIn = false
+                    this.loadUrl(window)
+                })
+            } else {
+                this.loadUrl(window)
+            }
             // Development mode only (the page carries <meta name="mateu-dev">): re-render on
             // spec edits, IDE reload requests and server restarts. A no-op otherwise.
             installLiveReload(this)
@@ -318,6 +338,7 @@ export class MateuUi extends LitElement {
     }
 
     render() {
+       if (this.signingIn) return nothing
        return html`
            <mateu-api-caller>
                 ${keyed(this.navigationKey, html`<mateu-ux id="_ux"

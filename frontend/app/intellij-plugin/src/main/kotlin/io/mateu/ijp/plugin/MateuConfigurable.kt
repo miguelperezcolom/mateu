@@ -94,10 +94,16 @@ class MateuConfigurable(private val project: Project) :
             rowsRange {
                 row("Issuer:") {
                     textField().bindText(settings::oidcIssuer).align(AlignX.FILL)
-                        .comment("Endpoints are discovered from {issuer}/.well-known/openid-configuration.")
+                        .comment("Endpoints are discovered from {issuer}/.well-known/openid-configuration. With a device " +
+                            "endpoint the IDE signs in with a code; without one, in the browser through a loopback redirect " +
+                            "(<code>http://127.0.0.1:&lt;any port&gt;/callback</code>, to be allowed for this client).")
                 }
                 row("Client id:") { textField().bindText(settings::oidcClientId) }
                 row("Scope:") { textField().bindText(settings::oidcScope).align(AlignX.FILL) }
+                row("Audience:") {
+                    textField().bindText(settings::oidcAudience).align(AlignX.FILL)
+                        .comment("Optional: the API audience some providers (Auth0) need to mint a JWT access token.")
+                }
                 row("Device endpoint:") {
                     textField().bindText(settings::oidcDeviceEndpoint).align(AlignX.FILL).comment("Optional override.")
                 }

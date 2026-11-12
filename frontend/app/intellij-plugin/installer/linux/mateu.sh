@@ -5,16 +5,17 @@
 # A restart from inside the app ("Restart to update", or any IDE restart) EXITS with 88 instead of
 # relaunching the IDE binary directly (IDEA_RESTART_VIA_EXIT_CODE, read by the platform's
 # Restarter), so the relaunch goes through here and the update is applied first. The arguments
-# are not repeated on a restart: a link is handled once.
+# are not repeated on a restart: a link is handled once. `nosplash` (a well-known IDE argument,
+# filtered before the rest) keeps IntelliJ IDEA's splash screen from showing over the app.
 DIR="$(cd "$(dirname "$0")" && pwd)"
 export IDEA_RESTART_VIA_EXIT_CODE=88
 
 sh "$DIR/apply-update.sh" "$DIR/data/plugins" "$DIR/data/mateu-update"
-"$DIR/bin/idea.sh" "$DIR/workspace" "$@"
+"$DIR/bin/idea.sh" nosplash "$DIR/workspace" "$@"
 status=$?
 while [ "$status" -eq 88 ]; do
   sh "$DIR/apply-update.sh" "$DIR/data/plugins" "$DIR/data/mateu-update"
-  "$DIR/bin/idea.sh" "$DIR/workspace"
+  "$DIR/bin/idea.sh" nosplash "$DIR/workspace"
   status=$?
 done
 exit "$status"

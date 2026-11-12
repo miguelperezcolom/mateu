@@ -78,6 +78,9 @@ export class MateuWorkflow extends LitElement {
     /** JSON string of the WorkflowDefinition. */
     @property() value = '{"name":"New Workflow","steps":[]}';
 
+    /** The state key the edited definition goes to (the component's id), like a field's fieldId. */
+    @property() fieldId: string | undefined;
+
     @state() private wf: WorkflowDefinition = { name: "New Workflow", steps: [] };
     @state() private positions: Record<string, NodePos> = {};
     @state() private selectedId: string | null = null;
@@ -142,7 +145,7 @@ export class MateuWorkflow extends LitElement {
 
     private emit() {
         const json = JSON.stringify(this.wf, null, 2);
-        this.dispatchEvent(new CustomEvent("value-changed", { detail: { value: json }, bubbles: true, composed: true }));
+        this.dispatchEvent(new CustomEvent("value-changed", { detail: { value: json, fieldId: this.fieldId }, bubbles: true, composed: true }));
     }
 
     private updateWf(patch: Partial<WorkflowDefinition>) {

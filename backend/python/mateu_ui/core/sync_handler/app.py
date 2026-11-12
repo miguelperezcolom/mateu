@@ -164,47 +164,6 @@ class AppHandlerMixin(MixinBase):
             cls().keep_alive()
         return UIIncrement.of()
 
-    # ── Push registration of the Mateu mobile app (mirrors Java's PushTokensActionRunner) ──
-    def push_tokens_action(self, cls, rq: RunActionRq) -> UIIncrement:
-        """``_push-register`` / ``_push-unregister``: the parameters ``{token, service, platform,
-        uiKey}`` are checked — an Expo push token, ``"expo"``, ios|android, an opaque key — and
-        handed, with the authenticated caller, to the app class's ``PushTokenRegistry``. Without
-        one the action is refused (403). Answers an empty increment."""
-        import re
-
-        from mateu_ui.uidl.push import EXPO, PushRegistration, PushTokenRegistry
-
-        from ..action_guard import deny
-
-        if not (isinstance(cls, type) and issubclass(cls, PushTokenRegistry)):
-            deny(f"{rq.action_id}: this UI takes no push registrations")
-        parameters = rq.parameters or {}
-
-        def text(key: str) -> str | None:
-            value = parameters.get(key)
-            return value if isinstance(value, str) else None
-
-        token, service, platform, ui_key = (
-            text("token"), text("service"), text("platform"), text("uiKey"))
-        if (
-            token is None
-            or not re.fullmatch(r"Expo(nent)?PushToken\[[A-Za-z0-9_\-]{8,200}\]", token)
-            or service != EXPO
-            or platform not in ("ios", "android")
-            or ui_key is None
-            or not re.fullmatch(r"[A-Za-z0-9_\-]{8,64}", ui_key)
-        ):
-            from mateu_ui.uidl import UserFacingException
-
-            raise UserFacingException("Invalid push registration")
-        registration = PushRegistration(token, service, platform, ui_key, self._inbox_principal())
-        registry = cls()
-        if rq.action_id == "_push-register":
-            registry.register_push_token(registration)
-        else:
-            registry.unregister_push_token(registration)
-        return UIIncrement.of()
-
     def presence_action(self, type_, rq: RunActionRq) -> UIIncrement:
         """The ``_presence`` app-level action: records this tab on the record (route + view,
         viewing | editing | leave) and answers a PresenceChanged command with the OTHER people.
@@ -246,6 +205,46 @@ class AppHandlerMixin(MixinBase):
             commands=[
                 UICommand.update_header_value(vid, value)
                 for vid, value in LiveHeaderValues.current().items()
+            ]
+        )
+
+    # ── Remote push: the phone registers its push token (mirrors Java's PushActionRunner) ──
+    def push_action(self, rq: RunActionRq) -> UIIncrement:
+        """``_push-register {token, platform, deviceId, ui}`` keeps the token for the caller (the
+        principal, else the anonymous session ``session:<X-Session-Id>``); ``_push-unregister
+        {token}`` forgets it (no identity needed: the token is the phone's own). Both answer Data
+        ``{_push: {registered}}`` — false when the app sends no pushes."""
+        from .. import push
+        from ..request_context import current_request
+        from mateu_ui.uidl import UserFacingException
+
+        params = rq.parameters or {}
+        token = params.get("token")
+        token = token.strip() if isinstance(token, str) else None
+        if token is None or not push.valid_token(token):
+            raise UserFacingException("A push token is needed.")
+        store = push.default_store_warned(self.push_token_store)
+        registered = False
+        if rq.action_id == push.UNREGISTER_ACTION:
+            store.unregister(token)
+        elif self.push_sender is not None:
+            in_flight = current_request()
+            owner = push.owner_of(
+                self._inbox_principal(), in_flight.header("X-Session-Id") if in_flight else None
+            )
+            if owner is not None:
+                store.register(
+                    owner,
+                    push.token_of(token, params.get("platform"), params.get("deviceId"), params.get("ui")),
+                )
+                registered = True
+        return UIIncrement.of(
+            fragments=[
+                UIFragment(
+                    target_component_id=self.target(rq),
+                    data={"_push": {"registered": registered}},
+                    action="Replace",
+                )
             ]
         )
 

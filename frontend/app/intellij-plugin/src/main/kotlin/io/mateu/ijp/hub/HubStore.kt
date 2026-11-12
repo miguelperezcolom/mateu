@@ -26,6 +26,11 @@ data class HubEntry(
     val auth: HubManifest.Auth? = null,
     val addedAt: Long = 0,
     val lastOpened: Long? = null,
+    /** Every sign-in provider the manifest declared for the desktop ([SignInProviders]); `auth` is the first. */
+    val providers: List<HubManifest.Auth> = listOfNotNull(auth),
+    /** The id of the provider this UI was last signed in with: the chooser lists it first, and it is used
+     *  without asking while its session holds. Metadata, never a secret. */
+    val signInProvider: String? = null,
 )
 
 /** The list's rules, pure (unit-tested): one entry per base URL, stored entries re-validated, demo seeded once. */
@@ -61,8 +66,15 @@ class HubEntries(
 
     /** The manifest fetched on open refreshes what the list shows (name, icon, colour, sign-in). */
     fun refresh(id: String, manifest: HubManifest.Manifest) = update(id) {
-        it.copy(name = manifest.name, shortName = manifest.shortName, icon = manifest.icon, themeColor = manifest.themeColor, auth = manifest.auth)
+        it.copy(
+            name = manifest.name, shortName = manifest.shortName, icon = manifest.icon, themeColor = manifest.themeColor,
+            auth = manifest.auth, providers = manifest.providers,
+            signInProvider = it.signInProvider?.takeIf { p -> manifest.providers.any { a -> a.id == p } },
+        )
     }
+
+    /** Remembers the provider the user signed in with (or picked) for this UI. */
+    fun rememberProvider(id: String, providerId: String) = update(id) { it.copy(signInProvider = providerId) }
 
     fun touch(id: String) = update(id) { it.copy(lastOpened = now()) }
 
@@ -104,6 +116,7 @@ class HubEntries(
         themeColor = manifest?.themeColor,
         auth = manifest?.auth,
         addedAt = now(),
+        providers = manifest?.providers ?: emptyList(),
     )
 
     companion object {
@@ -148,6 +161,9 @@ class HubStore : PersistentStateComponent<HubStore.StateBean> {
         var authClientId: String? = null
         var authScopes: String? = null
         var authAudience: String? = null
+        /** JSON array of every provider (id, label, icon, issuer, clientId, scopes, audience); null = `auth` alone. */
+        var authProviders: String? = null
+        var signInProvider: String? = null
         var addedAt: Long = 0
         var lastOpened: Long = 0
     }
@@ -206,6 +222,8 @@ class HubStore : PersistentStateComponent<HubStore.StateBean> {
             authClientId = e.auth?.clientId
             authScopes = e.auth?.scopes?.joinToString(" ")
             authAudience = e.auth?.audience
+            authProviders = e.providers.takeIf { it.isNotEmpty() }?.let { providersJson(it) }
+            signInProvider = e.signInProvider
             addedAt = e.addedAt
             lastOpened = e.lastOpened ?: 0
         }
@@ -224,13 +242,32 @@ class HubStore : PersistentStateComponent<HubStore.StateBean> {
             },
             addedAt = b.addedAt,
             lastOpened = b.lastOpened.takeIf { it > 0 },
+        ).let { e ->
+            // an entry stored before the list: its single provider
+            val providers = b.authProviders?.let(::providersFromJson) ?: e.providers
+            e.copy(providers = providers, signInProvider = b.signInProvider?.takeIf { p -> providers.any { it.id == p } })
+        }
+
+        private val mapper = com.fasterxml.jackson.databind.ObjectMapper()
+
+        internal fun providersJson(list: List<HubManifest.Auth>): String = mapper.writeValueAsString(
+            list.map { a ->
+                linkedMapOf("id" to a.id, "type" to "oidc", "label" to a.label, "icon" to a.icon, "issuer" to a.issuer,
+                    "clientId" to a.clientId, "scopes" to a.scopes, "audience" to a.audience, "platforms" to listOf("desktop"))
+                    .filterValues { it != null }
+            },
         )
+
+        /** Re-read through the same rules as a manifest: the config file is not a trust boundary. */
+        internal fun providersFromJson(json: String): List<HubManifest.Auth>? = runCatching {
+            SignInProviders.parse(mapper.createObjectNode().set<com.fasterxml.jackson.databind.JsonNode>("providers", mapper.readTree(json)), "desktop")
+        }.getOrNull()
     }
 }
 
 /** Everything the IDE stored to sign in to this UI: its OIDC session(s) and a manual token. */
 fun forgetSignIn(entry: HubEntry) {
-    val keys = listOfNotNull(entry.auth?.let { io.mateu.ijp.auth.OidcSessions.SessionKey.of(entry.baseUrl, it.issuer, it.clientId) })
+    val keys = (entry.providers + listOfNotNull(entry.auth)).map { io.mateu.ijp.auth.OidcSessions.SessionKey.of(entry.baseUrl, it.issuer, it.clientId) }.distinct()
     io.mateu.ijp.auth.MateuCredentials.sessions.forget(entry.baseUrl, keys)
     io.mateu.ijp.auth.MateuCredentials.clear(entry.baseUrl)
 }

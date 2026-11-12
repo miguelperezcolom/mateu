@@ -104,6 +104,18 @@ it on **every** Mateu request (and on the AI chat), from a pluggable **token pro
   menu). Works with any standards-compliant provider (Keycloak,
   Entra ID, Auth0 — add `"audience"` —, Okta, Cognito…): it only needs the issuer's discovery
   document.
+- **Several sign-in providers** — a UI that declares a list (`auth.providers` in the manifest or the
+  registry entry; see [Sign-in providers](/deploy/sign-in/)) is offered as it says: the `oidc`
+  providers whose `platforms` include `mobile`, in the UI's order. One goes straight to it; several
+  show a **Sign in to &lt;UI&gt;** screen (Material, English or Spanish by the device language) with one
+  *Continue with …* button each — the provider used last first, marked "Last used" — whose mark is the
+  provider's initial or a key, never a brand's artwork. A `redirect` provider is not offered: its login
+  ends in a browser cookie the app never sees. A server older than the list (only `auth.issuer` /
+  `clientId`) is provider `default`, exactly as before. One provider is signed in per UI at a time —
+  its tokens carry its issuer and client, so another provider never reads them — and **Sign out**
+  ends that provider's session. Each provider is its own client at its IdP and registers the same
+  redirect URIs (below). Which providers the app offers for a given `auth` block is pinned by
+  `conformance/client/sign-in-flow-native.json`, shared with the desktop app.
 - **Your own login** — register any provider: `setTokenProvider({ getToken, refresh, login, logout })`
   from `src/core/auth.ts`.
 
@@ -117,14 +129,17 @@ public client serves both Mateu apps:
 |---|---|---|
 | Client authentication | **Off** (public client) | an installed app cannot keep a secret |
 | Standard flow | **On** | the phone's Authorization Code flow |
-| OAuth 2.0 Device Authorization Grant | **On** | the [desktop app](/native/desktop-app/#signing-in) signs in with the device flow |
+| OAuth 2.0 Device Authorization Grant | **On** | the [desktop app](/native/desktop-app/#signing-in) signs in with the device flow (without it, it uses a loopback redirect: add `http://127.0.0.1/*` below) |
 | Direct access grants | Off | not used |
 | Valid redirect URIs | `mateu://auth` (+ `http://localhost:8081/*` for expo web in development) | where the phone comes back |
 | Web origins | `+` | expo web (development) |
 | Advanced ▸ Proof Key for Code Exchange Code Challenge Method | **S256** | both apps send a PKCE challenge — the desktop's device request too |
 
-The UI's manifest names the provider (`mateu.mobile.oidc.issuer` / `client-id`, or the
-`MATEU_MOBILE_OIDC_*` environment variables); the issuer must be `https` — plain `http` is accepted
+The UI's manifest names the providers — the UI's [sign-in providers](/deploy/sign-in/)
+(`mateu.auth.providers`, offered on the phone when their `platforms` include `mobile`), or the
+single one of before (`mateu.mobile.oidc.issuer` / `client-id`, or the `MATEU_MOBILE_OIDC_*`
+environment variables). Keycloak is one example; the sign-in page has the recipes for Entra ID,
+Okta, Auth0, Cognito, Zitadel and others. The issuer must be `https` — plain `http` is accepted
 only by development builds, for a provider on your own machine. Validating the token the apps send
 is the host application's job (a Spring/Quarkus/… resource server, or your FastAPI/ASP.NET auth):
 Mateu takes the roles from what the framework authenticated.
@@ -176,22 +191,13 @@ app posts none: see [what reaches the device](/ux-patterns/notification-inbox/#o
 
 ### Push notifications
 
-A UI whose app class implements `PushTokenRegistry` (wire `AppDto.pushNotifications`) gets a
-*Notifications on this phone* switch in its drawer. Turning it on asks the OS for permission — only
-then — reads the phone's **Expo push token** and registers it with that UI alone (`_push-register`,
-through that UI's own client and credentials); off, or removing the UI from the hub, unregisters it
-(`_push-unregister`). The UI's backend sends through Expo Push Service with `data.mateu = {ui, route}`
-and a tap opens that UI at that route — in the hub (bringing the UI to front, asking first if a form
-there has unsaved edits) and in a *fixed* build (its one UI). The server contract and the message
-shape: [push notifications to the Mateu app](/ux-patterns/notification-inbox/#push-notifications-to-the-mateu-app).
-
-What a build needs (once, in EAS — never in the repository): an **APNs key** for iOS
-(`npx eas-cli credentials`; `expo-notifications` writes the `aps-environment` entitlement), and for
-Android a Firebase project's `google-services.json` as the EAS file variable
-`MATEU_GOOGLE_SERVICES_FILE` (mapped to `android.googleServicesFile` by `app.config.ts`) plus its
-**FCM V1** key uploaded with `eas credentials`. The Expo token is minted for the build's EAS project
-id (`extra.eas.projectId`), so a fixed build needs its own project. Without credentials the app still
-runs; the switch then says the phone cannot receive notifications. The web build has no push.
+A UI whose server sends pushes (`@App(osNotifications = true)` and a `PushSender`, or Mateu's Expo
+sender — wire `AppDto.pushNotifications`) gets them on the phone: once the user allows
+notifications, the app registers its **Expo push token** with that UI (`_push-register`) and
+unregisters it on sign-out, when the UI is removed from the hub or when the permission is revoked
+(`_push-unregister`). A tap opens that UI at the route the push names. The set-up (FCM and APNs
+credentials, the token store, the .NET and Python options) is in
+[Push notifications to phones](/deploy/push-notifications/).
 
 ## 5. Look and theming
 
@@ -229,6 +235,23 @@ theme is built from them in `src/ui/MateuTheme.tsx`, and the shared Material pri
 status chip, checkbox, outlined field and picker trigger) are in `src/ui/controls.tsx`. A host app
 that needs another brand changes the tokens there.
 
+### Touch and keyboard
+
+- **Dragging.** A long press lifts a kanban card, or a `@DragRows` listing row (the whole selection
+  when the row is selected) and carries it to a `DropZone`: the zones of its type light up and the
+  one under the finger fills in. A long press let go without moving opens the **Move to…** picker,
+  which is also how a screen reader moves rows.
+- **Editors.** `Workflow` and `FormEditor` are editable, like on the web: settings, add / edit /
+  delete steps or fields (fields also duplicate and move up or down), each one's properties in a
+  dialog. **Export** shares the definition's JSON. A `Bpmn` diagram is read only, as on the web.
+- **Hardware keyboard.** In the web build, `@Action(shortcut)`, `@Tab(shortcut)`,
+  `@AppShortcut(key)` and an `ActionPanel`'s shortcut work as on the web (a screen's key wins over
+  the app's; a bare letter does nothing while you type in a field). On iOS and Android an attached
+  keyboard does not trigger them: React Native gives an Expo app no key events
+  ([known issue](/reference/known-issues/#keyboard-shortcuts-on-phones-and-tablets-and-a-camera-on-the-desktop)).
+
+The phone layouts that differ from the web on purpose (a drawer as a bottom sheet, the `@Toc` as
+chips…) are listed in [React Native: phone layouts](/reference/parity/#react-native-phone-layouts).
 Writes made without connection can wait in a send queue and go out when the connection is back,
 for the actions that declare it — see [Offline forms on the phone](/native/offline-forms/).
 

@@ -26,6 +26,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { notify as showToast } from "@application/Notifier.ts";
 import { proxiedFailureOf, restFailureDuration, restFailureText } from "@infra/http/restFailure.ts";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
+import { isButtonGroup, toolbarGroupComponent } from "@infra/ui/renderers/buttonRenderer.ts";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 import { ListingData } from "@mateu/shared/apiClients/dtos/ListingData.ts";
@@ -1152,6 +1153,11 @@ export class MateuTableCrud extends LitElement {
             // selected, instead of answering the click with an error toast — prevent the error
             // rather than report it (Nielsen #5). The server-side gate stays as the backstop.
             const button = this.needsSelection(shown) ? { ...shown, disabled: true } : shown
+            // a toolbar group (a ButtonGroup) is the renderer's dropdown or split button
+            if (isButtonGroup(button)) {
+                return stampButton(button, renderComponent(this, toolbarGroupComponent(button, "listing"), this.baseUrl,
+                    this.state ?? {}, this.data ?? {}, this.appState, this.appData))
+            }
             const custom = componentRenderer.get()?.renderToolbarButton?.(
                 button, this.evalLabel(button.label), () => this.handleToolbarButtonClick(button))
             if (custom) {

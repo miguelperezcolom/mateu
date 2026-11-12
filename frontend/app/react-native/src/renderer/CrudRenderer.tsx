@@ -7,8 +7,11 @@ import { Text, TextInput } from '../ui/Text';
 import { buttonActionId, effectiveListingLayout, loadFailureMessage, rowCheckboxLabel } from '../core/uxRules';
 import { splitCreateAction } from '../core/phoneLayout';
 import { canMove, dropOn, moveToLabel, zoneLabel, type MountedDropZone } from './dragDrop';
+import { DraggableRow, useRowDrag } from './RowDrag';
 import { useViewController } from './MateuViewHost';
 import { SavedView } from './savedViews';
+import { moveColumn, orderColumns } from './columnPrefs';
+import { listingScopeOf } from './persistedScopes';
 import { interpolate, interpolateUrl } from '../core/expressions';
 import { fetchExternalJson, getByPath, mapItemsToRows } from '../core/restFetch';
 import { FIT_CONTENT, useBarTitle, useFitsContent, useInsideVerticalScroll, usePageShowsToolbar } from './ScrollContext';
@@ -120,15 +123,21 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   // Bulk row selection (Crud.rowsSelectionEnabled): the selected ROW OBJECTS live in the
   // component state under crud_selected_items so they travel with every dispatched action
   // (the web's mateu-table-crud contract). A new result set clears the selection.
-  // @DragRows: rows can be "dragged" onto a DropZone — on touch, selected and MOVED through a
-  // picker of the zones on screen accepting the type (see dragDrop.ts), so selection turns on too.
+  // @DragRows: rows can be dragged onto a DropZone — a long press lifts a row (or the selection it
+  // belongs to); the "Move to…" picker of the zones on screen accepting the type does the same over
+  // the selected rows (see dragDrop.ts / RowDrag.tsx), so selection turns on too.
   const dragType = (metadata['dragType'] as string | null | undefined) ?? null;
   const rowsSelectionEnabled = metadata['rowsSelectionEnabled'] === true || !!dragType;
   const [moveOpen, setMoveOpen] = useState(false);
   const [dropZones, setDropZones] = useState<MountedDropZone[]>([]);
   useEffect(() => {
     if (!dragType) return;
-    const refresh = () => setDropZones(controller.session.dropZones.zonesAccepting(dragType));
+    // the registry also speaks during a drag (the zone under the finger): only a changed set of
+    // zones re-renders the listing, or every hover would repaint every row under the finger
+    const refresh = () => setDropZones((before) => {
+      const now = controller.session.dropZones.zonesAccepting(dragType);
+      return now.length === before.length && now.every((z, i) => z === before[i]) ? before : now;
+    });
     refresh();
     return controller.session.dropZones.subscribe(refresh);
   }, [dragType]);
@@ -408,24 +417,39 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const allColDefs = columnDefsOf(columns, rowOpen);
 
 
-  // Per-user column personalization (show/hide) — session-scoped (see columnPrefs). The first column
-  // (identity / row-open) is protected and never hideable. `colDefs` is what the table actually renders.
-  const columnScope = String((metadata['id'] as string) ?? (metadata['title'] as string) ?? '');
+  // Per-user column personalization (show/hide + order) — kept per UI, route and listing, and
+  // persisted on the device (see columnPrefs). The first column (identity / row-open) is protected:
+  // never hideable and never moved. `colDefs` is what the table actually renders.
+  const columnScope = listingScopeOf(controller.currentRoute, String((metadata['id'] as string) ?? (metadata['title'] as string) ?? ''));
+  const columnPrefs = controller.session.columnPrefs;
   const protectedColId = allColDefs[0]?.fieldId;
-  const [hiddenCols, setHiddenCols] = useState<string[]>(() => controller.session.columnPrefs.get(columnScope));
+  const [hiddenCols, setHiddenCols] = useState<string[]>(() => columnPrefs.get(columnScope));
+  const [columnOrder, setColumnOrder] = useState<string[]>(() => columnPrefs.order(columnScope));
+  // what an earlier run stored lands after the first paint: take it up when it does
+  useEffect(() => columnPrefs.subscribe(() => {
+    setHiddenCols(columnPrefs.get(columnScope));
+    setColumnOrder(columnPrefs.order(columnScope));
+  }), [columnPrefs, columnScope]);
   const [columnsOpen, setColumnsOpen] = useState(false);
   const toggleColumn = (id: string) => {
     const next = hiddenCols.includes(id) ? hiddenCols.filter((x) => x !== id) : [...hiddenCols, id];
     setHiddenCols(next);
-    controller.session.columnPrefs.set(columnScope, next);
+    columnPrefs.set(columnScope, next);
   };
-  const colDefs = allColDefs.filter((c) => !hiddenCols.includes(c.fieldId));
+  const orderedColDefs = orderColumns(allColDefs, columnOrder);
+  const shiftColumn = (id: string, delta: -1 | 1) => {
+    const next = moveColumn(orderedColDefs.map((c) => c.fieldId), id, delta);
+    setColumnOrder(next.slice(1));
+    columnPrefs.setOrder(columnScope, next.slice(1));
+  };
+  const colDefs = orderedColDefs.filter((c) => !hiddenCols.includes(c.fieldId));
   const cardLayout = cardLayoutOf(colDefs);
 
   // Saved views: named snapshots of {searchText + filters}; one may be the default (auto-applied once).
   const [viewsOpen, setViewsOpen] = useState(false);
   const [viewsVersion, setViewsVersion] = useState(0);
   const [newViewName, setNewViewName] = useState('');
+  useEffect(() => controller.session.savedViews.subscribe(() => setViewsVersion((v) => v + 1)), [controller.session.savedViews]);
   void viewsVersion; // re-reading the (external) store depends on this bumping
   const savedViews = controller.session.savedViews.list(columnScope);
   const applyView = (view: SavedView) => {
@@ -447,11 +471,18 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const toggleDefaultView = (name: string) => { controller.session.savedViews.setDefault(columnScope, name); setViewsVersion((v) => v + 1); };
   // Auto-apply the default view once, when the screen still has no active conditions.
   const defaultAppliedRef = React.useRef(false);
+  const filterValuesRef = React.useRef(filterValues);
+  filterValuesRef.current = filterValues;
+  const searchTextRef = React.useRef(searchText);
+  searchTextRef.current = searchText;
   useEffect(() => {
     if (defaultAppliedRef.current) return;
     defaultAppliedRef.current = true;
-    const dv = controller.session.savedViews.defaultView(columnScope);
-    if (dv && Object.keys(filterValues).length === 0 && !searchText) applyView(dv);
+    // the stored views may still be loading on a cold start: apply the default once they are in
+    void controller.session.savedViews.whenReady().then(() => {
+      const dv = controller.session.savedViews.defaultView(columnScope);
+      if (dv && Object.keys(filterValuesRef.current).length === 0 && !searchTextRef.current) applyView(dv);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -491,6 +522,14 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     setMoveOpen(false);
     if (dragType && dropOn(zone, dragType, selectedRows)) syncSelection([]);
   };
+  const rowDrag = useRowDrag({
+    dragType: dropZones.length > 0 ? dragType : null,
+    registry: controller.session.dropZones,
+    selectedRows,
+    titleOf: (row) => cellText(row[colDefs[0]?.fieldId ?? ''], colDefs[0]?.valueLabels, colDefs[0]),
+    onDropped: (rows) => { if (rows === selectedRows) syncSelection([]); },
+    onStillPress: (rows) => { syncSelection(rows); setMoveOpen(true); },
+  });
 
   // The title, the toolbar and the search scroll away with the rows on a list or cards, so the
   // phone's screen goes to the rows (Material's scrolling content), instead of leaving them half of it.
@@ -614,6 +653,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   return (
     <View style={[styles.root, fits && FIT_CONTENT]}>
       {!headerInList && listHeader}
+      {rowDrag.overlay}
 
       {showsPreSearch(preSearch, searched) ? (
         <View style={styles.preSearch}>
@@ -649,6 +689,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                   <Text style={styles.groupBandText}>{groupBandText(item)}</Text>
                 </View>
               ) : (
+                <DraggableRow row={item} drag={rowDrag}>
                 <View style={styles.cardWrap}>
                 <Card mode="outlined" style={styles.cardRow}>
                 <TouchableRipple {...rowA11y(item)} borderless style={styles.cardRipple} onPress={() => handleRowPress(item)}>
@@ -706,6 +747,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                   <IconButton icon="pencil-outline" accessibilityLabel="Edit row" style={styles.editPencilCard} onPress={() => setEditingRow(item)} />
                 )}
                 </View>
+                </DraggableRow>
               )
             }
           />
@@ -732,6 +774,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                 </View>
               ) : (
                 <>
+                <DraggableRow row={item} drag={rowDrag}>
                 <View style={styles.listRowWrap}>
                   {rowsSelectionEnabled && (
                     <SelectBox
@@ -777,6 +820,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                     <IconButton icon="pencil-outline" accessibilityLabel="Edit row" style={styles.editPencilList} onPress={() => setEditingRow(item)} />
                   )}
                 </View>
+                </DraggableRow>
                 {/* masterDetail on a phone: the pressed row's detail opens under it (the pane beside
                     the list on the web) — every column, label over value */}
                 {masterDetail && detailRow === item && (
@@ -852,6 +896,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                     {editableCols.length > 0 && <View style={styles.editHeaderCell} />}
                   </View>
                 ) : (
+                  <DraggableRow row={item} drag={rowDrag}>
                   <View style={styles.tableRow}>
                     {rowsSelectionEnabled && (
                       <SelectBox
@@ -891,6 +936,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                       <IconButton icon="pencil-outline" accessibilityLabel="Edit row" style={styles.editPencilCell} onPress={() => setEditingRow(item)} />
                     )}
                   </View>
+                  </DraggableRow>
                 )
               }
             />
@@ -982,7 +1028,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
       </Dialog>
       </Portal>
 
-      {/* "Move to…": the touch equivalent of dragging the selected rows onto a DropZone. */}
+      {/* "Move to…": dragging the selected rows onto a DropZone without dragging (a screen reader's way). */}
       <Portal>
       <Dialog visible={moveOpen} onDismiss={() => setMoveOpen(false)} style={styles.dialog}>
         <Dialog.Title>{moveToLabel(selectedRows.length)}</Dialog.Title>
@@ -1003,20 +1049,26 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
       </Dialog>
       </Portal>
 
-      {/* Column chooser: show/hide columns (session-scoped; the identity column stays). */}
+      {/* Column chooser: show/hide and reorder columns (persisted per UI; the identity column stays first). */}
       <Portal>
       <Dialog visible={columnsOpen} onDismiss={() => setColumnsOpen(false)} style={styles.dialog}>
         <Dialog.Title>Columns</Dialog.Title>
           <Dialog.Content>
-            {allColDefs.map((c) => {
+            {orderedColDefs.map((c, i) => {
               const isProtected = c.fieldId === protectedColId;
               const visible = !hiddenCols.includes(c.fieldId);
               return (
                 <View key={c.fieldId} style={styles.columnsRow}>
                   <SelectBox checked={visible} label={c.label} disabled={isProtected} onToggle={() => toggleColumn(c.fieldId)} />
-                  <Text style={[styles.columnsLabel, isProtected && styles.columnsLabelDim]}>
+                  <Text style={[styles.columnsLabel, styles.columnsLabelFlex, isProtected && styles.columnsLabelDim]}>
                     {c.label}{isProtected ? ' (required)' : ''}
                   </Text>
+                  {!isProtected && (
+                    <>
+                      <IconButton icon="arrow-up" size={20} disabled={i <= 1} accessibilityLabel={`Move ${c.label} up`} onPress={() => shiftColumn(c.fieldId, -1)} style={styles.columnsMove} />
+                      <IconButton icon="arrow-down" size={20} disabled={i >= orderedColDefs.length - 1} accessibilityLabel={`Move ${c.label} down`} onPress={() => shiftColumn(c.fieldId, 1)} style={styles.columnsMove} />
+                    </>
+                  )}
                 </View>
               );
             })}
@@ -1216,6 +1268,8 @@ const styles = themed(() => StyleSheet.create({
   columnsRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 10 },
   columnsCheck: { fontSize: 16, color: theme.ink },
   columnsLabel: { fontSize: 14, color: theme.ink },
+  columnsLabelFlex: { flex: 1 },
+  columnsMove: { margin: 0 },
   columnsLabelDim: { color: theme.faint, fontSize: 14, paddingVertical: 6 },
   viewApply: { flex: 1 },
   viewSaveRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },

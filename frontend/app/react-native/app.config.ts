@@ -1,5 +1,6 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 import { applyVariant, type VariantEnv } from './src/core/buildVariant.ts';
+import { applyPushConfig, type PushEnv } from './src/core/pushConfig.ts';
 
 /**
  * Build-variant overrides on top of app.json (which holds the production-safe defaults).
@@ -14,7 +15,8 @@ import { applyVariant, type VariantEnv } from './src/core/buildVariant.ts';
  * or a white-label app bound to one UI (src/core/buildVariant.ts, docs ux-patterns/mobile-app.md).
  */
 export default ({ config }: ConfigContext): ExpoConfig => {
-  const variant = applyVariant(config as ExpoConfig, process.env as VariantEnv);
+  // remote push: the FCM / APNs set-up only when the build has the credentials (src/core/pushConfig.ts)
+  const variant = applyPushConfig(applyVariant(config as ExpoConfig, process.env as VariantEnv), process.env as PushEnv);
   // An APK built outside EAS (the GitHub release workflow, .github/workflows/mobile.yml) has no remote
   // build number: the workflow passes one, and it must only grow for the APK to install as an update.
   const versionCode = Number(process.env.MATEU_ANDROID_VERSION_CODE);
@@ -31,18 +33,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ['distribution', process.env.MATEU_DISTRIBUTION?.trim()],
     ].filter(([, v]) => !!v),
   );
-  const stampedConfig: ExpoConfig = Object.keys(stamped).length
+  const extended: ExpoConfig = Object.keys(stamped).length
     ? { ...versioned, extra: { ...(versioned.extra ?? {}), ...stamped } }
     : versioned;
-  // Push notifications (src/core/pushNotifications.ts) through Expo Push Service: on Android the
-  // device's push token needs the build's FCM credentials — the Firebase project's
-  // google-services.json, kept OUT of the repository and handed to the build as an EAS file
-  // environment variable (MATEU_GOOGLE_SERVICES_FILE). Without it the app builds and runs; the
-  // "Notifications on this phone" switch of a UI then says this phone cannot receive them.
-  const googleServicesFile = process.env.MATEU_GOOGLE_SERVICES_FILE?.trim();
-  const extended: ExpoConfig = googleServicesFile
-    ? { ...stampedConfig, android: { ...stampedConfig.android, googleServicesFile } }
-    : stampedConfig;
   // Which over-the-air updates the build asks for. EAS Build stamps the channel of its profile
   // (eas.json) itself; a build made outside EAS — the Play bundle built locally, the GitHub APK —
   // carries none and would never receive the `production` updates the release workflow publishes
@@ -62,10 +55,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const plugins = (base.plugins ?? []).map((p) =>
     Array.isArray(p) && p[0] === 'expo-build-properties'
       ? ['expo-build-properties', { ...(p[1] ?? {}), android: { ...((p[1] ?? {}).android ?? {}), usesCleartextTraffic: true } }]
-      : Array.isArray(p) && p[0] === 'expo-notifications'
-        // a development build is signed for the APNs sandbox (aps-environment = development)
-        ? ['expo-notifications', { ...(p[1] ?? {}), mode: 'development' }]
-        : p,
+      : p,
   ) as ExpoConfig['plugins'];
 
   return {

@@ -31,7 +31,7 @@ import { interpolate } from '../core/expressions';
 import { catchUpOnResume, filtered, grouped, inboxItemOf, unreadCount, type InboxAction, type InboxFilter, type InboxItem } from '../core/inbox';
 import { toastOf } from '../core/componentContext';
 import { NotifyOnThisDevice } from './TaskHost';
-import { PushSwitch, usePushRefresh } from './PushSwitch';
+import { useRemotePush } from './RemotePush';
 import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type ShellExtrasMeta } from './AppShellExtras';
 import type { AppShortcut } from '../core/appShellExtras';
 import { ConnectAiEntry, useAgentChannel, type AgentPushMeta } from './AgentPush';
@@ -64,7 +64,7 @@ interface MenuItem {
   rules?: { action?: string; actionId?: string | null }[] | null;
 }
 
-interface AppContextSelector {
+export interface AppContextSelector {
   fieldName: string;
   label?: string;
   options?: { value: unknown; label?: string }[];
@@ -72,7 +72,7 @@ interface AppContextSelector {
   optionsSource?: Record<string, unknown> | null;
 }
 
-interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
+export interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
   title?: string;
   sseUrl?: string | null;
   /** The app's MCP endpoint (@AI(mcp=…)): forwarded, absolute, with every chat message. */
@@ -96,7 +96,7 @@ interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
   notificationsEnabled?: boolean;
   /** The app opted in to OS-level notifications (@App(osNotifications = true)). */
   osNotifications?: boolean;
-  /** The app class implements PushTokenRegistry: this phone may register for its push notifications. */
+  /** …and its server sends remote pushes: register this phone's push token (core/remotePush.ts). */
   pushNotifications?: boolean;
   /** A data-authored shell's inbox: REST sources instead of the app class's supplier. */
   notificationsSource?: Record<string, unknown> | null;
@@ -263,7 +263,7 @@ const CONTEXT_SEARCHABLE_THRESHOLD = 7;
 // (persisting would need AsyncStorage, which this renderer doesn't depend on yet). With many
 // options a search box filters the loaded ones client-side and (debounced) asks the server for
 // matches beyond the loaded page via the standard `_appcontext-search-<field>` action.
-function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppContextSelector[]; appMeta: AppMeta; onChanged: () => void }) {
+export function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppContextSelector[]; appMeta: AppMeta; onChanged: () => void }) {
   const { api, appState, session } = useAppContext();
   // the app's @AppContext values are the user's context: an untrusted island is not given them
   for (const selector of selectors) session.appContextKeys.add(selector.fieldName);
@@ -460,7 +460,7 @@ async function runAppLevelAction(
  * Data comes from the app-level _notifications-list / _notifications-read actions; entry click
  * marks that id read and navigates to the entry's route; "Mark all read" sends {ids:"all"}.
  */
-function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate: (item: MenuItem) => void }) {
+export function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate: (item: MenuItem) => void }) {
   const { api, appState, session } = useAppContext();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<InboxFilter>('all');
@@ -909,7 +909,12 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
   const { session } = useAppContext();
   const hub = session.hub;
   const canOut = session.signOut ? true : session.api.auth === undefined && canSignOut();
-  const doSignOut = () => void (session.signOut ? session.signOut() : signOut());
+  // the phone stops receiving this UI's pushes first (core/remotePush.ts)
+  const doSignOut = () =>
+    void (async () => {
+      await session.pushUnregister?.().catch(() => undefined);
+      await (session.signOut ? session.signOut() : signOut());
+    })();
   return (
     <DrawerContentScrollView style={styles.sidebar} contentContainerStyle={styles.sidebarContent}>
       {hub && (
@@ -925,7 +930,6 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
       <QuickLaunch meta={appMeta} onLaunch={onLaunch} />
       {appMeta.globalSearchEnabled === true && <GlobalSearchBox appMeta={appMeta} onNavigate={onNavigate} />}
       {appMeta.notificationsEnabled === true && <NotificationBell appMeta={appMeta} onNavigate={onNavigate} />}
-      {appMeta.pushNotifications === true && <PushSwitch appMeta={appMeta} />}
       <ConnectAiEntry meta={appMeta} />
       <ContextSelectors selectors={appMeta.contextSelectors ?? []} appMeta={appMeta} onChanged={onContextChanged} />
       {renderItems(appMeta.menu ?? [])}
@@ -1016,12 +1020,11 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   const navTheme = navigationTheme();
   React.useEffect(() => setAccent(appMeta.accentColor), [appMeta.accentColor, setAccent]);
 
-  const { session } = useAppContext();
+  const { session, appState } = useAppContext();
   // OS-level notifications are the app's choice (core/osNotifications.ts)
   session.osNotifications = appMeta.osNotifications === true;
-  // push notifications are the UI's offer and the user's choice, per UI (core/pushNotifications.ts)
-  session.pushNotifications = appMeta.pushNotifications === true;
-  usePushRefresh(appMeta);
+  // …and reach a suspended or closed app when its server sends pushes (core/remotePush.ts)
+  useRemotePush(session, appMeta, appState);
   // the version-skew notices' Reload (core/buildSkew.ts): remount the current screen, so it re-runs
   // its load from scratch against the redeployed backend — the same remount an @AppContext change does
   React.useEffect(() => {
@@ -1150,6 +1153,16 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
       void runAppAction(shortcut.actionId);
     }
   };
+  // @AppShortcut(key): the app-wide keys (a hardware keyboard on react-native-web); a screen's own
+  // shortcut wins (core/keyShortcuts.ts)
+  const launchRef = React.useRef(launch);
+  launchRef.current = launch;
+  React.useEffect(
+    () => session.keyShortcuts?.register(...(appMeta.shortcuts ?? [])
+      .filter((s) => !!s.key && (!!s.route || !!s.actionId))
+      .map((s) => ({ shortcut: s.key!, scope: 'app' as const, run: () => launchRef.current(s) }))),
+    [session, appMeta.shortcuts],
+  );
   const goHome = React.useCallback(() => {
     setCurrentNav({
       route: appMeta.homeRoute ?? '',

@@ -180,10 +180,31 @@ root of a UI with no shell.
 ## Signing in
 
 A UI that declares a sign-in in its manifest (`auth`: the OpenID Connect issuer and client, the same
-the [phone app](/native/react-native/#3-signing-in-to-a-secured-backend) uses) is signed in to with the
-**OAuth 2.0 Device Authorization Grant** — the usual flow for a desktop app, with no local redirect
-server: the app shows a short code and opens the provider's page in the browser, you sign in there and
-confirm the code, and the app gets its tokens. The access token stays in memory; the refresh token is
+the [phone app](/native/react-native/#3-signing-in-to-a-secured-backend) uses) is signed in to when it
+opens (unless the manifest says `"loginOnStart": false`: then when a request comes back 401). Two flows,
+chosen by what the provider's discovery document offers:
+
+- **OAuth 2.0 Device Authorization Grant**, when it names a `device_authorization_endpoint` (Keycloak,
+  Entra ID, Okta, Auth0…): the app shows a short code and opens the provider's page in the browser, you
+  sign in there and confirm the code, and the app gets its tokens.
+- **Authorization Code + PKCE with a loopback redirect** (RFC 8252), when it does not (Google, Apple and
+  most social providers have no device grant for these clients): the app listens once on
+  `http://127.0.0.1:<random port>/callback`, opens the provider's sign-in page in your browser, and the
+  provider sends the browser back to that address with the code (checked against the request's `state`;
+  anything else reaching the port is refused). Register a loopback redirect for the client — RFC 8252
+  says any port must be accepted: a Google **Desktop app** OAuth client allows it as it is, Entra ID's
+  *Mobile and desktop applications* platform takes `http://localhost` (add `http://127.0.0.1`), Keycloak
+  a `http://127.0.0.1/*` valid redirect URI.
+
+**Several sign-in providers.** A UI that declares a list ([Sign-in providers](/deploy/sign-in/)) is
+offered as it says: the `oidc` providers whose `platforms` include `desktop`, in the UI's order. With
+one the app goes straight to it; with several a **Sign in to &lt;UI&gt;** dialog shows one *Continue
+with …* button each, the provider used last first — the hub entry remembers which one — and while a
+provider's session holds it is used without asking. A `redirect` provider (a login page of the host
+framework) is not offered: it ends in a browser cookie the app never sees. Which providers the app
+offers is pinned by `conformance/client/sign-in-flow-native.json`, shared with the phone app. Each provider is
+a client of its own at its IdP (device grant on, or the loopback redirect above). Outside the hub, a
+project's *Settings ▸ Tools ▸ Mateu* still names one provider by hand. The access token stays in memory; the refresh token is
 kept in the operating system's credential store (Keychain, Windows Credential Manager, KWallet/libsecret,
 through IntelliJ's PasswordSafe) and renews the access token when the backend answers 401 — once per UI
 for the whole app, even with several windows open on it. A refresh token the provider no longer accepts
@@ -195,13 +216,17 @@ sent to another UI or to another provider, **Sign out** signs you out of the ope
 a UI from the list deletes what was stored to sign in to it. Both also ask the provider to **revoke** the
 refresh token when its discovery document names a `revocation_endpoint` (RFC 7009) — the token is deleted
 locally whatever the provider answers. A UI whose manifest moves to another provider or client starts a
-new session, and the token stored for the old one is deleted when the new one is stored.
+new session, and the token stored for the old one is deleted when the new one is stored — the same
+when you sign in with another of the UI's providers: one signed-in provider per UI.
 
-At the identity provider, the client needs the **device grant** switched on — in Keycloak, *Clients ▸
+At the identity provider, the client needs the **device grant** switched on (or, without it, the
+loopback redirect above) — in Keycloak, *Clients ▸
 your client ▸ Capability config ▸ OAuth 2.0 Device Authorization Grant*. A client set up for the phone
 (public, Standard flow, PKCE **S256**) serves the desktop app as it is once that switch is on: the app
 sends a PKCE challenge with the device request too. The full list of Keycloak settings is on the
-[phone app page](/native/react-native/#3-signing-in-to-a-secured-backend).
+[phone app page](/native/react-native/#3-signing-in-to-a-secured-backend); declaring the providers
+(several give a chooser, and `platforms` says which the desktop offers) and the recipes for other
+identity providers are on [Sign-in providers](/deploy/sign-in/).
 
 ## Updates
 
@@ -276,6 +301,16 @@ modal window, so the rest of the app stays usable. A blocking task also covers t
 started it, with its progress and Cancel. Tasks still running when the app is closed are followed
 again when it is reopened, if the server still has them. The bell opens the app's inbox, with the
 same filters and category groups as the web ([Notification inbox](/ux-patterns/notification-inbox/)).
+
+## Editors, pickers and the camera
+
+`Workflow` and `FormEditor` are editable: settings, then the steps or fields as a list with a
+properties form underneath (add and delete; fields also duplicate and move up or down). Each edit
+writes the definition's JSON into the screen's state. An `@AppContext` picker with more than seven
+options is a search box: it filters what it has at once and, after a short pause, asks the server
+for the rest (`_appcontext-search-<field>`, like the web). A `@PhotoCapture` field takes its
+picture from a file: there is no pure-Java webcam library to use
+([known issue](/reference/known-issues/#keyboard-shortcuts-on-phones-and-tablets-and-a-camera-on-the-desktop)).
 
 ## Trying the UI you are developing
 

@@ -39,7 +39,7 @@ def entry_of(message, entry_id: str):
     )
 
 
-def store_messages(increment: UIIncrement, principal: str | None, store) -> UIIncrement:
+def store_messages(increment: UIIncrement, principal: str | None, store, push=None) -> UIIncrement:
     """Stores the ``inbox`` messages of ``increment`` for ``principal`` (nothing for an anonymous
     caller) and publishes each entry; answers the increment with every stored message's ``key``
     set to its entry id."""
@@ -57,6 +57,11 @@ def store_messages(increment: UIIncrement, principal: str | None, store) -> UIIn
         entry = entry_of(message, entry_id)
         store.add(principal, entry)
         LiveNotifications.publish(principal, entry)
+        # and to the caller's phones, when the app sends pushes (remote push)
+        if push is not None:
+            from mateu_ui.uidl.push import PushMessage
+
+            push(principal, PushMessage.of(entry))
         if message.key != entry_id:
             message = message.model_copy(update={"key": entry_id})
             changed = True

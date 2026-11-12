@@ -77,6 +77,12 @@ public class MateuHelidonRoutes {
   /** Whether the app resolves callers itself ({@code PrincipalResolver} beans), on any route. */
   private volatile boolean principalResolvers;
 
+  /** Whether {@code /mateu/mcp} is served ({@value McpEndpoint#ENABLED_PROPERTY}). */
+  private volatile boolean mcpEnabled;
+
+  /** The YAML mounts this adapter serves (none when a class serves every base path). */
+  private volatile List<YamlMounts.Mount> yamlMounts = List.of();
+
   void register(
       @Observes
           @Priority(Interceptor.Priority.LIBRARY_BEFORE + 10)
@@ -90,13 +96,15 @@ public class MateuHelidonRoutes {
             config.getOptionalValue(CorsPolicy.ALLOWED_ORIGINS_PROPERTY, String.class).orElse(null),
             config
                 .getOptionalValue(CorsPolicy.ALLOW_CREDENTIALS_PROPERTY, String.class)
-                .orElse("false"));
+                .orElse("false"),
+            config.getOptionalValue(CorsPolicy.PATHS_PROPERTY, String.class).orElse(null));
     boolean caching =
         config.getOptionalValue(StaticAssetCaching.ENABLED_PROPERTY, Boolean.class).orElse(true);
     boolean clientLog =
         config.getOptionalValue(ClientErrorLog.ENABLED_PROPERTY, Boolean.class).orElse(true);
     boolean mcp =
         config.getOptionalValue(McpEndpoint.ENABLED_PROPERTY, Boolean.class).orElse(false);
+    mcpEnabled = mcp;
     authenticationRequired = HelidonSeIdentity.authenticationRequired(config, beanManager);
     jaxRsAuthentication = HelidonSeIdentity.jaxRsAuthenticates(beanManager);
     principalResolvers =
@@ -112,15 +120,20 @@ public class MateuHelidonRoutes {
             // set when the response is sent — the first request builds the wire type allow-list
             io.mateu.core.infra.versioning.RendererCompatibility.check(
                 header(req, io.mateu.core.infra.versioning.RendererCompatibility.HEADER));
+            boolean stream = io.mateu.core.infra.SseHeaders.isStream(path);
             res.beforeSend(
                 () -> {
                   var build = io.mateu.core.infra.versioning.AppBuild.id();
                   if (build != null) {
                     res.header(io.mateu.core.infra.versioning.AppBuild.HEADER, build);
                   }
+                  if (stream) {
+                    // an event stream a buffering proxy passes on as it is written (SseHeaders)
+                    io.mateu.core.infra.SseHeaders.HEADERS.forEach(res::header);
+                  }
                 });
           }
-          if (policy.enabled() && CorsPolicy.appliesTo(path)) {
+          if (policy.enabled() && policy.covers(path)) {
             String origin = header(req, "Origin");
             if (origin != null) {
               String requestMethod = header(req, "Access-Control-Request-Method");
@@ -235,15 +248,11 @@ public class MateuHelidonRoutes {
               res.next();
               return;
             }
-            if (unauthenticated(req)
-                || (jaxRsAuthentication
-                    && !principalResolvers
-                    && carriesCredentials(req)
-                    && HelidonSeIdentity.principalOf(req) == null)) {
+            if (unauthenticated(req) || onlyJaxRsAuthenticates(req)) {
               // the app requires a login, or authenticates in JAX-RS and the caller brings
               // credentials nobody read here: Jersey answers it — its login check and its identity
-              // (roles included) apply there; the stream is then buffered, never run as nobody.
-              // A caller with no credentials is nobody in Jersey too, and keeps the live stream.
+              // (roles included) apply there, and the generated controller streams it through an
+              // SseEventSink (JerseySse). A caller with no credentials is nobody in Jersey too.
               res.next();
               return;
             }
@@ -255,6 +264,11 @@ public class MateuHelidonRoutes {
       routing.post(
           McpEndpoint.PATH,
           (req, res) -> {
+            if (onlyJaxRsAuthenticates(req)) {
+              // the identity exists only in Jersey: MateuJaxRsEndpoints answers it there
+              res.next();
+              return;
+            }
             if (unauthenticated(req)) {
               res.status(Status.UNAUTHORIZED_401).send();
               return;
@@ -280,15 +294,18 @@ public class MateuHelidonRoutes {
 
     if (YamlMounts.present(Thread.currentThread().getContextClassLoader())) {
       // served next to the @UI classes: a base path a class already serves is left to it
-      yamlMountRoutes(
-          routing,
+      yamlMounts =
           YamlMounts.notServedByClasses(
               YamlMounts.mounts(routeRegistry.get(), yamlAppLoader.get()),
-              generatedUis(beanManager).keySet()),
+              generatedUis(beanManager).keySet());
+      yamlMountRoutes(
+          routing,
+          yamlMounts,
           service::get,
           routeRegistry::get,
           yamlAppLoader::get,
-          this::unauthenticated);
+          this::unauthenticated,
+          this::onlyJaxRsAuthenticates);
     }
   }
 
@@ -316,6 +333,22 @@ public class MateuHelidonRoutes {
       Supplier<RouteRegistry> routeRegistry,
       Supplier<YamlAppLoader> yamlAppLoader,
       java.util.function.Predicate<ServerRequest> unauthenticated) {
+    yamlMountRoutes(
+        routing, mounts, service, routeRegistry, yamlAppLoader, unauthenticated, req -> false);
+  }
+
+  /**
+   * As above, handing to Jersey ({@link MateuJaxRsEndpoints}) the API calls {@code toJersey} says
+   * only JAX-RS can authenticate.
+   */
+  static void yamlMountRoutes(
+      HttpRouting.Builder routing,
+      List<YamlMounts.Mount> mounts,
+      Supplier<MateuService> service,
+      Supplier<RouteRegistry> routeRegistry,
+      Supplier<YamlAppLoader> yamlAppLoader,
+      java.util.function.Predicate<ServerRequest> unauthenticated,
+      java.util.function.Predicate<ServerRequest> toJersey) {
     for (var mount : mounts) {
       routing.get(mount.spaPath(), (req, res) -> index(req, res, mount));
       routing.get(
@@ -381,6 +414,10 @@ public class MateuHelidonRoutes {
         routing.post(
             mount.apiPrefix() + operation,
             (req, res) -> {
+              if (toJersey.test(req)) {
+                res.next();
+                return;
+              }
               if (unauthenticated.test(req)) {
                 res.status(Status.UNAUTHORIZED_401).send();
                 return;
@@ -398,7 +435,7 @@ public class MateuHelidonRoutes {
         DevEndpoint.EVENTS_PATH,
         (req, res) -> {
           res.header("Content-Type", "text/event-stream");
-          res.header("Cache-Control", "no-cache");
+          io.mateu.core.infra.SseHeaders.HEADERS.forEach(res::header);
           try (OutputStream out = res.outputStream();
               var events = DevEndpoint.events().toStream()) {
             var it = events.iterator();
@@ -459,6 +496,34 @@ public class MateuHelidonRoutes {
    * MateuForbiddenExceptionMapper} does — 403 with the public message. These routes run on
    * Helidon's own routing, which that mapper does not cover: a refusal surfaced as a 500.
    */
+  /**
+   * Whether only JAX-RS can tell who the caller is: the app authenticates in JAX-RS (MicroProfile
+   * JWT, a {@code ContainerRequestFilter}), resolves nobody itself, Helidon security authenticated
+   * nobody here, and the request brings credentials. Such a call is answered by Jersey — the
+   * generated controller or {@link MateuJaxRsEndpoints} — where that identity exists.
+   */
+  public boolean onlyJaxRsAuthenticates(ServerRequest req) {
+    return jaxRsAuthentication
+        && !principalResolvers
+        && carriesCredentials(req)
+        && HelidonSeIdentity.principalOf(req) == null;
+  }
+
+  /** Whether {@code /mateu/mcp} is served. */
+  public boolean mcpEnabled() {
+    return mcpEnabled;
+  }
+
+  /** The YAML mounts served next to the classes. */
+  public List<YamlMounts.Mount> yamlMounts() {
+    return yamlMounts;
+  }
+
+  /** Whether the app requires a login (see {@link #unauthenticated}). */
+  public boolean authenticationRequired() {
+    return authenticationRequired;
+  }
+
   /** The app requires a login and Helidon security authenticated nobody for this request. */
   private boolean unauthenticated(ServerRequest req) {
     return authenticationRequired
@@ -549,7 +614,7 @@ public class MateuHelidonRoutes {
       var events = stream.iterator();
       events.hasNext();
       res.header("Content-Type", "text/event-stream");
-      res.header("Cache-Control", "no-cache");
+      io.mateu.core.infra.SseHeaders.HEADERS.forEach(res::header);
       try (OutputStream out = res.outputStream()) {
         while (events.hasNext()) {
           out.write(WireMapper.sseEvent(events.next()).getBytes(StandardCharsets.UTF_8));

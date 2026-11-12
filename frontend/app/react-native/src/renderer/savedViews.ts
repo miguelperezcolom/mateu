@@ -2,10 +2,11 @@
  * Saved views for React Native listings — the RN counterpart of the web's `savedViewsStore`: a
  * named snapshot of the smart-search conditions (free-text `searchText` + every applied filter
  * value, range bounds included), with one optionally marked default (auto-applied on first load).
- * The store itself is in memory, keyed by the listing scope; a hub UI (and a fixed build) restores it
- * from the device and writes every change back (core/listingPrefs.ts — the web's localStorage), so
- * the views outlive the app; removing the UI from the hub list clears them.
+ * Kept per listing scope (the route + the listing) and persisted per UI on the device
+ * (`PersistedScopes`: AsyncStorage, localStorage on the web build), like the web's localStorage.
  */
+import { PersistedScopes } from './persistedScopes.ts';
+
 export interface SavedView {
   name: string;
   /** filter values by state key (searchText + <fieldId> / <fieldId>_from / <fieldId>_to …) */
@@ -13,13 +14,13 @@ export interface SavedView {
   isDefault?: boolean;
 }
 
-export class SavedViewsStore {
-  private readonly store = new Map<string, SavedView[]>();
-  /** Called after every change (core/listingPrefs.ts writes the device copy from it). */
-  onChange?: () => void;
+export class SavedViewsStore extends PersistedScopes<SavedView[]> {
+  constructor() {
+    super('mateu-saved-views');
+  }
 
   list(scope: string): SavedView[] {
-    return this.store.get(scope) ?? [];
+    return this.read(scope) ?? [];
   }
 
   /** Save (or replace, matching by name) a view. Empty names / empty snapshots are ignored. */
@@ -28,15 +29,12 @@ export class SavedViewsStore {
     if (!name || Object.keys(view.values ?? {}).length === 0) return;
     const views = this.list(scope).filter((v) => v.name !== name);
     views.push({ ...view, name });
-    this.store.set(scope, views);
-    this.onChange?.();
+    this.write(scope, views);
   }
 
   delete(scope: string, name: string): void {
     const views = this.list(scope).filter((v) => v.name !== name);
-    if (views.length === 0) this.store.delete(scope);
-    else this.store.set(scope, views);
-    this.onChange?.();
+    this.write(scope, views.length === 0 ? undefined : views);
   }
 
   /** Toggle the default flag on `name` (clearing it from every other view in the scope). */
@@ -45,23 +43,11 @@ export class SavedViewsStore {
       ...v,
       isDefault: v.name === name ? !v.isDefault : false,
     }));
-    this.store.set(scope, views);
-    this.onChange?.();
+    this.write(scope, views);
   }
 
   defaultView(scope: string): SavedView | undefined {
     return this.list(scope).find((v) => v.isDefault);
-  }
-
-  /** Every scope's views (what is written to the device). */
-  snapshot(): Record<string, SavedView[]> {
-    return Object.fromEntries([...this.store].map(([k, v]) => [k, v.map((view) => ({ ...view, values: { ...view.values } }))]));
-  }
-
-  /** Replaces the content with a stored [snapshot] (no change notification: nothing changed). */
-  restore(snapshot: Record<string, SavedView[]>): void {
-    this.store.clear();
-    for (const [k, v] of Object.entries(snapshot)) if (v.length) this.store.set(k, v.map((view) => ({ ...view })));
   }
 }
 

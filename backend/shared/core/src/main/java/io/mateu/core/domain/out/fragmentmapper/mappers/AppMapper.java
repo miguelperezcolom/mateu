@@ -114,7 +114,9 @@ public final class AppMapper {
             .liveUpdates(AppShellExtrasMapper.liveUpdates(app))
             .agentPush(io.mateu.core.application.agentpush.AgentPush.enabled())
             .osNotifications(AppShellExtrasMapper.osNotifications(app))
-            .pushNotifications(isPushNotificationsEnabled(app))
+            .pushNotifications(
+                AppShellExtrasMapper.osNotifications(app)
+                    && io.mateu.core.application.push.Push.available())
             .presence(AppShellExtrasMapper.presence(app))
             .idleSession(AppShellExtrasMapper.idleSession(app))
             .notificationsSource(
@@ -245,13 +247,6 @@ public final class AppMapper {
    * The bell renders when the app class implements {@link
    * io.mateu.uidl.interfaces.NotificationsSupplier}.
    */
-  /** The app class takes the mobile app's push registrations ({@code PushTokenRegistry}). */
-  private static boolean isPushNotificationsEnabled(AppShell app) {
-    return app.serverSideType() != null
-        && io.mateu.uidl.interfaces.PushTokenRegistry.class.isAssignableFrom(
-            forName(app.serverSideType()));
-  }
-
   private static boolean isNotificationsEnabled(AppShell app) {
     if (app.notifications() != null && app.notifications().source() != null) {
       return true;

@@ -180,7 +180,8 @@ https://mateu.io/java-ui-definition/components/ (the YAML keys are the Java reco
   `ProgressSteps`, `TaskProgress`, `Chart`, `TrendChart`, `Funnel`, `Heatmap`
 - **Planning & domain views**: `Calendar`, `Gantt`, `Kanban`, `PlanningBoard`, `MatrixGrid`,
   `Map`, `Bpmn`, `Workflow`, `ResourceGrid`, `TaskQueue`, `ProcessMonitor`, `RecordMerge`
-- **Actions & overlays**: `Button`, `ButtonGroup`, `MenuBar`, `ContextMenu`, `ActionPanel`,
+- **Actions & overlays**: `Button`, `ButtonGroup` (a dropdown; with `primary:` a split button),
+  `MenuBar`, `ContextMenu`, `ActionPanel`,
   `Dialog`, `ConfirmDialog`, `Drawer`, `DropZone`, `AddOnPicker`, `PaymentPicker`,
   `CookieConsent`, `Breadcrumbs`
 - **Conversation**: `Chat`, `MessageInput`, `MessageList`, `CommentThread`

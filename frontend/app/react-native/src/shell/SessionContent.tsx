@@ -20,6 +20,7 @@ import { interpolate } from '../core/expressions';
 import { buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
 import { TaskHost } from '../renderer/TaskHost';
 import { ConnectivityStrip } from './ConnectivityStrip';
+import { KeyboardShortcutsHost } from './KeyboardShortcutsHost';
 import { OutboxHost } from './OutboxHost';
 
 /**
@@ -41,6 +42,7 @@ export function SessionContent({ initialRoute, visible = true }: { initialRoute:
       <ConnectivityStrip visible={visible} />
       <OutboxHost visible={visible} />
       <DirtyGuardHost />
+      <KeyboardShortcutsHost visible={visible} />
     </>
   );
 }

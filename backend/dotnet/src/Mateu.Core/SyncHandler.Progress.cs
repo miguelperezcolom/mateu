@@ -143,6 +143,8 @@ internal sealed partial class SyncHandler
             };
             InboxStore.Add(principal, entry);
             LiveNotifications.Publish(principal, entry);
+            // and to the caller's phones, when the app sends pushes (remote push)
+            DeliverPush(principal, PushMessage.Of(entry));
             return m with { Key = id };
         }).ToList();
         return increment with { Messages = messages };

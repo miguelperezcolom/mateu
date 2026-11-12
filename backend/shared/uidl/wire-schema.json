@@ -859,6 +859,9 @@
         "size" : {
           "$ref" : "#/$defs/ButtonSizeDto"
         },
+        "split" : {
+          "type" : "boolean"
+        },
         "variant" : {
           "$ref" : "#/$defs/ButtonVariantDto"
         }

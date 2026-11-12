@@ -104,6 +104,22 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
             row.border = JBUI.Borders.empty(4, 8)
             val caption = JBLabel(plain(selector.text("label", fieldName)))
             row.add(caption, java.awt.BorderLayout.WEST)
+            val current = session.appState[fieldName]?.let { if (it is JsonNode) it.asText() else it.toString() } ?: ""
+            // many options: a searchable picker that also asks the server (_appcontext-search-<field>)
+            val loaded = selector.path("options").map { o -> o.text("value") to o.text("label", o.text("value")) }
+            if (AppContextSearch.searchable(loaded.size)) {
+                val picker = appContextSearchPicker(
+                    session, fieldName, selector.text("label", fieldName), loaded, current,
+                    metadata.text("rootRoute", metadata.text("route")), metadata.text("serverSideType").ifBlank { null },
+                ) { picked ->
+                    if (picked.isBlank()) session.appState.remove(fieldName) else session.appState[fieldName] = picked
+                    session.onAppContextChanged?.invoke()
+                }
+                caption.labelling(picker)
+                row.add(picker, java.awt.BorderLayout.CENTER)
+                sidebar.addStacked(row, 2)
+                continue
+            }
             val combo = com.intellij.openapi.ui.ComboBox<Pair<String, String>>()
             // The caption beside the combo was only visual: a screen reader announced an unnamed
             // combo (and, under Metal, an unnamed arrow button) for the active hotel/company.
@@ -116,7 +132,6 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
                 }
             }
             combo.addItem("" to "—")
-            val current = session.appState[fieldName]?.let { if (it is JsonNode) it.asText() else it.toString() } ?: ""
             var selectedIndex = 0
             selector.path("options").forEachIndexed { i, opt ->
                 val v = opt.text("value")
@@ -317,8 +332,8 @@ private fun menuCardVisual(card: MenuCards.Card): JComponent? {
         label.preferredSize = java.awt.Dimension(size, size)
         label.verticalAlignment = javax.swing.SwingConstants.TOP
         com.intellij.openapi.application.ApplicationManager.getApplication().executeOnPooledThread {
-            // SVG included (readImageSource sends it through the platform's public image loader)
-            val img = readImageSource(uri) ?: return@executeOnPooledThread
+            // raster or SVG, a data URI or a url
+            val img = SvgImages.load(uri) ?: return@executeOnPooledThread
             val scale = minOf(size.toDouble() / img.width, size.toDouble() / img.height)
             val icon = javax.swing.ImageIcon(img.getScaledInstance(
                 (img.width * scale).toInt().coerceAtLeast(1), (img.height * scale).toInt().coerceAtLeast(1), java.awt.Image.SCALE_SMOOTH))

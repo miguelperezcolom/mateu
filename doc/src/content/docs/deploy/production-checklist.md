@@ -58,15 +58,19 @@ What follows from it:
 - Serve the app at the **root of its host** (`https://admin.example.com/`), or under a **path
   prefix**: a servlet context path (`server.servlet.context-path=/crm`, and each framework's
   equivalent) works as it is, and behind a proxy that **strips** the prefix set
-  `mateu.public-base-path=/crm` (or trust the proxy's `X-Forwarded-Prefix`). The page is then
-  written for `/crm/…` — see [Serving the app under a path prefix](/deploy/under-a-path-prefix/).
+  `mateu.public-base-path=/crm` (or trust the proxy's `X-Forwarded-Prefix`:
+  `mateu.trust-forwarded-prefix=true`, also spelled `mateu.forwarded-prefix.trusted`). The page is
+  then written for `/crm/…` — see [Serving the app under a path prefix](/deploy/under-a-path-prefix/).
 - Several Mateu apps behind one host: give each its own prefix (`/crm/`, `/billing/`) and each loads
   its own `/crm/assets/…`, so they may run different Mateu releases. Apps that share the host's
   root (each only its own `@UI` path) all load `/assets/**` from the same place, so they must run the
   **same Mateu release**.
-- Long-running actions (`LongTask`, streamed responses) use **server-sent events**: disable response
-  buffering for the action endpoint on the proxy (`proxy_buffering off;` in nginx) and raise its read
-  timeout above your longest task.
+- Long-running actions (`LongTask`, streamed responses) use **server-sent events**. Every event
+  stream carries `X-Accel-Buffering: no` and `Cache-Control: no-cache, no-transform`, so nginx's
+  default buffering is off for it and nothing compresses it on the way. A proxy that ignores those
+  headers still needs buffering turned off for `…/mateu/v3/sse/` (`proxy_buffering off;`). Either
+  way, raise the proxy's **read timeout** above your longest silent stretch: a task that sends nothing
+  for longer is cut off.
 - Sticky sessions are **not** needed — see the next section.
 
 ### Compress the responses
@@ -205,8 +209,8 @@ only where an agent should operate the app, behind the same authentication as th
 
 - [ ] `mateu.version` pinned to a release; all `io.mateu` artifacts on it
 - [ ] Generated controllers present in the artifact; every menu entry loads
-- [ ] Served at the host root, or `@UI` path + `/assets/**` both routed to the backend
-- [ ] SSE not buffered by the proxy (if you use long-running actions)
+- [ ] Served at the host root, or `@UI` path + `/assets/**` both routed to the backend, or under a prefix (context path, or `X-Forwarded-Prefix` with `mateu.forwarded-prefix.trusted=true`)
+- [ ] Proxy read timeout above your longest silent stretch of a stream (if you use long-running actions)
 - [ ] JSON responses compressed by the server or the proxy (`server.compression.enabled=true` on Spring Boot)
 - [ ] No singleton view model with mutable fields
 - [ ] Your framework authenticates requests (resource server / OIDC / JWT module); services check permissions

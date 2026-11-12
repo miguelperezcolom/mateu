@@ -23,17 +23,32 @@ public class MateuCorsWebFilter implements WebFilter {
 
   private final CorsPolicy policy;
 
+  /**
+   * The filter for the allow-list alone (no extra paths).
+   *
+   * @deprecated use {@link #MateuCorsWebFilter(String, String, String)} instead (it adds {@code
+   *     mateu.cors.paths}); kept so code built against an earlier beta still links
+   */
+  @Deprecated(since = "3.0-beta.59", forRemoval = true)
+  public MateuCorsWebFilter(String allowedOrigins, String allowCredentials) {
+    this(allowedOrigins, allowCredentials, null);
+  }
+
+  @org.springframework.beans.factory.annotation.Autowired
   public MateuCorsWebFilter(
       @Value("${" + CorsPolicy.ALLOWED_ORIGINS_PROPERTY + ":}") String allowedOrigins,
-      @Value("${" + CorsPolicy.ALLOW_CREDENTIALS_PROPERTY + ":false}") String allowCredentials) {
-    this.policy = CorsPolicy.of(allowedOrigins, allowCredentials);
+      @Value("${" + CorsPolicy.ALLOW_CREDENTIALS_PROPERTY + ":false}") String allowCredentials,
+      @Value("${" + CorsPolicy.PATHS_PROPERTY + ":}") String paths) {
+    this.policy = CorsPolicy.of(allowedOrigins, allowCredentials, paths);
   }
 
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
     var request = exchange.getRequest();
     String origin = request.getHeaders().getOrigin();
-    if (!policy.enabled() || origin == null || !CorsPolicy.appliesTo(request.getPath().value())) {
+    if (!policy.enabled()
+        || origin == null
+        || !policy.covers(request.getPath().pathWithinApplication().value())) {
       return chain.filter(exchange);
     }
     var response = exchange.getResponse();

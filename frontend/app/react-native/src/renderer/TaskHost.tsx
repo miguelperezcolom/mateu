@@ -10,6 +10,8 @@ import { elapsedText, etaText, progressA11yValue, stepCountText, stripLabel, typ
 import { uiLocale } from '../core/money';
 import { localNotifier, wireOsNotifications, type NotificationPermission } from '../core/osNotifications';
 import type { MateuSession } from '../core/MateuSession';
+import { hubHandlesPushTaps, sameUi } from '../core/remotePush';
+import { onPushOpened } from '../ui/localNotifications';
 
 const inFront = () => AppState.currentState === 'active' || AppState.currentState == null;
 
@@ -22,6 +24,11 @@ export function useTaskLifecycle(session: MateuSession): void {
   useEffect(() => wireOsNotifications(session, inFront), [session]);
   useEffect(() => localNotifier().onOpened(({ route, scope }) => {
     if (scope !== session.api.baseUrl) return;
+    if (route) session.openView({ label: '', route, consumedRoute: '', serverSideType: '' });
+  }), [session]);
+  // a tapped REMOTE push of this UI, when no hub opens it (a fixed app: the session is the app)
+  useEffect(() => onPushOpened(({ ui, route }) => {
+    if (hubHandlesPushTaps() || !sameUi(ui, session.api.baseUrl)) return;
     if (route) session.openView({ label: '', route, consumedRoute: '', serverSideType: '' });
   }), [session]);
   useEffect(() => {
@@ -45,7 +52,11 @@ export function NotifyOnThisDevice({ session }: { session: MateuSession }) {
     <MateuButton label="Notify me on this device" buttonStyle="tertiary" icon="bell-outline"
       accessibilityLabel="Notify me on this device when something finishes or arrives"
       // asked ONLY here, from the user's tap
-      onPress={() => void localNotifier().request().then(setPermission)} />
+      onPress={() => void localNotifier().request().then((answer) => {
+        setPermission(answer);
+        // a server that sends pushes learns this phone's token at once (core/remotePush.ts)
+        if (answer === 'granted') session.pushSync?.();
+      })} />
   );
 }
 

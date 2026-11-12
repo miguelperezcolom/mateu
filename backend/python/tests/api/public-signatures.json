@@ -2507,6 +2507,48 @@
     ]
    }
   },
+  "InMemoryPushTokenStore": {
+   "class": [
+    [
+     "max_per_principal",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "max_principals",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "register": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "token",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "tokens_for": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "unregister": [
+     [
+      "token",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "InboxStore": {
    "class": [],
    "members": {
@@ -4020,7 +4062,119 @@
     ]
    }
   },
-  "PushRegistration": {
+  "PushMessage": {
+   "class": [
+    [
+     "title",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "text",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "route",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "data",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "of": [
+     [
+      "entry",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "PushNotifications": {
+   "class": [],
+   "members": {
+    "send": [
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "message",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "send_to_session": [
+     [
+      "session_id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "message",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "session_key": [
+     [
+      "session_id",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "subscribe": [
+     [
+      "deliver",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "PushResult": {
+   "class": [
+    [
+     "accepted",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "unregistered_tokens",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PushSender": {
+   "class": [],
+   "members": {
+    "send": [
+     [
+      "message",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "tokens",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "PushToken": {
    "class": [
     [
      "token",
@@ -4028,40 +4182,47 @@
      false
     ],
     [
-     "service",
-     "POSITIONAL_OR_KEYWORD",
-     false
-    ],
-    [
      "platform",
      "POSITIONAL_OR_KEYWORD",
-     false
+     true
     ],
     [
-     "ui_key",
+     "device_id",
      "POSITIONAL_OR_KEYWORD",
-     false
+     true
     ],
     [
-     "principal",
+     "ui",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
    ]
   },
-  "PushTokenRegistry": {
+  "PushTokenStore": {
    "class": [],
    "members": {
-    "register_push_token": [
+    "register": [
      [
-      "registration",
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "token",
       "POSITIONAL_OR_KEYWORD",
       false
      ]
     ],
-    "unregister_push_token": [
+    "tokens_for": [
      [
-      "registration",
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "unregister": [
+     [
+      "token",
       "POSITIONAL_OR_KEYWORD",
       false
      ]
@@ -4674,6 +4835,65 @@
   },
   "SeparatorBefore": {
    "class": []
+  },
+  "SignInProvider": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "label",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "icon",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "issuer",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "client_id",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "scopes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "audience",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "platforms",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "continue_param",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
   },
   "Signature": {
    "class": []
@@ -6473,6 +6693,16 @@
      "separator_before",
      "KEYWORD_ONLY",
      true
+    ],
+    [
+     "group",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "group_primary",
+     "KEYWORD_ONLY",
+     true
     ]
    ]
   },
@@ -7179,8 +7409,39 @@
      "color",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "buttons",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
-   ]
+   ],
+   "members": {
+    "group": [
+     [
+      "label",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "buttons",
+      "VAR_POSITIONAL",
+      false
+     ]
+    ],
+    "split": [
+     [
+      "primary",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "more",
+      "VAR_POSITIONAL",
+      false
+     ]
+    ]
+   }
   },
   "Calendar": {
    "class": [
@@ -8994,6 +9255,11 @@
     ],
     [
      "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -12921,6 +13187,11 @@
     ],
     [
      "css_classes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "id",
      "POSITIONAL_OR_KEYWORD",
      true
     ]

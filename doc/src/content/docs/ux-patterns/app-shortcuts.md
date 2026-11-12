@@ -79,7 +79,7 @@ Two more rules:
 - **Vaadin** — every screen of the app; the `?` list (`mateu-shortcuts-help`); quick launch in the ⌘K palette and in the command center.
 - **Redwood (Oracle VB)** — the same keys (`poc/keys.mjs`), the `?` list as an `oj-dialog`, quick launch in the Ask palette.
 - **IntelliJ plugin** — the keys on every Mateu view (a key the screen uses is left to the screen), a Keyboard shortcuts dialog, a "Go to code…" field.
-- **React Native** — no keyboard: quick launch is a **Code** field in the drawer, with the codes listed under it.
+- **React Native** — quick launch is a **Code** field in the drawer, with the codes listed under it; the keys work in its web build (an iPhone or Android app gets no key events).
 - Also from the C# (`[AppShortcut(Key = "f9", Route = "/reservations", Code = "RES")]`) and Python (`@app_shortcut(key="f9", route="/reservations", code="RES")`) backends.
 
 Demo: `demo-admin-panel` → **F9** (merge), **F8** (end of day), **Alt+Y** (sync), **?**, and **MRG** / **EOD** in the command center; `/e2-demo` shows the ⌘K palette (**HOME**).

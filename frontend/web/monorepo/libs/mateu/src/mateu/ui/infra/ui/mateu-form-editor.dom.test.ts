@@ -113,6 +113,16 @@ describe('mateu-form-editor (DOM)', () => {
         expect(row(el, 'vip').querySelector('.field-label-text')!.textContent).toBe('Is VIP')
     })
 
+    it('an edit names the component as its fieldId, so the definition lands in the state under it', async () => {
+        const el = await mount()
+        el.fieldId = 'definition'
+        let fieldId: unknown
+        el.addEventListener('value-changed', (e) => { fieldId = (e as CustomEvent).detail.fieldId })
+        button(el, 'Add Field').click()
+        await el.updateComplete
+        expect(fieldId).toBe('definition')
+    })
+
     it('Add Field appends a string field and selects it', async () => {
         const el = await mount()
         button(el, 'Add Field').click()

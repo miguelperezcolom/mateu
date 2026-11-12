@@ -83,6 +83,9 @@ public final class Inbox {
       try {
         store.add(principal, entry);
         LiveNotifications.publish(principal, entry);
+        // and to the caller's phones, when the app sends pushes (remote push)
+        io.mateu.core.application.push.Push.deliver(
+            principal, io.mateu.uidl.push.PushMessage.of(entry));
       } catch (RuntimeException e) {
         // the toast still shows: a store that fails must not fail the action
         org.slf4j.LoggerFactory.getLogger(Inbox.class)

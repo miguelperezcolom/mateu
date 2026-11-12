@@ -425,8 +425,15 @@ export function expandButton(node: FluentNode): Record<string, unknown> {
     if (node?.type === 'ButtonGroup') {
         // FormMapper/ButtonMapper: a group is a Button carrying the group's buttons as `children`
         const group = node as FluentNode & { label?: string, iconOnLeft?: string, iconOnRight?: string,
-            separatorBefore?: boolean, buttons?: FluentNode[] }
-        const out: Record<string, unknown> = { type: 'Button', children: (group.buttons ?? []).map(expandButton) }
+            separatorBefore?: boolean, buttons?: FluentNode[], primary?: FluentNode }
+        const children = (group.buttons ?? []).map(expandButton)
+        // a group with a primary is a SPLIT button: the primary itself, `split`, the rest as children
+        if (group.primary) {
+            const out: Record<string, unknown> = { ...expandButton(group.primary), children, split: true }
+            if (group.separatorBefore) out.separatorBefore = true
+            return out
+        }
+        const out: Record<string, unknown> = { type: 'Button', children }
         for (const key of ['label', 'iconOnLeft', 'iconOnRight', 'separatorBefore'] as const) {
             if (group[key] !== undefined) out[key] = group[key]
         }

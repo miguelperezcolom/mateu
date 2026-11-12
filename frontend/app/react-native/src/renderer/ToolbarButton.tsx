@@ -1,8 +1,9 @@
 import React from 'react';
 import { GroupMenuButton } from './GroupMenuButton';
+import { SplitMenuButton } from './SplitMenuButton';
 import { MateuButton } from '../ui/controls';
 import { interpolate } from '../core/expressions';
-import { buttonGroupMembers } from '../core/buttonGroup';
+import { buttonGroupMembers, splitButtonParts } from '../core/buttonGroup';
 import { useButtonPress } from './useButtonPress';
 import { usePendingAction } from './usePendingAction';
 
@@ -22,6 +23,10 @@ export function ToolbarButton({ button, ctx, runAction }: { button: Dict; ctx: {
   const pending = usePendingAction(id);
   if (members) {
     return <GroupMenuButton group={button} members={members} ctx={ctx as never} run={(a, p) => runAction(a, p)} />;
+  }
+  const split = splitButtonParts(button);
+  if (split) {
+    return <SplitMenuButton primary={split.primary} more={split.more} ctx={ctx as never} pending={pending} run={(a, p) => runAction(a, p)} />;
   }
   const press = pressButton(button, ctx, () => runAction(id, (button['parameters'] as Dict | undefined) ?? undefined), label);
   return (

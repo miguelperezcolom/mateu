@@ -256,13 +256,7 @@ internal static class ComponentMapper
             Text = pb2.Text, Theme = pb2.Theme,
         }),
         Anchor a => Dto(a, new AnchorMetadataDto(a.Text, a.Url, a.Target)),
-        Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId)
-        {
-            ButtonStyle = b.ButtonStyle ?? (b.Primary ? "primary" : null), Disabled = b.Disabled, Parameters = b.Parameters,
-            Route = b.Route,
-            // Java's ButtonMapper: a fluent button without a colour is "normal"
-            Color = "normal",
-        }),
+        Button b => Dto(b, ContentButton(b)),
         // A listing authored as data (YAML type: Listing): a client-side Crud over a REST source, the
         // shape Java's CrudlMapper emits for a definition-only listing (ft-orders golden).
         ListingComponent l => Dto(l, new CrudMetadataDto(l.Title,
@@ -466,12 +460,41 @@ internal static class ComponentMapper
             : null,
     };
 
-    private static ButtonDto FormButton(Button b) => new(b.Label, b.ActionId)
+    /// <summary>A content button (Java's ButtonMapper): a fluent button without a colour is
+    /// "normal". A group (<see cref="Button.Buttons"/>) carries them as children: with no action of
+    /// its own a dropdown (its label only), else a SPLIT button — the primary itself with
+    /// <c>split</c> (Java's ButtonMapper.groupToDto).</summary>
+    private static ButtonMetadataDto ContentButton(Button b)
     {
-        Disabled = b.Disabled,
-        ButtonStyle = b.ButtonStyle ?? (b.Primary ? "primary" : ToolbarStyleOf(b.ActionId)),
-        Route = b.Route,
-    };
+        var children = b.Buttons.Count > 0 ? b.Buttons.Select(c => (ComponentMetadataDto)ContentButton(c)).ToList() : null;
+        if (children is not null && string.IsNullOrEmpty(b.ActionId))
+            return new ButtonMetadataDto(b.Label, "") { Children = children };
+        return new ButtonMetadataDto(b.Label, b.ActionId)
+        {
+            ButtonStyle = b.ButtonStyle ?? (b.Primary ? "primary" : null), Disabled = b.Disabled, Parameters = b.Parameters,
+            Route = b.Route,
+            Color = "normal",
+            Children = children,
+            Split = children is not null,
+        };
+    }
+
+    /// <summary>A header/listing toolbar button (Java's FormMapper.mapToButtonDto), a group with
+    /// its buttons as children (a dropdown, or a SPLIT button when it has an action of its own).</summary>
+    private static ButtonDto FormButton(Button b)
+    {
+        var children = b.Buttons.Count > 0 ? b.Buttons.Select(FormButton).ToList() : null;
+        if (children is not null && string.IsNullOrEmpty(b.ActionId))
+            return new ButtonDto(b.Label, "") { Children = children };
+        return new(b.Label, b.ActionId)
+        {
+            Disabled = b.Disabled,
+            ButtonStyle = b.ButtonStyle ?? (b.Primary ? "primary" : ToolbarStyleOf(b.ActionId)),
+            Route = b.Route,
+            Children = children,
+            Split = children is not null,
+        };
+    }
 
     /// <summary>The style a header button takes from its action id when it declares none (Java's
     /// FormMapper.resolveStyle): save/create are primary, a cancel/back is tertiary.</summary>
@@ -538,7 +561,10 @@ internal static class ComponentMapper
                 if (!string.IsNullOrEmpty(pb.RangeSelectActionId)) ids.Add(pb.RangeSelectActionId);
                 break;
             case Mateu.Uidl.Map mp when !string.IsNullOrEmpty(mp.MarkerActionId): ids.Add(mp.MarkerActionId); break;
-            case Button b when !string.IsNullOrEmpty(b.ActionId): ids.Add(b.ActionId); break;
+            case Button b:
+                if (!string.IsNullOrEmpty(b.ActionId)) ids.Add(b.ActionId);
+                foreach (var member in b.Buttons) Collect(member, ids);
+                break;
             // an Element's `on` maps a DOM event to an action id of the view, like an ActionId
             case Element el: ids.AddRange(el.On.Values.Where(v => !string.IsNullOrWhiteSpace(v))); break;
             case EntityHeader eh:

@@ -207,6 +207,8 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         // a collection as checkboxes (`checkbox`), a list box (`listBox`, one pick or several)
         stereotype == "checkbox" && options.isNotEmpty() -> multiSelectField(ctx, fieldId, options, rawValue, enabled)
         stereotype == "listBox" && options.isNotEmpty() -> listBoxField(ctx, fieldId, options, rawValue, dataType == "array", enabled)
+        // a multi-select combobox (a collection) with inline options: one pick is not enough
+        stereotype == "combobox" && dataType == "array" && options.isNotEmpty() -> multiSelectField(ctx, fieldId, options, rawValue, enabled)
         stereotype == "treeSelect" -> treeSelectField(ctx, fieldId, metadata, value, enabled)
         stereotype == "radio" && options.isNotEmpty() -> radioField(ctx, fieldId, options, value, enabled)
         stereotype == "multiSelect" -> multiSelectField(ctx, fieldId, options, rawValue, enabled)

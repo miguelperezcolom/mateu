@@ -43,6 +43,12 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
   `foldoutAuto.conformance.test.ts` (libs/mateu, the reference — used by both web foldouts),
   `poc/test-conformance.mjs` (Redwood), `src/core/foldoutFit.conformance.test.ts` (React Native) and
   `FoldoutAutoConformanceTest.kt` (IntelliJ, whose desktop columns never fold today).
+- `sign-in-flow.json` — what a WEB client makes of the page's `<meta name="mateu-auth">` (the
+  sign-in providers): the providers it keeps (web only, declared order, unusable ones dropped,
+  defaults for label/icon/platforms), and what it shows at boot (nothing, straight to the only
+  provider, or the chooser) and after a failed attempt (always the chooser). Run by
+  `signInConfig.conformance.test.ts` (libs/mateu, the reference) and `poc/test-conformance.mjs`
+  (Redwood, `poc/signIn.mjs`). How a SERVER builds the block from its settings is `sign-in.json`.
 - `live-reload.json` — what a development server's live-reload event (`hello`, `specs-changed`,
   `reload`, `ping`) means for the screen on display: nothing, re-render the page or the app, and the
   boot id to remember (a new one = a restarted server). Run by `liveReload.conformance.test.ts`
@@ -54,6 +60,12 @@ two strings as numbers and treated `===` as `==`, and the Redwood bundle dropped
   Generated from the phone app's `src/hub/links.ts` (`HUB_LINKS_WRITE=true node --test
   src/hub/links.conformance.test.ts`), run by that test (React Native, the reference) and
   `HubLinksConformanceTest.kt` (IntelliJ).
+- `sign-in-flow-native.json` — `{ cases: [{ name, auth, platform: web|mobile|desktop, expect: { providers:
+  [id…], mode: none|direct|chooser } }] }`: a UI's `auth` block → the sign-in providers a platform
+  offers, in order, and whether it goes straight to one or asks. Hand-written; run by
+  `src/core/signInFlow.conformance.test.ts` (React Native) and `SignInFlowConformanceTest.kt`
+  (IntelliJ/desktop) for the native cases — native apps offer only `oidc` providers listing their
+  platform; `web` cases belong to the web renderers.
 - `source-templates.json` — a REST source's url / body template against a state: the url each `${…}`
   makes (values percent-encoded by position, encoded once, money sent as its amount, allow-listed
   calls such as `encodeURIComponent` / `String` / `Math.*`). Run by
@@ -95,6 +107,15 @@ client state yet and its increment is what the server rendered for the route —
 the increment is no value at all (the server's `putIfAbsent` fills a key mapped to null). For a
 pre-rendered increment the orders give the same answer; `route-params.json` pins that, and each
 server pins its own order in its route-registry tests.
+
+## Sign-in providers
+
+`sign-in.json` is a SERVER corpus: each case's `settings` (+ optional `code`, the providers declared
+in code) → the mobile manifest's `auth` block and the served page's `<meta name="mateu-auth">`
+(`null` = absent), plus how many WARNs the resolution logs. Java's `SignInProvidersCorpusTest` is
+the reference (`-Dsignin.corpus.write=true` rewrites the expected members); .NET's
+`SignInProvidersTests` and Python's `test_sign_in_providers.py` must answer byte for byte the same,
+reading each setting as its environment variable. The clients read the shapes it pins.
 
 ## Adding a case
 

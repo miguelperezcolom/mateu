@@ -234,6 +234,12 @@ live, or once in `manifest.json` for a bundle). A source gives **selection, not 
 (`itemsPath`, `totalPath`, `fields` name→path, `valuePath`/`labelPath`, `resultPath`). `proxy` is read
 off the **resolved** source, server-side, and is the only channel that injects `${secret.KEY}`.
 
+### Button groups — [button-group](/java-ui-definition/components/button-group/)
+A `Button` carrying `children` is a group. With `split: true` it is a **split button**: the button
+runs its own `actionId` (or `route`) and an adjacent ▾ opens the children. Without it, a **dropdown**:
+the button has no action of its own and only opens the children. A renderer that does not draw split
+buttons still runs the primary (a plain button), so the shape degrades without losing the main action.
+
 ### Behaviour bus — triggers → actions, events
 Triggers reference an action by id; an action carries confirm + effects. Components communicate over an
 abstract pub/sub bus: `UICommand.dispatchEvent` emits, `@SubscribeTo`/`@Emits` subscribe (scopes

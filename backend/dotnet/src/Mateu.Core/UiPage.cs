@@ -116,6 +116,46 @@ internal static class UiPage
         return html[..from] + root + DeferredBoot + html[to..];
     }
 
+    /// <summary>Whether <c>X-Forwarded-Prefix</c> is honoured, when <c>MateuOptions.ForwardedPrefixTrusted</c>
+    /// is not set (Java: <c>mateu.forwarded-prefix.trusted</c>).</summary>
+    public const string ForwardedPrefixTrustedEnvVar = "MATEU_FORWARDED_PREFIX_TRUSTED";
+
+    /// <summary>The header a prefix-stripping proxy sets.</summary>
+    public const string ForwardedPrefixHeader = "X-Forwarded-Prefix";
+
+    private static readonly System.Text.RegularExpressions.Regex SafePrefix =
+        new(@"^(/[A-Za-z0-9._~!$&'()*+,;=:@%-]+)+$");
+
+    public static bool ForwardedPrefixTrustedByEnvironment() =>
+        System.Environment.GetEnvironmentVariable(ForwardedPrefixTrustedEnvVar)?.Trim().ToLowerInvariant() == "true";
+
+    /// <summary>Java's <c>ForwardedPrefix.normalize</c>: "" or <c>/a/b</c> — the first value of a list, a
+    /// leading slash, no trailing one, and "" for anything that is not a plain path.</summary>
+    public static string NormalizePrefix(string? prefix)
+    {
+        if (string.IsNullOrEmpty(prefix)) return "";
+        var comma = prefix.IndexOf(',');
+        var value = (comma >= 0 ? prefix[..comma] : prefix).Trim().TrimEnd('/');
+        if (value.Length == 0) return "";
+        if (!value.StartsWith('/')) value = "/" + value;
+        return SafePrefix.IsMatch(value) && !value.Contains("/../", StringComparison.Ordinal)
+                                         && !value.EndsWith("/..", StringComparison.Ordinal)
+            ? value
+            : "";
+    }
+
+    /// <summary>Java's <c>ForwardedPrefix.of</c>: the trusted <c>X-Forwarded-Prefix</c> when there is one,
+    /// else the host's own path base (<c>HttpRequest.PathBase</c>, <c>UsePathBase</c>); "" for none.</summary>
+    public static string RequestPrefix(string? pathBase, string? forwardedPrefix, bool trusted)
+    {
+        if (trusted)
+        {
+            var forwarded = NormalizePrefix(forwardedPrefix);
+            if (forwarded.Length > 0) return forwarded;
+        }
+        return NormalizePrefix(pathBase);
+    }
+
     /// <summary>The renderer's page aimed at <paramref name="baseUrl"/> (the mount, "" for the root) and titled.</summary>
     /// <remarks>Like Java's <c>IndexPage.render</c>: the favicon marker becomes
     /// <see cref="DefaultFavicon"/> and no template marker is left in the page. With

@@ -79,6 +79,20 @@ class CapabilityListingSyncTest {
     }
   }
 
+  /** issue #1167: the record opens on another page (an editable one declared in routes.yaml). */
+  @UI("/redirecting-books")
+  public static class RedirectingBooks implements Listing<Book>, Navigable<Object, String> {
+    @Override
+    public ListingData<Book> search(SearchRequest request, HttpRequest httpRequest) {
+      return all();
+    }
+
+    @Override
+    public Object view(String id, HttpRequest httpRequest) {
+      return java.net.URI.create("/review/" + id);
+    }
+  }
+
   @UI("/editable-books")
   public static class EditableBooks implements Listing<Book>, Editable<Book, String> {
     static volatile String lastSavedTitle;
@@ -231,6 +245,7 @@ class CapabilityListingSyncTest {
             PlainBooks.class,
             SearchableBooks.class,
             NavigableBooks.class,
+            RedirectingBooks.class,
             EditableBooks.class,
             CreatableBooks.class,
             DeletableBooks.class,
@@ -406,6 +421,25 @@ class CapabilityListingSyncTest {
     assertThat(String.valueOf(detail)).contains("El Quijote");
     // a record's generated toString is a field dump, never a title: the class names it instead
     assertThat(String.valueOf(detail)).doesNotContain("Book[id=");
+  }
+
+  @Test
+  void aNavigableViewReturningAUriNavigatesThere() {
+    var detail =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/redirecting-books/b1")
+                .consumedRoute("/redirecting-books")
+                .serverSideType(RedirectingBooks.class.getName())
+                .actionId("")
+                .initiatorComponentId("cap_app")
+                .componentState(Map.of())
+                .build());
+    assertThat(
+            detail.commands().stream()
+                .filter(c -> c.type() == io.mateu.dtos.UICommandTypeDto.NavigateTo)
+                .map(c -> c.data()))
+        .containsExactly("/review/b1");
   }
 
   /**

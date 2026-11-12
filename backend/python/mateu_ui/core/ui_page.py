@@ -157,7 +157,51 @@ def render_index(
     b = public_base_paths.normalize(public_base)
     html = public_base_paths.rewrite(html, b)
     html = rewrite_oracle_cdn(without_markers(mount_ui(html, base_url, debug, b)), oracle_cdn)
+    # the ways to sign in the web clients offer (<meta name="mateu-auth">), before the PWA's head
+    from . import sign_in_providers
+
+    declared = getattr(app_type, "__mateu_mobile_app__", None) if app_type else None
+    html = sign_in_providers.head(html, declared)
     return pwa.served(html, b + base_url, app_type, build_id, b) or html
+
+
+#: Whether ``X-Forwarded-Prefix`` is honoured, when not passed to
+#: ``add_mateu(forwarded_prefix_trusted=…)`` (Java: ``mateu.forwarded-prefix.trusted``).
+FORWARDED_PREFIX_TRUSTED_ENV_VAR = "MATEU_FORWARDED_PREFIX_TRUSTED"
+
+#: The header a prefix-stripping proxy sets.
+FORWARDED_PREFIX_HEADER = "x-forwarded-prefix"
+
+_SAFE_PREFIX = re.compile(r"(/[A-Za-z0-9._~!$&'()*+,;=:@%-]+)+")
+
+
+def forwarded_prefix_trusted_from_env() -> bool:
+    return os.environ.get(FORWARDED_PREFIX_TRUSTED_ENV_VAR, "").strip().lower() == "true"
+
+
+def normalize_prefix(prefix: str | None) -> str:
+    """Java's ``ForwardedPrefix.normalize``: ``""`` or ``/a/b`` — the first value of a list, a
+    leading slash, no trailing one, and ``""`` for anything that is not a plain path."""
+    if not prefix:
+        return ""
+    value = prefix.split(",", 1)[0].strip().rstrip("/")
+    if not value:
+        return ""
+    if not value.startswith("/"):
+        value = "/" + value
+    if not _SAFE_PREFIX.fullmatch(value) or "/../" in value or value.endswith("/.."):
+        return ""
+    return value
+
+
+def request_prefix(root_path: str | None, forwarded_prefix: str | None, trusted: bool) -> str:
+    """Java's ``ForwardedPrefix.of``: the trusted ``X-Forwarded-Prefix`` when there is one, else the
+    server's own path base (the ASGI ``root_path``); ``""`` for none."""
+    if trusted:
+        forwarded = normalize_prefix(forwarded_prefix)
+        if forwarded:
+            return forwarded
+    return normalize_prefix(root_path)
 
 
 #: The mirror of Oracle's CDN, when not passed to ``add_mateu(oracle_cdn_url=…)`` (Java:

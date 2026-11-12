@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import './mateu-choice'
 import type { MateuChoice } from './mateu-choice'
 
-afterEach(() => { document.body.innerHTML = '' })
+afterEach(() => { document.body.innerHTML = ''; vi.unstubAllGlobals() })
 
 const options = [
     { value: 'a', label: 'Alpha' },
@@ -65,5 +65,20 @@ describe('choice field', () => {
         el.data = { f: { content: [{ value: 'r', label: 'Remote' }], totalElements: 1 } }
         await el.updateComplete
         expect(choices().map(c => c.textContent!.trim())).toEqual(['Remote'])
+    })
+})
+
+describe('choice field fed by a REST source', () => {
+    it('lists the source\'s options, and a multiple choice toggles their values', async () => {
+        vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify([{ id: 7, name: 'Apollo 11' }, { id: 25, name: 'Artemis III' }]), {
+            status: 200, headers: { 'Content-Type': 'application/json' },
+        })))
+        const optionsSource = { url: 'https://api.example.test/missions', valuePath: 'id', labelPath: 'name' }
+        const { el, changes, choices } = await mount({ field: { fieldId: 'f', dataType: 'array', optionsSource } as any, value: [25], data: {} as any })
+        await vi.waitFor(async () => { await el.updateComplete; expect(choices().length).toBe(2) })
+        expect(choices().map(c => c.textContent!.trim())).toEqual(['Apollo 11', 'Artemis III'])
+        expect(choices()[1].classList.contains('selected')).toBe(true)
+        choices()[0].click()
+        expect(changes.at(-1).value).toEqual([25, 7])
     })
 })

@@ -2,11 +2,38 @@
   "name": "mateu-vaadin",
   "private": false,
   "version": "0.0.15",
+  "description": "Mateu's Vaadin (Lumo) web renderer: the <mateu-ui> element that draws any Mateu UI served on the /mateu/v3 wire. A self-contained ES module bundle.",
+  "keywords": [
+    "mateu",
+    "vaadin",
+    "lit",
+    "web-components",
+    "model-driven-ui",
+    "low-code"
+  ],
+  "homepage": "https://mateu.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/miguelperezcolom/mateu.git",
+    "directory": "frontend/web/monorepo/apps/vaadin"
+  },
+  "bugs": {
+    "url": "https://github.com/miguelperezcolom/mateu/issues"
+  },
   "type": "module",
   "license": "Apache-2.0",
   "files": [
-    "dist"
+    "dist/assets",
+    "README.md"
   ],
+  "module": "dist/assets/mateu-vaadin.js",
+  "exports": {
+    ".": "./dist/assets/mateu-vaadin.js",
+    "./mateu-vaadin.js": "./dist/assets/mateu-vaadin.js",
+    "./assets/*": "./dist/assets/*",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": true,
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -27,6 +54,7 @@
     "vitest": "^5.0.3"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   }
 }

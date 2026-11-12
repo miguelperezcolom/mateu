@@ -38,7 +38,11 @@ public class MobileManifestTests
     private const string Acme =
         "{\"name\":\"Acme CRM\",\"shortName\":\"CRM\",\"icon\":\"/images/acme.svg\",\"themeColor\":\"#1f6feb\","
         + "\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\",\"auth\":{\"type\":\"oidc\","
-        + "\"issuer\":\"https://auth.acme.com/realms/acme\",\"clientId\":\"mateu-mobile\",\"scopes\":[\"openid\",\"profile\"]}}";
+        + "\"issuer\":\"https://auth.acme.com/realms/acme\",\"clientId\":\"mateu-mobile\",\"scopes\":[\"openid\",\"profile\"],"
+        // the single provider of before, now provider "default" (native only)
+        + "\"loginOnStart\":true,\"providers\":[{\"id\":\"default\",\"type\":\"oidc\",\"label\":\"Sign in\",\"icon\":\"key\","
+        + "\"issuer\":\"https://auth.acme.com/realms/acme\",\"clientId\":\"mateu-mobile\",\"scopes\":[\"openid\",\"profile\"],"
+        + "\"platforms\":[\"mobile\",\"desktop\"]}]}}";
 
     private const string Plain = "{\"name\":\"Plain\",\"shortName\":\"Plain\",\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\"}";
 
@@ -88,7 +92,10 @@ public class MobileManifestTests
             Environment.SetEnvironmentVariable("MATEU_MOBILE_OIDC_SCOPES", "openid email");
             Assert.Equal(
                 "{\"name\":\"Plain\",\"shortName\":\"Plain\",\"wireVersion\":\"3.0\",\"minAppVersion\":\"1.0.0\","
-                + "\"auth\":{\"type\":\"oidc\",\"issuer\":\"https://idp.example\",\"clientId\":\"app\",\"scopes\":[\"openid\",\"email\"]}}",
+                + "\"auth\":{\"type\":\"oidc\",\"issuer\":\"https://idp.example\",\"clientId\":\"app\",\"scopes\":[\"openid\",\"email\"],"
+                + "\"loginOnStart\":true,\"providers\":[{\"id\":\"default\",\"type\":\"oidc\",\"label\":\"Sign in\",\"icon\":\"key\","
+                + "\"issuer\":\"https://idp.example\",\"clientId\":\"app\",\"scopes\":[\"openid\",\"email\"],"
+                + "\"platforms\":[\"mobile\",\"desktop\"]}]}}",
                 MobileManifest.Json(typeof(MobilePlainApp)));
         }
         finally

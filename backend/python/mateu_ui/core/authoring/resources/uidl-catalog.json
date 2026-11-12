@@ -381,7 +381,7 @@
     } ]
   }, {
     "type" : "ButtonGroup",
-    "description" : "A group of buttons shown together, usually collapsed into a single dropdown trigger.",
+    "description" : "A group of buttons shown together: a dropdown — one trigger labelled label opening its buttons — or, when it has a primary, a SPLIT button: the primary action runs from the button itself and an adjacent ▾ opens the other buttons (the group's label is not drawn then).",
     "attributes" : [ {
       "name" : "id",
       "type" : "string"
@@ -400,6 +400,9 @@
     }, {
       "name" : "buttons",
       "type" : "list of Component"
+    }, {
+      "name" : "primary",
+      "type" : "Component"
     } ]
   }, {
     "type" : "Calendar",
@@ -1183,8 +1186,11 @@
     } ]
   }, {
     "type" : "FormEditor",
-    "description" : "A form-definition editor component. value is the JSON FormDefinition string.",
+    "description" : "A form-definition editor component. value is the JSON FormDefinition string. id names the state key the edited definition is written to (a field of the view model).",
     "attributes" : [ {
+      "name" : "id",
+      "type" : "string"
+    }, {
       "name" : "value",
       "type" : "string"
     } ]
@@ -2769,8 +2775,11 @@
     } ]
   }, {
     "type" : "Workflow",
-    "description" : "A workflow-definition editor component. value is the JSON WorkflowDefinition string.",
+    "description" : "A workflow-definition editor component. value is the JSON WorkflowDefinition string. id names the state key the edited definition is written to (a field of the view model).",
     "attributes" : [ {
+      "name" : "id",
+      "type" : "string"
+    }, {
       "name" : "value",
       "type" : "string"
     } ]

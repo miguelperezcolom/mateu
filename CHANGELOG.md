@@ -8,6 +8,58 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added
+
+- **Split buttons.** A `ButtonGroup` with a `primary` is a split button: the primary action runs
+  from the button itself and an adjacent ▾ ("More actions") opens the other buttons — fluent
+  `ButtonGroup.split(primary, more…)` / `ButtonGroup.of(label, buttons…)` / `builder().primary(…)`,
+  declared `@Toolbar(group = "save", groupPrimary = true)` (also on `@Button`), YAML
+  `type: ButtonGroup` with `primary:`. On the wire it is the primary `Button` with `split: true` and
+  the rest as `children`. Drawn by Vaadin (one `vaadin-menu-bar`), Redwood (`oj-button` + an
+  icon-only `oj-menu-button`; the Spectra header lists the primary first), React Native (Paper
+  button + menu) and the desktop (`JButton` + a ▾ with a popup menu). .NET `Button.Group`/
+  `Button.Split` + `[Toolbar(Group, GroupPrimary)]` and Python `Button.group`/`Button.split` +
+  `@toolbar(group=, group_primary=)` emit the same wire, and both now read a YAML `ButtonGroup`
+  (conformance case `button-groups`). The Explorer's Button entry shows both shapes in YAML, in
+  Java and declared. Docs: [ButtonGroup & split buttons](https://mateu.io/java-ui-definition/components/button-group/).
+
+- **Sign-in providers (server side).** A UI declares the ways to sign in —
+  `mateu.auth.providers=keycloak,github` with `mateu.auth.providers.<id>.type|label|icon|issuer|
+  client-id|scopes|audience|url|platforms|continue-param|tenant`, `mateu.auth.login-on-start`,
+  `mateu.auth.logout-url` (env `MATEU_AUTH_*`), or in code a `SignInProvidersSupplier` bean (Java,
+  `io.mateu.uidl.security.SignInProvider`), `MateuOptions.SignIn` (.NET), `add_mateu(sign_in=[…])`
+  (Python). Well-known ids fill themselves in (`google`, `microsoft` + `tenant`, `entra`, `github`,
+  `apple`, `facebook`, `x`, `linkedin`, `gitlab` → `/oauth2/authorization/<id>`; `keycloak`, `okta`,
+  `auth0`, `cognito`, `zitadel`, `authentik` with your issuer). The mobile manifest's `auth` gains
+  `providers`, `loginOnStart` and `logoutUrl` (its `type`/`issuer`/`clientId`/`scopes` stay, = the
+  first oidc provider offered on mobile, for the published phone app), and every served page — every
+  Java adapter, YAML mounts, the Redwood page, .NET and Python — carries the web providers in
+  `<meta name="mateu-auth">`. `@MobileApp(oidcIssuer…)` / `mateu.mobile.oidc.*` keep working as the
+  native-only provider `default`. An unusable provider is skipped with a WARN at startup. Pinned
+  byte for byte by `conformance/client/sign-in.json` in the three backends and by
+  `AdapterParityITFoundation.offersTheSignInProviders` on the five adapters. Guide:
+  [Sign-in providers](https://mateu.io/deploy/sign-in/). Mateu still validates nothing: the host
+  framework does.
+
+### Fixed — UI modules built against an earlier beta (issue #1167)
+
+- **A UI module compiled against 3.0-beta.52–57 runs on this release again.** The controllers the
+  annotation processors generate are compiled into the module's jar and call
+  `IndexPage.Spec`'s constructor; beta.58 dropped the shapes carrying `IndexPage.Keycloak`, so
+  EventConductor's console (2.37.0/2.38.1) failed at startup with `NoSuchMethodError`. Both shapes
+  and the `Keycloak` record are back, deprecated (the Keycloak settings are ignored with one WARN:
+  declare the sign-in with `mateu.auth.providers`). Verified by starting `demo-eventconductor` with
+  the published EventConductor 2.37.0. To keep it from happening again, the API guard (japicmp) now
+  also covers every class the generated controllers call — `IndexPage`, `Pwa`, `MobileManifest`,
+  `SpaFallback`, `ForwardedPrefix`, `YamlMounts`, `MateuService`… in core, and the request/SSE/CORS
+  classes of the five adapters.
+- **A `URI` inside a returned list navigates.** `return List.of(Message.success("Saved"),
+  URI.create("/x"))` showed the message and dropped the navigation; it now navigates, as a `URI`
+  returned alone does. .NET gains the same (`System.Uri`, alone or in a list); Python already
+  navigated to a route string in a list.
+- **`Navigable.view(id)` may return a `URI`** (or `URL`): the row then opens that address — an
+  editable page declared in `routes.yaml`, another app — instead of failing in
+  `FormViewSerializer`.
 ### Accessibility
 
 - **The gaps of the WCAG 2.2 conformance report, fixed** (`quality/accessibility-conformance.md`
@@ -80,6 +132,64 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   keys, so the value of an `eyesOnly:` / `access:` field reached a caller who may not see it. Fixed in
   Java, .NET and Python, for fields of the page and of the business components it draws (conformance
   case `yaml-eyes-only` now seeds the hidden field).
+- **The web clients keep the Bearer token in a cookie by default** (Vaadin/libs `authToken.ts`,
+  Redwood `poc/authStore.mjs`): `__mateu_auth_token=<token>; Path=<the mount>; SameSite=Strict`,
+  `Secure` on https, no `Domain`, `Max-Age` from the token's expiry (else a session cookie) — it was
+  `localStorage`. Requests still send `Authorization: Bearer`; servers read the header, never the
+  cookie. Cookies disabled, a write that does not read back or a token over ~3800 bytes fall back
+  to `sessionStorage` (then memory); reads look in the cookie, the configured storage,
+  `sessionStorage`, `localStorage`; writing or clearing removes every other copy.
+  `<meta name="mateu-auth-token-storage">` / `configureAuthToken({ storage, cookiePath })` accept
+  `cookie | localStorage | sessionStorage | memory` (now on Redwood too). The built-in sign-in's
+  refresh and id tokens never go into the cookie: `sessionStorage` (`__mateu_auth_session_secrets`)
+  by default, the non-secret part of the record in `localStorage`. A script-written cookie cannot be
+  HttpOnly; the docs now show how to let the framework keep an HttpOnly session instead
+  ([deploy/sign-in.md](https://mateu.io/deploy/sign-in/#httponly-cookie-let-the-server-keep-the-session)).
+
+### Added — sign-in providers on the web
+
+- **The web renderers sign the user in themselves when the UI declares sign-in providers**
+  (`<meta name="mateu-auth">`, see [Sign-in providers](https://mateu.io/deploy/sign-in/)). One
+  provider is followed straight away, several are offered in an accessible chooser ("Continue with
+  …", English/Spanish, no brand artwork). OIDC providers run Authorization Code + PKCE (S256) with
+  state and nonce, come back to the route the user was on, refresh before expiry and on a 401;
+  redirect providers go to the framework's login URL with `continue=`. A 401 nobody else handles is
+  refreshed and retried, else the user signs in again; an `onSessionExpired` handler, a claimed
+  `mateu-session-expired` event or `configureAuthToken({ provider })` still take precedence.
+  "Sign out" appears in the header (and `signOut()` from `mateu`): end_session at the IdP or the
+  framework's `logoutUrl`. Vaadin (libs/mateu `infra/auth`) and Redwood (`poc/signIn.mjs`) are held
+  to the new client corpus `conformance/client/sign-in-flow.json`; browser probe
+  `e2e/sign-in-probe.mjs` (mock IdP).
+
+### Added — sign-in providers in the native apps
+
+- **The phone and desktop apps offer every sign-in provider a UI declares** (`auth.providers`): the
+  `oidc` ones for their platform, straight to the one there is, or a chooser ("Continue with …", the
+  provider used last first) when there are several. A `redirect` provider is not offered by a native
+  app (its login ends in a browser cookie, not a token). A manifest with only the single `auth.issuer`
+  / `clientId` keys is provider `default`, as before. One signed-in provider per UI; sign-out uses the
+  provider that signed in. Corpus `conformance/client/sign-in-flow-native.json`, run by both apps.
+- **The desktop app signs in without a device grant**: when the provider's discovery has no
+  `device_authorization_endpoint` (Google, Apple, most social providers), it uses Authorization Code +
+  PKCE with a loopback redirect (`http://127.0.0.1:<port>/callback`, RFC 8252). It also signs in when a
+  UI opens (the manifest's `loginOnStart`), not only on the first 401, and its settings gained an OIDC
+  `audience`.
+
+### Added
+
+- **Remote push to phones (experimental).** With `@App(osNotifications = true)` and a sender, an
+  `inbox` message to a signed-in user also reaches their phone while the Mateu app is suspended or
+  closed. The phone registers its Expo push token through the reserved app-level action
+  `_push-register`, and removes it with `_push-unregister` on sign-out, when the UI leaves the hub, or
+  when notifications are turned off. A tapped push opens its UI at its route, and a push that arrives
+  while the app is in front is not shown twice. Delivery is behind interfaces: `PushSender` and
+  `PushTokenStore` (in memory by default, lost on restart, with a WARN), plus
+  `PushNotifications.send(user, …)` for your own entries. Mateu's optional Expo sender is turned on
+  with `mateu.push.expo.enabled=true` (batches of 100; `DeviceNotRegistered` unregisters the token).
+  The wire adds `AppDto.pushNotifications`. The same API exists in .NET (`IPushSender`,
+  `IPushTokenStore`, `MateuOptions.ExpoPush`) and Python (`add_mateu(push_sender=…, expo_push=True)`).
+  Phone builds need your FCM `google-services.json` (`GOOGLE_SERVICES_JSON`) and an APNs key
+  (`MATEU_IOS_PUSH=true`); the "Push notifications to phones" deploy guide has the steps.
 
 ### Added
 
@@ -90,15 +200,6 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `.ui(…)` / `.bean(…)` / `.specs(dir)`, no Spring needed); C#: `Mateu.AspNetCore.Testing.MateuTest`;
   Python: `mateu_ui.testing.MateuTest`. The Spring MVC starter (and the projects generated from it)
   ships a `ProductsUiTest`. Guide: [Testing your UIs](https://mateu.io/quality/testing-your-uis/).
-- **Push notifications on the Mateu phone app (experimental).** An app class implementing
-  `PushTokenRegistry` (.NET `IPushTokenRegistry`, Python `PushTokenRegistry`) makes the phone offer
-  *Notifications on this phone* in that UI's drawer; turning it on asks the OS for permission and
-  registers the phone's Expo push token with that UI only (app-level actions `_push-register` /
-  `_push-unregister`, wire `AppDto.pushNotifications`), turning it off or removing the UI
-  unregisters it. The backend keeps the tokens and sends through Expo Push Service with
-  `data.mateu = {ui, route}`; a tap opens that UI at that route, in the hub and in a fixed build.
-  Mateu stores no token and sends nothing. Replaces the known issue "no OS notification from a
-  suspended or closed app". Needs a new store build with APNs/FCM credentials.
 
 - **Mateu's own words in French, German, Portuguese and Italian.** Everything Mateu draws by itself —
   buttons, the filter bar, pagination, dialogs, errors, the connectivity banner, accessible labels,
@@ -174,24 +275,77 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   fields show `18.000.000`, not `1.8E7`; timeline icons are IDE icons, not token text; the menu goes
   back to the left on every start.
 
-### Fixed — renderer gaps
+### Added
 
-- **The IntelliJ plugin and the desktop app draw SVG images.** An `Image`, an avatar, a menu card,
-  an offer card or a hero background whose source is an SVG (a `.svg` url, an `image/svg+xml` data
-  URI, base64 or percent-encoded, or an url that serves SVG without saying so) is drawn instead of
-  its `alt` placeholder — through the platform's public `ImageLoader`, which the plugin verifier
-  accepts. Avatars also paint their `image` (any format) in the circle, not only the initials.
-- **Multi-value fields read a REST `optionsSource`.** A multi-select, a checkbox group, a list box, a
-  tree select or a multi combobox fed by `@RestOptions` / `optionsSource` (or a catalogue `ref`) drew
-  no options — only the single select read a source. Fixed on Vaadin, Redwood, React Native and the
-  desktop.
-- **React Native keeps saved views and column choices on the device.** They lasted one app run; now
-  each UI's listings keep them (the web's localStorage equivalent), restored on the next open, and
-  removing the UI from the hub list clears them.
+- **`mateu-vaadin` is published on npm again**, by the release workflow, at each release's number
+  spelled as SemVer (`v3.0-beta.N` → `3.0.0-beta.N`; a pre-release of a later line goes out under the
+  `next` dist-tag). It is the same self-contained bundle every Mateu app serves at
+  `/assets/mateu-vaadin.js`. The job runs after the tests and is skipped while the repository has no
+  `NPM_TOKEN` secret.
+- **React Native: an embedded app has its shell extras.** A `MicroFrontend` or island answering an
+  `App` shows a compact bar above its content with its app-context selectors, up to two header
+  actions (the rest in a "More" sheet) and its notification bell.
+- **React Native: saved listing views and column choices survive a restart** (stored on the device
+  per UI, route and listing), and the column chooser reorders columns.
+
+### Fixed
+
+- **A toolbar group (`@Toolbar(group = …)`, a `ButtonGroup` in a toolbar) works in the page header
+  and the listing toolbar on the web.** It was drawn as one button labelled like the group that ran
+  nothing; it is now the renderer's dropdown, and the header's «⋯» overflow lists its buttons. The
+  desktop's native toolbar dropped a group altogether; it now lists its buttons.
+
+- **Multi-value fields read `optionsSource`.** `multiSelect`, `listBox`, checkbox groups, tree selects,
+  multi-select `combobox` and `choice` fields take their options from a REST source like a select does (by `ref`
+  or inline, direct or proxied), on Vaadin, Redwood, React Native and IntelliJ; the picks are written back as
+  the options' own values (numeric ids stay numbers). On IntelliJ a multi-select combobox with inline
+  options is a checkbox group instead of a single pick.
+- **IntelliJ and the desktop app draw SVG images** (`Image`, hero backgrounds, card and menu-card
+  media, image fields), rasterised with the bundled JSVG library (MIT), instead of showing the alt
+  text; avatars paint their `image` (any format) in the circle, not only the initials.
+- **Desktop app branding on every platform:** the launchers start without IntelliJ IDEA's splash
+  screen, and Help ▸ About names the app and its Mateu release. The Linux and Windows installers are
+  built on CI only, so this is first verified by the next release's installers.
+
+### Added — touch and desktop
+
+- **React Native: drag rows onto a drop zone.** A long press lifts a `@DragRows` listing row — or the
+  selection it is part of — and carries it to a `DropZone`; the zones of its type light up, the one
+  under the finger fills in, and letting go sends the web's drop parameters (`_draggedIds`,
+  `_dragType`). A long press let go without moving opens the **Move to…** picker, which stays as the
+  screen reader's way.
+- **React Native: `Workflow` and `FormEditor` are editable**, with the web editors' operations:
+  settings, steps added / edited / deleted (deleting one clears what pointed at it), fields added /
+  duplicated / moved / edited / deleted, each one's properties in a dialog; Export shares the JSON.
+  `Bpmn` stays a read-only diagram, as on the web (whose renderer is a viewer).
+- **React Native: hardware keyboard shortcuts in the web build** — `@Action(shortcut)`,
+  `@Tab(shortcut)`, `@AppShortcut(key)` and an `ActionPanel`'s shortcut, a screen's key winning over
+  the app's. iOS and Android give an Expo app no key events, so an attached keyboard does nothing
+  there yet (known issue).
+- **IntelliJ: `Workflow` and `FormEditor` are editable** (settings, a list of steps / fields with a
+  properties form), and an `@AppContext` picker with more than seven options searches the server
+  (`_appcontext-search-<field>`) instead of only its loaded options. Photo capture keeps the file
+  picker: no pure-Java webcam library exists (known issue).
+- **Every renderer writes an edited `Workflow` / `FormEditor` definition under the component's id**
+  (the web element now names it as `fieldId` in its `value-changed`), and both components take an `id`
+  in the three backends (`Workflow.builder().id("definition")`, .NET `{ Id = "definition" }`, Python
+  `Workflow(id="definition")`): the view-model field of that name receives the edited JSON. Without
+  an id they keep the filler `fieldId`.
 
 ### Removed
 
 - `plugins-v*` releases no longer publish the plugins on their own.
+
+### Fixed — Redwood (known issues)
+
+- **A static remote that ships raw definitions loads.** A `RemoteMenu` naming a `specsOnly` static
+  bundle's `manifest.json` is no longer shown disabled: its menu, screens and deep links are answered
+  from the manifest, the definitions expanded in the browser by the same expander as Vaadin.
+- **An island's `appState` is sent back.** What an island's (or the page's) answer put in `appState`,
+  and a `MicroFrontend`'s declared `appState`, travel with every later action.
+- **An island that is the page's content gets its `@Toc` index.**
+- **Multi-value fields read `optionsSource`** (`multiSelect`, `listBox`, multi `combobox`) in the page
+  form, the row editor and the listing filters.
 
 ### Fixed — Redwood (from the Explorer review)
 
@@ -289,6 +443,31 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   the log lines).
 - A listing's `@ColumnWidth("auto")` is an auto-width column again (it was sent as a CSS width of
   `auto`).
+
+### Fixed — Deployment
+
+- **A Mateu app works under a path prefix.** Under a servlet context path
+  (`server.servlet.context-path`, `spring.webflux.base-path`) or behind a proxy that strips a prefix
+  and sends `X-Forwarded-Prefix`, the served page loads its assets, calls its API and keeps the
+  address bar under the prefix. Before, it loaded `/assets/…` from the host root: a blank page. The
+  header is honoured only with `mateu.forwarded-prefix.trusted=true` (all five adapters, .NET
+  `ForwardedPrefixTrusted`, Python `forwarded_prefix_trusted`). `<mateu-ui>` carries the prefix as
+  `contextPath`. The installable app is not available under a prefix yet (see known issues).
+- **Event streams pass through buffering proxies.** Every server-sent-event response sends
+  `X-Accel-Buffering: no` and `Cache-Control: no-cache, no-transform`, on the five adapters and both
+  ports. nginx's default buffering no longer holds a `LongTask`'s progress until the end.
+- **Micronaut accepts an `application/*+json` body** on the sync, SSE and YAML-mount endpoints, and
+  **Quarkus accepts `application/json ;charset=UTF-8`** (blanks before the `;`). Both answered 415.
+  The five adapters are now held to the same JSON spellings by a parity test.
+- **Helidon MP: an app that authenticates only in JAX-RS** (MicroProfile JWT, a
+  `ContainerRequestFilter`) is seen by MCP and the YAML mounts too: a call bringing credentials is
+  answered through Jersey. A streamed action answered by Jersey is sent event by event through an
+  `SseEventSink` instead of a buffered `StreamingOutput`. The adapter now depends on
+  `jersey-media-sse`.
+- **`mateu.cors.paths`**: extra path patterns Mateu's CORS allow-list covers (`/elements/**`). A shell
+  on another origin can load a remote screen's `Element` module with no CORS setup of its own.
+- Micronaut logs one WARN at startup on JDK 21–23 with virtual threads (the carrier-pinning
+  limitation), and the route index is built under a lock instead of a monitor.
 
 ### Documentation
 

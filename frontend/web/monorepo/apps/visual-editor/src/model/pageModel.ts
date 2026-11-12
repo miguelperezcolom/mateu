@@ -395,6 +395,7 @@ function denormalizeSlots(node: any): any {
  * Pinned to the generated schema by `pageModel.slots.test.ts`.
  */
 export const SINGLE_SLOTS: Record<string, string[]> = {
+    ButtonGroup: ['primary'],
     Card: ['media', 'headerPrefix', 'header', 'title', 'subtitle', 'headerSuffix', 'footer'],
     ContentLink: ['componentSupplier', 'component'],
     ContextMenu: ['wrapped'],

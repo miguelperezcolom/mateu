@@ -194,8 +194,9 @@ class ComponentRenderer(val ctx: AppContext) {
             "CookieConsent" -> renderCookieConsent(metadata)
             "Element" -> renderElement(ctx, metadata)
             "Bpmn" -> renderBpmn(metadata)
-            "Workflow" -> renderSourceView("Workflow", metadata.text("value"))
-            "FormEditor" -> renderSourceView("Form definition", metadata.text("value"))
+            // editable: each edit writes the definition's JSON into the state under the component's id
+            "Workflow" -> renderWorkflowEditor(ctx, component.text("id"), metadata.text("value"))
+            "FormEditor" -> renderFormDefinitionEditor(ctx, component.text("id"), metadata.text("value"))
             // ── conversation ──
             "Chat" -> renderChat(ctx, metadata)
             "MessageList" -> renderMessageList(metadata)

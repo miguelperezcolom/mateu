@@ -5,18 +5,19 @@ import { Text } from '../../ui/Text';
 import { headingA11y } from '../../a11y/a11y';
 import { MateuAppProvider } from '../../context/AppContext';
 import { OidcTokenProvider } from '../../core/oidc';
+import type { OidcConfig } from '../../core/oidcConfig';
+import { rememberProvider, signInPlanFrom, signInTexts, type SignInPlan } from '../../core/signInProviders';
+import { SignInChooser } from '../../ui/SignInChooser';
 import { BACK_HINT, type MateuSession, type ScreenBack } from '../../core/MateuSession';
 import { SessionContent } from '../../shell/SessionContent';
 import { type StaticBundle } from '../../core/staticBundle';
 import { ScreenSnapshots } from '../../core/screenSnapshots';
-import { loadListingPrefs, type ListingPrefsSnapshot } from '../../core/listingPrefs';
 import { timed } from '../../core/timing';
 import { cachedStaticBundle } from '../bundleCache';
 import { theme, themed } from '../../theme';
-import { domainOf } from '../links';
 import { appSide } from '../appUpdate';
 import { appCompatibility, compatMessage, HUB_TEXTS, hubLang } from '../compat';
-import { fetchManifest, type ManifestFetch, type UiManifest } from '../manifest';
+import { fetchManifest, manifestProviders, type ManifestFetch, type UiManifest } from '../manifest';
 import { allowInsecure, metaStore, secretStore, uiStore } from '../storage';
 import { uiSecretKeys, type HubEntry } from '../uiStore';
 import { hubBarSignsOut, uiSessionId, rotateUiSessionId } from '../uiSession';
@@ -84,7 +85,6 @@ export function UiSession({
   const [barClaimed, setBarClaimed] = useState(false);
   const [manifest, setManifest] = useState<UiManifest | undefined>(entry.manifest);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [listingPrefs, setListingPrefs] = useState<ListingPrefsSnapshot | null>(null);
   /** A static UI (no server): the bundle it runs from. */
   const [bundle, setBundle] = useState<StaticBundle | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -116,12 +116,15 @@ export function UiSession({
     return false;
   };
 
-  const provider = useMemo(
-    () => (manifest?.auth ? new OidcTokenProvider(manifest.auth, secretStore, uiSecretKeys(entry.id).tokens) : null),
-    // the provider is per UI and per identity provider; a manifest change of issuer/client re-creates it
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [entry.id, manifest?.auth?.issuer, manifest?.auth?.clientId],
-  );
+  // The UI's sign-in providers (manifest `auth.providers`): which one this session uses — the one
+  // whose tokens are stored, the only one, or the user's pick in the chooser. One signed-in provider
+  // per UI at a time; its tokens live under THIS UI's key, stamped with the provider's issuer and
+  // client, so another provider never reads them (oidcConfig.ts tokensBelongTo).
+  const keys = uiSecretKeys(entry.id);
+  const [plan, setPlan] = useState<SignInPlan | null>(null);
+  const [provider, setProvider] = useState<OidcTokenProvider | null>(null);
+  const providerFor = (config: OidcConfig) => new OidcTokenProvider(config, secretStore, keys.tokens);
+  const planSignIn = async (m: UiManifest): Promise<SignInPlan> => signInPlanFrom(manifestProviders(m), secretStore, keys.tokens, keys.signInProvider);
 
   useEffect(() => {
     let alive = true;
@@ -164,15 +167,15 @@ export function UiSession({
         return;
       }
       const id = await uiSessionId(secretStore, entry.id);
-      // the listings' saved views and column choices this UI was left with (kept on the device)
-      const prefs = await loadListingPrefs(metaStore, entry.id);
+      const signInPlan = await planSignIn(m.manifest);
       if (!alive) return;
-      setListingPrefs(prefs);
+      setPlan(signInPlan);
+      setProvider(signInPlan.provider ? providerFor(signInPlan.provider) : null);
       setManifest(m.manifest);
       setBundle(found.bundle);
       setSessionId(id);
       if (applyCompat(m.manifest)) return;
-      setPhase(m.manifest.auth ? { name: 'signin' } : { name: 'ready' });
+      setPhase(signInPlan.mode !== 'none' ? { name: 'signin' } : { name: 'ready' });
     })();
     return () => {
       alive = false;
@@ -193,38 +196,47 @@ export function UiSession({
   }, [phase, provider]);
 
   const signingIn = useRef(false);
-  const signIn = async () => {
+  const [busy, setBusy] = useState(false);
+  const signIn = async (config: OidcConfig) => {
     if (signingIn.current) return; // a second tap must not open a second browser
     signingIn.current = true;
+    setBusy(true);
+    const target = provider && provider.config === config ? provider : providerFor(config);
     try {
-      if (await provider!.login()) setPhase({ name: 'ready' });
-      else setPhase({ name: 'signin', error: 'Sign-in was cancelled.' });
+      if (await target.login()) {
+        await rememberProvider(secretStore, keys.signInProvider, config);
+        setProvider(target);
+        setPhase({ name: 'ready' });
+      } else setPhase({ name: 'signin', error: signInTexts(hubLang()).cancelled });
     } catch (e) {
       setPhase({ name: 'signin', error: e instanceof Error ? e.message : String(e) });
     } finally {
       signingIn.current = false;
+      setBusy(false);
     }
   };
 
+  const liveSession = useRef<MateuSession | null>(null);
+
+  /** Signs out of the provider that signed in (its own end-session), then asks again. */
   const signOutHere = async () => {
+    // the phone stops receiving this UI's pushes first (core/remotePush.ts)
+    await liveSession.current?.pushUnregister?.().catch(() => undefined);
     await provider?.logout();
     setSessionId(await rotateUiSessionId(secretStore, entry.id));
+    if (manifest) setPlan(await planSignIn(manifest));
     setPhase({ name: 'signin' });
   };
 
   const onSession = useCallback(
     (session: MateuSession) => {
       session.hub = { goHome: onHome, openSwitcher: onSwitch, uiName: entry.name, claimBar: setBarClaimed, hostBack: (back) => setScreenBack(back) };
+      liveSession.current = session;
       onLive?.(entry.id, session);
-      if (provider) {
-        session.signOut = async () => {
-          await provider.logout();
-          setSessionId(await rotateUiSessionId(secretStore, entry.id));
-          setPhase({ name: 'signin' });
-        };
-      }
+      if (provider) session.signOut = signOutHere;
     },
-    [onHome, onSwitch, entry.name, provider, entry.id, onLive],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [onHome, onSwitch, entry.name, provider, entry.id, onLive, manifest],
   );
 
   // the last screens, shown at once on the next open — never for a UI that signs in: what a
@@ -271,16 +283,15 @@ export function UiSession({
     body = (
       <View style={hubStyles.centered}>
         <UiIcon name={name} icon={manifest?.icon} color={color} size={64} />
-        <Text style={hubStyles.title} {...headingA11y(2)}>Sign in to {name}</Text>
-        <Text style={hubStyles.text}>
-          You sign in with {manifest?.auth ? domainOf(manifest.auth.issuer) : 'your organisation'}. Mateu never sees your password.
-        </Text>
-        <PrimaryButton label="Sign in" icon="login" onPress={() => void signIn()} style={styles.wide} />
-        {!!phase.error && (
-          <Text style={hubStyles.error} accessibilityLiveRegion="polite">
-            {phase.error}
-          </Text>
-        )}
+        <SignInChooser
+          uiName={name}
+          providers={plan?.ordered ?? []}
+          lastUsed={plan?.lastUsed}
+          onChoose={(p) => void signIn(p)}
+          busy={busy}
+          error={phase.error}
+          lang={hubLang()}
+        />
       </View>
     );
   } else {
@@ -295,7 +306,7 @@ export function UiSession({
             </View>
           </View>
         )}
-        <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox, listingPrefs: listingPrefs && { store: metaStore, scope: entry.id, initial: listingPrefs } }}>
+        <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox }}>
           <SessionContent initialRoute={route} visible={visible} />
         </MateuAppProvider>
       </>

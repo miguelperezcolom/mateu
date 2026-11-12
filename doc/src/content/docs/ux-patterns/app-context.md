@@ -186,7 +186,11 @@ class BackofficeApp:
 The native shells render the same wire field:
 
 - **React Native** — selectors at the top of the drawer; session-scoped, picking a value remounts
-  the current screen.
+  the current screen. An app **embedded** in a page (a `MicroFrontend` or an island answering an
+  `App`) has no drawer there: it gets a compact bar above its content with one chip per selector, up
+  to two header actions (the rest, and every dropdown group, in a "More" sheet) and its notification
+  bell with the unread count. The chips open the same selectors in a bottom sheet; header actions
+  run app-level against the embedded app's class, like the web's.
 - **Desktop app** (IntelliJ, focused mode) — one combo per selector on the top bar ("Hotel: Riu
   Palace ▾"), next to **Home**; in a developer's IDE they sit at the top of the Mateu panel. Picking
   a value reloads the app shell.

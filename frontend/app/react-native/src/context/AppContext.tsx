@@ -6,20 +6,21 @@ import { MateuApiClient, setStreamingFetch } from '../api/MateuApiClient';
 setStreamingFetch(expoFetch as unknown as typeof fetch);
 // OS-level notifications (App.osNotifications): expo-notifications, local only (core/osNotifications.ts)
 import { setLocalNotifier } from '../core/osNotifications';
-import { platformNotifier } from '../ui/localNotifications';
+import { platformNotifier, platformPushTokens } from '../ui/localNotifications';
+import { setPushTokenSource } from '../core/remotePush';
 setLocalNotifier(platformNotifier());
-// PUSH notifications of a UI (App.pushNotifications): Expo push tokens (core/pushNotifications.ts)
-import { setPushPort } from '../core/pushNotifications';
-import { platformPushPort } from '../ui/pushPort';
-setPushPort(platformPushPort());
+// saved listing views and column choices survive a restart: the device's app storage (per UI)
+import { setListingPrefsStorage } from '../renderer/persistedScopes';
+import { metaStore } from '../hub/storage';
+setListingPrefsStorage(metaStore);
+// …and REMOTE push, for a UI whose server sends pushes (core/remotePush.ts)
+setPushTokenSource(platformPushTokens());
 import { MateuSession } from '../core/MateuSession';
 import { randomUuid } from '../core/sessionId';
 import type { TokenProvider } from '../core/auth';
 import type { StaticBundle } from '../core/staticBundle';
 import type { ScreenSnapshots } from '../core/screenSnapshots';
 import type { OfflineQueue } from '../core/offlineQueue';
-import type { KeyValueStore } from '../core/sessionId';
-import { persistListingPrefs, type ListingPrefsSnapshot } from '../core/listingPrefs';
 
 export interface MateuConfig {
   baseUrl: string;
@@ -35,9 +36,6 @@ export interface MateuConfig {
   snapshots?: ScreenSnapshots | null;
   /** The offline send queue of this UI (`@Action(offline = QUEUE)`, core/offlineQueue.ts). */
   outbox?: OfflineQueue | null;
-  /** The listings' saved views and column choices kept on the device for this UI (`scope`), already
-   *  read (`initial`): restored before the first screen and written back on every change. */
-  listingPrefs?: { store: KeyValueStore; scope: string; initial: ListingPrefsSnapshot } | null;
 }
 
 interface AppContextValue {
@@ -67,10 +65,6 @@ export function MateuAppProvider({ config, children }: Props) {
     if (config.bundle) ref.current.openStaticBundle(config.bundle);
     if (config.snapshots) ref.current.snapshots = config.snapshots;
     if (config.outbox) ref.current.outbox = config.outbox;
-    if (config.listingPrefs) {
-      const { store, scope, initial } = config.listingPrefs;
-      persistListingPrefs(ref.current.columnPrefs, ref.current.savedViews, store, scope, initial);
-    }
     config.onSession?.(ref.current);
   }
   const session = ref.current;
@@ -81,5 +75,14 @@ export function MateuAppProvider({ config, children }: Props) {
     appState: session.appState,
   };
 
+  return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;
+}
+
+/**
+ * The same context for ANOTHER session (an embedded app's own: a micro frontend served by another
+ * backend), so the app-level pieces it draws — context selectors, the inbox — talk to that app.
+ */
+export function SessionContextProvider({ session, children }: { session: MateuSession; children: React.ReactNode }) {
+  const value = React.useMemo<AppContextValue>(() => ({ session, api: session.api, appState: session.appState }), [session]);
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;
 }

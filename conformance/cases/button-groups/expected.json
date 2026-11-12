@@ -1,0 +1,75 @@
+{
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "metadata" : {
+            "actionId" : "save",
+            "children" : [ {
+              "actionId" : "saveDraft",
+              "color" : "normal",
+              "label" : "Save as draft",
+              "type" : "Button"
+            } ],
+            "color" : "normal",
+            "label" : "Save",
+            "split" : true,
+            "type" : "Button"
+          },
+          "type" : "ClientSide"
+        }, {
+          "metadata" : {
+            "children" : [ {
+              "actionId" : "exportCsv",
+              "color" : "normal",
+              "label" : "CSV",
+              "type" : "Button"
+            }, {
+              "actionId" : "exportPdf",
+              "color" : "normal",
+              "label" : "PDF",
+              "type" : "Button"
+            } ],
+            "label" : "Export",
+            "type" : "Button"
+          },
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "title" : "Button groups",
+          "toolbar" : [ {
+            "actionId" : "publish",
+            "buttonStyle" : "primary",
+            "children" : [ {
+              "actionId" : "schedule",
+              "label" : "Schedule",
+              "type" : "Button"
+            } ],
+            "label" : "Publish",
+            "split" : true,
+            "type" : "Button"
+          }, {
+            "children" : [ {
+              "actionId" : "print",
+              "label" : "Print",
+              "type" : "Button"
+            }, {
+              "actionId" : "duplicate",
+              "label" : "Duplicate",
+              "type" : "Button"
+            } ],
+            "label" : "More",
+            "type" : "Button"
+          } ],
+          "type" : "Form"
+        },
+        "type" : "ClientSide"
+      } ],
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}

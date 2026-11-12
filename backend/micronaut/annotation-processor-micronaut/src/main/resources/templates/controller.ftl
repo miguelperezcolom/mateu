@@ -74,11 +74,14 @@ public class ${simpleClassName}MateuController implements MateuController {
         return response.contentType(asset.contentType());
     }
 
-    @Post("v3/sync{/ignored:.*}")
+    // consumes ALL + the body as text (io.mateu.MicronautBodies): an application/*+json body is as
+    // JSON as application/json (JsonBodyGuard has refused anything else already)
+    @Post(value = "v3/sync{/ignored:.*}", consumes = MediaType.ALL)
     public Mono<UIIncrementDto> runStepSync(
         @PathVariable("ignored") @Nullable String ignored,
-        @Body RunActionRqDto rq,
+        @Body @Nullable String body,
         HttpRequest<?> serverHttpRequest) throws Throwable {
+        var rq = io.mateu.MicronautBodies.runActionRq(body);
         var httpRequest = new MicronautHttpRequest(serverHttpRequest).storeRunActionRqDto(rq);
         httpRequest.setAttribute("uiId", uiId);
         httpRequest.setAttribute("baseUrl", baseUrl);
@@ -87,11 +90,12 @@ public class ${simpleClassName}MateuController implements MateuController {
 
     // Streamed actions (LongTask, Action.sse): one text/event-stream "data:" event per increment.
     @Produces(MediaType.TEXT_EVENT_STREAM)
-    @Post("v3/sse/{/ignored:.*}")
+    @Post(value = "v3/sse/{/ignored:.*}", consumes = MediaType.ALL)
     public Mono<HttpResponse<?>> runStepSse(
         @PathVariable("ignored") @Nullable String ignored,
-        @Body RunActionRqDto rq,
+        @Body @Nullable String body,
         HttpRequest<?> serverHttpRequest) throws Throwable {
+        var rq = io.mateu.MicronautBodies.runActionRq(body);
         var httpRequest = new MicronautHttpRequest(serverHttpRequest).storeRunActionRqDto(rq);
         httpRequest.setAttribute("uiId", uiId);
         httpRequest.setAttribute("baseUrl", baseUrl);

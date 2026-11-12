@@ -9,7 +9,9 @@
 //     '__mateu_auth_token', then calls context.retry(); or context.giveUp() to fail normally.
 //  2. DOM: a cancelable 'mateu-session-expired' CustomEvent on document with the same
 //     {retry, giveUp} detail — preventDefault() to take ownership.
-// With neither, the request fails exactly as before (no behavior change).
+// With neither, the BUILT-IN sign-in (infra/auth, when the page declares providers in
+// <meta name="mateu-auth">) refreshes the token and retries, or asks the user to sign in again.
+// Without that either, the request fails exactly as before (no behavior change).
 
 export interface SessionExpiredContext {
     /** Re-run the failed request with the (re-newed) credentials; resolves the original call. */
@@ -24,6 +26,16 @@ let handler: SessionExpiredHandler | undefined
 
 export const onSessionExpired = (h: SessionExpiredHandler | undefined) => {
     handler = h
+}
+
+let builtIn: SessionExpiredHandler | undefined
+
+/**
+ * The handler of the built-in sign-in (signIn.ts installs it when the page declares providers):
+ * consulted only when no app handler is registered and nobody claimed the DOM event.
+ */
+export const setBuiltInSessionExpiredHandler = (h: SessionExpiredHandler | undefined) => {
+    builtIn = h
 }
 
 /**
@@ -59,6 +71,10 @@ export const handleSessionExpired = <T>(
         })
         const claimed = typeof document !== 'undefined' ? !document.dispatchEvent(event) : false
         if (!claimed) {
+            if (builtIn) {
+                builtIn(context)
+                return
+            }
             // nobody re-authenticates: fail exactly like before the guard existed
             context.giveUp()
         }

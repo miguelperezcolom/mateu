@@ -20,12 +20,12 @@ completes as if nothing happened.
 Plug your re-auth flow (programmatically, from your app's bootstrap script):
 
 ```ts
-import { onSessionExpired } from 'mateu';
+import { onSessionExpired, setAuthToken } from 'mateu';
 
 onSessionExpired(async ({ retry, giveUp }) => {
     const ok = await openLoginPopup();          // your flow: popup, refresh token, SSO iframe…
     if (ok) {
-        localStorage.setItem('__mateu_auth_token', ok.token);  // where Mateu reads the Bearer
+        setAuthToken(ok.token);                 // Mateu's token store (a cookie by default)
         retry();                                // re-runs the failed request, action completes
     } else {
         giveUp();                               // fail normally (user declined)
@@ -55,22 +55,43 @@ document.addEventListener('mateu-session-expired', e => {
   refuses this (an undeclared action, a missing role). Redwood shows "No tienes permiso para hacer
   esto." instead of the session message.
 - With **no handler registered**, behavior is exactly as before: the request fails — the guard is
-  fully opt-in.
+  fully opt-in. The exception is a UI that declares [sign-in providers](/deploy/sign-in/): then the
+  built-in sign-in answers (next section).
 - Because the page never navigates, everything holds: form values, wizard position, scroll,
   selection. Combine with the [dirty guard](/ux-patterns/partial-forms/) and
   [autosave](/ux-patterns/autosave/) for defense in depth.
 
-## Keycloak (the generated bootstrap page): handled for you
+## Sign-in providers: the built-in answer
 
-An app secured with Keycloak through Mateu's generated bootstrap page needs none of the above —
-the page does it:
+When the UI declares [sign-in providers](/deploy/sign-in/) (`mateu.auth.providers=…`), the served
+page carries them in `<meta name="mateu-auth">` and both web renderers (Vaadin and Redwood) sign the
+user in themselves — no bootstrap script to write:
 
-- it **claims `mateu-session-expired`**, forces a token refresh (`updateToken(-1)`) and retries the
-  request; if the refresh fails the Keycloak session itself is gone (expired, revoked, the realm
-  was reset), so it sends the browser to the **login** instead of leaving a "session is no longer
-  valid" message whose retry resends the same dead token;
-- it refreshes on **`onTokenExpired`** and again whenever the tab **becomes visible** — browsers
-  throttle timers in background tabs and sleeping laptops, which is how a token expires unnoticed.
+- **At boot**, with `loginOnStart` (the default) and no session, one provider is followed straight
+  away and several are offered in a chooser ("Continue with Google", "Continue with Acme SSO"…).
+  Nothing loads behind it. `loginOnStart: false` loads the app and waits for the first 401.
+- **An OIDC provider** runs Authorization Code + PKCE (S256) with `state` and `nonce`: the browser
+  goes to the IdP's authorize endpoint and comes back to the mount's root (register
+  `<origin><mount>/` as the redirect URI); the code is redeemed, the URL is cleaned and put back on
+  the route the user was on. The access token goes where [the Bearer token is
+  kept](/java-user-manual/advanced/security/#where-the-browser-keeps-the-bearer-token) — a
+  `SameSite=Strict` cookie by default, its refresh token in `sessionStorage`, never in the cookie —
+  and is refreshed a minute before it expires.
+- **A redirect provider** (the framework owns the login: Spring's `oauth2Login`, SAML, form login…)
+  sends the browser to its `url` with `continue=<the current URL>`.
+- **A 401** that no `onSessionExpired` handler and no `mateu-session-expired` listener claimed is
+  answered by the refresh token and the request is retried, as above. Without one (or when the
+  refresh is refused), the user signs in again — straight to the only provider, coming back to this
+  URL, or through the chooser, which they may decline (the request then fails as it would have).
+- **Sign out** appears in the app header while the built-in sign-in holds a session (`signOut()`
+  from `mateu` does the same): the tokens go, then the IdP ends its session (`end_session_endpoint`
+  with `id_token_hint`, back to the mount) or the browser goes to `logoutUrl`.
+- A failed attempt (the IdP answered an error, the code could not be redeemed) always shows the
+  chooser with a message, even for a single provider — a broken IdP is never a redirect loop.
+
+**Your own handler still wins**: an `onSessionExpired` handler, a claimed `mateu-session-expired`
+event, or `configureAuthToken({ provider })` (the app keeps the token itself, so it also owns
+sign-in) take precedence over the built-in.
 
 ## Container-managed login (basic auth / form login): the invisible 302
 

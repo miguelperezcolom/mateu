@@ -296,12 +296,9 @@ internal static class YamlComponentBuilder
                 Style = Str(map, "style"),
                 CssClasses = Str(map, "cssClasses"),
             },
-            "Button" => new Button(Str(map, "label") ?? "", ActionIdOf(map))
-            {
-                Primary = Str(map, "buttonStyle") == "primary",
-                Disabled = Bool(map, "disabled"),
-                Route = RouteLinkOf(map),
-            },
+            "Button" => ContentYamlButton(map),
+            // a group: a dropdown, or a SPLIT button when it has a `primary:` (Java's ButtonGroup)
+            "ButtonGroup" => GroupOf(map, ContentYamlButton),
             // A listing authored as data: rows from a REST source, fetched client-side (the yaml
             // starter's products page). Before 2026-10-17 it rendered "Unsupported component".
             "Listing" => BuildListing(map, partials, chain),
@@ -475,12 +472,30 @@ internal static class YamlComponentBuilder
     };
 
     private static Button FormButton(IDictionary<object, object> b) =>
-        new(Str(b, "label") ?? "", ActionIdOf(b))
+        Str(b, "type") == "ButtonGroup" ? GroupOf(b, FormButton) : new(Str(b, "label") ?? "", ActionIdOf(b))
         {
             ButtonStyle = Str(b, "buttonStyle"),
             Disabled = Bool(b, "disabled"),
             Route = RouteLinkOf(b),
         };
+
+    private static Button ContentYamlButton(IDictionary<object, object> map) =>
+        new(Str(map, "label") ?? "", ActionIdOf(map))
+        {
+            Primary = Str(map, "buttonStyle") == "primary",
+            Disabled = Bool(map, "disabled"),
+            Route = RouteLinkOf(map),
+        };
+
+    /// <summary>A YAML <c>type: ButtonGroup</c>: its <c>buttons:</c>, behind a dropdown labelled
+    /// <c>label</c>, or — with a <c>primary:</c> — a SPLIT button (that button, the rest behind ▾).</summary>
+    private static Button GroupOf(IDictionary<object, object> map, Func<IDictionary<object, object>, Button> button)
+    {
+        var members = Maps(map, "buttons").Select(button).ToArray();
+        return map.TryGetValue("primary", out var p) && p is IDictionary<object, object> primary
+            ? Button.Split(button(primary), members)
+            : Button.Group(Str(map, "label") ?? "", members);
+    }
 
     // ── page templates ─────────────────────────────────────────────────────────────────────
 

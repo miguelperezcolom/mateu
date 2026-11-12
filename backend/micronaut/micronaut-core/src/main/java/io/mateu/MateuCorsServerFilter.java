@@ -24,10 +24,23 @@ public class MateuCorsServerFilter implements Ordered {
 
   private final CorsPolicy policy;
 
+  /**
+   * The filter for the allow-list alone (no extra paths).
+   *
+   * @deprecated use {@link #MateuCorsServerFilter(String, String, String)} instead (it adds {@code
+   *     mateu.cors.paths}); kept so code built against an earlier beta still links
+   */
+  @Deprecated(since = "3.0-beta.59", forRemoval = true)
+  public MateuCorsServerFilter(String allowedOrigins, String allowCredentials) {
+    this(allowedOrigins, allowCredentials, null);
+  }
+
+  @jakarta.inject.Inject
   public MateuCorsServerFilter(
       @Value("${" + CorsPolicy.ALLOWED_ORIGINS_PROPERTY + ":}") String allowedOrigins,
-      @Value("${" + CorsPolicy.ALLOW_CREDENTIALS_PROPERTY + ":false}") String allowCredentials) {
-    this.policy = CorsPolicy.of(allowedOrigins, allowCredentials);
+      @Value("${" + CorsPolicy.ALLOW_CREDENTIALS_PROPERTY + ":false}") String allowCredentials,
+      @Value("${" + CorsPolicy.PATHS_PROPERTY + ":}") String paths) {
+    this.policy = CorsPolicy.of(allowedOrigins, allowCredentials, paths);
   }
 
   @Override
@@ -42,7 +55,7 @@ public class MateuCorsServerFilter implements Ordered {
     String origin = request.getHeaders().getOrigin().orElse(null);
     String requestMethod = request.getHeaders().get("Access-Control-Request-Method");
     if (!policy.enabled()
-        || !CorsPolicy.appliesTo(request.getPath())
+        || !policy.covers(request.getPath())
         || !CorsPolicy.isPreflight(request.getMethodName(), origin, requestMethod)) {
       return null;
     }
@@ -62,7 +75,7 @@ public class MateuCorsServerFilter implements Ordered {
     String origin = request.getHeaders().getOrigin().orElse(null);
     if (!policy.enabled()
         || origin == null
-        || !CorsPolicy.appliesTo(request.getPath())
+        || !policy.covers(request.getPath())
         || response.getHeaders().contains("Access-Control-Allow-Origin")) {
       return;
     }

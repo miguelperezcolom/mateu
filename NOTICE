@@ -52,6 +52,10 @@ are trademarks of JetBrains s.r.o.; the Mateu desktop app is not a JetBrains
 product and is not endorsed by JetBrains. The Mateu plugin itself (the
 io.mateu.ijp code) is Mateu code under Apache License 2.0.
 
+The IntelliJ plugin (and so the desktop app) bundles two pure-Java libraries,
+each under its own permissive licence: ZXing core (QR codes; Apache License
+2.0) and JSVG by Jannis Weis (SVG images; MIT License).
+
 The Map component draws OpenStreetMap tiles by default (map data
 © OpenStreetMap contributors, ODbL). The public OSM tile servers are not meant
 for heavy production traffic: deployments should configure their own provider.

@@ -395,18 +395,17 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
                     this.route = route ?: "/"
                     registryUrl = ""
                     appId = ""
-                    val auth = current.auth
-                    if (auth != null) {
-                        authMode = MateuSettings.AuthMode.OIDC
-                        oidcIssuer = auth.issuer
-                        oidcClientId = auth.clientId
-                        oidcScope = auth.scopes.joinToString(" ")
-                        oidcDeviceEndpoint = ""
-                        oidcTokenEndpoint = ""
-                    } else {
-                        authMode = MateuSettings.AuthMode.NONE
-                    }
                 }
+                // which of its sign-in providers: the one holding a session, the one used last, the only one
+                // — else the first for now, and the sign-in below asks (SignInChooserDialog)
+                val providers = current.providers
+                val sessions = io.mateu.ijp.auth.MateuCredentials.sessions
+                val chosen = io.mateu.ijp.hub.SignInProviders.preselected(
+                    providers,
+                    { sessions.isSignedIn(io.mateu.ijp.auth.OidcSessions.SessionKey.of(current.baseUrl, it.issuer, it.clientId)) },
+                    current.signInProvider,
+                )
+                applySignInProvider(chosen ?: providers.firstOrNull())
                 hubEntryId = current.id
                 hubEntryName = current.name
                 // no forgetSession: the auth service reads THIS UI's session (backend + issuer + client)
@@ -415,7 +414,54 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
                 project.putUserData(MATEU_SESSION, null)
                 homeOpened = false
                 closeViews()
-                ensureBooted()
+                // sign in before the first screen (the manifest's loginOnStart, default true): a UI
+                // booted signed out would answer its first screen with a 401
+                val auth = io.mateu.ijp.auth.MateuAuthService.getInstance(project)
+                if (providers.isNotEmpty() && (manifest?.loginOnStart ?: true) && !auth.isSignedIn()) {
+                    auth.signIn { ensureBooted() }
+                } else {
+                    ensureBooted()
+                }
+            }
+        }
+    }
+
+    // ── sign-in providers of the open hub UI (manifest `auth.providers`) ─────────────────────
+
+    private fun openEntry(): io.mateu.ijp.hub.HubEntry? =
+        hubEntryId?.let { io.mateu.ijp.hub.HubStore.getInstance().list.get(it) }
+
+    /** The open hub UI's sign-in providers for the desktop; empty outside the hub. */
+    fun signInProviders(): List<io.mateu.ijp.hub.HubManifest.Auth> = openEntry()?.providers.orEmpty()
+
+    fun signInUiName(): String = openEntry()?.name ?: loadMateuConfig(project).productName
+
+    fun lastSignInProvider(): String? = openEntry()?.signInProvider
+
+    /** Points the project's OIDC settings at [auth] (null = no sign-in): its session is the one used. */
+    fun useSignInProvider(auth: io.mateu.ijp.hub.HubManifest.Auth?) = applySignInProvider(auth)
+
+    /** Remembers, on the hub entry, the provider just signed in with. */
+    fun signedInWith(providerId: String) {
+        val id = hubEntryId ?: return
+        if (providerId.isBlank()) return
+        io.mateu.ijp.hub.HubStore.getInstance().edit { it.rememberProvider(id, providerId) }
+    }
+
+    private fun applySignInProvider(auth: io.mateu.ijp.hub.HubManifest.Auth?) {
+        MateuSettings.getInstance(project).state.apply {
+            if (auth != null) {
+                authMode = MateuSettings.AuthMode.OIDC
+                oidcIssuer = auth.issuer
+                oidcClientId = auth.clientId
+                oidcScope = auth.scopes.joinToString(" ")
+                oidcAudience = auth.audience.orEmpty()
+                oidcProviderId = auth.id
+                oidcDeviceEndpoint = ""
+                oidcTokenEndpoint = ""
+            } else {
+                authMode = MateuSettings.AuthMode.NONE
+                oidcProviderId = ""
             }
         }
     }

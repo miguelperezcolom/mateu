@@ -172,7 +172,7 @@ jobs:
           test.mjs test-pms.mjs test-display.mjs test-chains.mjs test-editor.mjs test-embedded.mjs
           test-live-reload.mjs test-patterns.mjs test-sources.mjs test-dom.mjs test-subheader-overflow.mjs test-e2.mjs test-agent-push.mjs test-e2-dom.mjs test-mobile.mjs
           test-vb-chains.mjs test-projections.mjs test-conformance.mjs test-security.mjs test-chat-events.mjs
-          test-templates.mjs test-progress.mjs test-explorer-findings.mjs test-explorer-w4.mjs test-explorer-islands.mjs test-explorer-island-actions.mjs test-explorer-layout.mjs test-explorer-display.mjs test-explorer-coverage.mjs
+          test-templates.mjs test-progress.mjs test-explorer-findings.mjs test-explorer-w4.mjs test-explorer-islands.mjs test-explorer-island-actions.mjs test-explorer-layout.mjs test-explorer-display.mjs test-explorer-coverage.mjs test-static-remotes.mjs test-sign-in.mjs test-auth-store.mjs
 
       - name: Redwood atom template is expanded in every surface
         run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
@@ -185,11 +185,16 @@ jobs:
       - name: Redwood bridge is regenerated from poc/
         run: cd frontend/web/monorepo/apps/redwood/poc && node make-amd.mjs --check
 
+      # poc/vendor/bundleResolver.mjs packages libs/mateu's static-bundle resolver + YAML expander
+      # (the static remotes of a RemoteMenu): a libs/mateu change there needs `npm run bridge` too
+      - name: Redwood's packaged bundle resolver matches libs/mateu
+        run: cd frontend/web/monorepo/apps/redwood/poc && node --no-warnings make-expander.mjs --check
+
       - name: parity.md tells the truth about Redwood (coverage vs wire catalogue vs renderer code)
         run: cd frontend/web/monorepo/apps/redwood/poc && node parity-check.mjs
 
       - name: The IDE plugins' versions follow the framework's release tag; pre-releases of a later line stay out of production
-        run: node --test scripts/plugin-versions.test.mjs scripts/release-gates.test.mjs scripts/archetype-post-generate.test.mjs
+        run: node --test scripts/plugin-versions.test.mjs scripts/npm-version.test.mjs scripts/release-gates.test.mjs scripts/archetype-post-generate.test.mjs
 
       - name: The docs' component list is the component catalogue (uidl-catalog.json)
         run: node scripts/gen-supported-components.mjs --check

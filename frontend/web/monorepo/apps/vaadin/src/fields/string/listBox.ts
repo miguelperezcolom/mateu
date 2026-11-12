@@ -8,9 +8,10 @@ import { sourcedOptions } from './select'
 
 export function renderListBoxField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
-    if (host.field?.remoteCoordinates) {
-        const coords = host.field.remoteCoordinates;
-        host.requestRemoteOptions(coords.action)
+    if (host.field?.remoteCoordinates || host.field?.optionsSource) {
+        // the server's options (remote coordinates) or a REST source's: both land in data[id].content
+        if (host.field.optionsSource) sourcedOptions(host)
+        else host.requestRemoteOptions(host.field.remoteCoordinates!.action)
 
         return html`
             <vaadin-custom-field

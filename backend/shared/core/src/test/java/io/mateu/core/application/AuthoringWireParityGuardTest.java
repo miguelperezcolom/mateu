@@ -108,6 +108,11 @@ class AuthoringWireParityGuardTest {
               // FormField record field.
               "FormFieldDto.badges",
 
+              // ---- ButtonDto (authoring record: Button) ----
+              // DERIVED: a split button is authored as a ButtonGroup with a `primary`; the
+              // mapper turns it into the primary Button with `split` set.
+              "ButtonDto.split",
+
               // ---- CrudlDto (authoring record: Listing) ----
               // DERIVED: whether the Edit button shows — computed from the capability gates
               // (Editable/@NotEditable), not authored on the Listing record.

@@ -23,4 +23,4 @@ if [ ! -d "$SUPPORT/plugins/mateu-intellij-plugin" ] || [ "$(cat "$SUPPORT/mateu
 fi
 
 sh "$RES/apply-update.sh" "$SUPPORT/plugins" "$SUPPORT/mateu-update"
-exec "$HERE/@EXEC@-original" "$RES/workspace" "$@"
+exec "$HERE/@EXEC@-original" nosplash "$RES/workspace" "$@"

@@ -11,3 +11,6 @@ Mateu.Core.InferenceSwitches
 Mateu.Core.Observability.MateuTelemetry
 Mateu.Core.PartialRegistry
 Mateu.Core.Presence
+Mateu.Core.Push.ExpoPushSender
+Mateu.Core.Push.InMemoryPushTokenStore
+Mateu.Core.Push.RemotePush

@@ -27,8 +27,8 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals())
 
 describe('the Bearer token', () => {
-    it('defaults to localStorage, where bootstraps have always left it', () => {
-        expect(authTokenStorage()).toBe('localStorage')
+    it('defaults to the cookie, and still reads a token an older version left in localStorage', () => {
+        expect(authTokenStorage()).toBe('cookie')
         local.setItem(AUTH_TOKEN_KEY, 'abc')
         expect(getAuthToken()).toBe('abc')
         expect(authHeaders()).toEqual({ Authorization: 'Bearer abc' })
@@ -81,6 +81,20 @@ describe('the Bearer token', () => {
         vi.stubGlobal('localStorage', { getItem: boom, setItem: boom, removeItem: boom })
         expect(getAuthToken()).toBeNull()
         expect(() => setAuthToken('x')).not.toThrow()
+    })
+
+    it('with no document (no cookies) the default keeps the token in sessionStorage, never drops it', () => {
+        setAuthToken('t1')
+        expect(session.getItem(AUTH_TOKEN_KEY)).toBe('t1')
+        expect(getAuthToken()).toBe('t1')
+    })
+
+    it('a web storage that refuses the token hands it to memory', () => {
+        const boom = () => { throw new Error('QuotaExceededError') }
+        vi.stubGlobal('sessionStorage', { getItem: () => null, setItem: boom, removeItem: () => undefined })
+        configureAuthToken({ storage: 'sessionStorage' })
+        setAuthToken('kept')
+        expect(getAuthToken()).toBe('kept')
     })
 })
 

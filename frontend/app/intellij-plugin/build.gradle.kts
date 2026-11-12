@@ -128,6 +128,10 @@ dependencies {
     }
     // QR codes the desktop hub reads (from the screen, the clipboard or an image file) — Apache-2.0, pure Java
     implementation("com.google.zxing:core:3.5.4")
+    // SVG images (an Image / avatar / card media whose src is an .svg) — MIT, pure Java. Bundled in
+    // the plugin rather than reaching into the platform's own SVG code, which is internal API the
+    // plugin verifier refuses (and whose jsvg copy is a JetBrains fork, `-jb.N`).
+    implementation("com.github.weisj:jsvg:2.0.0")
     testImplementation("junit:junit:4.13.2")
 }
 

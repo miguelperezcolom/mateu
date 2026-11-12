@@ -289,5 +289,11 @@
   "inboxDismiss": "Descartar",
   "inboxOpen": "Abrir",
   "inboxOther": "Outras",
-  "inboxNew": "Nova notificação: {title}"
+  "inboxNew": "Nova notificação: {title}",
+  "signInTitle": "Iniciar sessão",
+  "signInChoose": "Escolha como pretende iniciar sessão.",
+  "signInHint": "Inicie sessão para continuar.",
+  "signInWith": "Continuar com {provider}",
+  "signInFailed": "Não foi possível iniciar sessão. Tente novamente.",
+  "signOut": "Terminar sessão"
 }

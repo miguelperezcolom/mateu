@@ -419,6 +419,8 @@ class FormEditor(Component):
     value: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: the state key the edited definition is written to (a field of the view model)
+    id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -428,6 +430,8 @@ class Workflow(Component):
     value: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: the state key the edited definition is written to (a field of the view model)
+    id: str | None = None
 
 
 __all__ = [
