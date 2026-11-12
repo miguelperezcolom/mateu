@@ -24,9 +24,10 @@ namespace Mateu.AspNetCore.Testing;
 /// </summary>
 public sealed class MateuTest : IDisposable
 {
-    private readonly ServiceProvider _services;
-    private readonly SyncHandler _handler;
-    private readonly IHttpContextAccessor _accessor;
+    private readonly ServiceProvider? _services;
+    private readonly SyncHandler? _handler;
+    private readonly IHttpContextAccessor? _accessor;
+    private readonly Func<JsonObject, ClaimsPrincipal?, JsonObject>? _server;
 
     private MateuTest(Action<MateuOptions> configure, Action<IServiceCollection> services, Assembly[] assemblies)
     {
@@ -38,6 +39,10 @@ public sealed class MateuTest : IDisposable
         _handler = _services.GetRequiredService<SyncHandler>();
         _accessor = _services.GetRequiredService<IHttpContextAccessor>();
     }
+
+    /// <summary>A harness answered by <paramref name="server"/> instead of Mateu — for the harness's
+    /// own tests of wire shapes a .NET backend does not send (a Java backend's crud routes…).</summary>
+    internal MateuTest(Func<JsonObject, ClaimsPrincipal?, JsonObject> server) => _server = server;
 
     /// <summary>A harness serving the [UI]/[App] classes of <paramref name="assemblies"/>.</summary>
     public static MateuTest Start(params Assembly[] assemblies) => new(_ => { }, _ => { }, assemblies);
@@ -69,15 +74,16 @@ public sealed class MateuTest : IDisposable
     /// answer as the wire JSON.</summary>
     public JsonObject Exchange(JsonObject request, ClaimsPrincipal? user = null)
     {
+        if (_server is not null) return _server(request, user);
         var rq = request.Deserialize<RunActionRqDto>(MateuExtensions.Json) ?? new RunActionRqDto();
         var context = new DefaultHttpContext();
         if (user is not null) context.User = user;
-        var previous = _accessor.HttpContext;
+        var previous = _accessor!.HttpContext;
         _accessor.HttpContext = context;
         UIIncrementDto increment;
         try
         {
-            increment = _handler.Handle(rq);
+            increment = _handler!.Handle(rq);
         }
         catch (Exception e) when (MateuErrors.IsForTheUser(MateuErrors.Unwrap(e)))
         {
@@ -92,5 +98,5 @@ public sealed class MateuTest : IDisposable
     }
 
     /// <summary>Releases the services the harness built.</summary>
-    public void Dispose() => _services.Dispose();
+    public void Dispose() => _services?.Dispose();
 }
