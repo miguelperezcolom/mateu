@@ -76,7 +76,7 @@ async function run(context: vscode.ExtensionContext): Promise<void> {
                 const s = manifest.samples.find((x) => x.id === id)
                 return { label: s?.label ?? id, detail: s?.description, id }
             }),
-            { title, placeHolder: 'Start from' },
+            { title, placeHolder: 'Template — what the project starts from', matchOnDetail: true },
         )
         if (!pick) return
         sample = pick.id

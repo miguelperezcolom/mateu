@@ -1,0 +1,38 @@
+# The REST source catalogue: every endpoint the screens read, named once. These point at
+# https://swapi.mateu.io, a public Star Wars API that searches, filters and pages on the server and
+# answers browsers from any origin (CORS) — so the same screens work served by a backend and as a
+# static bundle with no backend at all. Reads need no credentials.
+#
+# The url carries the screen's conditions through `${state.…}` interpolation: the search text, the
+# filters, the page. `itemsPath` says where the rows are in the answer and `totalPath` where the
+# total is — declaring the total tells the renderer the SERVER did the paging.
+# See https://mateu.io/concepts/data-sources/
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.58/backend/shared/uidl/sources-schema.json
+sources:
+  - name: people
+    description: Characters of the Star Wars saga
+    source:
+      url: >-
+        https://swapi.mateu.io/api/people?page=${state.page ?? 0}&size=${state.size ?? 10}&search=${encodeURIComponent(state.searchText
+        ?? '')}&gender=${encodeURIComponent(state.gender ?? '')}
+      itemsPath: content
+    totalPath: totalElements
+
+  - name: person
+    description: One character, by id
+    source:
+      url: https://swapi.mateu.io/api/people/${state.id}
+
+  - name: planets
+    description: Planets of the Star Wars galaxy
+    source:
+      url: >-
+        https://swapi.mateu.io/api/planets?page=${state.page ?? 0}&size=${state.size ?? 10}&search=${encodeURIComponent(state.searchText
+        ?? '')}
+      itemsPath: content
+    totalPath: totalElements
+
+  - name: planet
+    description: One planet, by id
+    source:
+      url: https://swapi.mateu.io/api/planets/${state.id}

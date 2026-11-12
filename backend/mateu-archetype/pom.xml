@@ -3,7 +3,8 @@
 
        mvn archetype:generate -DarchetypeGroupId=io.mateu -DarchetypeArtifactId=mateu-archetype \
            -DarchetypeVersion=<release> -DgroupId=com.acme -DartifactId=my-app \
-           -Dauthoring=code|yaml|static -Drenderer=vaadin|redwood
+           -Dauthoring=code|yaml|static -Drenderer=vaadin|redwood \
+           -Dtemplate=crud|dashboard|intake|operations|empty (code) | listing|swapi (yaml, static)
 
      NO hand-kept template: the archetype is assembled at build time from the repository's starters
      (starters/spring-mvc for `code`, starters/yaml, starters/static — compiled and booted by CI) and
@@ -143,6 +144,10 @@
                     <include>overlays/common/**</include>
                     <include>overlays/java/redwood/**</include>
                     <include>overlays/java/empty/**</include>
+                    <include>overlays/java/dashboard/**</include>
+                    <include>overlays/java/intake/**</include>
+                    <include>overlays/java/operations/**</include>
+                    <include>overlays/java/swapi/**</include>
                   </includes>
                 </resource>
               </resources>
