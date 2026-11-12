@@ -29,6 +29,18 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Java, .NET and Python, for fields of the page and of the business components it draws (conformance
   case `yaml-eyes-only` now seeds the hidden field).
 
+### Added
+
+- **Push notifications on the Mateu phone app (experimental).** An app class implementing
+  `PushTokenRegistry` (.NET `IPushTokenRegistry`, Python `PushTokenRegistry`) makes the phone offer
+  *Notifications on this phone* in that UI's drawer; turning it on asks the OS for permission and
+  registers the phone's Expo push token with that UI only (app-level actions `_push-register` /
+  `_push-unregister`, wire `AppDto.pushNotifications`), turning it off or removing the UI
+  unregisters it. The backend keeps the tokens and sends through Expo Push Service with
+  `data.mateu = {ui, route}`; a tap opens that UI at that route, in the hub and in a fixed build.
+  Mateu stores no token and sends nothing. Replaces the known issue "no OS notification from a
+  suspended or closed app". Needs a new store build with APNs/FCM credentials.
+
 ### Changed
 
 - **.NET packages target `net10.0` only.** .NET 8 left Microsoft support on 10 November 2026, so

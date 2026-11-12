@@ -31,9 +31,18 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ['distribution', process.env.MATEU_DISTRIBUTION?.trim()],
     ].filter(([, v]) => !!v),
   );
-  const extended: ExpoConfig = Object.keys(stamped).length
+  const stampedConfig: ExpoConfig = Object.keys(stamped).length
     ? { ...versioned, extra: { ...(versioned.extra ?? {}), ...stamped } }
     : versioned;
+  // Push notifications (src/core/pushNotifications.ts) through Expo Push Service: on Android the
+  // device's push token needs the build's FCM credentials — the Firebase project's
+  // google-services.json, kept OUT of the repository and handed to the build as an EAS file
+  // environment variable (MATEU_GOOGLE_SERVICES_FILE). Without it the app builds and runs; the
+  // "Notifications on this phone" switch of a UI then says this phone cannot receive them.
+  const googleServicesFile = process.env.MATEU_GOOGLE_SERVICES_FILE?.trim();
+  const extended: ExpoConfig = googleServicesFile
+    ? { ...stampedConfig, android: { ...stampedConfig.android, googleServicesFile } }
+    : stampedConfig;
   // Which over-the-air updates the build asks for. EAS Build stamps the channel of its profile
   // (eas.json) itself; a build made outside EAS — the Play bundle built locally, the GitHub APK —
   // carries none and would never receive the `production` updates the release workflow publishes
@@ -53,7 +62,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const plugins = (base.plugins ?? []).map((p) =>
     Array.isArray(p) && p[0] === 'expo-build-properties'
       ? ['expo-build-properties', { ...(p[1] ?? {}), android: { ...((p[1] ?? {}).android ?? {}), usesCleartextTraffic: true } }]
-      : p,
+      : Array.isArray(p) && p[0] === 'expo-notifications'
+        // a development build is signed for the APNs sandbox (aps-environment = development)
+        ? ['expo-notifications', { ...(p[1] ?? {}), mode: 'development' }]
+        : p,
   ) as ExpoConfig['plugins'];
 
   return {
