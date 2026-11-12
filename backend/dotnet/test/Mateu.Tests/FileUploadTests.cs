@@ -80,6 +80,39 @@ public sealed class DirectFileStorage : IFileStorage
                 new StoredFile("k1", upload.Name, upload.ContentType, upload.Size)));
 }
 
+/// <summary>A store that answers whatever its scenario says: an exception, a header echo, the stream
+/// read on another task (so the size limit arrives wrapped in an AggregateException).</summary>
+public sealed class ScriptedFileStorage(string name) : IFileStorage
+{
+    public Func<Exception>? Throw { get; set; }
+
+    public bool ReadOnAnotherTask { get; set; }
+
+    /// <summary>What the store saw of the request (read while it was in flight).</summary>
+    public (string? Trace, string? Absent, Identity? Identity) Seen { get; private set; }
+
+    public string Name => name;
+
+    public bool DirectUploads => true;
+
+    public async Task<StoredFile> StoreAsync(IncomingFile file, IncomingRequest request)
+    {
+        Seen = (request.Header("X-Trace"), request.Header("X-Absent"), request.Identity);
+        if (Throw is not null) throw Throw();
+        using var buffer = new MemoryStream();
+        if (ReadOnAnotherTask) Task.Run(() => file.Content.CopyToAsync(buffer)).Wait();
+        else await file.Content.CopyToAsync(buffer);
+        return new StoredFile("s1", file.Name, file.ContentType, buffer.Length);
+    }
+
+    public Task<UploadTarget?> UploadTargetAsync(UploadRequest upload, IncomingRequest request)
+    {
+        if (Throw is not null) throw Throw();
+        return Task.FromResult<UploadTarget?>(new UploadTarget("https://bucket.example.com/t", "POST", null,
+            new StoredFile("t1", upload.Name, upload.ContentType, upload.Size)));
+    }
+}
+
 public class StoredFileValueTests
 {
     [Fact]
@@ -447,5 +480,112 @@ public class FileUploadEndpointTests
         target.Headers.Add("X-Mateu-Upload-Ticket", ticket);
         using var r = await host.Http.SendAsync(target);
         Assert.Equal(HttpStatusCode.UnsupportedMediaType, r.StatusCode);
+    }
+    [Fact]
+    public async Task A_valid_ticket_of_a_store_no_longer_registered_answers_404()
+    {
+        await using var host = await Boot(new InMemoryFileStorage());
+        // signed with this backend's secret for the anonymous caller, but naming a store nobody registered
+        var ticket = new FileUploads([], "test-secret").Issue("nowhere", "contract", 20, "", false,
+            FileUploads.CallerHash(null, null));
+        using var r = await host.Http.SendAsync(Upload(ticket, [1]));
+        Assert.Equal(HttpStatusCode.NotFound, r.StatusCode);
+        Assert.Equal("Uploads are not available.", (await Body(r))["message"]!.GetValue<string>());
+        using var t = await host.Http.SendAsync(new HttpRequestMessage(HttpMethod.Post, "/mateu/v3/upload/target")
+        {
+            Content = new StringContent("{}", Encoding.UTF8, "application/json"),
+            Headers = { { "X-Mateu-Upload-Ticket", ticket } },
+        });
+        Assert.Equal(HttpStatusCode.NotFound, t.StatusCode);
+    }
+
+    [Fact]
+    public async Task A_store_refusal_is_403_and_its_user_facing_error_is_shown_as_written()
+    {
+        var store = new ScriptedFileStorage("direct");
+        await using var host = await Boot(store);
+        var ticket = (await AttributesOf(host.Http, "photo"))["uploadTicket"];
+
+        store.Throw = () => new MateuForbiddenException("not yours");
+        using var forbidden = await host.Http.SendAsync(Upload(ticket, [1], contentType: "image/png", fileName: "p.png"));
+        Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+        Assert.Equal("This upload is not allowed.", (await Body(forbidden))["message"]!.GetValue<string>());
+
+        store.Throw = () => new UserFacingException("Quota exceeded");
+        using var quota = await host.Http.SendAsync(Upload(ticket, [1], contentType: "image/png", fileName: "p.png"));
+        Assert.Equal(HttpStatusCode.InternalServerError, quota.StatusCode);
+        Assert.Equal("Quota exceeded", (await Body(quota))["message"]!.GetValue<string>());
+
+        // the target endpoint goes through the same boundary
+        using var target = await host.Http.SendAsync(new HttpRequestMessage(HttpMethod.Post, "/mateu/v3/upload/target")
+        {
+            Content = new StringContent("{\"name\":\"p.png\",\"contentType\":\"image/png\"}", Encoding.UTF8, "application/json"),
+            Headers = { { "X-Mateu-Upload-Ticket", ticket } },
+        });
+        Assert.Equal(HttpStatusCode.InternalServerError, target.StatusCode);
+        Assert.Equal("Quota exceeded", (await Body(target))["message"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task The_size_limit_is_found_even_wrapped_by_the_store()
+    {
+        var store = new ScriptedFileStorage("direct") { ReadOnAnotherTask = true };
+        await using var host = await Boot(store);
+        var ticket = (await AttributesOf(host.Http, "photo"))["uploadTicket"];
+        var streamed = Upload(ticket, [], contentType: "image/png", fileName: "p.png");
+        streamed.Content = new StreamContent(new MemoryStream(new byte[64]));
+        streamed.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/png");
+        streamed.Headers.TransferEncodingChunked = true;
+        // the photo's limit is the default (100 MB): 64 bytes fit, the store counted them itself
+        using var fits = await host.Http.SendAsync(streamed);
+        Assert.Equal(HttpStatusCode.OK, fits.StatusCode);
+        Assert.Equal(64, (await Body(fits))["file"]!["size"]!.GetValue<long>());
+
+        var contractTicket = new FileUploads([], "test-secret").Issue("direct", "contract", 20, "", false,
+            FileUploads.CallerHash(null, null));
+        var tooBig = Upload(contractTicket, [], fileName: null);
+        tooBig.Content = new StreamContent(new MemoryStream(new byte[64]));
+        tooBig.Headers.TransferEncodingChunked = true;
+        using var refused = await host.Http.SendAsync(tooBig);
+        Assert.Equal(HttpStatusCode.RequestEntityTooLarge, refused.StatusCode);
+    }
+
+    [Fact]
+    public async Task The_store_sees_the_request_and_a_nameless_file_is_called_file()
+    {
+        var store = new ScriptedFileStorage("direct");
+        await using var host = await Boot(store);
+        var ticket = (await AttributesOf(host.Http, "photo", role: "clerk"))["uploadTicket"];
+        var rq = Upload(ticket, [1, 2, 3], contentType: "image/png", fileName: null, role: "clerk");
+        rq.Headers.Add("X-Trace", "abc");
+        using var r = await host.Http.SendAsync(rq);
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        Assert.Equal("file", (await Body(r))["file"]!["name"]!.GetValue<string>());
+        Assert.Equal("abc", store.Seen.Trace);
+        Assert.Null(store.Seen.Absent);
+        Assert.Equal(["clerk"], store.Seen.Identity!.Roles!);
+    }
+
+    [Fact]
+    public async Task The_target_request_falls_back_on_defaults_for_what_it_does_not_say()
+    {
+        var store = new ScriptedFileStorage("direct");
+        await using var host = await Boot(store);
+        var ticket = (await AttributesOf(host.Http, "photo"))["uploadTicket"];
+        foreach (var json in new[] { "[]", "{\"name\":3,\"contentType\":\"\",\"size\":\"big\"}", "{\"size\":1.5}" })
+        {
+            using var r = await host.Http.SendAsync(new HttpRequestMessage(HttpMethod.Post, "/mateu/v3/upload/target")
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json"),
+                Headers = { { "X-Mateu-Upload-Ticket", ticket } },
+            });
+            Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+            var body = await Body(r);
+            Assert.Equal("POST", body["method"]!.GetValue<string>());
+            Assert.Empty(body["headers"]!.AsObject());
+            Assert.Equal("file", body["file"]!["name"]!.GetValue<string>());
+            Assert.Equal("application/octet-stream", body["file"]!["contentType"]!.GetValue<string>());
+            Assert.Equal(-1, body["file"]!["size"]!.GetValue<long>());
+        }
     }
 }

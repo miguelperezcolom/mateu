@@ -27,10 +27,11 @@ public class DemoFilesController {
   @GetMapping("/demo-files/{id}")
   public ResponseEntity<Resource> download(@PathVariable String id) throws Exception {
     var file = storage.file(id);
-    if (file.isEmpty()) {
+    var stored = storage.meta(id);
+    if (file.isEmpty() || stored.isEmpty()) {
       return ResponseEntity.notFound().build();
     }
-    var meta = storage.meta(id);
+    var meta = stored.get();
     return ResponseEntity.ok()
         .contentType(MediaType.parseMediaType(meta[0]))
         .contentLength(Files.size(file.get()))

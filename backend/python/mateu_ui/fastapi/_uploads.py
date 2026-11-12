@@ -85,7 +85,6 @@ def add_upload_endpoints(
     uploads_of: Callable[[], Uploads],
     request_of: Callable[[Request], MateuRequest],
     identity_of: Callable[[], object],
-    show_details: bool,
 ) -> None:
     """Registers both endpoints at the ROOT path (the ``uploadUrl`` the fields carry)."""
 
@@ -105,7 +104,9 @@ def add_upload_endpoints(
 
     def failed(error: Exception, mateu_request: MateuRequest) -> JSONResponse:
         cid = mateu_request.correlation_id
-        described = error_boundary.describe(error, "upload", show_details or None, cid)
+        # never the raw exception in this plain JSON answer, not even in dev mode: it is logged
+        # under the reference (the sync endpoint's toast is where MATEU_ERRORS_DETAILED applies)
+        described = error_boundary.describe_without_details(error, "upload", cid)
         return _error(500, described["title"], described["text"], cid)
 
     async def upload(request: Request):
@@ -162,8 +163,9 @@ def add_upload_endpoints(
             return _error(400, "Bad request", "The upload request is not valid JSON.")
         name = str(body.get("name") or "")
         content_type = str(body.get("contentType") or "").strip() or "application/octet-stream"
+        raw_size = body.get("size")
         try:
-            size = int(body.get("size")) if body.get("size") is not None else -1
+            size = int(raw_size) if raw_size is not None else -1
         except (TypeError, ValueError):
             size = -1
         if not accepts(claims.accept, name, content_type):

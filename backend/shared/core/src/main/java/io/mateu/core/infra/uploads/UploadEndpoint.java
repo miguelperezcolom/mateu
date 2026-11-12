@@ -333,7 +333,7 @@ public final class UploadEndpoint {
         unit = candidate;
       }
       if (value == Math.rint(value)) {
-        return ((long) value) + " " + unit;
+        return Math.round(value) + " " + unit; // a whole number here: no rounding happens
       }
       return String.format(Locale.ROOT, "%.1f %s", value, unit);
     }

@@ -156,12 +156,30 @@ class DiskFileStorage : IFileStorage
 ```
 
 ```python
+import os
+import uuid
+from pathlib import Path
+
+from fastapi import FastAPI
+
+import views  # your module of @ui classes
+
+
 class DiskFileStorage(FileStorage):
     async def store(self, file: IncomingFile, request) -> StoredFile:
-        ...  # read file.content, return StoredFile(id=..., name=file.name, ...)
+        id = uuid.uuid4().hex  # the store picks the name: never the client's
+        size = 0
+        with open(Path("uploads") / id, "wb") as target:
+            async for chunk in file.content:
+                target.write(chunk)
+                size += len(chunk)
+        return StoredFile(id=id, name=file.name, content_type=file.content_type, size=size)
 
-add_mateu(app, ..., file_storages=[DiskFileStorage()], uploads_secret=os.environ["SECRET"])
 
+app = FastAPI()
+add_mateu(app, views, file_storages=[DiskFileStorage()], uploads_secret=os.environ["SECRET"])
+
+# on a view:
 contract: Annotated[str, FileUpload(accept=".pdf", max_bytes=50 * 1024 * 1024)] = ""
 ```
 

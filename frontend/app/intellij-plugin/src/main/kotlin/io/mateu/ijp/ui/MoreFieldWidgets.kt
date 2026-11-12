@@ -99,7 +99,7 @@ fun fileUploadField(ctx: AppContext, fieldId: String, metadata: JsonNode, raw: J
     val status = JBLabel().apply { isVisible = false; alignmentX = java.awt.Component.LEFT_ALIGNMENT }
     val progress = javax.swing.JProgressBar(0, 100).apply { isVisible = false; isStringPainted = true }
     val cancel = JButton("Cancel").apply { isVisible = false; accessibleName("Cancel the upload of $label") }
-    val choose = JButton(if (config.multiple) "Add file…" else "Choose file…").apply { isEnabled = enabled; accessibleName("Choose file for $label") }
+    val choose = JButton(plain(if (config.multiple) "Add file…" else "Choose file…")).apply { isEnabled = enabled; accessibleName("Choose file for $label") }
     val cancelled = java.util.concurrent.atomic.AtomicBoolean(false)
 
     fun commit(value: Any) {

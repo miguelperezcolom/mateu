@@ -439,7 +439,6 @@ def add_mateu(
         lambda: handler.mapper.uploads,
         request_of,
         lambda: handler.mapper.identity_provider() if handler.mapper.identity_provider else None,
-        show_details,
     )
     app.add_api_route(f"{prefix}/mateu/v3/sync", sync, methods=["POST"])
 
