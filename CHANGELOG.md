@@ -19,6 +19,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   an `Idempotency-Key`, and the Java, .NET and Python servers run a keyed request once per caller,
   action and key (a repeat gets the first answer; failures are forgotten; in memory, 2000 entries /
   24 h). Docs: `native/offline-forms`.
+- **A gallery of templates to start a new project from.** The project generator (IntelliJ **New
+  Project › Mateu**, VS Code **Mateu: New Project…**, the `mateu-archetype` and
+  `scripts/new-project.mjs`) now asks for a template: *Back office: Product CRUD* (the default),
+  *Dashboard + listings* (KPIs and charts, an Orders listing), *Wizard-driven intake* (a branching
+  wizard with a review step and a listing of what was submitted), *Operations: board + calendar* (a
+  kanban board moved on the server and a calendar page) and *Home only* for code; *Home + Product
+  listing* and *Star Wars over a public REST API* for the YAML flavours. Each is an overlay of
+  `starters/generator` over the starters, offered on every Java runtime; the archetype takes
+  `-Dtemplate=` (`-Dsample=` keeps working).
 
 ### Security
 

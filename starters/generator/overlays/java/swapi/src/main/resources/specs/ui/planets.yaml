@@ -1,0 +1,15 @@
+# A listing over the `planets` source (sources.yaml); a row opens the planet at planets/<id>.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.58/backend/shared/uidl/uidl-schema.json
+pageType: collection
+type: Listing
+title: Planets
+pageSize: 10
+rowRoute: planets/${row.id}
+searchable: true
+rowsSource:
+  ref: planets
+columns:
+  - {type: GridColumn, id: name, label: Name, identifier: true, stereotype: primary, leadingPath: image}
+  - {type: GridColumn, id: climate, label: Climate}
+  - {type: GridColumn, id: terrain, label: Terrain}
+  - {type: GridColumn, id: population, label: Population}

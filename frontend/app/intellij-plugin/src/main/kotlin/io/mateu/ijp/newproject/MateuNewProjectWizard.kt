@@ -33,7 +33,7 @@ import io.mateu.ijp.ui.plainTip
  * File | New | Project… › Mateu: the IntelliJ front door of the shared project generator
  * ([MateuProjectGenerator], the same data the VS Code `Mateu: New Project` command applies). The
  * platform's own steps give the name, location and Git; this step adds the Mateu choices — authoring
- * flavour, runtime, renderer, sample, YAML page templates and Maven coordinates — and writes the
+ * flavour, runtime, renderer, template (the gallery of new-project.json `samples`), YAML page templates and Maven coordinates — and writes the
  * project into the new project's folder. A Maven project is then offered for import by the IDE.
  */
 class MateuNewProjectWizard : GeneratorNewProjectWizard {
@@ -72,6 +72,8 @@ private class MateuStep(parent: NewProjectWizardStep) : AbstractNewProjectWizard
     private val isJava = propertyGraph.property(true)
     private val groupId = propertyGraph.property("com.example")
     private val packageName = propertyGraph.property("")
+    /** The one-line description of the chosen template, under the picker. */
+    private val templateHint = propertyGraph.property("")
     private val pageBoxes = pageTemplates.associate { it.id to JBCheckBox(plain(it.label)).apply { toolTipText = plainTip(it.description) } }
     private var packageEdited = false
 
@@ -105,8 +107,13 @@ private class MateuStep(parent: NewProjectWizardStep) : AbstractNewProjectWizard
         val samples = r.samples.filter { MateuProjectGenerator.incompatibility(manifest, authoringId(), runtimeId(), renderer, it) == null }
         hasSample.set(samples.size > 1)
         refill(sampleModel, allSamples.filter { it.id in samples })
+        syncTemplateHint()
         hasPages.set(a.path("pages").asBoolean(false))
         isJava.set(r.language == "java")
+    }
+
+    private fun syncTemplateHint() {
+        templateHint.set(plainTip(sampleModel.selected?.description).orEmpty())
     }
 
     private fun refill(model: CollectionComboBoxModel<Choice>, items: List<Choice>) {
@@ -138,8 +145,12 @@ private class MateuStep(parent: NewProjectWizardStep) : AbstractNewProjectWizard
                 comboBox(rendererModel).applyToComponent { addActionListener { refresh() } }
                     .validationOnInput { stepProblem()?.let { error(it) } }
             }.visibleIf(hasRenderer)
-            row("Start from:") {
-                comboBox(sampleModel).validationOnInput { stepProblem()?.let { error(it) } }
+            row("Template:") {
+                comboBox(sampleModel).align(AlignX.FILL).applyToComponent { addActionListener { syncTemplateHint() } }
+                    .validationOnInput { stepProblem()?.let { error(it) } }
+            }.visibleIf(hasSample)
+            row("") {
+                comment("").bindText(templateHint)
             }.visibleIf(hasSample)
             group("Sample Pages (Page Templates)") {
                 for (chunk in pageTemplates.chunked(3)) {
