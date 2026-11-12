@@ -97,6 +97,11 @@ def _logged(error: BaseException, action_id: str | None, reference: str | None) 
     return reference
 
 
+def for_the_user(error: BaseException) -> bool:
+    """Whether ``error`` is shown as written (a UserFacingException or a validation error), not a bug."""
+    return any(isinstance(e, (UserFacingException, ValidationError)) for e in _chain(error))
+
+
 def _field_label(loc) -> str:
     """The field a validation error is about, as the user knows it ("start_date" -> "Start date")
     rather than its programmer path ("start_date") — Java's ErrorBoundary.labelOf."""

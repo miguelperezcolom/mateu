@@ -47,7 +47,11 @@ internal sealed partial class SyncHandler
         var idType = restorable.GetGenericArguments()[0];
         var ids = (System.Collections.IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(idType))!;
         foreach (var raw in RestoreIdsOf(rq)) ids.Add(ToId(raw, idType));
-        if (ids.Count > 0) restorable.GetMethod("RestoreAllById")!.Invoke(target, [ids]);
+        if (ids.Count > 0)
+        {
+            restorable.GetMethod("RestoreAllById")!.Invoke(target, [ids]);
+            Observability.RequestObservation.RecordIds(ids.Cast<object?>().Select(i => i?.ToString()));
+        }
         return MessageOf(new Message(ids.Count == 1 ? "1 record restored" : $"{ids.Count} records restored"));
     }
 }

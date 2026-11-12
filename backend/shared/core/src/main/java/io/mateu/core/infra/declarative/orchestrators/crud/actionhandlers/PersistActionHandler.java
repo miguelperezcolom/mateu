@@ -85,6 +85,8 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
       }
       throw failure;
     }
+    // the audit trail's "on what": the record saved / created
+    io.mateu.core.infra.observability.RequestObservation.recordId(httpRequest, savedId);
     // What the save said, if it said something ({@link #SAVED_MESSAGE}): "Sin cambios" for a save
     // that found nothing to change, instead of claiming it saved.
     var said = httpRequest.getAttribute(SAVED_MESSAGE);

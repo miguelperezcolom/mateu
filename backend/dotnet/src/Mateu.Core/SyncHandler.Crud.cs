@@ -388,6 +388,8 @@ internal sealed partial class SyncHandler
         try
         {
             crudType.GetMethod("Save")!.Invoke(crud, [entity]);
+            // the audit trail's "on what": the record saved / created
+            Observability.RequestObservation.RecordId(id ?? EntityIds.Of(entity));
         }
         catch (TargetInvocationException failure)
             when (failure.InnerException is not null and not MateuForbiddenException
@@ -510,6 +512,7 @@ internal sealed partial class SyncHandler
         BumpVersion(entity);
 
         crudType.GetMethod("Save")!.Invoke(crud, [entity]);
+        Observability.RequestObservation.RecordId(id);
         return UIIncrementDto.Of(messages: [new MessageDto("success", "middle", "", "Saved", 3000)]);
     }
 
@@ -658,6 +661,8 @@ internal sealed partial class SyncHandler
     private static string? Delete(object crud, string id)
     {
         crud.GetType().GetMethod("Delete")!.Invoke(crud, [id]);
+        // the audit trail's "on what" (never the record's values)
+        Observability.RequestObservation.RecordId(id);
         return "Deleted";
     }
 
