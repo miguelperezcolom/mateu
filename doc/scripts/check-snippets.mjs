@@ -15,7 +15,7 @@
 //   java    a JDK 21+ and the classpath of scripts/snippets/pom.xml: taken from
 //           $MATEU_SNIPPETS_CLASSPATH (a file holding it, or the classpath itself), else resolved
 //           with Maven into scripts/snippets/target/classpath.txt — which needs mateu-core
-//           INSTALLED first: `cd backend && mvn -pl shared/core -am install -DskipTests`. Extra
+//           INSTALLED first: `cd backend && mvn -pl shared/core,shared/test -am install -DskipTests`. Extra
 //           Maven flags (e.g. -Dmaven.repo.local=…) go in $MAVEN_ARGS.
 //   python  an interpreter with mateu-ui, mypy and jsonschema: $MATEU_SNIPPETS_PYTHON, else python3
 //           (`pip install "./backend/python[dev,all]" jsonschema`). Also runs the YAML check.
@@ -96,7 +96,7 @@ function javaClasspath() {
   mkdirSync(dirname(file), { recursive: true });
   const mvn = spawnSync('mvn', ['-B', '-q', '-f', join(here, 'snippets/pom.xml'), 'dependency:build-classpath', `-Dmdep.outputFile=${file}`], { stdio: 'inherit' });
   if (mvn.status !== 0 || !existsSync(file)) {
-    console.error('Could not resolve the Java snippet classpath. Install mateu-core first:\n  cd backend && mvn -pl shared/core -am install -DskipTests');
+    console.error('Could not resolve the Java snippet classpath. Install mateu-core first:\n  cd backend && mvn -pl shared/core,shared/test -am install -DskipTests');
     return null;
   }
   return readFileSync(file, 'utf8').trim();

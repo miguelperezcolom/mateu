@@ -20,6 +20,7 @@
     <module>annotation-processor-core</module>
     <module>annotation-processor-indexer</module>
     <module>core</module>
+    <module>test</module>
     <module>frontend</module>
     <module>integration-tests</module>
   </modules>

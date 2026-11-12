@@ -1,3 +1,12 @@
 Mateu.AspNetCore.ClaimsIdentityMapper
 Mateu.AspNetCore.MateuExtensions
 Mateu.AspNetCore.MateuOptions
+Mateu.AspNetCore.Testing.MateuButton
+Mateu.AspNetCore.Testing.MateuCommand
+Mateu.AspNetCore.Testing.MateuField
+Mateu.AspNetCore.Testing.MateuListing
+Mateu.AspNetCore.Testing.MateuMessage
+Mateu.AspNetCore.Testing.MateuRow
+Mateu.AspNetCore.Testing.MateuScreen
+Mateu.AspNetCore.Testing.MateuTest
+Mateu.AspNetCore.Testing.MateuTestException

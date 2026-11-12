@@ -16,6 +16,8 @@ backend/          ← Maven multi-module Java backend
     core/         ← Framework kernel, in application / domain / infra packages. The layering is NOT
                     clean (domain and application still import infra in many files): it is guarded by
                     a ratchet test, `CoreLayeringTest`, whose allow-list of existing leaks may only shrink
+    test/         ← io.mateu:mateu-test — the public harness apps test their UIs with, no browser
+                    (see "Public test harness for USERS")
     uidl/         ← Public API: annotations (@UI, @Action, @Button, etc.) and interfaces (CrudStore, Listing + capability interfaces, …)
     dtos/         ← Wire DTOs exchanged between backend and frontend (UIIncrementDto, FormDto, …)
     annotation-processor-core/   ← AP logic shared by all framework adapters
@@ -1177,6 +1179,32 @@ under it, VS Code quick pick with detail, CLI `--template`. Version = the highes
 ## Backend testing (core integration harness)
 
 `backend/shared/core/src/test/.../testutil/TestMateu.java` boots the ENTIRE core bean graph in-JVM (Spring test context understands the framework's jakarta.inject annotations), registers fixture classes exactly like the annotation processor's generated `RoutedClassProvider`s, provides the platform beans adapters normally contribute (BeanProvider→MateuBeanProvider, ObjectMapper, "baseUrl" request attribute; extra beans via `withUisAndBeans`, e.g. fake Excel/Pdf `ListingExporter`s), and calls the same `MateuService` entry point the generated controllers call. One `mateu.sync("/route")` exercises route resolution → instance creation → reflective mapping → wire DTOs; `mateu.run(RunActionRqDto...)` drives any action. Feature suites live in `core/src/test/.../application/*SyncTest.java` (fields, layout, app/menu, crud lifecycle, wizards, archetypes, actions/commands/triggers, editable grid fields, validation, nested state). Wire-shape gotchas the suites document: fragment state lives on UIFragmentDto (not the component); grid columns nest inside CrudlDto metadata; Card title/content and form fields nest inside METADATA records (walkers must descend reflectively); AccordionLayoutDto.panels is empty on the wire (panels are children); filtered/sorted listing rows come back as maps; in-JVM the search Data still carries the typed ListingData. Coverage: plain `mvn verify` on backend/shared/core now runs JaCoCo end to end (agent → report at `target/site/jacoco/` → **check gate**: BUNDLE line coverage ≥ `${jacoco.min.bundle.coverage}` and branch coverage ≥ `${jacoco.min.bundle.branch.coverage}`, set to 89% / 77% in core's pom — ratchet it up as suites grow; other modules default to 0%). Core's surefire argLine composes via `@{argLine}` — don't overwrite it or JaCoCo silently records nothing. **Exclusions** (backend/pom.xml jacoco config): `DefaultMateuHttpClient` and `RemoteMenuHandler` — thin wrappers over live HTTP that cannot run in-JVM (federated menus are fetched by the frontend in normal operation); they're exercised by the e2e suites. Repo-root `lombok.config` sets `addLombokGeneratedAnnotation` so lombok-generated members don't count. Line coverage as of 2026-10-17: 89.3% L / 77.7% B measured (2155 tests; was 11% before the harness); the gates are 89% L / 77% B (core's pom). The residual is dominated by catch/defensive branches and sub-20-line variant tails across mappers/converters — ratchet the gate as suites grow rather than writing noise tests against exception handlers.
+
+## Public test harness for USERS (`io.mateu:mateu-test`, 2026-11-11, `@Experimental`)
+
+What apps test their UIs with (TestMateu above stays core-internal, Spring-test based). Java
+`backend/shared/test` (`io.mateu.test`, in `mateu-bom`): `MateuTest.builder().scan(pkg)|ui(…)|bean(…)|specs(dir).start()`
+boots core with NO container — `Container` builds every concrete `@Named` class of the mateu-core jar
+through its `@Inject`/only constructor (List params = every bean of the type; contributed beans win);
+`MateuBeanProvider` is a static holder, so ONE harness per JVM at a time. `Screen` is a mini renderer
+over the wire JSON (`Frame` per page/overlay): a fresh load sends `consumedRoute: "_empty"` (as
+mateu-ui does — without it the shell is skipped and the menu is empty), follows an App's
+`homeRoute`/a MEDIATOR shell to its home, a crud's `_route`/`_componentRoute` state flip (`"list"` =
+the crud's own route) re-loads with the ORCHESTRATOR as serverSideType (unowned actions bubble to it,
+or `create`/`edit` answer "no such action"), runs OnLoad triggers, stacks `Add` Dialog/Drawer
+fragments, applies NavigateTo/PushStateToHistory/CloseModal/RunAction. Follow-up loads of an answer are
+DEFERRED until its commands are applied (else the shell's SetWindowTitle overwrote the screen's).
+Listings = components whose metadata type is `Crud` (not "Crudl"); rows in `data[<crud id>].page`;
+selection key `<crud id>_selected_items`; a listing's filter FormFields are excluded from `fields()`.
+Ports mirror it: .NET `Mateu.AspNetCore.Testing` (`MateuTest.Start` = `AddMateu` on a ServiceCollection,
+identity via a `DefaultHttpContext.User` set on the accessor; types pinned in
+`api/Mateu.AspNetCore.public-types.txt`), Python `mateu_ui.testing` (`add_mateu` on a throwaway
+FastAPI, identity bound as `MateuRequest.principal`; module pinned in `public-exports.json`). Tests
+`MateuTestTest`/`MoreScreensTest`, `MateuTestHarnessTests`, `test_testing_harness.py`; the spring-mvc
+starter's `ProductsUiTest` (a java `sampleFiles` entry + a `renames` entry move it into the generated
+package; the archetype prunes the folders a move/drop empties). Docs `quality/testing-your-uis.mdx`.
+Running the starter against the reactor WITHOUT touching ~/.m2: `mvn -Dmaven.repo.local=<scratch>
+-Dmaven.repo.local.tail=$HOME/.m2/repository install` of the modules, then the starter with the same flags.
 
 ## Figma design-to-code pipeline (IN PROGRESS, 2026-07-15)
 

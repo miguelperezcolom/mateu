@@ -9,7 +9,8 @@
 //     synthetic `partial class Snippet`;
 //   - statements (`builder.Services.AddMateu();`) and bare expressions (`new Text("…")`) → the body
 //     of an async method of that class (an expression becomes `_ = expr;`).
-// The usual `using Mateu.Uidl;`, `using Mateu.Dtos;`, `using Mateu.Core;`, `using Mateu.AspNetCore;`
+// The usual `using Mateu.Uidl;`, `using Mateu.Dtos;`, `using Mateu.Core;`, `using Mateu.AspNetCore;`,
+// `using Mateu.AspNetCore.Testing;`
 // and `System.ComponentModel.DataAnnotations` are global (samples omit them), as are the ASP.NET
 // Core implicit usings. A type declared by another snippet of the same page is visible.
 // `{ ... }` / `…` are elisions.
@@ -200,7 +201,18 @@ export function checkCsharp(blocks, { repoRoot, work }) {
   }
   writeFileSync(join(dir, 'GlobalUsings.cs'), [
     'global using Mateu.Uidl;', 'global using Mateu.Dtos;', 'global using Mateu.Core;', 'global using Mateu.AspNetCore;',
+    'global using Mateu.AspNetCore.Testing;',
     'global using System.ComponentModel.DataAnnotations;',
+  ].join('\n'));
+  // The test framework a sample of the testing pages names (`using Xunit;`, `[Fact]`): its
+  // attributes, so `[Fact]` is not read as Mateu.Uidl's `Fact` record. `Assert.*` is a member of a
+  // non-Mateu type, which is tolerated.
+  writeFileSync(join(dir, 'TestFrameworks.cs'), [
+    'namespace Xunit {',
+    '  public sealed class FactAttribute : System.Attribute { }',
+    '  public sealed class TheoryAttribute : System.Attribute { }',
+    '  public static class Assert { }',
+    '}',
   ].join('\n'));
   writeFileSync(join(dir, 'Snippets.csproj'), `<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>

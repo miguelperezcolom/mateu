@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- The classpath the Java snippets of the docs compile against (doc/scripts/check-snippets.mjs).
-     Never built: only `dependency:build-classpath` runs on it, after `mvn -pl shared/core -am install`
+     Never built: only `dependency:build-classpath` runs on it, after `mvn -pl shared/core,shared/test -am install`
      in backend/. The extra dependencies are the host-framework types the samples use next to Mateu's
      (Spring stereotypes, Spring Boot's main class, Lombok, Bean Validation). -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -17,6 +17,7 @@
   <packaging>pom</packaging>
   <dependencies>
     <dependency><groupId>io.mateu</groupId><artifactId>mateu-core</artifactId><version>${project.version}</version></dependency>
+    <dependency><groupId>io.mateu</groupId><artifactId>mateu-test</artifactId><version>${project.version}</version></dependency>
     <dependency><groupId>org.springframework</groupId><artifactId>spring-context</artifactId></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-autoconfigure</artifactId></dependency>
     <dependency><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId></dependency>

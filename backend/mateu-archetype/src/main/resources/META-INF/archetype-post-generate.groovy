@@ -75,9 +75,19 @@ def move = { from, to ->
 
 // (1) the chosen starter at the root
 move(root.resolve("variants/${authoring}"), root)
-// (2) the template: the Product CRUD goes unless the template keeps it, then the template's removeFiles
-if (!flavour.keepsSample || sampleDef?.dropsSampleFiles) java.sampleFiles.each { root.resolve(it).toFile().delete() }
-(sampleDef?.removeFiles ?: []).each { root.resolve(it).toFile().delete() }
+// (2) the template: the Product CRUD goes unless the template keeps it, then the template's removeFiles;
+// a removed file's emptied folders go with it (a sample test's src/test/java/com/example/app)
+def removeStarterFile = { String rel ->
+    def f = root.resolve(rel)
+    f.toFile().delete()
+    def d = f.parent
+    while (d != root && isEmptyDir(d)) {
+        d.toFile().delete()
+        d = d.parent
+    }
+}
+if (!flavour.keepsSample || sampleDef?.dropsSampleFiles) java.sampleFiles.each { removeStarterFile(it) }
+(sampleDef?.removeFiles ?: []).each { removeStarterFile(it) }
 // (4) overlays: common (gitignore → .gitignore, claude/settings.json → .claude/settings.json), the
 // flavour's for the template (overlays[template], else overlays['*']) and the renderer's
 move(gen.resolve('overlays/common'), root)
@@ -118,7 +128,12 @@ java.renames.each { r ->
     def to = root.resolve(expand(r.to))
     to.parent.toFile().mkdirs()   // claude/settings.json → .claude/settings.json
     nioFiles.move(from, to, replaceExisting)
-    if (from.parent != root && isEmptyDir(from.parent)) from.parent.toFile().delete()
+    // remove the folders the move emptied (src/test/java/com/example/app), innermost first
+    def d = from.parent
+    while (d != root && isEmptyDir(d)) {
+        d.toFile().delete()
+        d = d.parent
+    }
 }
 def pkgDir = root.resolve(java.packageDir)
 if (isDir(pkgDir)) {

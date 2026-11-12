@@ -64,6 +64,11 @@
         <artifactId>mateu-core</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>mateu-test</artifactId>
+        <version>${project.version}</version>
+      </dependency>
       <!-- annotation processors: put them on the annotationProcessorPaths, never on the runtime
            classpath -->
       <dependency>
