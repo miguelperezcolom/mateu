@@ -173,28 +173,101 @@ shows as a notification of the operating system while the app is not in front:
   brings the tab back and opens the entry's route.
 - **phone**: a LOCAL notification (no push service, no device token — nothing leaves the app), shown
   while the app is in the background; permission is asked from the inbox / task sheet. See
-  [what that covers](#on-a-phone-what-reaches-the-device-while-the-app-is-away) below.
+  [what that covers](#on-a-phone-what-reaches-the-device-while-the-app-is-away) below; a closed
+  phone is reached with a [push](#push-notifications-to-the-mateu-app).
 - **IntelliJ / the desktop app**: a system notification while the IDE is not active (it follows
   the IDE's "Use system notifications" setting).
 
 ### On a phone: what reaches the device while the app is away
 
 A local notification can only be posted by the app itself, while its JavaScript runs. The OS suspends
-a backgrounded app soon after you leave it (within seconds on iOS; it varies on Android), and there
-is no remote push in 3.0, by design.
+a backgrounded app soon after you leave it (within seconds on iOS; it varies on Android). To reach a
+suspended or closed phone, the UI sends a [push notification](#push-notifications-to-the-mateu-app).
 
 | Situation | What the user gets |
 |---|---|
 | App in front | The bell and a toast, no OS notification |
 | A task ends (or sends an `inbox` message) in the moments after leaving the app, while it still runs | An OS notification |
 | A `LiveNotifications` push while the app is away | No OS notification: the event stream closes the moment the app leaves the foreground |
-| Anything while the app is suspended or closed | No OS notification |
+| Anything while the app is suspended or closed | No OS notification, unless the UI sends a [push](#push-notifications-to-the-mateu-app) |
 | Back in the app | The bell fetches its list at once, so the badge counts what arrived meanwhile |
 
 So on a phone, treat the OS notification as a convenience and the inbox as the record. Only what the
 server holds can be caught up: entries of your `NotificationsSupplier`, or stored for a signed-in
-user (`InboxStore`). If users must be alerted on a closed phone, send it from your own backend through
-a push service.
+user (`InboxStore`). If users must be alerted on a closed phone, push it.
+
+## Push notifications to the Mateu app 🧪
+
+The Mateu phone app can receive real push notifications from a UI, through
+[Expo Push Service](https://docs.expo.dev/push-notifications/sending-notifications/) (one Expo push
+token per phone; Expo forwards to APNs and FCM). Mateu ships UI only: it carries the phone's
+registration to your app and opens the right screen on a tap. **Keeping the tokens and sending is
+yours.**
+
+**1. Say the UI takes push registrations.** The app class implements `PushTokenRegistry`:
+
+```java
+@UI("")
+public class Home implements PushTokenRegistry {
+
+  @Override
+  public void registerPushToken(PushRegistration registration, HttpRequest httpRequest) {
+    // idempotent: the phone registers again on every start (Expo may rotate the token)
+    tokens.save(registration.principal(), registration.token(), registration.uiKey());
+  }
+
+  @Override
+  public void unregisterPushToken(PushRegistration registration, HttpRequest httpRequest) {
+    tokens.delete(registration.principal(), registration.token());
+  }
+}
+```
+
+.NET: the app class implements `IPushTokenRegistry` (`RegisterPushToken` / `UnregisterPushToken`).
+Python: the `@app` class extends `PushTokenRegistry` (`register_push_token` / `unregister_push_token`).
+The wire then carries `AppDto.pushNotifications: true`.
+
+**2. The user turns it on, per UI.** The UI's drawer on the phone shows *Notifications on this
+phone*. Nothing is asked on launch: only that tap asks the OS for permission and reads the phone's
+Expo push token, which is then sent to **this UI only** (the `_push-register` app-level action,
+with this UI's own credentials — never to another backend the phone also opens). Turning it off, or
+removing the UI from the phone's list, sends `_push-unregister` first. A UI turned on registers again
+at every start, without asking again.
+
+`PushRegistration` carries `token` (`ExponentPushToken[…]`), `service` (`expo`), `platform`
+(`ios` | `android`), `uiKey` and `principal` — the caller the host framework authenticated, never
+a value from the request. Every backend checks the shapes before your code runs and refuses an app
+class without a registry (403). Scope a registration to its principal, and unregister only a token
+that principal registered.
+
+**3. Send.** Post to Expo with the `uiKey` back in `data.mateu.ui` and, optionally, the route to open:
+
+```bash
+curl -X POST https://exp.host/--/api/v2/push/send -H 'Content-Type: application/json' -d '{
+  "to": "ExponentPushToken[…]",
+  "title": "Booking 42 confirmed",
+  "body": "Tap to open it",
+  "data": {"mateu": {"ui": "<uiKey>", "route": "/bookings/42"}}
+}'
+```
+
+A tap opens that UI at that route (mount-relative; anything absolute is dropped and the UI opens
+where it starts). The key is drawn by the phone per UI: a push carrying a key the phone does not hold
+— another UI's, a removed UI's — opens nothing. With the app in front the notification still shows
+as a banner. Drop a token when Expo answers `DeviceNotRegistered`. A natural pairing with the inbox:
+when your `NotificationsSupplier` / `InboxStore` gains an entry for a user, push it to that user's
+tokens with the entry's route.
+
+**Why no sending helper in Mateu.** Sending needs your token store, your retry and receipt policy,
+and often an Expo access token — all application concerns; the call itself is one HTTP POST (or
+Expo's server SDKs). So Mateu only defines the registration contract and documents the message
+shape.
+
+**What only a real device shows.** The decisions (permission only from the tap, one key per UI,
+unregister on removal, tap routing) and the server actions are unit-tested; the delivery itself needs
+a store/EAS build with push credentials (APNs key, FCM V1) on a physical phone. A white-label
+*fixed* build carries its own Expo project and credentials, and only opens pushes of its own UI.
+
 
 ## In YAML
 
@@ -205,7 +278,8 @@ through the server when the source is `proxy: true`). See
 
 ## Wire
 
-`AppDto.notificationsEnabled` turns the bell on (`AppDto.osNotifications` the OS notifications); the actions answer
+`AppDto.notificationsEnabled` turns the bell on (`AppDto.osNotifications` the OS notifications,
+`AppDto.pushNotifications` the phone's push switch); the actions answer
 `Data{_notifications: [{id, title, text, route, unread, when, category, variant, resolved,
 actions, hasDetail}]}` — same contract from the Java, .NET and Python servers. A push is the command
 `NotificationsChanged {notification, removedId}` (both null = refetch).

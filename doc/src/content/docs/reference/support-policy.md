@@ -88,6 +88,10 @@ CHANGELOG. .NET 8 reached its end of support on 10 November 2026, before the GA,
   which also states the response times (acknowledgement within 3 business days, a fix for critical
   and high severity within 30 days of the assessment).
 
+- **Accessibility defects:** a GitHub issue, naming the renderer, the screen and the assistive
+  technology. What Mateu claims today is in the
+  [accessibility conformance report](/quality/accessibility-conformance/).
+
 ## Software bill of materials
 
 Every framework release attaches CycloneDX SBOMs (JSON) to its
@@ -97,3 +101,10 @@ shared client library), one for the Python wheel and one for the .NET packages. 
 release against your vulnerability scanner or licence policy. The dependency advisories that cannot
 be fixed by upgrading are listed with their reasons in
 [SECURITY-DEPENDENCIES.md](https://github.com/miguelperezcolom/mateu/blob/master/SECURITY-DEPENDENCIES.md).
+
+## Signatures and provenance
+
+Every artifact is signed where its channel allows it (OpenPGP on Maven Central, the registries' and
+marketplaces' signatures, macOS notarization, Authenticode, the Android key), and every file a
+release distributes has a GitHub build provenance attestation; the release assets also come with a
+`SHA256SUMS`. How to check each one: [Verify what you download](/reference/verify-downloads/).

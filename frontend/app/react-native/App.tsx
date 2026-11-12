@@ -29,6 +29,8 @@ import { bootModeOf } from './src/core/buildVariant';
 import { fetchManifest } from './src/hub/manifest';
 import { MateuThemeProvider } from './src/ui/MateuTheme';
 import { StatusBar } from 'expo-status-bar';
+import { onPushOpened } from './src/core/pushNotifications';
+import { pushRegistrations } from './src/ui/pushPort';
 
 // Hermes has no crypto.getRandomValues: expo-crypto's is the secure source (core/secureRandom.ts)
 installSecureRandom(ExpoCrypto.getRandomValues);
@@ -262,6 +264,17 @@ function AuthGate({ config, route = MATEU_ROUTE }: { config: BootConfig; route?:
   // Mateu server: then the app runs from its manifest.json, with no /mateu/v3 calls at all.
   const [bundle, setBundle] = useState<StaticBundle | null>(null);
   const provider = React.useMemo(() => (config.oidc ? new OidcTokenProvider(config.oidc, platformStore) : null), [config.oidc]);
+  // A tap on one of THIS UI's push notifications reopens it at the route the push names (a fixed
+  // build has one UI: a push registered with another backend is not its own and opens nothing).
+  const [pushed, setPushed] = useState<{ route: string; generation: number } | null>(null);
+  useEffect(
+    () =>
+      onPushOpened(pushRegistrations, (record, pushedRoute) => {
+        if (record.baseUrl !== config.baseUrl) return;
+        setPushed((p) => ({ route: pushedRoute || route, generation: (p?.generation ?? 0) + 1 }));
+      }),
+    [config.baseUrl, route],
+  );
 
   useEffect(() => {
     let alive = true;
@@ -314,7 +327,7 @@ function AuthGate({ config, route = MATEU_ROUTE }: { config: BootConfig; route?:
   }
   return (
     <MateuAppProvider config={{ baseUrl: config.baseUrl, sessionId, appState: config.appState, bundle }}>
-      <SessionContent initialRoute={route} />
+      <SessionContent key={pushed?.generation ?? 0} initialRoute={pushed?.route ?? route} />
     </MateuAppProvider>
   );
 }

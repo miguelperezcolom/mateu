@@ -107,6 +107,14 @@ jobs:
             sleep 15
           done
           echo "publishPlugin failed after 3 attempts."; exit 1
+      # What went to the Marketplace (the signed zip too, when the signing secrets are set), for the
+      # caller's provenance job to attest.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ide-plugin-intellij
+          path: frontend/app/intellij-plugin/build/distributions/*.zip
+          if-no-files-found: warn
+          retention-days: 1
 
   vscode:
     if: startsWith(github.event.release.tag_name, 'v') && (!contains(github.event.release.tag_name, '-') || startsWith(github.event.release.tag_name, 'v3.0-'))
@@ -146,6 +154,13 @@ jobs:
         run: cd frontend/app/vscode-extension && npm run compile && npm test
       - name: Package the .vsix
         run: cd frontend/app/vscode-extension && npx --no -- vsce package -o mateu-visual-editor.vsix
+      # The exact .vsix both marketplaces get, for the caller's provenance job to attest.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ide-plugin-vscode
+          path: frontend/app/vscode-extension/mateu-visual-editor.vsix
+          if-no-files-found: error
+          retention-days: 1
       - name: Publish to the VS Code Marketplace
         run: cd frontend/app/vscode-extension && npx --no -- vsce publish --packagePath mateu-visual-editor.vsix --pat "$VSCE_PAT"
         env:

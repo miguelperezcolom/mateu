@@ -3744,6 +3744,54 @@
     ]
    }
   },
+  "PushRegistration": {
+   "class": [
+    [
+     "token",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "service",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "platform",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "ui_key",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "principal",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "PushTokenRegistry": {
+   "class": [],
+   "members": {
+    "register_push_token": [
+     [
+      "registration",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "unregister_push_token": [
+     [
+      "registration",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "RangeFilter": {
    "class": []
   },

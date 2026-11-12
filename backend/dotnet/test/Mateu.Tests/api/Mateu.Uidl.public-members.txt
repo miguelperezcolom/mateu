@@ -1187,6 +1187,8 @@ Mateu.Uidl.IOptionsSupplier abstract method System.Collections.Generic.IReadOnly
 Mateu.Uidl.IOverlineSupplier abstract method System.String Overline()
 Mateu.Uidl.IPageWidthSupplier abstract method Mateu.Uidl.PageWidthStyle? PageWidth()
 Mateu.Uidl.IPeerNavigationSupplier abstract method Mateu.Uidl.PeerNav Peers()
+Mateu.Uidl.IPushTokenRegistry abstract method System.Void RegisterPushToken(Mateu.Uidl.PushRegistration)
+Mateu.Uidl.IPushTokenRegistry abstract method System.Void UnregisterPushToken(Mateu.Uidl.PushRegistration)
 Mateu.Uidl.IRecordSwitcherSupplier abstract method Mateu.Uidl.RecordSwitcher Switcher()
 Mateu.Uidl.IRecordSwitcherSupplier abstract method System.Object SwitchTo(System.String)
 Mateu.Uidl.IRecordSwitcherSupplier const field System.String ActionId
@@ -1868,6 +1870,13 @@ Mateu.Uidl.ProgressSteps ctor()
 Mateu.Uidl.ProgressSteps property System.Boolean Vertical { get;init; }
 Mateu.Uidl.ProgressSteps property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Step> Steps { get;init; }
 Mateu.Uidl.ProgressSteps property System.String ResultTitle { get;init; }
+Mateu.Uidl.PushRegistration const field System.String Expo
+Mateu.Uidl.PushRegistration ctor(System.String, System.String, System.String, System.String, System.String)
+Mateu.Uidl.PushRegistration property System.String Platform { get;init; }
+Mateu.Uidl.PushRegistration property System.String Principal { get;init; }
+Mateu.Uidl.PushRegistration property System.String Service { get;init; }
+Mateu.Uidl.PushRegistration property System.String Token { get;init; }
+Mateu.Uidl.PushRegistration property System.String UiKey { get;init; }
 Mateu.Uidl.QueueGroup ctor()
 Mateu.Uidl.QueueGroup property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.QueueItem> Items { get;init; }
 Mateu.Uidl.QueueGroup property System.String Label { get;init; }

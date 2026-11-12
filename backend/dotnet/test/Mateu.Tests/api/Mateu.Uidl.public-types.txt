@@ -263,6 +263,7 @@ Mateu.Uidl.IOptionsSupplier
 Mateu.Uidl.IOverlineSupplier
 Mateu.Uidl.IPageWidthSupplier
 Mateu.Uidl.IPeerNavigationSupplier
+Mateu.Uidl.IPushTokenRegistry
 Mateu.Uidl.IRecordSwitcherSupplier
 Mateu.Uidl.IRefreshOnChange
 Mateu.Uidl.IRemoteCatalogSupplier
@@ -405,6 +406,7 @@ Mateu.Uidl.ProcessMonitor
 Mateu.Uidl.ProgressBar
 Mateu.Uidl.ProgressReporter
 Mateu.Uidl.ProgressSteps
+Mateu.Uidl.PushRegistration
 Mateu.Uidl.QueueGroup
 Mateu.Uidl.QueueItem
 Mateu.Uidl.RangeFilterAttribute

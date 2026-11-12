@@ -11,6 +11,8 @@ In a model-driven framework the developer does not write the HTML. That is usual
 
 So none of what follows is opt-in. You get it by using Mateu.
 
+For the formal, criterion-by-criterion statement against WCAG 2.2 AA — per renderer, with the evidence and the known gaps — see the [accessibility conformance report](/quality/accessibility-conformance/).
+
 ## What you get without doing anything
 
 ### Forms
@@ -177,6 +179,7 @@ The framework covers the generated UI. Three things are still yours:
 
 ## Related
 
+- [Accessibility conformance report](/quality/accessibility-conformance/) — WCAG 2.2 A/AA, criterion by criterion, VPAT-style
 - [Keyboard shortcuts](/ux-patterns/keyboard-shortcuts/) — action and tab shortcuts
 - [Slow connections](/ux-patterns/slow-connections/) — busy states also set `aria-busy`
 

@@ -8,6 +8,10 @@ setStreamingFetch(expoFetch as unknown as typeof fetch);
 import { setLocalNotifier } from '../core/osNotifications';
 import { platformNotifier } from '../ui/localNotifications';
 setLocalNotifier(platformNotifier());
+// PUSH notifications of a UI (App.pushNotifications): Expo push tokens (core/pushNotifications.ts)
+import { setPushPort } from '../core/pushNotifications';
+import { platformPushPort } from '../ui/pushPort';
+setPushPort(platformPushPort());
 import { MateuSession } from '../core/MateuSession';
 import { randomUuid } from '../core/sessionId';
 import type { TokenProvider } from '../core/auth';

@@ -190,6 +190,8 @@
   "PrimaryColumn",
   "Priority",
   "ProgressReporter",
+  "PushRegistration",
+  "PushTokenRegistry",
   "RangeFilter",
   "ReadOnly",
   "ReadOnlySupplier",

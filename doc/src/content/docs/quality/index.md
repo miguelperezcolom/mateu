@@ -17,6 +17,8 @@ quality is measured and enforced.
 
 - [Accessibility](/ux-patterns/accessibility/) — what is guaranteed for keyboard and screen-reader
   users on every renderer (web, Redwood, mobile, IntelliJ), and the probes that verify it.
+- [Accessibility conformance report](/quality/accessibility-conformance/) — WCAG 2.2 Level A and
+  AA, criterion by criterion and per renderer, in the VPAT 2.5 structure, with the known gaps.
 - [Accessibility in your code](/java-user-manual/advanced/accessibility/) — what is still yours to
   get right.
 

@@ -31,6 +31,7 @@ import { interpolate } from '../core/expressions';
 import { catchUpOnResume, filtered, grouped, inboxItemOf, unreadCount, type InboxAction, type InboxFilter, type InboxItem } from '../core/inbox';
 import { toastOf } from '../core/componentContext';
 import { NotifyOnThisDevice } from './TaskHost';
+import { PushSwitch, usePushRefresh } from './PushSwitch';
 import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type ShellExtrasMeta } from './AppShellExtras';
 import type { AppShortcut } from '../core/appShellExtras';
 import { ConnectAiEntry, useAgentChannel, type AgentPushMeta } from './AgentPush';
@@ -95,6 +96,8 @@ interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
   notificationsEnabled?: boolean;
   /** The app opted in to OS-level notifications (@App(osNotifications = true)). */
   osNotifications?: boolean;
+  /** The app class implements PushTokenRegistry: this phone may register for its push notifications. */
+  pushNotifications?: boolean;
   /** A data-authored shell's inbox: REST sources instead of the app class's supplier. */
   notificationsSource?: Record<string, unknown> | null;
   notificationsReadSource?: Record<string, unknown> | null;
@@ -918,6 +921,7 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
       <QuickLaunch meta={appMeta} onLaunch={onLaunch} />
       {appMeta.globalSearchEnabled === true && <GlobalSearchBox appMeta={appMeta} onNavigate={onNavigate} />}
       {appMeta.notificationsEnabled === true && <NotificationBell appMeta={appMeta} onNavigate={onNavigate} />}
+      {appMeta.pushNotifications === true && <PushSwitch appMeta={appMeta} />}
       <ConnectAiEntry meta={appMeta} />
       <ContextSelectors selectors={appMeta.contextSelectors ?? []} appMeta={appMeta} onChanged={onContextChanged} />
       {renderItems(appMeta.menu ?? [])}
@@ -1011,6 +1015,9 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   const { session } = useAppContext();
   // OS-level notifications are the app's choice (core/osNotifications.ts)
   session.osNotifications = appMeta.osNotifications === true;
+  // push notifications are the UI's offer and the user's choice, per UI (core/pushNotifications.ts)
+  session.pushNotifications = appMeta.pushNotifications === true;
+  usePushRefresh(appMeta);
   // the version-skew notices' Reload (core/buildSkew.ts): remount the current screen, so it re-runs
   // its load from scratch against the redeployed backend — the same remount an @AppContext change does
   React.useEffect(() => {

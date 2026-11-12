@@ -164,6 +164,47 @@ class AppHandlerMixin(MixinBase):
             cls().keep_alive()
         return UIIncrement.of()
 
+    # ── Push registration of the Mateu mobile app (mirrors Java's PushTokensActionRunner) ──
+    def push_tokens_action(self, cls, rq: RunActionRq) -> UIIncrement:
+        """``_push-register`` / ``_push-unregister``: the parameters ``{token, service, platform,
+        uiKey}`` are checked — an Expo push token, ``"expo"``, ios|android, an opaque key — and
+        handed, with the authenticated caller, to the app class's ``PushTokenRegistry``. Without
+        one the action is refused (403). Answers an empty increment."""
+        import re
+
+        from mateu_ui.uidl.push import EXPO, PushRegistration, PushTokenRegistry
+
+        from ..action_guard import deny
+
+        if not (isinstance(cls, type) and issubclass(cls, PushTokenRegistry)):
+            deny(f"{rq.action_id}: this UI takes no push registrations")
+        parameters = rq.parameters or {}
+
+        def text(key: str) -> str | None:
+            value = parameters.get(key)
+            return value if isinstance(value, str) else None
+
+        token, service, platform, ui_key = (
+            text("token"), text("service"), text("platform"), text("uiKey"))
+        if (
+            token is None
+            or not re.fullmatch(r"Expo(nent)?PushToken\[[A-Za-z0-9_\-]{8,200}\]", token)
+            or service != EXPO
+            or platform not in ("ios", "android")
+            or ui_key is None
+            or not re.fullmatch(r"[A-Za-z0-9_\-]{8,64}", ui_key)
+        ):
+            from mateu_ui.uidl import UserFacingException
+
+            raise UserFacingException("Invalid push registration")
+        registration = PushRegistration(token, service, platform, ui_key, self._inbox_principal())
+        registry = cls()
+        if rq.action_id == "_push-register":
+            registry.register_push_token(registration)
+        else:
+            registry.unregister_push_token(registration)
+        return UIIncrement.of()
+
     @staticmethod
     def live_updates_snapshot() -> UIIncrement:
         """The first increment of the ``_live-updates`` stream: the last value PUBLISHED for each
