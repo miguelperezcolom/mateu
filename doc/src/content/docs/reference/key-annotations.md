@@ -221,6 +221,24 @@ Use it when the Java type is not enough to express how the field should be rende
 
 ---
 
+## `@Autocomplete`
+
+The purpose of a field that collects information about the user (WCAG 2.2 SC 1.3.5): an HTML
+`autocomplete` token such as `email`, `given-name`, `family-name`, `tel`, `street-address`,
+`postal-code`, `bday` or `new-password` (or `off`). Browsers and assistive technologies use it to
+fill the field in and to show what it is for; React Native maps it to `autoComplete` /
+`textContentType`.
+
+```java
+@Autocomplete("given-name") String firstName;
+@Autocomplete("shipping postal-code") String zip;
+@Stereotype(FieldStereotype.email) String email; // gets "email" by itself
+```
+
+An editable email field infers `email`; every other purpose must be declared, because a name alone
+cannot tell whose data a field holds. In YAML and fluent code it is the `FormField`'s
+`autocomplete:`; in .NET `[Autocomplete("tel")]`, in Python `Annotated[str, Autocomplete("tel")]`.
+
 ## `@UseRadioButtons`
 
 Renders an enum field as radio buttons instead of the default dropdown, regardless of how many

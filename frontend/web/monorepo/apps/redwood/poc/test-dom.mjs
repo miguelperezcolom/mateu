@@ -21,6 +21,7 @@ import {
   installAnnouncer, announce, focusContent, announceNavigation, resetNavigationState, mountSkipLink,
   trackPressedControls, markPressedControlBusy, clearPressedControlBusy, showFieldErrors, clearFieldErrorMarks,
   clearFieldError, guardGuidedProcess, setLastRetry, takeLastRetry, hasLastRetry, focusIsInChat,
+  applyInputPurpose,
 } from './a11y.mjs'
 import { setRulesContext, setRulesContexts, applyRulesNow, installRules, setRuleActionSink, rulesDebug } from './rules.mjs'
 import { installCalendars, setCalendarActionSink } from './calendar.mjs'
@@ -1733,6 +1734,25 @@ test('scoreboard: the list item action of a drilling card runs ITS action (any o
   assert.equal(scoreboardDrillInOf(kpiAtom, 'k9'), null)
   setScoreboardActionSink(null)
   setScoreboardDataResolver(null)
+})
+
+test('WCAG 1.3.5: a field\'s autocomplete token reaches its native input; the field atom carries it', () => {
+  const { doc } = makeDom()
+  const host = doc.createElement('oj-input-text')
+  host.setAttribute('data-autocomplete', 'given-name')
+  const input = doc.createElement('input')
+  host.appendChild(input)
+  const plain = doc.createElement('oj-input-text')
+  const plainInput = doc.createElement('input')
+  plain.appendChild(plainInput)
+  doc.body.appendChild(host)
+  doc.body.appendChild(plain)
+  assert.equal(applyInputPurpose(doc.body), 1)
+  assert.equal(input.getAttribute('autocomplete'), 'given-name')
+  assert.equal(plainInput.getAttribute('autocomplete'), null)
+  assert.equal(applyInputPurpose(doc.body), 0, 'idempotent')
+  assert.equal(fieldWidgetOf({ fieldId: 'e', dataType: 'string', stereotype: 'email', autocomplete: 'email' }, {}, { value: '' }).autocomplete, 'email')
+  assert.equal(fieldWidgetOf({ fieldId: 'e', dataType: 'string', autocomplete: 'email', readOnly: true }, {}, { value: '' }).autocomplete, null)
 })
 
 for (const { name, fn } of tests) {

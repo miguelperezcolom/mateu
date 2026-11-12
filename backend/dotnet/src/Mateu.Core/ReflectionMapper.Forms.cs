@@ -625,6 +625,8 @@ internal sealed partial class ReflectionMapper
             // [Style]: the field's own style, on the field and its wrapper (Java's FieldMapper)
             Style = p.Find<Mateu.Uidl.StyleAttribute>()?.Value,
         };
+        // [Autocomplete]: the input's purpose (WCAG 1.3.5); an editable email field infers "email"
+        meta = meta with { Autocomplete = InputPurpose.Of(p.Find<AutocompleteAttribute>()?.Value, meta.Stereotype, meta.ReadOnly) };
         return Client(meta, fieldId, []) with { Style = p.Find<Mateu.Uidl.StyleAttribute>()?.Value };
     }
 

@@ -389,6 +389,15 @@
     "view": []
    }
   },
+  "Autocomplete": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
   "Avatar": {
    "class": []
   },
@@ -8651,6 +8660,11 @@
     ],
     [
      "property_row",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "autocomplete",
      "POSITIONAL_OR_KEYWORD",
      true
     ]

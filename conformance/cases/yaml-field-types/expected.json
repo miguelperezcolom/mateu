@@ -35,6 +35,7 @@
         "type" : "ClientSide"
       }, {
         "metadata" : {
+          "autocomplete" : "email",
           "colspan" : 1,
           "dataType" : "string",
           "fieldId" : "contact",

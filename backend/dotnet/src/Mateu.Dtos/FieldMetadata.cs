@@ -42,6 +42,11 @@ public record FormFieldMetadataDto(string FieldId, string DataType, string Label
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Placeholder { get; init; }
 
+    /// <summary>The HTML autocomplete token naming the input's purpose (WCAG 1.3.5; mirrors
+    /// FormFieldDto.autocomplete): the declared one, else "email" for an editable email field.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Autocomplete { get; init; }
+
     /// <summary>The control takes the focus when rendered (mirrors FormFieldDto.autofocus).</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool Autofocus { get; init; }

@@ -1387,6 +1387,7 @@ export function islandContentOf(ctx, opts = {}) {
           value: state[fieldId] == null ? '' : String(state[fieldId]),
           // its hint while empty («e.g. Mars Sample Return»), like the web renderer's
           placeholder: m.placeholder ? interp(String(m.placeholder)) : '',
+          autocomplete: m.autocomplete ? String(m.autocomplete) : null,
         }, container)
       }
       return

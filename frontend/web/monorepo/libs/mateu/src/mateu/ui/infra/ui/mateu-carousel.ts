@@ -31,6 +31,10 @@ export class MateuCarousel extends LitElement {
 
     @state() private total = 0
 
+    /** WCAG 2.2.2 Pause, Stop, Hide: the user stopped the autoplay with the visible button (or the
+     *  system asks for reduced motion, which starts it stopped). Hover/focus only pause it for a while. */
+    @state() stopped = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+
     private timer: ReturnType<typeof setInterval> | undefined
     private paused = false
 
@@ -61,7 +65,7 @@ export class MateuCarousel extends LitElement {
         this.stopTimer()
         if (this.auto && this.isConnected) {
             this.timer = setInterval(() => {
-                if (!this.paused) this.selected = nextSlide(this.selected, 1, this.total, true)
+                if (!this.paused && !this.stopped) this.selected = nextSlide(this.selected, 1, this.total, true)
             }, Math.max(500, this.duration || 4000))
         }
     }
@@ -98,10 +102,15 @@ export class MateuCarousel extends LitElement {
                  @focusin="${() => { this.paused = true }}" @focusout="${() => { this.paused = false }}">
                 ${this.nav ? html`<button type="button" class="nav prev" aria-label="${chromeText('previous')}"
                         ?disabled="${atStart}" @click="${() => this.go(-1)}">‹</button>` : nothing}
-                <div class="slides" aria-live="${this.auto ? 'off' : 'polite'}"><slot @slotchange="${this.syncSlides}"></slot></div>
+                <div class="slides" aria-live="${this.auto && !this.stopped ? 'off' : 'polite'}"><slot @slotchange="${this.syncSlides}"></slot></div>
                 ${this.nav ? html`<button type="button" class="nav next" aria-label="${chromeText('next')}"
                         ?disabled="${atEnd}" @click="${() => this.go(1)}">›</button>` : nothing}
             </div>
+            ${this.auto && this.total > 1 ? html`<button type="button" class="play"
+                    aria-pressed="${this.stopped ? 'false' : 'true'}"
+                    aria-label="${chromeText(this.stopped ? 'carouselPlay' : 'carouselPause')}"
+                    title="${chromeText(this.stopped ? 'carouselPlay' : 'carouselPause')}"
+                    @click="${() => { this.stopped = !this.stopped }}">${this.stopped ? '▶' : '❚❚'}</button>` : nothing}
             ${this.dots && this.total > 1 ? html`<div class="dots">
                 ${Array.from({ length: this.total }, (_, i) => html`<button type="button"
                         class="dot ${i === this.selected ? 'active' : ''}" aria-label="${i + 1} / ${this.total}"
@@ -117,12 +126,18 @@ export class MateuCarousel extends LitElement {
         .frame:focus-visible { box-shadow: 0 0 0 2px var(--lumo-primary-color-50pct, #1676f380); border-radius: 4px; }
         .slides { flex: 1 1 auto; min-width: 0; }
         .nav { flex: 0 0 auto; border: none; background: var(--lumo-contrast-10pct, #eee); color: inherit;
-               width: 2.25rem; height: 2.25rem; border-radius: 50%; font-size: 1.4rem; line-height: 1; cursor: pointer; }
+               width: 2.25rem; height: 2.25rem; border-radius: 50%; font-size: var(--lumo-font-size-xl, 1.4rem); line-height: 1; cursor: pointer; }
         .nav:disabled { opacity: .35; cursor: default; }
-        .dots { display: flex; justify-content: center; gap: .4rem; margin-top: var(--lumo-space-s, .5rem); }
-        .dot { width: .6rem; height: .6rem; padding: 0; border-radius: 50%; border: none; cursor: pointer;
-               background: var(--lumo-contrast-30pct, #bbb); }
-        .dot.active { background: var(--lumo-primary-color, #1676f3); }
+        .play { display: block; margin: var(--lumo-space-s, .5rem) auto 0; border: none; cursor: pointer;
+                background: var(--lumo-contrast-10pct, #eee); color: inherit; border-radius: var(--lumo-border-radius-m, 6px);
+                min-width: 2rem; height: 2rem; font-size: var(--lumo-font-size-s, .8rem); }
+        .play:focus-visible { outline: 2px solid var(--lumo-primary-color, #1676f3); outline-offset: 2px; }
+        .dots { display: flex; justify-content: center; gap: 0; margin-top: var(--lumo-space-s, .5rem); }
+        /* WCAG 2.5.8 Target Size: the dot is drawn .6rem wide but its button is 24×24 px */
+        .dot { width: 24px; height: 24px; padding: 0; border-radius: 50%; border: none; cursor: pointer;
+               background: radial-gradient(circle, var(--lumo-contrast-30pct, #bbb) 0 .3rem, transparent calc(.3rem + 1px)); }
+        .dot.active { background: radial-gradient(circle, var(--lumo-primary-color, #1676f3) 0 .3rem, transparent calc(.3rem + 1px)); }
+        .dot:focus-visible { outline: 2px solid var(--lumo-primary-color, #1676f3); outline-offset: -2px; }
     `
 }
 

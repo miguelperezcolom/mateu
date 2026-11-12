@@ -34,8 +34,8 @@ import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, i
 import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass, scoreboardTrendOf, scoreboardItemOf, scoreboardAtomOf, emptyStateAtomOf } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays, spColorKeyOf, spCalendarSpecOf, calendarPageToolbarOf, spNavActionOf, spCalendarHostClassOf } from './calendar.mjs'
-import { setChromeLanguage } from './i18n.mjs'
-import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
+import { setChromeLanguage, chromeText } from './i18n.mjs'
+import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf, toastLifetimeOf } from './notify.mjs'
 import { startPolling, actionSucceeded, setPollingRunner, timedOnLoadTriggers, notePollingRegistry } from './polling.mjs'
 import { onLoadTriggers, mediatorOf } from './reduceContexts.mjs'
 import { assignAccessKeys, keyHint, setShortcutContext, currentShortcutActions, isFunctionKeyShortcut } from './keys.mjs'
@@ -1346,9 +1346,12 @@ test('deshacer: el reducer guarda los campos undo; applyDomEffects los saca de l
   assert.equal(undo.length, 1)
   assert.equal(reg.effects.toasts, same, 'la MISMA lista: las chains la leen después')
   assert.deepEqual(reg.effects.toasts.map((t) => t.text), ['Saved'])
-  assert.deepEqual(undoMessageOf(undo[0]), { severity: 'confirmation', summary: 'Moved', autoTimeout: 10000, closeAffordance: 'defaults' })
+  assert.deepEqual(undoMessageOf(undo[0]), { severity: 'confirmation', summary: 'Moved', autoTimeout: 'off', closeAffordance: 'defaults' })
+  assert.equal(toastLifetimeOf(undo[0]), 10000)
   // an error stays until dismissed (owner, 2026-10-12), even when it can be undone
-  assert.equal(undoMessageOf({ text: 'Failed', variant: 'error', undoActionId: 'x' }).autoTimeout, 'off')
+  assert.equal(toastLifetimeOf({ text: 'Failed', variant: 'error', undoActionId: 'x' }), 0)
+  assert.equal(toastLifetimeOf({ text: 'Moved', undoActionId: 'x', duration: 3000 }), 10000, 'raised to the floor')
+  assert.equal(toastLifetimeOf({ text: 'Moved', undoActionId: 'x', duration: 30000 }), 30000)
 })
 
 test('campana y deshacer: la shell pinta la campana y el bridge su panel; JET oj-message lleva el Undo', () => {
@@ -2984,4 +2987,25 @@ test('Item overview page as in Redwood\'s examples: a stacked body, sections wit
   assert.equal(header && header.sectionTitle, 'Physique')
   assert.equal(sectioned.mainItems.filter((a) => a.text === 'Physique').length, 0)
   assert.ok(sectioned.mainItems.some((a) => a.text === 'Tall'))
+})
+
+test('a chart carries a text alternative a screen reader reads (WCAG 1.1.1)', () => {
+  const atom = chartAtomOf({ chartType: 'bar', chartData: { labels: ['Jan', 'Feb'], datasets: [{ label: 'Sales', data: [10, 20] }] } }, 'Chart')
+  assert.equal(atom.textAlternative, 'Sales: Jan 10, Feb 20')
+  const trend = chartAtomOf({ title: 'Load', values: [3, 9], labels: ['Mon', 'Tue'] }, 'TrendChart')
+  assert.equal(trend.textAlternative, 'Load. Mon 3, Tue 9')
+  const html = readFileSync(new URL('./templates/atoms.html', import.meta.url), 'utf8')
+  assert.match(html, /oj-helper-hidden-accessible"><oj-bind-text value="\[\[ \$current\.data\.textAlternative \]\]"/)
+})
+
+test('WCAG 3.2.2: the @AppContext drawer says beforehand that a change reloads; the chain announces the change', () => {
+  const page = readFileSync(new URL('../webApps/vbredwoodapp/pages/shell-page.html', import.meta.url), 'utf8')
+  assert.match(page, /id="mateuContextReloadHint"[^>]*><oj-bind-text value="\[\[ \$application\.translations\.appBundle\.appContextReloads \]\]"/)
+  assert.match(page, /:aria-describedby="\[\[ 'mateuContextReloadHint' \]\]"/)
+  const chain = readFileSync(new URL('../webApps/vbredwoodapp/pages/shell-page-chains/onMateuContextChanged.js', import.meta.url), 'utf8')
+  assert.match(chain, /bridge\.announce\(bridge\.chromeText\('appContextChanging'/)
+  setChromeLanguage('es')
+  try {
+    assert.equal(chromeText('appContextChanging', { label: 'Hotel', value: 'Palma' }), 'Hotel: Palma. Recargando…')
+  } finally { setChromeLanguage('') }
 })

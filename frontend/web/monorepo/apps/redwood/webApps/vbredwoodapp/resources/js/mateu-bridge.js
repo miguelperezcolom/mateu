@@ -47,6 +47,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       remove: 'Remove',
       name: 'Name',
       skipToContent: 'Skip to content',
+      // WCAG 3.2.2: the @AppContext picker says beforehand that a change reloads the screen
+      appContextReloads: 'Choosing another one reloads the screen',
+      appContextChanging: '{label}: {value}. Reloading…',
+      singleKeyShortcuts: 'Single-key shortcuts (such as ?). Ctrl+/ always opens this list',
       enterValue: 'Enter a value.',
       selectValue: 'Select a value',
       progressOf: '{done} of {total}',
@@ -345,6 +349,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       remove: 'Quitar',
       name: 'Nombre',
       skipToContent: 'Saltar al contenido',
+      appContextReloads: 'Elegir otro recarga la pantalla',
+      appContextChanging: '{label}: {value}. Recargando…',
+      singleKeyShortcuts: 'Atajos de una sola tecla (como ?). Ctrl+/ siempre abre esta lista',
       enterValue: 'Introduce un valor.',
       selectValue: 'Seleccione un valor',
       progressOf: '{done} de {total}',
@@ -4565,6 +4572,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     radar: { type: 'line', polar: true }, polarArea: { type: 'bar', polar: true },
     scatter: { type: 'line', markersOnly: true }, bubble: { type: 'line', markersOnly: true },
   }
+  /** A chart's text alternative: «Name. Series: label value, label value; …» (WCAG 1.1.1). */
+  function chartTextAlternativeOf(title, datasets, labels, pie) {
+    const parts = (datasets || []).map((d, si) => {
+      const values = (d.data || []).map((v, i) => (labels[i] != null ? String(labels[i]) + ' ' : '') + (v == null ? '' : String(v)))
+      const name = d.label && d.label !== title ? d.label : (!d.label && datasets.length > 1 ? 'Series ' + (si + 1) : '')
+      return (name ? name + ': ' : '') + values.join(', ')
+    })
+    return [title, parts.join('; ')].filter(Boolean).join('. ')
+  }
+
   /** A Chart (series × labels) or a TrendChart (one series) → oj-chart atom: the precomputed
    *  ITEMS ({series, group, value}); in a pie each label is a series (a slice). */
   function chartAtomOf(m, t, interp = (x) => x) {
@@ -4618,6 +4635,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       color: color || '',
       // a TrendChart's colour is its series' (an item colour does not reach a line/area series)
       colors: color ? [color] : undefined,    items,
+      // WCAG 1.1.1: what the chart draws, as text a screen reader reads (a hidden span by the chart)
+      textAlternative: chartTextAlternativeOf(trend ? interp(m.title || '') : '', datasets, labels, pie),
       provider: dataProviderFactory ? dataProviderFactory(items) : null,
     }
   }
@@ -7279,6 +7298,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             value: state[fieldId] == null ? '' : String(state[fieldId]),
             // its hint while empty («e.g. Mars Sample Return»), like the web renderer's
             placeholder: m.placeholder ? interp(String(m.placeholder)) : '',
+            autocomplete: m.autocomplete ? String(m.autocomplete) : null,
           }, container)
         }
         return
@@ -13102,7 +13122,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function fieldWidgetOf(f, data, opts) {
     const widget = widgetOf(f, data, opts)
     const help = fieldHelpOf(f)
-    return { ...widget, help, hasHelp: !!help }
+    // WCAG 1.3.5: the input's purpose — on the host as data-autocomplete, copied onto the native
+    // input by a11y.mjs installInputPurpose
+    const autocomplete = f && f.autocomplete && !f.readOnly ? String(f.autocomplete) : null
+    return { ...widget, help, hasHelp: !!help, autocomplete }
   }
 
   function widgetOf(f, data, { lookups, value, textWhenEmpty }) {
@@ -17813,6 +17836,47 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }, { capture: true, passive: true })
   }
 
+  // ── WCAG 1.3.5 Identify Input Purpose ─────────────────────────────────────────────────────────
+  //
+  // A field about the user carries its autocomplete token on the wire (FormFieldDto.autocomplete).
+  // The templates put it on the JET/Spectra host as `data-autocomplete` (a data attribute is safe on
+  // any element, whereas not every oj-sp input declares an `autocomplete` property) and this copies it
+  // onto the native <input>/<textarea> inside — the element the browser and assistive technologies read.
+
+  /** Copies each host's data-autocomplete onto its inner native control. Returns how many it set. */
+  function applyInputPurpose(root) {
+    if (!root || typeof root.querySelectorAll !== 'function') return 0
+    let set = 0
+    for (const host of root.querySelectorAll('[data-autocomplete]')) {
+      const token = host.getAttribute('data-autocomplete')
+      if (!token) continue
+      const inner = host.matches && host.matches('input, textarea') ? host : host.querySelector('input, textarea')
+      if (inner && inner.getAttribute('autocomplete') !== token) {
+        inner.setAttribute('autocomplete', token)
+        set++
+      }
+    }
+    return set
+  }
+
+  let inputPurposeInstalled = false
+
+  /** Keeps applyInputPurpose up to date as VB paints and repaints fields. */
+  function installInputPurpose(doc = typeof document !== 'undefined' ? document : null) {
+    if (inputPurposeInstalled || !doc || !doc.body || typeof MutationObserver === 'undefined') return
+    inputPurposeInstalled = true
+    let queued = false
+    const run = () => { queued = false; applyInputPurpose(doc.body) }
+    const schedule = () => {
+      if (queued) return
+      queued = true
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(run)
+      else setTimeout(run, 0)
+    }
+    new MutationObserver(schedule).observe(doc.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-autocomplete'] })
+    run()
+  }
+
 
   // The phone breakpoint of JET's drawer layout. Below it, oj-drawer-layout (and so Spectra's
   // oj-sp-data-management-page) stops docking a drawer beside the content and turns it into a
@@ -19464,17 +19528,85 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { summary: toast.text || '', type: toast.variant, displayMode: 'persist' }
   }
 
-  /** The oj-message message object for a toast with actions. */
+  /** The shortest time a toast with an action stays, in ms (WCAG 2.2.1 — libs/mateu ACTIONABLE_TOAST_MIN_MS). */
+  const ACTION_TOAST_MIN_MS = 10000
+  /** The least time a resumed toast gets before it closes (libs/mateu dismissTimer RESUME_MIN_MS). */
+  const TOAST_RESUME_MIN_MS = 2000
+
+  /** How long a toast with actions stays, in ms; 0 = until the user closes it. An ERROR stays until
+   *  dismissed, in every renderer (owner, 2026-10-12); so does a sticky one. A declared duration
+   *  shorter than ACTION_TOAST_MIN_MS is raised to it: the action must stay reachable. */
+  function toastLifetimeOf(toast) {
+    if (toast.variant === 'error' || toast.persistence === 'sticky') return 0
+    return Math.max(toast.duration > 0 ? toast.duration : 0, ACTION_TOAST_MIN_MS)
+  }
+
+  /** The oj-message message object for a toast with actions. JET's own autoTimeout cannot pause, so
+   *  it is always 'off' and the toast closes on pausableToastClose's clock (showUndoToasts). */
   function undoMessageOf(toast) {
-    const sticky = toast.variant === 'error' || toast.persistence === 'sticky'
     return {
       severity: toast.variant === 'error' ? 'error' : toast.variant === 'warning' ? 'warning' : 'confirmation',
       summary: toast.title || toast.text || '',
       ...(toast.title && toast.text ? { detail: toast.text } : {}),
-      // an ERROR stays until dismissed, in every renderer (owner, 2026-10-12); so does a sticky one
-      autoTimeout: sticky ? 'off' : (toast.duration > 0 ? toast.duration : 10000),
+      autoTimeout: 'off',
       closeAffordance: 'defaults',
     }
+  }
+
+  /**
+   * Closes a toast after `ms` of it being on screen and NOT hovered, focused or in a hidden page
+   * (WCAG 2.2.1 Timing Adjustable — the twin of libs/mateu infra/notify/dismissTimer.ts): the clock
+   * stops while the user is with the toast and resumes with what was left, never less than
+   * TOAST_RESUME_MIN_MS. `ms <= 0` never closes. Returns a cancel function.
+   */
+  function pausableToastClose(el, ms, close, doc = el && el.ownerDocument) {
+    if (!el || !(ms > 0)) return () => {}
+    let remaining = ms
+    let startedAt = 0
+    let timer = null
+    let hovered = false
+    let focused = false
+    let done = false
+    const hidden = () => !!doc && doc.visibilityState === 'hidden'
+    const stop = () => {
+      if (timer === null) return
+      clearTimeout(timer)
+      timer = null
+      remaining -= Date.now() - startedAt
+    }
+    const start = (atLeast) => {
+      if (done || timer !== null || hovered || focused || hidden()) return
+      remaining = Math.max(remaining, atLeast || 0)
+      startedAt = Date.now()
+      timer = setTimeout(() => { timer = null; cancel(); close() }, Math.max(0, remaining))
+    }
+    const resume = () => start(TOAST_RESUME_MIN_MS)
+    const onEnter = () => { hovered = true; stop() }
+    const onLeave = () => { hovered = false; resume() }
+    const onFocusIn = () => { focused = true; stop() }
+    const onFocusOut = (e) => {
+      if (e && e.relatedTarget && el.contains(e.relatedTarget)) return
+      focused = false
+      resume()
+    }
+    const onVisibility = () => { if (hidden()) stop(); else resume() }
+    el.addEventListener('mouseenter', onEnter)
+    el.addEventListener('mouseleave', onLeave)
+    el.addEventListener('focusin', onFocusIn)
+    el.addEventListener('focusout', onFocusOut)
+    if (doc) doc.addEventListener('visibilitychange', onVisibility)
+    function cancel() {
+      done = true
+      if (timer !== null) clearTimeout(timer)
+      timer = null
+      el.removeEventListener('mouseenter', onEnter)
+      el.removeEventListener('mouseleave', onLeave)
+      el.removeEventListener('focusin', onFocusIn)
+      el.removeEventListener('focusout', onFocusOut)
+      if (doc) doc.removeEventListener('visibilitychange', onVisibility)
+    }
+    start(0)
+    return cancel
   }
 
   /** The actions a toast offers (its `actions`, else its legacy undo). */
@@ -19529,8 +19661,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
         msg.appendChild(detail)
       }
+      // closed by time on a clock that stops while hovered or focused (pausableToastClose)
+      const stopClock = pausableToastClose(msg, toastLifetimeOf(toast), () => {
+        if (typeof msg.close === 'function') msg.close()
+        else if (msg.parentNode && typeof msg.parentNode.removeChild === 'function') msg.parentNode.removeChild(msg)
+      }, doc)
       // closed (by the user or by time), out of the DOM
-      msg.addEventListener('ojClose', () => { if (msg.parentNode) msg.parentNode.removeChild(msg) })
+      msg.addEventListener('ojClose', () => { stopClock(); if (msg.parentNode) msg.parentNode.removeChild(msg) })
       host.appendChild(msg)
     }
   }
@@ -21678,16 +21815,35 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const SC_FUNCTION_OR_MOD = (shortcut) =>
     /(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(String(shortcut || '')) || isFunctionKeyShortcut(shortcut)
 
+  /** WCAG 2.1.4 Character Key Shortcuts — libs/mateu appShortcuts.ts: a ONE-character shortcut
+   *  (`?`, a bare letter) can be switched off by the user (the same localStorage key as the web);
+   *  Ctrl+/ always opens the list. */
+  const SINGLE_KEY_STORAGE = 'mateu-single-key-shortcuts'
+  const isCharacterKeyShortcut = (shortcut) => {
+    const parts = String(shortcut || '').toLowerCase().split('+').map((p) => p.trim())
+    const key = parts[parts.length - 1]
+    return key.length === 1 && !parts.some((p) => p === 'ctrl' || p === 'control' || p === 'alt' || p === 'meta' || p === 'cmd')
+  }
+  function singleKeyShortcutsOn(storage = extrasStorage()) {
+    try { return !storage || storage.getItem(SINGLE_KEY_STORAGE) !== 'off' } catch (e) { return true }
+  }
+  function setSingleKeyShortcuts(on, storage = extrasStorage()) {
+    try { if (storage) storage.setItem(SINGLE_KEY_STORAGE, on ? 'on' : 'off') } catch (e) { /* storage blocked */ }
+  }
+
   /** The app shortcut a keystroke presses: never a plain key while typing, never a key the screen owns. */
   function appShortcutFor(shortcuts, e, typing, screenKeys = []) {
     return (shortcuts || []).find((s) => !!s.key
       && (!typing || SC_FUNCTION_OR_MOD(s.key))
+      && (!isCharacterKeyShortcut(s.key) || singleKeyShortcutsOn())
       && !screenKeys.includes(String(s.key).toLowerCase())
       && shortcutMatches(s.key, e))
   }
 
-  /** «?» opens the list — never while typing. */
-  const isShortcutsHelpKey = (e, typing) => !typing && e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey
+  /** «?» opens the list — never while typing, nor once single-key shortcuts are off; Ctrl+/ always. */
+  const isShortcutsHelpKey = (e, typing) =>
+    ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === '/' || e.code === 'Slash'))
+    || (!typing && e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey && singleKeyShortcutsOn())
 
   /** QUICK LAUNCH: the shortcut whose code is exactly what was typed (trimmed, case-insensitive). */
   function quickLaunchMatch(shortcuts, query) {
@@ -21994,7 +22150,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       runAppShortcut(s)
     })))
     section(chromeText('shortcutsScreen'), screenShortcutsOf(doc).map((s) => row(s.label, keyHint(s.key), '', null)))
-    section('', [row(chromeText('shortcutsHelpKey'), '?', '', null)])
+    section('', [row(chromeText('shortcutsHelpKey'), '? · Ctrl+/', '', null)])
+    // WCAG 2.1.4: the switch for one-key shortcuts
+    const toggle = doc.createElement('label')
+    toggle.className = 'mateu-sc-single-keys'
+    const box = doc.createElement('input')
+    box.type = 'checkbox'
+    box.checked = singleKeyShortcutsOn()
+    box.addEventListener('change', () => setSingleKeyShortcuts(!!box.checked))
+    toggle.appendChild(box)
+    toggle.appendChild(doc.createTextNode(' ' + chromeText('singleKeyShortcuts')))
+    body.appendChild(toggle)
     if (typeof dialog.open === 'function') dialog.open()
   }
 
@@ -31897,7 +32063,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installRules', 'installPlanningRange', 'installActionPanels', 'installTileReorder', 'installRichText',
     'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
-    'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
+    'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer', 'installInputPurpose',
     'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards', 'installPaymentPickers', 'installRowClickSelectionGuard',
     'installDrawerGuard', 'installAttachmentChips', 'installBannerDismissal', 'installKanbans', 'installTaskCenter', 'installRowSelection',
   ])
@@ -32785,6 +32951,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // accesibilidad: lo que los componentes oj-* no traen (una SPA no cambia de página, así
     // que no hay nada que un lector de pantalla anuncie por su cuenta)
     installAnnouncer,
+    installInputPurpose,
+    applyInputPurpose,
     installPrintSupport,
     announce,
     announceNavigation,

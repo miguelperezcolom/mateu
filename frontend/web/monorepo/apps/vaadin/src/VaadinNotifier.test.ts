@@ -38,22 +38,6 @@ describe('vaadinNotifier', () => {
         ])
     })
 
-    it('a plain toast goes through Notification.show with the mapped position and theme', () => {
-        vaadinNotifier.show({ text: 'Hi', variant: 'success', position: 'topCenter', duration: 3000 } as never, document.body)
-        vaadinNotifier.show({ text: 'Default' } as never, document.body)
-        expect(shown).toEqual([
-            { text: 'Hi', options: { position: 'top-center', theme: 'success', duration: 3000 } },
-            { text: 'Default', options: { position: 'bottom-end', theme: undefined, duration: undefined } },
-        ])
-    })
-
-    it('an info toast takes the accent theme (Lumo has no info theme)', () => {
-        vaadinNotifier.show({ text: 'FYI', variant: 'info' } as never, document.body)
-        expect(shown.at(-1)).toEqual({ text: 'FYI', options: { position: 'bottom-end', theme: 'primary', duration: undefined } })
-        expect(themeOf('success')).toBe('success')
-        expect(themeOf(undefined)).toBeUndefined()
-    })
-
     const drawn = () => {
         const n = document.body.querySelector('fake-vaadin-notification') as HTMLElement & {
             renderer: (root: HTMLElement) => void, opened: boolean, duration: number, position: string }
@@ -62,12 +46,59 @@ describe('vaadinNotifier', () => {
         return { n, root }
     }
 
-    it('Retry: the control runs the closure once and closes the toast; a non-error stays up 10s by default', () => {
+    it('a plain toast is drawn by hand with the mapped position and theme, on our own clock', () => {
+        vi.useFakeTimers()
+        try {
+            vaadinNotifier.show({ text: 'Hi', variant: 'success', position: 'topCenter', duration: 3000 } as never, document.body)
+            const { n, root } = drawn()
+            expect(shown).toEqual([])
+            expect(n.position).toBe('top-center')
+            expect(n.getAttribute('theme')).toBe('success')
+            // vaadin-notification's clock cannot pause: it never closes the toast itself
+            expect(n.duration).toBe(0)
+            expect(root.textContent).toContain('Hi')
+            vi.advanceTimersByTime(2999)
+            expect(n.opened).toBe(true)
+            vi.advanceTimersByTime(1)
+            expect(n.opened).toBe(false)
+        } finally { vi.useRealTimers() }
+    })
+
+    it('an info toast takes the accent theme (Lumo has no info theme)', () => {
+        vaadinNotifier.show({ text: 'FYI', variant: 'info' } as never, document.body)
+        expect(drawn().n.getAttribute('theme')).toBe('primary')
+        expect(themeOf('success')).toBe('success')
+        expect(themeOf(undefined)).toBeUndefined()
+    })
+
+    it('the toast does not close while hovered or focused (WCAG 2.2.1)', () => {
+        vi.useFakeTimers()
+        try {
+            vaadinNotifier.show({ text: 'Deleted', undoActionId: 'restore' } as never, document.body)
+            const { n, root } = drawn()
+            vi.advanceTimersByTime(5000)
+            root.dispatchEvent(new Event('mouseenter'))
+            vi.advanceTimersByTime(60000)
+            expect(n.opened).toBe(true)
+            root.querySelector('button')!.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+            root.dispatchEvent(new Event('mouseleave'))
+            vi.advanceTimersByTime(60000)
+            expect(n.opened).toBe(true)
+            root.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
+            vi.advanceTimersByTime(4999)
+            expect(n.opened).toBe(true)
+            vi.advanceTimersByTime(1)
+            expect(n.opened).toBe(false)
+        } finally { vi.useRealTimers() }
+    })
+
+
+    it('Retry: the control runs the closure once and closes the toast; it closes on its own clock', () => {
         const retry = vi.fn()
         vaadinNotifier.show({ text: 'Request failed', variant: 'warning', onAction: retry, position: 'bottomStart' } as never, document.body)
         const { n, root } = drawn()
         expect(n.opened).toBe(true)
-        expect(n.duration).toBe(10000)
+        expect(n.duration).toBe(0)
         expect(n.position).toBe('bottom-start')
         expect(n.getAttribute('theme')).toBe('warning')
         const button = root.querySelector('button')!

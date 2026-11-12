@@ -83,6 +83,15 @@ public sealed class ColspanAttribute(int value) : Attribute
     public int Value { get; } = value;
 }
 
+/// <summary>The purpose of a field about the user (Java's <c>@Autocomplete</c>; WCAG 1.3.5): an
+/// HTML autocomplete token such as "email", "given-name", "tel", "postal-code" or "new-password",
+/// or "off". An email field gets "email" without it. Travels as the field's <c>autocomplete</c>.</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class AutocompleteAttribute(string value) : Attribute
+{
+    public string Value { get; } = value;
+}
+
 /// <summary>The field's help text (Java's <c>@Help</c>): shown with the control and read as its
 /// accessible description. Travels as the field's <c>description</c>.</summary>
 [AttributeUsage(AttributeTargets.Property)]

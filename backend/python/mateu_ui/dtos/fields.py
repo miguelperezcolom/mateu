@@ -45,6 +45,9 @@ class FormFieldMetadata(Wire):
     description: str | None = None
     #: Hint shown inside the empty control (a fluent FormField's ``placeholder``, as in Java).
     placeholder: str | None = None
+    #: The HTML autocomplete token naming the input's purpose (WCAG 1.3.5; Java's
+    #: FormFieldDto.autocomplete): the declared one, else "email" for an editable email field.
+    autocomplete: str | None = None
     #: The control takes the focus when rendered (Java's FormFieldDto.autofocus).
     autofocus: bool = False
     #: The increment of a number / slider control; 0 = the control's own (FormFieldDto.step).
