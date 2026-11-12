@@ -485,6 +485,10 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // endpoint) are app-level too (mirrors Java's KeepAlive/LiveUpdates action runners).
         if (rq.ActionId == ReflectionMapper.KeepAliveActionId) return KeepAlive(instance);
         if (rq.ActionId == ReflectionMapper.LiveUpdatesActionId) return LiveUpdatesSnapshot();
+        // The mobile app's push registration — same app-level rail (mirrors Java's
+        // PushTokensActionRunner).
+        if (rq.ActionId is ReflectionMapper.PushRegisterActionId or ReflectionMapper.PushUnregisterActionId)
+            return PushTokens(instance, rq);
         // The command palette's entity search — same app-level rail (mirrors Java's
         // GlobalSearchActionRunner).
         if (rq.ActionId == "_globalsearch") return GlobalSearch(instance, rq);

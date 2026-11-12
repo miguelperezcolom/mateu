@@ -2,8 +2,8 @@ import { Platform } from 'react-native';
 import type { LocalNotifier, NotificationPermission } from '../core/osNotifications';
 
 /**
- * The OS-notification port bound to `expo-notifications` — LOCAL notifications only: no push token
- * is ever asked for, no push service is involved (core/osNotifications.ts).
+ * The OS-notification port bound to `expo-notifications` — LOCAL notifications (core/osNotifications.ts).
+ * Push notifications have their own port over the same module (src/ui/pushPort.ts).
  *
  * The module is loaded LAZILY and its failure is tolerated: an install whose binary predates the
  * native module (its JavaScript came over the air) must not crash — it simply has no OS
@@ -14,11 +14,13 @@ type ExpoNotifications = typeof import('expo-notifications');
 const CHANNEL = 'mateu';
 let loaded: Promise<ExpoNotifications | null> | null = null;
 
-const expoNotifications = (): Promise<ExpoNotifications | null> => {
+/** The module, loaded once (shared with the push port, src/ui/pushPort.ts); null without it. */
+export const expoNotifications = (): Promise<ExpoNotifications | null> => {
   if (!loaded) {
     loaded = import('expo-notifications')
       .then(async (module) => {
-        // a notification posted while the app is in front stays quiet (we only post in the background)
+        // shown while the app is in front too: a local one is only posted in the background, and a
+        // PUSH that arrives with the app open is still worth the banner (core/pushNotifications.ts)
         module.setNotificationHandler({
           handleNotification: async () => ({
             shouldShowBanner: true,
