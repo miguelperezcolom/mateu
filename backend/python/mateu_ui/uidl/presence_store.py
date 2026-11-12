@@ -89,6 +89,7 @@ class InMemoryPresenceStore(PresenceStore):
                 if members is None:
                     members = self._records[(scope, record)] = {}
                 self._copies[member.principal] = self._copies.get(member.principal, 0) + 1
+            assert members is not None
             members[key] = member if previous is None else replace(member, since=previous.since)
             changed = previous is None or previous.editing != member.editing or previous.name != member.name
         if changed:

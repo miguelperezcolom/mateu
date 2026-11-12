@@ -57,7 +57,7 @@ internal class PresenceLabel(private val ctx: AppContext) : JBLabel() {
         border = BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(ToneColors.border(tone)), JBUI.Borders.empty(2, 8),
         )
-        accessibleContext.accessibleName = "Also on this record: ${summary.text}"
+        getAccessibleContext().accessibleName = "Also on this record: ${summary.text}"
         revalidate()
         repaint()
     }

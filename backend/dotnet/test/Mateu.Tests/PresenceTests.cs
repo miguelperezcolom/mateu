@@ -1,6 +1,15 @@
+using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
+using Mateu.AspNetCore;
 using Mateu.Core;
 using Mateu.Dtos;
 using Mateu.Uidl;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Mateu.Tests;
@@ -166,5 +175,72 @@ public class PresenceTests
         }
         Assert.Equal(["s/r", "s/r", "s/r", "s/r2", "s/r2"], heard);
         Assert.Equal(0, store.Count);
+    }
+
+    [Fact]
+    public async Task Over_http_the_live_updates_stream_carries_the_changes_of_a_record_the_caller_has_open()
+    {
+        var heartbeat = MateuExtensions.LiveUpdatesHeartbeat;
+        MateuExtensions.LiveUpdatesHeartbeat = TimeSpan.FromMilliseconds(200); // the heartbeat also sweeps
+        try
+        {
+            var builder = WebApplication.CreateBuilder();
+            builder.WebHost.UseUrls("http://127.0.0.1:0");
+            builder.Services.AddSingleton<IPresenceStore>(_store);
+            builder.Services.AddMateu(typeof(PresenceTests).Assembly);
+            await using var app = builder.Build();
+            // the host authenticates; Mateu only reads the principal
+            app.Use(async (ctx, next) =>
+            {
+                if (ctx.Request.Headers.TryGetValue("X-Test-User", out var user))
+                    ctx.User = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, user.ToString())], "test"));
+                await next();
+            });
+            app.MapMateu();
+            await app.StartAsync();
+            var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.First();
+            using var http = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(20) };
+            HttpRequestMessage Post(string path, string who, object body)
+            {
+                var rq = new HttpRequestMessage(HttpMethod.Post, path)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json"),
+                };
+                rq.Headers.Add("X-Test-User", who);
+                return rq;
+            }
+            object Report(string tab, string state) => new
+            {
+                serverSideType = typeof(PresenceDeskApp).FullName, route = "/presence-desk", actionId = Presence.ActionId,
+                parameters = new Dictionary<string, object?> { ["route"] = "orders/21", ["view"] = View, ["tab"] = tab, ["state"] = state },
+            };
+
+            (await http.SendAsync(Post("/mateu/v3/sync/presence-desk", "ana", Report("a", "viewing")))).EnsureSuccessStatusCode();
+            using var response = await http.SendAsync(Post("/mateu/v3/sse/presence-desk", "ana", new
+            {
+                serverSideType = typeof(PresenceDeskApp).FullName, route = "/presence-desk", actionId = "_live-updates",
+            }), HttpCompletionOption.ResponseHeadersRead);
+            using var reader = new StreamReader(await response.Content.ReadAsStreamAsync());
+            await NextData(reader); // the catch-up
+            (await http.SendAsync(Post("/mateu/v3/sync/presence-desk", "bob", Report("b", "editing")))).EnsureSuccessStatusCode();
+            string change;
+            do change = await NextData(reader); while (change != "" && !change.Contains("PresenceChanged"));
+            Assert.Contains("\"PresenceChanged\"", change);
+            Assert.Contains("\"bob\"", change);
+            reader.Dispose();
+            response.Dispose(); // the browser goes away: the stream and its subscriptions end
+            await app.StopAsync();
+        }
+        finally
+        {
+            MateuExtensions.LiveUpdatesHeartbeat = heartbeat;
+        }
+    }
+
+    private static async Task<string> NextData(StreamReader reader)
+    {
+        string? line;
+        do line = await reader.ReadLineAsync(); while (line is not null && !line.StartsWith("data:"));
+        return line ?? "";
     }
 }

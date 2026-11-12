@@ -100,7 +100,7 @@ def touch(store: PresenceStore, scope: str, record: str, principal: str, tab: st
     now = clock()
     return store.touch(
         scope, record,
-        PresenceMember(principal, _clip(principal, MAX_NAME_LENGTH), _clip(tab, MAX_TAB_LENGTH), editing, now, now),
+        PresenceMember(principal, principal[:MAX_NAME_LENGTH], _clip(tab, MAX_TAB_LENGTH), editing, now, now),
     )
 
 

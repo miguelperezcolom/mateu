@@ -90,17 +90,17 @@ export class MateuPresenceChip extends LitElement {
             font-size: var(--lumo-font-size-s, .875rem); line-height: 1.4; max-width: 100%;
             background: var(--lumo-contrast-5pct, #f3f4f6); color: var(--lumo-body-text-color, #1f2937);
         }
-        /* always-light pastel + dark ink, like the page banners and notices */
-        .chip.warning { background: #fff4e0; color: #5c3b00; }
+        /* the warning tint of the notices (mateu-notice) */
+        .chip.warning { background: var(--lumo-warning-color-10pct, #fff4e0); color: var(--lumo-warning-text-color, #5c3b00); }
         .avatars { display: inline-flex; }
         .avatar {
             display: inline-flex; align-items: center; justify-content: center;
-            width: 1.5rem; height: 1.5rem; border-radius: 50%; font-size: .7rem; font-weight: 600;
+            width: 1.5rem; height: 1.5rem; border-radius: 50%; font-size: var(--lumo-font-size-xxs, .7rem); font-weight: 600;
             background: var(--lumo-primary-color-10pct, #e0e7ff); color: var(--lumo-primary-text-color, #3730a3);
-            border: 2px solid var(--lumo-base-color, #fff); margin-inline-start: -6px;
+            border: 2px solid var(--lumo-base-color, #fff); margin-inline-start: calc(-1 * var(--lumo-space-xs, 6px));
         }
         .avatar:first-child { margin-inline-start: 0; }
-        .avatar.editing { background: #ffd591; color: #5c3b00; }
+        .avatar.editing { background: var(--lumo-warning-color-50pct, #ffd591); color: var(--lumo-warning-text-color, #5c3b00); }
         .avatar.more { background: var(--lumo-contrast-10pct, #e5e7eb); color: inherit; }
         .text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     `
