@@ -174,6 +174,25 @@ app with `@App(osNotifications = true)` also offers "Notify me on this device", 
 notification permission only from that tap. Those notifications are local, so a suspended or closed
 app posts none: see [what reaches the device](/ux-patterns/notification-inbox/#on-a-phone-what-reaches-the-device-while-the-app-is-away).
 
+### Push notifications
+
+A UI whose app class implements `PushTokenRegistry` (wire `AppDto.pushNotifications`) gets a
+*Notifications on this phone* switch in its drawer. Turning it on asks the OS for permission — only
+then — reads the phone's **Expo push token** and registers it with that UI alone (`_push-register`,
+through that UI's own client and credentials); off, or removing the UI from the hub, unregisters it
+(`_push-unregister`). The UI's backend sends through Expo Push Service with `data.mateu = {ui, route}`
+and a tap opens that UI at that route — in the hub (bringing the UI to front, asking first if a form
+there has unsaved edits) and in a *fixed* build (its one UI). The server contract and the message
+shape: [push notifications to the Mateu app](/ux-patterns/notification-inbox/#push-notifications-to-the-mateu-app).
+
+What a build needs (once, in EAS — never in the repository): an **APNs key** for iOS
+(`npx eas-cli credentials`; `expo-notifications` writes the `aps-environment` entitlement), and for
+Android a Firebase project's `google-services.json` as the EAS file variable
+`MATEU_GOOGLE_SERVICES_FILE` (mapped to `android.googleServicesFile` by `app.config.ts`) plus its
+**FCM V1** key uploaded with `eas credentials`. The Expo token is minted for the build's EAS project
+id (`extra.eas.projectId`), so a fixed build needs its own project. Without credentials the app still
+runs; the switch then says the phone cannot receive notifications. The web build has no push.
+
 ## 5. Look and theming
 
 The app is drawn with **Material Design 3** through [React Native Paper](https://callstack.github.io/react-native-paper/)

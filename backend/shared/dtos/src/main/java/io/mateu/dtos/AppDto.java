@@ -170,7 +170,13 @@ public record AppDto(
      * entry, a background task that finished) while it is not in front. The renderer asks the
      * user's permission only from a user gesture. False otherwise.
      */
-    boolean osNotifications)
+    boolean osNotifications,
+    /**
+     * The app class implements {@code PushTokenRegistry}: the Mateu mobile app may register its
+     * push token with this UI ({@code _push-register} / {@code _push-unregister} app-level actions)
+     * and offers the user a "Notifications on this phone" switch. False otherwise.
+     */
+    boolean pushNotifications)
     implements ComponentMetadataDto {
 
   public AppDto {
