@@ -159,3 +159,38 @@ def test_a_record_is_edited_and_rows_are_deleted(mateu):
     screen.listing().row("Coffee grinder").select()
     screen.button("Delete").press()
     assert "P-002" not in harness_app.STORE
+
+
+def test_a_route_button_navigates_and_a_dialog_hosts_an_embedded_view(mateu):
+    screen = mateu.open("/harness-tree")
+    assert screen.shows("A fluent page")
+    screen.button("Embed").press()
+    assert screen.has_overlay and screen.overlay_title == "Embedded"
+    assert screen.field("note").value == "arrived"
+    screen.close_overlay()
+    screen.button("To target").press()
+    assert screen.route == "harness-target"
+    assert screen.field("note").value == "arrived"
+
+
+def test_a_rest_action_is_not_called(mateu):
+    screen = mateu.open("/harness-rest")
+    with pytest.raises(NotImplementedError, match="REST endpoint"):
+        screen.button("send").press()
+
+
+def test_a_grouped_menu_reads_as_a_path():
+    from mateu_ui.uidl import app, menu_item
+
+    @app("Grouped app")
+    class GroupedShell:
+        @menu_item("Target", group="Places")
+        def target(self) -> harness_more_app.HarnessTarget:
+            return harness_more_app.HarnessTarget()
+
+        @menu_item("Tree")
+        def tree(self) -> harness_more_app.HarnessTree:
+            return harness_more_app.HarnessTree()
+
+    screen = MateuTest(GroupedShell, harness_more_app).open("/")
+    assert screen.menu == ["Places > Target", "Tree"]

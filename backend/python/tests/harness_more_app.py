@@ -16,11 +16,14 @@ from mateu_ui.uidl import (
     RunAction,
     UserFacingException,
     button,
+    rest_action,
     disabled_unless,
     title,
     trigger,
     ui,
 )
+from mateu_ui.uidl.components import EmbeddedView
+from mateu_ui.uidl.views import ComponentTreeSupplier
 
 CALLS: list[str] = []
 
@@ -93,3 +96,32 @@ class HarnessActions:
 @title("Target")
 class HarnessTarget:
     note: str = "arrived"
+
+
+@ui("harness-tree")
+@title("Tree")
+class HarnessTree(ComponentTreeSupplier):
+    """A fluent page: a button that NAVIGATES, one that opens a dialog embedding a routed view."""
+
+    def component(self):
+        return fluent.VerticalLayout(content=(
+            fluent.Text(text="A fluent page"),
+            fluent.Button(label="To target", route="harness-target"),
+            fluent.Button(label="Embed", action_id="embed"),
+        ))
+
+    @button
+    def embed(self) -> fluent.Dialog:
+        return fluent.Dialog(header_title="Embedded", content=EmbeddedView(HarnessTarget()))
+
+
+@ui("harness-rest")
+@title("Rest")
+class HarnessRest:
+    note: str = ""
+
+    @button
+    @rest_action(url="https://example.com/api/notes", success_message="Sent")
+    def send(self) -> None:
+        pass
+
