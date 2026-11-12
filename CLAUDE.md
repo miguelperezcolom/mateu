@@ -1119,6 +1119,13 @@ in `scripts/plugin-versions.sh`, published as an ordinary version, not pre-relea
 `plugins-v*` release exists any more (2026-10-23; the tag is no longer honoured). **Plugins, desktop app, APK and OTA wait for the tests (2026-11-10)**: `publish-plugins.yml`, `desktop.yml` and `mobile.yml` have NO release trigger — `buid-and-publish.yml` calls them (`workflow_call`) after `e2e`, and their build jobs are read-only; only the upload jobs (`attach`, `android-attach`) hold `contents: write` (pinned by `scripts/release-gates.test.mjs`). A pre-release of a LATER line (`v3.1-rc.1`, `v4.0-beta.1`) publishes
 no plugin, no desktop app and no over-the-air update and does not repin the examples (the jobs' `if:`, pinned by
 `scripts/release-gates.test.mjs`); an alpha of the current line still fails the plugin publish rather than guessing.
+**Provenance (2026-11-11)**: `buid-and-publish.yml` job `provenance` (needs every publishing/attaching job, runs
+`!cancelled()` after e2e) downloads the artifacts `maven-jars` (uploaded by `all` after `deploy`), `pypi-dist`,
+`nupkgs`, `ide-plugin-*` (publish-plugins.yml) and the release assets BY NAME, and attests them with
+`actions/attest-build-provenance` + writes `SHA256SUMS` (attached by `checksums-attach`). It is the ONLY job with
+`attestations: write`; `id-token: write` only there and in `pypi`/`nuget` — never in a job that checks out or
+builds (pinned by `release-gates.test.mjs`). A new release asset or package = add its pattern/artifact there.
+A manual desktop.yml/mobile.yml re-run re-uploads assets with no attestation. Docs `reference/verify-downloads.md`.
 
 ---
 

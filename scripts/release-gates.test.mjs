@@ -80,3 +80,57 @@ for (const [workflow, writers] of [['desktop.yml', ['attach']], ['mobile.yml', [
 test('the desktop installer releases are not framework releases', () => {
     for (const [workflow, job] of GATED) assert.equal(runs(jobIf(workflow, job), 'mateu-desktop-1.0'), false, `${workflow} ${job}`)
 })
+
+// Provenance and the OIDC token (2026-11, GA): `id-token: write` mints a Sigstore / registry identity
+// for the workflow, so it lives only in the small jobs that publish (PyPI, NuGet trusted publishing)
+// or attest (provenance) — never in a job that checks code out or runs a build tool. And
+// `attestations: write` belongs to provenance alone.
+const withoutComments = (text) => text.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n')
+const jobsOf = (workflow) => {
+    const text = workflowText(workflow)
+    const body = text.slice(text.indexOf('\njobs:\n'))
+    return [...body.matchAll(/\n {2}([a-z][a-z0-9-]*):\n/g)].map((m) => m[1])
+}
+
+for (const [workflow, idToken, attestations] of [
+    ['buid-and-publish.yml', ['pypi', 'nuget', 'provenance'], ['provenance']],
+    ['desktop.yml', [], []],
+    ['mobile.yml', [], []],
+    ['publish-plugins.yml', [], []],
+]) {
+    test(`${workflow}: id-token: write only in ${idToken.join(', ') || 'no job'}, attestations: write only in ${attestations.join(', ') || 'no job'}`, () => {
+        const header = withoutComments(workflowText(workflow).split('\njobs:\n')[0])
+        assert.doesNotMatch(header, /id-token: write|attestations: write/, `${workflow}: not at workflow level`)
+        for (const job of jobsOf(workflow)) {
+            const block = withoutComments(jobBlock(workflow, job))
+            assert.equal(/id-token: write/.test(block), idToken.includes(job), `${workflow} ${job} id-token`)
+            assert.equal(/attestations: write/.test(block), attestations.includes(job), `${workflow} ${job} attestations`)
+            if (idToken.includes(job)) {
+                assert.doesNotMatch(block, /actions\/checkout|npm |gradlew|mvn |dotnet (build|pack|restore)|python -m build/, `${job} runs no build`)
+            }
+        }
+    })
+}
+
+test('buid-and-publish.yml: only the upload jobs (and bump-examples) hold contents: write', () => {
+    const writers = ['bump-examples', 'redwood-embedded-attach', 'sbom-attach', 'checksums-attach']
+    for (const job of jobsOf('buid-and-publish.yml')) {
+        const block = withoutComments(jobBlock('buid-and-publish.yml', job))
+        // the reusable-workflow callers (desktop, mobile) pass contents: write down to their own
+        // attach jobs, which the tests above pin
+        if (/\n {4}uses: \.\/\.github\/workflows\//.test(block)) continue
+        const writes = /\n {6}contents: write/.test(block)
+        assert.equal(writes, writers.includes(job), `buid-and-publish.yml ${job}`)
+        if (writes && job !== 'bump-examples') assert.doesNotMatch(block, /actions\/checkout|npm |mvn |gradlew/, `${job} only uploads`)
+    }
+})
+
+test('the provenance job waits for every job that attaches a release asset or builds a package', () => {
+    const block = jobBlock('buid-and-publish.yml', 'provenance')
+    const needs = block.match(/\n {4}needs: \[([^\]]+)\]/)[1].split(',').map((s) => s.trim())
+    for (const job of ['e2e', 'all', 'plugins', 'desktop', 'mobile', 'redwood-embedded-attach', 'sbom-attach', 'pypi-build', 'nuget-pack']) {
+        assert.ok(needs.includes(job), `provenance needs ${job}`)
+    }
+    assert.match(block, /actions\/attest-build-provenance@[0-9a-f]{40} /, 'the attest action is pinned by SHA')
+    assert.match(block, /!cancelled\(\)/, 'a skipped optional part (APK, desktop) does not skip the attestation')
+})

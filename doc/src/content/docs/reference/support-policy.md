@@ -101,3 +101,10 @@ shared client library), one for the Python wheel and one for the .NET packages. 
 release against your vulnerability scanner or licence policy. The dependency advisories that cannot
 be fixed by upgrading are listed with their reasons in
 [SECURITY-DEPENDENCIES.md](https://github.com/miguelperezcolom/mateu/blob/master/SECURITY-DEPENDENCIES.md).
+
+## Signatures and provenance
+
+Every artifact is signed where its channel allows it (OpenPGP on Maven Central, the registries' and
+marketplaces' signatures, macOS notarization, Authenticode, the Android key), and every file a
+release distributes has a GitHub build provenance attestation; the release assets also come with a
+`SHA256SUMS`. How to check each one: [Verify what you download](/reference/verify-downloads/).
