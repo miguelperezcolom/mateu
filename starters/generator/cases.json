@@ -690,6 +690,7 @@
         "src/main/java/com/acme/ops/OrderStore.java",
         "src/main/java/com/acme/ops/Products.java",
         "src/main/java/com/acme/ops/ProductStore.java",
+        "src/test/java/com/acme/ops/ProductsUiTest.java",
         ".claude/settings.json"
       ],
       "absent": [
@@ -809,6 +810,30 @@
           "<artifactId>mateu-redwood</artifactId>"
         ]
       }
+    },
+    {
+      "name": "spring-mvc, code, template operations: the Product CRUD goes with its UI test",
+      "options": {
+        "authoring": "code",
+        "runtime": "spring-mvc",
+        "buildTool": "maven",
+        "renderer": "vaadin",
+        "sample": "operations",
+        "pages": [],
+        "groupId": "com.acme",
+        "artifactId": "ops-app",
+        "packageName": "com.acme.ops",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "src/main/java/com/acme/ops/Shell.java",
+        "src/main/java/com/acme/ops/Board.java"
+      ],
+      "absent": [
+        "src/main/java/com/acme/ops/Products.java",
+        "src/test/java/com/acme/ops/ProductsUiTest.java",
+        "src/test/java/com/example/app/ProductsUiTest.java"
+      ]
     },
     {
       "name": "YAML only, served (Spring MVC), template swapi (Star Wars over a public REST API) + a page template",
