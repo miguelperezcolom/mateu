@@ -1,5 +1,6 @@
 import { css, html, LitElement, nothing, svg } from "lit";
 import { customElement, property } from 'lit/decorators.js';
+import { trendSummaryOf } from '@infra/a11y/chartAlternative.ts';
 
 /**
  * Dependency-free line/area chart: a single series drawn as an SVG polyline (optionally area-filled)
@@ -42,7 +43,7 @@ export class MateuTrendChart extends LitElement {
         const maxI = vals.indexOf(max), minI = vals.indexOf(min)
         return html`
             ${this.heading ? html`<div class="title">${this.heading}</div>` : nothing}
-            <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+            <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="${trendSummaryOf(this.heading, vals, this.labels)}">
                 ${this.area ? svg`<path d="${areaPath}" fill="${color}" opacity="0.12"></path>` : nothing}
                 <path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
                 ${pts.map((p, i) => (i === maxI || i === minI)

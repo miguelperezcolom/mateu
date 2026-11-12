@@ -264,4 +264,52 @@ describe('mateu-planning-board (DOM)', () => {
         expect($$(b, '.day-head')[2].classList.contains('today')).toBe(true)
         expect($$(b, '.today-line')).toHaveLength(3)
     })
+
+    const key = (el: Element, k: string, shiftKey = false) =>
+        el.dispatchEvent(new KeyboardEvent('keydown', { key: k, shiftKey, bubbles: true, composed: true, cancelable: true }))
+
+    it('without dragging: a focused block moves with the arrow keys and Enter sends the move (WCAG 2.1.1)', async () => {
+        const b = await mount({ moveActionId: 'move', selectActionId: 'select' })
+        const smith = block(b, 'Smith')
+        expect(smith.getAttribute('tabindex')).toBe('0')
+        expect(smith.getAttribute('role')).toBe('button')
+        expect(b.shadowRoot!.getElementById(smith.getAttribute('aria-describedby')!)!.textContent).toMatch(/Enter/)
+        key(smith, 'ArrowRight')
+        key(smith, 'ArrowRight')
+        key(smith, 'ArrowDown')
+        await b.updateComplete
+        expect($(b, '.pending-ghost')).not.toBeNull()
+        key(block(b, 'Smith'), 'Enter')
+        expect(events).toEqual([{ actionId: 'move', parameters: { _blockId: 'b1', _resourceId: 'r2', _start: '2026-03-04', _end: '2026-03-06' } }])
+    })
+
+    it('Escape drops a prepared move; Enter with nothing prepared selects', async () => {
+        const b = await mount({ moveActionId: 'move', selectActionId: 'select' })
+        key(block(b, 'Smith'), 'ArrowLeft')
+        key(block(b, 'Smith'), 'Escape')
+        key(block(b, 'Smith'), 'Enter')
+        expect(events).toEqual([{ actionId: 'select', parameters: { _blockId: 'b1' } }])
+    })
+
+    it('Shift+arrows change the length when the board resizes', async () => {
+        const b = await mount({ resizeActionId: 'resize' })
+        key(block(b, 'Smith'), 'ArrowRight', true)
+        key(block(b, 'Smith'), 'Enter')
+        expect(events).toEqual([{ actionId: 'resize', parameters: { _blockId: 'b1', _resourceId: 'r1', _start: '2026-03-02', _end: '2026-03-05' } }])
+    })
+
+    it('by single pointer: the tool row of the focused block nudges it and Apply sends it (WCAG 2.5.7)', async () => {
+        const b = await mount({ moveActionId: 'move' })
+        block(b, 'Jones').dispatchEvent(new FocusEvent('focus'))
+        await b.updateComplete
+        const tools = $(b, '.tools')
+        expect(tools.getAttribute('role')).toBe('toolbar')
+        const byLabel = (l: string) => $$(b, '.tools button').find((x) => x.getAttribute('aria-label') === l || x.textContent === l)!
+        byLabel('One day earlier').click()
+        await b.updateComplete
+        expect($(b, '.tools .pending').textContent).toContain('Jones')
+        byLabel('Apply').click()
+        expect(events).toEqual([{ actionId: 'move', parameters: { _blockId: 'b2', _resourceId: 'r2', _start: '2026-03-05', _end: '2026-03-06' } }])
+    })
 })
+

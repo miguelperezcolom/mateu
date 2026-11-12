@@ -46,7 +46,12 @@ public class MateuCsrfWebFluxAutoConfiguration {
   static boolean isMateuJsonCall(ServerWebExchange exchange) {
     var request = exchange.getRequest();
     return CsrfExemption.isMateuJsonCall(
-        request.getPath().value(), request.getHeaders().getFirst(HttpHeaders.CONTENT_TYPE));
+            request.getPath().value(), request.getHeaders().getFirst(HttpHeaders.CONTENT_TYPE))
+        || CsrfExemption.isMateuUpload(
+            request.getPath().value(),
+            request
+                .getHeaders()
+                .getFirst(io.mateu.core.infra.uploads.UploadEndpoint.TICKET_HEADER));
   }
 
   @Bean

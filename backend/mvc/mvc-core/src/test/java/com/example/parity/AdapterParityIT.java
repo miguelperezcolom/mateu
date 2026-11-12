@@ -45,6 +45,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void refusesAnUploadWithoutAValidTicket() {
+      contract.refusesAnUploadWithoutAValidTicket();
+    }
+
+    @Test
     void refusesARestrictedActionToAnAnonymousCaller() {
       contract.refusesARestrictedActionToAnAnonymousCaller();
     }
@@ -138,6 +143,16 @@ class AdapterParityIT {
     @Test
     void servesTheInstallableApp() {
       contract.servesTheInstallableApp();
+    }
+
+    @Test
+    void servesThePageUnderAForwardedPrefix() {
+      contract.servesThePageUnderAForwardedPrefix();
+    }
+
+    @Test
+    void servesAYamlMountUnderAForwardedPrefix() {
+      contract.servesAYamlMountUnderAForwardedPrefix();
     }
 
     @Test

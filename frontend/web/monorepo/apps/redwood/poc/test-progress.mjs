@@ -28,7 +28,7 @@ import {
   adoptServerList, noteInboxMessage, actOnEntry, dismissEntry, openEntry, applyNotificationsChanged, currentInbox,
   mountInboxPanel, currentInboxModel,
 } from './inbox.mjs'
-import { isActionToast, takeUndoToasts, undoMessageOf, showUndoToasts, setUndoSink, setToastNavigateSink, inboxToastsOf, fetchNotifications } from './notify.mjs'
+import { isActionToast, takeUndoToasts, undoMessageOf, toastLifetimeOf, pausableToastClose, showUndoToasts, setUndoSink, setToastNavigateSink, inboxToastsOf, fetchNotifications } from './notify.mjs'
 import { reduceContexts } from './reduceContexts.mjs'
 import { applyDomEffects } from './files.mjs'
 import { runMateuActionSse } from './transport.mjs'
@@ -531,7 +531,9 @@ test('toasts: N actions from the wire; an older server\'s undo is the same actio
   assert.equal(isActionToast({ text: 'x', variant: 'error', persistence: 'sticky' }), false, 'an error goes to the message band, which stays')
   assert.deepEqual(inboxToastsOf(reg.effects), [inboxed])
   assert.equal(undoMessageOf(saved).autoTimeout, 'off', 'sticky stays')
-  assert.deepEqual(undoMessageOf(inboxed), { severity: 'confirmation', summary: 'Export', detail: 'Ready', autoTimeout: 10000, closeAffordance: 'defaults' })
+  assert.deepEqual(undoMessageOf(inboxed), { severity: 'confirmation', summary: 'Export', detail: 'Ready', autoTimeout: 'off', closeAffordance: 'defaults' })
+  assert.equal(toastLifetimeOf(inboxed), 10000, 'an action toast stays at least 10 s (WCAG 2.2.1)')
+  assert.equal(toastLifetimeOf(saved), 0, 'sticky stays')
 })
 
 test('toasts (DOM): one button per action, a route navigates, an action runs; the same key replaces the message', () => {
@@ -563,16 +565,16 @@ test('toasts: applyDomEffects puts an inbox message in the inbox and takes the a
 
 // ── ETA (conformance/client/eta-format.json) ─────────────────────────────────────────────────
 
-test('ETA: the shared corpus words etaSeconds exactly, in English and Spanish; nothing without one', () => {
+test('ETA: the shared corpus words etaSeconds exactly, in every language it carries; nothing without one', () => {
   const corpus = JSON.parse(readFileSync(join(here, '..', '..', '..', '..', '..', '..', 'conformance', 'client', 'eta-format.json'), 'utf8'))
-  for (const lang of ['en', 'es']) {
+  assert.deepEqual(Object.keys(corpus.texts), ['en', 'es', 'fr', 'de', 'pt', 'it'])
+  for (const lang of Object.keys(corpus.texts)) {
     for (const [k, v] of Object.entries({ underMinute: 'taskEtaUnderMinute', minutes: 'taskEtaMinutes', hours: 'taskEtaHours' })) {
       assert.equal(chromeText(v, null, lang), corpus.texts[lang][k], `${lang} ${k}`)
     }
   }
   for (const c of corpus.cases) {
-    assert.equal(etaTextOf(c.etaSeconds, 'en'), c.en || '', `en ${c.etaSeconds}`)
-    assert.equal(etaTextOf(c.etaSeconds, 'es'), c.es || '', `es ${c.etaSeconds}`)
+    for (const lang of Object.keys(corpus.texts)) assert.equal(etaTextOf(c.etaSeconds, lang), c[lang] || '', `${lang} ${c.etaSeconds}`)
   }
   assert.equal(etaTextOf(undefined), '')
 })
@@ -875,6 +877,49 @@ test('the shell installs the task center and wires the inbox; the content page h
   assert.match(bridge, /'_progress-resume'/)
   assert.match(bridge, /new win\.Notification\(/)
   assert.match(bridge, /'_notifications-act'/)
+})
+
+test('an action toast\'s clock stops while hovered or focused and resumes with what was left (WCAG 2.2.1)', () => {
+  // a fake clock: the subject is the pause logic, not real time
+  let now = 0
+  let queue = []
+  const realSet = globalThis.setTimeout, realClear = globalThis.clearTimeout, realNow = Date.now
+  globalThis.setTimeout = (fn, ms) => { const t = { fn, at: now + ms }; queue.push(t); return t }
+  globalThis.clearTimeout = (t) => { queue = queue.filter((q) => q !== t) }
+  Date.now = () => now
+  const advance = (ms) => { now += ms; for (const t of queue.filter((q) => q.at <= now)) { queue = queue.filter((q) => q !== t); t.fn() } }
+  try {
+    const listeners = {}
+    const doc = { visibilityState: 'visible', addEventListener: (k, f) => { listeners['doc:' + k] = f }, removeEventListener: () => {} }
+    const inner = {}
+    const el = {
+      addEventListener: (k, f) => { listeners[k] = f }, removeEventListener: (k) => { delete listeners[k] },
+      contains: (n) => n === inner,
+    }
+    let closed = 0
+    pausableToastClose(el, 10000, () => closed++, doc)
+    advance(4000)
+    listeners.mouseenter()
+    advance(60000)
+    assert.equal(closed, 0, 'hovered: stays')
+    listeners.focusin()
+    listeners.mouseleave()
+    listeners.focusout({ relatedTarget: inner })
+    advance(60000)
+    assert.equal(closed, 0, 'focus moved inside the toast: still paused')
+    listeners.focusout({ relatedTarget: null })
+    advance(5999)
+    assert.equal(closed, 0)
+    advance(1)
+    assert.equal(closed, 1, 'resumed with the 6 s that were left')
+    assert.equal(listeners.mouseenter, undefined, 'listeners removed once closed')
+    let never = 0
+    pausableToastClose(el, 0, () => never++, doc)
+    advance(600000)
+    assert.equal(never, 0, 'a sticky toast never closes on its own')
+  } finally {
+    globalThis.setTimeout = realSet; globalThis.clearTimeout = realClear; Date.now = realNow
+  }
 })
 
 for (const { name, fn } of tests) {

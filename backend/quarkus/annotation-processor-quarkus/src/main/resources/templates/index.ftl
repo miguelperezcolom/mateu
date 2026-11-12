@@ -33,24 +33,27 @@ public class ${simpleClassName}Controller {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public String getIndexAlways(@jakarta.ws.rs.PathParam("path") String path,
-            @jakarta.ws.rs.HeaderParam("Accept") String accept) {
+            @jakarta.ws.rs.HeaderParam("Accept") String accept,
+            @jakarta.ws.rs.HeaderParam("X-Forwarded-Prefix") String forwardedPrefix) {
         // Only a NAVIGATION gets the index: a data fetch (Accept without text/html — a REST source
         // whose endpoint does not exist yet) must not be answered a 200 of HTML.
         if (!io.mateu.core.infra.SpaFallback.acceptsHtml(accept)) {
             throw new jakarta.ws.rs.NotFoundException();
         }
         // a deep link into a YAML mount (type: UI) served next to this UI opens THAT mount
-        var yaml = io.mateu.core.infra.YamlMounts.deepLinkIndex("${path?j_string}/" + path);
+        var yaml = io.mateu.core.infra.YamlMounts.deepLinkIndex("${path?j_string}/" + path, io.mateu.core.infra.PublicBase.of(io.mateu.core.infra.PublicBase.configuredContextPath(), forwardedPrefix));
         if (yaml != null) {
             return yaml;
         }
-        return getIndex();
+        return getIndex(forwardedPrefix);
     }
 
     @GET
     @Produces(MediaType.TEXT_HTML)
-    public String getIndex() {
-        return IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug()));
+    public String getIndex(@jakarta.ws.rs.HeaderParam("X-Forwarded-Prefix") String forwardedPrefix) {
+        // under quarkus.http.root-path / a prefix-stripping proxy the page's URLs carry it
+        return IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug())
+                .withPublicBase(io.mateu.core.infra.PublicBase.of(io.mateu.core.infra.PublicBase.configuredContextPath(), forwardedPrefix)));
     }
 
 }

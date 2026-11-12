@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.mateu.ijp.api.bool
 import io.mateu.ijp.api.text
+import io.mateu.ijp.ui.ChromeLanguage
 import java.util.Locale
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -51,26 +52,49 @@ data class NoticeAction(
 
 /** The plugin's own words around notices and tasks (en/es, like the web's chromeTexts). */
 object NoticeTexts {
-    private fun es(locale: Locale) = locale.language == "es"
-    fun undo(locale: Locale) = if (es(locale)) "Deshacer" else "Undo"
-    fun retry(locale: Locale) = if (es(locale)) "Reintentar" else "Retry"
-    fun open(locale: Locale) = if (es(locale)) "Abrir" else "Open"
-    fun details(locale: Locale) = if (es(locale)) "Detalles" else "Details"
-    fun dismiss(locale: Locale) = if (es(locale)) "Descartar" else "Dismiss"
-    fun cancel(locale: Locale) = if (es(locale)) "Cancelar" else "Cancel"
-    fun moveToBackground(locale: Locale) = if (es(locale)) "Pasar a segundo plano" else "Move to background"
-    fun filterAll(locale: Locale) = if (es(locale)) "Todas" else "All"
-    fun filterUnread(locale: Locale) = if (es(locale)) "Sin leer" else "Unread"
-    fun filterResolved(locale: Locale) = if (es(locale)) "Resueltas" else "Resolved"
-    fun filters(locale: Locale) = if (es(locale)) "Mostrar" else "Show"
-    fun notifications(locale: Locale) = if (es(locale)) "Notificaciones" else "Notifications"
-    fun noNotifications(locale: Locale) = if (es(locale)) "Sin notificaciones" else "No notifications"
-    fun markAllRead(locale: Locale) = if (es(locale)) "Marcar todo como leído" else "Mark all read"
-    fun resolved(locale: Locale) = if (es(locale)) "Resuelta" else "Resolved"
-    fun openNotificationsWindow(locale: Locale) =
-        if (es(locale)) "Abrir la ventana Notifications" else "Open the Notifications tool window"
-    fun failed(locale: Locale) = if (es(locale)) "Ha fallado" else "Failed"
-    fun count(done: Int, total: Int, locale: Locale) = if (es(locale)) "$done de $total" else "$done of $total"
+    // en, es, fr, de, pt, it — the web's chromeTexts words where it has them
+    private fun t(locale: Locale, en: String, es: String, fr: String, de: String, pt: String, it: String): String =
+        when (ChromeLanguage.of(locale)) {
+            "es" -> es
+            "fr" -> fr
+            "de" -> de
+            "pt" -> pt
+            "it" -> it
+            else -> en
+        }
+
+    fun undo(locale: Locale) = t(locale, "Undo", "Deshacer", "Annuler", "Rückgängig", "Desfazer", "Annulla")
+    fun retry(locale: Locale) = t(locale, "Retry", "Reintentar", "Réessayer", "Erneut versuchen", "Tentar novamente", "Riprova")
+    fun open(locale: Locale) = t(locale, "Open", "Abrir", "Ouvrir", "Öffnen", "Abrir", "Apri")
+    fun details(locale: Locale) = t(locale, "Details", "Detalles", "Détails", "Details", "Detalhes", "Dettagli")
+    fun dismiss(locale: Locale) = t(locale, "Dismiss", "Descartar", "Ignorer", "Verwerfen", "Descartar", "Ignora")
+    fun cancel(locale: Locale) = t(locale, "Cancel", "Cancelar", "Annuler", "Abbrechen", "Cancelar", "Annulla")
+    fun moveToBackground(locale: Locale) =
+        t(locale, "Move to background", "Pasar a segundo plano", "Passer en arrière-plan", "In den Hintergrund", "Mover para segundo plano", "Sposta in background")
+    fun filterAll(locale: Locale) = t(locale, "All", "Todas", "Toutes", "Alle", "Todas", "Tutte")
+    fun filterUnread(locale: Locale) = t(locale, "Unread", "Sin leer", "Non lues", "Ungelesen", "Não lidas", "Non lette")
+    fun filterResolved(locale: Locale) = t(locale, "Resolved", "Resueltas", "Résolues", "Erledigt", "Resolvidas", "Risolte")
+    fun filters(locale: Locale) = t(locale, "Show", "Mostrar", "Afficher", "Anzeigen", "Mostrar", "Mostra")
+    fun notifications(locale: Locale) =
+        t(locale, "Notifications", "Notificaciones", "Notifications", "Benachrichtigungen", "Notificações", "Notifiche")
+    fun noNotifications(locale: Locale) =
+        t(locale, "No notifications", "Sin notificaciones", "Aucune notification", "Keine Benachrichtigungen", "Sem notificações", "Nessuna notifica")
+    fun markAllRead(locale: Locale) =
+        t(locale, "Mark all read", "Marcar todo como leído", "Tout marquer comme lu", "Alle als gelesen markieren", "Marcar tudo como lido", "Segna tutto come letto")
+    fun resolved(locale: Locale) = t(locale, "Resolved", "Resuelta", "Résolue", "Erledigt", "Resolvida", "Risolta")
+    // "Notifications" is the IDE's tool window name: it stays as the IDE calls it
+    fun openNotificationsWindow(locale: Locale) = t(
+        locale,
+        "Open the Notifications tool window",
+        "Abrir la ventana Notifications",
+        "Ouvrir la fenêtre Notifications",
+        "Toolfenster Notifications öffnen",
+        "Abrir a janela Notifications",
+        "Apri la finestra Notifications",
+    )
+    fun failed(locale: Locale) = t(locale, "Failed", "Ha fallado", "Échouée", "Fehlgeschlagen", "Falhou", "Non riuscita")
+    fun count(done: Int, total: Int, locale: Locale) =
+        t(locale, "$done of $total", "$done de $total", "$done sur $total", "$done von $total", "$done de $total", "$done di $total")
 
     /**
      * A running task's ETA (`ProgressDto.etaSeconds`, estimated by the server), worded as
@@ -78,14 +102,20 @@ object NoticeTexts {
      */
     fun eta(etaSeconds: Int?, locale: Locale): String? {
         if (etaSeconds == null || etaSeconds <= 0) return null
-        if (etaSeconds < 60) return if (es(locale)) "menos de un minuto" else "less than a minute left"
+        if (etaSeconds < 60) {
+            return t(locale, "less than a minute left", "menos de un minuto", "moins d'une minute restante",
+                "noch weniger als eine Minute", "menos de um minuto", "meno di un minuto")
+        }
         // round half up, like Math.round; a rounded 60 minutes reads as hours
         val minutes = maxOf(1, Math.round(etaSeconds / 60.0).toInt())
         if (etaSeconds < 3600 && minutes < 60) {
-            return if (es(locale)) "unos $minutes min restantes" else "about $minutes min left"
+            val n = minutes
+            return t(locale, "about $n min left", "unos $n min restantes", "environ $n min restantes",
+                "noch etwa $n Min.", "cerca de $n min restantes", "circa $n min rimanenti")
         }
-        val hours = maxOf(1, Math.round(etaSeconds / 3600.0).toInt())
-        return if (es(locale)) "unas $hours h restantes" else "about $hours h left"
+        val n = maxOf(1, Math.round(etaSeconds / 3600.0).toInt())
+        return t(locale, "about $n h left", "unas $n h restantes", "environ $n h restantes",
+            "noch etwa $n Std.", "cerca de $n h restantes", "circa $n h rimanenti")
     }
 }
 

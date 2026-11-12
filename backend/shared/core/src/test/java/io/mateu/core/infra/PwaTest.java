@@ -1,6 +1,7 @@
 package io.mateu.core.infra;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 import io.mateu.core.infra.dev.DevMode;
 import io.mateu.uidl.annotations.App;
@@ -155,6 +156,30 @@ class PwaTest {
             + "<script src=\"data:text/javascript,1\"></script></head>";
     assertThat(Pwa.staticFolders(redwood))
         .containsExactly("https://static.oracle.com/cdn/", "/_redwood/");
+  }
+
+  @Test
+  void underAPublicBaseTheFoldersAreTheOnesBelowIt() {
+    var page =
+        "<head><base href=\"/crm/\"><script src=\"/crm/assets/a.js\"></script>"
+            + "<link rel=\"stylesheet\" href=\"_redwood/resources/css/app.css?v=1\">"
+            + "<script src=\"/crm/root.js\"></script></head>";
+    // never "/crm/" itself: that would be the whole app, its REST endpoints included
+    assertThat(Pwa.staticFolders(page, "/crm")).containsExactly("/crm/assets/", "/crm/_redwood/");
+  }
+
+  @Test
+  void tagsAreReadWithoutARegexThatBacktracks() {
+    var page =
+        "<SCRIPT defer SRC='/assets/a.js'></SCRIPT><scripts src=\"/nope/x.js\">"
+            + "<link href=/vendor/v.css rel=\"alternate stylesheet\">"
+            + "<link rel=\"x-stylesheet\" href=\"/other/o.css\">";
+    assertThat(Pwa.staticFolders(page)).containsExactly("/assets/", "/vendor/");
+    // the markup that made the old regexes run in quadratic time answers at once
+    var hostile =
+        "<scriptb".repeat(50_000) + "<linkb".repeat(50_000) + "<script" + " a".repeat(50_000);
+    assertTimeoutPreemptively(
+        java.time.Duration.ofSeconds(2), () -> assertThat(Pwa.staticFolders(hostile)).isEmpty());
   }
 
   @Test

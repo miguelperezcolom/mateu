@@ -216,26 +216,26 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.todolist` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.welcome` | 3 | 1 | 0 | 0 | 2 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.wizard` | 2 | 2 | 0 | 0 | 0 |
-| `mateu-dtos` | `io.mateu.dtos` | 257 | 257 | 0 | 0 | 0 |
+| `mateu-dtos` | `io.mateu.dtos` | 259 | 259 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl` | 8 | 5 | 2 | 0 | 1 |
-| `mateu-uidl` | `io.mateu.uidl.annotations` | 172 | 162 | 10 | 0 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.data` | 331 | 264 | 67 | 0 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.annotations` | 173 | 163 | 10 | 0 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.data` | 336 | 264 | 72 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 32 | 31 | 1 | 0 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.interfaces` | 110 | 91 | 12 | 0 | 7 |
+| `mateu-uidl` | `io.mateu.uidl.interfaces` | 112 | 91 | 14 | 0 | 7 |
 | `mateu-uidl` | `io.mateu.uidl.layout` | 2 | 0 | 0 | 0 | 2 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.remote` | 10 | 0 | 10 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **1000** | **838** | **102** | **0** | **60** |
+| **Total** | | **1010** | **841** | **109** | **0** | **60** |
 
 **Experimental types** (the whole type and its members):
 
 - `io.mateu.uidl`: `LiveHeaderValues`, `LiveNotifications`
 - `io.mateu.uidl.annotations`: `AI`, `AppShortcut`, `AppShortcuts`, `CacheableFragment`, `ContentSlot`, `DragRows`, `MobileApp`, `NoCrudNavigation`, `RowStatus`, `Tooltip`
-- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `AdvancedCreateEditPage`, `Announcement`, `AppAiChat`, `AppContextSelector`, `AppGlobalSearchSource`, `AppNotificationsSource`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CollectionDetailPage`, `ContentSlot`, `CrudDisplay`, `DashboardLandingPage`, `DataManagementPage`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `EmbeddedChrome`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `FoldoutPage`, `GeneralOverviewDisplay`, `GeneralOverviewPage`, `GuidedProcessPage`, `GuidedProcessStep`, `HeaderValue`, `HeroSearchPage`, `HeroTone`, `ItemOverviewPage`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `MessageAction`, `MessagePersistence`, `MultimediaContentPage`, `NotFound`, `OrgChartDisplay`, `PageFab`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `PushRegistration`, `RecordMerge`, `RecordSwitcher`, `Resolve`, `SwitcherType`, `TemplateImage`, `Toggle`, `Translations`, `WelcomePage`, `WizardDisplay`
+- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `AdvancedCreateEditPage`, `Announcement`, `AppAiChat`, `AppContextSelector`, `AppGlobalSearchSource`, `AppNotificationsSource`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CollectionDetailPage`, `ContentSlot`, `CrudDisplay`, `DashboardLandingPage`, `DataManagementPage`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `EmbeddedChrome`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `FoldoutPage`, `GeneralOverviewDisplay`, `GeneralOverviewPage`, `GuidedProcessPage`, `GuidedProcessStep`, `HeaderValue`, `HeroSearchPage`, `HeroTone`, `IncomingFile`, `ItemOverviewPage`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `MessageAction`, `MessagePersistence`, `MultimediaContentPage`, `NotFound`, `OrgChartDisplay`, `PageFab`, `PageSetup`, `PopoverTrigger`, `PresenceMember`, `ProjectRenderer`, `ProjectSettings`, `PushRegistration`, `RecordMerge`, `RecordSwitcher`, `Resolve`, `StoredFile`, `SwitcherType`, `TemplateImage`, `Toggle`, `Translations`, `UploadRequest`, `UploadTarget`, `WelcomePage`, `WizardDisplay`
 - `io.mateu.uidl.fluent`: `FormTemplate`
-- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DetailContentSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `HeaderValuesSupplier`, `InboxStore`, `KeepAliveHandler`, `PushTokenRegistry`, `RecordSwitcherSupplier`, `Restorable`, `TranslationsSupplier`
+- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DetailContentSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `FileStorage`, `HeaderValuesSupplier`, `InboxStore`, `KeepAliveHandler`, `PresenceStore`, `PushTokenRegistry`, `RecordSwitcherSupplier`, `Restorable`, `TranslationsSupplier`
 - `io.mateu.uidl.remote`: `CorrelationIdProvider`, `FragmentCachePolicy`, `FragmentCachePolicySupplier`, `FragmentCacheStore`, `MicroFrontendResolutionEvent`, `MicroFrontendResolutionListener`, `RemoteCatalogSupplier`, `RemoteDescriptor`, `RemoteIdentityStrategy`, `RemoteRegistry`
 
 **Experimental members** of otherwise stable types:
@@ -250,7 +250,8 @@ same concepts.
 - `io.mateu.core.infra.declarative.orchestrators.welcome.Welcome`: `heroOverline`, `heroTone`
 - `io.mateu.core.infra.declarative.orchestrators.wizard.Wizard`: `beforeStepNavigate`, `display`, `stepSkippable`
 - `io.mateu.uidl.annotations.AI`: `followLabel`, `followingLabel`
-- `io.mateu.uidl.annotations.App`: `accessKeys`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `inbox`, `liveUpdates`, `mobileQr`, `osNotifications`
+- `io.mateu.uidl.annotations.App`: `accessKeys`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `inbox`, `liveUpdates`, `mobileQr`, `osNotifications`, `presence`
+- `io.mateu.uidl.annotations.FileUpload`: `INLINE`, `maxBytes`, `multiple`, `storage`
 - `io.mateu.uidl.annotations.Menu`: `display`, `image`
 - `io.mateu.uidl.annotations.Section`: `addAction`, `editAction`, `viewMoreAction`
 - `io.mateu.uidl.annotations.WelcomeBanner`: `overline`, `tone`
@@ -287,7 +288,7 @@ same concepts.
 - `io.mateu.uidl.data.RouteLink`: `presentation`
 - `io.mateu.uidl.data.RouteTable`: `params`
 - `io.mateu.uidl.data.UICommand`: `announce`, `announceAssertive`, `print`, `updateHeaderValue`
-- `io.mateu.uidl.fluent.AppShell`: `accessKeys`, `ai`, `contextSelectors`, `globalSearch`, `headerActions`, `headerValues`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `liveUpdates`, `mobileQr`, `notifications`, `shortcuts`
+- `io.mateu.uidl.fluent.AppShell`: `accessKeys`, `ai`, `contextSelectors`, `globalSearch`, `headerActions`, `headerValues`, `idleSignOutUrl`, `idleTimeoutMinutes`, `idleWarningSeconds`, `liveUpdates`, `mobileQr`, `notifications`, `presence`, `shortcuts`
 - `io.mateu.uidl.fluent.Form`: `badges`, `banners`, `confirmOnNavigationIfDirty`, `fabs`, `kpis`, `overline`, `peerNav`, `recordSwitcher`, `template`, `timestamp`, `titlePlaceholder`
 - `io.mateu.uidl.fluent.Listing`: `dragType`, `preSearch`, `rowStatusField`
 - `io.mateu.uidl.interfaces.Actionable`: `presentation`

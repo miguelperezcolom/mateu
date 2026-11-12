@@ -69,6 +69,33 @@ class NotFoundPageTest {
   }
 
   @Test
+  void theBrowsersLanguageByItsPrimarySubtagElseEnglish() {
+    assertThat(NotFoundPage.forUnknownRoute(command("/x", "fr-FR,fr;q=0.9"), null).title())
+        .isEqualTo("Page introuvable");
+    assertThat(NotFoundPage.forUnknownRoute(command("/x", "de-AT"), null).backLabel())
+        .isEqualTo("Zurück");
+    assertThat(NotFoundPage.forUnknownRoute(command("/x", "pt-BR"), null).title())
+        .isEqualTo("Página não encontrada");
+    assertThat(NotFoundPage.forUnknownRoute(command("/x", "pt-PT"), null).title())
+        .isEqualTo("Página não encontrada");
+    assertThat(NotFoundPage.forMissing(new NoSuchElementException(), command("/r/7", "it")).title())
+        .isEqualTo("Non trovato: 7");
+    assertThat(NotFoundPage.forUnknownRoute(command("/x", "nl-NL"), null).title())
+        .isEqualTo("Page not found");
+    // every language says every text
+    assertThat(NotFoundPage.TEXTS.keySet())
+        .containsExactlyInAnyOrder("en", "es", "fr", "de", "pt", "it");
+    NotFoundPage.TEXTS
+        .values()
+        .forEach(
+            t ->
+                assertThat(
+                        List.of(
+                            t.notFound(), t.notFoundId(), t.pageNotFound(), t.message(), t.back()))
+                    .allSatisfy(text -> assertThat(text).isNotBlank()));
+  }
+
+  @Test
   void inDevelopmentModeTheUnreadableDefinitionsAreNamed() {
     var base = NotFoundPage.forUnknownRoute(command("/x", null), null);
     assertThat(NotFoundPage.withSpecProblems(base, List.of())).isSameAs(base);

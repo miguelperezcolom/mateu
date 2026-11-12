@@ -15,8 +15,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   //    translation bundle (resources/strings/appBundle/nls/<lang>/appBundle-strings.json) from this
   //    catalogue, so VB's own locale resolution picks the language and there is nothing to rebind.
   //
-  // A key missing in a language falls back to English, key by key — a partial language (fr, de…)
-  // only needs the words it has.
+  // English, Spanish, French, German, Portuguese and Italian are complete (FULL_LANGUAGES, pinned by the
+  // i18n test in test.mjs); a key missing in any other language falls back to English, key by key — a partial
+  // language (ca, nl) only needs the words it has. pt-BR / pt-PT → pt, de-AT → de: the primary subtag.
 
   const CHROME_TEXTS = {
     en: {
@@ -47,6 +48,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       remove: 'Remove',
       name: 'Name',
       skipToContent: 'Skip to content',
+      // WCAG 3.2.2: the @AppContext picker says beforehand that a change reloads the screen
+      appContextReloads: 'Choosing another one reloads the screen',
+      appContextChanging: '{label}: {value}. Reloading…',
+      singleKeyShortcuts: 'Single-key shortcuts (such as ?). Ctrl+/ always opens this list',
       enterValue: 'Enter a value.',
       selectValue: 'Select a value',
       progressOf: '{done} of {total}',
@@ -345,6 +350,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       remove: 'Quitar',
       name: 'Nombre',
       skipToContent: 'Saltar al contenido',
+      appContextReloads: 'Elegir otro recarga la pantalla',
+      appContextChanging: '{label}: {value}. Recargando…',
+      singleKeyShortcuts: 'Atajos de una sola tecla (como ?). Ctrl+/ siempre abre esta lista',
       enterValue: 'Introduce un valor.',
       selectValue: 'Seleccione un valor',
       progressOf: '{done} de {total}',
@@ -600,14 +608,1186 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       inboxOther: 'Otras',
       inboxNew: 'Nueva notificación: {title}',
     },
+    // full languages, like the web's chromeTexts: fr, de, pt, it (every key, pinned by the i18n test in test.mjs)
+    fr: {
+      close: 'Fermer',
+      retry: 'Réessayer',
+      reload: 'Recharger',
+      loading: 'Chargement',
+      search: 'Rechercher…',
+      noData: 'Aucune donnée',
+      treeExpand: 'Agrandir',
+      treeCollapse: 'Réduire',
+      rangeFrom: 'Du',
+      rangeTo: 'Au',
+      new: 'Nouveau',
+      add: 'Ajouter',
+      addSelected: 'Ajouter la sélection',
+      done: 'Terminée',
+      yes: 'Oui',
+      no: 'Non',
+      confirm: 'Confirmer',
+      cancel: 'Annuler',
+      save: 'Enregistrer',
+      apply: 'Appliquer',
+      reset: 'Réinitialiser',
+      view: 'Voir',
+      edit: 'Modifier',
+      remove: 'Retirer',
+      name: 'Nom',
+      skipToContent: 'Aller au contenu',
+      appContextReloads: "En choisir un autre recharge l'écran",
+      appContextChanging: '{label} : {value}. Rechargement…',
+      singleKeyShortcuts: 'Raccourcis à une seule touche (comme ?). Ctrl+/ ouvre toujours cette liste',
+      enterValue: 'Saisissez une valeur.',
+      selectValue: 'Sélectionnez une valeur',
+      progressOf: '{done} sur {total}',
+      occupancy: 'Occupation %',
+      wizardCompleted: 'Terminé',
+      dropHere: 'Déposez ici',
+      noEvents: 'Aucun événement',
+      calendarView: 'Voir',
+      calendarToday: "Aujourd'hui",
+      calendarMonth: 'Mois',
+      calendarWeek: 'Semaine',
+      calendarDay: 'Jour',
+      calendarList: 'Liste',
+      calendarCreate: '+ Créer',
+      calendarOneEvent: '1 événement',
+      calendarEvents: '{count} événements',
+      hideUnpopulated: 'Masquer les vides',
+      mapUnavailable: "La carte n'a pas pu être chargée.",
+      surfaceUnavailable: "Cette partie de la page n'a pas pu être chargée.",
+      menu: 'Menu',
+      context: 'Contexte',
+      workContext: 'Contexte de travail',
+      sections: 'Sections',
+      searchOrGo: 'Rechercher ou aller à…',
+      notifications: 'Notifications',
+      markAllRead: 'Tout marquer comme lu',
+      allCaughtUp: 'Vous êtes à jour',
+      notificationsUnread: 'Notifications, {n} non lues',
+      undo: 'Annuler',
+      askSearch: 'Rechercher',
+      goTo: 'Aller à',
+      home: 'Accueil',
+      listing: 'Liste',
+      quickView: 'Aperçu rapide',
+      unsavedLeave: 'Il y a des modifications non enregistrées. Quitter cet écran ?',
+      unavailableMount: "{name} n'est pas disponible pour le moment. Une nouvelle tentative aura lieu.",
+      columns: 'Colonnes',
+      views: 'Vues',
+      saveView: 'Enregistrer la vue',
+      openWithView: 'Ouvrir avec cette vue',
+      saveCurrentView: 'Enregistrer la vue actuelle…',
+      clearFilters: 'Effacer les filtres',
+      pagingOf: 'sur',
+      pagingPage: 'Page',
+      pagingFirst: 'Première page',
+      pagingPrev: 'Page précédente',
+      pagingNext: 'Page suivante',
+      pagingLast: 'Dernière page',
+      idsFew: 'Sélection : ',
+      idsMany: '{n} éléments sélectionnés',
+      confirmTitle: 'Un instant',
+      confirmMessage: 'Êtes-vous sûr ?',
+      confirmYes: 'Oui',
+      confirmNo: 'Non',
+      notFoundTitle: 'Introuvable',
+      notFoundMessage: 'Il a peut-être été supprimé, ou le lien est incorrect.',
+      goBack: 'Revenir',
+      captureClear: 'Effacer',
+      captureAccept: 'Accepter',
+      captureSignAgain: 'Signer à nouveau',
+      captureRemove: 'Retirer',
+      captureTake: 'Prendre une photo',
+      captureRetake: 'Reprendre',
+      captureUpload: 'Téléverser',
+      captureReplace: 'Remplacer',
+      captureUseUrl: 'Utiliser une URL',
+      captureImageUrl: "URL de l'image",
+      captureNoCamera: 'Appareil photo indisponible — choisissez un fichier',
+      captureEmpty: 'Aucun fichier',
+      captureStart: "Ouvrir l'appareil photo",
+      captureSignHere: 'Signez ici',
+      offlineBand: 'Hors ligne — les modifications faites maintenant ne seront pas enregistrées.',
+      errOffline: "Vous êtes hors ligne. Vos modifications n'ont pas été envoyées — vérifiez le réseau et réessayez.",
+      errUnreachable: 'Son serveur est injoignable. Il est peut-être arrêté — réessayez plus tard.',
+      errTimeout: "Le serveur met trop de temps à répondre. Vos modifications n'ont peut-être pas été enregistrées.",
+      errServer: "Le serveur n'a pas pu traiter la requête. Réessayez.",
+      wireVersionMismatch: "Le serveur de cette application parle le protocole Mateu {server} ; ce moteur de rendu prend en charge {supported}. Certains écrans peuvent mal s'afficher — mettez à jour le moteur de rendu ou le serveur pour qu'ils correspondent.",
+      errServerStatus: "Le serveur n'a pas pu traiter la requête (erreur {status}). Réessayez.",
+      errUnauthorized: "Votre session n'est plus valide. Reconnectez-vous.",
+      errForbidden: "Vous n'êtes pas autorisé à effectuer cette action.",
+      appUpdated: 'Cette application a été mise à jour. Rechargez pour utiliser la dernière version.',
+      screenChanged: "Cet écran a changé depuis que vous l'avez ouvert. Rechargez pour continuer.",
+      errSecurityRefused: "La couche de sécurité du serveur a refusé cette requête avant que l'application puisse la traiter (par exemple sa protection CSRF). Si cela se reproduit, prévenez votre administrateur.",
+      errNotFound: "Ceci n'est plus disponible. Il a peut-être été déplacé ou supprimé.",
+      errClient: 'La requête a été refusée.',
+      errClientStatus: 'La requête a été refusée (erreur {status}).',
+      errUnknown: "Une erreur s'est produite. Réessayez.",
+      chatTitle: 'Assistant',
+      chatOpen: 'Chat',
+      chatPanel: "Chat de l'assistant",
+      chatClose: 'Fermer le chat',
+      chatEmpty: "Demandez ce dont vous avez besoin sur cet écran ou l'application.",
+      chatPlaceholder: 'Écrivez un message…',
+      chatInputLabel: "Message pour l'assistant",
+      chatSend: 'Envoyer',
+      chatDictate: 'Dicter (Ctrl+Shift+M)',
+      chatStopDictation: 'Arrêter la dictée (Ctrl+Shift+M)',
+      chatTokens: 'Jetons',
+      chatTokensIn: 'entrée',
+      chatTokensOut: 'sortie',
+      chatTokensTotal: 'total',
+      chatThinking: 'Réflexion…',
+      chatThinkingFor: 'Réflexion… {s} s',
+      chatAnswering: 'Réponse en cours…',
+      chatCalling: 'Appel de {name}…',
+      chatAgentError: "Erreur inconnue de l'agent",
+      chatNoReader: 'Impossible de lire le flux de la réponse.',
+      chatServerError: 'Le serveur a répondu {status} : {text}',
+      chatUploadFailed: "Échec de l'envoi : {status}",
+      chatAttach: 'Joindre des fichiers',
+      chatRemoveAttachment: 'Retirer {name}',
+      chatTool: 'outil',
+      chatToolsUsed: 'Outils utilisés',
+      chatNoAnswer: "Aucune réponse de l'agent. Le serveur a fermé la connexion sans rien envoyer — vérifiez que le LLM a sa clé d'API configurée et qu'il est disponible.",
+      chatEmptyAnswer: "L'agent n'a renvoyé aucune réponse. Vérifiez que le LLM est correctement configuré (clé d'API).",
+      chatError: 'Erreur : {message}',
+      chatUploadError: "Impossible d'envoyer les fichiers : {message}",
+      chatExpand: "Élargir l'assistant",
+      chatRestore: 'Largeur normale',
+      selectRowsFirst: "Sélectionnez d'abord des lignes",
+      kanbanMove: 'Déplacer {card}',
+      orgReports: 'Équipe',
+      kanbanMoveTo: 'Déplacer vers {column}',
+      kanbanMoveUp: 'Monter',
+      kanbanMoveDown: 'Descendre',
+      kanbanMoveFailed: "La carte n'a pas pu être déplacée ; elle est revenue à sa place",
+      searchResults: 'Résultats de recherche',
+      agentConnect: "Connecter l'IA",
+      agentDialogTitle: "Connecter un agent d'IA",
+      agentPairInstruction: "Demandez à votre agent de s'appairer avec ce code (mateu_pair_session).",
+      agentCodeLabel: "Code d'appairage",
+      agentExpiresIn: 'Expire dans {time}',
+      agentCodeExpired: 'Le code a expiré. Obtenez-en un nouveau pour appairer un agent.',
+      agentNewCode: 'Nouveau code',
+      agentGettingCode: "Obtention d'un code…",
+      agentNoCode: "le serveur n'a envoyé aucun code",
+      agentConnected: "Agent d'IA connecté : {agents}",
+      agentConnectedTo: 'Connecté à :',
+      agentAnAgent: 'un agent',
+      agentDisconnect: 'Déconnecter',
+      agentDisconnected: "Agent d'IA déconnecté",
+      agentCodeAnnounce: "Code d'appairage {code}. Il expire dans {minutes} minutes.",
+      agentChannelDown: "Connexion au serveur de l'application… l'agent pourra joindre cet onglet une fois la connexion établie.",
+      agentPushOff: "L'envoi d'interface en direct n'est pas activé sur ce serveur.",
+      agentError: "Impossible de joindre le service de l'agent : {message}",
+      agentPushedScreen: "Un agent d'IA a envoyé un écran",
+      mobileQrAction: 'Ouvrir sur mobile',
+      mobileQrTitle: 'Ouvrir sur votre téléphone',
+      mobileQrHint: "Scannez avec l'appareil photo de votre téléphone ou l'app Mateu. Le code indique seulement où se trouve cette application : vous vous connectez sur le téléphone.",
+      mobileQrPhoneHint: "Ouvre cet écran dans l'app Mateu — ou la page pour l'installer.",
+      mobileQrAlt: "QR code pour ouvrir {app} dans l'app Mateu",
+      mobileQrThisApp: 'cette application',
+      mobileQrOpenInApp: "Ouvrir dans l'app Mateu",
+      mobileQrLink: 'Lien',
+      mobileQrCopy: 'Copier le lien',
+      mobileQrCopied: 'Lien copié',
+      recommended: 'Recommandé',
+      choose: 'Choisir',
+      learnMore: 'En savoir plus',
+      less: 'Moins',
+      more: 'Plus',
+      open: 'Ouvrir',
+      ok: 'OK',
+      message: 'Message',
+      messageSend: 'Envoyer',
+      moreActions: "Plus d'actions",
+      subheaderMore: 'Plus',
+      moreInformation: "Plus d'informations",
+      previousSlide: 'Diapositive précédente',
+      nextSlide: 'Diapositive suivante',
+      previousItem: 'Précédent',
+      nextItem: 'Suivant',
+      slideN: 'Diapositive {n}',
+      slides: 'Diapositives',
+      pages: 'Pages',
+      breadcrumb: "Fil d'Ariane",
+      directory: 'Annuaire',
+      heatmap: 'Carte de chaleur',
+      processDiagram: 'Diagramme de processus : {names}',
+      emptyProcess: 'Processus vide',
+      cookieConsent: 'Consentement aux cookies',
+      cookieMessage: 'Ce site utilise des cookies pour vous offrir la meilleure expérience possible.',
+      cookieDismiss: "J'ai compris",
+      afterStep: 'Après {name}',
+      whenCondition: ' quand {condition}',
+      parallel: 'parallèle',
+      stepAction: 'Action',
+      stepJoin: 'Jonction',
+      stepFork: 'Bifurcation',
+      stepEnd: 'Fin',
+      stepUserTask: 'Tâche utilisateur',
+      stepProcess: 'Processus',
+      workflowInvalid: "Workflow : la définition n'est pas un JSON valide",
+      unsupportedComponent: 'Composant non pris en charge "{type}"{id} — le moteur de rendu Redwood n\'a pas de vue pour lui',
+      foldoutUnfold: 'Afficher {title}',
+      customFailed: 'Le composant personnalisé a échoué : {message}',
+      askSomething: 'Posez une question…',
+      assistantFailed: "L'assistant n'a pas pu répondre : {message}",
+      formatting: 'Mise en forme',
+      preview: 'Aperçu',
+      rteBold: 'Gras',
+      rteItalic: 'Italique',
+      rteUnderline: 'Souligné',
+      rteBullets: 'Liste à puces',
+      rteNumbers: 'Liste numérotée',
+      rteLink: 'Lien',
+      rteClear: 'Effacer la mise en forme',
+      rteLinkPrompt: 'URL du lien',
+      colourPicker: '{label} — sélecteur',
+      loadingContent: 'Chargement',
+      mergeShowDifferences: 'Afficher uniquement les différences',
+      mergeField: 'Champ',
+      mergeCustom: 'Autre valeur',
+      mergeUseValue: 'Utiliser la valeur de {record} pour {field}',
+      mergeCustomValue: 'Autre valeur pour {field}',
+      mergeDiffers: 'diffère',
+      mergeEmpty: '(vide)',
+      mergeResult: 'Résultat',
+      mergeAction: 'Fusionner',
+      mergeSummary: '{fields} champs : {differ} diffèrent ; {custom} saisis à la main',
+      mergeFrom: 'de {record}',
+      keyboardShortcuts: 'Raccourcis clavier',
+      shortcutsApp: "Partout dans l'application",
+      shortcutsScreen: 'Sur cet écran',
+      shortcutsHelpKey: 'Afficher cette liste',
+      shortcutsPalette: 'Rechercher ou aller à',
+      quickLaunchCode: 'Code',
+      headerValueChanged: '{label} est passé à {value}',
+      idleTitle: 'Êtes-vous toujours là ?',
+      idleMessage: 'Pour votre sécurité, vous serez déconnecté dans {seconds} secondes.',
+      idleStay: 'Rester connecté',
+      idleSignOut: 'Se déconnecter',
+      idleSigningOut: 'Déconnexion…',
+      tasks: 'Tâches',
+      tasksRunning: '{n} en cours',
+      tasksTitle: 'Tâches, {n} en cours',
+      taskCount: '{done} sur {total}',
+      taskElapsed: '{time} écoulé',
+      taskRunning: 'En cours',
+      taskDone: 'Terminée',
+      taskFailed: 'Échouée',
+      taskCancelled: 'Annulée',
+      taskCancel: 'Annuler',
+      taskBackground: 'Arrière-plan',
+      taskDismiss: 'Ignorer',
+      tasksClearFinished: 'Retirer les terminées',
+      tasksEmpty: 'Aucune tâche',
+      taskStarted: 'Démarrée : {title}',
+      taskFinished: '{title} : terminée',
+      taskFailedAnnounce: '{title} a échoué : {error}',
+      taskCancelledAnnounce: '{title} annulée',
+      taskEtaUnderMinute: "moins d'une minute restante",
+      taskEtaMinutes: 'environ {n} min restantes',
+      taskEtaHours: 'environ {n} h restantes',
+      osNotifyEnable: "M'avertir sur cet appareil",
+      inboxUnread: 'Non lues',
+      inboxAll: 'Toutes',
+      inboxResolved: 'Résolues',
+      inboxDismiss: 'Ignorer',
+      inboxOpen: 'Ouvrir',
+      inboxOther: 'Autres',
+      inboxNew: 'Nouvelle notification : {title}',
+    },
+    de: {
+      close: 'Schließen',
+      retry: 'Erneut versuchen',
+      reload: 'Neu laden',
+      loading: 'Wird geladen',
+      search: 'Suchen…',
+      noData: 'Keine Daten',
+      treeExpand: 'Vergrößern',
+      treeCollapse: 'Zuklappen',
+      rangeFrom: 'Von',
+      rangeTo: 'Bis',
+      new: 'Neu',
+      add: 'Hinzufügen',
+      addSelected: 'Auswahl hinzufügen',
+      done: 'Abgeschlossen',
+      yes: 'Ja',
+      no: 'Nein',
+      confirm: 'Bestätigen',
+      cancel: 'Abbrechen',
+      save: 'Speichern',
+      apply: 'Anwenden',
+      reset: 'Zurücksetzen',
+      view: 'Ansehen',
+      edit: 'Bearbeiten',
+      remove: 'Entfernen',
+      name: 'Name',
+      skipToContent: 'Zum Inhalt springen',
+      appContextReloads: 'Eine andere Auswahl lädt die Ansicht neu',
+      appContextChanging: '{label}: {value}. Wird neu geladen…',
+      singleKeyShortcuts: 'Tastenkürzel mit einer Taste (wie ?). Strg+/ öffnet diese Liste immer',
+      enterValue: 'Geben Sie einen Wert ein.',
+      selectValue: 'Wert auswählen',
+      progressOf: '{done} von {total}',
+      occupancy: 'Belegung %',
+      wizardCompleted: 'Abgeschlossen',
+      dropHere: 'Hier ablegen',
+      noEvents: 'Keine Termine',
+      calendarView: 'Ansehen',
+      calendarToday: 'Heute',
+      calendarMonth: 'Monat',
+      calendarWeek: 'Woche',
+      calendarDay: 'Tag',
+      calendarList: 'Liste',
+      calendarCreate: '+ Erstellen',
+      calendarOneEvent: '1 Termin',
+      calendarEvents: '{count} Termine',
+      hideUnpopulated: 'Leere ausblenden',
+      mapUnavailable: 'Die Karte konnte nicht geladen werden.',
+      surfaceUnavailable: 'Dieser Teil der Seite konnte nicht geladen werden.',
+      menu: 'Menü',
+      context: 'Kontext',
+      workContext: 'Arbeitskontext',
+      sections: 'Abschnitte',
+      searchOrGo: 'Suchen oder gehe zu…',
+      notifications: 'Benachrichtigungen',
+      markAllRead: 'Alle als gelesen markieren',
+      allCaughtUp: 'Sie sind auf dem neuesten Stand',
+      notificationsUnread: 'Benachrichtigungen, {n} ungelesen',
+      undo: 'Rückgängig',
+      askSearch: 'Suchen',
+      goTo: 'Gehe zu',
+      home: 'Startseite',
+      listing: 'Liste',
+      quickView: 'Schnellansicht',
+      unsavedLeave: 'Es gibt ungespeicherte Änderungen. Diesen Bildschirm verlassen?',
+      unavailableMount: '{name} ist gerade nicht verfügbar. Es wird erneut versucht.',
+      columns: 'Spalten',
+      views: 'Ansichten',
+      saveView: 'Ansicht speichern',
+      openWithView: 'Mit dieser Ansicht öffnen',
+      saveCurrentView: 'Aktuelle Ansicht speichern…',
+      clearFilters: 'Filter entfernen',
+      pagingOf: 'von',
+      pagingPage: 'Seite',
+      pagingFirst: 'Erste Seite',
+      pagingPrev: 'Vorherige Seite',
+      pagingNext: 'Nächste Seite',
+      pagingLast: 'Letzte Seite',
+      idsFew: 'Auswahl: ',
+      idsMany: '{n} Elemente ausgewählt',
+      confirmTitle: 'Einen Moment, bitte',
+      confirmMessage: 'Sind Sie sicher?',
+      confirmYes: 'Ja',
+      confirmNo: 'Nein',
+      notFoundTitle: 'Nicht gefunden',
+      notFoundMessage: 'Möglicherweise wurde es gelöscht oder der Link ist falsch.',
+      goBack: 'Zurück',
+      captureClear: 'Leeren',
+      captureAccept: 'Übernehmen',
+      captureSignAgain: 'Erneut unterschreiben',
+      captureRemove: 'Entfernen',
+      captureTake: 'Foto aufnehmen',
+      captureRetake: 'Neu aufnehmen',
+      captureUpload: 'Hochladen',
+      captureReplace: 'Ersetzen',
+      captureUseUrl: 'URL verwenden',
+      captureImageUrl: 'Bild-URL',
+      captureNoCamera: 'Kamera nicht verfügbar — wählen Sie eine Datei',
+      captureEmpty: 'Keine Datei',
+      captureStart: 'Kamera öffnen',
+      captureSignHere: 'Hier unterschreiben',
+      offlineBand: 'Offline — Änderungen, die Sie jetzt vornehmen, werden nicht gespeichert.',
+      errOffline: 'Sie sind offline. Ihre Änderungen wurden nicht gesendet — prüfen Sie das Netzwerk und versuchen Sie es erneut.',
+      errUnreachable: 'Sein Server ist nicht erreichbar. Er ist vielleicht ausgefallen — versuchen Sie es später erneut.',
+      errTimeout: 'Der Server braucht zu lange für die Antwort. Ihre Änderungen wurden möglicherweise nicht gespeichert.',
+      errServer: 'Der Server konnte die Anfrage nicht abschließen. Versuchen Sie es erneut.',
+      wireVersionMismatch: 'Der Server dieser Anwendung spricht das Mateu-Protokoll {server}; dieser Renderer unterstützt {supported}. Manche Bildschirme werden eventuell nicht richtig angezeigt — aktualisieren Sie Renderer oder Server, damit sie zusammenpassen.',
+      errServerStatus: 'Der Server konnte die Anfrage nicht abschließen (Fehler {status}). Versuchen Sie es erneut.',
+      errUnauthorized: 'Ihre Sitzung ist nicht mehr gültig. Melden Sie sich erneut an.',
+      errForbidden: 'Sie sind nicht berechtigt, dies zu tun.',
+      appUpdated: 'Diese Anwendung wurde aktualisiert. Laden Sie neu, um die neueste Version zu verwenden.',
+      screenChanged: 'Dieser Bildschirm hat sich geändert, seit Sie ihn geöffnet haben. Laden Sie neu, um fortzufahren.',
+      errSecurityRefused: 'Die Sicherheitsschicht des Servers hat diese Anfrage abgelehnt, bevor die Anwendung sie bearbeiten konnte (zum Beispiel ihr CSRF-Schutz). Wenn das wieder passiert, wenden Sie sich an Ihren Administrator.',
+      errNotFound: 'Dies ist nicht mehr verfügbar. Möglicherweise wurde es verschoben oder gelöscht.',
+      errClient: 'Die Anfrage wurde abgelehnt.',
+      errClientStatus: 'Die Anfrage wurde abgelehnt (Fehler {status}).',
+      errUnknown: 'Etwas ist schiefgelaufen. Versuchen Sie es erneut.',
+      chatTitle: 'Assistent',
+      chatOpen: 'Chat',
+      chatPanel: 'Chat mit dem Assistenten',
+      chatClose: 'Chat schließen',
+      chatEmpty: 'Fragen Sie, was Sie zu diesem Bildschirm oder der Anwendung wissen möchten.',
+      chatPlaceholder: 'Nachricht schreiben…',
+      chatInputLabel: 'Nachricht an den Assistenten',
+      chatSend: 'Senden',
+      chatDictate: 'Diktieren (Ctrl+Shift+M)',
+      chatStopDictation: 'Diktat beenden (Ctrl+Shift+M)',
+      chatTokens: 'Tokens',
+      chatTokensIn: 'Eingabe',
+      chatTokensOut: 'Ausgabe',
+      chatTokensTotal: 'gesamt',
+      chatThinking: 'Denkt nach…',
+      chatThinkingFor: 'Denkt nach… {s} s',
+      chatAnswering: 'Antwortet…',
+      chatCalling: '{name} wird aufgerufen…',
+      chatAgentError: 'Unbekannter Fehler des Agenten',
+      chatNoReader: 'Der Antwortstrom konnte nicht gelesen werden.',
+      chatServerError: 'Der Server antwortete {status}: {text}',
+      chatUploadFailed: 'Hochladen fehlgeschlagen: {status}',
+      chatAttach: 'Dateien anhängen',
+      chatRemoveAttachment: '{name} entfernen',
+      chatTool: 'Werkzeug',
+      chatToolsUsed: 'Verwendete Werkzeuge',
+      chatNoAnswer: 'Keine Antwort vom Agenten. Der Server hat die Verbindung geschlossen, ohne etwas zu senden — prüfen Sie, ob das LLM einen API-Schlüssel hat und erreichbar ist.',
+      chatEmptyAnswer: 'Der Agent hat keine Antwort geliefert. Prüfen Sie, ob das LLM richtig konfiguriert ist (API-Schlüssel).',
+      chatError: 'Fehler: {message}',
+      chatUploadError: 'Die Dateien konnten nicht hochgeladen werden: {message}',
+      chatExpand: 'Assistenten verbreitern',
+      chatRestore: 'Normale Breite',
+      selectRowsFirst: 'Wählen Sie zuerst Zeilen aus',
+      kanbanMove: '{card} verschieben',
+      orgReports: 'Team',
+      kanbanMoveTo: 'Nach {column} verschieben',
+      kanbanMoveUp: 'Nach oben',
+      kanbanMoveDown: 'Nach unten',
+      kanbanMoveFailed: 'Die Karte konnte nicht verschoben werden; sie ist wieder an ihrem Platz',
+      searchResults: 'Suchergebnisse',
+      agentConnect: 'KI verbinden',
+      agentDialogTitle: 'KI-Agenten verbinden',
+      agentPairInstruction: 'Bitten Sie Ihren Agenten, sich mit diesem Code zu koppeln (mateu_pair_session).',
+      agentCodeLabel: 'Kopplungscode',
+      agentExpiresIn: 'Läuft ab in {time}',
+      agentCodeExpired: 'Der Code ist abgelaufen. Holen Sie einen neuen, um einen Agenten zu koppeln.',
+      agentNewCode: 'Neuer Code',
+      agentGettingCode: 'Code wird abgerufen…',
+      agentNoCode: 'der Server hat keinen Code gesendet',
+      agentConnected: 'KI-Agent verbunden: {agents}',
+      agentConnectedTo: 'Verbunden mit:',
+      agentAnAgent: 'einem Agenten',
+      agentDisconnect: 'Trennen',
+      agentDisconnected: 'KI-Agent getrennt',
+      agentCodeAnnounce: 'Kopplungscode {code}. Er läuft in {minutes} Minuten ab.',
+      agentChannelDown: 'Verbindung zum Anwendungsserver wird hergestellt… Der Agent kann diesen Tab erreichen, sobald die Verbindung steht.',
+      agentPushOff: 'Live-UI-Push ist auf diesem Server nicht aktiviert.',
+      agentError: 'Der Agentendienst ist nicht erreichbar: {message}',
+      agentPushedScreen: 'Ein KI-Agent hat einen Bildschirm gesendet',
+      mobileQrAction: 'Auf dem Handy öffnen',
+      mobileQrTitle: 'Auf dem Handy öffnen',
+      mobileQrHint: 'Scannen Sie ihn mit der Handykamera oder der Mateu-App. Der Code sagt nur, wo diese Anwendung ist: Anmelden müssen Sie sich auf dem Handy.',
+      mobileQrPhoneHint: 'Öffnet diesen Bildschirm in der Mateu-App — oder die Seite, um sie zu installieren.',
+      mobileQrAlt: 'QR-Code zum Öffnen von {app} in der Mateu-App',
+      mobileQrThisApp: 'diese Anwendung',
+      mobileQrOpenInApp: 'In der Mateu-App öffnen',
+      mobileQrLink: 'Link',
+      mobileQrCopy: 'Link kopieren',
+      mobileQrCopied: 'Link kopiert',
+      recommended: 'Empfohlen',
+      choose: 'Auswählen',
+      learnMore: 'Mehr erfahren',
+      less: 'Weniger',
+      more: 'Mehr',
+      open: 'Öffnen',
+      ok: 'OK',
+      message: 'Nachricht',
+      messageSend: 'Senden',
+      moreActions: 'Weitere Aktionen',
+      subheaderMore: 'Mehr',
+      moreInformation: 'Weitere Informationen',
+      previousSlide: 'Vorherige Folie',
+      nextSlide: 'Nächste Folie',
+      previousItem: 'Zurück',
+      nextItem: 'Weiter',
+      slideN: 'Folie {n}',
+      slides: 'Folien',
+      pages: 'Seiten',
+      breadcrumb: 'Brotkrümelnavigation',
+      directory: 'Verzeichnis',
+      heatmap: 'Heatmap',
+      processDiagram: 'Prozessdiagramm: {names}',
+      emptyProcess: 'Leerer Prozess',
+      cookieConsent: 'Cookie-Einwilligung',
+      cookieMessage: 'Diese Website verwendet Cookies, damit Sie die bestmögliche Erfahrung erhalten.',
+      cookieDismiss: 'Verstanden',
+      afterStep: 'Nach {name}',
+      whenCondition: ' wenn {condition}',
+      parallel: 'parallel',
+      stepAction: 'Aktion',
+      stepJoin: 'Zusammenführung',
+      stepFork: 'Verzweigung',
+      stepEnd: 'Ende',
+      stepUserTask: 'Benutzeraufgabe',
+      stepProcess: 'Prozess',
+      workflowInvalid: 'Workflow: Die Definition ist kein gültiges JSON',
+      unsupportedComponent: 'Nicht unterstützte Komponente "{type}"{id} — der Redwood-Renderer hat dafür keine Ansicht',
+      foldoutUnfold: '{title} anzeigen',
+      customFailed: 'Die benutzerdefinierte Komponente ist fehlgeschlagen: {message}',
+      askSomething: 'Etwas fragen…',
+      assistantFailed: 'Der Assistent konnte nicht antworten: {message}',
+      formatting: 'Formatierung',
+      preview: 'Vorschau',
+      rteBold: 'Fett',
+      rteItalic: 'Kursiv',
+      rteUnderline: 'Unterstrichen',
+      rteBullets: 'Aufzählung',
+      rteNumbers: 'Nummerierte Liste',
+      rteLink: 'Link',
+      rteClear: 'Formatierung entfernen',
+      rteLinkPrompt: 'Link-URL',
+      colourPicker: '{label} — Auswahl',
+      loadingContent: 'Wird geladen',
+      mergeShowDifferences: 'Nur Unterschiede anzeigen',
+      mergeField: 'Feld',
+      mergeCustom: 'Eigener Wert',
+      mergeUseValue: 'Wert von {record} für {field} verwenden',
+      mergeCustomValue: 'Eigener Wert für {field}',
+      mergeDiffers: 'unterschiedlich',
+      mergeEmpty: '(leer)',
+      mergeResult: 'Ergebnis',
+      mergeAction: 'Zusammenführen',
+      mergeSummary: '{fields} Felder: {differ} unterschiedlich; {custom} von Hand eingegeben',
+      mergeFrom: 'aus {record}',
+      keyboardShortcuts: 'Tastenkürzel',
+      shortcutsApp: 'Überall in der Anwendung',
+      shortcutsScreen: 'Auf diesem Bildschirm',
+      shortcutsHelpKey: 'Diese Liste anzeigen',
+      shortcutsPalette: 'Suchen oder gehe zu',
+      quickLaunchCode: 'Code',
+      headerValueChanged: '{label} geändert auf {value}',
+      idleTitle: 'Sind Sie noch da?',
+      idleMessage: 'Zu Ihrer Sicherheit werden Sie in {seconds} Sekunden abgemeldet.',
+      idleStay: 'Angemeldet bleiben',
+      idleSignOut: 'Abmelden',
+      idleSigningOut: 'Abmeldung…',
+      tasks: 'Aufgaben',
+      tasksRunning: '{n} laufend',
+      tasksTitle: 'Aufgaben, {n} laufend',
+      taskCount: '{done} von {total}',
+      taskElapsed: '{time} vergangen',
+      taskRunning: 'Läuft',
+      taskDone: 'Abgeschlossen',
+      taskFailed: 'Fehlgeschlagen',
+      taskCancelled: 'Abgebrochen',
+      taskCancel: 'Abbrechen',
+      taskBackground: 'Im Hintergrund',
+      taskDismiss: 'Verwerfen',
+      tasksClearFinished: 'Abgeschlossene entfernen',
+      tasksEmpty: 'Keine Aufgaben',
+      taskStarted: 'Gestartet: {title}',
+      taskFinished: '{title}: abgeschlossen',
+      taskFailedAnnounce: '{title} fehlgeschlagen: {error}',
+      taskCancelledAnnounce: '{title} abgebrochen',
+      taskEtaUnderMinute: 'noch weniger als eine Minute',
+      taskEtaMinutes: 'noch etwa {n} Min.',
+      taskEtaHours: 'noch etwa {n} Std.',
+      osNotifyEnable: 'Auf diesem Gerät benachrichtigen',
+      inboxUnread: 'Ungelesen',
+      inboxAll: 'Alle',
+      inboxResolved: 'Erledigt',
+      inboxDismiss: 'Verwerfen',
+      inboxOpen: 'Öffnen',
+      inboxOther: 'Sonstige',
+      inboxNew: 'Neue Benachrichtigung: {title}',
+    },
+    pt: {
+      close: 'Fechar',
+      retry: 'Tentar novamente',
+      reload: 'Recarregar',
+      loading: 'Carregando',
+      search: 'Pesquisar…',
+      noData: 'Sem dados',
+      treeExpand: 'Ampliar',
+      treeCollapse: 'Recolher',
+      rangeFrom: 'De',
+      rangeTo: 'Até',
+      new: 'Novo',
+      add: 'Adicionar',
+      addSelected: 'Adicionar a seleção',
+      done: 'Concluída',
+      yes: 'Sim',
+      no: 'Não',
+      confirm: 'Confirmar',
+      cancel: 'Cancelar',
+      save: 'Salvar',
+      apply: 'Aplicar',
+      reset: 'Redefinir',
+      view: 'Ver',
+      edit: 'Editar',
+      remove: 'Remover',
+      name: 'Nome',
+      skipToContent: 'Ir para o conteúdo',
+      appContextReloads: 'Escolher outro recarrega a tela',
+      appContextChanging: '{label}: {value}. Recarregando…',
+      singleKeyShortcuts: 'Atalhos de uma só tecla (como ?). Ctrl+/ sempre abre esta lista',
+      enterValue: 'Digite um valor.',
+      selectValue: 'Selecione um valor',
+      progressOf: '{done} de {total}',
+      occupancy: 'Ocupação %',
+      wizardCompleted: 'Concluído',
+      dropHere: 'Solte aqui',
+      noEvents: 'Sem eventos',
+      calendarView: 'Ver',
+      calendarToday: 'Hoje',
+      calendarMonth: 'Mês',
+      calendarWeek: 'Semana',
+      calendarDay: 'Dia',
+      calendarList: 'Lista',
+      calendarCreate: '+ Criar',
+      calendarOneEvent: '1 evento',
+      calendarEvents: '{count} eventos',
+      hideUnpopulated: 'Ocultar vazios',
+      mapUnavailable: 'Não foi possível carregar o mapa.',
+      surfaceUnavailable: 'Não foi possível carregar esta parte da página.',
+      menu: 'Menu',
+      context: 'Contexto',
+      workContext: 'Contexto de trabalho',
+      sections: 'Seções',
+      searchOrGo: 'Pesquisar ou ir para…',
+      notifications: 'Notificações',
+      markAllRead: 'Marcar tudo como lido',
+      allCaughtUp: 'Você está em dia',
+      notificationsUnread: 'Notificações, {n} não lidas',
+      undo: 'Desfazer',
+      askSearch: 'Pesquisar',
+      goTo: 'Ir para',
+      home: 'Início',
+      listing: 'Lista',
+      quickView: 'Visualização rápida',
+      unsavedLeave: 'Há alterações não salvas. Sair desta tela?',
+      unavailableMount: '{name} não está disponível agora. Será tentado novamente.',
+      columns: 'Colunas',
+      views: 'Visualizações',
+      saveView: 'Salvar visualização',
+      openWithView: 'Abrir com esta visualização',
+      saveCurrentView: 'Salvar a visualização atual…',
+      clearFilters: 'Limpar filtros',
+      pagingOf: 'de',
+      pagingPage: 'Página',
+      pagingFirst: 'Primeira página',
+      pagingPrev: 'Página anterior',
+      pagingNext: 'Próxima página',
+      pagingLast: 'Última página',
+      idsFew: 'Seleção: ',
+      idsMany: '{n} itens selecionados',
+      confirmTitle: 'Um momento',
+      confirmMessage: 'Tem certeza?',
+      confirmYes: 'Sim',
+      confirmNo: 'Não',
+      notFoundTitle: 'Não encontrado',
+      notFoundMessage: 'Pode ter sido excluído, ou o link está errado.',
+      goBack: 'Voltar',
+      captureClear: 'Limpar',
+      captureAccept: 'Aceitar',
+      captureSignAgain: 'Assinar novamente',
+      captureRemove: 'Remover',
+      captureTake: 'Tirar foto',
+      captureRetake: 'Tirar outra',
+      captureUpload: 'Enviar',
+      captureReplace: 'Substituir',
+      captureUseUrl: 'Usar uma URL',
+      captureImageUrl: 'URL da imagem',
+      captureNoCamera: 'Câmera indisponível — escolha um arquivo',
+      captureEmpty: 'Nenhum arquivo',
+      captureStart: 'Abrir a câmera',
+      captureSignHere: 'Assine aqui',
+      offlineBand: 'Sem conexão — o que você alterar agora não será salvo.',
+      errOffline: 'Você está sem conexão. Suas alterações não foram enviadas — verifique a rede e tente novamente.',
+      errUnreachable: 'Não foi possível acessar o servidor. Ele pode estar fora do ar — tente mais tarde.',
+      errTimeout: 'O servidor está demorando demais para responder. Suas alterações podem não ter sido salvas.',
+      errServer: 'O servidor não conseguiu concluir a solicitação. Tente novamente.',
+      wireVersionMismatch: 'O servidor deste aplicativo fala o protocolo Mateu {server}; este renderizador suporta {supported}. Algumas telas podem não aparecer corretamente — atualize o renderizador ou o servidor para que coincidam.',
+      errServerStatus: 'O servidor não conseguiu concluir a solicitação (erro {status}). Tente novamente.',
+      errUnauthorized: 'Sua sessão não é mais válida. Faça login novamente.',
+      errForbidden: 'Você não tem permissão para fazer isso.',
+      appUpdated: 'Este aplicativo foi atualizado. Recarregue para usar a versão mais recente.',
+      screenChanged: 'Esta tela mudou desde que você a abriu. Recarregue para continuar.',
+      errSecurityRefused: 'A camada de segurança do servidor recusou esta solicitação antes que o aplicativo pudesse atendê-la (por exemplo, sua proteção CSRF). Se continuar acontecendo, avise o administrador.',
+      errNotFound: 'Isto não está mais disponível. Pode ter sido movido ou excluído.',
+      errClient: 'A solicitação foi recusada.',
+      errClientStatus: 'A solicitação foi recusada (erro {status}).',
+      errUnknown: 'Algo deu errado. Tente novamente.',
+      chatTitle: 'Assistente',
+      chatOpen: 'Chat',
+      chatPanel: 'Chat do assistente',
+      chatClose: 'Fechar o chat',
+      chatEmpty: 'Pergunte o que precisar sobre esta tela ou o aplicativo.',
+      chatPlaceholder: 'Escreva uma mensagem…',
+      chatInputLabel: 'Mensagem para o assistente',
+      chatSend: 'Enviar',
+      chatDictate: 'Ditar (Ctrl+Shift+M)',
+      chatStopDictation: 'Parar o ditado (Ctrl+Shift+M)',
+      chatTokens: 'Tokens',
+      chatTokensIn: 'entrada',
+      chatTokensOut: 'saída',
+      chatTokensTotal: 'total',
+      chatThinking: 'Pensando…',
+      chatThinkingFor: 'Pensando… {s} s',
+      chatAnswering: 'Respondendo…',
+      chatCalling: 'Chamando {name}…',
+      chatAgentError: 'Erro desconhecido do agente',
+      chatNoReader: 'Não foi possível ler o fluxo da resposta.',
+      chatServerError: 'O servidor respondeu {status}: {text}',
+      chatUploadFailed: 'Falha no envio: {status}',
+      chatAttach: 'Anexar arquivos',
+      chatRemoveAttachment: 'Remover {name}',
+      chatTool: 'ferramenta',
+      chatToolsUsed: 'Ferramentas usadas',
+      chatNoAnswer: 'Sem resposta do agente. O servidor fechou a conexão sem enviar nada — verifique se o LLM tem a chave de API configurada e está disponível.',
+      chatEmptyAnswer: 'O agente não devolveu nenhuma resposta. Verifique se o LLM está configurado corretamente (chave de API).',
+      chatError: 'Erro: {message}',
+      chatUploadError: 'Não foi possível enviar os arquivos: {message}',
+      chatExpand: 'Ampliar o assistente',
+      chatRestore: 'Largura normal',
+      selectRowsFirst: 'Primeiro selecione alguma linha',
+      kanbanMove: 'Mover {card}',
+      orgReports: 'Equipe',
+      kanbanMoveTo: 'Mover para {column}',
+      kanbanMoveUp: 'Subir',
+      kanbanMoveDown: 'Descer',
+      kanbanMoveFailed: 'Não foi possível mover o cartão; ele voltou ao lugar',
+      searchResults: 'Resultados da pesquisa',
+      agentConnect: 'Conectar IA',
+      agentDialogTitle: 'Conectar um agente de IA',
+      agentPairInstruction: 'Peça ao seu agente para parear com este código (mateu_pair_session).',
+      agentCodeLabel: 'Código de pareamento',
+      agentExpiresIn: 'Expira em {time}',
+      agentCodeExpired: 'O código expirou. Obtenha outro para parear um agente.',
+      agentNewCode: 'Novo código',
+      agentGettingCode: 'Obtendo um código…',
+      agentNoCode: 'o servidor não enviou nenhum código',
+      agentConnected: 'Agente de IA conectado: {agents}',
+      agentConnectedTo: 'Conectado a:',
+      agentAnAgent: 'um agente',
+      agentDisconnect: 'Desconectar',
+      agentDisconnected: 'Agente de IA desconectado',
+      agentCodeAnnounce: 'Código de pareamento {code}. Expira em {minutes} minutos.',
+      agentChannelDown: 'Conectando ao servidor do aplicativo… o agente poderá acessar esta aba quando a conexão estiver ativa.',
+      agentPushOff: 'O envio de interface ao vivo não está ativado neste servidor.',
+      agentError: 'Não foi possível acessar o serviço do agente: {message}',
+      agentPushedScreen: 'Um agente de IA enviou uma tela',
+      mobileQrAction: 'Abrir no celular',
+      mobileQrTitle: 'Abrir no celular',
+      mobileQrHint: 'Leia com a câmera do celular ou com o app Mateu. O código só diz onde está este aplicativo: o login é feito no celular.',
+      mobileQrPhoneHint: 'Abre esta tela no app Mateu — ou a página para instalá-lo.',
+      mobileQrAlt: 'Código QR para abrir {app} no app Mateu',
+      mobileQrThisApp: 'este aplicativo',
+      mobileQrOpenInApp: 'Abrir no app Mateu',
+      mobileQrLink: 'Link',
+      mobileQrCopy: 'Copiar link',
+      mobileQrCopied: 'Link copiado',
+      recommended: 'Recomendado',
+      choose: 'Escolher',
+      learnMore: 'Saiba mais',
+      less: 'Menos',
+      more: 'Mais',
+      open: 'Abrir',
+      ok: 'OK',
+      message: 'Mensagem',
+      messageSend: 'Enviar',
+      moreActions: 'Mais ações',
+      subheaderMore: 'Mais',
+      moreInformation: 'Mais informações',
+      previousSlide: 'Slide anterior',
+      nextSlide: 'Próximo slide',
+      previousItem: 'Anterior',
+      nextItem: 'Próximo',
+      slideN: 'Slide {n}',
+      slides: 'Slides',
+      pages: 'Páginas',
+      breadcrumb: 'Trilha de navegação',
+      directory: 'Diretório',
+      heatmap: 'Mapa de calor',
+      processDiagram: 'Diagrama de processo: {names}',
+      emptyProcess: 'Processo vazio',
+      cookieConsent: 'Consentimento de cookies',
+      cookieMessage: 'Este site usa cookies para oferecer a melhor experiência possível.',
+      cookieDismiss: 'Entendi',
+      afterStep: 'Depois de {name}',
+      whenCondition: ' quando {condition}',
+      parallel: 'paralelo',
+      stepAction: 'Ação',
+      stepJoin: 'Junção',
+      stepFork: 'Bifurcação',
+      stepEnd: 'Fim',
+      stepUserTask: 'Tarefa de usuário',
+      stepProcess: 'Processo',
+      workflowInvalid: 'Workflow: a definição não é um JSON válido',
+      unsupportedComponent: 'Componente não suportado "{type}"{id} — o renderizador Redwood não tem visualização para ele',
+      foldoutUnfold: 'Mostrar {title}',
+      customFailed: 'O componente personalizado falhou: {message}',
+      askSomething: 'Pergunte algo…',
+      assistantFailed: 'O assistente não conseguiu responder: {message}',
+      formatting: 'Formatação',
+      preview: 'Pré-visualizar',
+      rteBold: 'Negrito',
+      rteItalic: 'Itálico',
+      rteUnderline: 'Sublinhado',
+      rteBullets: 'Lista com marcadores',
+      rteNumbers: 'Lista numerada',
+      rteLink: 'Link',
+      rteClear: 'Limpar formatação',
+      rteLinkPrompt: 'URL do link',
+      colourPicker: '{label} — seletor',
+      loadingContent: 'Carregando',
+      mergeShowDifferences: 'Mostrar só as diferenças',
+      mergeField: 'Campo',
+      mergeCustom: 'Outro valor',
+      mergeUseValue: 'Usar o valor de {record} para {field}',
+      mergeCustomValue: 'Outro valor para {field}',
+      mergeDiffers: 'difere',
+      mergeEmpty: '(vazio)',
+      mergeResult: 'Resultado',
+      mergeAction: 'Mesclar',
+      mergeSummary: '{fields} campos: {differ} diferem; {custom} digitados à mão',
+      mergeFrom: 'de {record}',
+      keyboardShortcuts: 'Atalhos de teclado',
+      shortcutsApp: 'Em todo o aplicativo',
+      shortcutsScreen: 'Nesta tela',
+      shortcutsHelpKey: 'Mostrar esta lista',
+      shortcutsPalette: 'Pesquisar ou ir para',
+      quickLaunchCode: 'Código',
+      headerValueChanged: '{label} mudou para {value}',
+      idleTitle: 'Você ainda está aí?',
+      idleMessage: 'Por segurança, sua sessão será encerrada em {seconds} segundos.',
+      idleStay: 'Continuar conectado',
+      idleSignOut: 'Sair',
+      idleSigningOut: 'Saindo…',
+      tasks: 'Tarefas',
+      tasksRunning: '{n} em andamento',
+      tasksTitle: 'Tarefas, {n} em andamento',
+      taskCount: '{done} de {total}',
+      taskElapsed: '{time} decorrido',
+      taskRunning: 'Em andamento',
+      taskDone: 'Concluída',
+      taskFailed: 'Falhou',
+      taskCancelled: 'Cancelada',
+      taskCancel: 'Cancelar',
+      taskBackground: 'Em segundo plano',
+      taskDismiss: 'Descartar',
+      tasksClearFinished: 'Remover as concluídas',
+      tasksEmpty: 'Sem tarefas',
+      taskStarted: 'Iniciada: {title}',
+      taskFinished: '{title}: concluída',
+      taskFailedAnnounce: '{title} falhou: {error}',
+      taskCancelledAnnounce: '{title} cancelada',
+      taskEtaUnderMinute: 'menos de um minuto',
+      taskEtaMinutes: 'cerca de {n} min restantes',
+      taskEtaHours: 'cerca de {n} h restantes',
+      osNotifyEnable: 'Avisar-me neste dispositivo',
+      inboxUnread: 'Não lidas',
+      inboxAll: 'Todas',
+      inboxResolved: 'Resolvidas',
+      inboxDismiss: 'Descartar',
+      inboxOpen: 'Abrir',
+      inboxOther: 'Outras',
+      inboxNew: 'Nova notificação: {title}',
+    },
+    it: {
+      close: 'Chiudi',
+      retry: 'Riprova',
+      reload: 'Ricarica',
+      loading: 'Caricamento',
+      search: 'Cerca…',
+      noData: 'Nessun dato',
+      treeExpand: 'Ingrandisci',
+      treeCollapse: 'Comprimi',
+      rangeFrom: 'Da',
+      rangeTo: 'A',
+      new: 'Nuovo',
+      add: 'Aggiungi',
+      addSelected: 'Aggiungi la selezione',
+      done: 'Completata',
+      yes: 'Sì',
+      no: 'No',
+      confirm: 'Conferma',
+      cancel: 'Annulla',
+      save: 'Salva',
+      apply: 'Applica',
+      reset: 'Ripristina',
+      view: 'Visualizza',
+      edit: 'Modifica',
+      remove: 'Rimuovi',
+      name: 'Nome',
+      skipToContent: 'Vai al contenuto',
+      appContextReloads: 'Sceglierne un altro ricarica la schermata',
+      appContextChanging: '{label}: {value}. Ricaricamento…',
+      singleKeyShortcuts: 'Scorciatoie a un solo tasto (come ?). Ctrl+/ apre sempre questo elenco',
+      enterValue: 'Inserisci un valore.',
+      selectValue: 'Seleziona un valore',
+      progressOf: '{done} di {total}',
+      occupancy: 'Occupazione %',
+      wizardCompleted: 'Completato',
+      dropHere: 'Rilascia qui',
+      noEvents: 'Nessun evento',
+      calendarView: 'Visualizza',
+      calendarToday: 'Oggi',
+      calendarMonth: 'Mese',
+      calendarWeek: 'Settimana',
+      calendarDay: 'Giorno',
+      calendarList: 'Elenco',
+      calendarCreate: '+ Crea',
+      calendarOneEvent: '1 evento',
+      calendarEvents: '{count} eventi',
+      hideUnpopulated: 'Nascondi i vuoti',
+      mapUnavailable: 'Impossibile caricare la mappa.',
+      surfaceUnavailable: 'Impossibile caricare questa parte della pagina.',
+      menu: 'Menu',
+      context: 'Contesto',
+      workContext: 'Contesto di lavoro',
+      sections: 'Sezioni',
+      searchOrGo: 'Cerca o vai a…',
+      notifications: 'Notifiche',
+      markAllRead: 'Segna tutto come letto',
+      allCaughtUp: 'Sei in pari',
+      notificationsUnread: 'Notifiche, {n} non lette',
+      undo: 'Annulla',
+      askSearch: 'Cerca',
+      goTo: 'Vai a',
+      home: 'Home',
+      listing: 'Elenco',
+      quickView: 'Anteprima rapida',
+      unsavedLeave: 'Ci sono modifiche non salvate. Lasciare questa schermata?',
+      unavailableMount: '{name} non è disponibile al momento. Verrà ritentato.',
+      columns: 'Colonne',
+      views: 'Viste',
+      saveView: 'Salva vista',
+      openWithView: 'Apri con questa vista',
+      saveCurrentView: 'Salva la vista attuale…',
+      clearFilters: 'Rimuovi filtri',
+      pagingOf: 'di',
+      pagingPage: 'Pagina',
+      pagingFirst: 'Prima pagina',
+      pagingPrev: 'Pagina precedente',
+      pagingNext: 'Pagina successiva',
+      pagingLast: 'Ultima pagina',
+      idsFew: 'Selezione: ',
+      idsMany: '{n} elementi selezionati',
+      confirmTitle: 'Un momento',
+      confirmMessage: 'Sei sicuro?',
+      confirmYes: 'Sì',
+      confirmNo: 'No',
+      notFoundTitle: 'Non trovato',
+      notFoundMessage: 'Potrebbe essere stato eliminato, oppure il link non è corretto.',
+      goBack: 'Torna indietro',
+      captureClear: 'Cancella',
+      captureAccept: 'Accetta',
+      captureSignAgain: 'Firma di nuovo',
+      captureRemove: 'Rimuovi',
+      captureTake: 'Scatta foto',
+      captureRetake: 'Scatta di nuovo',
+      captureUpload: 'Carica',
+      captureReplace: 'Sostituisci',
+      captureUseUrl: 'Usa un URL',
+      captureImageUrl: "URL dell'immagine",
+      captureNoCamera: 'Fotocamera non disponibile — scegli un file',
+      captureEmpty: 'Nessun file',
+      captureStart: 'Apri la fotocamera',
+      captureSignHere: 'Firma qui',
+      offlineBand: 'Offline — le modifiche fatte ora non verranno salvate.',
+      errOffline: 'Sei offline. Le modifiche non sono state inviate — controlla la rete e riprova.',
+      errUnreachable: 'Impossibile raggiungere il suo server. Potrebbe essere inattivo — riprova più tardi.',
+      errTimeout: 'Il server impiega troppo a rispondere. Le modifiche potrebbero non essere state salvate.',
+      errServer: 'Il server non è riuscito a completare la richiesta. Riprova.',
+      wireVersionMismatch: 'Il server di questa applicazione parla il protocollo Mateu {server}; questo renderer supporta {supported}. Alcune schermate potrebbero non essere visualizzate correttamente — aggiorna il renderer o il server perché coincidano.',
+      errServerStatus: 'Il server non è riuscito a completare la richiesta (errore {status}). Riprova.',
+      errUnauthorized: 'La sessione non è più valida. Accedi di nuovo.',
+      errForbidden: 'Non hai il permesso per questa azione.',
+      appUpdated: "Questa applicazione è stata aggiornata. Ricarica per usare l'ultima versione.",
+      screenChanged: "Questa schermata è cambiata da quando l'hai aperta. Ricarica per continuare.",
+      errSecurityRefused: "Il livello di sicurezza del server ha rifiutato questa richiesta prima che l'applicazione potesse gestirla (per esempio la sua protezione CSRF). Se succede ancora, avvisa l'amministratore.",
+      errNotFound: 'Non è più disponibile. Potrebbe essere stato spostato o eliminato.',
+      errClient: 'La richiesta è stata rifiutata.',
+      errClientStatus: 'La richiesta è stata rifiutata (errore {status}).',
+      errUnknown: 'Qualcosa è andato storto. Riprova.',
+      chatTitle: 'Assistente',
+      chatOpen: 'Chat',
+      chatPanel: "Chat dell'assistente",
+      chatClose: 'Chiudi la chat',
+      chatEmpty: "Chiedi ciò che ti serve su questa schermata o sull'applicazione.",
+      chatPlaceholder: 'Scrivi un messaggio…',
+      chatInputLabel: "Messaggio per l'assistente",
+      chatSend: 'Invia',
+      chatDictate: 'Detta (Ctrl+Shift+M)',
+      chatStopDictation: 'Interrompi la dettatura (Ctrl+Shift+M)',
+      chatTokens: 'Token',
+      chatTokensIn: 'input',
+      chatTokensOut: 'output',
+      chatTokensTotal: 'totale',
+      chatThinking: 'Sto pensando…',
+      chatThinkingFor: 'Sto pensando… {s} s',
+      chatAnswering: 'Sto rispondendo…',
+      chatCalling: 'Chiamata a {name}…',
+      chatAgentError: "Errore sconosciuto dell'agente",
+      chatNoReader: 'Impossibile leggere il flusso della risposta.',
+      chatServerError: 'Il server ha risposto {status}: {text}',
+      chatUploadFailed: 'Caricamento non riuscito: {status}',
+      chatAttach: 'Allega file',
+      chatRemoveAttachment: 'Rimuovi {name}',
+      chatTool: 'strumento',
+      chatToolsUsed: 'Strumenti usati',
+      chatNoAnswer: "Nessuna risposta dall'agente. Il server ha chiuso la connessione senza inviare nulla — verifica che l'LLM abbia la chiave API configurata e sia disponibile.",
+      chatEmptyAnswer: "L'agente non ha restituito alcuna risposta. Verifica che l'LLM sia configurato correttamente (chiave API).",
+      chatError: 'Errore: {message}',
+      chatUploadError: 'Impossibile caricare i file: {message}',
+      chatExpand: "Allarga l'assistente",
+      chatRestore: 'Larghezza normale',
+      selectRowsFirst: 'Prima seleziona qualche riga',
+      kanbanMove: 'Sposta {card}',
+      orgReports: 'Team',
+      kanbanMoveTo: 'Sposta in {column}',
+      kanbanMoveUp: 'Sposta su',
+      kanbanMoveDown: 'Sposta giù',
+      kanbanMoveFailed: 'Impossibile spostare la scheda; è tornata al suo posto',
+      searchResults: 'Risultati della ricerca',
+      agentConnect: 'Collega IA',
+      agentDialogTitle: 'Collega un agente IA',
+      agentPairInstruction: 'Chiedi al tuo agente di abbinarsi con questo codice (mateu_pair_session).',
+      agentCodeLabel: 'Codice di abbinamento',
+      agentExpiresIn: 'Scade tra {time}',
+      agentCodeExpired: 'Il codice è scaduto. Ottienine uno nuovo per abbinare un agente.',
+      agentNewCode: 'Nuovo codice',
+      agentGettingCode: 'Recupero di un codice…',
+      agentNoCode: 'il server non ha inviato alcun codice',
+      agentConnected: 'Agente IA collegato: {agents}',
+      agentConnectedTo: 'Collegato a:',
+      agentAnAgent: 'un agente',
+      agentDisconnect: 'Scollega',
+      agentDisconnected: 'Agente IA scollegato',
+      agentCodeAnnounce: 'Codice di abbinamento {code}. Scade tra {minutes} minuti.',
+      agentChannelDown: "Connessione al server dell'applicazione… l'agente potrà raggiungere questa scheda quando la connessione sarà attiva.",
+      agentPushOff: "L'invio dell'interfaccia in diretta non è attivo su questo server.",
+      agentError: "Impossibile raggiungere il servizio dell'agente: {message}",
+      agentPushedScreen: 'Un agente IA ha inviato una schermata',
+      mobileQrAction: 'Apri sul cellulare',
+      mobileQrTitle: 'Apri sul telefono',
+      mobileQrHint: "Scansiona con la fotocamera del telefono o con l'app Mateu. Il codice indica solo dove si trova questa applicazione: l'accesso si fa sul telefono.",
+      mobileQrPhoneHint: "Apre questa schermata nell'app Mateu — o la pagina per installarla.",
+      mobileQrAlt: "Codice QR per aprire {app} nell'app Mateu",
+      mobileQrThisApp: 'questa applicazione',
+      mobileQrOpenInApp: "Apri nell'app Mateu",
+      mobileQrLink: 'Link',
+      mobileQrCopy: 'Copia link',
+      mobileQrCopied: 'Link copiato',
+      recommended: 'Consigliato',
+      choose: 'Scegli',
+      learnMore: 'Scopri di più',
+      less: 'Meno',
+      more: 'Altro',
+      open: 'Apri',
+      ok: 'OK',
+      message: 'Messaggio',
+      messageSend: 'Invia',
+      moreActions: 'Altre azioni',
+      subheaderMore: 'Altro',
+      moreInformation: 'Maggiori informazioni',
+      previousSlide: 'Diapositiva precedente',
+      nextSlide: 'Diapositiva successiva',
+      previousItem: 'Precedente',
+      nextItem: 'Successivo',
+      slideN: 'Diapositiva {n}',
+      slides: 'Diapositive',
+      pages: 'Pagine',
+      breadcrumb: 'Percorso di navigazione',
+      directory: 'Rubrica',
+      heatmap: 'Mappa di calore',
+      processDiagram: 'Diagramma di processo: {names}',
+      emptyProcess: 'Processo vuoto',
+      cookieConsent: 'Consenso ai cookie',
+      cookieMessage: 'Questo sito usa i cookie per offrirti la migliore esperienza possibile.',
+      cookieDismiss: 'Ho capito',
+      afterStep: 'Dopo {name}',
+      whenCondition: ' quando {condition}',
+      parallel: 'in parallelo',
+      stepAction: 'Azione',
+      stepJoin: 'Unione',
+      stepFork: 'Biforcazione',
+      stepEnd: 'Fine',
+      stepUserTask: 'Attività utente',
+      stepProcess: 'Processo',
+      workflowInvalid: 'Workflow: la definizione non è un JSON valido',
+      unsupportedComponent: 'Componente non supportato "{type}"{id} — il renderer Redwood non ha una vista per esso',
+      foldoutUnfold: 'Mostra {title}',
+      customFailed: 'Il componente personalizzato non è riuscito: {message}',
+      askSomething: 'Chiedi qualcosa…',
+      assistantFailed: "L'assistente non è riuscito a rispondere: {message}",
+      formatting: 'Formattazione',
+      preview: 'Anteprima',
+      rteBold: 'Grassetto',
+      rteItalic: 'Corsivo',
+      rteUnderline: 'Sottolineato',
+      rteBullets: 'Elenco puntato',
+      rteNumbers: 'Elenco numerato',
+      rteLink: 'Link',
+      rteClear: 'Cancella formattazione',
+      rteLinkPrompt: 'URL del link',
+      colourPicker: '{label} — selettore',
+      loadingContent: 'Caricamento',
+      mergeShowDifferences: 'Mostra solo le differenze',
+      mergeField: 'Campo',
+      mergeCustom: 'Altro valore',
+      mergeUseValue: 'Usa il valore di {record} per {field}',
+      mergeCustomValue: 'Altro valore per {field}',
+      mergeDiffers: 'diverso',
+      mergeEmpty: '(vuoto)',
+      mergeResult: 'Risultato',
+      mergeAction: 'Unisci',
+      mergeSummary: '{fields} campi: {differ} diversi; {custom} inseriti a mano',
+      mergeFrom: 'da {record}',
+      keyboardShortcuts: 'Scorciatoie da tastiera',
+      shortcutsApp: "In tutta l'applicazione",
+      shortcutsScreen: 'In questa schermata',
+      shortcutsHelpKey: 'Mostra questo elenco',
+      shortcutsPalette: 'Cerca o vai a',
+      quickLaunchCode: 'Codice',
+      headerValueChanged: '{label} è cambiato in {value}',
+      idleTitle: 'Ci sei ancora?',
+      idleMessage: 'Per sicurezza la sessione verrà chiusa tra {seconds} secondi.',
+      idleStay: 'Resta connesso',
+      idleSignOut: 'Esci',
+      idleSigningOut: 'Uscita in corso…',
+      tasks: 'Attività',
+      tasksRunning: '{n} in corso',
+      tasksTitle: 'Attività, {n} in corso',
+      taskCount: '{done} di {total}',
+      taskElapsed: '{time} trascorso',
+      taskRunning: 'In corso',
+      taskDone: 'Completata',
+      taskFailed: 'Non riuscita',
+      taskCancelled: 'Annullata',
+      taskCancel: 'Annulla',
+      taskBackground: 'In background',
+      taskDismiss: 'Ignora',
+      tasksClearFinished: 'Rimuovi le completate',
+      tasksEmpty: 'Nessuna attività',
+      taskStarted: 'Avviata: {title}',
+      taskFinished: '{title}: completata',
+      taskFailedAnnounce: '{title} non riuscita: {error}',
+      taskCancelledAnnounce: '{title} annullata',
+      taskEtaUnderMinute: 'meno di un minuto',
+      taskEtaMinutes: 'circa {n} min rimanenti',
+      taskEtaHours: 'circa {n} h rimanenti',
+      osNotifyEnable: 'Avvisami su questo dispositivo',
+      inboxUnread: 'Non lette',
+      inboxAll: 'Tutte',
+      inboxResolved: 'Risolte',
+      inboxDismiss: 'Ignora',
+      inboxOpen: 'Apri',
+      inboxOther: 'Altre',
+      inboxNew: 'Nuova notifica: {title}',
+    },
     // partial languages: only the words they have (the rest falls back to English)
     ca: { selectValue: 'Seleccioneu un valor' },
-    fr: { selectValue: 'Sélectionnez une valeur' },
-    de: { selectValue: 'Wert auswählen' },
-    it: { selectValue: 'Selezionare un valore' },
-    pt: { selectValue: 'Selecione um valor' },
     nl: { selectValue: 'Selecteer een waarde' },
   }
+
+  /** The languages the renderer speaks in full (every key): the web chrome's set. */
+  const FULL_LANGUAGES = ['en', 'es', 'fr', 'de', 'pt', 'it']
 
   let explicitLanguage = ''
 
@@ -4565,6 +5745,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     radar: { type: 'line', polar: true }, polarArea: { type: 'bar', polar: true },
     scatter: { type: 'line', markersOnly: true }, bubble: { type: 'line', markersOnly: true },
   }
+  /** A chart's text alternative: «Name. Series: label value, label value; …» (WCAG 1.1.1). */
+  function chartTextAlternativeOf(title, datasets, labels, pie) {
+    const parts = (datasets || []).map((d, si) => {
+      const values = (d.data || []).map((v, i) => (labels[i] != null ? String(labels[i]) + ' ' : '') + (v == null ? '' : String(v)))
+      const name = d.label && d.label !== title ? d.label : (!d.label && datasets.length > 1 ? 'Series ' + (si + 1) : '')
+      return (name ? name + ': ' : '') + values.join(', ')
+    })
+    return [title, parts.join('; ')].filter(Boolean).join('. ')
+  }
+
   /** A Chart (series × labels) or a TrendChart (one series) → oj-chart atom: the precomputed
    *  ITEMS ({series, group, value}); in a pie each label is a series (a slice). */
   function chartAtomOf(m, t, interp = (x) => x) {
@@ -4618,6 +5808,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       color: color || '',
       // a TrendChart's colour is its series' (an item colour does not reach a line/area series)
       colors: color ? [color] : undefined,    items,
+      // WCAG 1.1.1: what the chart draws, as text a screen reader reads (a hidden span by the chart)
+      textAlternative: chartTextAlternativeOf(trend ? interp(m.title || '') : '', datasets, labels, pie),
       provider: dataProviderFactory ? dataProviderFactory(items) : null,
     }
   }
@@ -6085,6 +7277,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const NOT_FOUND_TEXTS = {
     es: { title: 'No encontrado', message: 'Puede que se haya borrado o que el enlace no sea correcto.', back: 'Volver' },
     en: { title: 'Not found', message: 'It may have been deleted, or the link is wrong.', back: 'Go back' },
+    fr: { title: 'Introuvable', message: 'Il a peut-être été supprimé, ou le lien est incorrect.', back: 'Revenir' },
+    de: { title: 'Nicht gefunden', message: 'Möglicherweise wurde es gelöscht oder der Link ist falsch.', back: 'Zurück' },
+    pt: { title: 'Não encontrado', message: 'Pode ter sido excluído, ou o link está errado.', back: 'Voltar' },
+    it: { title: 'Non trovato', message: 'Potrebbe essere stato eliminato, oppure il link non è corretto.', back: 'Torna indietro' },
   }
 
   /** Projection of the NOT FOUND page: what the server answers when the route names a record
@@ -6098,7 +7294,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const node = findPageLevelType(tree, 'NotFound')
     if (!node) return null
     const md = node.metadata || {}
-    const texts = String(lang || '').toLowerCase().startsWith('es') ? NOT_FOUND_TEXTS.es : NOT_FOUND_TEXTS.en
+    // the primary subtag of the page's language (pt-BR → pt), English for one it does not have
+    const texts = NOT_FOUND_TEXTS[String(lang || '').trim().toLowerCase().split(/[-_]/)[0]] || NOT_FOUND_TEXTS.en
     const backRoute = md.backRoute || ''
     return {
       title: md.title || texts.title,
@@ -7279,6 +8476,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             value: state[fieldId] == null ? '' : String(state[fieldId]),
             // its hint while empty («e.g. Mars Sample Return»), like the web renderer's
             placeholder: m.placeholder ? interp(String(m.placeholder)) : '',
+            autocomplete: m.autocomplete ? String(m.autocomplete) : null,
           }, container)
         }
         return
@@ -12402,7 +13600,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (nested) out.push(nested)
         continue
       }
-      if (f.dataType === 'array' && !optionsOf(f, ctx.data).length) continue
+      if (f.dataType === 'array' && !optionsOf(f, ctx.data).length && !hasOptionsSource(f)) continue
       const raw = f.dataType === 'array' ? state[f.fieldId] : plainValueOf(state[f.fieldId])
       const widget = fieldWidgetOf(f, ctx.data, { lookups: true, value: raw })
       const error = errors && errors[f.fieldId]
@@ -12961,8 +14159,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (st === 'radio' && options.length) return { isRadio: true }
     // a single-value list box: every option visible in a bordered list, one picked (app.css .mateu-listbox)
     if (st === 'listBox' && options.length && f.dataType !== 'array') return { isRadio: true, fieldClass: 'mateu-listbox' }
-    if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
-    if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
+    // a multi-value field fed by a REST `optionsSource` is a multi-select / checkbox set before its
+    // options land too (loadRestOptions fills data[fieldId]; the page re-projects then) — it used to
+    // be skipped, as a list with no options
+    const offered = options.length || hasOptionsSource(f)
+    if (f.dataType === 'array' && offered && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
+    if (f.dataType === 'array' && offered && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
       return { isCheckboxSet: true }
     // email / link → Spectra's typed inputs (oj-sp-input-email / oj-sp-input-url): their own
     // format validation and, read-only, the value as a mailto: / web link
@@ -12982,7 +14184,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         converter: converterOf({ type: 'number', options: { style: 'currency', currency, minimumFractionDigits: 2 } }),
       }
     }
-    if (CAPTURE_MODES[st]) return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || '' }
+    // the accept list travels in the field's generic attributes ({key, value} pairs)
+    if (CAPTURE_MODES[st]) {
+      const declared = ((f.attributes || []).find && (f.attributes || []).find((a) => a && a.key === 'accept')) || {}
+      return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || declared.value || '' }
+    }
     // slider → oj-slider; stars → oj-rating-gauge; color → mateu-color-field (a hex string: JET's
     // oj-color-spectrum works on oj.Color objects); richText → mateu-rich-text-field (HTML, Delta read)
     if (st === 'slider') {
@@ -13050,6 +14256,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { fieldId: id, value: { ...dateRangeEndsOf(current), [m[2]]: value == null || value === '' ? null : value } }
   }
 
+  /** Whether the field's options come from a REST source (`optionsSource`: a url or a catalogue `ref`). */
+  function hasOptionsSource(md) {
+    const src = md && md.optionsSource
+    return !!(src && typeof src === 'object' && (src.url || src.ref))
+  }
+
   /** Does the oj-form-layout paint it? (besides the usual LAYOUT_TYPES) */
   function isExtraLayoutField(md) {
     return !!(isDateRangeField(md) || md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
@@ -13058,7 +14270,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       || (md.stereotype === 'richText' && !md.readOnly)
       || ((md.stereotype === 'markdown' || md.stereotype === 'html') && !md.readOnly)
       || CAPTURE_MODES[md.stereotype]
-      || (md.dataType === 'array' && (md.options || []).length
+      || (md.dataType === 'array' && ((md.options || []).length || hasOptionsSource(md))
         && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
   }
 
@@ -13102,7 +14314,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function fieldWidgetOf(f, data, opts) {
     const widget = widgetOf(f, data, opts)
     const help = fieldHelpOf(f)
-    return { ...widget, help, hasHelp: !!help }
+    // WCAG 1.3.5: the input's purpose — on the host as data-autocomplete, copied onto the native
+    // input by a11y.mjs installInputPurpose
+    const autocomplete = f && f.autocomplete && !f.readOnly ? String(f.autocomplete) : null
+    return { ...widget, help, hasHelp: !!help, autocomplete }
   }
 
   function widgetOf(f, data, { lookups, value, textWhenEmpty }) {
@@ -17813,6 +19028,47 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }, { capture: true, passive: true })
   }
 
+  // ── WCAG 1.3.5 Identify Input Purpose ─────────────────────────────────────────────────────────
+  //
+  // A field about the user carries its autocomplete token on the wire (FormFieldDto.autocomplete).
+  // The templates put it on the JET/Spectra host as `data-autocomplete` (a data attribute is safe on
+  // any element, whereas not every oj-sp input declares an `autocomplete` property) and this copies it
+  // onto the native <input>/<textarea> inside — the element the browser and assistive technologies read.
+
+  /** Copies each host's data-autocomplete onto its inner native control. Returns how many it set. */
+  function applyInputPurpose(root) {
+    if (!root || typeof root.querySelectorAll !== 'function') return 0
+    let set = 0
+    for (const host of root.querySelectorAll('[data-autocomplete]')) {
+      const token = host.getAttribute('data-autocomplete')
+      if (!token) continue
+      const inner = host.matches && host.matches('input, textarea') ? host : host.querySelector('input, textarea')
+      if (inner && inner.getAttribute('autocomplete') !== token) {
+        inner.setAttribute('autocomplete', token)
+        set++
+      }
+    }
+    return set
+  }
+
+  let inputPurposeInstalled = false
+
+  /** Keeps applyInputPurpose up to date as VB paints and repaints fields. */
+  function installInputPurpose(doc = typeof document !== 'undefined' ? document : null) {
+    if (inputPurposeInstalled || !doc || !doc.body || typeof MutationObserver === 'undefined') return
+    inputPurposeInstalled = true
+    let queued = false
+    const run = () => { queued = false; applyInputPurpose(doc.body) }
+    const schedule = () => {
+      if (queued) return
+      queued = true
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(run)
+      else setTimeout(run, 0)
+    }
+    new MutationObserver(schedule).observe(doc.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-autocomplete'] })
+    run()
+  }
+
 
   // The phone breakpoint of JET's drawer layout. Below it, oj-drawer-layout (and so Spectra's
   // oj-sp-data-management-page) stops docking a drawer beside the content and turns it into a
@@ -19464,17 +20720,85 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { summary: toast.text || '', type: toast.variant, displayMode: 'persist' }
   }
 
-  /** The oj-message message object for a toast with actions. */
+  /** The shortest time a toast with an action stays, in ms (WCAG 2.2.1 — libs/mateu ACTIONABLE_TOAST_MIN_MS). */
+  const ACTION_TOAST_MIN_MS = 10000
+  /** The least time a resumed toast gets before it closes (libs/mateu dismissTimer RESUME_MIN_MS). */
+  const TOAST_RESUME_MIN_MS = 2000
+
+  /** How long a toast with actions stays, in ms; 0 = until the user closes it. An ERROR stays until
+   *  dismissed, in every renderer (owner, 2026-10-12); so does a sticky one. A declared duration
+   *  shorter than ACTION_TOAST_MIN_MS is raised to it: the action must stay reachable. */
+  function toastLifetimeOf(toast) {
+    if (toast.variant === 'error' || toast.persistence === 'sticky') return 0
+    return Math.max(toast.duration > 0 ? toast.duration : 0, ACTION_TOAST_MIN_MS)
+  }
+
+  /** The oj-message message object for a toast with actions. JET's own autoTimeout cannot pause, so
+   *  it is always 'off' and the toast closes on pausableToastClose's clock (showUndoToasts). */
   function undoMessageOf(toast) {
-    const sticky = toast.variant === 'error' || toast.persistence === 'sticky'
     return {
       severity: toast.variant === 'error' ? 'error' : toast.variant === 'warning' ? 'warning' : 'confirmation',
       summary: toast.title || toast.text || '',
       ...(toast.title && toast.text ? { detail: toast.text } : {}),
-      // an ERROR stays until dismissed, in every renderer (owner, 2026-10-12); so does a sticky one
-      autoTimeout: sticky ? 'off' : (toast.duration > 0 ? toast.duration : 10000),
+      autoTimeout: 'off',
       closeAffordance: 'defaults',
     }
+  }
+
+  /**
+   * Closes a toast after `ms` of it being on screen and NOT hovered, focused or in a hidden page
+   * (WCAG 2.2.1 Timing Adjustable — the twin of libs/mateu infra/notify/dismissTimer.ts): the clock
+   * stops while the user is with the toast and resumes with what was left, never less than
+   * TOAST_RESUME_MIN_MS. `ms <= 0` never closes. Returns a cancel function.
+   */
+  function pausableToastClose(el, ms, close, doc = el && el.ownerDocument) {
+    if (!el || !(ms > 0)) return () => {}
+    let remaining = ms
+    let startedAt = 0
+    let timer = null
+    let hovered = false
+    let focused = false
+    let done = false
+    const hidden = () => !!doc && doc.visibilityState === 'hidden'
+    const stop = () => {
+      if (timer === null) return
+      clearTimeout(timer)
+      timer = null
+      remaining -= Date.now() - startedAt
+    }
+    const start = (atLeast) => {
+      if (done || timer !== null || hovered || focused || hidden()) return
+      remaining = Math.max(remaining, atLeast || 0)
+      startedAt = Date.now()
+      timer = setTimeout(() => { timer = null; cancel(); close() }, Math.max(0, remaining))
+    }
+    const resume = () => start(TOAST_RESUME_MIN_MS)
+    const onEnter = () => { hovered = true; stop() }
+    const onLeave = () => { hovered = false; resume() }
+    const onFocusIn = () => { focused = true; stop() }
+    const onFocusOut = (e) => {
+      if (e && e.relatedTarget && el.contains(e.relatedTarget)) return
+      focused = false
+      resume()
+    }
+    const onVisibility = () => { if (hidden()) stop(); else resume() }
+    el.addEventListener('mouseenter', onEnter)
+    el.addEventListener('mouseleave', onLeave)
+    el.addEventListener('focusin', onFocusIn)
+    el.addEventListener('focusout', onFocusOut)
+    if (doc) doc.addEventListener('visibilitychange', onVisibility)
+    function cancel() {
+      done = true
+      if (timer !== null) clearTimeout(timer)
+      timer = null
+      el.removeEventListener('mouseenter', onEnter)
+      el.removeEventListener('mouseleave', onLeave)
+      el.removeEventListener('focusin', onFocusIn)
+      el.removeEventListener('focusout', onFocusOut)
+      if (doc) doc.removeEventListener('visibilitychange', onVisibility)
+    }
+    start(0)
+    return cancel
   }
 
   /** The actions a toast offers (its `actions`, else its legacy undo). */
@@ -19529,8 +20853,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
         msg.appendChild(detail)
       }
+      // closed by time on a clock that stops while hovered or focused (pausableToastClose)
+      const stopClock = pausableToastClose(msg, toastLifetimeOf(toast), () => {
+        if (typeof msg.close === 'function') msg.close()
+        else if (msg.parentNode && typeof msg.parentNode.removeChild === 'function') msg.parentNode.removeChild(msg)
+      }, doc)
       // closed (by the user or by time), out of the DOM
-      msg.addEventListener('ojClose', () => { if (msg.parentNode) msg.parentNode.removeChild(msg) })
+      msg.addEventListener('ojClose', () => { stopClock(); if (msg.parentNode) msg.parentNode.removeChild(msg) })
       host.appendChild(msg)
     }
   }
@@ -19888,14 +21217,38 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return /^data:image\//i.test(v) || /^(https?:)?\/\/|^\//.test(v)
   }
 
-  /** A readable name for a file data URI (it does not carry one: the type and size are shown). */
+  /** `N B` / `N KB` / `N MB` — the capture field's size text. */
+  function sizeText(bytes) {
+    if (bytes < 1024) return bytes + ' B'
+    if (bytes < 1048576) return (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0) + ' KB'
+    return (bytes / 1048576).toFixed(1) + ' MB'
+  }
+
+  /**
+   * A readable name for a file value: a data URI does not carry one (the type and size are shown); a
+   * `mateu-file:` reference — a file another renderer uploaded to the app's FileStorage
+   * (design/uploads/file-uploads-contract.md) — shows its name (else its id) and size.
+   */
   function describeFileValue(value) {
     const v = String(value || '')
+    if (v.indexOf('mateu-file:') === 0) {
+      const rest = v.slice('mateu-file:'.length)
+      const q = rest.indexOf('?')
+      const dec = (t) => { try { return decodeURIComponent(t) } catch (e) { return t } }
+      const params = {}
+      if (q >= 0) {
+        rest.slice(q + 1).split('&').forEach((pair) => {
+          const eq = pair.indexOf('=')
+          if (eq > 0) params[pair.slice(0, eq)] = dec(pair.slice(eq + 1))
+        })
+      }
+      const name = params.name || dec(q < 0 ? rest : rest.slice(0, q))
+      return /^\d+$/.test(params.size || '') ? name + ' · ' + sizeText(Number(params.size)) : name
+    }
     const m = v.match(/^data:([^;,]+)?(;base64)?,(.*)$/i)
     if (!m) return v ? v.split('/').pop() : ''
     const bytes = m[2] ? Math.floor((m[3].length * 3) / 4) : decodeURIComponent(m[3]).length
-    const kb = bytes < 1024 ? bytes + ' B' : (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0) + ' KB'
-    return (m[1] || 'file') + ' · ' + kb
+    return (m[1] || 'file') + ' · ' + sizeText(bytes)
   }
 
   /** Defines `<mateu-capture-field>` in `win` (once). */
@@ -21678,16 +23031,35 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const SC_FUNCTION_OR_MOD = (shortcut) =>
     /(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(String(shortcut || '')) || isFunctionKeyShortcut(shortcut)
 
+  /** WCAG 2.1.4 Character Key Shortcuts — libs/mateu appShortcuts.ts: a ONE-character shortcut
+   *  (`?`, a bare letter) can be switched off by the user (the same localStorage key as the web);
+   *  Ctrl+/ always opens the list. */
+  const SINGLE_KEY_STORAGE = 'mateu-single-key-shortcuts'
+  const isCharacterKeyShortcut = (shortcut) => {
+    const parts = String(shortcut || '').toLowerCase().split('+').map((p) => p.trim())
+    const key = parts[parts.length - 1]
+    return key.length === 1 && !parts.some((p) => p === 'ctrl' || p === 'control' || p === 'alt' || p === 'meta' || p === 'cmd')
+  }
+  function singleKeyShortcutsOn(storage = extrasStorage()) {
+    try { return !storage || storage.getItem(SINGLE_KEY_STORAGE) !== 'off' } catch (e) { return true }
+  }
+  function setSingleKeyShortcuts(on, storage = extrasStorage()) {
+    try { if (storage) storage.setItem(SINGLE_KEY_STORAGE, on ? 'on' : 'off') } catch (e) { /* storage blocked */ }
+  }
+
   /** The app shortcut a keystroke presses: never a plain key while typing, never a key the screen owns. */
   function appShortcutFor(shortcuts, e, typing, screenKeys = []) {
     return (shortcuts || []).find((s) => !!s.key
       && (!typing || SC_FUNCTION_OR_MOD(s.key))
+      && (!isCharacterKeyShortcut(s.key) || singleKeyShortcutsOn())
       && !screenKeys.includes(String(s.key).toLowerCase())
       && shortcutMatches(s.key, e))
   }
 
-  /** «?» opens the list — never while typing. */
-  const isShortcutsHelpKey = (e, typing) => !typing && e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey
+  /** «?» opens the list — never while typing, nor once single-key shortcuts are off; Ctrl+/ always. */
+  const isShortcutsHelpKey = (e, typing) =>
+    ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === '/' || e.code === 'Slash'))
+    || (!typing && e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey && singleKeyShortcutsOn())
 
   /** QUICK LAUNCH: the shortcut whose code is exactly what was typed (trimmed, case-insensitive). */
   function quickLaunchMatch(shortcuts, query) {
@@ -21994,7 +23366,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       runAppShortcut(s)
     })))
     section(chromeText('shortcutsScreen'), screenShortcutsOf(doc).map((s) => row(s.label, keyHint(s.key), '', null)))
-    section('', [row(chromeText('shortcutsHelpKey'), '?', '', null)])
+    section('', [row(chromeText('shortcutsHelpKey'), '? · Ctrl+/', '', null)])
+    // WCAG 2.1.4: the switch for one-key shortcuts
+    const toggle = doc.createElement('label')
+    toggle.className = 'mateu-sc-single-keys'
+    const box = doc.createElement('input')
+    box.type = 'checkbox'
+    box.checked = singleKeyShortcutsOn()
+    box.addEventListener('change', () => setSingleKeyShortcuts(!!box.checked))
+    toggle.appendChild(box)
+    toggle.appendChild(doc.createTextNode(' ' + chromeText('singleKeyShortcuts')))
+    body.appendChild(toggle)
     if (typeof dialog.open === 'function') dialog.open()
   }
 
@@ -23523,6 +24905,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // ── the catalogue ─────────────────────────────────────────────────────────────────────────────
 
   let restCatalogue = []
@@ -23872,7 +25255,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       return restClone(sampleOf(declared))
     }
     if (!source.url) throw new Error('External REST fetch has no url' + (declared && declared.ref ? ' (unknown source "' + declared.ref + '")' : ''))
-    const url = interpolateRestUrl(source.url, scope)
+    // a root-relative url is the app's own endpoint: under its public base (mount.mjs)
+    const url = underPublicBase(interpolateRestUrl(source.url, scope))
     const headers = {}
     for (const k of Object.keys(source.headers || {})) headers[k] = interpolateRest(source.headers[k], scope)
     const init = { method, headers }
@@ -24799,25 +26183,46 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The browser path of a Mateu route under the mount: '/orders' → '/console/orders', the home
    *  ('' or '/') → '/console' ('/' at the root). A route may carry its ?query; one that already
    *  starts with the mount (a crud's inner route) is not prefixed again. */
-  function pathOfRoute(route, mount) {
+  function pathOfRoute(route, mount, base = publicBasePath) {
     const m = normalizeMount(mount)
     let r = route == null ? '' : String(route)
     if (r.charAt(0) === '?') r = '/' + r
     if (r === '' || r === '/') return m || '/'
     if (r.startsWith('/?')) return (m || '') + r.slice(m ? 1 : 0)
     if (r.charAt(0) !== '/') r = '/' + r
+    r = spelledWithTheBase(r, m, base)
     const path = r.split('?')[0]
     if (m && (path === m || path.startsWith(m + '/'))) return r
     return m + r
   }
 
+  /**
+   * Under a PUBLIC base (`/crm`: a servlet context path, a prefix-stripping proxy — the server's
+   * io.mateu.core.infra.PublicBase) the page's mount carries it (`/crm/products`), but the server
+   * spells its routes with the mount only (a crud's '/products/new', an App's homeRoute
+   * '/console/home'): that spelling IS the mount, so it gets the base in front. Anything else is
+   * returned as is.
+   */
+  function spelledWithTheBase(route, mount, base = publicBasePath) {
+    const b = normalizeMount(base)
+    const m = normalizeMount(mount)
+    const r = String(route == null ? '' : route)
+    if (!b || !m.startsWith(b + '/') || r.charAt(0) !== '/') return r
+    const bare = m.slice(b.length)
+    const path = r.split(/[?#]/)[0]
+    return path === bare || path.startsWith(bare + '/') ? b + r : r
+  }
+
   // ── the mount read at boot ─────────────────────────────────────────────────────────────────────
   let mountPath = null
+  // the public base ('' or '/crm') the page's <mateu-ui publicBase> names
+  let publicBasePath = ''
 
   /** Reads the <mateu-ui> of the page once: the mount ('' at the root) or null (hash mode). */
   function initMount(doc) {
     const el = doc && typeof doc.querySelector === 'function' ? doc.querySelector('mateu-ui') : null
     mountPath = el ? baseUrlOf({ baseUrl: el.getAttribute('baseUrl') }, '') : null
+    publicBasePath = el ? normalizeMount(el.getAttribute('publicBase') || el.getAttribute('publicbase')) : ''
     return mountPath
   }
 
@@ -24830,7 +26235,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** Test hook / explicit setting: null = hash mode. */
-  function setMount(value) { mountPath = value == null ? null : normalizeMount(value) }
+  function setMount(value, base = '') {
+    mountPath = value == null ? null : normalizeMount(value)
+    publicBasePath = normalizeMount(base)
+  }
+
+  /** The public base ('' at the root of a host, '/crm' under a context path / a proxy prefix). */
+  function currentPublicBase() { return publicBasePath }
+
+  /** A ROOT-RELATIVE base the server names (a sibling / remote mount, '/orders') under the public
+   *  base ('/crm/orders'); absolute, protocol-relative, relative, empty or already-under: as is. */
+  function underPublicBase(url, base = publicBasePath) {
+    const b = normalizeMount(base)
+    const u = url == null ? url : String(url)
+    if (!b || !u || u.charAt(0) !== '/' || u.charAt(1) === '/' || u.charAt(1) === '\\') return url
+    if (u === b || u.startsWith(b + '/') || u.startsWith(b + '?')) return u
+    return b + u
+  }
 
   /** Path mode (served by a Mateu backend) vs hash mode (static serving). */
   function isPathMode() { return mountPath != null }
@@ -24843,7 +26264,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The base for STATIC things the backend serves at its root (images, logos, web-component
    *  modules, the agent's sseUrl): the origin root in path mode — they are not under the mount, just
    *  as on the Vaadin renderer —, the development constant (the backend origin) otherwise. */
-  function mateuAssetBase(devDefault) { return mountPath != null ? '' : devDefault }
+  function mateuAssetBase(devDefault) { return mountPath != null ? publicBasePath : devDefault }
 
   /** What goes in history.pushState for a route: its path under the mount, or '#route'. */
   function urlOfRoute(route) {
@@ -24879,7 +26300,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function routeUnderMount(route) {
     if (mountPath == null || !route) return route || ''
     const [path, query] = String(route).split(/(?=\?)/)
-    const r = routeOfPath(path, mountPath)
+    const r = routeOfPath(spelledWithTheBase(path, mountPath), mountPath)
     return (r || (query ? '/' : '')) + (query || '')
   }
 
@@ -24911,11 +26332,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const r = String(route == null ? '' : route)
     // `/\host` is `//host` to a browser: another site, never a path to load here
     if (r.charAt(0) !== '/' || r.charAt(1) === '/' || r.charAt(1) === '\\') return null
-    const path = r.split(/[?#]/)[0]
+    const path = spelledWithTheBase(r, mountPath).split(/[?#]/)[0]
     if (path === mountPath || path.startsWith(mountPath + '/')) return null
     const own = (m) => { const p = String(m).split('?')[0].replace(/\/+$/, '') || '/'; return path === p || (p !== '/' && path.startsWith(p + '/')) }
     if ((menuRoutes || []).some(own)) return null
-    return r
+    // another mount of the same app: under the public base too (the server names it without it)
+    return publicBasePath && !(r === publicBasePath || r.startsWith(publicBasePath + '/')) ? publicBasePath + r : r
   }
 
   /** pathLeavingMountOf for a reducer's `navigate` effect, against the registry's shell menu. */
@@ -25114,6 +26536,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  the time it answers, the response is dropped silently. Background ones (quiet/isolated: widgets,
    *  remote menus) belong to no screen; `options.view` sets it by hand (null: none). */
   async function callMateu(base, body, options = {}) {
+    // a root-relative base the server named (a sibling mount) under the app's public base (mount.mjs)
+    base = underPublicBase(base)
     // A backend of ANOTHER origin (a micro frontend's server, a federated pod) that does not answer
     // says nothing about the user's connection: its request is isolated from the connectivity tracker,
     // as the web client does (AxiosMateuApiClient, isForeignBaseUrl). A down island used to raise the
@@ -31897,7 +33321,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installRules', 'installPlanningRange', 'installActionPanels', 'installTileReorder', 'installRichText',
     'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
-    'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
+    'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer', 'installInputPurpose',
     'trackPressedControls', 'installRecordMerges', 'installFactActions', 'installToc', 'installScoreboards', 'installPaymentPickers', 'installRowClickSelectionGuard',
     'installDrawerGuard', 'installAttachmentChips', 'installBannerDismissal', 'installKanbans', 'installTaskCenter', 'installRowSelection',
   ])
@@ -32785,6 +34209,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // accesibilidad: lo que los componentes oj-* no traen (una SPA no cambia de página, así
     // que no hay nada que un lector de pantalla anuncie por su cuenta)
     installAnnouncer,
+    installInputPurpose,
+    applyInputPurpose,
     installPrintSupport,
     announce,
     announceNavigation,

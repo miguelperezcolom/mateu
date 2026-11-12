@@ -51,7 +51,7 @@ public class RowIssue
 /// </summary>
 public abstract class ImportWizard<Row> : Wizard, IOptionsSupplier where Row : new()
 {
-    [Step(1), FileUpload(".csv"), Label("CSV file")]
+    [Step(1), FileUpload(".csv", Storage = FileUploadAttribute.Inline), Label("CSV file")]
     public string? File { get; set; }
 
     [Step(1), Stereotype("textarea"), Label("...or paste the CSV")]

@@ -15,17 +15,6 @@ never a public issue.
 
 ## Deployment
 
-### A servlet context path or a prefix-stripping proxy is not supported
-
-The generated index page loads the renderer's assets from `/assets/…` at the **root of the host**.
-Behind `server.servlet.context-path` or a reverse proxy that strips a path prefix, the page loads
-but the assets 404, so you get a blank screen.
-
-**Workaround:** serve the app at the root of its host, or give the mount the public path you want
-(`@UI("/admin")`) and route both `/admin/**` and `/assets/**` to the backend. Several Mateu apps
-behind one host share `/assets/**`, so they must run the same Mateu release. See
-[Deploy to production](/deploy/production-checklist/).
-
 ### Micronaut on JDK 21–23: virtual-thread pinning under load
 
 On Java 21+ Micronaut runs the blocking executor that serves Mateu's action endpoints on virtual
@@ -84,13 +73,20 @@ itself. See [Permissions in YAML](/define/yaml/permissions/).
 
 ### Accessibility gaps against WCAG 2.2 AA
 
-Web charts have no text alternative, fields carry no `autocomplete` purpose, toasts (and their
-Undo) disappear after 5–10 s, the app-context select reloads the page on change, the planning
-board and drop zones are drag-only, and pinned headers can hide the focused control. The full list,
-per renderer, is in the [accessibility conformance report](/quality/accessibility-conformance/#known-gaps-in-one-list).
+The Redwood renderer still has no keyboard or single-pointer alternative for the planning board and
+drop zones and does not keep the focused control clear of pinned regions; on the web, dropping rows
+on a drop zone without dragging needs row selection on the listing; and the 2026-11 fixes are
+verified by component tests, not with assistive technology. The full list, per renderer, is in the [accessibility conformance report](/quality/accessibility-conformance/#known-gaps-in-one-list).
 
 **Workaround:** most have an author-side mitigation listed there (an action beside a drag-only
 board, no auto-dismissing banners for content users must read).
+
+### Right-to-left languages are not supported
+
+No renderer mirrors its layout for Arabic, Hebrew, Persian or Urdu: nothing sets `dir="rtl"`, and an
+RTL language gets Mateu's own words in English. The chrome speaks English, Spanish, French, German,
+Portuguese and Italian. What it would take is described in
+[Right-to-left languages](/java-user-manual/advanced/i18n/#right-to-left-languages).
 
 ### Redwood: light theme only
 
@@ -138,24 +134,6 @@ of the remote screen imports (`import: /x.js`) is a plain static file of the rem
 
 **Workaround:** open that path to the shell's origin on the remote (on Spring, a `CorsRegistry`
 mapping). See [Using external Mateu UIs](/java-user-manual/build/using-external-mateu-uis/).
-
-### Multi-value fields do not read `optionsSource`
-
-A single-select field takes its options from a REST source (`@RestOptions`, `optionsSource`). A
-multi-value field (`multiSelect`, `listBox`, multi-select `combobox`) does not: it reads static
-options or a remote `search-<field>` action.
-
-**Workaround:** give the field an options supplier or a `@Lookup` search on your server, which can
-call the external endpoint itself.
-
-### React Native: saved views and column choices last one session
-
-On React Native, saved listing views and the column chooser's show/hide choices are kept in memory
-and reset when the app restarts; columns cannot be reordered there. The web renderers and IntelliJ
-persist them.
-
-**Workaround:** none yet. Server-side defaults (the listing's declared columns and filters) are what
-a user sees after a restart.
 
 ### React Native: a suspended or closed app posts no local notification
 
@@ -227,9 +205,6 @@ Listing filters (ranges, multi-select) are applied in memory in both ports by de
 - **The Figma pipeline, the visual editor and the VS Code extension are previews**: they are not
   covered by the stability promise (see
   [How mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30)).
-- **The IntelliJ plugin and the desktop app do not draw SVG images**: an `Image` (or avatar, card
-  media) whose source is an SVG shows its `alt` text as a placeholder, because the platform offers no
-  public API to rasterise SVG. **Workaround:** serve a PNG or JPEG for the images the desktop must show.
 - **The Windows desktop installer is not code-signed**, so SmartScreen warns on its first run
   ("Windows protected your PC"). **Workaround:** check the download against the release page, then
   **More info ▸ Run anyway** — see [Installing on Windows](/native/desktop-app/#windows).

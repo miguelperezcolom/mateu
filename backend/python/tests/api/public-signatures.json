@@ -288,6 +288,11 @@
      "back_link",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "presence",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },
@@ -388,6 +393,15 @@
     ],
     "view": []
    }
+  },
+  "Autocomplete": {
+   "class": [
+    [
+     "value",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
   },
   "Avatar": {
    "class": []
@@ -1563,10 +1577,54 @@
     ]
    }
   },
+  "FileStorage": {
+   "class": [],
+   "members": {
+    "store": [
+     [
+      "file",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "upload_target": [
+     [
+      "upload",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "request",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "FileUpload": {
    "class": [
     [
      "accept",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "max_bytes",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "multiple",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "storage",
      "POSITIONAL_OR_KEYWORD",
      true
     ]
@@ -2295,6 +2353,82 @@
     ]
    }
   },
+  "InMemoryPresenceStore": {
+   "class": [],
+   "members": {
+    "expire": [
+     [
+      "seen_before",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "leave": [
+     [
+      "scope",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "record",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "tab",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "members": [
+     [
+      "scope",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "record",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "seen_after",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "on_change": [
+     [
+      "listener",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "size": [],
+    "touch": [
+     [
+      "scope",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "record",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "member",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "InboxStore": {
    "class": [],
    "members": {
@@ -2341,6 +2475,33 @@
       false
      ]
     ]
+   }
+  },
+  "IncomingFile": {
+   "class": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "content_type",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "content",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ],
+   "members": {
+    "read": []
    }
   },
   "Inline": {
@@ -3594,6 +3755,115 @@
     "on_hydrated": []
    }
   },
+  "PresenceMember": {
+   "class": [
+    [
+     "principal",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "tab",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "editing",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "since",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "last_seen",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ]
+   ]
+  },
+  "PresenceStore": {
+   "class": [],
+   "members": {
+    "expire": [
+     [
+      "seen_before",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "leave": [
+     [
+      "scope",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "record",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "principal",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "tab",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "members": [
+     [
+      "scope",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "record",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "seen_after",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "on_change": [
+     [
+      "listener",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "touch": [
+     [
+      "scope",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "record",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ],
+     [
+      "member",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
   "PrimaryColumn": {
    "class": [
     [
@@ -4452,6 +4722,46 @@
     ]
    ]
   },
+  "StoredFile": {
+   "class": [
+    [
+     "id",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "content_type",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "parse": [
+     [
+      "value",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ],
+    "to_json": [],
+    "to_value": []
+   }
+  },
   "Style": {
    "class": [
     [
@@ -4786,6 +5096,49 @@
     "on_load",
     "on_success",
     "on_value_change"
+   ]
+  },
+  "UploadRequest": {
+   "class": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "content_type",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "size",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ]
+  },
+  "UploadTarget": {
+   "class": [
+    [
+     "url",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "file",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "method",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "headers",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
    ]
   },
   "UseRadioButtons": {
@@ -5150,6 +5503,11 @@
     ],
     [
      "back_link",
+     "KEYWORD_ONLY",
+     true
+    ],
+    [
+     "presence",
      "KEYWORD_ONLY",
      true
     ]
@@ -8651,6 +9009,11 @@
     ],
     [
      "property_row",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "autocomplete",
      "POSITIONAL_OR_KEYWORD",
      true
     ]

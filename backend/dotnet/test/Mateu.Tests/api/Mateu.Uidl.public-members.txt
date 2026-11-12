@@ -126,6 +126,7 @@ Mateu.Uidl.AppAttribute property System.Boolean Inbox { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean LiveUpdates { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean MobileQr { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean OsNotifications { get;set; }
+Mateu.Uidl.AppAttribute property System.Boolean Presence { get;set; }
 Mateu.Uidl.AppAttribute property System.Boolean ThemeToggle { get;set; }
 Mateu.Uidl.AppAttribute property System.Int32 IdleTimeoutMinutes { get;set; }
 Mateu.Uidl.AppAttribute property System.Int32 IdleWarningSeconds { get;set; }
@@ -197,6 +198,8 @@ Mateu.Uidl.AutoPageAttribute property System.Boolean Value { get; }
 Mateu.Uidl.AutoSaveAttribute ctor()
 Mateu.Uidl.AutoSaveAttribute property System.Int32 DebounceMillis { get;set; }
 Mateu.Uidl.AutoSaveAttribute property System.String Action { get;set; }
+Mateu.Uidl.AutocompleteAttribute ctor(System.String)
+Mateu.Uidl.AutocompleteAttribute property System.String Value { get; }
 Mateu.Uidl.Avatar ctor()
 Mateu.Uidl.Avatar property System.String Abbreviation { get;init; }
 Mateu.Uidl.Avatar property System.String Image { get;init; }
@@ -785,8 +788,12 @@ Mateu.Uidl.FileItem property System.String Type { get;init; }
 Mateu.Uidl.FileItem property System.String Url { get;init; }
 Mateu.Uidl.FileList ctor()
 Mateu.Uidl.FileList property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FileItem> Files { get;init; }
+Mateu.Uidl.FileUploadAttribute const field System.String Inline
 Mateu.Uidl.FileUploadAttribute ctor(System.String = "")
+Mateu.Uidl.FileUploadAttribute property System.Boolean Multiple { get;set; }
+Mateu.Uidl.FileUploadAttribute property System.Int64 MaxBytes { get;set; }
 Mateu.Uidl.FileUploadAttribute property System.String Accept { get; }
+Mateu.Uidl.FileUploadAttribute property System.String Storage { get;set; }
 Mateu.Uidl.FilterCriterion ctor(System.String, Mateu.Uidl.FilterOperator, System.Collections.Generic.IReadOnlyList<System.Object>)
 Mateu.Uidl.FilterCriterion property Mateu.Uidl.FilterOperator Operator { get;init; }
 Mateu.Uidl.FilterCriterion property System.Collections.Generic.IReadOnlyList<System.Object> Values { get;init; }
@@ -865,6 +872,7 @@ Mateu.Uidl.FormField property System.Int32 OptionsColumns { get;init; }
 Mateu.Uidl.FormField property System.Int32 SliderMax { get;init; }
 Mateu.Uidl.FormField property System.Int32 SliderMin { get;init; }
 Mateu.Uidl.FormField property System.Object InitialValue { get;init; }
+Mateu.Uidl.FormField property System.String Autocomplete { get;init; }
 Mateu.Uidl.FormField property System.String DataType { get;init; }
 Mateu.Uidl.FormField property System.String Description { get;init; }
 Mateu.Uidl.FormField property System.String FieldId { get;init; }
@@ -1129,6 +1137,10 @@ Mateu.Uidl.IEditableView abstract method System.Void SaveEditor(System.Object)
 Mateu.Uidl.IEditableView property System.Boolean ReadOnly { get; }
 Mateu.Uidl.IFeatureFlags abstract method System.Boolean? IsEnabled(System.String)
 Mateu.Uidl.IFieldTypeCatalogSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.FieldTypeEntry> FieldTypes()
+Mateu.Uidl.IFileStorage abstract method System.Threading.Tasks.Task<Mateu.Uidl.StoredFile> StoreAsync(Mateu.Uidl.IncomingFile, Mateu.Uidl.IncomingRequest)
+Mateu.Uidl.IFileStorage property System.Boolean DirectUploads { get; }
+Mateu.Uidl.IFileStorage property System.String Name { get; }
+Mateu.Uidl.IFileStorage virtual method System.Threading.Tasks.Task<Mateu.Uidl.UploadTarget> UploadTargetAsync(Mateu.Uidl.UploadRequest, Mateu.Uidl.IncomingRequest)
 Mateu.Uidl.IFooterSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Footer()
 Mateu.Uidl.IFragmentCachePolicySupplier abstract method Mateu.Uidl.FragmentCachePolicy CachePolicy(Mateu.Uidl.IncomingRequest)
 Mateu.Uidl.IFragmentCacheStore abstract method System.String Get(System.String)
@@ -1168,6 +1180,11 @@ Mateu.Uidl.IOptionsSupplier abstract method System.Collections.Generic.IReadOnly
 Mateu.Uidl.IOverlineSupplier abstract method System.String Overline()
 Mateu.Uidl.IPageWidthSupplier abstract method Mateu.Uidl.PageWidthStyle? PageWidth()
 Mateu.Uidl.IPeerNavigationSupplier abstract method Mateu.Uidl.PeerNav Peers()
+Mateu.Uidl.IPresenceStore abstract method System.Boolean Touch(System.String, System.String, Mateu.Uidl.PresenceMember)
+Mateu.Uidl.IPresenceStore abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.PresenceMember> Members(System.String, System.String, System.DateTimeOffset?)
+Mateu.Uidl.IPresenceStore abstract method System.Void Leave(System.String, System.String, System.String, System.String)
+Mateu.Uidl.IPresenceStore virtual method System.IDisposable OnChange(System.Action<System.String,System.String>)
+Mateu.Uidl.IPresenceStore virtual method System.Void Expire(System.DateTimeOffset)
 Mateu.Uidl.IPushTokenRegistry abstract method System.Void RegisterPushToken(Mateu.Uidl.PushRegistration)
 Mateu.Uidl.IPushTokenRegistry abstract method System.Void UnregisterPushToken(Mateu.Uidl.PushRegistration)
 Mateu.Uidl.IRecordSwitcherSupplier abstract method Mateu.Uidl.RecordSwitcher Switcher()
@@ -1231,6 +1248,11 @@ Mateu.Uidl.ImportWizard<Row> property System.String WizardTitle { get; }
 Mateu.Uidl.ImportWizard<Row> virtual method Mateu.Uidl.Message Complete()
 Mateu.Uidl.ImportWizard<Row> virtual method System.String StepTitle(System.Int32)
 Mateu.Uidl.ImportWizard<Row> virtual method System.Void OnNext(System.Int32, System.Int32)
+Mateu.Uidl.IncomingFile ctor(System.String, System.String, System.Int64, System.IO.Stream)
+Mateu.Uidl.IncomingFile property System.IO.Stream Content { get;init; }
+Mateu.Uidl.IncomingFile property System.Int64 Size { get;init; }
+Mateu.Uidl.IncomingFile property System.String ContentType { get;init; }
+Mateu.Uidl.IncomingFile property System.String Name { get;init; }
 Mateu.Uidl.IncomingRequest ctor(System.Func<System.String,System.String> = null, System.String = null, Mateu.Uidl.Identity = null, System.String = null)
 Mateu.Uidl.IncomingRequest method System.String Header(System.String)
 Mateu.Uidl.IncomingRequest property Mateu.Uidl.Identity Identity { get; }
@@ -1804,6 +1826,13 @@ Mateu.Uidl.Popover property Mateu.Uidl.IComponent Wrapped { get;init; }
 Mateu.Uidl.Popover property Mateu.Uidl.PopoverTrigger Trigger { get;init; }
 Mateu.Uidl.PopoverTrigger enum Click
 Mateu.Uidl.PopoverTrigger enum Hover
+Mateu.Uidl.PresenceMember ctor(System.String, System.String, System.String, System.Boolean, System.DateTimeOffset, System.DateTimeOffset)
+Mateu.Uidl.PresenceMember property System.Boolean Editing { get;init; }
+Mateu.Uidl.PresenceMember property System.DateTimeOffset LastSeen { get;init; }
+Mateu.Uidl.PresenceMember property System.DateTimeOffset Since { get;init; }
+Mateu.Uidl.PresenceMember property System.String Name { get;init; }
+Mateu.Uidl.PresenceMember property System.String Principal { get;init; }
+Mateu.Uidl.PresenceMember property System.String Tab { get;init; }
 Mateu.Uidl.PricingPlan ctor()
 Mateu.Uidl.PricingPlan property System.Boolean Featured { get;init; }
 Mateu.Uidl.PricingPlan property System.Collections.Generic.IReadOnlyList<System.String> Features { get;init; }
@@ -2168,6 +2197,17 @@ Mateu.Uidl.StepAttribute ctor(System.Int32)
 Mateu.Uidl.StepAttribute property System.Int32 Step { get; }
 Mateu.Uidl.StereotypeAttribute ctor(System.String)
 Mateu.Uidl.StereotypeAttribute property System.String Value { get; }
+Mateu.Uidl.StoredFile const field System.String Scheme
+Mateu.Uidl.StoredFile ctor(System.String, System.String = null, System.String = null, System.Int64 = -1, System.String = null)
+Mateu.Uidl.StoredFile method System.String ToValue()
+Mateu.Uidl.StoredFile property System.Int64 Size { get;init; }
+Mateu.Uidl.StoredFile property System.String ContentType { get;init; }
+Mateu.Uidl.StoredFile property System.String Id { get;init; }
+Mateu.Uidl.StoredFile property System.String Name { get;init; }
+Mateu.Uidl.StoredFile property System.String Url { get;init; }
+Mateu.Uidl.StoredFile static method Mateu.Uidl.StoredFile Parse(System.String)
+Mateu.Uidl.StoredFile static method System.String Decode(System.String)
+Mateu.Uidl.StoredFile static method System.String Encode(System.String)
 Mateu.Uidl.StyleAttribute ctor(System.String)
 Mateu.Uidl.StyleAttribute property System.String Value { get; }
 Mateu.Uidl.SubresourceAttribute ctor()
@@ -2314,6 +2354,15 @@ Mateu.Uidl.TriggerType enum OnSuccess
 Mateu.Uidl.TriggerType enum OnValueChange
 Mateu.Uidl.UIAttribute ctor(System.String = "")
 Mateu.Uidl.UIAttribute property System.String Route { get; }
+Mateu.Uidl.UploadRequest ctor(System.String, System.String, System.Int64)
+Mateu.Uidl.UploadRequest property System.Int64 Size { get;init; }
+Mateu.Uidl.UploadRequest property System.String ContentType { get;init; }
+Mateu.Uidl.UploadRequest property System.String Name { get;init; }
+Mateu.Uidl.UploadTarget ctor(System.String, System.String, System.Collections.Generic.IReadOnlyDictionary<System.String,System.String>, Mateu.Uidl.StoredFile)
+Mateu.Uidl.UploadTarget property Mateu.Uidl.StoredFile File { get;init; }
+Mateu.Uidl.UploadTarget property System.Collections.Generic.IReadOnlyDictionary<System.String,System.String> Headers { get;init; }
+Mateu.Uidl.UploadTarget property System.String Method { get;init; }
+Mateu.Uidl.UploadTarget property System.String Url { get;init; }
 Mateu.Uidl.UseRadioButtonsAttribute ctor()
 Mateu.Uidl.UserFacingException ctor(System.String)
 Mateu.Uidl.UserFacingException ctor(System.String, System.String)

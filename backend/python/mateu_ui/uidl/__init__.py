@@ -56,6 +56,7 @@ from .markers import (  # noqa: F401
     Colspan,
     ContentSlot,
     Help,
+    Autocomplete,
     SliderMin,
     SliderMax,
     DetailForm,
@@ -125,6 +126,7 @@ from .live_header_values import LiveHeaderValues  # noqa: F401
 from .live_notifications import LiveNotifications, NotificationChange  # noqa: F401
 from .inbox_store import InboxStore, InMemoryInboxStore  # noqa: F401
 from .push import PushRegistration, PushTokenRegistry  # noqa: F401
+from .presence_store import InMemoryPresenceStore, PresenceMember, PresenceStore  # noqa: F401
 from .progress import LongTask, LongTaskRun, ProgressReporter  # noqa: F401
 from .suppliers import (  # noqa: F401
     AppShortcutEntry,
@@ -317,6 +319,7 @@ from .constraints import (  # noqa: F401
 )
 from .action_catalog import ActionCatalogSupplier, CatalogAction, CatalogRestAction  # noqa: F401
 from .export import ExportColumn, ExportedFile, ExportFormat, ListingExport, ListingExporter  # noqa: F401
+from .uploads import FileStorage, IncomingFile, StoredFile, UploadRequest, UploadTarget  # noqa: F401
 from .rest_sources import (  # noqa: F401
     DeclaredRestSource,
     RestDataSource,
@@ -432,6 +435,11 @@ __all__ = [
     "ExportFormat",
     "ListingExport",
     "ListingExporter",
+    "FileStorage",
+    "IncomingFile",
+    "StoredFile",
+    "UploadRequest",
+    "UploadTarget",
     "CatalogAction",
     "CatalogRestAction",
     "FieldType",
@@ -444,6 +452,7 @@ __all__ = [
     "rest_source",
     "Colspan",
     "Help",
+    "Autocomplete",
     "SliderMin",
     "SliderMax",
     "DetailForm",
@@ -492,6 +501,7 @@ __all__ = [
     "LiveNotifications", "NotificationChange", "InboxStore", "InMemoryInboxStore",
     # Push notifications on the Mateu mobile app (EXPERIMENTAL)
     "PushRegistration", "PushTokenRegistry",
+    "PresenceStore", "PresenceMember", "InMemoryPresenceStore",
     # Server-resolved micro frontends + content slots (EXPERIMENTAL)
     "ContentSlot", "cacheable_fragment", "CorrelationIdProvider", "FragmentCachePolicy",
     "FragmentCachePolicySupplier", "FragmentCacheStore", "MicroFrontendResolutionEvent",

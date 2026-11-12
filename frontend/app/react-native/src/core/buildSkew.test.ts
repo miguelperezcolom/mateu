@@ -66,7 +66,12 @@ test("Mateu's 403: Java's text, the ports' increment with messages; nothing else
   assert.equal(isMateuForbidden(500, 'Forbidden'), false);
 });
 
-test('texts: en / es with the Reload action', () => {
+test('texts: every language with the Reload action; English for any other', () => {
+  assert.equal(skewTexts('fr-FR').reload, 'Recharger');
+  assert.equal(skewTexts('de-AT').reload, 'Neu laden');
+  assert.equal(skewTexts('pt-BR').reload, 'Recarregar');
+  assert.equal(skewTexts('it').reload, 'Ricarica');
+  assert.equal(skewTexts('nl-NL').reload, 'Reload');
   assert.equal(skewTexts('en-GB').updated, 'This app has been updated. Reload to use the latest version.');
   assert.equal(skewTexts('es-ES').stale, 'Esta pantalla ha cambiado desde que la abriste. Recarga para continuar.');
   assert.equal(skewTexts('es').reload, 'Recargar');

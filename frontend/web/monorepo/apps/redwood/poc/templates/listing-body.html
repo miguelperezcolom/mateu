@@ -286,6 +286,7 @@
                       <oj-bind-if test="[[ !!$current.data.title ]]">
                         <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                       </oj-bind-if>
+                      <span class="oj-helper-hidden-accessible"><oj-bind-text value="[[ $current.data.textAlternative ]]"></oj-bind-text></span>
                       <oj-chart :type="[[ $current.data.chartType ]]" data="[[ $current.data.provider ]]"
                         coordinate-system="[[ $current.data.coordinateSystem ]]"
                         style-defaults.pie-inner-radius="[[ $current.data.innerRadius ]]"
@@ -970,6 +971,7 @@
                       label-hint="[[ $current.data.label ]]"
                       value="[[ $current.data.value ]]"
                       :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                       on-value-changed="[[ $listeners.hostInputChanged ]]"
                       on-raw-value-changed="[[ $listeners.hostInputTyped ]]"></oj-input-text>
                   </oj-bind-if>
@@ -991,6 +993,7 @@
                                 readonly="[[ $current.data.readonly ]]"
                                 messages-custom="[[ $current.data.messagesCustom ]]"
                                 :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                 on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-text>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isNumber ]]">
@@ -1001,6 +1004,7 @@
                                 readonly="[[ $current.data.readonly ]]"
                                 messages-custom="[[ $current.data.messagesCustom ]]"
                                 :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                 on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-number>
                           </oj-bind-if>
                           <!-- @Searchable: one chip per id (with ✕ if it can be removed) and the button that opens its selector
@@ -1044,6 +1048,7 @@
                                 readonly="[[ $current.data.readonly ]]"
                                 messages-custom="[[ $current.data.messagesCustom ]]"
                                 :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                 on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-text-area>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isDate ]]">
@@ -1055,6 +1060,7 @@
                                 readonly="[[ $current.data.readonly ]]"
                                 messages-custom="[[ $current.data.messagesCustom ]]"
                                 :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                 on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isDateTime ]]">
@@ -1066,6 +1072,7 @@
                                 readonly="[[ $current.data.readonly ]]"
                                 messages-custom="[[ $current.data.messagesCustom ]]"
                                 :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                 on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-date-time>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isSelect ]]">
@@ -1088,6 +1095,7 @@
                                 required="[[ $current.data.required ]]"
                                 readonly="[[ $current.data.readonly ]]"
                                 :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                 on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-input-password>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isRadio ]]">
@@ -1155,6 +1163,7 @@
                                 required="[[ $current.data.required ]]"
                                 readonly="[[ $current.data.readonly ]]"
                                 :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                 on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-sp-input-email>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isUrl ]]">
@@ -1165,6 +1174,7 @@
                                 required="[[ $current.data.required ]]"
                                 readonly="[[ $current.data.readonly ]]"
                                 :data-field-id="[[ $current.data.fieldId ]]"
+                                  :data-autocomplete="[[ $current.data.autocomplete || null ]]"
                                 on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-sp-input-url>
                           </oj-bind-if>
                           <!-- file / image / signature / camera: JET has no component — mateu-capture-field (poc/inputs.mjs) -->

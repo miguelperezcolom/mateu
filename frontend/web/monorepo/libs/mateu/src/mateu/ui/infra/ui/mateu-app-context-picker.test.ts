@@ -48,4 +48,37 @@ describe('mateu-app-context-picker', () => {
         expect(pick).toHaveBeenCalledWith('South', 'South')
         el.remove()
     })
+
+    it('says before use that picking reloads the app, and announces the change before reloading (WCAG 3.2.2)', async () => {
+        vi.useFakeTimers()
+        const reload = vi.fn()
+        const realLocation = window.location
+        Object.defineProperty(window, 'location', { configurable: true, value: { ...realLocation, reload } })
+        try {
+            const el = await mount()
+            const button = el.shadowRoot!.querySelector('button.picker-button')!
+            const hint = el.shadowRoot!.getElementById(button.getAttribute('aria-describedby')!)!
+            expect(hint.textContent).toMatch(/reload|recarga/i)
+            ;(button as HTMLButtonElement).click()
+            await el.updateComplete
+            expect(el.shadowRoot!.querySelector('.panel .hint')!.textContent).toBe(hint.textContent)
+            ;(el as unknown as { pick: (v: unknown, l?: string) => void }).pick('South', 'South')
+            expect(JSON.parse(localStorage.getItem('mateu-app-context')!)).toEqual({ region: 'South' })
+            expect(reload).not.toHaveBeenCalled()
+            const live = Array.from(document.querySelectorAll('[aria-live]')).map((r) => r.textContent).join(' ')
+            vi.advanceTimersByTime(100)
+            const spoken = live + Array.from(document.querySelectorAll('[aria-live]')).map((r) => r.textContent).join(' ')
+            expect(spoken).toContain('Region: South')
+            vi.advanceTimersByTime(1000)
+            expect(reload).toHaveBeenCalledTimes(1)
+            // the value already chosen changes nothing
+            ;(el as unknown as { pick: (v: unknown, l?: string) => void }).pick('South', 'South')
+            vi.advanceTimersByTime(1000)
+            expect(reload).toHaveBeenCalledTimes(1)
+            el.remove()
+        } finally {
+            Object.defineProperty(window, 'location', { configurable: true, value: realLocation })
+            vi.useRealTimers()
+        }
+    })
 })

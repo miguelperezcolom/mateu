@@ -494,6 +494,10 @@ class DispatchMixin(MixinBase):
         # PushTokensActionRunner).
         if rq.action_id in ("_push-register", "_push-unregister"):
             return self.push_tokens_action(type_, rq)
+        # 2d'. Record presence: a page reports itself, the app answers who else is there (mirrors
+        # Java's PresenceActionRunner).
+        if rq.action_id == "_presence":
+            return self.presence_action(type_, rq)
 
         # 3. A wizard.
         if issubclass(type_, Wizard):

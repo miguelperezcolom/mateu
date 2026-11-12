@@ -22,7 +22,7 @@ import '@vaadin/grid/vaadin-grid-filter-column.js';
 import '@vaadin/grid/vaadin-grid-selection-column.js';
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
-import { dragMimeOf } from "@infra/ui/dragAndDrop.ts";
+import { dragMimeOf, publishDragSelection } from "@infra/ui/dragAndDrop.ts";
 import { rowToneOf } from "@infra/ui/rowTone.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn.ts";
@@ -244,6 +244,17 @@ export class MateuTable extends LitElement {
         this.grid?.requestContentUpdate()
         this.grid?.recalculateColumnWidths()
         this.pagesRequested = []
+        this.publishSelectionForDropZones()
+    }
+
+    /** @DragRows: the selected rows, published for the drop zones' "Move the selected rows here"
+     *  button — the way to move them without dragging (WCAG 2.1.1, 2.5.7). */
+    private publishSelectionForDropZones() {
+        const dragType = (this.metadata as Crud | undefined)?.dragType
+        if (!dragType) return
+        const idField = this.identifierFieldName ?? 'id'
+        const selected = ((this.state?.[this.id + '_selected_items'] ?? []) as any[]).filter((r) => !isGroupRow(r))
+        publishDragSelection(dragType, selected.map((r) => r?.[idField]).filter((id) => id != null).map(String))
     }
 
     @query("vaadin-grid")

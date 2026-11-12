@@ -35,7 +35,10 @@ public class MateuCsrfAutoConfiguration {
   /** The requests Spring Security's CSRF check leaves to Mateu. */
   public static final RequestMatcher MATEU_JSON_CALLS =
       (HttpServletRequest request) ->
-          CsrfExemption.isMateuJsonCall(request.getRequestURI(), request.getContentType());
+          CsrfExemption.isMateuJsonCall(request.getRequestURI(), request.getContentType())
+              || CsrfExemption.isMateuUpload(
+                  request.getRequestURI(),
+                  request.getHeader(io.mateu.core.infra.uploads.UploadEndpoint.TICKET_HEADER));
 
   @Bean
   public Customizer<CsrfConfigurer<HttpSecurity>> mateuCsrfExemption() {

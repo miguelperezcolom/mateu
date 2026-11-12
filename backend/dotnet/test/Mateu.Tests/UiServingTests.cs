@@ -128,6 +128,54 @@ public class UiServingTests
     }
 
     [Fact]
+    public async Task Under_a_path_base_the_page_is_written_for_the_public_path()
+    {
+        if (!RendererCheckedOut) return;
+        // UsePathBase is what ASP.NET's ForwardedHeaders(XForwardedPrefix) amounts to as well: the
+        // request's PathBase — the page's assets, its API base and its PWA links go under it (Java's
+        // PublicBase, a servlet context path / a prefix-stripping proxy)
+        var builder = WebApplication.CreateBuilder();
+        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        builder.Environment.EnvironmentName = "Production";
+        builder.Services.AddMateu(_ => { }, typeof(UiServingProbe).Assembly);
+        var web = builder.Build();
+        web.UsePathBase("/crm");
+        web.MapMateu("/shop", VaadinStatic);
+        await web.StartAsync();
+        await using var _ = web;
+        var address = web.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.First();
+        using var http = new HttpClient { BaseAddress = new Uri(address) };
+        http.DefaultRequestHeaders.Accept.ParseAdd("text/html,application/xhtml+xml,*/*;q=0.8");
+        var html = await http.GetStringAsync("/crm/shop/orders/1");
+        Assert.Contains("<mateu-ui baseUrl=\"/crm/shop\" pathPrefix=\"/crm/shop\" publicBase=\"/crm\"", html);
+        Assert.Contains("src=\"/crm/assets/mateu-vaadin.js\"", html);
+        Assert.DoesNotContain("=\"/assets/", html);
+        Assert.Equal(HttpStatusCode.OK, (await http.GetAsync("/crm/assets/mateu-vaadin.js")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await http.PostAsync("/crm/shop/mateu/v3/sync/_no_route",
+            new StringContent("{\"route\":\"\",\"actionId\":\"\"}", Encoding.UTF8, "application/json"))).StatusCode);
+    }
+
+    [Fact]
+    public void The_public_base_is_a_plain_path_and_rewrites_the_templates_root_relative_urls()
+    {
+        Assert.Equal("/crm", PublicBase.Normalize("/crm/"));
+        Assert.Equal("/edge", PublicBase.Normalize("/edge, /inner"));
+        Assert.Equal("", PublicBase.Normalize("/\"><script>"));
+        Assert.Equal("", PublicBase.Normalize("//evil.example"));
+        Assert.Equal("/sales/app", PublicBase.Of("/app", "/sales"));
+        var page = "<base href=\"/\"><script src=\"/assets/a.js\"></script><link href=\"//cdn/x.css\">"
+                   + "<script>c={BASE_URL: '/_redwood/'}</script>";
+        var rewritten = PublicBase.Rewrite(page, "/crm");
+        Assert.Contains("<base href=\"/crm/\">", rewritten);
+        Assert.Contains("src=\"/crm/assets/a.js\"", rewritten);
+        Assert.Contains("href=\"//cdn/x.css\"", rewritten);
+        Assert.Contains("BASE_URL: '/crm/_redwood/'", rewritten);
+        Assert.Equal(page, PublicBase.Rewrite(page, ""));
+        // the worker may cache the folders BELOW the base, never the base itself
+        Assert.Equal(new[] { "/crm/assets/" }, Pwa.StaticFolders("<script src=\"/crm/assets/a.js\"></script><script src=\"/crm/x.js\"></script>", "/crm"));
+    }
+
+    [Fact]
     public async Task The_renderers_text_assets_are_gzipped_to_a_browser_that_accepts_it()
     {
         // Java's AssetCompression: the bundles travel gzipped (2.6 MB → 0.65 MB on a first load)

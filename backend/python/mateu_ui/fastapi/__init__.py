@@ -28,7 +28,7 @@ from starlette.concurrency import run_in_threadpool
 from mateu_ui.core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_ui.core.errors import dev_mode_from_env, error_increment, new_correlation_id
 from mateu_ui.core.identity import framework_identity_provider, identity_from_claims, warn_on_startup
-from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, progress, pwa, ui_page, version_skew
+from mateu_ui.core import agent_push, dev_specs, documents, mobile_manifest, progress, public_base, pwa, ui_page, version_skew
 from mateu_ui.core.naming import humanize
 from mateu_ui.core.mcp import handle_jsonrpc
 from mateu_ui.core.request_context import MateuRequest, bound_request, normalise_headers
@@ -178,6 +178,7 @@ def add_mateu(
     mcp_push_max_anonymous_sessions_per_address: int | None = None,
     build_id: str | None = None,
     oracle_cdn_url: str | None = None,
+    public_base_path: str | None = None,
     remotes: Sequence[Any] | None = None,
     default_timeout_ms: int | None = None,
     max_budget_ms: int | None = None,
@@ -192,6 +193,9 @@ def add_mateu(
     resolution_listeners: Sequence[Any] | None = None,
     progress_reattach_grace_seconds: float | None = None,
     inbox_store: Any | None = None,
+    presence_store: Any | None = None,
+    file_storages: Sequence[Any] | None = None,
+    uploads_secret: str | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -245,6 +249,11 @@ def add_mateu(
       never bundles Oracle's files; it only re-points the URLs of the page it serves (only with
       ``ui``). Default: the ``MATEU_ORACLE_CDN_URL`` env var; blank = off; a value that is not an
       absolute http(s) URL, or carries a quote, ``<``, ``>`` or whitespace, is ignored with a warning.
+    - ``public_base_path`` — the prefix a reverse proxy strips in front of the app (``"/crm"``: the
+      proxy serves it at ``https://host/crm/`` and forwards ``/x``), so the served page writes its
+      assets, its API base and its PWA links under it. Default: the ``MATEU_PUBLIC_BASE_PATH`` env
+      var. Not needed with an ASGI ``root_path`` (``uvicorn --root-path /crm``), which is read too.
+      Java: ``mateu.public-base-path``.
     - Server-resolved micro frontends and content slots (EXPERIMENTAL; see
       ``mateu_ui.core.microfrontends``): ``remotes`` — the ``RemoteDescriptor``s the host may call
       on the user's behalf (on top of the ``RemoteCatalogSupplier`` subclasses among the sources;
@@ -264,6 +273,13 @@ def add_mateu(
       task at once (the old behaviour). A finished task keeps its outcome for the same period.
     - ``inbox_store`` (EXPERIMENTAL) — an ``InboxStore`` keeping the ``inbox`` messages of signed-in
       users (default: Mateu's bounded in-memory store, lost on restart).
+    - ``presence_store`` (EXPERIMENTAL) — a ``PresenceStore`` keeping record presence
+      (``@app(presence=True)``; default: Mateu's bounded in-memory store, per process).
+    - ``file_storages`` (EXPERIMENTAL) — ``FileStorage`` instances (or classes, instantiated with no
+      arguments) on top of the subclasses found among the sources: a ``FileUpload()`` field then
+      streams its file to ``POST /mateu/v3/upload`` and stores a ``mateu-file:`` reference.
+      ``uploads_secret`` signs the upload tickets (default: the ``MATEU_UPLOADS_SECRET`` env var,
+      else random per process — a multi-instance deployment must set it).
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -298,8 +314,21 @@ def add_mateu(
         resolution_listeners=resolution_listeners,
     )
     progress.configure(progress_reattach_grace_seconds)
+    from mateu_ui.core.uploads import Uploads
+
+    storages = list(getattr(registry, "file_storages", []))
+    for store in file_storages or ():
+        if isinstance(store, type):
+            # a class: instantiated once, unless discovery already did
+            if not any(type(s) is store for s in storages):
+                storages.append(store())
+        elif store is not None and store not in storages:
+            storages.append(store)
+    handler.mapper.uploads = Uploads(storages, secret=uploads_secret)
     if inbox_store is not None:
         handler.inbox_store = inbox_store
+    if presence_store is not None:
+        handler.presence_store = presence_store
     show_details = dev_mode_from_env() if dev is None else dev
     mcp_on = mcp_enabled_from_env() if mcp is None else mcp
     # the sidecar's authoring tools call __validate__ over the sync endpoint of an MCP-enabled app
@@ -412,6 +441,16 @@ def add_mateu(
         )
 
     app.add_api_route(f"{prefix}/mateu/v3/sync/{{route:path}}", sync, methods=["POST"])
+    # File uploads (EXPERIMENTAL), at the ROOT path the fields' uploadUrl names; raw bytes, so NOT
+    # behind the JSON-body guard (the required ticket header forces a CORS preflight instead).
+    from ._uploads import add_upload_endpoints
+
+    add_upload_endpoints(
+        app,
+        lambda: handler.mapper.uploads,
+        request_of,
+        lambda: handler.mapper.identity_provider() if handler.mapper.identity_provider else None,
+    )
     app.add_api_route(f"{prefix}/mateu/v3/sync", sync, methods=["POST"])
 
     # Streamed actions: one text/event-stream "data:" event per increment, at the same
@@ -528,9 +567,27 @@ def add_mateu(
         unsubscribe_header = LiveHeaderValues.subscribe(push)
         unsubscribe_notifications = LiveNotifications.subscribe(push_notification)
 
+        # record presence: a change of a record THIS caller has open (any tab) — never another's
+        from mateu_ui.core import presence as presence_core
+
+        presence_store = handler.presence_store
+        presence_scope = presence_core.scope_of(mateu_request.base_url, rq.server_side_type)
+
+        def push_presence(scope: str, record: str) -> None:
+            if scope == presence_scope and presence_core.is_on(presence_store, scope, record, caller):
+                enqueue(("presence", presence_core.snapshot(presence_store, scope, record, caller)))
+
+        app_type = handler.registry.type_by_name(rq.server_side_type) if rq.server_side_type else None
+        unsubscribe_presence = (
+            presence_store.on_change(push_presence)
+            if caller and presence_core.enabled_for(app_type)
+            else (lambda: None)
+        )
+
         def unsubscribe() -> None:
             unsubscribe_header()
             unsubscribe_notifications()
+            unsubscribe_presence()
 
         async def stream():
             try:
@@ -544,14 +601,16 @@ def add_mateu(
                         change = await asyncio.wait_for(
                             queue.get(), timeout=min(LIVE_HEARTBEAT_SECONDS, remaining)
                         )
-                        increment = UIIncrement.of(
-                            commands=[
-                                LiveNotifications.command(change)
-                                if isinstance(change, NotificationChange)
-                                else UICommand.update_header_value(change.id, change.value)
-                            ]
-                        )
+                        if isinstance(change, tuple) and change and change[0] == "presence":
+                            command = presence_core.command(change[1])
+                        elif isinstance(change, NotificationChange):
+                            command = LiveNotifications.command(change)
+                        else:
+                            command = UICommand.update_header_value(change.id, change.value)
+                        increment = UIIncrement.of(commands=[command])
                     except asyncio.TimeoutError:
+                        # a tab that went silent leaves its records, even if nobody else calls
+                        presence_core.sweep(presence_store)
                         increment = UIIncrement.of()
                     if await request.is_disconnected():
                         break
@@ -597,8 +656,10 @@ def add_mateu(
     # The Progressive Web App's files (Java's Pwa): the web app manifest, the service worker, its
     # registration script and Mateu's icons — public; an unknown file is a 404 (never the page).
     # a plain def: FastAPI runs it in its threadpool, and reading a packaged file blocks
-    def pwa_file(file: str) -> Response:
-        served = pwa.asset(file, prefix, presented_by())
+    def pwa_file(file: str, request: Request) -> Response:
+        # the manifest's scope and the worker's allowed scope are the PUBLIC ones (public_base)
+        base = public_base.of(request.scope.get("root_path"), public_base_path)
+        served = pwa.asset(file, base + prefix, presented_by())
         if served is None:
             return Response(status_code=404)
         return Response(content=served.body, status_code=200, headers=served.headers)
@@ -698,6 +759,7 @@ def add_mateu(
             oracle_cdn=oracle_cdn,
             app_type=presented_by(),
             build_id=lambda: skew.build_id,
+            public_base_path=public_base_path,
         )
         log.info("Mateu UI: serving %s at %s", renderer.location, prefix or "/")
         if oracle_cdn:
@@ -862,8 +924,10 @@ class MateuUiMiddleware:
         oracle_cdn: str | None = None,
         app_type: type | None = None,
         build_id: Callable[[], str] | None = None,
+        public_base_path: str | None = None,
     ):
         self.app = app
+        self.public_base_path = public_base_path
         self.oracle_cdn = oracle_cdn
         self.app_type = app_type
         self.build_id = build_id
@@ -874,7 +938,9 @@ class MateuUiMiddleware:
         self.title = title
         self.debug = debug
 
-    def answer(self, path: str, accept: str | None) -> tuple[str, bytes, str | None] | None:
+    def answer(
+        self, path: str, accept: str | None, root_path: str | None = None
+    ) -> tuple[str, bytes, str | None] | None:
         """``(content type, body, cache control)`` for what this middleware would serve at ``path``,
         or None when the request is not ours."""
         if path != "/" and ui_page.is_asset(path):
@@ -895,6 +961,8 @@ class MateuUiMiddleware:
             self.oracle_cdn,
             self.app_type,
             self.build_id() if self.build_id else None,
+            # under a root_path / MATEU_PUBLIC_BASE_PATH the page is written for the PUBLIC path
+            public_base.of(root_path, self.public_base_path),
         )
         return "text/html; charset=utf-8", html.encode("utf-8"), ui_page.REVALIDATE_CACHE_CONTROL
 
@@ -903,7 +971,12 @@ class MateuUiMiddleware:
             await self.app(scope, receive, send)
             return
         accept = next((v.decode("latin-1") for k, v in scope.get("headers", []) if k == b"accept"), None)
-        answer = self.answer(scope["path"], accept)
+        # the path below the ASGI root_path (servers may put it in front of `path`, per the spec)
+        root_path = scope.get("root_path") or ""
+        path = scope["path"]
+        if root_path and (path == root_path or path.startswith(root_path + "/")):
+            path = path[len(root_path):] or "/"
+        answer = self.answer(path, accept, root_path)
         if answer is None:
             await self.app(scope, receive, send)
             return
@@ -976,7 +1049,9 @@ class MateuApiHintMiddleware(MateuUiMiddleware):
         self.app = app
         self.base_url = "/" + mount if mount else ""
 
-    def answer(self, path: str, accept: str | None) -> tuple[str, bytes, str | None] | None:
+    def answer(
+        self, path: str, accept: str | None, root_path: str | None = None
+    ) -> tuple[str, bytes, str | None] | None:
         if path not in (self.base_url or "/", self.base_url + "/"):
             return None
         if not accept or "text/html" not in accept:

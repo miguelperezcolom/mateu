@@ -26,6 +26,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from . import pwa
+from . import public_base as public_base_paths
 
 #: The renderer the server serves, when not passed to ``add_mateu(ui=…)``.
 ENV_VAR = "MATEU_UI"
@@ -114,16 +115,20 @@ def _attr(value: str) -> str:
     return value.replace("&", "&amp;").replace('"', "&quot;")
 
 
-def mount_ui(html: str, base_url: str, debug: bool = False) -> str:
+def mount_ui(html: str, base_url: str, debug: bool = False, public_base: str | None = None) -> str:
     """Java's ``IndexPage.mountUi``: the ``<!-- AQUIUI -->…<!-- HASTAAQUIUI -->`` region becomes a
     ``<mateu-ui>`` root aimed at the mount, followed by the deferred-boot replayer. A page without
-    the markers is returned unchanged."""
+    the markers is returned unchanged. Under a ``public_base`` (:mod:`mateu_ui.core.public_base`)
+    the root aims at the PUBLIC path of the mount and carries ``publicBase``, as on Java."""
     start = html.find(UI_FROM)
     end = html.find(UI_TO)
     if start < 0 or end < start:
         return html
+    b = public_base_paths.normalize(public_base)
+    mount = b + base_url
     root = (
-        f'<mateu-ui baseUrl="{_attr(base_url)}" pathPrefix="{_attr(base_url)}"'
+        f'<mateu-ui baseUrl="{_attr(mount)}" pathPrefix="{_attr(mount)}"'
+        + (f' publicBase="{_attr(b)}"' if b else "")
         + (' debug="true"' if debug else "")
         + ' style="width:100%;height:100vh;"></mateu-ui>'
     )
@@ -138,6 +143,7 @@ def render_index(
     oracle_cdn: str | None = None,
     app_type: type | None = None,
     build_id: str | None = None,
+    public_base: str | None = None,
 ) -> str:
     """The renderer's page aimed at ``base_url`` (the mount, ``""`` for the root) and titled. Like
     Java's ``IndexPage.render``: the favicon marker becomes ``DEFAULT_FAVICON`` and no template
@@ -146,8 +152,12 @@ def render_index(
     LAST, the Progressive Web App's head (``pwa.served``: the manifest of ``app_type``, the theme
     colour, the worker of ``build_id``), unless it is switched off."""
     html = template.replace(FAVICON_MARKER, DEFAULT_FAVICON).replace(TITLE_MARKER, title)
-    html = rewrite_oracle_cdn(without_markers(mount_ui(html, base_url, debug)), oracle_cdn)
-    return pwa.served(html, base_url, app_type, build_id) or html
+    # the template's own root-relative URLs under the public base, BEFORE the root element, which is
+    # written for it already
+    b = public_base_paths.normalize(public_base)
+    html = public_base_paths.rewrite(html, b)
+    html = rewrite_oracle_cdn(without_markers(mount_ui(html, base_url, debug, b)), oracle_cdn)
+    return pwa.served(html, b + base_url, app_type, build_id, b) or html
 
 
 #: The mirror of Oracle's CDN, when not passed to ``add_mateu(oracle_cdn_url=…)`` (Java:
