@@ -126,11 +126,11 @@ export class MateuCarousel extends LitElement {
         .frame:focus-visible { box-shadow: 0 0 0 2px var(--lumo-primary-color-50pct, #1676f380); border-radius: 4px; }
         .slides { flex: 1 1 auto; min-width: 0; }
         .nav { flex: 0 0 auto; border: none; background: var(--lumo-contrast-10pct, #eee); color: inherit;
-               width: 2.25rem; height: 2.25rem; border-radius: 50%; font-size: 1.4rem; line-height: 1; cursor: pointer; }
+               width: 2.25rem; height: 2.25rem; border-radius: 50%; font-size: var(--lumo-font-size-xl, 1.4rem); line-height: 1; cursor: pointer; }
         .nav:disabled { opacity: .35; cursor: default; }
         .play { display: block; margin: var(--lumo-space-s, .5rem) auto 0; border: none; cursor: pointer;
                 background: var(--lumo-contrast-10pct, #eee); color: inherit; border-radius: var(--lumo-border-radius-m, 6px);
-                min-width: 2rem; height: 2rem; font-size: .8rem; }
+                min-width: 2rem; height: 2rem; font-size: var(--lumo-font-size-s, .8rem); }
         .play:focus-visible { outline: 2px solid var(--lumo-primary-color, #1676f3); outline-offset: 2px; }
         .dots { display: flex; justify-content: center; gap: 0; margin-top: var(--lumo-space-s, .5rem); }
         /* WCAG 2.5.8 Target Size: the dot is drawn .6rem wide but its button is 24×24 px */
