@@ -23,6 +23,7 @@ Use this section when you want to answer questions like:
 - [Useful types](/reference/useful-types/)
 - [Stability & versioning](/reference/stability-and-versioning/) — what is public API, deprecation and wire compatibility
 - [Support policy](/reference/support-policy/) — which versions get fixes, supported Java/.NET/Python/IDE versions, SBOMs
+- [Verify what you download](/reference/verify-downloads/) — signatures, build provenance attestations and checksums of every artifact
 - [Known issues](/reference/known-issues/) — current limitations and their workarounds
 
 ## How to use this section

@@ -10,6 +10,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Security
 
+- **Build provenance for everything a release distributes.** A new `provenance` job in the release
+  workflow signs a SLSA provenance attestation (Sigstore, `actions/attest-build-provenance`) for the
+  jars sent to Maven Central, the PyPI sdist and wheel, the `.nupkg` files, the IntelliJ and VS Code
+  plugin packages and every GitHub release asset (desktop installers, APK, Redwood embedded
+  component, SBOMs), and attaches a `SHA256SUMS` to the release: `gh attestation verify <file> --repo
+  miguelperezcolom/mateu`. It only downloads and attests; it is the one job with
+  `attestations: write`, and `id-token: write` stays in it and the PyPI/NuGet publish jobs
+  (`scripts/release-gates.test.mjs` pins both). PyPI trusted publishing uploads PEP 740 attestations
+  explicitly. A Developer ID macOS build now fails the release when its signature, hardened runtime,
+  stapled notarization ticket or Gatekeeper assessment does not check out, and notarization also
+  requires `MACOS_NOTARY_TEAM_ID`. New page
+  [Verify what you download](https://mateu.io/reference/verify-downloads/).
+
 - **A route seed of a YAML field hidden from the caller no longer travels to them.** The `state:` /
   `defaultParams:` / `fixedParams:` seeds of a definition-only page were applied after the access
   keys, so the value of an `eyesOnly:` / `access:` field reached a caller who may not see it. Fixed in
@@ -162,6 +175,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `auto`).
 
 ### Documentation
+
+- **Accessibility conformance report** ([quality/accessibility-conformance](https://mateu.io/quality/accessibility-conformance/)):
+  WCAG 2.2 Level A and AA, criterion by criterion, for the Vaadin, Redwood, React Native and desktop
+  renderers, in the structure of the ITI VPAT 2.5 (WCAG edition), with the evidence behind each
+  claim and the known gaps (web charts without a text alternative, no `autocomplete` purposes,
+  short-lived toasts, drag-only planning board and drop zones, focus hidden by pinned regions).
 
 - The [feature parity matrix](https://mateu.io/reference/parity/) and
   [known issues](https://mateu.io/reference/known-issues/) follow the Explorer review: the ports'

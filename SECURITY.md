@@ -41,7 +41,8 @@ From 3.0 GA on, security fixes go to the **latest minor of the current major**, 
 high severity fixes also to the **previous minor for 6 months** after the next one is released.
 The full policy, with the supported Java, .NET, Python and IDE versions, is the
 [Support policy](https://mateu.io/reference/support-policy/). Every release attaches CycloneDX
-SBOMs to its GitHub release.
+SBOMs and a `SHA256SUMS` to its GitHub release, and every file it distributes has a build provenance
+attestation — how to check them, and the signatures: [Verify what you download](https://mateu.io/reference/verify-downloads/).
 
 ## Scope
 
