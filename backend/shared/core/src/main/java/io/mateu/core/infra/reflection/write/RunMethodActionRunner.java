@@ -213,12 +213,53 @@ public class RunMethodActionRunner implements ActionRunner {
     }
   }
 
+  /**
+   * A bulk action (a {@code List<Row>} parameter filled from the listing selection): the selected
+   * rows' ids are what the audit trail records it acted on — read off the raw selection by the
+   * row's id field, never its values.
+   */
+  @SuppressWarnings("unchecked")
+  private static void recordSelectedIds(RunActionCommand command, Class<?> rowType) {
+    var httpRequest = command.httpRequest();
+    if (io.mateu.core.infra.observability.RequestObservation.of(httpRequest) == null
+        || rowType == null) {
+      return;
+    }
+    try {
+      var rq = httpRequest.runActionRq();
+      Object selection =
+          rq.componentState() != null ? rq.componentState().get("crud_selected_items") : null;
+      if (selection == null
+          && rq.parameters() != null
+          && rq.parameters().get("initiatorState") instanceof Map<?, ?> initiator) {
+        selection = initiator.get("crud_selected_items");
+      }
+      if (!(selection instanceof List<?> rows) || rows.isEmpty()) {
+        return;
+      }
+      var idField =
+          io.mateu.core.infra.declarative.orchestrators.crud.CrudAdapterHelper.getIdField(rowType);
+      if (idField == null) {
+        return;
+      }
+      io.mateu.core.infra.observability.RequestObservation.recordIds(
+          httpRequest,
+          rows.stream()
+              .filter(row -> row instanceof Map<?, ?>)
+              .map(row -> ((Map<String, Object>) row).get(idField))
+              .toList());
+    } catch (RuntimeException ignored) {
+      // the ids are a nice-to-have of the audit trail, never a reason to fail the action
+    }
+  }
+
   public static Object[] createParameters(Method m, RunActionCommand command) {
     List<Object> params = new ArrayList<>();
     for (Parameter p : m.getParameters()) {
       if (List.class.isAssignableFrom(p.getType())) {
         var type = getGenericClass(p.getParameterizedType());
         params.add(command.httpRequest().getSelectedRows(type));
+        recordSelectedIds(command, type);
       } else if (HttpRequest.class.equals(p.getType())) {
         params.add(command.httpRequest());
       } else {

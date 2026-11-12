@@ -196,6 +196,13 @@ internal sealed partial class SyncHandler
                   ?? throw new InvalidOperationException(
                       "a proxied source with a relative url needs this server's base url: set MateuOptions.SelfBaseUrl");
             var method = string.IsNullOrWhiteSpace(source.Method) ? "GET" : source.Method!.ToUpperInvariant();
+            // a child activity of the request's, named by the url TEMPLATE without its query (never a
+            // secret, never a value of the state); HttpClient's own activity nests under it
+            using var activity = Observability.MateuTelemetry.Source.StartActivity(
+                "mateu rest_proxy " + method, System.Diagnostics.ActivityKind.Client);
+            activity?.SetTag("http.request.method", method);
+            activity?.SetTag("url.template", source.Url is null ? null : StripQuery(source.Url));
+            activity?.SetTag("mateu.rest_source", source.Ref);
             using var req = new HttpRequestMessage(new HttpMethod(method), url);
             req.Headers.Accept.ParseAdd("application/json");
             if (method is not "GET" and not "HEAD" && !string.IsNullOrWhiteSpace(source.Body))
@@ -219,8 +226,10 @@ internal sealed partial class SyncHandler
                     else req.Headers.TryAddWithoutValidation(k, value);
                 }
             using var resp = await _http.SendAsync(req, cancellationToken).ConfigureAwait(false);
+            activity?.SetTag("http.response.status_code", (int)resp.StatusCode);
             if ((int)resp.StatusCode >= 300)
             {
+                activity?.SetStatus(System.Diagnostics.ActivityStatusCode.Error);
                 MateuLogging.For("Mateu.RestProxy").LogWarning(
                     "Proxied {Method} {Url} answered {Status}", ForLog(method), ForLog(StripQuery(url)), (int)resp.StatusCode);
                 string? detail = null;

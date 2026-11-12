@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from mateu_ui.core import observability
 from enum import Enum
 import inspect
 from typing import (
@@ -154,6 +155,7 @@ class CrudHandlerMixin(MixinBase):
             ids = restore_ids(rq)
             if ids:
                 self._invoke(crud.restore_all_by_id, ids, rq)
+                observability.record_ids(ids)
             refreshed = self.crud_search(crud, element, rq)
             return refreshed.model_copy(update={"messages": [restored_message(len(ids))]})
         if aid == "delete":
@@ -554,6 +556,8 @@ class CrudHandlerMixin(MixinBase):
         in_drawer = getattr(type(crud), "__mateu_edit_in_drawer__", False)
         try:
             crud.save(entity)
+            # the audit trail's "on what": the record saved / created
+            observability.record_id(id_ if id_ is not None else _id_of(crud, entity))
         except Exception as failure:  # noqa: BLE001 - shown in the drawer, else re-raised
             # drawer mode: a failed save keeps the drawer open and shows WHY inside it (the
             # Redwood create-edit-drawer error banner), with the values the user typed — and is
@@ -736,6 +740,7 @@ class CrudHandlerMixin(MixinBase):
                     )
             setattr(entity, version.name, self._version_of(entity, version) + 1)
         crud.save(entity)
+        observability.record_id(getattr(entity, "id", None))
         return UIIncrement.of(
             messages=[MessageDto(variant="success", position="middle", title="", text="Saved", duration=3000)]
         )
@@ -828,3 +833,12 @@ def _with_messages_of(refreshed, told):
     """The refreshed listing's increment, carrying the messages the action answered."""
     refreshed.messages = list(refreshed.messages) + list(told.messages)
     return refreshed
+
+
+def _id_of(crud, entity):
+    """The id of a just-saved entity, for the audit trail; None when the crud cannot tell."""
+    try:
+        id_of = getattr(crud, "id_of", None)
+        return id_of(entity) if callable(id_of) else getattr(entity, "id", None)
+    except Exception:  # noqa: BLE001 - a nice-to-have, never a reason to fail the save
+        return None

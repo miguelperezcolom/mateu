@@ -1005,6 +1005,24 @@ class MicroFrontendServerResolver:
                 event.remote_id, event.url, event.slot_key, event.outcome.value, event.degraded_to,
                 event.duration_millis, event.correlation_id,
             )
+        # a child span of the request's, written once its outcome is known (the call ran under a
+        # deadline, asynchronously)
+        from mateu_ui.core import observability
+
+        observability.record_child(
+            "mateu microfrontend " + (event.remote_id or "unregistered"),
+            event.duration_millis,
+            {
+                "mateu.remote.id": event.remote_id,
+                "url.full": event.url,
+                "mateu.content_slot": event.slot_key,
+                "mateu.microfrontend.outcome": event.outcome.value.lower(),
+                "mateu.microfrontend.degraded_to": event.degraded_to,
+                "mateu.correlation_id": event.correlation_id,
+            },
+            (event.error or event.outcome.value)
+            if event.outcome in (ResolutionOutcome.ERROR, ResolutionOutcome.TIMEOUT) else None,
+        )
         for listener in self.listeners:
             try:
                 listener.on_resolution(event)

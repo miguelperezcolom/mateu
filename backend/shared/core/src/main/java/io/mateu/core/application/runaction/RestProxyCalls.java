@@ -369,6 +369,31 @@ final class RestProxyCalls {
             : source.method().toUpperCase();
     // Logged by its TEMPLATE, never the resolved url: that may carry a ${secret.X} in its query.
     var url = source.url();
+    // a child span of the request's, by the url TEMPLATE without its query (never a secret)
+    var spanAttributes = new java.util.LinkedHashMap<String, Object>();
+    spanAttributes.put("http.request.method", method);
+    spanAttributes.put("url.template", url == null ? null : url.replaceAll("\\?.*$", ""));
+    spanAttributes.put("mateu.rest_source", source.ref());
+    try (var span =
+        io.mateu.core.infra.observability.Observability.child(
+            httpRequest, "mateu rest_proxy " + method, spanAttributes)) {
+      try {
+        return send(source, state, httpRequest, method, span);
+      } catch (RestProxyException e) {
+        span.attribute("http.response.status_code", e.status == 0 ? null : e.status);
+        span.failed(e.getMessage());
+        throw e;
+      }
+    }
+  }
+
+  private Object send(
+      RestDataSource source,
+      Map<String, Object> state,
+      io.mateu.uidl.interfaces.HttpRequest httpRequest,
+      String method,
+      io.mateu.core.infra.observability.Telemetry.ChildSpan span) {
+    var url = source.url();
     try {
       // Values are percent-encoded by position (TemplateInterpolator.interpolateUrl), so a value
       // from the client state cannot add path segments, a query or another host to the request.
@@ -405,6 +430,7 @@ final class RestProxyCalls {
       }
       var response =
           REST_HTTP.send(builder.build(), java.net.http.HttpResponse.BodyHandlers.ofString());
+      span.attribute("http.response.status_code", response.statusCode());
       // redirects are not followed, so a 3xx is a call that did not do what it was asked: an empty
       // 302 read as a success would tell the user a write went through
       if (response.statusCode() >= 300) {

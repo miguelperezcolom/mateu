@@ -325,6 +325,22 @@ internal sealed class MicroFrontendServerResolver(
                 "micro frontend remote={RemoteId} url={Url} slot={Slot} outcome={Outcome} degradedTo={DegradedTo} ms={Ms} correlationId={CorrelationId}",
                 resolution.RemoteId, resolution.Url, resolution.SlotKey, OutcomeName(outcome), resolution.DegradedTo,
                 resolution.DurationMillis, resolution.CorrelationId);
+        // a child activity of the request's, written once its outcome is known (the call ran under
+        // a deadline, asynchronously)
+        Observability.RequestObservation.RecordChild(
+            "mateu microfrontend " + (resolution.RemoteId ?? "unregistered"),
+            TimeSpan.FromMilliseconds(resolution.DurationMillis),
+            [
+                new("mateu.remote.id", resolution.RemoteId),
+                new("url.full", resolution.Url),
+                new("mateu.content_slot", resolution.SlotKey),
+                new("mateu.microfrontend.outcome", OutcomeName(outcome).ToLowerInvariant()),
+                new("mateu.microfrontend.degraded_to", resolution.DegradedTo),
+                new("mateu.correlation_id", resolution.CorrelationId),
+            ],
+            outcome is MicroFrontendResolutionOutcome.Error or MicroFrontendResolutionOutcome.Timeout
+                ? resolution.Error ?? OutcomeName(outcome)
+                : null);
         foreach (var listener in listeners)
         {
             try

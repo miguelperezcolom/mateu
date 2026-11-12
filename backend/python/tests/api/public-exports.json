@@ -1,7 +1,10 @@
 {
  "mateu_ui.uidl": [
   "Access",
+  "ActionAuditEvent",
+  "ActionAuditListener",
   "ActionCatalogSupplier",
+  "ActionOutcome",
   "ActionRequest",
   "AdaptedView",
   "AdvancedCreateEditPage",
