@@ -12,6 +12,7 @@
  * - no header (a static bundle, an older server) → nothing.
  */
 
+import { chromeLanguageOf, type ChromeLanguage } from './chromeLanguage.ts';
 import { MIN_WIRE_VERSION } from './wireVersion.ts';
 
 export const RENDERER_HEADER = 'X-Mateu-Renderer';
@@ -104,21 +105,43 @@ export interface SkewTexts {
   reload: string;
 }
 
-const EN: SkewTexts = {
-  updated: 'This app has been updated. Reload to use the latest version.',
-  stale: 'This screen has changed since you opened it. Reload to continue.',
-  reload: 'Reload',
+// the same words as the web's chromeTexts (appUpdated / staleScreen / reload)
+const TEXTS: Record<ChromeLanguage, SkewTexts> = {
+  en: {
+    updated: 'This app has been updated. Reload to use the latest version.',
+    stale: 'This screen has changed since you opened it. Reload to continue.',
+    reload: 'Reload',
+  },
+  es: {
+    updated: 'Esta aplicación se ha actualizado. Recarga para usar la última versión.',
+    stale: 'Esta pantalla ha cambiado desde que la abriste. Recarga para continuar.',
+    reload: 'Recargar',
+  },
+  fr: {
+    updated: 'Cette application a été mise à jour. Rechargez pour utiliser la dernière version.',
+    stale: "Cet écran a changé depuis que vous l'avez ouvert. Rechargez pour continuer.",
+    reload: 'Recharger',
+  },
+  de: {
+    updated: 'Diese Anwendung wurde aktualisiert. Laden Sie neu, um die neueste Version zu verwenden.',
+    stale: 'Dieser Bildschirm hat sich geändert, seit Sie ihn geöffnet haben. Laden Sie neu, um fortzufahren.',
+    reload: 'Neu laden',
+  },
+  pt: {
+    updated: 'Este aplicativo foi atualizado. Recarregue para usar a versão mais recente.',
+    stale: 'Esta tela mudou desde que você a abriu. Recarregue para continuar.',
+    reload: 'Recarregar',
+  },
+  it: {
+    updated: "Questa applicazione è stata aggiornata. Ricarica per usare l'ultima versione.",
+    stale: "Questa schermata è cambiata da quando l'hai aperta. Ricarica per continuare.",
+    reload: 'Ricarica',
+  },
 };
 
-const ES: SkewTexts = {
-  updated: 'Esta aplicación se ha actualizado. Recarga para usar la última versión.',
-  stale: 'Esta pantalla ha cambiado desde que la abriste. Recarga para continuar.',
-  reload: 'Recargar',
-};
-
-/** The notice texts in `locale` (Spanish for `es*`, English otherwise). */
+/** The notice texts in `locale`'s language (chromeLanguage.ts: its primary subtag, else English). */
 export function skewTexts(locale: string | null | undefined): SkewTexts {
-  return (locale ?? '').toLowerCase().startsWith('es') ? ES : EN;
+  return TEXTS[chromeLanguageOf(locale)];
 }
 
 /** Thrown for a stale-screen 403: the notice was already shown, callers must not add another. */

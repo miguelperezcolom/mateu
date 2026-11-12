@@ -84,13 +84,20 @@ itself. See [Permissions in YAML](/define/yaml/permissions/).
 
 ### Accessibility gaps against WCAG 2.2 AA
 
-Web charts have no text alternative, fields carry no `autocomplete` purpose, toasts (and their
-Undo) disappear after 5–10 s, the app-context select reloads the page on change, the planning
-board and drop zones are drag-only, and pinned headers can hide the focused control. The full list,
-per renderer, is in the [accessibility conformance report](/quality/accessibility-conformance/#known-gaps-in-one-list).
+The Redwood renderer still has no keyboard or single-pointer alternative for the planning board and
+drop zones and does not keep the focused control clear of pinned regions; on the web, dropping rows
+on a drop zone without dragging needs row selection on the listing; and the 2026-11 fixes are
+verified by component tests, not with assistive technology. The full list, per renderer, is in the [accessibility conformance report](/quality/accessibility-conformance/#known-gaps-in-one-list).
 
 **Workaround:** most have an author-side mitigation listed there (an action beside a drag-only
 board, no auto-dismissing banners for content users must read).
+
+### Right-to-left languages are not supported
+
+No renderer mirrors its layout for Arabic, Hebrew, Persian or Urdu: nothing sets `dir="rtl"`, and an
+RTL language gets Mateu's own words in English. The chrome speaks English, Spanish, French, German,
+Portuguese and Italian. What it would take is described in
+[Right-to-left languages](/java-user-manual/advanced/i18n/#right-to-left-languages).
 
 ### Redwood: light theme only
 

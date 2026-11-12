@@ -3,12 +3,29 @@ import { CHROME_LANGUAGES, chromeCatalogue, chromeLanguage, chromeText, chromeTe
 import { linkStyles } from './linkStyles'
 
 describe("the shell chrome's own words", () => {
-    it('follow the page language, Spanish or English', () => {
+    it('follow the page language: its primary subtag when the catalogue has it, else English', () => {
         expect(chromeLanguage('es-ES')).toBe('es')
+        expect(chromeLanguage('es_419')).toBe('es')
         expect(chromeLanguage('en-GB')).toBe('en')
-        expect(chromeLanguage('fr')).toBe('en')
+        expect(chromeLanguage('fr')).toBe('fr')
+        expect(chromeLanguage('fr-CA')).toBe('fr')
+        expect(chromeLanguage('de-AT')).toBe('de')
+        expect(chromeLanguage('pt-BR')).toBe('pt')
+        expect(chromeLanguage('pt-PT')).toBe('pt')
+        expect(chromeLanguage('IT-it')).toBe('it')
+        expect(chromeLanguage('nl')).toBe('en')
+        expect(chromeLanguage('ja-JP')).toBe('en')
+        expect(chromeLanguage('esperanto-like')).toBe('en')
         expect(chromeText('send', 'es')).toBe('Enviar')
         expect(chromeText('closeChat', 'es')).toBe('Cerrar el asistente')
+        expect(chromeText('cancel', 'fr-FR')).toBe('Annuler')
+        expect(chromeText('save', 'de-CH')).toBe('Speichern')
+        expect(chromeText('delete', 'pt-BR')).toBe('Excluir')
+        expect(chromeText('retry', 'it')).toBe('Riprova')
+    })
+
+    it('speak six languages', () => {
+        expect([...CHROME_LANGUAGES].sort()).toEqual(['de', 'en', 'es', 'fr', 'it', 'pt'])
     })
 })
 

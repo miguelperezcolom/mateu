@@ -61,6 +61,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `data.mateu = {ui, route}`; a tap opens that UI at that route, in the hub and in a fixed build.
   Mateu stores no token and sends nothing. Replaces the known issue "no OS notification from a
   suspended or closed app". Needs a new store build with APNs/FCM credentials.
+- **Mateu's own words in French, German, Portuguese and Italian.** Everything Mateu draws by itself —
+  buttons, the filter bar, pagination, dialogs, errors, the connectivity banner, accessible labels,
+  task ETAs, the version notice — now speaks fr, de, pt and it besides English and Spanish: the web
+  client, Redwood, the React Native app, the IntelliJ plugin and Java's built-in labels (a crud's
+  *New* / *Save* / *Cancel*…, the not-found page). The language is the tag's primary subtag (`pt-BR` and
+  `pt-PT` → Portuguese, written the Brazilian way; `de-AT` → German), English for any other. Every
+  catalogue has a completeness test (keys and placeholders); the ETA corpus covers the six languages.
+  Right-to-left languages are not supported — what it would take is documented in the i18n guide.
 
 ### Changed
 

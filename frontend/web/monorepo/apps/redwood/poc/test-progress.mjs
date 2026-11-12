@@ -565,16 +565,16 @@ test('toasts: applyDomEffects puts an inbox message in the inbox and takes the a
 
 // ── ETA (conformance/client/eta-format.json) ─────────────────────────────────────────────────
 
-test('ETA: the shared corpus words etaSeconds exactly, in English and Spanish; nothing without one', () => {
+test('ETA: the shared corpus words etaSeconds exactly, in every language it carries; nothing without one', () => {
   const corpus = JSON.parse(readFileSync(join(here, '..', '..', '..', '..', '..', '..', 'conformance', 'client', 'eta-format.json'), 'utf8'))
-  for (const lang of ['en', 'es']) {
+  assert.deepEqual(Object.keys(corpus.texts), ['en', 'es', 'fr', 'de', 'pt', 'it'])
+  for (const lang of Object.keys(corpus.texts)) {
     for (const [k, v] of Object.entries({ underMinute: 'taskEtaUnderMinute', minutes: 'taskEtaMinutes', hours: 'taskEtaHours' })) {
       assert.equal(chromeText(v, null, lang), corpus.texts[lang][k], `${lang} ${k}`)
     }
   }
   for (const c of corpus.cases) {
-    assert.equal(etaTextOf(c.etaSeconds, 'en'), c.en || '', `en ${c.etaSeconds}`)
-    assert.equal(etaTextOf(c.etaSeconds, 'es'), c.es || '', `es ${c.etaSeconds}`)
+    for (const lang of Object.keys(corpus.texts)) assert.equal(etaTextOf(c.etaSeconds, lang), c[lang] || '', `${lang} ${c.etaSeconds}`)
   }
   assert.equal(etaTextOf(undefined), '')
 })

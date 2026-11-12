@@ -69,6 +69,7 @@ describe("the chat panel's words", () => {
         expect(chatText('title', 'es')).toBe('Asistente')
         expect(chatText('send', 'es-ES')).toBe('Enviar')
         expect(chatText('placeholder', 'en')).toBe('Write a message…')
-        expect(chatText('close', 'fr')).toBe('Close the assistant')
+        expect(chatText('close', 'fr')).toBe("Fermer l'assistant")
+        expect(chatText('close', 'nl')).toBe('Close the assistant')
     })
 })
