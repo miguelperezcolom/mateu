@@ -315,14 +315,8 @@ private fun menuCardVisual(card: MenuCards.Card): JComponent? {
         label.preferredSize = java.awt.Dimension(size, size)
         label.verticalAlignment = javax.swing.SwingConstants.TOP
         com.intellij.openapi.application.ApplicationManager.getApplication().executeOnPooledThread {
-            val img = runCatching {
-                if (uri.startsWith("data:")) {
-                    val base64 = uri.substringAfter("base64,", "")
-                    if (base64.isNotBlank()) javax.imageio.ImageIO.read(java.util.Base64.getDecoder().decode(base64).inputStream()) else null
-                } else {
-                    javax.imageio.ImageIO.read(java.net.URI.create(uri).toURL())
-                }
-            }.getOrNull() ?: return@executeOnPooledThread
+            // SVG included (readImageSource sends it through the platform's public image loader)
+            val img = readImageSource(uri) ?: return@executeOnPooledThread
             val scale = minOf(size.toDouble() / img.width, size.toDouble() / img.height)
             val icon = javax.swing.ImageIcon(img.getScaledInstance(
                 (img.width * scale).toInt().coerceAtLeast(1), (img.height * scale).toInt().coerceAtLeast(1), java.awt.Image.SCALE_SMOOTH))

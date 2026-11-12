@@ -33,6 +33,7 @@ import { showsAsReadOnlyText } from './readOnlyText';
 import { lookupLabelOf } from '../core/readOnlyDisplay';
 import { interpolate, interpolateUrl } from '../core/expressions';
 import { fetchExternalJson, mapItemsToOptions, type FetchedOption } from '../core/restFetch';
+import { sourcedOptionsControl } from '../core/sourcedOptions';
 import { useViewController } from './MateuViewHost';
 import { theme, themed } from '../theme';
 import { fieldA11y, buttonA11y, modalA11y, headingA11y, announce } from '../a11y/a11y';
@@ -261,6 +262,40 @@ function FormFieldBody({ metadata, state, onStateChange, error }: Props) {
     // Radio buttons (small enums / @UseRadioButtons)
     if (stereotype === 'radio' && options.length > 0) {
       return <RadioField options={options} value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+    }
+
+    // A multi-value field (multi-select, checkbox group, list box, tree) fed by a REST
+    // `optionsSource`: its own control, drawn with the source's options once they land
+    // (core/sourcedOptions). Only the single select read a source before — these drew empty.
+    const sourcedControl = sourcedOptionsControl(metadata, rawValue);
+    if (sourcedControl && metadata.optionsSource) {
+      if (sourcedControl === 'treeSelect') ownLabel = true;
+      const selected = Array.isArray(rawValue) ? (rawValue as unknown[]).map(String) : [];
+      return (
+        <SourcedOptions source={metadata.optionsSource} fieldId={fieldId} state={state} appState={controller.session.appState}>
+          {(fetched) => {
+            switch (sourcedControl) {
+              case 'checkbox':
+                return <CheckboxGroupField options={fetched} value={selected} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+              case 'listBox':
+                return <ListBoxField options={fetched} value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+              case 'treeSelect':
+                return (
+                  <TreeSelectField
+                    label={label || fieldId}
+                    options={fetched}
+                    leavesOnly={(metadata as { treeLeavesOnly?: boolean }).treeLeavesOnly === true}
+                    value={stringValue}
+                    editable={editable}
+                    onChange={(v) => commit(fieldId, v)}
+                  />
+                );
+              default:
+                return <MultiSelectField options={fetched} value={selected} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+            }
+          }}
+        </SourcedOptions>
+      );
     }
 
     // Multi-select (Set<Enum> fields) — value is a list
@@ -776,20 +811,11 @@ export function GridRowForm({ columns, row, isNew, onSave, onDelete, onCancel }:
   );
 }
 
-// @RestOptions: a select whose options are fetched CLIENT-SIDE from an arbitrary REST endpoint on
-// mount (and refetched when the interpolated url changes — a state-dependent source).
-function RestOptionsField({ label, required, error, source, fieldId, state, appState, value, editable, onChange }: {
-  label?: string;
-  required?: boolean;
-  error?: string;
-  source: NonNullable<FieldMeta['optionsSource']>;
-  fieldId: string;
-  state: Record<string, unknown>;
-  appState: Record<string, unknown>;
-  value: string;
-  editable: boolean;
-  onChange: (v: string) => void;
-}) {
+/**
+ * The options of a REST `optionsSource`, fetched on mount (and again when the interpolated url
+ * changes — a state-dependent source); empty until they land or when the fetch fails.
+ */
+function useSourcedOptions(source: NonNullable<FieldMeta['optionsSource']>, fieldId: string, state: Record<string, unknown>, appState: Record<string, unknown>): FetchedOption[] {
   const controller = useViewController();
   const [options, setOptions] = useState<FetchedOption[]>([]);
   const resolve = (t: unknown): string => interpolate(String(t ?? ''), { state, appState });
@@ -811,6 +837,36 @@ function RestOptionsField({ label, required, error, source, fieldId, state, appS
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
+  return options;
+}
+
+/** A multi-value control over a REST source: [children] draws it from the fetched options. */
+function SourcedOptions({ source, fieldId, state, appState, children }: {
+  source: NonNullable<FieldMeta['optionsSource']>;
+  fieldId: string;
+  state: Record<string, unknown>;
+  appState: Record<string, unknown>;
+  children: (options: Option[]) => React.ReactNode;
+}) {
+  const options = useSourcedOptions(source, fieldId, state, appState);
+  return <>{children(options)}</>;
+}
+
+// @RestOptions: a select whose options are fetched CLIENT-SIDE from an arbitrary REST endpoint on
+// mount (and refetched when the interpolated url changes — a state-dependent source).
+function RestOptionsField({ label, required, error, source, fieldId, state, appState, value, editable, onChange }: {
+  label?: string;
+  required?: boolean;
+  error?: string;
+  source: NonNullable<FieldMeta['optionsSource']>;
+  fieldId: string;
+  state: Record<string, unknown>;
+  appState: Record<string, unknown>;
+  value: string;
+  editable: boolean;
+  onChange: (v: string) => void;
+}) {
+  const options = useSourcedOptions(source, fieldId, state, appState);
   return <OptionsField label={label} required={required} error={error} options={options} value={value} editable={editable} onChange={onChange} />;
 }
 

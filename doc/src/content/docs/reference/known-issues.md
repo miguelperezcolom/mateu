@@ -146,24 +146,6 @@ of the remote screen imports (`import: /x.js`) is a plain static file of the rem
 **Workaround:** open that path to the shell's origin on the remote (on Spring, a `CorsRegistry`
 mapping). See [Using external Mateu UIs](/java-user-manual/build/using-external-mateu-uis/).
 
-### Multi-value fields do not read `optionsSource`
-
-A single-select field takes its options from a REST source (`@RestOptions`, `optionsSource`). A
-multi-value field (`multiSelect`, `listBox`, multi-select `combobox`) does not: it reads static
-options or a remote `search-<field>` action.
-
-**Workaround:** give the field an options supplier or a `@Lookup` search on your server, which can
-call the external endpoint itself.
-
-### React Native: saved views and column choices last one session
-
-On React Native, saved listing views and the column chooser's show/hide choices are kept in memory
-and reset when the app restarts; columns cannot be reordered there. The web renderers and IntelliJ
-persist them.
-
-**Workaround:** none yet. Server-side defaults (the listing's declared columns and filters) are what
-a user sees after a restart.
-
 ### React Native: a suspended or closed app posts no local notification
 
 With `@App(osNotifications = true)` the phone app posts LOCAL notifications, which only the running
@@ -234,9 +216,6 @@ Listing filters (ranges, multi-select) are applied in memory in both ports by de
 - **The Figma pipeline, the visual editor and the VS Code extension are previews**: they are not
   covered by the stability promise (see
   [How mature each part is](/reference/support-policy/#how-mature-each-part-is-in-30)).
-- **The IntelliJ plugin and the desktop app do not draw SVG images**: an `Image` (or avatar, card
-  media) whose source is an SVG shows its `alt` text as a placeholder, because the platform offers no
-  public API to rasterise SVG. **Workaround:** serve a PNG or JPEG for the images the desktop must show.
 - **The Windows desktop installer is not code-signed**, so SmartScreen warns on its first run
   ("Windows protected your PC"). **Workaround:** check the download against the release page, then
   **More info ▸ Run anyway** — see [Installing on Windows](/native/desktop-app/#windows).

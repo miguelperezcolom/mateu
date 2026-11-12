@@ -13588,7 +13588,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (nested) out.push(nested)
         continue
       }
-      if (f.dataType === 'array' && !optionsOf(f, ctx.data).length) continue
+      if (f.dataType === 'array' && !optionsOf(f, ctx.data).length && !hasOptionsSource(f)) continue
       const raw = f.dataType === 'array' ? state[f.fieldId] : plainValueOf(state[f.fieldId])
       const widget = fieldWidgetOf(f, ctx.data, { lookups: true, value: raw })
       const error = errors && errors[f.fieldId]
@@ -14147,8 +14147,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (st === 'radio' && options.length) return { isRadio: true }
     // a single-value list box: every option visible in a bordered list, one picked (app.css .mateu-listbox)
     if (st === 'listBox' && options.length && f.dataType !== 'array') return { isRadio: true, fieldClass: 'mateu-listbox' }
-    if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
-    if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
+    // a multi-value field fed by a REST `optionsSource` is a multi-select / checkbox set before its
+    // options land too (loadRestOptions fills data[fieldId]; the page re-projects then) — it used to
+    // be skipped, as a list with no options
+    const offered = options.length || hasOptionsSource(f)
+    if (f.dataType === 'array' && offered && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
+    if (f.dataType === 'array' && offered && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
       return { isCheckboxSet: true }
     // email / link → Spectra's typed inputs (oj-sp-input-email / oj-sp-input-url): their own
     // format validation and, read-only, the value as a mailto: / web link
@@ -14236,6 +14240,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { fieldId: id, value: { ...dateRangeEndsOf(current), [m[2]]: value == null || value === '' ? null : value } }
   }
 
+  /** Whether the field's options come from a REST source (`optionsSource`: a url or a catalogue `ref`). */
+  function hasOptionsSource(md) {
+    const src = md && md.optionsSource
+    return !!(src && typeof src === 'object' && (src.url || src.ref))
+  }
+
   /** Does the oj-form-layout paint it? (besides the usual LAYOUT_TYPES) */
   function isExtraLayoutField(md) {
     return !!(isDateRangeField(md) || md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
@@ -14244,7 +14254,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       || (md.stereotype === 'richText' && !md.readOnly)
       || ((md.stereotype === 'markdown' || md.stereotype === 'html') && !md.readOnly)
       || CAPTURE_MODES[md.stereotype]
-      || (md.dataType === 'array' && (md.options || []).length
+      || (md.dataType === 'array' && ((md.options || []).length || hasOptionsSource(md))
         && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
   }
 
