@@ -1,0 +1,22 @@
+# One planet, read-only (route planets/:id), fetched by the route's `data:` source.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.58/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.name}
+subtitle: Planet
+toolbar:
+  - type: Button
+    actionId: backToList
+    label: Back to Planets
+    actionable:
+      type: RouteLink
+      route: planets
+content:
+  - type: FormLayout
+    maxColumns: 2
+    content:
+      - {type: FormField, id: climate, label: Climate, readOnly: true}
+      - {type: FormField, id: terrain, label: Terrain, readOnly: true}
+      - {type: FormField, id: gravity, label: Gravity, readOnly: true}
+      - {type: FormField, id: population, label: Population, dataType: integer, readOnly: true}
+      - {type: FormField, id: diameter, label: Diameter (km), dataType: integer, readOnly: true}
+      - {type: FormField, id: rotationPeriod, label: Day length (h), dataType: integer, readOnly: true}

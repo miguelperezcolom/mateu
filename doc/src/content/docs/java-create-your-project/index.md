@@ -22,18 +22,44 @@ The first choice is **how you author the UI**:
 
 | Authoring | What you get | Runtimes |
 |---|---|---|
-| **Code** | Screens are classes: `@UI` (Java), `[UI]` (C#) or `@ui` (Python). An app shell with a menu, a home page and a Product CRUD — or, with the *Home only* sample, the shell and the home page alone. | Spring Boot MVC/WebFlux, Quarkus, Micronaut, Helidon MP, .NET, Python |
+| **Code** | Screens are classes: `@UI` (Java), `[UI]` (C#) or `@ui` (Python). An app shell with a menu and the screens of the [template](#start-from-a-template) you pick — a Product CRUD by default. | Spring Boot MVC/WebFlux, Quarkus, Micronaut, Helidon MP, .NET, Python |
 | **YAML only, served by a backend** | **No UI code at all**: the Spring Boot main class plus `src/main/resources/specs/ui/` — a `type: UI` mount (with its `home:`), `routes.yaml`, an app shell, a home page, a listing and `sources.yaml` with sample data. See the [YAML quickstart](/define/yaml/quickstart/). | Spring Boot MVC |
 | **YAML only, static** | **No backend**: the same YAML, bundled at build time into a folder of static files for any CDN. | none — `mvn package` writes `target/mateu-bundle/` |
 | **Code + YAML** | App shell, routes and the home page as YAML; the Product CRUD as a Java view model bound in `routes.yaml`. | Spring Boot MVC/WebFlux, Quarkus |
 
-Whatever you pick, the project runs out of the box and opens on its **home page**; with the
-products sample, the home page's call to action and the **Products** menu entry lead to the products.
+Whatever you pick, the project runs out of the box and opens on its **home page** (the dashboard,
+for the *Dashboard + listings* template).
+
+### Start from a template
+
+The **template** is the app the new project starts from — a small, idiomatic business starting point
+that shows one family of Mateu screens. Each one is generated from the same starters (an overlay of a
+few files on top of them), compiles, starts and is kept by the generator's tests.
+
+| Template | Authoring | What it starts you with |
+|---|---|---|
+| **Back office: Product CRUD** (`crud`, the default) | Code | A home page and a **Products** CRUD: listing with search, create, detail, edit and delete, all derived from one record and its `CrudStore`. |
+| **Dashboard + listings** (`dashboard`) | Code (Java) | A [dashboard](/ux-patterns/dashboard/) the app opens on — a KPI band of `MetricCard`s (clickable: they open the listings) and charts computed from the data —, a read-only, searchable **Orders** [listing](/java-user-manual/build/capability-listings/) and the Products CRUD. |
+| **Wizard-driven intake** (`intake`) | Code (Java) | A multi-step request **wizard** with a branching step (the company details only for companies), a read-only review before it is submitted and a result step; the submitted requests in a searchable listing. |
+| **Operations: board + calendar** (`operations`) | Code (Java) | A **kanban board** whose cards move between stages on the server (drop a card: an action records the move), and the same tasks on a [calendar page](/ux-patterns/calendar/) by due date, with month, week and list views. |
+| **Home only** (`empty`) | Code | The shell and the home page alone, to add your own screens to. |
+| **Home + Product listing** (`listing`, the default) | YAML (served or static) | A searchable, filterable listing over a REST source, with sample data until the API exists. |
+| **Star Wars over a public REST API** (`swapi`) | YAML (served or static) | People and planets listings with search, a filter and server-side paging, and a record page for each row — read live from the public `swapi.mateu.io` API, no UI code and no sample data. |
+
+The IDE wizards show the templates the chosen flavour and runtime offer, each with a one-line
+description; the .NET and Python starters offer the CRUD. Every template keeps the same project
+layout, so moving on from one is editing it: the stores are in-memory classes to replace with your
+database or API.
+
 
 Then, where they apply: the **runtime**, the **renderer** (Vaadin, or Oracle Redwood for Spring
-Boot), the sample to start from, **sample pages from the page templates** (for the YAML flavours, in
+Boot), the **template** to start from, **sample pages from the page templates** (for the YAML flavours, in
 the IDEs) and the Maven coordinates. The archetype takes `-Dauthoring=code|yaml|static`,
-`-Drenderer=vaadin|redwood` and `-Dsample=crud|empty`, on Spring Boot (MVC), with any JDK from 21 on. The build tool is Maven.
+`-Drenderer=vaadin|redwood` and `-Dtemplate=crud|dashboard|intake|operations|empty` (code) or
+`-Dtemplate=listing|swapi` (YAML) — the older `-Dsample=crud|empty` still works —, on Spring Boot
+(MVC), with any JDK from 21 on. The build tool is Maven. From a clone of the repository the same
+generator runs on the command line: `node frontend/app/vscode-extension/scripts/new-project.mjs
+--authoring code --template dashboard --out my-app` (after `npm run compile` in that folder).
 
 Every generated project carries an **`AGENTS.md`** — what the project is, its layout, how to run it,
 where the UI is declared and the rules an AI assistant must respect (view models are per request,

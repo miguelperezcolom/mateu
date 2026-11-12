@@ -1,0 +1,25 @@
+# The home page: a hero with the app's title, a short intro and calls to action. The buttons
+# navigate because their actionable is a RouteLink — no code behind them. Open it in the Mateu
+# visual editor (IntelliJ or VS Code) to edit it on a canvas.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.58/backend/shared/uidl/specs-schema.json
+pageType: landing
+type: VerticalLayout
+fullWidth: true
+horizontalAlignment: STRETCH
+content:
+  - type: HeroSection
+    title: My app
+    subtitle: A UI declared as data over a public Star Wars API — no UI code, live data.
+    centered: true
+    content:
+      - type: Button
+        label: Browse people
+        buttonStyle: primary
+        actionable:
+          type: RouteLink
+          route: people
+      - type: Button
+        label: Browse planets
+        actionable:
+          type: RouteLink
+          route: planets

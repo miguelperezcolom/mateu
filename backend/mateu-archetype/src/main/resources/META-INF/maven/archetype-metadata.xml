@@ -18,7 +18,14 @@
       <defaultValue>vaadin</defaultValue>
       <validationRegex>^(vaadin|redwood)$</validationRegex>
     </requiredProperty>
-    <!-- crud (a Product CRUD) | empty (one home screen); the YAML flavours ship their listing -->
+    <!-- The template gallery (new-project.json `samples`): code → crud | dashboard | intake |
+         operations | empty; yaml and static → listing | swapi. `default` = the flavour's first
+         (crud, or listing), or what the older `sample` property names. -->
+    <requiredProperty key="template">
+      <defaultValue>default</defaultValue>
+      <validationRegex>^(default|crud|dashboard|intake|operations|empty|listing|swapi)$</validationRegex>
+    </requiredProperty>
+    <!-- The template's older name, kept for existing command lines: crud | empty (code flavour). -->
     <requiredProperty key="sample">
       <defaultValue>crud</defaultValue>
       <validationRegex>^(crud|empty)$</validationRegex>
