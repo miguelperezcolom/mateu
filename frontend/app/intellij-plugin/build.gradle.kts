@@ -33,8 +33,8 @@ fun deleteTree(root: File) {
 }
 
 plugins {
-    kotlin("jvm") version "2.2.21"
-    id("org.jetbrains.intellij.platform") version "2.19.0"
+    kotlin("jvm") version "2.4.21"
+    id("org.jetbrains.intellij.platform") version "2.20.0"
     // Line coverage of the plugin's own code (`koverLog` / `koverXmlReport`, verified by `koverVerify`).
     id("org.jetbrains.kotlinx.kover") version "0.9.11"
 }
@@ -131,7 +131,7 @@ dependencies {
     // SVG images (an Image / avatar / card media whose src is an .svg) — MIT, pure Java. Bundled in
     // the plugin rather than reaching into the platform's own SVG code, which is internal API the
     // plugin verifier refuses (and whose jsvg copy is a JetBrains fork, `-jb.N`).
-    implementation("com.github.weisj:jsvg:2.0.0")
+    implementation("com.github.weisj:jsvg:2.2.0")
     testImplementation("junit:junit:4.13.2")
 }
 
