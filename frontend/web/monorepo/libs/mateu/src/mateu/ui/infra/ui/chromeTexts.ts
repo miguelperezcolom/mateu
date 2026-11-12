@@ -1082,6 +1082,24 @@ const fr: Catalogue = {
     carouselPause: 'Mettre les diapositives en pause',
     carouselPlay: 'Lire les diapositives',
     appContextChanging: "{label} : {value}. Rechargement de l'application…",
+    // large file uploads (2026-11)
+    chooseFiles: 'Choisir des fichiers',
+    uploadingFile: 'Envoi de {name}…',
+    fileTooLarge: 'Ce fichier est trop volumineux (max. {max}).',
+    fileNotAccepted: "Ce type de fichier n'est pas accepté.",
+    uploadFailed: "Le fichier n'a pas pu être envoyé.",
+    uploadNotAllowed: "Cet envoi n'est pas autorisé.",
+    uploadsNotAvailable: "L'envoi de fichiers n'est pas disponible.",
+    uploadNotSent: "Le fichier n'a pas pu être envoyé. Vérifiez la connexion et réessayez.",
+    // record presence (2026-11)
+    presenceAnd: ' et ',
+    presenceMore: '{names} et {n} autres',
+    presenceEditing: '{names} modifie cet enregistrement',
+    presenceEditingMany: '{names} modifient cet enregistrement',
+    presenceViewing: '{names} le consulte',
+    presenceViewingMany: '{names} le consultent',
+    presenceStartedEditing: '{name} a commencé à modifier cet enregistrement',
+    presenceLabel: 'Également sur cet enregistrement',
 }
 
 const de: Catalogue = {
@@ -1418,6 +1436,24 @@ const de: Catalogue = {
     carouselPause: 'Folien anhalten',
     carouselPlay: 'Folien abspielen',
     appContextChanging: '{label}: {value}. Die Anwendung wird neu geladen…',
+    // large file uploads (2026-11)
+    chooseFiles: 'Dateien auswählen',
+    uploadingFile: '{name} wird hochgeladen…',
+    fileTooLarge: 'Diese Datei ist zu groß (max. {max}).',
+    fileNotAccepted: 'Dieser Dateityp wird nicht akzeptiert.',
+    uploadFailed: 'Die Datei konnte nicht hochgeladen werden.',
+    uploadNotAllowed: 'Dieser Upload ist nicht erlaubt.',
+    uploadsNotAvailable: 'Uploads sind nicht verfügbar.',
+    uploadNotSent: 'Die Datei konnte nicht gesendet werden. Prüfen Sie die Verbindung und versuchen Sie es erneut.',
+    // record presence (2026-11)
+    presenceAnd: ' und ',
+    presenceMore: '{names} und {n} weitere',
+    presenceEditing: '{names} bearbeitet diesen Datensatz',
+    presenceEditingMany: '{names} bearbeiten diesen Datensatz',
+    presenceViewing: '{names} sieht ihn sich an',
+    presenceViewingMany: '{names} sehen ihn sich an',
+    presenceStartedEditing: '{name} hat begonnen, diesen Datensatz zu bearbeiten',
+    presenceLabel: 'Ebenfalls in diesem Datensatz',
 }
 
 const pt: Catalogue = {
@@ -1754,6 +1790,24 @@ const pt: Catalogue = {
     carouselPause: 'Pausar os slides',
     carouselPlay: 'Reproduzir os slides',
     appContextChanging: '{label}: {value}. Recarregando o aplicativo…',
+    // large file uploads (2026-11)
+    chooseFiles: 'Escolher arquivos',
+    uploadingFile: 'Enviando {name}…',
+    fileTooLarge: 'Este arquivo é grande demais (máx. {max}).',
+    fileNotAccepted: 'Este tipo de arquivo não é aceito.',
+    uploadFailed: 'Não foi possível enviar o arquivo.',
+    uploadNotAllowed: 'Este envio não é permitido.',
+    uploadsNotAvailable: 'O envio de arquivos não está disponível.',
+    uploadNotSent: 'Não foi possível enviar o arquivo. Verifique a conexão e tente novamente.',
+    // record presence (2026-11)
+    presenceAnd: ' e ',
+    presenceMore: '{names} e mais {n}',
+    presenceEditing: '{names} está editando este registro',
+    presenceEditingMany: '{names} estão editando este registro',
+    presenceViewing: '{names} está vendo',
+    presenceViewingMany: '{names} estão vendo',
+    presenceStartedEditing: '{name} começou a editar este registro',
+    presenceLabel: 'Também neste registro',
 }
 
 const it: Catalogue = {
@@ -2090,6 +2144,24 @@ const it: Catalogue = {
     carouselPause: 'Metti in pausa le diapositive',
     carouselPlay: 'Riproduci le diapositive',
     appContextChanging: "{label}: {value}. Ricaricamento dell'applicazione…",
+    // large file uploads (2026-11)
+    chooseFiles: 'Scegli file',
+    uploadingFile: 'Caricamento di {name}…',
+    fileTooLarge: 'Questo file è troppo grande (max {max}).',
+    fileNotAccepted: 'Questo tipo di file non è accettato.',
+    uploadFailed: 'Impossibile caricare il file.',
+    uploadNotAllowed: 'Questo caricamento non è consentito.',
+    uploadsNotAvailable: 'I caricamenti non sono disponibili.',
+    uploadNotSent: 'Impossibile inviare il file. Controlla la connessione e riprova.',
+    // record presence (2026-11)
+    presenceAnd: ' e ',
+    presenceMore: '{names} e altri {n}',
+    presenceEditing: '{names} sta modificando questo record',
+    presenceEditingMany: '{names} stanno modificando questo record',
+    presenceViewing: '{names} lo sta guardando',
+    presenceViewingMany: '{names} lo stanno guardando',
+    presenceStartedEditing: '{name} ha iniziato a modificare questo record',
+    presenceLabel: 'Anche su questo record',
 }
 
 /** The languages Mateu's chrome speaks. A language outside this list falls back to English. */
