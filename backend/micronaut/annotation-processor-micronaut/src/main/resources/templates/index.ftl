@@ -32,7 +32,8 @@ public class ${simpleClassName}Controller {
     // `~`, `:` or `@` (/stays/Jos%C3%A9) is a deep link like any other — it used to be a 404 here only.
     @Get(value = "/{+path:(?!.*mateu/v3/manifest$)" + io.mateu.core.infra.SpaFallback.NOT_AN_ASSET + "}", produces = MediaType.TEXT_HTML)
     public String getIndexAlways(String path,
-            @io.micronaut.http.annotation.Header("Accept") @io.micronaut.core.annotation.Nullable String accept) {
+            @io.micronaut.http.annotation.Header("Accept") @io.micronaut.core.annotation.Nullable String accept,
+            @io.micronaut.http.annotation.Header("X-Forwarded-Prefix") @io.micronaut.core.annotation.Nullable String forwardedPrefix) {
         // Only a NAVIGATION gets the index: a data fetch (Accept without text/html — a REST source
         // whose endpoint does not exist yet) must not be answered a 200 of HTML.
         if (!io.mateu.core.infra.SpaFallback.acceptsHtml(accept)) {
@@ -40,16 +41,18 @@ public class ${simpleClassName}Controller {
         }
         // a deep link into a YAML mount (type: UI) served next to this UI opens THAT mount: this
         // catch-all and the YAML one would otherwise be equally specific
-        var yaml = io.mateu.core.infra.YamlMounts.deepLinkIndex("${path?j_string}/" + path);
+        var yaml = io.mateu.core.infra.YamlMounts.deepLinkIndex("${path?j_string}/" + path, io.mateu.core.infra.PublicBase.of(io.mateu.core.infra.PublicBase.configuredContextPath(), forwardedPrefix));
         if (yaml != null) {
             return yaml;
         }
-        return getIndex();
+        return getIndex(forwardedPrefix);
     }
 
     @Get(produces = MediaType.TEXT_HTML)
-    public String getIndex() {
-        return IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug));
+    public String getIndex(@io.micronaut.http.annotation.Header("X-Forwarded-Prefix") @io.micronaut.core.annotation.Nullable String forwardedPrefix) {
+        // under micronaut.server.context-path / a prefix-stripping proxy the page's URLs carry it
+        return IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug)
+                .withPublicBase(io.mateu.core.infra.PublicBase.of(io.mateu.core.infra.PublicBase.configuredContextPath(), forwardedPrefix)));
     }
 
 }

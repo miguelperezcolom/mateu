@@ -1,3 +1,4 @@
+import { underPublicBase } from '@infra/http/publicBase.ts'
 /**
  * The ONE way the client follows a URL that came from the server (a `NavigateTo` command, an
  * action's `href`, a breadcrumb, a peer-navigation arrow, a URL field's "open" icon).
@@ -68,7 +69,9 @@ export const safeNavigate = (url: unknown, options: { newTab?: boolean } = {}): 
         window.location.assign(contact)
         return true
     }
-    const safe = resolveSafeUrl(url)
+    // a root-relative path the server named (`/orders/3`) is under the app's public base
+    // (a context path, a prefix-stripping proxy — publicBase.ts)
+    const safe = resolveSafeUrl(typeof url === 'string' ? underPublicBase(url) : url)
     if (!safe) {
         refuse(url)
         return false

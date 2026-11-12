@@ -338,7 +338,10 @@ public static class MateuExtensions
         // and icons. Public — the browser fetches them before anyone logs in, and none carries a secret.
         app.MapGet(prefix + Pwa.Dir + "{file}", async (HttpContext ctx, MateuRegistry registry, string file) =>
         {
-            var asset = Pwa.Asset(file, prefix,
+            // the manifest's scope and the worker's allowed scope are the PUBLIC ones (PublicBase)
+            var publicBase = PublicBase.Of(ctx.Request.PathBase.Value,
+                ctx.RequestServices.GetService<MateuOptions>()?.PublicBasePath);
+            var asset = Pwa.Asset(file, publicBase + prefix,
                 () => MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl),
                     ctx.RequestServices.GetService<SyncHandler>()?.MountShell(baseUrl)),
                 ctx.RequestServices.GetService<MateuOptions>()?.Pwa);
@@ -414,15 +417,20 @@ public static class MateuExtensions
         // worker version hashes the page exactly as served.
         var pwaOption = app.Services.GetService<MateuOptions>()?.Pwa;
         var versionSkew = app.Services.GetService<VersionSkew>();
-        string PwaHead(string html) => Pwa.Served(html, prefix,
+        var publicBaseOption = app.Services.GetService<MateuOptions>()?.PublicBasePath;
+        string PwaHead(string html, string publicBase) => Pwa.Served(html, publicBase + prefix,
             MobileManifest.Derive(MobileManifest.AppTypeOf(registry, baseUrl),
-                app.Services.GetService<SyncHandler>()?.MountShell(baseUrl)), versionSkew?.BuildId, pwaOption);
+                app.Services.GetService<SyncHandler>()?.MountShell(baseUrl)), versionSkew?.BuildId, pwaOption, publicBase);
         app.Use(async (ctx, next) =>
         {
             await next(ctx);
             if (ctx.Response.StatusCode != StatusCodes.Status404NotFound || ctx.Response.HasStarted) return;
             if (!HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method)) return;
-            var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug, oracleCdn, PwaHead);
+            // under UsePathBase / a trusted X-Forwarded-Prefix / MateuOptions.PublicBasePath the page is
+            // written for the PUBLIC path (PublicBase)
+            var publicBase = PublicBase.Of(ctx.Request.PathBase.Value, publicBaseOption);
+            var answer = UiAnswer(ctx.Request.Path.Value ?? "/", ctx.Request.Headers.Accept.ToString(), prefix, renderer, title, debug, oracleCdn,
+                html => PwaHead(html, publicBase), publicBase);
             if (answer is null) return;
             var (contentType, body, cacheControl) = answer.Value;
             var path = ctx.Request.Path.Value ?? "/";
@@ -466,7 +474,7 @@ public static class MateuExtensions
     /// or null when the request is not its to answer.</summary>
     internal static (string ContentType, byte[] Body, string? CacheControl)? UiAnswer(
         string path, string? accept, string prefix, RendererFiles renderer, string title, bool debug,
-        string? oracleCdn = null, Func<string, string>? head = null)
+        string? oracleCdn = null, Func<string, string>? head = null, string? publicBase = null)
     {
         // the PWA's files are its endpoint's alone: never a renderer file, never the page
         if (Pwa.IsEndpoint(path)) return null;
@@ -478,7 +486,7 @@ public static class MateuExtensions
         var isMount = path == (prefix.Length == 0 ? "/" : prefix) || path == prefix + "/";
         if (!(isMount || (UiPage.SpaCandidate(path) && UiPage.UnderMount(path, prefix)))) return null;
         if (!UiPage.AcceptsHtml(accept)) return null;
-        var html = UiPage.RenderIndex(renderer.IndexTemplate(), prefix, title, debug, oracleCdn);
+        var html = UiPage.RenderIndex(renderer.IndexTemplate(), prefix, title, debug, oracleCdn, publicBase);
         if (head is not null) html = head(html);
         return ("text/html; charset=utf-8", System.Text.Encoding.UTF8.GetBytes(html), UiPage.RevalidateCacheControl);
     }

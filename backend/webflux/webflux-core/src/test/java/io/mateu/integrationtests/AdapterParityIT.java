@@ -152,6 +152,16 @@ class AdapterParityIT {
     }
 
     @Test
+    void servesThePageUnderAForwardedPrefix() {
+      contract.servesThePageUnderAForwardedPrefix();
+    }
+
+    @Test
+    void servesAYamlMountUnderAForwardedPrefix() {
+      contract.servesAYamlMountUnderAForwardedPrefix();
+    }
+
+    @Test
     void cancelsTheWorkWhenTheStreamsClientLeaves() throws Exception {
       contract.cancelsTheWorkWhenTheStreamsClientLeaves();
     }

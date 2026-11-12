@@ -47,6 +47,14 @@ public sealed class MateuOptions
     /// Java: <c>mateu.oracle-cdn.url</c>.</summary>
     public string? OracleCdnUrl { get; set; }
 
+    /// <summary>The prefix a reverse proxy strips in front of the app (<c>/crm</c>: the proxy serves
+    /// it at <c>https://host/crm/</c> and forwards <c>/x</c>), so the served page writes its assets,
+    /// its API base and its PWA links under it. Null reads <c>MATEU_PUBLIC_BASE_PATH</c>. Not needed
+    /// with <c>app.UsePathBase</c>, nor when the app trusts the proxy's <c>X-Forwarded-Prefix</c>
+    /// (<c>UseForwardedHeaders</c> with <c>ForwardedHeaders.XForwardedPrefix</c>): both set the
+    /// request's <c>PathBase</c>, which is read too. Java: <c>mateu.public-base-path</c>.</summary>
+    public string? PublicBasePath { get; set; }
+
     /// <summary>Serve every UI as an installable Progressive Web App: the served page links a web app
     /// manifest and registers a network-first service worker (an offline shell; never the API or the
     /// REST-source data), both under <c>{mount}/mateu/v3/pwa/</c>. Null (the default) means ON unless the

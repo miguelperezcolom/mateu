@@ -267,3 +267,47 @@ def test_mount_ui_mirrors_javas_index_page():
     assert ui_page.cache_control_for("/version_123/x.js") == ui_page.IMMUTABLE_CACHE_CONTROL
     assert ui_page.cache_control_for("/_redwood/app.js") == "no-cache"
     assert ui_page.cache_control_for("/vite.svg") is None
+
+
+def test_behind_a_prefix_stripping_proxy_the_page_is_written_for_the_public_path(vaadin_static, monkeypatch):
+    # the proxy serves the app at /crm/ and forwards /shop/… (Java's PublicBase / mateu.public-base-path)
+    monkeypatch.delenv("MATEU_PUBLIC_BASE_PATH", raising=False)
+    c = client(vaadin_static, base_url="/shop", public_base_path="/crm")
+    html = c.get("/shop/orders/1").text
+    assert '<mateu-ui baseUrl="/crm/shop" pathPrefix="/crm/shop" publicBase="/crm"' in html
+    assert 'src="/crm/assets/mateu-vaadin.js"' in html
+    assert '="/assets/' not in html
+    assert 'href="/crm/shop/mateu/v3/pwa/manifest.webmanifest"' in html
+    # the API and the assets answer the path the proxy forwards
+    assert c.get("/assets/mateu-vaadin.js").status_code == 200
+    assert c.get("/shop/mateu/v3/pwa/sw.js").headers["service-worker-allowed"] == "/crm/shop"
+
+
+def test_under_an_asgi_root_path_the_page_is_written_for_it(vaadin_static, monkeypatch):
+    monkeypatch.delenv("MATEU_PUBLIC_BASE_PATH", raising=False)
+    app = FastAPI(root_path="/crm")
+    add_mateu(app, MODULE, base_url="/shop", ui=vaadin_static)
+    c = TestClient(app, headers={"accept": "text/html,application/xhtml+xml,*/*;q=0.8"}, root_path="/crm")
+    html = c.get("/shop").text
+    assert '<mateu-ui baseUrl="/crm/shop" pathPrefix="/crm/shop" publicBase="/crm"' in html
+    assert 'src="/crm/assets/mateu-vaadin.js"' in html
+
+
+def test_the_public_base_is_a_plain_path_and_rewrites_root_relative_urls():
+    from mateu_ui.core import public_base, pwa
+
+    assert public_base.normalize("/crm/") == "/crm"
+    assert public_base.normalize("/edge, /inner") == "/edge"
+    assert public_base.normalize('/"><script>') == ""
+    assert public_base.normalize("//evil.example") == ""
+    assert public_base.of("/app", "/sales") == "/sales/app"
+    page = "<base href=\"/\"><script src=\"/assets/a.js\"></script><link href=\"//cdn/x.css\"><script>c={BASE_URL: '/_redwood/'}</script>"
+    out = public_base.rewrite(page, "/crm")
+    assert '<base href="/crm/">' in out
+    assert 'src="/crm/assets/a.js"' in out
+    assert 'href="//cdn/x.css"' in out
+    assert "BASE_URL: '/crm/_redwood/'" in out
+    assert public_base.rewrite(page, "") == page
+    assert pwa.static_folders('<script src="/crm/assets/a.js"></script><script src="/crm/x.js"></script>', "/crm") == [
+        "/crm/assets/"
+    ]

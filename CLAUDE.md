@@ -941,8 +941,37 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   Demo poms read `mateu.version`; demos are on Boot 4 with distinct ports (front-office-evolution 8596,
   redwood-showcase 8597, explorer 8598, webflux 8092, micronaut 8093, quarkus 8094, helidon 8095,
   kotlin 8096 — `demo/README.md`). The docs site must pass `npm run verify` (build + link check). A
-  servlet context path (`server.servlet.context-path`) is UNSUPPORTED (the page loads `/assets` from the
-  host root). CHANGELOG.md, CONTRIBUTING.md (DCO), SECURITY.md (GitHub advisories) exist.
+  path prefix IS supported since 2026-11-11 — see "Public base path" below. CHANGELOG.md, CONTRIBUTING.md (DCO), SECURITY.md (GitHub advisories) exist.
+
+## Public base path — context paths and prefix-stripping proxies (2026-11-11)
+
+`io.mateu.core.infra.PublicBase` (.NET `Mateu.Core.PublicBase`, Python `mateu_ui.core.public_base`) =
+the path in front of everything the app serves AS THE BROWSER SEES IT: `""`, or `/crm` under a
+framework context path (read off the request where it carries one — MVC `getContextPath()`, WebFlux
+`requestPath().contextPath()`, ASP.NET `PathBase`, ASGI `root_path` — else `PublicBase.configuredContextPath()`
+over `quarkus.http.root-path`/`micronaut.server.context-path`/… via `MateuSettings`) PRECEDED by a proxy
+prefix: `mateu.public-base-path` (env `MATEU_PUBLIC_BASE_PATH`), else `X-Forwarded-Prefix` ONLY with
+`mateu.trust-forwarded-prefix=true` (.NET: the platform's `UseForwardedHeaders(XForwardedPrefix)`; Python
+never reads the header). Only a plain path survives `normalize` (it lands in markup).
+- **Only the SERVED PAGE uses it** (`IndexPage.Spec.withPublicBase`, `YamlMounts.indexHtml(…, base)`,
+  `Pwa.served/asset` scope, `devHead`): `PublicBase.rewrite` puts the template's root-relative
+  `src`/`href`/`data-src`, a Redwood `<base href="/">` and `BASE_URL: '/_redwood/'` under the base
+  BEFORE the root element is written; `<mateu-ui baseUrl="/crm/x" pathPrefix="/crm/x" publicBase="/crm">`.
+  Every endpoint still answers the path it RECEIVES — never prefix a route/mapping with it. Adapters pass
+  it at every index/PWA site (5 index.ftl/controller.ftl, the YAML-mount routes); MVC's `SpaRedirectFilter`
+  compares the path WITHIN the context (`pathWithinApp`). PWA `staticFolders(html, base)` = the segment
+  BELOW the base, never the base itself (that would cache the whole app).
+- **Clients**: a root-relative path the SERVER names (sibling mount baseUrl, `NavigateTo`, own REST
+  source `/api/x`, a crud's `/products/new`) goes under the base — libs/mateu `infra/http/publicBase.ts`
+  (`underPublicBase` at the sync/sse/live/agent/fetchExternalJson/safeNavigate choke points,
+  `routeTargetUrl(…, publicBase)`), Redwood `poc/mount.mjs` (`spelledWithTheBase`, `underPublicBase` in
+  `callMateu`/`fetchRestJson`, `mateuAssetBase` = the base). A screen's own `Image src: /x` is NOT rewritten.
+- **Vite**: `apps/vaadin/vite.config.ts` `experimental.renderBuiltUrl` makes JS/CSS-named URLs RELATIVE
+  (the lazy chunks' preload list was `"/"+dep` → 404 under a prefix → `vite:preloadError` broke every lazy
+  element); html stays root-relative (the server rewrites it).
+- Tests: `PublicBaseTest`, `IndexPageTest`, `PwaTest`, parity `servesThePageUnderAForwardedPrefix` (+YAML
+  variant), mvc `ContextPathIT`, vitest `publicBase.test.ts`/`navigationUrl.test.ts`, Redwood `test-pms.mjs`,
+  .NET `UiServingTests`, Python `test_ui_serving.py`. Docs `deploy/under-a-path-prefix.md`.
 
 ## Beta integration (2026-10-18) — refactor phase 4 + Fable review fixes
 

@@ -97,4 +97,17 @@ describe('routeTargetUrl', () => {
         expect(path(routeTargetUrl('second', '', '', origin))).toBe('/second')
         expect(path(routeTargetUrl('a/b?x=1', '/fed', '/fed', origin))).toBe('/fed/a/b?x=1')
     })
+
+    it('under a public base (a context path, a prefix-stripping proxy) every spelling lands under it', () => {
+        // the page writes pathPrefix=/crm/products; the server still spells inner routes /products/new
+        expect(path(routeTargetUrl('/products/new', '/crm/products', '/crm/products', origin, '/crm'))).toBe('/crm/products/new')
+        expect(path(routeTargetUrl('/products', '/crm/products', '/crm/products', origin, '/crm'))).toBe('/crm/products')
+        expect(path(routeTargetUrl('/3/edit', '/crm/products', '/crm/products', origin, '/crm'))).toBe('/crm/products/3/edit')
+        expect(path(routeTargetUrl('?page=1', '/crm/products', '/crm/products', origin, '/crm'))).toBe('/crm/products?page=1')
+        // a YAML mount: pathPrefix is the base itself, the route the whole path below it
+        expect(path(routeTargetUrl('/yaml-mount/x', '/crm/yaml-mount', '/crm', origin, '/crm'))).toBe('/crm/yaml-mount/x')
+        expect(path(routeTargetUrl('second', '/crm/yaml-mount', '/crm', origin, '/crm'))).toBe('/crm/yaml-mount/second')
+        // a root app under the base
+        expect(path(routeTargetUrl('/orders', '/crm', '/crm', origin, '/crm'))).toBe('/crm/orders')
+    })
 })

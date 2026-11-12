@@ -80,6 +80,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   process unless the app registers a `PresenceStore` (`IPresenceStore`, `add_mateu(presence_store=…)`).
   Rendered by Vaadin, React Native and the IntelliJ plugin. Docs: `ux-patterns/record-presence`.
 
+- **An app can run under a path prefix.** A servlet context path (`server.servlet.context-path`,
+  `spring.webflux.base-path`, `quarkus.http.root-path`, `micronaut.server.context-path`; ASP.NET
+  `UsePathBase`; an ASGI `root_path`) or a reverse proxy that serves the app at `/crm/` and strips the
+  prefix (`mateu.public-base-path=/crm`, or `mateu.trust-forwarded-prefix=true` to read the proxy's
+  `X-Forwarded-Prefix`) used to give a blank screen: the page loaded `/assets/…` from the root of
+  the host. The served page is now written for the public path — assets, `<mateu-ui baseUrl>`, the
+  installable app's links and scope — and the Vaadin and Redwood renderers put the root-relative
+  paths the server names (a `NavigateTo`, a sibling mount, a REST source of the app) under it. Java
+  (all five adapters), .NET and Python. The Vaadin bundle's lazy chunks now preload relative to
+  their importer. Guide: [Serving the app under a path prefix](https://mateu.io/deploy/under-a-path-prefix/).
+
 ### Changed
 
 - **.NET packages target `net10.0` only.** .NET 8 left Microsoft support on 10 November 2026, so

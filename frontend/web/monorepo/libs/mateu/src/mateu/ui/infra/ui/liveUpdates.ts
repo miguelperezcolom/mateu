@@ -2,6 +2,7 @@ import type App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
 import { safeLocalStorage } from '@infra/safeStorage.ts'
 import { credentialHeadersFor } from '@infra/http/credentialScope.ts'
 import { rendererHeaders } from '@infra/http/rendererIdentity.ts'
+import { underPublicBase } from '@infra/http/publicBase.ts'
 import { scopeHeaderValues, updateHeaderValue } from '@infra/ui/headerValues.ts'
 import { tabsShareIdentity } from '@infra/http/authToken.ts'
 import { inboxStore, notificationChangesOf } from '@infra/notify/inboxStore.ts'
@@ -110,8 +111,9 @@ const connect = () => {
     const relays = !ownStream
     const headers: Record<string, string> = { 'Accept': 'text/event-stream', 'Content-Type': 'application/json' }
     const path = (route || '_no_route').replace(/^\/+/, '')
-    Object.assign(headers, credentialHeadersFor(baseUrl + '/mateu/v3/sse/' + path), rendererHeaders())
-    fetch(baseUrl + '/mateu/v3/sse/' + path, {
+    const url = underPublicBase(baseUrl) + '/mateu/v3/sse/' + path
+    Object.assign(headers, credentialHeadersFor(url), rendererHeaders())
+    fetch(url, {
         method: 'POST',
         headers,
         signal: own.signal,

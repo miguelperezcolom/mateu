@@ -60,8 +60,10 @@ public class ${simpleClassName}MateuController implements MateuController {
     // registration script and the default icons, under v3/pwa/.
     @Path("v3/pwa/{file}")
     @jakarta.ws.rs.GET
-    public jakarta.ws.rs.core.Response pwa(@jakarta.ws.rs.PathParam("file") String file) {
-        var asset = io.mateu.core.infra.Pwa.asset(file, uiId, baseUrl);
+    public jakarta.ws.rs.core.Response pwa(@jakarta.ws.rs.PathParam("file") String file,
+            @jakarta.ws.rs.HeaderParam("X-Forwarded-Prefix") String forwardedPrefix) {
+        // the manifest's scope and the worker's allowed scope are the PUBLIC ones
+        var asset = io.mateu.core.infra.Pwa.asset(file, uiId, io.mateu.core.infra.PublicBase.of(io.mateu.core.infra.PublicBase.configuredContextPath(), forwardedPrefix) + baseUrl);
         if (asset == null) {
             return jakarta.ws.rs.core.Response.status(404).build();
         }

@@ -122,6 +122,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void servesThePageUnderAForwardedPrefix() {
+    contract.servesThePageUnderAForwardedPrefix();
+  }
+
+  @Test
   void cancelsTheWorkWhenTheStreamsClientLeaves() throws Exception {
     contract.cancelsTheWorkWhenTheStreamsClientLeaves();
   }

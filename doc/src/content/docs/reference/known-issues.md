@@ -15,17 +15,6 @@ never a public issue.
 
 ## Deployment
 
-### A servlet context path or a prefix-stripping proxy is not supported
-
-The generated index page loads the renderer's assets from `/assets/…` at the **root of the host**.
-Behind `server.servlet.context-path` or a reverse proxy that strips a path prefix, the page loads
-but the assets 404, so you get a blank screen.
-
-**Workaround:** serve the app at the root of its host, or give the mount the public path you want
-(`@UI("/admin")`) and route both `/admin/**` and `/assets/**` to the backend. Several Mateu apps
-behind one host share `/assets/**`, so they must run the same Mateu release. See
-[Deploy to production](/deploy/production-checklist/).
-
 ### Micronaut on JDK 21–23: virtual-thread pinning under load
 
 On Java 21+ Micronaut runs the blocking executor that serves Mateu's action endpoints on virtual
