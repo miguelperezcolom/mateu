@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -392,16 +391,8 @@ public final class Pwa {
     }
   }
 
-  private static final Pattern SCRIPT_SRC =
-      Pattern.compile(
-          "<script\\b[^>]*?\\s(?:data-)?src\\s*=\\s*[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
-  private static final Pattern LINK = Pattern.compile("<link\\b[^>]*>", Pattern.CASE_INSENSITIVE);
-  private static final Pattern LINK_REL =
-      Pattern.compile(
-          "\\srel\\s*=\\s*[\"'][^\"']*\\b(stylesheet|modulepreload|preload)\\b",
-          Pattern.CASE_INSENSITIVE);
-  private static final Pattern LINK_HREF =
-      Pattern.compile("\\shref\\s*=\\s*[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
+  private static final Pattern REL_TOKEN =
+      Pattern.compile("stylesheet|modulepreload|preload", Pattern.CASE_INSENSITIVE);
 
   /**
    * The folders a page loads its scripts and stylesheets from — {@code /assets/}, {@code
@@ -421,18 +412,19 @@ public final class Pwa {
   static List<String> staticFolders(String html, String publicBase) {
     var base = PublicBase.normalize(publicBase);
     var urls = new ArrayList<String>();
-    Matcher m = SCRIPT_SRC.matcher(html);
-    while (m.find()) {
-      urls.add(m.group(1));
+    // a hand-written scan, not a regex over the page: a tag-matching regex backtracks
+    // polynomially on markup like "<script<script<script…"
+    for (var attributes : tags(html, "script")) {
+      var src = firstOf(attributes, "src", "data-src");
+      if (src != null) {
+        urls.add(src);
+      }
     }
-    m = LINK.matcher(html);
-    while (m.find()) {
-      var tag = m.group();
-      if (LINK_REL.matcher(tag).find()) {
-        var href = LINK_HREF.matcher(tag);
-        if (href.find()) {
-          urls.add(href.group(1));
-        }
+    for (var attributes : tags(html, "link")) {
+      var rel = attributes.get("rel");
+      var href = attributes.get("href");
+      if (rel != null && href != null && relLoadsAsset(rel)) {
+        urls.add(href);
       }
     }
     var folders = new LinkedHashSet<String>();
@@ -446,6 +438,112 @@ public final class Pwa {
       }
     }
     return List.copyOf(folders);
+  }
+
+  /** The attributes (lower-cased names, in order) of every {@code <name …>} tag of {@code html}. */
+  static List<Map<String, String>> tags(String html, String name) {
+    var found = new ArrayList<Map<String, String>>();
+    if (html == null) {
+      return found;
+    }
+    var lower = html.toLowerCase(Locale.ROOT);
+    var open = "<" + name;
+    int from = 0;
+    while (true) {
+      int start = lower.indexOf(open, from);
+      if (start < 0) {
+        break;
+      }
+      int after = start + open.length();
+      if (after < lower.length() && isNameChar(lower.charAt(after))) {
+        from = after; // <scripts>, <linkx>: another tag
+        continue;
+      }
+      int end = lower.indexOf('>', after);
+      if (end < 0) {
+        break;
+      }
+      found.add(attributes(html.substring(after, end)));
+      from = end + 1;
+    }
+    return found;
+  }
+
+  private static boolean isNameChar(char c) {
+    return Character.isLetterOrDigit(c) || c == '_' || c == '-' || c == ':';
+  }
+
+  /** {@code name="value"} / {@code name='value'} / {@code name=value} / {@code name} pairs. */
+  private static Map<String, String> attributes(String tag) {
+    var attributes = new LinkedHashMap<String, String>();
+    int i = 0;
+    int n = tag.length();
+    while (i < n) {
+      while (i < n && (Character.isWhitespace(tag.charAt(i)) || tag.charAt(i) == '/')) {
+        i++;
+      }
+      int nameStart = i;
+      while (i < n
+          && !Character.isWhitespace(tag.charAt(i))
+          && tag.charAt(i) != '='
+          && tag.charAt(i) != '/') {
+        i++;
+      }
+      if (i == nameStart) {
+        if (i < n) {
+          i++; // a stray '=': skip it
+        }
+        continue;
+      }
+      var attribute = tag.substring(nameStart, i).toLowerCase(Locale.ROOT);
+      while (i < n && Character.isWhitespace(tag.charAt(i))) {
+        i++;
+      }
+      String value = "";
+      if (i < n && tag.charAt(i) == '=') {
+        i++;
+        while (i < n && Character.isWhitespace(tag.charAt(i))) {
+          i++;
+        }
+        if (i < n && (tag.charAt(i) == '"' || tag.charAt(i) == '\'')) {
+          char quote = tag.charAt(i++);
+          int close = tag.indexOf(quote, i);
+          if (close < 0) {
+            close = n;
+          }
+          value = tag.substring(i, close);
+          i = Math.min(n, close + 1);
+        } else {
+          int valueStart = i;
+          while (i < n && !Character.isWhitespace(tag.charAt(i))) {
+            i++;
+          }
+          value = tag.substring(valueStart, i);
+        }
+      }
+      attributes.putIfAbsent(attribute, value);
+    }
+    return attributes;
+  }
+
+  private static String firstOf(Map<String, String> attributes, String... names) {
+    for (var entry : attributes.entrySet()) {
+      for (var name : names) {
+        if (entry.getKey().equals(name) && !entry.getValue().isEmpty()) {
+          return entry.getValue();
+        }
+      }
+    }
+    return null;
+  }
+
+  private static boolean relLoadsAsset(String rel) {
+    for (var token : rel.trim().split("\\s+")) {
+      if (REL_TOKEN.matcher(token).matches()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static String folderOf(String url, String base) {
@@ -558,8 +656,9 @@ public final class Pwa {
     headers.put("Cache-Control", cacheControl);
     headers.put("X-Content-Type-Options", "nosniff");
     if (workerScope != null) {
-      // the worker lives under /mateu/v3/pwa/ but controls the whole UI
-      headers.put("Service-Worker-Allowed", workerScope);
+      // the worker lives under /mateu/v3/pwa/ but controls the whole UI; the scope carries the
+      // public base (a plain path by construction) — a header value never takes a line break
+      headers.put("Service-Worker-Allowed", workerScope.replaceAll("[\\r\\n]", ""));
     }
     return Map.copyOf(headers);
   }

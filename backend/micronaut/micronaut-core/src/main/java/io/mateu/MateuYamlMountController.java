@@ -138,7 +138,11 @@ public class MateuYamlMountController {
       return HttpResponse.status(HttpStatus.NOT_FOUND);
     }
     var response = HttpResponse.ok(asset.body());
-    asset.headers().forEach((name, value) -> response.header(name, value));
+    // the worker's scope derives from X-Forwarded-Prefix: PublicBase already keeps it to a plain
+    // path, and a header value never carries a line break whatever reaches it
+    asset
+        .headers()
+        .forEach((name, value) -> response.header(name, value.replaceAll("[\\r\\n]", "")));
     return response.contentType(asset.contentType());
   }
 

@@ -17,7 +17,7 @@ namespace Mateu.Core;
 /// Only the served page needs it (its assets, its <c>&lt;mateu-ui baseUrl&gt;</c>, the PWA links);
 /// everything else answers the path it receives. A value that is not a plain path is ignored.
 /// </remarks>
-public static class PublicBase
+internal static class PublicBase
 {
     /// <summary>The explicit prefix, when not set in <c>MateuOptions.PublicBasePath</c>.</summary>
     public const string EnvVar = "MATEU_PUBLIC_BASE_PATH";
