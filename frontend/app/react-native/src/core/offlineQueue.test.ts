@@ -200,3 +200,58 @@ test('refusalOf reads the error message of an answer', () => {
   assert.equal(refusalOf({ messages: [{ variant: 'error', text: 'Nope' }] }), 'Nope');
   assert.equal(refusalOf(null), null);
 });
+
+test('the hub hears any UI queue change until it unsubscribes, a removal included', async () => {
+  const store = memory();
+  const heard: string[] = [];
+  const off = OfflineQueue.onAnyChange((uiId) => heard.push(uiId));
+  await new OfflineQueue(store, 'ui1').enqueue(request(), 'key-0001-aaaa', 'x');
+  await OfflineQueue.clear(store, 'ui2');
+  off();
+  await new OfflineQueue(store, 'ui3').enqueue(request(), 'key-0002-bbbb', 'y');
+  assert.deepEqual(heard, ['ui1', 'ui2']);
+});
+
+test('a listener that unsubscribed hears nothing more; the snapshot follows the queue', async () => {
+  const q = new OfflineQueue(memory(), 'ui1');
+  assert.deepEqual(q.snapshot, []);
+  const seen: number[] = [];
+  const off = q.subscribe((items) => seen.push(items.length));
+  await q.enqueue(request(), 'key-0001-aaaa', 'x');
+  off();
+  await q.enqueue(request(), 'key-0002-bbbb', 'y');
+  assert.deepEqual(seen.slice(-1), [1]);
+  assert.deepEqual(q.snapshot.map((i) => i.key), ['key-0001-aaaa', 'key-0002-bbbb']);
+});
+
+test('a full store: the request is not kept for later (false) but lives in memory for this launch', async () => {
+  const store = memory();
+  store.set = async () => {
+    throw new Error('quota');
+  };
+  const q = new OfflineQueue(store, 'ui1');
+  assert.equal(await q.enqueue(request(), 'key-0001-aaaa', 'x'), false);
+  assert.equal(q.snapshot.length, 1);
+  assert.equal(store.data.size, 0);
+});
+
+test('an unreadable or corrupt outbox reads as empty, and clearing a broken store still notifies', async () => {
+  const corrupt = memory();
+  await chunked.set(corrupt, outboxKeyOf('ui1'), '{not json');
+  assert.equal(await OfflineQueue.countOf(corrupt, 'ui1'), 0);
+  await chunked.set(corrupt, outboxKeyOf('ui1'), JSON.stringify([{ key: 'k', request: {} }, null]));
+  assert.equal(await OfflineQueue.countOf(corrupt, 'ui1'), 0); // items without an actionId are dropped
+  const broken = memory();
+  broken.get = async () => {
+    throw new Error('locked');
+  };
+  broken.remove = async () => {
+    throw new Error('locked');
+  };
+  assert.deepEqual(await new OfflineQueue(broken, 'ui1').list(), []);
+  const heard: string[] = [];
+  const off = OfflineQueue.onAnyChange((uiId) => heard.push(uiId));
+  await OfflineQueue.clear(broken, 'ui1');
+  off();
+  assert.deepEqual(heard, ['ui1']);
+});

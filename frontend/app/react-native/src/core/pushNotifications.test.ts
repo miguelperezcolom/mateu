@@ -10,7 +10,9 @@ import {
   newPushKey,
   onPushOpened,
   resetLaunchHandledForTests,
+  setPushPort,
   pushTargetOf,
+  pushPort,
   pushTexts,
   recordOfPush,
   refreshPush,
@@ -241,4 +243,47 @@ test('a UI removed with no screen open is unregistered through a host built for 
   const other = host('https://b.example');
   await disablePush('https://a.example', registrations, async () => other.host);
   assert.equal(other.calls.length, 0);
+});
+
+test('without a platform binding push is simply unavailable, and nothing is registered', async () => {
+  const previous = pushPort();
+  setPushPort(null);
+  try {
+    const none = pushPort();
+    assert.equal(none.platform, null);
+    assert.equal(await none.permission(), 'unavailable');
+    assert.equal(await none.request(), 'unavailable');
+    assert.equal(await none.token(), null);
+    assert.equal(await none.launchedBy(), null);
+    none.onOpened(() => undefined)();
+    none.onReceived(() => undefined)();
+    const regs = new PushRegistrations(memoryStore());
+    const { host: h, calls } = host();
+    assert.equal(await enablePush(h, regs), 'unavailable');
+    assert.equal(calls.length, 0);
+    assert.deepEqual(await regs.list(), []);
+  } finally {
+    setPushPort(previous);
+  }
+});
+
+test('the switch hears registrations change until it unsubscribes', async () => {
+  const regs = new PushRegistrations(memoryStore());
+  let changes = 0;
+  const off = regs.subscribe(() => changes++);
+  await enablePush(host().host, regs, device('granted').port);
+  assert.equal(changes, 1);
+  off();
+  await regs.remove('https://a.example');
+  assert.equal(changes, 1);
+  assert.deepEqual(await regs.list(), []);
+});
+
+test('a re-registration the backend refuses keeps the stored record as it was', async () => {
+  const regs = new PushRegistrations(memoryStore());
+  const d = device('granted');
+  await enablePush(host().host, regs, d.port);
+  d.port.tokenValue = ROTATED;
+  assert.equal(await refreshPush(host('https://a.example', true).host, regs, d.port), false);
+  assert.equal((await regs.forBaseUrl('https://a.example'))?.token, TOKEN);
 });
