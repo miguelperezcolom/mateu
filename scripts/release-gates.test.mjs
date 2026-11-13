@@ -65,6 +65,31 @@ for (const [job, workflow] of [['plugins', 'publish-plugins.yml'], ['desktop', '
     })
 }
 
+// A called workflow cannot ask for more than its caller job grants: GitHub refuses the WHOLE release
+// run at startup (no job runs, nothing is published). beta.59 and beta.60 were lost to it — desktop.yml's
+// sign-windows asked for `actions: read` and the caller granted only `contents: write`.
+const LEVEL = { none: 0, read: 1, write: 2 }
+const permissionsIn = (block, indent) => {
+    const m = block.match(new RegExp(`\\n {${indent}}permissions:\\n((?: {${indent + 2}}[a-z-]+: [a-z]+.*\\n)+)`))
+    if (!m) return null
+    return Object.fromEntries([...m[1].matchAll(/([a-z-]+): ([a-z]+)/g)].map((p) => [p[1], p[2]]))
+}
+for (const [caller, workflow] of [['e2e', 'run_tests.yml'], ['plugins', 'publish-plugins.yml'], ['desktop', 'desktop.yml'], ['mobile', 'mobile.yml']]) {
+    test(`buid-and-publish.yml ${caller} grants every permission ${workflow} asks for`, () => {
+        const granted = permissionsIn(jobBlock('buid-and-publish.yml', caller), 4)
+            ?? permissionsIn('\n' + workflowText('buid-and-publish.yml'), 0)
+        const text = workflowText(workflow)
+        const asked = [['(workflow)', permissionsIn('\n' + text, 0) ?? {}]]
+        for (const m of text.matchAll(/\n {2}([a-z][a-z0-9-]*):\n/g)) asked.push([m[1], permissionsIn(jobBlock(workflow, m[1]), 4) ?? {}])
+        for (const [job, perms] of asked) {
+            for (const [scope, level] of Object.entries(perms)) {
+                assert.ok((LEVEL[granted[scope] ?? 'none'] ?? 0) >= LEVEL[level],
+                    `${workflow} ${job} asks for ${scope}: ${level}, the caller ${caller} grants ${granted[scope] ?? 'none'}`)
+            }
+        }
+    })
+}
+
 // The jobs that build (npm, Gradle, Expo: third-party code) never hold a write token.
 for (const [workflow, writers] of [['desktop.yml', ['attach']], ['mobile.yml', ['android-attach']], ['publish-plugins.yml', []]]) {
     test(`${workflow}: only ${writers.join(', ') || 'no job'} holds contents: write`, () => {

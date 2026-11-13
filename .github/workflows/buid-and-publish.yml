@@ -50,6 +50,7 @@ jobs:
     uses: ./.github/workflows/desktop.yml
     permissions:
       contents: write # only desktop.yml's attach job asks for it
+      actions: read # desktop.yml's sign-windows: SignPath reads this run's job and its artifact
     secrets:
       MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
       MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
