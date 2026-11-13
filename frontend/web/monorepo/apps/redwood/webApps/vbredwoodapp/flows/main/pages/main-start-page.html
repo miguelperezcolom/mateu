@@ -900,13 +900,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -2169,13 +2169,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -4166,13 +4166,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -5435,13 +5435,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -6746,13 +6746,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -8015,13 +8015,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -9359,13 +9359,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -10628,13 +10628,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -11939,13 +11939,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -13208,13 +13208,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -14580,13 +14580,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -15849,13 +15849,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -17214,13 +17214,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -18483,13 +18483,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -19800,13 +19800,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -21069,13 +21069,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -22397,13 +22397,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -23666,13 +23666,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -25016,13 +25016,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -26285,13 +26285,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -27607,13 +27607,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
   <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
   <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
   <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-  <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+  <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
   </div>
   </oj-bind-if>
   <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
   <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
   <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-  <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+  <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
   </div>
   </oj-bind-if>
   <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -28876,13 +28876,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                         <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                         <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                           <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                          <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                          <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                         </div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                         <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                           <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                          <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                          <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                         </div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -30216,13 +30216,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
   <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
   <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
   <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-  <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+  <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
   </div>
   </oj-bind-if>
   <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
   <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
   <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-  <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+  <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
   </div>
   </oj-bind-if>
   <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -31485,13 +31485,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                         <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                         <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                           <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                          <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                          <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                         </div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                         <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                           <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                          <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                          <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                         </div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -32812,13 +32812,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
       <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-      <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+      <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
       </div>
       </oj-bind-if>
       <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
       <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-      <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+      <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
       </div>
       </oj-bind-if>
       <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -34081,13 +34081,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                             <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                             <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                              <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                              <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                             <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                               <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                              <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                              <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -35663,13 +35663,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
         <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
         <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
         </div>
         </oj-bind-if>
         <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
         <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
         </div>
         </oj-bind-if>
         <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -36932,13 +36932,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                               <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                               <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                                <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                               </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                               <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                                 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                               </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -38259,13 +38259,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
         <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
         <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
         </div>
         </oj-bind-if>
         <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
         <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
         </div>
         </oj-bind-if>
         <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -39528,13 +39528,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                               <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                               <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                                <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                               </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                               <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                                 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                               </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -40880,13 +40880,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
         <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
         <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
         </div>
         </oj-bind-if>
         <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
         <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
         </div>
         </oj-bind-if>
         <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -42149,13 +42149,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                               <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                               <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                                <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                               </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                               <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                                 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                                <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                               </div>
                             </oj-bind-if>
                             <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -43723,13 +43723,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -44992,13 +44992,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -46308,13 +46308,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
   <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
   <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
   <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-  <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+  <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
   </div>
   </oj-bind-if>
   <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
   <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
   <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-  <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+  <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
   </div>
   </oj-bind-if>
   <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -47577,13 +47577,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                         <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                         <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                           <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                          <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                          <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                         </div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                         <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                           <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                          <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                          <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                         </div>
                       </oj-bind-if>
                       <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -48893,13 +48893,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -50162,13 +50162,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -51503,13 +51503,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -52772,13 +52772,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                 <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                   <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                  <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                  <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                 </div>
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                   <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                  <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                  <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                 </div>
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -54099,13 +54099,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -55368,13 +55368,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                 <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                   <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                  <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                  <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                 </div>
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                   <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                  <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                  <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                 </div>
               </oj-bind-if>
               <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -56709,13 +56709,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -57978,13 +57978,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -59651,13 +59651,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
     <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
     <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
     <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-    <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+    <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
     </div>
     </oj-bind-if>
     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
     <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
     <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
     </div>
     </oj-bind-if>
     <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -60920,13 +60920,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                           <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                           <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                             <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                            <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                            <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                           <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                             <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -62674,13 +62674,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
     <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
     <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
     <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-    <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+    <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
     </div>
     </oj-bind-if>
     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
     <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
     <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
     </div>
     </oj-bind-if>
     <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -63943,13 +63943,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                           <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                           <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                             <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                            <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                            <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                           <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                             <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -65683,13 +65683,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
     <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
     <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
     <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-    <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+    <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
     </div>
     </oj-bind-if>
     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
     <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
     <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+    <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
     </div>
     </oj-bind-if>
     <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -66952,13 +66952,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                           <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                           <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                             <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                            <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                            <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                           <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                             <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                            <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                           </div>
                         </oj-bind-if>
                         <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -68671,13 +68671,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -69940,13 +69940,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -71249,13 +71249,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -72518,13 +72518,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -74697,13 +74697,13 @@ on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $curre
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -75966,13 +75966,13 @@ on-sp-primary-action="[[ $listeners.islandBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -77275,13 +77275,13 @@ on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $curre
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -78544,13 +78544,13 @@ on-sp-primary-action="[[ $listeners.islandBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -79932,13 +79932,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -81201,13 +81201,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -82512,13 +82512,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -83781,13 +83781,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -85106,13 +85106,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -86375,13 +86375,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -87686,13 +87686,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -88955,13 +88955,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -90332,13 +90332,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
       <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-      <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+      <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
       </div>
       </oj-bind-if>
       <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
       <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-      <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+      <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
       </div>
       </oj-bind-if>
       <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -91601,13 +91601,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                             <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                             <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                              <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                              <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                             <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                               <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                              <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                              <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                             </div>
                           </oj-bind-if>
                           <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -93192,13 +93192,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -94461,13 +94461,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                     <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                     <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                      <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                     </div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                     <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                       <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                      <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                     </div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -95790,13 +95790,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -97059,13 +97059,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                     <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                     <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                       <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                      <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                     </div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                     <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                       <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                      <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                      <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                     </div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -98370,13 +98370,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -99639,13 +99639,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -100950,13 +100950,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -102219,13 +102219,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">
@@ -103543,13 +103543,13 @@ on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current
 <oj-bind-if test="[[ $current.data.isPropertyRow && $current.data.stacked ]]">
 <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
 <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
 <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+<div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
 </div>
 </oj-bind-if>
 <oj-bind-if test="[[ $current.data.isCallout ]]">
@@ -104812,13 +104812,13 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
                       <!-- in Spectra's item overview BODY (a read-only form layout): label above the value -->
                       <div class="oj-sm-margin-3x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPropertyRow && !$current.data.stacked ]]">
                       <div class="oj-flex oj-sm-margin-1x-bottom" :data-mateu-surface-id="[[ $current.data.surfaceId ]]">
                         <div class="oj-flex-item oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
-                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span></div>
+                        <div class="oj-flex-item oj-sm-flex-initial oj-typography-body-md"><span :class="[[ $current.data.valueClass ]]"><oj-bind-if test="[[ $current.data.isBoolValue ]]"><span role="img" :class="[[ $current.data.boolIconClass ]]" :aria-label="[[ $current.data.value ]]" :title="[[ $current.data.value ]]"></span></oj-bind-if><oj-bind-if test="[[ !$current.data.isBoolValue ]]"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></oj-bind-if></span></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isInput ]]">

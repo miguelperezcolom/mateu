@@ -8527,7 +8527,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           const shown = lookupLabel != null && lookupLabel !== ''
             ? readOnlyDisplayOf({ ...m, dataType: 'string', stereotype: m.stereotype === 'password' ? 'password' : 'regular', options: [] }, lookupLabel)
             : readOnlyDisplayOf(m, raw, ctx.data)
-          atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(shown.text), valueClass: shown.badgeClass }, container)
+          atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(shown.text), valueClass: shown.badgeClass,
+            ...propertyRowBoolOf(shown) }, container)
           return
         }
         if (m.dataType === 'status') {
@@ -13946,11 +13947,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if ((f.dataType === 'money' || f.stereotype === 'money') && value != null && value !== '') {
       return { text: moneyText(value), badgeClass: '' }
     }
+    // a boolean reads like Vaadin's read-only one: a check / a dash, its accessible name Yes / No
+    // in the page's language — never the raw `true` (the Museums record page's «On view»)
+    if (f.dataType === 'bool' || f.dataType === 'boolean' || value === true || value === false) {
+      const checked = value === true || value === 'true'
+      return { text: chromeText(checked ? 'yes' : 'no'), badgeClass: '', bool: { checked } }
+    }
     const plain = plainValueOf(value)
     const label = optionLabel(plain)
     if (label != null) return { text: label, badgeClass: '' }
     const shown = shownReadOnlyValueOf(f, plain)
     return { text: shown == null ? '' : String(shown), badgeClass: '' }
+  }
+  /** The flags a property row's atom carries for a boolean value (readOnlyDisplayOf's `bool`): the
+   *  template draws the check / the dash with the value text (Yes / No) as its accessible name. */
+  function propertyRowBoolOf(shown) {
+    if (!shown || !shown.bool) return { isBoolValue: false, boolIconClass: '' }
+    return { isBoolValue: true, boolIconClass: shown.bool.checked ? 'oj-ux-ico-check' : 'oj-ux-ico-minus' }
   }
   const EMPTY_READONLY_WIDGET = { isText: false, isEmptyReadonly: true, isTextArea: false, isNumber: false, isDate: false, isDateTime: false,
     isSelect: false, isLookup: false, lookupActionId: '', options: [] }

@@ -9,7 +9,7 @@ import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOf, ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf, pageHeaderExtrasOf, pageKpisOf, pageSubtitleOf } from './pageHeader.mjs'
 import { nestedListingAtomOf, templateNestsListings, pageListingNodeOf, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX, alignOf, columnWidthOf, nestedListingKeyOf, valueLabelOf } from './listing.mjs'
-import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, readOnlyDisplayOf } from './rowEditor.mjs'
+import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, propertyRowBoolOf, readOnlyDisplayOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
 import { safeHref, treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, progressStepsAtomOf, statAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
@@ -1402,7 +1402,8 @@ export function islandContentOf(ctx, opts = {}) {
         const shown = lookupLabel != null && lookupLabel !== ''
           ? readOnlyDisplayOf({ ...m, dataType: 'string', stereotype: m.stereotype === 'password' ? 'password' : 'regular', options: [] }, lookupLabel)
           : readOnlyDisplayOf(m, raw, ctx.data)
-        atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(shown.text), valueClass: shown.badgeClass }, container)
+        atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(shown.text), valueClass: shown.badgeClass,
+          ...propertyRowBoolOf(shown) }, container)
         return
       }
       if (m.dataType === 'status') {
