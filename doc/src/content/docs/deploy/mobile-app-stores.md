@@ -310,13 +310,17 @@ the variables don't cover (icons, universal links on your own domain).
 ### Push notifications: FCM and APNs credentials
 
 A notification that reaches a suspended or closed app is a remote push
-([Push notifications to phones](/deploy/push-notifications/)). The app asks Expo for a push token,
-and Expo delivers through Google's FCM and Apple's APNs. Both need credentials that only the owner of
-the store accounts can create. A build without them still works: it gets no push token, and the
-phone shows only the notifications the app posts itself.
+([Push notifications to phones](/deploy/push-notifications/)). **Only a `fixed` build has it**: the
+pushes of an app go out under that app's store identity, so the `hub` build (the Mateu app, which
+opens anybody's UI) ignores the credentials below and never asks for a push token. The build records
+the decision in `extra.remotePush`, and the app binds its token source only when it is `true`.
 
-1. **Android (FCM).** Create a Firebase project, add an Android app with your `package`
-   (`io.mateu.app` for the Mateu app) and download its `google-services.json`. Upload it to EAS as a
+The app asks Expo for a push token, and Expo delivers through Google's FCM and Apple's APNs. Both need
+credentials that only the owner of the store accounts can create. A build without them still works:
+it gets no push token, and the phone shows only the notifications the app posts itself.
+
+1. **Android (FCM).** Create a Firebase project, add an Android app with your `package` and download
+   its `google-services.json`. Upload it to EAS as a
    file environment variable named `GOOGLE_SERVICES_JSON`
    (`eas env:create --name GOOGLE_SERVICES_JSON --type file --value ./google-services.json`).
    `app.config.ts` points `android.googleServicesFile` at it only when the variable is set. Then
@@ -332,8 +336,8 @@ phone shows only the notifications the app posts itself.
    `mateu.push.expo.access-token` if you enabled Expo's enhanced push security. An app with
    `@App(osNotifications = true)` then announces push, and phones register.
 
-A fixed (white-label) app has its own EAS project id and therefore its own Expo push tokens. It
-needs its own FCM and APNs credentials, exactly as above.
+A fixed app has its own EAS project id and therefore its own Expo push tokens, sent under its own
+FCM and APNs credentials. It never shares them with the Mateu app.
 
 ### Without the stores: an APK on GitHub
 
