@@ -18,15 +18,10 @@ description: |
 
   Both are in the C# and Python ports.
 
-  > **Known issue (3.0-beta.64):** the browser is told about an Element's `on` action ids, but the
-  > server's strict action check does not count them, so a plain public handler is refused (403,
-  > "mark it @Action") — the handlers here carry `@Action`. Reported.
+  The handlers an `on` names are plain public methods of the view: naming them is what makes them
+  callable (no `@Action` needed).
 
   Try: click / double-click the raw button.
-knownIssue: >-
-  3.0-beta.64: Element `on:` action ids are advertised to the browser (TreeActionHarvester) but not
-  counted by the server's strict check (AdvertisedActions.walk reads actionId/*ActionId keys
-  only), so a plain public handler is refused with 403; marking it @Action works around it.
 examples:
   - title: In YAML — markup and an unregistered custom component
     yaml: specs/ui/explorer/components/element/elements.yaml

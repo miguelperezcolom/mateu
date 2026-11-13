@@ -14,14 +14,8 @@ description: |
   are different places. A YAML mount is served next to the `@UI` classes, on every adapter.
 
   **Try it:** open `/yaml-mount` — it lands on its home, `welcome`; its button goes to
-  `/yaml-mount/second` with a mount-relative `RouteLink`. Then open `/fed/welcome`.
-
-  > **Known issue (3.0-beta.64):** opened on its own, the `/yaml-mount` welcome's button lands on
-  > `/yaml-mount/second`; EMBEDDED here (the example below) the same mount-relative `RouteLink` is
-  > resolved against the Explorer's mount and the browser goes to `/second` — "Page not found".
-  > Reported.
-knownIssue: >-
-  3.0-beta.64: a mount-relative RouteLink inside an EMBEDDED page of another mount navigates the host to /second (the host's mount) instead of /yaml-mount/second; standalone it is right.
+  `/yaml-mount/second` with a mount-relative `RouteLink` — embedded below too: a route inside a page
+  embedded from another mount is THAT mount's. Then open `/fed/welcome`.
 examples:
   - title: Each mount's own welcome route, embedded
     java: io.mateu.explorer.examples.distributed.severalmounts.SeveralMounts
