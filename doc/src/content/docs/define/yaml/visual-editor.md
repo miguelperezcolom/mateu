@@ -287,7 +287,8 @@ content:
 
 The editor opens a partial on the canvas exactly like a page (it wraps the list in a temporary root
 for editing) and marks it with a **"partial"** chip; on save it unwraps back to the bare `content:`
-list so the authored shape is preserved. Partials compose — a partial may use another.
+list so the authored shape is preserved (any other top-level key the file carries is kept as well).
+Partials compose — a partial may use another.
 
 ## Preview and save
 
@@ -297,6 +298,19 @@ their own undo and save; the standalone browser keeps a localStorage draft). For
 view model, the editor saves the smallest thing that expresses your change — a **layout delta** when
 your edits are a re-ordering/relabelling of the model's fields, a full **snapshot** only when the tree
 holds something a delta cannot.
+
+An edit changes only the lines it touches: comments, key order, quoting, flow `{…}` entries, anchors
+and aliases (`&save` / `*save`) and merge keys (`<<: *base`) stay as you wrote them. Each use of an
+alias is edited on its own — changing the third `*save` turns that one into its own copy and leaves
+the anchor and its other uses alone; an item keeps its `<<` merge while the keys it inherits still
+hold, and a key you change on it is written on the item. The editor reads every result back before
+handing it to the IDE; in the rare case it cannot keep your text, it writes the file from its data
+and **says so** in the notice bar (⌘Z undoes it).
+
+**A file that does not load** — invalid YAML, or an alias that refers to itself — opens with the error
+and its text instead of the canvas, and nothing is written to it until it loads: fix the YAML there
+(click outside the box to apply) or in the IDE's text editor. The editor never replaces a file it
+could not read.
 
 ## The project's renderer
 
@@ -504,6 +518,13 @@ the whole mount it carries the other files as well. The design travels **inside 
 compressed into the URL fragment (`#mateuz=…`), which a browser never sends to a server. Nothing is
 uploaded, and a statically hosted editor stays static. **Open…** takes a pasted link (or the
 bare JSON document) and loads it as an ordinary edit, so `⌘Z` undoes it.
+
+A link is anyone's, so a design that arrives by one is **untrusted** until you say otherwise: the
+canvas paints it with its scripts switched off (an `Element`'s `on…` attributes and raw HTML,
+triggers, client-side code — the same strip an agent-authored screen goes through), and **Board**
+and **▶ Play** stay closed. **Trust this design** in the bar under the toolbar renders it as written.
+In a browser the choice survives a reload, and the standalone page also ships a Content Security
+Policy that runs no inline script.
 
 Opening a link in a browser replaces the local draft, and the previous one is kept under
 `mateu-visual-editor-yaml.previous`. An IDE editor writes one file, so it loads only the linked file

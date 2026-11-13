@@ -17,7 +17,8 @@ import { parse } from 'yaml'
  *
  * An alias shared by two siblings (the same object reached twice, no cycle) is ordinary YAML and
  * reads as before. The AST editors (`yamlEdit`, `yamlPreserve`) work on the document's nodes, not on
- * this data, and are not involved.
+ * this data; `yamlPreserve` reads its result back with `parseSpec` (and refuses an original it
+ * cannot read), and the editor unshares alias uses itself (`pageModel.unshared`).
  */
 export class YamlAliasCycleError extends Error {
     constructor() {
