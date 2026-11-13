@@ -6,40 +6,83 @@ hero:
   title: Mateu
   tagline: "Define business UIs once. Author the model as YAML, in a visual editor, or in Java, C# or Python. Render it on the web, on phones and on the desktop. Serve it from any backend — or from a CDN with no backend at all."
   actions:
-    - text: Choose your path
+    - text: Get started
       link: /start-here/choose-your-path/
       icon: right-arrow
-    - text: What is Mateu?
-      link: /mateu-about/what-is-mateu/
-      variant: minimal
     - text: See it live in the Explorer
       link: https://explorer.mateu.io
       variant: minimal
       icon: external
-    - text: What a UI is made of
-      link: /concepts/building-blocks/
-      variant: minimal
-    - text: The UX guide
-      link: /ux/
-      variant: minimal
 ---
 
 import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
-
-{/* UX: the hero answers "what is this?" in two seconds; the reel comes right
-    after as the proof — never as a gate the value proposition hides behind. */}
-
-:::tip[Any Mateu UI on your phone]
-The free **Mateu app** opens any UI built with Mateu, natively: scan its QR code, tap a link or type
-its address. [Get the app](/native/mateu-app/) — on the App Store now; on Android, help it reach
-Google Play: [become a tester](/native/android-testers/).
-:::
 
 ## See it in 30 seconds
 
 <div style={{ maxWidth: '920px', margin: '1.5rem auto 0', aspectRatio: '16 / 10.2', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 30px 90px -40px rgba(0,0,0,.6)' }}>
   <iframe src="/reel.html" title="Mateu — a 30-second tour" loading="lazy" allow="autoplay" style={{ width: '100%', height: '100%', border: 0, display: 'block' }}></iframe>
 </div>
+
+## The same screen, everywhere
+
+One artwork page of the [museums demo](https://museums.ec1.mateu.io/artworks/1), authored entirely in
+YAML and served by one backend, as the browser, the phone and Oracle Redwood draw it. Open them: they
+are live.
+
+<div class="mateu-surfaces">
+  <a href="https://museums.ec1.mateu.io/artworks/1"><img src="/images/home/museums-vaadin.jpg" alt="An artwork page of the museums demo on the Vaadin renderer" loading="lazy" /><span>Web · Vaadin</span></a>
+  <a href="/native/mateu-app/" class="phone"><img src="/images/home/museums-phone.jpg" alt="The same artwork page in the Mateu phone app" loading="lazy" /><span>The Mateu app · iOS &amp; Android</span></a>
+  <a href="https://museums-rw.ec1.mateu.io/artworks/1"><img src="/images/home/museums-redwood.jpg" alt="The same artwork page on the Oracle Redwood renderer" loading="lazy" /><span>Web · Oracle Redwood</span></a>
+</div>
+
+<style>{`
+  .mateu-surfaces { display: grid; grid-template-columns: 1.6fr .62fr 1.6fr; gap: 1rem; align-items: end; margin-top: 1.25rem; }
+  .mateu-surfaces a { display: flex; flex-direction: column; gap: .4rem; text-decoration: none; color: var(--sl-color-gray-2); font-size: var(--sl-text-sm); text-align: center; }
+  .mateu-surfaces img { width: 100%; border-radius: 10px; border: 1px solid var(--sl-color-hairline); box-shadow: 0 18px 40px -24px rgba(0,0,0,.45); }
+  .mateu-surfaces a.phone img { border-radius: 18px; }
+  @media (max-width: 50rem) { .mateu-surfaces { grid-template-columns: 1fr; } .mateu-surfaces a.phone { max-width: 16rem; margin: 0 auto; } }
+`}</style>
+
+## The problem
+
+Most business applications end up as two applications:
+
+```text
+backend → API → frontend → duplicated model → duplicated validation
+```
+
+That means duplicated concepts, duplicated validation, glue code, and one more project to keep
+alive.
+
+## The Mateu approach
+
+```text
+model (YAML · visual editor · Java · C# · Python) → one wire model → browser · phone · desktop
+```
+
+You declare what a screen contains; Mateu derives the screen. The model is files in your
+repository, reviewed and released like any other code — not a project in somebody's cloud.
+
+<CardGrid>
+  <Card title="Author it your way" icon="pencil">
+    YAML and the [visual editor](/define/yaml/visual-editor/) with no code, or
+    [Java](/java-user-manual/start-here/quickstart/), [C#](/csharp-user-manual/) or
+    [Python](/python-user-manual/) — or [both on one screen](/define/mixing/).
+  </Card>
+  <Card title="Render it anywhere" icon="laptop">
+    [Vaadin](/design-systems/vaadin/) and [Oracle Redwood](/design-systems/oracle-redwood/) on the
+    web (also embedded in Visual Builder apps), the [Mateu mobile app](/native/react-native/), and the
+    [desktop app](/native/) on Windows, macOS and Linux.
+  </Card>
+  <Card title="Serve it from anything" icon="rocket">
+    [A backend](/deploy/) in Java (5 frameworks), .NET or Python — or a
+    [static bundle](/deploy/static-bundle/) on a CDN with no backend.
+  </Card>
+  <Card title="Compose it" icon="puzzle">
+    [Federate](/mateu-about/ui-federation/) UIs owned by different teams and domains into one
+    console.
+  </Card>
+</CardGrid>
 
 ## One model, three ways to write it
 
@@ -119,69 +162,6 @@ class Products(Crud[Product]):
 
 [Choose your path →](/start-here/choose-your-path/)
 
-## The problem
-
-Most business applications end up as two applications:
-
-```text
-backend → API → frontend → duplicated model → duplicated validation
-```
-
-That means duplicated concepts, duplicated validation, glue code, and one more project to keep
-alive.
-
-## The Mateu approach
-
-```text
-model (YAML · visual editor · Java · C# · Python) → one wire model → browser · phone · desktop
-```
-
-You declare what a screen contains; Mateu derives the screen. The model is files in your
-repository, reviewed and released like any other code — not a project in somebody's cloud.
-
-<CardGrid>
-  <Card title="Author it your way" icon="pencil">
-    YAML and the [visual editor](/define/yaml/visual-editor/) with no code, or
-    [Java](/java-user-manual/start-here/quickstart/), [C#](/csharp-user-manual/) or
-    [Python](/python-user-manual/) — or [both on one screen](/define/mixing/).
-  </Card>
-  <Card title="Render it anywhere" icon="laptop">
-    [Vaadin](/design-systems/vaadin/) and [Oracle Redwood](/design-systems/oracle-redwood/) on the
-    web (also embedded in Visual Builder apps), the [Mateu mobile app](/native/react-native/), and
-    [IntelliJ](/native/) on the desktop.
-  </Card>
-  <Card title="Serve it from anything" icon="rocket">
-    [A backend](/deploy/) in Java (5 frameworks), .NET or Python — or a
-    [static bundle](/deploy/static-bundle/) on a CDN with no backend.
-  </Card>
-  <Card title="Compose it" icon="puzzle">
-    [Federate](/mateu-about/ui-federation/) UIs owned by different teams and domains into one
-    console.
-  </Card>
-</CardGrid>
-
-<CardGrid>
-  <Card title="See it live: the Mateu Explorer" icon="rocket">
-    Every component, page template, archetype, behaviour and distributed-UI pattern, running at
-    [explorer.mateu.io](https://explorer.mateu.io) next to the code that renders it.
-  </Card>
-  <Card title="What's new in 3.0" icon="star">
-    Meeting Mateu at the GA? [The highlights of 3.0](/start-here/whats-new/), each with a link.
-  </Card>
-</CardGrid>
-
-## What a Mateu UI is made of
-
-Whichever way you write it, a Mateu UI is built from the same blocks: a **mount** at a base path,
-an **app shell** and its **menu**, **routes**, **pages** (layouts of components, with optional
-**partials**), **actions**, **data sources** and the **state** they fill, plus the cross-cutting
-**field types**, **translations**, **environments**, **access** rules and **project settings**.
-[What a Mateu UI is made of](/concepts/building-blocks/) shows them on one diagram, with a small
-product catalogue as the running example.
-
-What those blocks look like to the people using the app (the shell, the six page types, the
-component catalogue and how to extend it) is the [UX guide](/ux/).
-
 ## What you can build
 
 <CardGrid>
@@ -203,6 +183,18 @@ Wondering how this differs from a React SPA, Vaadin or a low-code platform? See
 [Mateu vs the traditional stack](/mateu-about/comparison/) and
 [Mateu vs visual builders](/mateu-about/comparison-low-code/).
 
+## What a Mateu UI is made of
+
+Whichever way you write it, a Mateu UI is built from the same blocks: a **mount** at a base path,
+an **app shell** and its **menu**, **routes**, **pages** (layouts of components, with optional
+**partials**), **actions**, **data sources** and the **state** they fill, plus the cross-cutting
+**field types**, **translations**, **environments**, **access** rules and **project settings**.
+[What a Mateu UI is made of](/concepts/building-blocks/) shows them on one diagram, with a small
+product catalogue as the running example.
+
+What those blocks look like to the people using the app (the shell, the six page types, the
+component catalogue and how to extend it) is the [UX guide](/ux/).
+
 ## Where to go next
 
 1. [Choose your path](/start-here/choose-your-path/) — authoring, rendering, deployment.
@@ -213,3 +205,12 @@ Wondering how this differs from a React SPA, Vaadin or a low-code platform? See
 4. [The UX guide](/ux/) — the structure of an app, the six page types, the components, and how
    to extend them; [The Mateu Way](/the-mateu-way/) shows where each page type starts in code.
 5. [Serve & deploy](/deploy/) — backends, static bundles, Netlify, Kubernetes, app stores.
+6. [See it live](https://explorer.mateu.io) — every component, page template, archetype and
+   behaviour in the Mateu Explorer, next to the code that renders it.
+7. [What's new in 3.0](/start-here/whats-new/) — the highlights, each with a link.
+
+:::tip[Any Mateu UI on your phone]
+The free **Mateu app** opens any UI built with Mateu, natively: scan its QR code, tap a link or type
+its address. [Get the app](/native/mateu-app/) — on the App Store now; on Android, help it reach
+Google Play: [become a tester](/native/android-testers/).
+:::
