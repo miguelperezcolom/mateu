@@ -310,6 +310,15 @@ public static partial class MateuExtensions
                 }
                 return;
             }
+            // the stream is the handler's to grant, like any action: the view the request names
+            // ([EyesOnly] on the app class), the route's access: — a refusal answers its 403 and
+            // the stream never opens (Python runs the handler first too)
+            var admission = await RunGuarded(ctx, rq, () => handler.HandleAsync(rq, prefix, ctx.RequestAborted));
+            if (ctx.Response.StatusCode == StatusCodes.Status403Forbidden)
+            {
+                await Send(admission, ctx.RequestAborted);
+                return;
+            }
             using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted);
             lifetime.CancelAfter(LiveUpdatesMaxDuration);
             var queue = System.Threading.Channels.Channel.CreateUnbounded<UIIncrementDto>();
@@ -532,6 +541,8 @@ public static partial class MateuExtensions
         if (Pwa.IsEndpoint(path)) return null;
         if (path != "/" && UiPage.IsAsset(path))
         {
+            // an empty segment (/assets//x.js) is not the file's name: one file, one address
+            if (path.Contains("//", StringComparison.Ordinal)) return null;
             var file = renderer.Read(path);
             return file is null ? null : (UiPage.ContentTypeOf(path), file, UiPage.CacheControlFor(path));
         }
@@ -563,8 +574,9 @@ public static partial class MateuExtensions
                     "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}");
                 return;
             }
-            var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}";
-            var mcp = new McpService(handler, Json, baseUrl, rq => GuardMcp(ctx, rq, () => handler.Handle(rq, baseUrl)))
+            // the MOUNT path, never an origin built from the request (the Host header is the
+            // caller's to choose): what the sync and SSE endpoints pass the handler too
+            var mcp = new McpService(handler, Json, prefix, rq => GuardMcp(ctx, rq, () => handler.Handle(rq, prefix)))
             {
                 Push = handler.AgentPush,
                 Caller = Mateu.Core.AgentPush.AgentCaller.From(PrincipalName(ctx),
