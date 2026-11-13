@@ -50,11 +50,27 @@ class PresenceSyncTest {
     @Menu String home = "/";
   }
 
+  @SuppressWarnings("unused")
+  @UI("/orders")
+  public static class OrderView {
+    String id;
+  }
+
+  /** A record view only managers may open. */
+  @SuppressWarnings("unused")
+  @UI("/payslips")
+  @io.mateu.uidl.annotations.EyesOnly(roles = "manager")
+  public static class PayslipView {
+    String id;
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(Desk.class, OtherDesk.class, PlainDesk.class);
+    mateu =
+        TestMateu.withUis(
+            Desk.class, OtherDesk.class, PlainDesk.class, OrderView.class, PayslipView.class);
   }
 
   @AfterAll
@@ -85,7 +101,7 @@ class PresenceSyncTest {
     open(Desk.class, "bob", "tab-b", "orders/7/edit", "editing");
 
     var seenByAna = presence(Desk.class, "ana", "tab-a", "orders/7", "viewing");
-    assertThat(seenByAna.key()).isEqualTo("orders/7|io.example.OrderView");
+    assertThat(seenByAna.key()).isEqualTo("orders/7|" + OrderView.class.getName());
     assertThat(seenByAna.entries())
         .extracting(PresenceEntryDto::name, PresenceEntryDto::editing)
         .containsExactly(org.assertj.core.groups.Tuple.tuple("bob", true));
@@ -95,6 +111,65 @@ class PresenceSyncTest {
     assertThat(seenByBob.entries())
         .extracting(PresenceEntryDto::name, PresenceEntryDto::editing)
         .containsExactly(org.assertj.core.groups.Tuple.tuple("ana", false));
+  }
+
+  /**
+   * GA review S9: a record the caller may not open (its view is @EyesOnly for another role, or no
+   * type the app exposes) tells them nothing and does not show them there.
+   */
+  @Test
+  void aRecordTheCallerMayNotOpenTellsThemNothing() throws Throwable {
+    var manager =
+        new FakeHttpRequest(payslipRq("tab-m", "viewing", PayslipView.class.getName()))
+            .withAttribute("baseUrl", "");
+    manager.withPrincipal(
+        new io.mateu.core.infra.security.AuthenticatedPrincipal(
+            io.mateu.uidl.security.CallerIdentity.withRoles("mia", List.of("manager"))));
+    mateu
+        .service()
+        .runAction("", payslipRq("tab-m", "viewing", PayslipView.class.getName()), "", manager)
+        .blockLast();
+    try {
+      // bob (no manager role) asks about the payslip mia has open: nothing comes back...
+      var answer =
+          run(payslipRq("tab-b", "editing", PayslipView.class.getName()), "bob").commands();
+      assertThat(answer).isEmpty();
+      // ...and mia does not see bob there
+      var seenByMia =
+          mateu
+              .service()
+              .runAction(
+                  "", payslipRq("tab-m", "viewing", PayslipView.class.getName()), "", manager)
+              .blockLast()
+              .commands();
+      assertThat(seenByMia)
+          .allSatisfy(c -> assertThat(((PresenceDto) c.data()).entries()).isEmpty());
+      // a view the app does not expose at all: nothing either
+      assertThat(run(payslipRq("tab-b", "viewing", "io.example.Nowhere"), "bob").commands())
+          .isEmpty();
+    } finally {
+      mateu
+          .service()
+          .runAction("", payslipRq("tab-m", "leave", PayslipView.class.getName()), "", manager)
+          .blockLast();
+    }
+  }
+
+  private static RunActionRqDto payslipRq(String tab, String state, String view) {
+    Map<String, Object> parameters = new HashMap<>();
+    parameters.put("route", "payslips/3");
+    parameters.put("view", view);
+    parameters.put("tab", tab);
+    parameters.put("state", state);
+    return RunActionRqDto.builder()
+        .route(routeOf(Desk.class))
+        .consumedRoute(routeOf(Desk.class))
+        .serverSideType(Desk.class.getName())
+        .actionId("_presence")
+        .initiatorComponentId("_ux")
+        .componentState(Map.of())
+        .parameters(parameters)
+        .build();
   }
 
   @Test
@@ -159,7 +234,7 @@ class PresenceSyncTest {
       await(() -> !changes(anas).isEmpty());
       Thread.sleep(100);
       var change = changes(anas).get(changes(anas).size() - 1);
-      assertThat(change.key()).isEqualTo("orders/14|io.example.OrderView");
+      assertThat(change.key()).isEqualTo("orders/14|" + OrderView.class.getName());
       assertThat(change.entries())
           .extracting(PresenceEntryDto::name, PresenceEntryDto::editing)
           .containsExactly(org.assertj.core.groups.Tuple.tuple("bob", true));
@@ -197,7 +272,7 @@ class PresenceSyncTest {
   private static RunActionRqDto rq(Class<?> app, String route, String tab, String state) {
     Map<String, Object> parameters = new HashMap<>();
     parameters.put("route", route);
-    parameters.put("view", "io.example.OrderView");
+    parameters.put("view", OrderView.class.getName());
     parameters.put("tab", tab);
     parameters.put("state", state);
     return RunActionRqDto.builder()
