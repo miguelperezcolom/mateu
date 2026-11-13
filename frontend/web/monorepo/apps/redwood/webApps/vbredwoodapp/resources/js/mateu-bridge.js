@@ -13185,6 +13185,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return byTreeId || t
   }
 
+  /** Which context a MarkAsClean / MarkAsDirty is about: its target (a context id, or the tree id a
+   *  context answers to), else the surface that launched the request (opts.initiator), else — no
+   *  target and no initiator — the page, like any command with an empty target (R-7: the page's
+   *  MarkAsDirty used to land nowhere). */
+  function markTargetOf(contexts, t, refreshed, opts) {
+    if (t && contexts[t]) return t
+    const launched = refreshed[opts.initiator] || opts.initiator
+    if (launched) return launched
+    if (t) {
+      const resolved = resolveTarget(contexts, t)
+      return contexts[resolved] ? resolved : undefined
+    }
+    return HOST_ID
+  }
+
   /**
    * THE REDUCER. reg = { contexts, stack, shell }; returns the NEW reg + the effects VB
    * applies. Pure and immutable with structural sharing: only the touched entries change ref.
@@ -13459,12 +13474,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           break
         }
         case 'MarkAsClean': {
-          const id = t && contexts[t] ? t : (refreshed[opts.initiator] || opts.initiator)
-          if (id && contexts[id]) contexts[id] = { ...contexts[id], dirty: false }
+          const id = markTargetOf(contexts, t, refreshed, opts)
+          // `cleaned` counts the MarkAsCleans: a second one on an already clean context is still news
+          // to whoever keeps its own flag (the page's mateuDirty — shellFlows.pageDirtyAfterAction)
+          if (id && contexts[id]) contexts[id] = { ...contexts[id], dirty: false, cleaned: (contexts[id].cleaned || 0) + 1 }
           break
         }
         case 'MarkAsDirty': {
-          const id = t && contexts[t] ? t : (refreshed[opts.initiator] || opts.initiator)
+          const id = markTargetOf(contexts, t, refreshed, opts)
           if (id && contexts[id]) contexts[id] = { ...contexts[id], dirty: true }
           break
         }
@@ -18374,7 +18391,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const pendingActions = {
     _started: new Map(),
 
-    key(componentId, actionId) { return `${componentId || '_'}::${actionId}` },
+    /** The slot of an action of a component. With `parameters`, the slot is per parameter set: two
+     *  inline edits of DIFFERENT rows (update-row with another _editedRow) are two writes, not a
+     *  double click (R-4); the same parameters twice are one. */
+    key(componentId, actionId, parameters) {
+      const base = `${componentId || '_'}::${actionId}`
+      if (!parameters || typeof parameters !== 'object' || !Object.keys(parameters).length) return base
+      let tag
+      try { tag = JSON.stringify(parameters) } catch { tag = '' }
+      return tag ? `${base}::${tag}` : base
+    },
 
     /** Claims the slot. false = an identical one is already in flight and this is a duplicate. */
     begin(key, now = Date.now()) {
@@ -18393,6 +18419,29 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
     reset() { this._started.clear() },
   }
+
+  /**
+   * What a DUPLICATE action answers (a second press while the first is in flight): an increment
+   * that changes nothing — never null, which the chains passed to the reducer and threw on, leaving a
+   * retry for an action that never failed, and which the proxied REST leg read as a success (R-4,
+   * R-5). Marked, not by content: isDuplicateAnswer tells it from a real empty answer.
+   */
+  function duplicateAnswer() {
+    const inc = { fragments: [], commands: [], messages: [] }
+    Object.defineProperty(inc, '__mateuDuplicate', { value: true, enumerable: false })
+    return inc
+  }
+
+  /** The same for a stream (runMateuActionSse answers its increments): none, marked. */
+  function duplicateStream() {
+    const increments = []
+    Object.defineProperty(increments, '__mateuDuplicate', { value: true, enumerable: false })
+    return increments
+  }
+
+  /** Whether an answer (an increment, or a stream's increments) is a dropped duplicate's: the chain
+   *  that asked stops there — the first press is the one that answers. */
+  function isDuplicateAnswer(inc) { return !!(inc && inc.__mateuDuplicate) }
 
   // ── lifecycle hooks ─────────────────────────────────────────────────────────────
 
@@ -18471,7 +18520,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * One send: applies the timeout (fetch has none) and turns a 4xx/5xx into an error that
    * CARRIES the status, because fetch resolves those as success and further down there would be no way to know.
    */
-  async function sendOnce(url, init, timeoutMillis) {
+  async function sendOnce(url, init, timeoutMillis, { httpErrors = true } = {}) {
     // Negative = NO ceiling, for a stream that lasts as long as it lasts (LongTask). Different from 0 /
     // absent, which means "use the default one".
     const noCeiling = timeoutMillis != null && timeoutMillis < 0
@@ -18482,9 +18531,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       timedOut = true
       if (controller) controller.abort()
     }, ms)
+    let bodyPending = false
     try {
       const res = await fetch(url, controller ? { ...init, signal: controller.signal } : init)
-      if (!res.ok) {
+      if (!res.ok && httpErrors) {
         const text = await res.text().catch(() => '')
         const error = new Error(`Mateu → HTTP ${res.status}${text ? `: ${text}` : ''}`)
         error.status = res.status
@@ -18493,15 +18543,59 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         error.build = buildOfHeaders(res.headers)
         throw error
       }
-      return res
+      if (!timer) return res
+      // The ceiling covers the BODY too (R-8): a server that sends its headers and then stalls held
+      // the chain and its double-submit slot for ever. The timer keeps running until the body is
+      // read (json/text/…); our abort then fails that read, marked as a timeout.
+      bodyPending = true
+      // a body nobody reads (a 204, a stream read by hand) must not keep a Node test process alive
+      if (typeof timer === 'object' && timer && typeof timer.unref === 'function') timer.unref()
+      return bodyBoundBy(res, () => { clearTimeout(timer) }, () => timedOut)
     } catch (e) {
       // An abort fired by OUR timeout must read as a timeout, not as a cancellation:
       // the user does need to find out.
       if (timedOut && e) e.__mateuTimedOut = true
       throw e
     } finally {
-      if (timer) clearTimeout(timer)
+      if (timer && !bodyPending) clearTimeout(timer)
     }
+  }
+
+  /**
+   * A request to a REST source in the browser (the direct leg, restSources.fetchRestJson): fetch has
+   * no timeout, so a stalled API hung the page for ever — this one has the transport's ceiling (body
+   * included) and, for a WRITE, the busy state of the press (the transport hooks). It carries none of
+   * Mateu's credentials or headers (a third party's endpoint) and answers the Response as it is,
+   * 4xx/5xx included: the REST code reads the service's error body itself (R-6). A timeout rejects
+   * marked `__mateuTimedOut`.
+   */
+  async function fetchDirect(url, init, options = {}) {
+    const method = String((init && init.method) || 'GET').toUpperCase()
+    const quiet = options.quiet != null ? !!options.quiet : (method === 'GET' || method === 'HEAD')
+    if (!quiet) notify('onStart', { actionId: options.actionId })
+    try {
+      return await sendOnce(url, init, options.timeoutMillis, { httpErrors: false })
+    } finally {
+      // a REST failure is shown by the REST code (its toast): the busy state only goes off
+      if (!quiet) notify('onSettle', { actionId: options.actionId, failure: null })
+    }
+  }
+
+  const BODY_READERS = new Set(['json', 'text', 'arrayBuffer', 'blob', 'formData'])
+
+  /** `res` whose body readers stop the request's timer when they settle, and whose read cut by our
+   *  timeout carries `__mateuTimedOut` like the request itself would. Everything else is `res`'s. */
+  function bodyBoundBy(res, done, timedOut) {
+    const guarded = (read) => Promise.resolve().then(read).then(
+      (v) => { done(); return v },
+      (e) => { done(); if (timedOut() && e) e.__mateuTimedOut = true; throw e })
+    return new Proxy(res, {
+      get(target, prop) {
+        const value = Reflect.get(target, prop, target)
+        if (BODY_READERS.has(prop) && typeof value === 'function') return (...args) => guarded(() => value.apply(target, args))
+        return typeof value === 'function' ? value.bind(target) : value
+      },
+    })
   }
 
   /**
@@ -18654,7 +18748,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // notify the hooks — the busy bar and the error band are about what the user does.
     // Neither does one from a component that already shows its own loading (isLocalRequest): the combo searching
     // its options spins its own indicator, and the bar on top meant two waits for one keystroke
-    const quiet = options.quiet || isLocalRequest(actionId)
+    // `local: false`: a request whose id reads local but is not — a proxied REST WRITE rides
+    // `__restfetch__`, and the user pressed a button for it (R-6)
+    const quiet = options.quiet || (options.local !== false && isLocalRequest(actionId))
     const notifyUnlessQuiet = (hook, payload) => { if (!quiet) notify(hook, payload) }
     // `isolated`: whatever happens to this request says nothing about the connection — a federated
     // pod's menu, often from another origin: a pod that is down is ITS section unavailable, not "offline"
@@ -23384,14 +23480,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function confirmLeaveAction(actionId, vars, win = (typeof window !== 'undefined' ? window : undefined), parameters = undefined) {
     if (!vars) return true
     const top = topOverlayContextOf(vars.mateuRegistry)
-    const dirty = top ? !!top.dirty : !!vars.mateuDirty
+    const dirty = top ? !!top.dirty : (!!vars.mateuDirty || pageMarkedDirty(vars.mateuRegistry))
     if (!dirty) return true
     if (!isLeaveAction(actionId, screenActionIdsOf(vars.mateuRegistry))) return true
     // the conflict dialog's Reload already said it drops the edits: no second question
     if (isConflictDialogAnswer(parameters)) return true
     if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
     if (top) vars.mateuRegistry = withOverlayDirty(vars.mateuRegistry, false)
-    else vars.mateuDirty = false
+    else { vars.mateuDirty = false; vars.mateuRegistry = withPageClean(vars.mateuRegistry) }
     return true
   }
 
@@ -23429,7 +23525,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * replacing the screen asks about. The web's `dirtyGuard.dirty`.
    */
   function hasUnsavedChanges(vars) {
-    return !!vars && (!!vars.mateuDirty || overlaysHoldUnsavedChanges(vars.mateuRegistry))
+    return !!vars && (!!vars.mateuDirty || pageMarkedDirty(vars.mateuRegistry) || overlaysHoldUnsavedChanges(vars.mateuRegistry))
+  }
+
+  /** The server said the PAGE has unsaved changes (a MarkAsDirty aimed at the host context: the
+   *  reducer keeps it there) — counted like the user's own edits (R-7). */
+  function pageMarkedDirty(reg) {
+    const host = reg && reg.contexts && reg.contexts[HOST_ID]
+    return !!(host && host.dirty === true)
+  }
+
+  /** The registry with the host context's server-set flag cleared (the user discarded the page). */
+  function withPageClean(reg) {
+    if (!pageMarkedDirty(reg)) return reg
+    return { ...reg, contexts: { ...reg.contexts, [HOST_ID]: { ...reg.contexts[HOST_ID], dirty: false } } }
+  }
+
+  /**
+   * The page's own unsaved-changes flag (`mateuDirty`) after an action re-projected the screen —
+   * runMateuAction (the page's or an overlay's action) and runMateuIslandAction (R-7). It used to be
+   * cleared by ANY re-projection: type in two fields, open a lookup dialog, close it, click a menu
+   * entry — no question, edits lost. The edits survive while the page's draft (`draft`, the values
+   * typed and not yet sent, as the chain leaves it) still holds them, unless the server said the page
+   * is clean (a MarkAsClean aimed at it with this action: its context's `cleaned` count grew) or the
+   * page was replaced by another (`replaced`).
+   */
+  function pageDirtyAfterAction({ wasDirty, draft, hostBefore, hostAfter, replaced = false }) {
+    if (replaced) return false
+    const markedClean = !!hostAfter && (hostAfter.cleaned || 0) > ((hostBefore && hostBefore.cleaned) || 0)
+    if (markedClean) return false
+    const pending = !!draft && typeof draft === 'object' && Object.keys(draft).length > 0
+    return !!wasDirty && pending
   }
 
   /**
@@ -23442,7 +23568,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!hasUnsavedChanges(vars)) return true
     if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
     vars.mateuDirty = false
-    vars.mateuRegistry = withoutOverlays(vars.mateuRegistry)
+    vars.mateuRegistry = withPageClean(withoutOverlays(vars.mateuRegistry))
     return true
   }
 
@@ -26019,6 +26145,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // ── the catalogue ─────────────────────────────────────────────────────────────────────────────
 
   let restCatalogue = []
@@ -26353,7 +26480,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const restClone = (v) => (v === undefined ? v : JSON.parse(JSON.stringify(v)))
 
-  const defaultRestFetch = (url, init) => fetch(url, init)
+  // a request with a ceiling and the busy state of a write, never Mateu's credentials (resilience.fetchDirect, R-6)
+  const defaultRestFetch = (url, init) => fetchDirect(url, init)
 
   /**
    * Fetches a source in the browser — the single choke point of every surface (= fetchExternalJson).
@@ -26849,6 +26977,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       return restIncrement(fragments, messages, commands)
     }
     const fromProxy = (inc, mergeResult) => {
+      // the same call is still in flight (a double click): it answers for itself — this one is no
+      // success to report, nor a successRoute to follow while the first may yet be refused (R-5)
+      if (!inc || isDuplicateAnswer(inc)) return duplicateAnswer()
       const appData = (inc && inc.appData) || {}
       const err = appData._restfetchError
       if (err) return failure(typeof err.status === 'number' ? err.status : 0, err.detail)
@@ -30225,7 +30356,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         ...body,
         route: bare ? `/${bare}` : '',
       }),
-    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, view })
+    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, local: options.local, view })
     // R1: an origin the shell does not trust (an agent-named base, a remote's own remote) answers
     // through the untrusted strip: what it sends cannot run code in this tab
     const increment = answeredBy(base, await res.json())
@@ -30420,18 +30551,38 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  The 4 route fields come from the `outbound` that loadRouteInto stamped when loading the
    *  context (a mediator needs consumedRoute + serverSideType on actions too). */
   function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
+    // Double-submit guard — BEFORE the REST branch too: a REST action is how a definition-only page
+    // or a static bundle WRITES, and a double click sent two POSTs (R-6). A read is EXEMPT from
+    // exclusivity: the guard exists because a second POST of a write means a second row, whereas a
+    // second read only means fresher data — and blocking them would break type-ahead, where the
+    // search for "mad" would be dropped because the one for "ma" is in flight. The slot is per
+    // parameter set (pendingActions.key): edits of two rows are two writes (R-4).
+    const initiator = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || ''
+    const exclusive = !isIdempotentAction(actionId, extra && extra.idempotent) && actionId !== '__restdata__'
+    const key = pendingActions.key(initiator, actionId, extra && extra.parameters)
+    if (exclusive && !pendingActions.begin(key)) {
+      // Duplicate: dropped BEFORE building the request; answered with an increment that changes nothing
+      return Promise.resolve(duplicateAnswer())
+    }
+    const release = () => { if (exclusive) pendingActions.end(key) }
     // A REST-backed action never reaches the Mateu server as itself: the `search` of a listing with a
     // rowsSource, and any action declaring a restAction (the route's `__restdata__` load included),
     // are answered here — direct with fetch, or proxied through the reserved `__restfetch__` action
     // (restSources.mjs). The increment is shaped like the server's, so the chains do not know.
-    const restAnswer = restAnswerOf(ctx, actionId, componentState, {
-      route,
-      appState: (extra && extra.appState) || {},
-      parameters: (extra && extra.parameters) || {},
-      server: (parameters, idempotent) => runMateuAction(base, ctx, route, '__restfetch__', componentState,
-        { ...extra, parameters, idempotent: !!idempotent }),
-    })
-    if (restAnswer) return restAnswer
+    let restAnswer
+    try {
+      restAnswer = restAnswerOf(ctx, actionId, componentState, {
+        route,
+        appState: (extra && extra.appState) || {},
+        parameters: (extra && extra.parameters) || {},
+        server: (parameters, idempotent) => runMateuAction(base, ctx, route, '__restfetch__', componentState,
+          { ...extra, parameters, idempotent: !!idempotent }),
+      })
+    } catch (e) {
+      release()
+      throw e
+    }
+    if (restAnswer) return Promise.resolve(restAnswer).then((inc) => { release(); return inc }, (e) => { release(); throw e })
     // the OnSuccess ones (periodic refresh) are read from the context that LAUNCHES the action
     const source = ctx
     // the action goes to the ServerSide that DECLARES it (the view, not the mediator that loaded it): also
@@ -30443,18 +30594,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // `search` trigger, a toolbar button) knows which context it comes from, but
     // not which backend it came from — and sending it to the shell answers it empty, with no error.
     base = outbound.baseUrl != null ? outbound.baseUrl : base
-    const initiator = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || ''
-    // Double-submit guard. A read is EXEMPT from exclusivity: the guard exists because
-    // a second POST of a write means a second row, whereas a second
-    // read only means fresher data — and blocking them would break type-ahead, where the
-    // search for "mad" would be dropped because the one for "ma" is in flight.
-    const exclusive = !isIdempotentAction(actionId, extra && extra.idempotent)
-    const key = pendingActions.key(initiator, actionId)
-    if (exclusive && !pendingActions.begin(key)) {
-      // Duplicate: dropped BEFORE building the request.
-      return Promise.resolve(null)
-    }
-    const release = () => { if (exclusive) pendingActions.end(key) }
+    // a proxied REST WRITE rides `__restfetch__`, which reads as a component's own (local) request:
+    // it is the user's press, so it shows the busy state like any action (R-6)
+    const proxiedWrite = actionId === '__restfetch__' && !!(extra && extra.parameters && extra.parameters._sourceKind === 'action')
     return callMateu(base, {
       route: outbound.route || route,
       consumedRoute: outbound.consumedRoute || '',
@@ -30466,7 +30608,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
       ...extra,
       appState: requestAppStateOf(outbound, extra && extra.appState),
-    }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
+    }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent, ...(proxiedWrite ? { local: false } : {}) })
       .then((inc) => {
         release()
         if (inc) (isErrorAnswer(inc) ? actionFailed : actionSucceeded)(source, actionId)
@@ -30527,6 +30669,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // tied to the current screen, like callMateu (each increment is checked as it arrives) — unless
     // the caller says otherwise: `view: null` belongs to no screen (a reattached task's resume)
     const view = extra && 'view' in extra ? ownView : currentView()
+    // the double-submit guard of the sync path, for a stream too: a double click on a LongTask
+    // button started two tasks (R-4). A resume that belongs to no screen (`view: null`) is not a press.
+    const initiatorId = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || (bodyExtra && bodyExtra.initiatorComponentId) || ''
+    const exclusive = view !== null && !isIdempotentAction(actionId, bodyExtra && bodyExtra.idempotent)
+    const key = pendingActions.key(initiatorId, actionId, bodyExtra && bodyExtra.parameters)
+    if (exclusive && !pendingActions.begin(key)) return duplicateStream()
+    try {
+      return await streamMateuAction(base, ctx, route, actionId, componentState, { onIncrement, view, recover, bodyExtra })
+    } finally {
+      if (exclusive) pendingActions.end(key)
+    }
+  }
+
+  async function streamMateuAction(base, ctx, route, actionId, componentState, { onIncrement, view, recover, bodyExtra }) {
     ctx = actionTransportOf(ctx, actionId)
     const outbound = (ctx && ctx.outbound) || {}
     base = outbound.baseUrl != null ? outbound.baseUrl : base
@@ -37756,6 +37912,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     withOverlayDirty,
     overlaysHoldUnsavedChanges,
     hasUnsavedChanges,
+    pageDirtyAfterAction,
     confirmNavigationAway,
     // a refused back/forward is undone, not papered over with a push (historyIndex.mjs)
     installHistoryIndex,
@@ -37877,6 +38034,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     isNarrowViewport,
     watchNarrowViewport,
     pendingActions,
+    // a dropped double press answers this: the chain that asked stops (R-4)
+    isDuplicateAnswer,
     setTransportHooks,
     authHeadersOf,
     // errores del cliente → log del servidor (POST <base>/mateu/v3/client-log)

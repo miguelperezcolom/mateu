@@ -32,6 +32,7 @@ import { pageHeaderNodeOf, RECORD_SWITCHER_OPTIONS } from './core/pageHeader.mjs
 import { declaredActionOf, LOOKUP_LOADED } from './core/rowEditor.mjs'
 import { evaluateExpression } from './rules.mjs'
 import { underPublicBase } from './mount.mjs'
+import { duplicateAnswer, isDuplicateAnswer, fetchDirect } from './resilience.mjs'
 
 // ── the catalogue ─────────────────────────────────────────────────────────────────────────────
 
@@ -367,7 +368,8 @@ export function declaresJson(headers) {
 
 const restClone = (v) => (v === undefined ? v : JSON.parse(JSON.stringify(v)))
 
-const defaultRestFetch = (url, init) => fetch(url, init)
+// a request with a ceiling and the busy state of a write, never Mateu's credentials (resilience.fetchDirect, R-6)
+const defaultRestFetch = (url, init) => fetchDirect(url, init)
 
 /**
  * Fetches a source in the browser — the single choke point of every surface (= fetchExternalJson).
@@ -863,6 +865,9 @@ export async function runRestAction(ctx, actionId, rest, componentState, opts = 
     return restIncrement(fragments, messages, commands)
   }
   const fromProxy = (inc, mergeResult) => {
+    // the same call is still in flight (a double click): it answers for itself — this one is no
+    // success to report, nor a successRoute to follow while the first may yet be refused (R-5)
+    if (!inc || isDuplicateAnswer(inc)) return duplicateAnswer()
     const appData = (inc && inc.appData) || {}
     const err = appData._restfetchError
     if (err) return failure(typeof err.status === 'number' ? err.status : 0, err.detail)

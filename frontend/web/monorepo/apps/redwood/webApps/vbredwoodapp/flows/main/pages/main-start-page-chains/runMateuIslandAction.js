@@ -76,11 +76,13 @@ define([
         const increments = await bridge.runMateuActionSse(
           base, islandContext, outbound.route || '',
           actionId, componentState, { appState, parameters: parameters || {} });
+        if (bridge.isDuplicateAnswer(increments)) return; // a double press: the first one answers (R-4)
         increments.forEach((inc) => { lastIncrement = inc; apply(inc); });
       } else {
         lastIncrement = await bridge.runMateuAction(
           base, islandContext, outbound.route || '',
           actionId, componentState, { appState, parameters: parameters || {} });
+        if (bridge.isDuplicateAnswer(lastIncrement)) return; // a double press: the first one answers (R-4)
         apply(lastIncrement);
       }
 
@@ -210,7 +212,9 @@ define([
         bridge.elementAtomsOf(($application.variables.mateuIsland || {}).content)));
 
       $page.variables.mateuIslandDraft = {};
-      $application.variables.mateuDirty = false;
+      // the island's edits went with its action; the PAGE's still in its draft stay unsaved (R-7)
+      // (an island's MarkAsClean is the island's: it does not clean the page)
+      $application.variables.mateuDirty = bridge.pageDirtyAfterAction({ wasDirty: $application.variables.mateuDirty, draft: $page.variables.mateuDraft });
 
       for (const toast of allToasts) {
         // an error or warning goes to the shell's message banner (the Redwood toast only confirms)

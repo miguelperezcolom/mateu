@@ -212,7 +212,16 @@ const STALE_MS = 120000
 export const pendingActions = {
   _started: new Map(),
 
-  key(componentId, actionId) { return `${componentId || '_'}::${actionId}` },
+  /** The slot of an action of a component. With `parameters`, the slot is per parameter set: two
+   *  inline edits of DIFFERENT rows (update-row with another _editedRow) are two writes, not a
+   *  double click (R-4); the same parameters twice are one. */
+  key(componentId, actionId, parameters) {
+    const base = `${componentId || '_'}::${actionId}`
+    if (!parameters || typeof parameters !== 'object' || !Object.keys(parameters).length) return base
+    let tag
+    try { tag = JSON.stringify(parameters) } catch { tag = '' }
+    return tag ? `${base}::${tag}` : base
+  },
 
   /** Claims the slot. false = an identical one is already in flight and this is a duplicate. */
   begin(key, now = Date.now()) {
@@ -231,6 +240,29 @@ export const pendingActions = {
 
   reset() { this._started.clear() },
 }
+
+/**
+ * What a DUPLICATE action answers (a second press while the first is in flight): an increment
+ * that changes nothing — never null, which the chains passed to the reducer and threw on, leaving a
+ * retry for an action that never failed, and which the proxied REST leg read as a success (R-4,
+ * R-5). Marked, not by content: isDuplicateAnswer tells it from a real empty answer.
+ */
+export function duplicateAnswer() {
+  const inc = { fragments: [], commands: [], messages: [] }
+  Object.defineProperty(inc, '__mateuDuplicate', { value: true, enumerable: false })
+  return inc
+}
+
+/** The same for a stream (runMateuActionSse answers its increments): none, marked. */
+export function duplicateStream() {
+  const increments = []
+  Object.defineProperty(increments, '__mateuDuplicate', { value: true, enumerable: false })
+  return increments
+}
+
+/** Whether an answer (an increment, or a stream's increments) is a dropped duplicate's: the chain
+ *  that asked stops there — the first press is the one that answers. */
+export function isDuplicateAnswer(inc) { return !!(inc && inc.__mateuDuplicate) }
 
 // ── lifecycle hooks ─────────────────────────────────────────────────────────────
 
@@ -309,7 +341,7 @@ function traceparentOf(init) {
  * One send: applies the timeout (fetch has none) and turns a 4xx/5xx into an error that
  * CARRIES the status, because fetch resolves those as success and further down there would be no way to know.
  */
-async function sendOnce(url, init, timeoutMillis) {
+async function sendOnce(url, init, timeoutMillis, { httpErrors = true } = {}) {
   // Negative = NO ceiling, for a stream that lasts as long as it lasts (LongTask). Different from 0 /
   // absent, which means "use the default one".
   const noCeiling = timeoutMillis != null && timeoutMillis < 0
@@ -320,9 +352,10 @@ async function sendOnce(url, init, timeoutMillis) {
     timedOut = true
     if (controller) controller.abort()
   }, ms)
+  let bodyPending = false
   try {
     const res = await fetch(url, controller ? { ...init, signal: controller.signal } : init)
-    if (!res.ok) {
+    if (!res.ok && httpErrors) {
       const text = await res.text().catch(() => '')
       const error = new Error(`Mateu → HTTP ${res.status}${text ? `: ${text}` : ''}`)
       error.status = res.status
@@ -331,15 +364,59 @@ async function sendOnce(url, init, timeoutMillis) {
       error.build = buildOfHeaders(res.headers)
       throw error
     }
-    return res
+    if (!timer) return res
+    // The ceiling covers the BODY too (R-8): a server that sends its headers and then stalls held
+    // the chain and its double-submit slot for ever. The timer keeps running until the body is
+    // read (json/text/…); our abort then fails that read, marked as a timeout.
+    bodyPending = true
+    // a body nobody reads (a 204, a stream read by hand) must not keep a Node test process alive
+    if (typeof timer === 'object' && timer && typeof timer.unref === 'function') timer.unref()
+    return bodyBoundBy(res, () => { clearTimeout(timer) }, () => timedOut)
   } catch (e) {
     // An abort fired by OUR timeout must read as a timeout, not as a cancellation:
     // the user does need to find out.
     if (timedOut && e) e.__mateuTimedOut = true
     throw e
   } finally {
-    if (timer) clearTimeout(timer)
+    if (timer && !bodyPending) clearTimeout(timer)
   }
+}
+
+/**
+ * A request to a REST source in the browser (the direct leg, restSources.fetchRestJson): fetch has
+ * no timeout, so a stalled API hung the page for ever — this one has the transport's ceiling (body
+ * included) and, for a WRITE, the busy state of the press (the transport hooks). It carries none of
+ * Mateu's credentials or headers (a third party's endpoint) and answers the Response as it is,
+ * 4xx/5xx included: the REST code reads the service's error body itself (R-6). A timeout rejects
+ * marked `__mateuTimedOut`.
+ */
+export async function fetchDirect(url, init, options = {}) {
+  const method = String((init && init.method) || 'GET').toUpperCase()
+  const quiet = options.quiet != null ? !!options.quiet : (method === 'GET' || method === 'HEAD')
+  if (!quiet) notify('onStart', { actionId: options.actionId })
+  try {
+    return await sendOnce(url, init, options.timeoutMillis, { httpErrors: false })
+  } finally {
+    // a REST failure is shown by the REST code (its toast): the busy state only goes off
+    if (!quiet) notify('onSettle', { actionId: options.actionId, failure: null })
+  }
+}
+
+const BODY_READERS = new Set(['json', 'text', 'arrayBuffer', 'blob', 'formData'])
+
+/** `res` whose body readers stop the request's timer when they settle, and whose read cut by our
+ *  timeout carries `__mateuTimedOut` like the request itself would. Everything else is `res`'s. */
+function bodyBoundBy(res, done, timedOut) {
+  const guarded = (read) => Promise.resolve().then(read).then(
+    (v) => { done(); return v },
+    (e) => { done(); if (timedOut() && e) e.__mateuTimedOut = true; throw e })
+  return new Proxy(res, {
+    get(target, prop) {
+      const value = Reflect.get(target, prop, target)
+      if (BODY_READERS.has(prop) && typeof value === 'function') return (...args) => guarded(() => value.apply(target, args))
+      return typeof value === 'function' ? value.bind(target) : value
+    },
+  })
 }
 
 /**
@@ -492,7 +569,9 @@ export async function fetchWithPolicy(url, init, options = {}) {
   // notify the hooks — the busy bar and the error band are about what the user does.
   // Neither does one from a component that already shows its own loading (isLocalRequest): the combo searching
   // its options spins its own indicator, and the bar on top meant two waits for one keystroke
-  const quiet = options.quiet || isLocalRequest(actionId)
+  // `local: false`: a request whose id reads local but is not — a proxied REST WRITE rides
+  // `__restfetch__`, and the user pressed a button for it (R-6)
+  const quiet = options.quiet || (options.local !== false && isLocalRequest(actionId))
   const notifyUnlessQuiet = (hook, payload) => { if (!quiet) notify(hook, payload) }
   // `isolated`: whatever happens to this request says nothing about the connection — a federated
   // pod's menu, often from another origin: a pod that is down is ITS section unavailable, not "offline"

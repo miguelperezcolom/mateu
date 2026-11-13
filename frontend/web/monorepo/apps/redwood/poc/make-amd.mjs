@@ -438,6 +438,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     withOverlayDirty,
     overlaysHoldUnsavedChanges,
     hasUnsavedChanges,
+    pageDirtyAfterAction,
     confirmNavigationAway,
     // a refused back/forward is undone, not papered over with a push (historyIndex.mjs)
     installHistoryIndex,
@@ -559,6 +560,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     isNarrowViewport,
     watchNarrowViewport,
     pendingActions,
+    // a dropped double press answers this: the chain that asked stops (R-4)
+    isDuplicateAnswer,
     setTransportHooks,
     authHeadersOf,
     // errores del cliente → log del servidor (POST <base>/mateu/v3/client-log)

@@ -717,6 +717,40 @@ test('mateuFieldEdited: ONE dirty rule with Vaadin — only a form that asks bef
   ctx.$application.variables.mateuDrawerOpen = false
 })
 
+test('R-7: edits typed on a page survive an overlay opened over them; a server MarkAsDirty counts; MarkAsClean clears', async () => {
+  answer(byRoute('/tracked'), replace(page('pt', 'x.Edit', 'Edit', [], { actions: [{ id: 'pick' }, { id: 'recalc' }, { id: 'touch' }, { id: 'save' }] })))
+  answer((b) => b.actionId === 'pick', crudDrawerOpen())
+  answer((b) => b.actionId === 'recalc', { commands: [], messages: [], fragments: [] })
+  answer((b) => b.actionId === 'touch', { commands: [{ type: 'MarkAsDirty', targetComponentId: '', data: null }], messages: [], fragments: [] })
+  answer((b) => b.actionId === 'save', { commands: [{ type: 'MarkAsClean', targetComponentId: '', data: null }], messages: [], fragments: [] })
+  const ctx = newContext()
+  ctx.$page.variables.mateuModalOpen = false
+  await navigate(ctx, '/tracked')
+  ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID].tree.confirmOnNavigationIfDirty = true
+  await new chains.mateuFieldEdited().run(ctx, { fieldId: 'nombre', event: { detail: { value: 'Ana', updatedFrom: 'internal' } } })
+  assert.equal(ctx.$application.variables.mateuDirty, true)
+  // a lookup dialog / drawer over the page: the draft stays, so do the unsaved changes
+  await act(ctx, 'pick')
+  assert.equal(ctx.$application.variables.mateuDrawerOpen, true)
+  assert.equal(ctx.$page.variables.mateuDraft.nombre, 'Ana', 'the typed value is still in the draft')
+  assert.equal(ctx.$application.variables.mateuDirty, true, 'opening an overlay is no save')
+  assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), true)
+  // the pure rule
+  assert.equal(bridge.pageDirtyAfterAction({ wasDirty: true, draft: {} }), false, 'what was typed went with the action')
+  assert.equal(bridge.pageDirtyAfterAction({ wasDirty: true, draft: { a: 1 }, replaced: true }), false, 'another page')
+  assert.equal(bridge.pageDirtyAfterAction({ wasDirty: true, draft: { a: 1 }, hostBefore: { cleaned: 1 }, hostAfter: { cleaned: 2 } }), false, 'MarkAsClean')
+  assert.equal(bridge.pageDirtyAfterAction({ wasDirty: true, draft: { a: 1 }, hostBefore: { cleaned: 1 }, hostAfter: { cleaned: 1 } }), true)
+  // the server says the page has unsaved changes
+  ctx.$application.variables.mateuDrawerOpen = false
+  ctx.$application.variables.mateuRegistry = { ...ctx.$application.variables.mateuRegistry, stack: [] }
+  ctx.$application.variables.mateuDirty = false
+  ctx.$page.variables.mateuDraft = {}
+  await act(ctx, 'touch')
+  assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), true, 'MarkAsDirty from the server counts')
+  await act(ctx, 'save')
+  assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), false, 'MarkAsClean clears it')
+})
+
 // ── the crud's create/edit DRAWER (CrudDrawerBuilder): its form sits in metadata.content ───────────
 const crudDrawerOpen = () => ({
   commands: [], messages: [],

@@ -15,7 +15,8 @@ import {
 import { resolveFieldTypes, setFieldTypeCatalogue } from './fieldTypes.mjs'
 import { adoptRenderMessage, previewLoadIncrement } from './editorPreview.mjs'
 import { openTreeRowsOnNewSearch, setUiValue, pageSwitcherOf, reduceContexts, listingOf, onLoadTriggers, HOST_ID, LOOKUP_LOADED, statusBadgeRows, selectedRowsOf, optionsOf } from './reduceContexts.mjs'
-import { runMateuAction, loadLookups } from './transport.mjs'
+import { runMateuAction, runMateuActionSse, loadLookups } from './transport.mjs'
+import { pendingActions, setTransportHooks, isDuplicateAnswer, duplicateAnswer, fetchDirect, fetchWithPolicy, connectivity } from './resilience.mjs'
 import { adoptShellSources, fetchGlobalSearch, sourcedNotificationsOf, paletteRowsOfHits } from './globalSearch.mjs'
 import { fetchNotifications } from './notify.mjs'
 import { jsonEscape, declaresJson, restAnswerOf as restAnswer, mapItemsToOptions as mapOptions, refreshActionsOf, serviceMessageOf } from './restSources.mjs'
@@ -1089,6 +1090,121 @@ test('a REST action reads its call parameters over the state — a kanban move P
   const asked = []
   await restAnswerOf(pctx, 'moveTask', ctx.state, { parameters: { _cardId: '9' }, server: async (p) => { asked.push(p); return { appData: { _restfetch: {} } } } })
   assert.deepEqual(asked, [{ _cardId: '9', _sourceKind: 'action', _sourceId: 'moveTask' }])
+})
+
+// ── GA review R-4 … R-8: the double-submit guard, the REST legs and the body's ceiling ─────────
+
+/** A global fetch whose answers wait until released: `pending` lists the calls in flight. */
+const heldFetch = (answer = () => ({ ok: true, status: 200, json: async () => ({ fragments: [] }), text: async () => '{}' })) => {
+  const calls = []
+  const pending = []
+  const original = globalThis.fetch
+  globalThis.fetch = (url, init) => {
+    calls.push({ url: String(url), init })
+    return new Promise((resolve) => pending.push(() => resolve(answer(url, init))))
+  }
+  return { calls, release: () => { while (pending.length) pending.shift()() }, restore: () => { globalThis.fetch = original } }
+}
+const tick = () => new Promise((r) => setTimeout(r, 0))
+
+test('R-6: a double press of a direct REST write sends ONE request, shows the busy state, and the second answers a no-op', async () => {
+  reset(); pendingActions.reset(); connectivity.reset()
+  const hooks = []
+  setTransportHooks({ onStart: () => hooks.push('start'), onSettle: () => hooks.push('settle') })
+  const net = heldFetch()
+  try {
+    const ctx = actionCtx({ source: { ref: 'saveOrder' }, successMessage: 'Saved' }, { id: 1, note: 'n' })
+    const first = runMateuAction('http://x', ctx, '/orders', 'save', ctx.state, {})
+    const second = await runMateuAction('http://x', ctx, '/orders', 'save', ctx.state, {})
+    assert.ok(isDuplicateAnswer(second), 'the second press is a duplicate')
+    assert.deepEqual([second.fragments, second.commands, second.messages], [[], [], []])
+    assert.doesNotThrow(() => reduceContexts({ contexts: { [HOST_ID]: ctx }, stack: [] }, second))
+    await tick()
+    assert.equal(net.calls.length, 1, 'one PUT, not two')
+    assert.equal(net.calls[0].init.method, 'PUT')
+    assert.equal(net.calls[0].init.headers.Authorization, undefined, 'no Mateu credentials to a REST source')
+    net.release()
+    const inc = await first
+    assert.deepEqual(inc.messages, [{ variant: 'success', text: 'Saved' }])
+    assert.deepEqual(hooks, ['start', 'settle'], 'a write shows the busy state')
+    // the slot is free again: a later press goes out
+    const third = runMateuAction('http://x', ctx, '/orders', 'save', ctx.state, {})
+    await tick(); net.release(); await third
+    assert.equal(net.calls.length, 2)
+  } finally {
+    net.restore(); setTransportHooks(null); pendingActions.reset()
+  }
+})
+
+test('R-5: a duplicate (or missing) proxied answer is no success — no toast, no successRoute', async () => {
+  reset()
+  const pctx = actionCtx({ source: { ref: 'saveOrder', proxy: true }, successMessage: 'Saved', successRoute: '/orders/1' }, { id: 1 })
+  for (const answer of [duplicateAnswer(), null]) {
+    const inc = await restAnswerOf(pctx, 'save', pctx.state, { route: '/orders', server: async () => answer })
+    assert.deepEqual([inc.messages, inc.commands], [[], []])
+    assert.ok(isDuplicateAnswer(inc))
+  }
+  const ok = await restAnswerOf(pctx, 'save', pctx.state, { route: '/orders', server: async () => ({ appData: { _restfetch: {} } }) })
+  assert.deepEqual(ok.messages, [{ variant: 'success', text: 'Saved' }])
+})
+
+test('R-4: the guard is per parameter set — two rows\' edits both go, the same one twice does not; a stream is guarded too', async () => {
+  reset(); pendingActions.reset(); connectivity.reset()
+  const net = heldFetch()
+  try {
+    const ctx = { id: HOST_ID, tree: { type: 'ServerSide', id: 'crud', serverSideType: 'x.Crud', children: [] }, state: {}, data: {} }
+    const row = (n) => ({ parameters: { _editedRow: { _rowNumber: n, price: 1 } } })
+    const a = runMateuAction('http://x', ctx, '/p', 'update-row', {}, row(0))
+    const b = runMateuAction('http://x', ctx, '/p', 'update-row', {}, row(1))
+    const again = await runMateuAction('http://x', ctx, '/p', 'update-row', {}, row(0))
+    assert.ok(isDuplicateAnswer(again))
+    await tick()
+    assert.equal(net.calls.length, 2, 'row 0 and row 1, once each')
+    net.release(); await Promise.all([a, b])
+
+    const sse = heldFetch(() => ({ ok: true, status: 200, text: async () => 'data: {"fragments":[]}\n\n' }))
+    try {
+      const s1 = runMateuActionSse('http://x', ctx, '/p', 'scan', {}, {})
+      const s2 = await runMateuActionSse('http://x', ctx, '/p', 'scan', {}, {})
+      assert.ok(isDuplicateAnswer(s2) && s2.length === 0, 'a second LongTask press starts nothing')
+      await tick()
+      assert.equal(sse.calls.length, 1)
+      sse.release(); await s1
+      assert.equal(pendingActions.isPending(pendingActions.key('crud', 'scan')), false, 'released when the stream ends')
+    } finally { sse.restore() }
+  } finally {
+    net.restore(); pendingActions.reset()
+  }
+})
+
+test('R-6/R-8: the ceiling covers a REST source that never answers and a body that stalls after its headers', async () => {
+  connectivity.reset(); pendingActions.reset()
+  const original = globalThis.fetch
+  // the body's timer is unref'd (a body nobody reads must not hold Node): keep the loop alive here
+  const keepAlive = setInterval(() => {}, 1000)
+  const abortable = (init, value) => new Promise((resolve, reject) => {
+    if (value !== undefined) return resolve(value)
+    init.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })))
+  })
+  try {
+    // a REST source that never answers
+    globalThis.fetch = (_url, init) => abortable(init)
+    await assert.rejects(fetchDirect('https://api.example/x', { method: 'POST' }, { timeoutMillis: 20 }), (e) => e.__mateuTimedOut === true)
+    // Mateu's headers arrive, the body never does: the read is cut, as a timeout
+    globalThis.fetch = (_url, init) => abortable(init, { ok: true, status: 200, headers: {}, json: () => abortable(init), text: () => abortable(init) })
+    const res = await fetchWithPolicy('http://x/mateu/v3/sync/p', { method: 'POST' }, { actionId: 'save', timeoutMillis: 20 })
+    await assert.rejects(res.json(), (e) => e.__mateuTimedOut === true)
+    // …and the action's double-submit slot is given back
+    const ctx = { id: HOST_ID, tree: { type: 'ServerSide', id: 'form', serverSideType: 'x.F', children: [] }, state: {}, data: {} }
+    await assert.rejects(runMateuAction('http://x', ctx, '/p', 'save', {}, { timeoutMillis: 20 }))
+    assert.equal(pendingActions.isPending(pendingActions.key('form', 'save')), false)
+    // a body read in time stops the clock
+    globalThis.fetch = async () => ({ ok: true, status: 200, headers: {}, json: async () => ({ fragments: [] }) })
+    assert.deepEqual(await (await fetchWithPolicy('http://x/', {}, { actionId: 'save', timeoutMillis: 20 })).json(), { fragments: [] })
+  } finally {
+    globalThis.fetch = original; connectivity.reset(); pendingActions.reset()
+    clearInterval(keepAlive)
+  }
 })
 
 for (const { name, fn } of queue) {

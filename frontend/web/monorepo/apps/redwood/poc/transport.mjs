@@ -5,7 +5,7 @@
 
 import { actionFailed, actionSucceeded, isErrorAnswer } from './polling.mjs'
 import { heldAppState, reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf, withSubresources, withInitialValues, inlineIslandOf, withoutWindowCommands, returnedConfirmDialogsOf, findByType, pageListingNodeOf } from './reduceContexts.mjs'
-import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError, isStaleResponse } from './resilience.mjs'
+import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError, isStaleResponse, duplicateAnswer, duplicateStream } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { staticRemoteLoad } from './staticRemotes.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf, routeCollisionsOf, routeCollisionMessage, mountPrefix } from './navTree.mjs'
@@ -74,7 +74,7 @@ export async function callMateu(base, body, options = {}) {
       ...body,
       route: bare ? `/${bare}` : '',
     }),
-  }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, view })
+  }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, local: options.local, view })
   // R1: an origin the shell does not trust (an agent-named base, a remote's own remote) answers
   // through the untrusted strip: what it sends cannot run code in this tab
   const increment = answeredBy(base, await res.json())
@@ -269,18 +269,38 @@ export function requestAppStateOf(outbound, sent) {
  *  The 4 route fields come from the `outbound` that loadRouteInto stamped when loading the
  *  context (a mediator needs consumedRoute + serverSideType on actions too). */
 export function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
+  // Double-submit guard — BEFORE the REST branch too: a REST action is how a definition-only page
+  // or a static bundle WRITES, and a double click sent two POSTs (R-6). A read is EXEMPT from
+  // exclusivity: the guard exists because a second POST of a write means a second row, whereas a
+  // second read only means fresher data — and blocking them would break type-ahead, where the
+  // search for "mad" would be dropped because the one for "ma" is in flight. The slot is per
+  // parameter set (pendingActions.key): edits of two rows are two writes (R-4).
+  const initiator = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || ''
+  const exclusive = !isIdempotentAction(actionId, extra && extra.idempotent) && actionId !== '__restdata__'
+  const key = pendingActions.key(initiator, actionId, extra && extra.parameters)
+  if (exclusive && !pendingActions.begin(key)) {
+    // Duplicate: dropped BEFORE building the request; answered with an increment that changes nothing
+    return Promise.resolve(duplicateAnswer())
+  }
+  const release = () => { if (exclusive) pendingActions.end(key) }
   // A REST-backed action never reaches the Mateu server as itself: the `search` of a listing with a
   // rowsSource, and any action declaring a restAction (the route's `__restdata__` load included),
   // are answered here — direct with fetch, or proxied through the reserved `__restfetch__` action
   // (restSources.mjs). The increment is shaped like the server's, so the chains do not know.
-  const restAnswer = restAnswerOf(ctx, actionId, componentState, {
-    route,
-    appState: (extra && extra.appState) || {},
-    parameters: (extra && extra.parameters) || {},
-    server: (parameters, idempotent) => runMateuAction(base, ctx, route, '__restfetch__', componentState,
-      { ...extra, parameters, idempotent: !!idempotent }),
-  })
-  if (restAnswer) return restAnswer
+  let restAnswer
+  try {
+    restAnswer = restAnswerOf(ctx, actionId, componentState, {
+      route,
+      appState: (extra && extra.appState) || {},
+      parameters: (extra && extra.parameters) || {},
+      server: (parameters, idempotent) => runMateuAction(base, ctx, route, '__restfetch__', componentState,
+        { ...extra, parameters, idempotent: !!idempotent }),
+    })
+  } catch (e) {
+    release()
+    throw e
+  }
+  if (restAnswer) return Promise.resolve(restAnswer).then((inc) => { release(); return inc }, (e) => { release(); throw e })
   // the OnSuccess ones (periodic refresh) are read from the context that LAUNCHES the action
   const source = ctx
   // the action goes to the ServerSide that DECLARES it (the view, not the mediator that loaded it): also
@@ -292,18 +312,9 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
   // `search` trigger, a toolbar button) knows which context it comes from, but
   // not which backend it came from — and sending it to the shell answers it empty, with no error.
   base = outbound.baseUrl != null ? outbound.baseUrl : base
-  const initiator = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || ''
-  // Double-submit guard. A read is EXEMPT from exclusivity: the guard exists because
-  // a second POST of a write means a second row, whereas a second
-  // read only means fresher data — and blocking them would break type-ahead, where the
-  // search for "mad" would be dropped because the one for "ma" is in flight.
-  const exclusive = !isIdempotentAction(actionId, extra && extra.idempotent)
-  const key = pendingActions.key(initiator, actionId)
-  if (exclusive && !pendingActions.begin(key)) {
-    // Duplicate: dropped BEFORE building the request.
-    return Promise.resolve(null)
-  }
-  const release = () => { if (exclusive) pendingActions.end(key) }
+  // a proxied REST WRITE rides `__restfetch__`, which reads as a component's own (local) request:
+  // it is the user's press, so it shows the busy state like any action (R-6)
+  const proxiedWrite = actionId === '__restfetch__' && !!(extra && extra.parameters && extra.parameters._sourceKind === 'action')
   return callMateu(base, {
     route: outbound.route || route,
     consumedRoute: outbound.consumedRoute || '',
@@ -315,7 +326,7 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
     ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
     ...extra,
     appState: requestAppStateOf(outbound, extra && extra.appState),
-  }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
+  }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent, ...(proxiedWrite ? { local: false } : {}) })
     .then((inc) => {
       release()
       if (inc) (isErrorAnswer(inc) ? actionFailed : actionSucceeded)(source, actionId)
@@ -376,6 +387,20 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
   // tied to the current screen, like callMateu (each increment is checked as it arrives) — unless
   // the caller says otherwise: `view: null` belongs to no screen (a reattached task's resume)
   const view = extra && 'view' in extra ? ownView : currentView()
+  // the double-submit guard of the sync path, for a stream too: a double click on a LongTask
+  // button started two tasks (R-4). A resume that belongs to no screen (`view: null`) is not a press.
+  const initiatorId = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || (bodyExtra && bodyExtra.initiatorComponentId) || ''
+  const exclusive = view !== null && !isIdempotentAction(actionId, bodyExtra && bodyExtra.idempotent)
+  const key = pendingActions.key(initiatorId, actionId, bodyExtra && bodyExtra.parameters)
+  if (exclusive && !pendingActions.begin(key)) return duplicateStream()
+  try {
+    return await streamMateuAction(base, ctx, route, actionId, componentState, { onIncrement, view, recover, bodyExtra })
+  } finally {
+    if (exclusive) pendingActions.end(key)
+  }
+}
+
+async function streamMateuAction(base, ctx, route, actionId, componentState, { onIncrement, view, recover, bodyExtra }) {
   ctx = actionTransportOf(ctx, actionId)
   const outbound = (ctx && ctx.outbound) || {}
   base = outbound.baseUrl != null ? outbound.baseUrl : base

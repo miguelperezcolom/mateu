@@ -223,14 +223,14 @@ export function screenActionIdsOf(reg) {
 export function confirmLeaveAction(actionId, vars, win = (typeof window !== 'undefined' ? window : undefined), parameters = undefined) {
   if (!vars) return true
   const top = topOverlayContextOf(vars.mateuRegistry)
-  const dirty = top ? !!top.dirty : !!vars.mateuDirty
+  const dirty = top ? !!top.dirty : (!!vars.mateuDirty || pageMarkedDirty(vars.mateuRegistry))
   if (!dirty) return true
   if (!isLeaveAction(actionId, screenActionIdsOf(vars.mateuRegistry))) return true
   // the conflict dialog's Reload already said it drops the edits: no second question
   if (isConflictDialogAnswer(parameters)) return true
   if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
   if (top) vars.mateuRegistry = withOverlayDirty(vars.mateuRegistry, false)
-  else vars.mateuDirty = false
+  else { vars.mateuDirty = false; vars.mateuRegistry = withPageClean(vars.mateuRegistry) }
   return true
 }
 
@@ -268,7 +268,37 @@ export function overlaysHoldUnsavedChanges(reg) {
  * replacing the screen asks about. The web's `dirtyGuard.dirty`.
  */
 export function hasUnsavedChanges(vars) {
-  return !!vars && (!!vars.mateuDirty || overlaysHoldUnsavedChanges(vars.mateuRegistry))
+  return !!vars && (!!vars.mateuDirty || pageMarkedDirty(vars.mateuRegistry) || overlaysHoldUnsavedChanges(vars.mateuRegistry))
+}
+
+/** The server said the PAGE has unsaved changes (a MarkAsDirty aimed at the host context: the
+ *  reducer keeps it there) — counted like the user's own edits (R-7). */
+export function pageMarkedDirty(reg) {
+  const host = reg && reg.contexts && reg.contexts[HOST_ID]
+  return !!(host && host.dirty === true)
+}
+
+/** The registry with the host context's server-set flag cleared (the user discarded the page). */
+function withPageClean(reg) {
+  if (!pageMarkedDirty(reg)) return reg
+  return { ...reg, contexts: { ...reg.contexts, [HOST_ID]: { ...reg.contexts[HOST_ID], dirty: false } } }
+}
+
+/**
+ * The page's own unsaved-changes flag (`mateuDirty`) after an action re-projected the screen —
+ * runMateuAction (the page's or an overlay's action) and runMateuIslandAction (R-7). It used to be
+ * cleared by ANY re-projection: type in two fields, open a lookup dialog, close it, click a menu
+ * entry — no question, edits lost. The edits survive while the page's draft (`draft`, the values
+ * typed and not yet sent, as the chain leaves it) still holds them, unless the server said the page
+ * is clean (a MarkAsClean aimed at it with this action: its context's `cleaned` count grew) or the
+ * page was replaced by another (`replaced`).
+ */
+export function pageDirtyAfterAction({ wasDirty, draft, hostBefore, hostAfter, replaced = false }) {
+  if (replaced) return false
+  const markedClean = !!hostAfter && (hostAfter.cleaned || 0) > ((hostBefore && hostBefore.cleaned) || 0)
+  if (markedClean) return false
+  const pending = !!draft && typeof draft === 'object' && Object.keys(draft).length > 0
+  return !!wasDirty && pending
 }
 
 /**
@@ -281,7 +311,7 @@ export function confirmNavigationAway(vars, win = (typeof window !== 'undefined'
   if (!hasUnsavedChanges(vars)) return true
   if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
   vars.mateuDirty = false
-  vars.mateuRegistry = withoutOverlays(vars.mateuRegistry)
+  vars.mateuRegistry = withPageClean(withoutOverlays(vars.mateuRegistry))
   return true
 }
 

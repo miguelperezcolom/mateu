@@ -84,7 +84,7 @@ test('sameRowsSameProvider: unchanged rows keep their data provider, changed one
 test('changedOnly: the action chain projects through it (a poll with the same data repaints nothing)', () => {
   const chain = webApp('flows/main/pages/main-start-page-chains/runMateuAction.js')
   assert.match(chain, /const changed = bridge\.changedOnly\(\$application\.variables\)/)
-  assert.match(chain, /const staged = bridge\.stagedVariables\(\$application\.variables\)[\s\S]*?const vars = staged\.vars;[\s\S]*?vars\.mateuDirty = false;\s*const committed = staged\.commit\(\);[\s\S]*?committed\.has\('mateuHostContent'\)/)
+  assert.match(chain, /const staged = bridge\.stagedVariables\(\$application\.variables\)[\s\S]*?const vars = staged\.vars;[\s\S]*?vars\.mateuDirty = bridge\.pageDirtyAfterAction\([\s\S]*?\);\s*const committed = staged\.commit\(\);[\s\S]*?committed\.has\('mateuHostContent'\)/)
   assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /\n {4}changedOnly,\n/)
 })
 
