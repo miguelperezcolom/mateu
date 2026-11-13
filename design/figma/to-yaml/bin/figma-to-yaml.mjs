@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// figma-to-yaml <file.json> --out <specs/ui dir> [--clean] [--contract <path>] [--schema <path>]
+// figma-to-yaml <file.json> --out <specs/ui dir> [--clean] [--force] [--contract <path>] [--schema <path>]
 // figma-to-yaml <library.json> --self-test [--report <results.json>]   (npm run self-test -- <file>)
 //
 // <file.json> is the Figma REST payload of a file designed with the Mateu library:
@@ -7,15 +7,16 @@
 // Writes one YAML page per screen frame (plus partials/<ref>.yaml) and prints the warnings.
 // --clean deletes, before writing, the *.yaml files of the output dir that THIS converter wrote
 // (they start with its "Generated from the Figma frame" header) — never a hand-written file such as
-// routes.yaml or sources.yaml living in the same specs/ui.
-import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+// routes.yaml or sources.yaml living in the same specs/ui. Without --force, an existing file it did
+// not write is never written over either (a warning names it) — the import driver's rule.
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { FigmaToYaml, undeclaredActionWarnings } from '../src/convert.mjs'
+import { FigmaToYaml, undeclaredActionWarnings, wasGenerated } from '../src/convert.mjs'
 import { loadContract, loadSchema } from '../src/load.mjs'
 
 function usage(message) {
   if (message) console.error(message)
-  console.error('usage: figma-to-yaml <file.json> --out <dir> [--clean] [--contract <path>] [--schema <path>]')
+  console.error('usage: figma-to-yaml <file.json> --out <dir> [--clean] [--force] [--contract <path>] [--schema <path>]')
   console.error('       figma-to-yaml <library.json> --self-test [--report <results.json>]')
   process.exit(2)
 }
@@ -29,6 +30,7 @@ for (let i = 0; i < args.length; i++) {
   else if (a === '--contract') opts.contract = args[++i]
   else if (a === '--schema') opts.schema = args[++i]
   else if (a === '--clean') opts.clean = true
+  else if (a === '--force') opts.force = true
   else if (a === '--self-test') opts.selfTest = true
   else if (a === '--report') opts.report = args[++i]
   else if (a === '-h' || a === '--help') usage()
@@ -80,10 +82,16 @@ function yamlFiles(dir) {
   return out
 }
 
-const generated = (p) => readFileSync(p, 'utf8').startsWith('# Generated from the Figma frame ')
+const generated = (p) => wasGenerated(readFileSync(p, 'utf8'))
 if (opts.clean) for (const p of yamlFiles(opts.out)) if (generated(p)) rmSync(p)
+const skipped = []
 for (const f of files) {
   const target = join(opts.out, f.path)
+  // the import driver's rule: a file this converter did not write is somebody's work
+  if (!opts.force && existsSync(target) && !generated(target)) {
+    skipped.push(`${f.path}: exists and was not generated from Figma — left as it is (--force to overwrite)`)
+    continue
+  }
   mkdirSync(dirname(target), { recursive: true })
   writeFileSync(target, f.text)
   console.log(`wrote ${target}  ← "${f.frame}"`)
@@ -95,4 +103,4 @@ for (const p of yamlFiles(opts.out)) {
   if (!/^type:\s*Actions\b/m.test(text)) continue
   for (const m of text.matchAll(/^\s*-\s*(?:\{\s*)?id:\s*["']?([^\s,"'}]+)/gm)) declaredActions.add(m[1])
 }
-for (const w of [...warnings, ...undeclaredActionWarnings(files, declaredActions)]) console.warn(`warning: ${w}`)
+for (const w of [...warnings, ...skipped, ...undeclaredActionWarnings(files, declaredActions)]) console.warn(`warning: ${w}`)
