@@ -37,6 +37,15 @@ public class GaProxyView
 public class GaPayrollView
 {
     public double Salary { get; set; } = 100;
+    public string Secret { get; set; } = "PAYROLL-SECRET-X";
+
+    [Button] public Message Pay() => new($"paid {Salary.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+}
+
+[UI("ga-vault-own"), Title("Vault")]
+public class GaVaultView
+{
+    public double Salary { get; set; } = 100;
 
     [Button] public Message Pay() => new($"paid {Salary.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
 }
@@ -171,6 +180,26 @@ public class GaNoEditNotes : Crud<GaNote>
 
 // ── ports #5 / #6 over HTTP ──
 
+// ── saves keep the stored value of fields the caller cannot write ──
+
+public class GaStaffRecord
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    [EyesOnly(Roles = ["hr"])] public string? Notes { get; set; }
+    [ReadOnlyUnless(Roles = ["hr"])] public string? Grade { get; set; }
+    [DisabledUnless(Roles = ["hr"])] public string? Band { get; set; }
+}
+
+[UI("ga-staff"), Title("Staff")]
+public class GaStaffCrud : Crud<GaStaffRecord>
+{
+    public static readonly Dictionary<string, GaStaffRecord> Store = new();
+    public override IEnumerable<GaStaffRecord> Fetch(string? search) => Store.Values;
+    public override GaStaffRecord? Get(string id) => Store.GetValueOrDefault(id);
+    public override void Save(GaStaffRecord entity) => Store[entity.Id] = entity;
+}
+
 [UI("ga-staff-only"), Title("Staff"), EyesOnly(Roles = ["staff"])]
 public class GaStaffOnlyView
 {
@@ -248,6 +277,7 @@ public class GaReviewSecurityTests
     {
         var dir = Directory.CreateTempSubdirectory("ga-s1-").FullName;
         var view = typeof(GaPayrollView).FullName;
+        var vault = typeof(GaVaultView).FullName;
         File.WriteAllText(Path.Combine(dir, "routes.yaml"), $"""
             routes:
               - route: ga-payroll
@@ -257,6 +287,13 @@ public class GaReviewSecurityTests
               - route: ga-payroll-locked
                 layout: locked.yaml
                 viewModel: {view}
+              - route: ga-payroll-hidden
+                layout: hidden.yaml
+                viewModel: {view}
+              - route: ga-vault
+                layout: payroll.yaml
+                viewModel: {vault}
+                access: {"{"}roles: [admin]{"}"}
               - route: ga-hello
                 layout: hello.yaml
             """);
@@ -273,25 +310,50 @@ public class GaReviewSecurityTests
               dataType: number
               readOnlyUnless: {roles: [admin]}
             """);
+        File.WriteAllText(Path.Combine(dir, "hidden.yaml"), """
+            layout:
+              type: VerticalLayout
+              content:
+                - type: FormField
+                  id: salary
+                  dataType: number
+                - type: FormField
+                  id: secret
+                  dataType: string
+                  eyesOnly: {roles: [admin]}
+            """);
         File.WriteAllText(Path.Combine(dir, "hello.yaml"), "layout: {type: Text, text: Hello}\n");
         return dir;
     }
 
-    private static UIIncrementDto Pay(string route, Identity? identity = null) => Handler(identity, PayrollSpecs).Handle(new RunActionRqDto
+    private static UIIncrementDto Pay<T>(string route, Identity? identity = null) => Handler(identity, PayrollSpecs).Handle(new RunActionRqDto
     {
-        Route = route, ServerSideType = typeof(GaPayrollView).FullName, ActionId = "pay",
+        Route = route, ServerSideType = typeof(T).FullName, ActionId = "pay",
         ComponentState = new() { ["salary"] = J(999) },
     });
 
+    private static UIIncrementDto Pay(string route, Identity? identity = null) => Pay<GaPayrollView>(route, identity);
+
     [Theory]
-    [InlineData("/ga-payroll")]
+    [InlineData("/ga-vault")]
+    [InlineData("/ga-hello")]
+    [InlineData("/nowhere")]
+    [InlineData("")]
+    [InlineData("/ga-vault-own/../ga-hello")]
+    public void A_bound_view_model_none_of_whose_routes_the_caller_reaches_is_refused_anywhere_else(string route)
+    {
+        Assert.Throws<MateuForbiddenException>(() => Pay<GaVaultView>(route));
+        Assert.Throws<MateuForbiddenException>(() => Pay("/ga-payroll"));
+    }
+
+    [Theory]
     [InlineData("/ga-hello")]
     [InlineData("/nowhere")]
     [InlineData("")]
     [InlineData("/ga-payroll-locked/../ga-hello")]
-    public void A_bound_view_model_named_under_another_route_keeps_its_access(string route)
+    public void A_bound_view_model_named_under_another_route_gets_the_union_of_its_entries_locks(string route)
     {
-        Assert.Throws<MateuForbiddenException>(() => Pay(route));
+        Assert.Equal("paid 100", Assert.Single(Pay(route).Messages).Text);
     }
 
     [Fact]
@@ -304,6 +366,16 @@ public class GaReviewSecurityTests
         Assert.Equal("paid 100", Assert.Single(Pay("/ga-payroll-locked/7").Messages).Text);
         Assert.Equal("paid 999", Assert.Single(Pay("/ga-payroll-own").Messages).Text);
         Assert.Equal("paid 999", Assert.Single(Pay("/ga-hello", new Identity(Roles: ["admin"])).Messages).Text);
+        Assert.Equal("paid 999", Assert.Single(Pay<GaVaultView>("/ga-vault-own").Messages).Text);
+    }
+
+    [Fact]
+    public void A_field_the_layout_hides_is_not_in_the_view_models_state()
+    {
+        var anonymous = Json(Handler(null, PayrollSpecs).Handle(new RunActionRqDto { Route = "/ga-payroll-hidden" }));
+        Assert.DoesNotContain("PAYROLL-SECRET-X", anonymous);
+        var admin = Json(Handler(new Identity(Roles: ["admin"]), PayrollSpecs).Handle(new RunActionRqDto { Route = "/ga-payroll-hidden" }));
+        Assert.Contains("PAYROLL-SECRET-X", admin);
     }
 
     // ── S2 ──
@@ -406,6 +478,86 @@ public class GaReviewSecurityTests
         });
         Assert.Equal("Created", GaCapBooks.LastCreated!.Title);
         Assert.Equal(7, GaCapBooks.LastCreated.Price);
+    }
+
+    // ── listing query guard (S2 extras) ──
+
+    [Fact]
+    public void A_listing_query_is_narrowed_to_what_the_caller_may_ask()
+    {
+        var rq = new RunActionRqDto
+        {
+            ComponentState = new()
+            {
+                ["page"] = J(-3), ["size"] = J(10_000_000), ["salary"] = J("SAL"), ["salary_from"] = J("1"),
+                ["name"] = J("Ana"),
+                ["sort"] = J(new object[] { new { field = "salary", direction = "descending" }, new { fieldId = "name", direction = "ascending" } }),
+            },
+        };
+        UIIncrementDto _ = Handler().Handle(new RunActionRqDto { Route = "ga-emps" }); // establishes an anonymous caller
+        var narrowed = SyncHandler.NarrowListingQuery(rq, typeof(GaEmp), typeof(GaEmp)).ComponentState;
+        Assert.Equal(0, narrowed["page"]);
+        Assert.Equal(SyncHandler.MaxPageSize, narrowed["size"]);
+        Assert.False(narrowed.ContainsKey("salary"));
+        Assert.False(narrowed.ContainsKey("salary_from"));
+        Assert.True(narrowed.ContainsKey("name"));
+        var sort = Json(narrowed["sort"]);
+        Assert.DoesNotContain("salary", sort);
+        Assert.Contains("name", sort);
+        Assert.Equal(500, SyncHandler.MaxPageSize);
+    }
+
+    [Fact]
+    public void A_filter_on_a_hidden_field_does_not_narrow_the_rows()
+    {
+        // were the filter kept, matching rows would tell the hidden value
+        var answer = Json(Handler().Handle(new RunActionRqDto
+        {
+            Route = "ga-emps", ServerSideType = typeof(GaEmpCrud).FullName, ActionId = "search",
+            ComponentState = new() { ["salary"] = J("NO-SUCH-SALARY") },
+        }));
+        Assert.Contains("Ana", answer);
+    }
+
+    // ── saves keep stored values the caller cannot write ──
+
+    [Fact]
+    public void A_save_keeps_the_stored_value_of_fields_the_caller_cannot_write()
+    {
+        GaStaffCrud.Store["s1"] = new GaStaffRecord { Id = "s1", Name = "Ana", Notes = "N", Grade = "G", Band = "B" };
+        Handler().Handle(new RunActionRqDto
+        {
+            Route = "ga-staff/s1/edit", ServerSideType = typeof(GaStaffCrud).FullName, ActionId = "save",
+            ComponentState = new() { ["name"] = J("Ana B"), ["grade"] = J(null), ["band"] = J("X"), ["notes"] = J(null) },
+        });
+        var saved = GaStaffCrud.Store["s1"];
+        Assert.Equal("Ana B", saved.Name);
+        Assert.Equal(("N", "G", "B"), (saved.Notes, saved.Grade, saved.Band));
+        // a save that does not even carry them keeps them too
+        Handler().Handle(new RunActionRqDto
+        {
+            Route = "ga-staff/s1/edit", ServerSideType = typeof(GaStaffCrud).FullName, ActionId = "save",
+            ComponentState = new() { ["name"] = J("Ana C") },
+        });
+        Assert.Equal(("N", "G", "B"), (GaStaffCrud.Store["s1"].Notes, GaStaffCrud.Store["s1"].Grade, GaStaffCrud.Store["s1"].Band));
+    }
+
+    // ── uploads: a ticket's share of files ──
+
+    [Fact]
+    public void A_ticket_sends_its_share_of_files()
+    {
+        var single = new FileUploads.Ticket("", "photo", 1000, "", false, "c", 0);
+        var text = "single-" + Guid.NewGuid();
+        for (var i = 0; i < FileUploads.SingleFileUses; i++) Assert.True(FileUploads.Consume(text, single));
+        Assert.False(FileUploads.Consume(text, single));
+        // another ticket has its own share
+        Assert.True(FileUploads.Consume("other-" + Guid.NewGuid(), single));
+        var multiple = single with { Multiple = true };
+        var many = "multiple-" + Guid.NewGuid();
+        for (var i = 0; i < FileUploads.MaxFilesPerTicket; i++) Assert.True(FileUploads.Consume(many, multiple));
+        Assert.False(FileUploads.Consume(many, multiple));
+        Assert.Equal(100, FileUploads.MaxFilesPerTicket);
     }
 
     // ── S6 ──
@@ -575,4 +727,167 @@ public class GaReviewProcessWideTests
         Assert.DoesNotContain("evil.example", text);
         await app.StopAsync();
     }
+
+    // ── S9: presence tells nothing about a record the caller may not open ──
+
+    private static readonly string PresenceSpecs = PresenceRoutes();
+
+    private static string PresenceRoutes()
+    {
+        var dir = Directory.CreateTempSubdirectory("ga-s9-").FullName;
+        File.WriteAllText(Path.Combine(dir, "routes.yaml"), """
+            routes:
+              - route: ga-secret-orders
+                layout: page.yaml
+                access: {roles: [admin]}
+              - route: ga-open-orders
+                layout: page.yaml
+            """);
+        File.WriteAllText(Path.Combine(dir, "page.yaml"), "layout: {type: Text, text: Orders}\n");
+        return dir;
+    }
+
+    private static UIIncrementDto Presence(string route, string view, string who = "ana") =>
+        new SyncHandler(new MateuRegistry(typeof(GaReviewProcessWideTests).Assembly), specsDir: PresenceSpecs)
+        {
+            Principal = () => who, PresenceStore = new InMemoryPresenceStore(),
+        }.Handle(new RunActionRqDto
+        {
+            Route = "/ga-doc", ServerSideType = typeof(GaDocView).FullName, ActionId = Mateu.Core.Presence.ActionId,
+            Parameters = new Dictionary<string, object?> { ["route"] = route, ["view"] = view, ["tab"] = "t", ["state"] = "viewing" },
+        });
+
+    [Fact]
+    public void Presence_answers_only_about_a_record_the_caller_may_open()
+    {
+        Assert.Contains(Presence("ga-open-orders/7", typeof(GaDocView).FullName!).Commands, c => c.Type == "PresenceChanged");
+        // the same empty answer as a page that is no record: no oracle
+        Assert.Empty(Presence("ga-secret-orders/7", typeof(GaDocView).FullName!).Commands);
+        Assert.Empty(Presence("ga-open-orders/7", typeof(GaStaffOnlyView).FullName!).Commands);
+        Assert.Empty(Presence("ga-open-orders/7", "io.example.NoSuchView").Commands);
+    }
+
+    // ── S10: idempotency keys ──
+
+    private static Func<Task<UIIncrementDto>> Gated(TaskCompletionSource gate, Action? ran = null) => async () =>
+    {
+        ran?.Invoke();
+        await gate.Task;
+        return UIIncrementDto.Of();
+    };
+
+    [Fact]
+    public async Task Each_caller_has_its_share_of_keys_in_flight()
+    {
+        IdempotencyKeys.Clear();
+        var previous = IdempotencyKeys.MaxEntriesPerCaller;
+        IdempotencyKeys.MaxEntriesPerCaller = 2;
+        var gate = new TaskCompletionSource();
+        try
+        {
+            var a = IdempotencyKeys.OnceAsync("u", "save", "key-S10-0001", Gated(gate));
+            var b = IdempotencyKeys.OnceAsync("u", "save", "key-S10-0002", Gated(gate));
+            var refused = await Assert.ThrowsAsync<UserFacingException>(
+                () => IdempotencyKeys.OnceAsync("u", "save", "key-S10-0003", Gated(gate)));
+            Assert.Equal((IdempotencyKeys.BusyTitle, IdempotencyKeys.BusyMessage), (refused.Title, refused.Message));
+            var other = IdempotencyKeys.OnceAsync("v", "save", "key-S10-0004", Gated(gate));
+            gate.SetResult();
+            await Task.WhenAll(a, b, other);
+        }
+        finally
+        {
+            IdempotencyKeys.MaxEntriesPerCaller = previous;
+            IdempotencyKeys.Clear();
+        }
+    }
+
+    [Fact]
+    public async Task A_full_share_of_answers_evicts_the_callers_own_never_another_callers()
+    {
+        IdempotencyKeys.Clear();
+        var previous = IdempotencyKeys.MaxEntriesPerCaller;
+        IdempotencyKeys.MaxEntriesPerCaller = 2;
+        var runs = new Dictionary<string, int>();
+        Func<Task<UIIncrementDto>> Count(string name) => () =>
+        {
+            runs[name] = runs.GetValueOrDefault(name) + 1;
+            return Task.FromResult(UIIncrementDto.Of());
+        };
+        try
+        {
+            await IdempotencyKeys.OnceAsync("v", "save", "key-V-000001", Count("v1"));
+            await IdempotencyKeys.OnceAsync("u", "save", "key-U-000001", Count("u1"));
+            await IdempotencyKeys.OnceAsync("u", "save", "key-U-000002", Count("u2"));
+            await IdempotencyKeys.OnceAsync("u", "save", "key-U-000003", Count("u3"));
+            // u's oldest answer went; v's is still remembered
+            await IdempotencyKeys.OnceAsync("u", "save", "key-U-000001", Count("u1"));
+            await IdempotencyKeys.OnceAsync("v", "save", "key-V-000001", Count("v1"));
+            Assert.Equal(2, runs["u1"]);
+            Assert.Equal(1, runs["v1"]);
+        }
+        finally
+        {
+            IdempotencyKeys.MaxEntriesPerCaller = previous;
+            IdempotencyKeys.Clear();
+        }
+    }
+
+    [Fact]
+    public async Task A_key_resent_with_another_request_is_refused_and_not_remembered()
+    {
+        IdempotencyKeys.Clear();
+        try
+        {
+            var first = IdempotencyKeys.FingerprintOf(new Dictionary<string, object?> { ["b"] = J(1), ["a"] = J(new { y = 1, x = 2 }) }, null);
+            var same = IdempotencyKeys.FingerprintOf(new Dictionary<string, object?> { ["a"] = J(new { x = 2, y = 1 }), ["b"] = J(1) }, null);
+            var other = IdempotencyKeys.FingerprintOf(new Dictionary<string, object?> { ["a"] = J(new { x = 3, y = 1 }), ["b"] = J(1) }, null);
+            Assert.Equal(first, same);
+            Assert.NotEqual(first, other);
+            var runs = 0;
+            Task<UIIncrementDto> Run() { runs++; return Task.FromResult(UIIncrementDto.Of()); }
+            await IdempotencyKeys.OnceAsync("u", "save", "key-R-000001", Run, fingerprint: first);
+            await IdempotencyKeys.OnceAsync("u", "save", "key-R-000001", Run, fingerprint: same);
+            var refused = await Assert.ThrowsAsync<UserFacingException>(
+                () => IdempotencyKeys.OnceAsync("u", "save", "key-R-000001", Run, fingerprint: other));
+            Assert.Equal((IdempotencyKeys.ReusedTitle, IdempotencyKeys.ReusedMessage), (refused.Title, refused.Message));
+            Assert.Equal(1, runs);
+        }
+        finally
+        {
+            IdempotencyKeys.Clear();
+        }
+    }
+
+    [Fact]
+    public async Task A_keyed_run_outlives_a_client_that_leaves_and_a_retry_joins_it()
+    {
+        IdempotencyKeys.Clear();
+        try
+        {
+            var gate = new TaskCompletionSource();
+            var runs = 0;
+            Func<Task<UIIncrementDto>> Work() => async () =>
+            {
+                IdempotencyKeys.Checkpoint();
+                Interlocked.Increment(ref runs);
+                await gate.Task;
+                return UIIncrementDto.Of(messages: [new MessageDto("success", null, "", "done", 3000)]);
+            };
+            using var leaves = new CancellationTokenSource();
+            var first = IdempotencyKeys.GuardedAsync("u", "save", "key-D-000001", Work(), listen: leaves.Token);
+            leaves.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first);
+            Assert.Equal(1, IdempotencyKeys.InFlightCount); // the key stays claimed
+            var retry = IdempotencyKeys.GuardedAsync("u", "save", "key-D-000001", Work());
+            gate.SetResult();
+            Assert.Equal("done", Assert.Single((await retry).Messages).Text);
+            Assert.Equal(1, runs);
+        }
+        finally
+        {
+            IdempotencyKeys.Clear();
+        }
+    }
+
+    private static JsonElement J(object? value) => JsonSerializer.SerializeToElement(value);
 }
