@@ -48,6 +48,8 @@ public abstract class EditableView<V, E> extends MultiView {
       }
       case "save" -> {
         checkEditable();
+        // editable: a repeated Idempotency-Key may now answer from memory
+        io.mateu.core.infra.idempotency.IdempotencyKeys.checkpoint(httpRequest);
         save(httpRequest);
         yield navigate(
             "/view",

@@ -209,10 +209,13 @@ public static partial class MateuExtensions
                 rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json, ctx.RequestAborted)
                      ?? new RunActionRqDto();
                 // a request carrying an Idempotency-Key (the mobile app's offline send queue)
-                // runs once per caller, action and key: a repeat gets the first answer back
-                return await IdempotencyKeys.OnceAsync(CallerOf(ctx), rq.ActionId,
+                // runs once per caller, action and key: a repeat gets the first answer back. The key
+                // is looked up only at the handler's checkpoint, once the request passed the checks
+                // its action would pass: a refused request is never answered from memory.
+                return await IdempotencyKeys.GuardedAsync(CallerOf(ctx), rq.ActionId,
                     ctx.Request.Headers[IdempotencyKeys.Header].FirstOrDefault(),
-                    () => handler.HandleAsync(rq, prefix, ctx.RequestAborted));
+                    () => handler.HandleAsync(rq, prefix, ctx.RequestAborted),
+                    view: rq.ServerSideType, route: rq.Route);
             });
             EndObservation(ctx, observation);
             ctx.Response.ContentType = "application/json";
@@ -697,17 +700,16 @@ public static partial class MateuExtensions
         });
     }
 
-    /// <summary>The caller an idempotency key is scoped to: the authenticated name and roles —
-    /// stable across tokens, so signing in again keeps the same scope.</summary>
+    /// <summary>The caller an idempotency key is scoped to: the EFFECTIVE identity — the one
+    /// <see cref="MateuOptions.Identity"/> resolves, which every access check reads — complete and
+    /// canonical (name, roles, groups, scopes, permissions; <see cref="IdempotencyKeys.CallerOf"/>).
+    /// Stable across tokens, so signing in again keeps the same scope; any change of grants changes
+    /// it, so an answer remembered for the old grants is never replayed.</summary>
     internal static string CallerOf(HttpContext ctx)
     {
-        // HttpContext.User is never null: an anonymous request carries an unauthenticated principal
-        var user = ctx.User;
-        var roles = user.Claims
-            .Where(c => c.Type is System.Security.Claims.ClaimTypes.Role or "role" or "roles")
-            .Select(c => c.Value).Order(StringComparer.Ordinal);
-        var name = user.Identity is { IsAuthenticated: true } identity ? identity.Name ?? "" : "";
-        return name + "\u0001" + string.Join(",", roles);
+        var options = ctx.RequestServices?.GetService<MateuOptions>();
+        var identity = options is not null ? options.Identity(ctx) : ClaimsIdentityMapper.FromUser(ctx);
+        return IdempotencyKeys.CallerOf(PrincipalName(ctx), identity);
     }
 
     /// <summary>The error boundary of the sync endpoint. A denied request answers 403 with an error

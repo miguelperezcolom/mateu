@@ -71,6 +71,7 @@ internal sealed partial class SyncHandler
             case "save":
             {
                 EnsureEditable(type, view);
+                IdempotencyKeys.Checkpoint(); // editable: a repeated key may now answer from memory
                 var editor = view.LoadEditor();
                 BindState(editor, rq.ComponentState);
                 // save is advertised validationRequired: re-check on the server what the client was

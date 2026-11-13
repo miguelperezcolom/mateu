@@ -89,17 +89,13 @@ public class RunActionUseCase {
   // ── Main entry point ──────────────────────────────────────────────────────
 
   public Flux<UIIncrementDto> handle(RunActionCommand incoming) {
-    // one span + metrics per request (OpenTelemetry, when the app has it) and the audit listeners;
-    // inside it, a request carrying an Idempotency-Key (the mobile app's offline send queue) runs
-    // once per caller, action and key: a repeat gets the first answer back (IdempotencyKeys)
+    // one span + metrics per request (OpenTelemetry, when the app has it) and the audit listeners
     return io.mateu.core.infra.observability.Observability.observe(
         incoming.route(),
         incoming.actionId(),
         incoming.serverSideType(),
         incoming.httpRequest(),
-        () ->
-            io.mateu.core.infra.idempotency.IdempotencyKeys.once(
-                incoming.httpRequest(), incoming.actionId(), () -> handleRequest(incoming)));
+        () -> handleRequest(incoming));
   }
 
   private Flux<UIIncrementDto> handleRequest(RunActionCommand incoming) {
@@ -121,6 +117,21 @@ public class RunActionUseCase {
     } catch (io.mateu.core.application.security.MateuForbiddenException e) {
       return Flux.error(e);
     }
+    // a request carrying an Idempotency-Key (the mobile app's offline send queue) runs once per
+    // caller, action and key: a repeat gets the first answer back (IdempotencyKeys). The key stays
+    // PENDING while the request is handled and is claimed at IdempotencyKeys.checkpoint — where
+    // the action is about to run, after every check it is subject to — so a request refused by any
+    // rule is never answered from memory; the caller's complete identity is part of the key, so
+    // changed grants never replay. Its own refusal (too many keyed runs in flight) answers through
+    // the error boundary.
+    return guarded(
+        command,
+        () ->
+            io.mateu.core.infra.idempotency.IdempotencyKeys.guarded(
+                command.httpRequest(), command.actionId(), () -> dispatch(command)));
+  }
+
+  private Flux<UIIncrementDto> dispatch(RunActionCommand command) {
     // The reserved actions answer through the same error boundary as every other action: an
     // exception in one of them is the generic message + reference, never a raw 500 (NM2).
     if (CONTRACT_ACTION.equals(command.actionId())) {
@@ -260,6 +271,12 @@ public class RunActionUseCase {
             })
         .onErrorResume(
             error -> {
+              var replay = io.mateu.core.infra.idempotency.IdempotencyKeys.Replay.find(error);
+              if (replay != null) {
+                // a known Idempotency-Key stopped the run at its checkpoint: IdempotencyKeys
+                // answers with the remembered run — never an error message of its own
+                return Mono.error(replay);
+              }
               var forbidden =
                   io.mateu.core.application.security.MateuForbiddenException.find(error);
               if (forbidden != null) {
@@ -327,6 +344,10 @@ public class RunActionUseCase {
     return Flux.defer(branch)
         .onErrorResume(
             error -> {
+              var replay = io.mateu.core.infra.idempotency.IdempotencyKeys.Replay.find(error);
+              if (replay != null) {
+                return Flux.error(replay);
+              }
               var forbidden =
                   io.mateu.core.application.security.MateuForbiddenException.find(error);
               if (forbidden != null) {

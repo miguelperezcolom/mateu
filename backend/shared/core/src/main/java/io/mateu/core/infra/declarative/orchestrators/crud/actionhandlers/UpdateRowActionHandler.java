@@ -25,6 +25,8 @@ public class UpdateRowActionHandler implements CrudOrchestratorActionHandler {
       throw new io.mateu.core.application.security.MateuForbiddenException(
           "update-row: " + orchestrator.getClass().getName() + " does not edit rows inline");
     }
+    // the gate passed: a repeated Idempotency-Key may now answer from memory
+    io.mateu.core.infra.idempotency.IdempotencyKeys.checkpoint(httpRequest);
     var parameters = httpRequest.runActionRq().parameters();
     var row = parameters != null ? parameters.get("_editedRow") : null;
     if (!(row instanceof Map<?, ?> rowMap)) {

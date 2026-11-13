@@ -41,6 +41,9 @@ public class ComponentTreeActionRunner implements ActionRunner {
         findButton((ComponentTreeSupplier) instance, command.actionId(), command.httpRequest());
     Object result = null;
     if (button != null) {
+      // a fluent button's own handler is about to run: a repeated Idempotency-Key may now answer
+      // from memory
+      io.mateu.core.application.security.ActionMethods.aboutToRun(command.httpRequest());
       if (button.runnable() != null) {
         button.runnable().run();
       }
