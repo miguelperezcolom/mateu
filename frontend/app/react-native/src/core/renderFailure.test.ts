@@ -37,3 +37,10 @@ test('the boundaries are where a bad component would otherwise take the app down
   assert.match(read('../../App.tsx'), /<RenderBoundary[^>]*>\s*<MateuAppProvider/);
   assert.match(read('../ui/RenderBoundary.tsx'), /static getDerivedStateFromError/);
 });
+
+test('the boundary logs with a constant format string (CodeQL js/tainted-format-string)', () => {
+  const source = readFileSync(new URL('../ui/RenderBoundary.tsx', import.meta.url), 'utf8');
+  const warns = [...source.matchAll(/console\.warn\(([^,]+),/g)].map((m) => m[1].trim());
+  assert.ok(warns.length > 0);
+  for (const first of warns) assert.match(first, /^'[^'$`]*'$/, `format must be a plain literal: ${first}`);
+});

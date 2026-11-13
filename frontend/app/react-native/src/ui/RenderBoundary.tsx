@@ -48,7 +48,9 @@ export class RenderBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: unknown, info: { componentStack?: string | null }): void {
     // never silent: the developer sees which piece threw (the user sees the fallback)
-    console.warn(`[Mateu] render failed${this.props.where ? ` (${this.props.where})` : ''}:`, renderFailureDetail(error), info?.componentStack ?? '');
+    // a constant format string: `where` (a component's name, may come from the wire) is an argument,
+    // never part of the format — a `%s`/`%o` in it would consume the arguments after it
+    console.warn('[Mateu] render failed%s:', this.props.where ? ` (${this.props.where})` : '', renderFailureDetail(error), info?.componentStack ?? '');
   }
 
   private retry = () => this.setState((s) => ({ failed: false, error: null, attempt: s.attempt + 1 }));
