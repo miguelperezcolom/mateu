@@ -100,13 +100,14 @@ def test_a_crud_that_does_not_edit_inline_refuses_it():
 
 # ── GA review P4: hidden editor fields and the client's Version ─────────────────────────────
 
-from mateu_ui.uidl import HiddenInEditor, Version  # noqa: E402
+from mateu_ui.uidl import HiddenInEditor, HiddenInList, Version  # noqa: E402
 
 
 class Account:
     id: str = ""
     name: str = ""
     is_admin: Annotated[bool, HiddenInEditor()] = False
+    internal_code: Annotated[str, HiddenInList()] = "IC-1"
     version: Annotated[int, Version()] = 0
 
 
@@ -166,3 +167,9 @@ def test_a_stale_row_is_still_a_conflict():
     _ACCOUNTS["u1"].version = 3
     _update_row(InlineAccounts, {"id": "u1", "name": "Stale", "version": 1})
     assert _ACCOUNTS["u1"].name == "Ann"
+
+
+def test_a_field_the_listing_does_not_show_takes_nothing_from_the_row():
+    _seed_accounts()
+    _update_row(InlineAccounts, {"id": "u1", "name": "Ann C", "internalCode": "forged", "version": 1})
+    assert (_ACCOUNTS["u1"].name, _ACCOUNTS["u1"].internal_code) == ("Ann C", "IC-1")

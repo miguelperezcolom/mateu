@@ -706,10 +706,14 @@ class CrudHandlerMixin(MixinBase):
         read_only = bool(class_flag(element, "__mateu_read_only__", False))
         from ..mapper.crud_modes import server_owned
 
-        # ...nor does an edit's server-owned value (GeneratedValue / EditableOnlyWhenCreating)
+        # ...nor does an edit's server-owned value (GeneratedValue / EditableOnlyWhenCreating),
+        # nor a field the LISTING does not show (HiddenInList): an inline edit can only have
+        # touched a cell on screen
+        from mateu_ui.uidl import HiddenInList
+
         locked = {
             camel_case(f.name) for f in view_fields(element)
-            if read_only or f.has(ReadOnly) or server_owned(f, False)
+            if read_only or f.has(ReadOnly) or f.has(HiddenInList) or server_owned(f, False)
         }
         # ...nor a HiddenInEditor() field: the row is the EDIT form's record, and what that form
         # does not render is not the user's to write (the editor save's without_hidden_inputs)
