@@ -568,6 +568,7 @@ class SyncHandler(
         """Java's ``YamlUidlLoader.guard``: route ``access:`` (the entry and its ancestors) → 403;
         a declared action whose ``access:`` the caller does not satisfy → 403 (dispatched, or
         proxied through ``__restfetch__`` by source id); locked fields dropped from the state."""
+        rq = self._guard_type_binding(rq)
         if rq.route is None:
             return rq
         refusing = self.routes.refusing_entry(rq.route, self.mapper.authorized)
@@ -603,6 +604,45 @@ class SyncHandler(
             if hidden:
                 by_pieces = {**by_pieces, **components.all_fields_of(sorted(hidden))}
         return self._without_locked_by_pieces(self._without_locked(rq, set(personal.locked_fields)), by_pieces)
+
+    def _guard_type_binding(self, rq: RunActionRq) -> RunActionRq:
+        """The access keys of a routes.yaml entry are tied to the TYPE it binds, not only to the
+        route the request names: a ``serverSideType`` bound by authored entries, sent with a route
+        that is not one of them (nor the type's own registered route), gets the UNION of what
+        those entries say — refused when any of them refuses the caller (route ``access:`` or a
+        declared action), and every field any of their layouts locks dropped from the state.
+        Without it, changing one string in the request (the route) lifted the rules (GA review
+        S1; Java's YamlUidlLoader.guard)."""
+        name = rq.server_side_type
+        if not name:
+            return rq
+        bound = [e for e in self.routes.authored().routes if e.view_model == name]
+        if not bound:
+            return rq
+        match = self.routes.match(rq.route) if rq.route is not None else None
+        if match is not None and match.entry.view_model == name:
+            return rq  # one of its own routes: that entry's rules apply (below)
+        cls = self.registry.resolve(name, None)
+        own = self.registry.resolve_by_prefix(rq.route) if cls is not None and rq.route else None
+        if own is not None and own[0] is cls:
+            return rq  # the type's own @ui route (the derived binding): the code's own rules
+        from ..translations import locale_of
+
+        authorized = self.mapper.authorized
+        locked: set[str] = set()
+        for entry in bound:
+            refusing = self.routes.refusing_entry(entry.route, authorized)
+            if refusing is not None:
+                action_guard.deny(
+                    f"{name} is bound to route '{refusing.route}', whose access: is not satisfied"
+                )
+            personal = self.yaml_specs.load_spec_for(entry.route, authorized, locale_of(self.mapper))
+            if personal is None:
+                continue
+            if rq.action_id and rq.action_id in personal.refused_actions:
+                action_guard.deny(f"action '{rq.action_id}' declares access: not satisfied")
+            locked |= set(personal.locked_fields)
+        return self._without_locked(rq, locked)
 
     @staticmethod
     def _without_locked_by_pieces(rq: RunActionRq, locked_by: dict[str, str]) -> RunActionRq:
