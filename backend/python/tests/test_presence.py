@@ -17,6 +17,7 @@ from mateu_ui.uidl import (  # noqa: E402
     InMemoryPresenceStore,
     PresenceMember,
     app,
+    eyes_only,
     ui,
 )
 
@@ -36,6 +37,17 @@ class PresenceOtherDesk:
 @ui("/presence-off")
 @app("Plain desk")
 class PresenceOffDesk:
+    pass
+
+
+@ui("/presence-plain")
+class PresencePlainView:
+    pass
+
+
+@ui("/payroll-records")
+@eyes_only(roles=["hr"])
+class PresencePayrollRecords:
     pass
 
 
@@ -108,6 +120,22 @@ def test_a_create_page_and_an_app_without_presence_take_no_part():
     store = InMemoryPresenceStore()
     assert _report(store, PresenceDesk, "ana", "a", "orders/new", "editing") is None
     assert _report(store, PresenceOffDesk, "ana", "a", "orders/12", "viewing") is None
+
+
+def test_naming_a_plain_view_does_not_switch_presence_on():
+    store = InMemoryPresenceStore()
+    assert _report(store, PresencePlainView, "ana", "a", "orders/13", "viewing") is None
+    assert store.size() == 0
+
+
+def test_a_record_the_caller_cannot_open_takes_no_part():
+    store = InMemoryPresenceStore()
+    _report(store, PresenceDesk, "ana", "a", "orders/30", "viewing")
+    # payroll-records is @eyes_only(hr): bob (no role) neither shows himself nor learns who is there
+    assert _report(store, PresenceDesk, "bob", "b", "payroll-records/3", "editing") is None
+    assert _report(store, PresenceDesk, "bob", "b", "orders/30", "viewing")["entries"][0]["name"] == "ana"
+    scope = presence.scope_of(None, type_name(PresenceDesk))
+    assert not presence.is_on(store, scope, "payroll-records/3|" + VIEW, "bob")
 
 
 def test_leaving_takes_the_tab_off():

@@ -173,7 +173,7 @@ class AppHandlerMixin(MixinBase):
         from mateu_ui.core.request_context import current_request
 
         principal = self._inbox_principal()
-        if principal is None or not presence.enabled_for(type_):
+        if principal is None or not presence.enabled_for(type_, self.registry):
             return UIIncrement.of()
         params = rq.parameters or {}
 
@@ -182,7 +182,9 @@ class AppHandlerMixin(MixinBase):
             return None if value is None else str(value)
 
         record = presence.record_of(text("route"), text("view"))
-        if record is None:
+        if record is None or not self._may_reach_record(text("route"), text("view")):
+            # a record the caller cannot open: who is on it is none of their business, and they
+            # may not show themselves there either
             return UIIncrement.of()
         store = self.presence_store
         request = current_request()
@@ -194,6 +196,19 @@ class AppHandlerMixin(MixinBase):
             return UIIncrement.of()
         presence.touch(store, scope, record, principal, tab, text("state") == "editing")
         return UIIncrement.of(commands=[presence.command(presence.snapshot(store, scope, record, principal))])
+
+    def _may_reach_record(self, route: str | None, view: str | None) -> bool:
+        """Whether the caller may open the record ``route`` (its routes.yaml ``access:`` and the
+        class-level ``@eyes_only`` of the view answering it) and see ``view`` when it names a
+        known class."""
+        from .. import action_guard
+
+        path = str(route or "").split("?", 1)[0].split("#", 1)[0]
+        if self.routes.refusing_entry(path, self.mapper.authorized) is not None:
+            return False
+        owner = self.registry.resolve(None, path) or (self.registry.resolve_by_prefix(path) or (None,))[0]
+        named = self.registry.known_type(view) if view else None
+        return all(action_guard.class_access_granted(self.mapper, t) for t in (owner, named) if t is not None)
 
     @staticmethod
     def live_updates_snapshot() -> UIIncrement:
