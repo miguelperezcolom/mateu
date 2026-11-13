@@ -1860,7 +1860,14 @@ export function islandContentOf(ctx, opts = {}) {
     // handler in links.mjs navigates INSIDE the shell if it is an app route, and target=_blank
     // (an external URL, a PDF) opens another tab without going through the server
     if (t === 'Anchor') {
-      const href = interp(m.url)
+      // the url may come from a record (`${state.website}`): a `javascript:`/`data:` one is no
+      // link — safeHref, like every other link here and the web's anchor (R-2); its text stays
+      const raw = interp(m.url)
+      const href = safeHref(raw)
+      if (raw && !href) {
+        atom({ isText: true, text: interp(m.text) || raw, cls: '' }, container)
+        return
+      }
       if (href) {
         const target = m.target ? String(m.target) : ''
         atom({

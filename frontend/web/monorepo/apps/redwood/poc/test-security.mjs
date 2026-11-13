@@ -17,6 +17,8 @@ import { elementAttributeValue, sanitizeElementHtml } from './elements.mjs'
 import { sanitizeHtml } from './richtext.mjs'
 import { neutralizeUntrusted } from './untrusted.mjs'
 import { streamChat, uploadChatFiles } from './chat.mjs'
+import { drawMap, markerTooltipOf, tileLayerOf, withLeafletIntegrity, LEAFLET_JS, LEAFLET_JS_INTEGRITY, LEAFLET_CSS_INTEGRITY } from './map.mjs'
+import { islandContentOf, flatAtoms } from './reduceContexts.mjs'
 
 let passed = 0
 const queue = []
@@ -330,6 +332,71 @@ test('R1: an answer from an origin the shell does not trust is painted through t
     resetCredentialOrigins()
     connectivity.reset()
   }
+})
+
+// ── GA review R-1 / R-2: record data reaching Leaflet's innerHTML and an <a href> ──────────────
+
+test('R-1: a map marker label is TEXT — Leaflet gets a node, never markup', () => {
+  const made = []
+  const fakeDoc = { createElement: (tag) => { const el = { tag, textContent: '' }; made.push(el); return el } }
+  const tooltips = []
+  const layer = { addTo() { return this } }
+  const L = {
+    map: () => ({ remove() {}, fitBounds() {}, setView() {}, invalidateSize() {} }),
+    tileLayer: () => layer,
+    circleMarker: () => ({
+      addTo() { return this },
+      bindTooltip(content) { tooltips.push(content); return this },
+      on() { return this },
+      getElement: () => null,
+    }),
+  }
+  const el = { ownerDocument: fakeDoc }
+  const evil = '<img src=x onerror="alert(document.cookie)">'
+  drawMap(L, el, { markers: [{ id: 'm1', latitude: 1, longitude: 2, label: evil }] })
+  assert.equal(tooltips.length, 1)
+  assert.notEqual(typeof tooltips[0], 'string', 'a string tooltip is assigned with innerHTML')
+  assert.equal(tooltips[0].textContent, evil, 'the label shows as written')
+  assert.equal(markerTooltipOf(fakeDoc, 'Hotel <b>Sol</b>').textContent, 'Hotel <b>Sol</b>')
+})
+
+test('R-1: a wire attribution is escaped (Leaflet writes it with innerHTML); our own OSM credit stays a link', () => {
+  const evil = tileLayerOf({ tileUrl: 'https://t.example/{z}/{x}/{y}.png', attribution: '<img src=x onerror=alert(1)> & "co"' })
+  assert.equal(evil.options.attribution, '&lt;img src=x onerror=alert(1)&gt; &amp; &quot;co&quot;')
+  assert.match(tileLayerOf({}).options.attribution, /<a href="https:\/\/www\.openstreetmap\.org\/copyright">/)
+})
+
+test('R-9: Leaflet from cdnjs carries its integrity — requirejs gets it through onNodeCreated, chained', () => {
+  assert.match(LEAFLET_JS_INTEGRITY, /^sha512-[A-Za-z0-9+/]{86}==$/)
+  assert.match(LEAFLET_CSS_INTEGRITY, /^sha512-[A-Za-z0-9+/]{86}==$/)
+  const seen = []
+  const ctx = { config: { onNodeCreated: (node) => seen.push(node.id) } }
+  const rjs = { s: { contexts: { _: ctx } }, config: (c) => Object.assign(ctx.config, c) }
+  withLeafletIntegrity(rjs)
+  withLeafletIntegrity(rjs) // once
+  const attrs = (id) => { const a = {}; return { id, a, setAttribute: (k, v) => { a[k] = v } } }
+  const other = attrs('other')
+  ctx.config.onNodeCreated(other, {}, 'x', 'https://cdn.example/x.js')
+  const leaflet = attrs('leaflet')
+  ctx.config.onNodeCreated(leaflet, {}, LEAFLET_JS, LEAFLET_JS + '?v=1')
+  assert.deepEqual(other.a, {})
+  assert.deepEqual(leaflet.a, { integrity: LEAFLET_JS_INTEGRITY, crossorigin: 'anonymous' })
+  assert.deepEqual(seen, ['other', 'leaflet'], 'the page\'s own hook still runs, once each')
+})
+
+test('R-2: an Anchor whose url is javascript:/data: is no link — its text is shown, safe ones still link', () => {
+  const node = (metadata, children = []) => ({ type: 'ClientSide', id: metadata.id || '', metadata, children })
+  const atoms = (islandContentOf({ tree: node({ type: 'Page' }, [
+    node({ type: 'Anchor', text: 'Website', url: '${state.website}' }),
+    node({ type: 'Anchor', text: 'Raw', url: 'JavaScript:alert(2)' }),
+    node({ type: 'Anchor', url: 'data:text/html,<script>alert(3)</script>' }),
+    node({ type: 'Anchor', text: 'Docs', url: 'https://docs.example' }),
+  ]), state: { website: 'javascript:alert(1)' }, data: {} }, {}) || []).flatMap((b) => flatAtoms(b.items))
+  const links = atoms.filter((a) => a.isAnchor)
+  assert.deepEqual(links.map((a) => a.href), ['https://docs.example'])
+  const texts = atoms.filter((a) => a.isText).map((a) => a.text)
+  assert.ok(texts.includes('Website') && texts.includes('Raw'), 'the link text is kept as text')
+  assert.ok(atoms.every((a) => !/^\s*(javascript|data):/i.test(String(a.href || ''))))
 })
 
 for (const { name, fn } of queue) {
