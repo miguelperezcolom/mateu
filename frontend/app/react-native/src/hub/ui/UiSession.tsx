@@ -24,6 +24,8 @@ import { hubBarSignsOut, uiSessionId, rotateUiSessionId } from '../uiSession';
 import { Notice, PrimaryButton, SecondaryButton, UiIcon, hubStyles, inkOn } from './common';
 import { UpdateAppButton } from './UpdateApp';
 import { ANONYMOUS_OWNER, OfflineQueue } from '../../core/offlineQueue';
+import { serverActivity } from '../../core/serverActivity';
+import { ServerActivityBar } from '../../shell/ServerActivityBar';
 
 type Phase =
   | { name: 'manifest' }
@@ -154,14 +156,16 @@ export function UiSession({
           })
           .catch(() => undefined);
       } else {
-        fetched = await fetchFresh();
+        // the UI cannot open without it: the "waiting for the server" bar shows (core/serverActivity.ts);
+        // the background refresh above does not count
+        fetched = await serverActivity.track(fetchFresh);
       }
       const m = await manifestOf(fetched, entry);
       if (!m.ok) {
         if (alive) setPhase({ name: 'error', reason: m.reason });
         return;
       }
-      const found = await staticBundleOf(fetched, m.manifest, entry.baseUrl);
+      const found = await serverActivity.track(() => staticBundleOf(fetched, m.manifest, entry.baseUrl));
       if (!found.ok) {
         if (alive) setPhase({ name: 'error', reason: found.reason });
         return;
@@ -369,6 +373,8 @@ export function UiSession({
         )}
       </Appbar.Header>
       )}
+      {/* "waiting for the server", right under the hub's bar (a UI that claims the bar draws its own) */}
+      {!(barClaimed && phase.name === 'ready' && !!sessionId) && <ServerActivityBar />}
       {body}
     </View>
   );

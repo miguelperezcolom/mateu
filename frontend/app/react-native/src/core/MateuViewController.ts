@@ -26,6 +26,7 @@ import { classifyFailure, describeFailure, HttpStatusError, isIdempotentAction }
 import { connectivity } from './connectivity.ts';
 import { actionShortcutsOf } from './keyShortcuts.ts';
 import { newIdempotencyKey, OUTBOX_TEXTS, outboxRecoveryTexts, shouldQueue, type QueuedRequest } from './offlineQueue.ts';
+import { serverActivity } from './serverActivity.ts';
 import type { ToastAction } from './componentContext.ts';
 
 /** The action whose answer an increment is (a streamed task's Retry runs it again). */
@@ -276,9 +277,9 @@ export class MateuViewController {
     (actionId) => {
       if (!this.session.onScreen) return; // a UI the hub keeps hidden: it refreshes when it is back
       if (actionId === 'search') this.seedSearchState();
-      // Like every trigger, silent: a failure logs, never a toast. runAction shows no busy
-      // indicator here, so `background` needs no extra handling on this renderer.
-      void this.runAction(actionId, undefined, true);
+      // Like every trigger, silent: a failure logs, never a toast — and a BACKGROUND refresh: the
+      // "waiting for the server" bar does not show for it (core/serverActivity.ts)
+      void this.runAction(actionId, undefined, true, true);
     },
     undefined,
     (condition) => this.evalValidationCondition(condition),
@@ -400,21 +401,21 @@ export class MateuViewController {
   }
 
   /** Runs an action; resolves whether it went through (a kanban move puts its card back otherwise). */
-  async runAction(actionId: string, parameters?: Json, silent = false): Promise<boolean> {
+  async runAction(actionId: string, parameters?: Json, silent = false, background = false): Promise<boolean> {
     // No double submit: a second press of an action still in flight is dropped (a slow Save sent
     // twice saved twice). Triggers (silent) and reads (a type-ahead search) are never held back.
     const exclusive = !silent && !isIdempotentAction(actionId, this.actionIdempotent[actionId]);
     if (exclusive && this.pending.has(actionId)) return false;
-    if (!exclusive) return this.runActionNow(actionId, parameters, silent);
+    if (!exclusive) return this.runActionNow(actionId, parameters, silent, background);
     this.setPending(actionId, true);
     try {
-      return await this.runActionNow(actionId, parameters, silent);
+      return await this.runActionNow(actionId, parameters, silent, background);
     } finally {
       this.setPending(actionId, false);
     }
   }
 
-  private async runActionNow(actionId: string, parameters: Json | undefined, silent: boolean): Promise<boolean> {
+  private async runActionNow(actionId: string, parameters: Json | undefined, silent: boolean, background = false): Promise<boolean> {
     // Dirty guard on discarding actions (Cancel on an edit form).
     // The host may confirm asynchronously; a synchronous confirm hook keeps it simple here.
     if (this.trackDirty && this.dirty && isLeaveAction(actionId, this.currentComponentActions)) {
@@ -560,6 +561,7 @@ export class MateuViewController {
         ...request,
         idempotent: this.actionIdempotent[actionId],
         idempotencyKey: queueable?.key,
+        background,
       });
       this.applyIncrement(increment as Json);
       // The server answers a handler that threw with an error message (its error boundary), not an
@@ -644,17 +646,23 @@ export class MateuViewController {
         if (this.session.sources.viaProxy(source)) {
           json = await this.fetchViaProxy(kind, actionId ?? '', { _forEachSelectedRow: true });
         } else {
-          for (const row of rows) {
-            const rowCtx = { ...ctx, state: { ...ctx.state, ...row } };
-            const url = this.session.sources.absolute(interpolateUrl(str(target['url']), rowCtx));
-            const method = (str(target['method']) || 'GET').toUpperCase();
-            const headers: Record<string, string> = {};
-            for (const [k, v] of Object.entries((target['headers'] as Json) ?? {})) headers[k] = interpolate(str(v), rowCtx);
-            Object.assign(headers, await externalAuthHeaders({ url, method }));
-            const init: RequestInit = { method, headers };
-            if (method !== 'GET' && method !== 'HEAD' && target['body']) init.body = bodyOf(target, headers, rowCtx);
-            const res = await fetch(url, init);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          // one call per row, counted as ONE wait (the indicator does not restart between rows)
+          const endWait = serverActivity.begin();
+          try {
+            for (const row of rows) {
+              const rowCtx = { ...ctx, state: { ...ctx.state, ...row } };
+              const url = this.session.sources.absolute(interpolateUrl(str(target['url']), rowCtx));
+              const method = (str(target['method']) || 'GET').toUpperCase();
+              const headers: Record<string, string> = {};
+              for (const [k, v] of Object.entries((target['headers'] as Json) ?? {})) headers[k] = interpolate(str(v), rowCtx);
+              Object.assign(headers, await externalAuthHeaders({ url, method }));
+              const init: RequestInit = { method, headers };
+              if (method !== 'GET' && method !== 'HEAD' && target['body']) init.body = bodyOf(target, headers, rowCtx);
+              const res = await fetch(url, init);
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            }
+          } finally {
+            endWait();
           }
           json = null;
         }
@@ -672,10 +680,13 @@ export class MateuViewController {
         Object.assign(headers, await externalAuthHeaders({ url, method }));
         const init: RequestInit = { method, headers };
         if (method !== 'GET' && method !== 'HEAD' && target['body']) init.body = bodyOf(target, headers, ctx);
-        const res = await fetch(url, init);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        // a 204 (a DELETE) is a success with nothing to merge, never a parse error
-        json = await jsonBodyOf(res);
+        // counted by the "waiting for the server" indicator until the body is read
+        json = await serverActivity.track(async () => {
+          const res = await fetch(url, init);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          // a 204 (a DELETE) is a success with nothing to merge, never a parse error
+          return jsonBodyOf(res);
+        });
       }
       // resultPath: a string (possibly empty = whole response) merges into the state; null/absent
       // (a @RestAction fire-and-toast) merges nothing.

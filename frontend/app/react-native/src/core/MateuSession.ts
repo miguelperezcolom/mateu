@@ -262,7 +262,8 @@ export class MateuSession {
     const queue = this.outbox;
     if (!queue || this.api.local) return null;
     const result = await queue.drain(
-      (request, idempotencyKey) => this.api.runAction({ ...request, idempotencyKey, silentReauth: true }),
+      // background: the queue drains on its own, nobody waits on screen for it (core/serverActivity.ts)
+      (request, idempotencyKey) => this.api.runAction({ ...request, idempotencyKey, silentReauth: true, background: true }),
       () => connectivity.isOnline,
       // compared before EACH send: a queue is only ever sent as its owner (offlineQueue.ts)
       () => (this.outboxOwner ? this.outboxOwner() : ANONYMOUS_OWNER),

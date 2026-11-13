@@ -123,7 +123,14 @@ function AvatarCircle({ name, abbreviation, image, colorIndex, size = 36, ring =
       style={[styles.avatar, box, { backgroundColor: avatarColor(name ?? abbreviation, colorIndex) }, ring && styles.avatarRing]}
     >
       {image ? (
-        <Image source={{ uri: image }} style={box} />
+        // a picture that does not load falls back to the initials, like an avatar without one
+        <Image
+          source={{ uri: image }}
+          style={box}
+          accessible={false}
+          importantForAccessibility="no"
+          fallback={<Text style={[styles.avatarText, { fontSize: size * 0.38 }]}>{initials(name, abbreviation)}</Text>}
+        />
       ) : (
         <Text style={[styles.avatarText, { fontSize: size * 0.38 }]}>{initials(name, abbreviation)}</Text>
       )}
