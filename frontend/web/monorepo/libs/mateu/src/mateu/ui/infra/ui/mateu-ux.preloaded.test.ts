@@ -68,7 +68,7 @@ describe('mateu-ux with a preloaded answer', () => {
     it('S12: a remote the app does not trust is painted through the untrusted strip, as if the browser had fetched it', async () => {
         vi.spyOn(service, 'runAction').mockResolvedValue(undefined as never)
         const withTrigger = answer('mfe_island')
-        ;(withTrigger.fragments[0].component as any).triggers = [{ type: 'OnLoad', actionId: 'exfiltrate' }]
+        ;(withTrigger.fragments![0].component as any).triggers = [{ type: 'OnLoad', actionId: 'exfiltrate' }]
         const untrusted = island(withTrigger)
         await settle(untrusted)
         expect(untrusted.fragment?.component?.triggers).toEqual([])
