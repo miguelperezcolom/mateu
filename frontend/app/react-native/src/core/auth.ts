@@ -23,6 +23,9 @@ export interface TokenProvider {
   login?(): Promise<boolean>;
   /** Drop the tokens (sign out). */
   logout?(): Promise<void>;
+  /** Who is signed in — a stable identity (issuer + subject + tenant, outboxOwner.ts), null when
+   *  nobody is or the tokens do not say. What the offline send queue is owned by and checked against. */
+  owner?(): Promise<string | null>;
 }
 
 let provider: TokenProvider | undefined;

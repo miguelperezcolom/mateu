@@ -22,7 +22,7 @@ import { toastOf } from './componentContext.ts';
 import { skewTexts, type SkewNotice } from './buildSkew.ts';
 import { uiLocale } from './money.ts';
 import type { StaticBundle } from './staticBundle.ts';
-import { OUTBOX_TEXTS, type DrainResult, type OfflineQueue } from './offlineQueue.ts';
+import { ANONYMOUS_OWNER, OUTBOX_TEXTS, type DrainResult, type OfflineQueue } from './offlineQueue.ts';
 import { connectivity } from './connectivity.ts';
 
 export type MessageVariant = 'info' | 'warning' | 'error';
@@ -248,6 +248,10 @@ export class MateuSession {
   }
   private ownOutbox: OfflineQueue | null = null;
 
+  /** Host hook: who is signed in NOW (outboxOwner.ts) — the queue is sent only while it is the
+   *  queue's owner. Unset: the anonymous owner (a UI with no sign-in). */
+  outboxOwner?: () => Promise<string | null>;
+
   /**
    * Sends what the queue keeps, in order, each with its own key — when the connection is back, when
    * the UI opens, or when the user asks. An expired sign-in is handled by the transport (it asks to
@@ -258,8 +262,10 @@ export class MateuSession {
     const queue = this.outbox;
     if (!queue || this.api.local) return null;
     const result = await queue.drain(
-      (request, idempotencyKey) => this.api.runAction({ ...request, idempotencyKey }),
+      (request, idempotencyKey) => this.api.runAction({ ...request, idempotencyKey, silentReauth: true }),
       () => connectivity.isOnline,
+      // compared before EACH send: a queue is only ever sent as its owner (offlineQueue.ts)
+      () => (this.outboxOwner ? this.outboxOwner() : ANONYMOUS_OWNER),
     );
     if (result.sent.length > 0) this.notify(null, OUTBOX_TEXTS.sent(result.sent.length), 'info');
     const stop = result.stoppedBy;

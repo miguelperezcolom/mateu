@@ -4,6 +4,7 @@ import * as WebBrowser from 'expo-web-browser';
 import type { TokenProvider } from './auth.ts';
 import { endSessionUrl, isExpiring, parseStoredTokens, tokensBelongTo, tokensFromResponse, type OidcConfig, type StoredTokens } from './oidcConfig.ts';
 import type { KeyValueStore } from './sessionId.ts';
+import { ownerOfTokens } from './outboxOwner.ts';
 
 // On web the identity provider redirects back into a popup; this closes it and hands the result
 // to the opener. A no-op on iOS/Android.
@@ -83,6 +84,13 @@ export class OidcTokenProvider implements TokenProvider {
 
   private extraParams(): Record<string, string> {
     return this.config.audience ? { audience: this.config.audience } : {};
+  }
+
+  /** Who the stored tokens sign in as (outboxOwner.ts): a refreshed token of the same person is the
+   *  same owner; null when signed out. No network: it reads what was kept. */
+  async owner(): Promise<string | null> {
+    await this.load();
+    return ownerOfTokens(this.tokens, this.config.issuer);
   }
 
   /** True when a usable (or refreshable) session exists — the boot gate's question. */

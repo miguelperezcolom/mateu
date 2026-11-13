@@ -56,7 +56,7 @@ const lookedLikeOurs = (url: string): boolean => /^mateu:/i.test(url) || /\/(add
 export function HubApp() {
   const [entries, setEntries] = useState<HubEntry[] | null>(null);
   // the changes each UI keeps in its offline send queue (the list's "pending" badge)
-  const pending = usePendingCounts(secretStore, (entries ?? []).map((e) => e.id));
+  const pending = usePendingCounts(secretStore, entries ?? []);
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
   const [sessions, setSessions] = useState<OpenSession[]>([]);
   const [activeId, setActiveId] = useState<string | undefined>();
