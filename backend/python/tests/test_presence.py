@@ -51,8 +51,13 @@ class PresencePayrollRecords:
     pass
 
 
+@ui("/orders")
+class PresenceOrderView:
+    pass
+
+
 MODULE = sys.modules[__name__]
-VIEW = "io.example.OrderView"
+VIEW = type_name(PresenceOrderView)
 T0 = datetime(2026, 11, 11, 10, 0, tzinfo=timezone.utc)
 
 
@@ -136,6 +141,35 @@ def test_a_record_the_caller_cannot_open_takes_no_part():
     assert _report(store, PresenceDesk, "bob", "b", "orders/30", "viewing")["entries"][0]["name"] == "ana"
     scope = presence.scope_of(None, type_name(PresenceDesk))
     assert not presence.is_on(store, scope, "payroll-records/3|" + VIEW, "bob")
+
+
+def test_a_view_the_app_does_not_expose_takes_no_part():
+    store = InMemoryPresenceStore()
+    h = _handler(store, "ana")
+    increment = h.handle(RunActionRq(
+        server_side_type=type_name(PresenceDesk), route="/PresenceDesk", action_id="_presence",
+        parameters={"route": "orders/40", "view": "io.example.Nowhere", "tab": "a", "state": "viewing"},
+    ))
+    assert increment.commands == [] and store.size() == 0
+
+
+def test_a_route_refused_under_the_apps_mount_takes_no_part(tmp_path):
+    from mateu_ui.core.route_registry import RouteRegistry
+    from mateu_ui.core.yaml_spec_loader import YamlSpecLoader
+
+    (tmp_path / "routes.yaml").write_text(
+        "routes:\n  - route: presence-desk/vault\n    layout: v.yaml\n    access: {roles: [admin]}\n"
+    )
+    (tmp_path / "v.yaml").write_text("type: Text\ntext: Vault\n")
+    store = InMemoryPresenceStore()
+    h = _handler(store, "ana")
+    h.routes = RouteRegistry(str(tmp_path))
+    h.yaml_specs = YamlSpecLoader(str(tmp_path), h.routes)
+    increment = h.handle(RunActionRq(
+        server_side_type=type_name(PresenceDesk), route="/presence-desk", action_id="_presence",
+        parameters={"route": "vault/1", "view": VIEW, "tab": "a", "state": "viewing"},
+    ))
+    assert increment.commands == [] and store.size() == 0
 
 
 def test_leaving_takes_the_tab_off():

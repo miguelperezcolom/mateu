@@ -95,3 +95,68 @@ def test_a_create_starts_from_the_creation_form_and_writes_only_creatable_fields
     _run("cap-accounts/new", "create", {"name": "New", "balance": 1e9, "createdBy": "forged"})
     created = CREATED[-1]
     assert (created.name, created.balance, created.created_by) == ("New", 0.0, "server-default")
+
+
+# ── a save keeps the STORED value of what the caller may not write — never nulls it ─────────
+
+from mateu_ui.uidl import Crud, DisabledUnless, EyesOnly, Identity, ReadOnlyUnless, inline_editing  # noqa: E402
+
+
+class Staffer:
+    id: str = ""
+    name: str = ""
+    salary: Annotated[float | None, EyesOnly(roles=["hr"])] = None
+    grade: Annotated[str | None, ReadOnlyUnless(roles=["hr"])] = None
+    badge: Annotated[str | None, DisabledUnless(roles=["hr"])] = None
+
+
+STAFF: dict[str, Staffer] = {}
+
+
+@ui("staffers")
+@inline_editing
+class Staffers(Crud[Staffer]):
+    def fetch(self, search):
+        return list(STAFF.values())
+
+    def get(self, id_):
+        return STAFF.get(id_)
+
+    def save(self, entity):
+        STAFF[entity.id] = entity
+
+
+def _seed_staff():
+    STAFF.clear()
+    s = Staffer()
+    s.id, s.name, s.salary, s.grade, s.badge = "s1", "Sam", 3000.0, "B2", "K-9"
+    STAFF["s1"] = s
+
+
+def _staff_call(route, action_id, state=None, parameters=None):
+    SyncHandler(MateuRegistry(MODULE), identity_provider=lambda: Identity(roles=("viewer",))).handle(RunActionRq(
+        route=route, consumed_route="/staffers", server_side_type=type_name(Staffers), action_id=action_id,
+        initiator_component_id="c1", component_state=state or {}, parameters=parameters or {},
+    ))
+
+
+def _kept():
+    s = STAFF["s1"]
+    return (s.salary, s.grade, s.badge)
+
+
+def test_an_editor_save_keeps_what_the_caller_may_not_write():
+    _seed_staff()
+    # sent blank (the field is not drawn / is locked) or forged: the stored value stays
+    _staff_call("staffers/s1/edit", "save", {"name": "Sam B", "salary": None, "grade": "", "badge": None})
+    assert STAFF["s1"].name == "Sam B" and _kept() == (3000.0, "B2", "K-9")
+    _staff_call("staffers/s1/edit", "save", {"name": "Sam C", "salary": 1, "grade": "Z", "badge": "X"})
+    assert STAFF["s1"].name == "Sam C" and _kept() == (3000.0, "B2", "K-9")
+
+
+def test_an_inline_row_edit_keeps_what_the_caller_may_not_write():
+    _seed_staff()
+    _staff_call("staffers", "update-row", parameters={"_editedRow": {
+        "id": "s1", "name": "Sam D", "salary": None, "grade": None, "badge": None,
+    }})
+    assert STAFF["s1"].name == "Sam D" and _kept() == (3000.0, "B2", "K-9")

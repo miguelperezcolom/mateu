@@ -182,7 +182,7 @@ class AppHandlerMixin(MixinBase):
             return None if value is None else str(value)
 
         record = presence.record_of(text("route"), text("view"))
-        if record is None or not self._may_reach_record(text("route"), text("view")):
+        if record is None or not self._may_reach_record(text("route"), text("view"), type_):
             # a record the caller cannot open: who is on it is none of their business, and they
             # may not show themselves there either
             return UIIncrement.of()
@@ -197,17 +197,35 @@ class AppHandlerMixin(MixinBase):
         presence.touch(store, scope, record, principal, tab, text("state") == "editing")
         return UIIncrement.of(commands=[presence.command(presence.snapshot(store, scope, record, principal))])
 
-    def _may_reach_record(self, route: str | None, view: str | None) -> bool:
-        """Whether the caller may open the record ``route`` (its routes.yaml ``access:`` and the
-        class-level ``@eyes_only`` of the view answering it) and see ``view`` when it names a
-        known class."""
+    def _may_reach_record(self, route: str | None, view: str | None, type_=None) -> bool:
+        """Whether the caller may open the record (Java's ``PresenceActionRunner.mayOpen``): its
+        route is reachable for them — the ``access:`` of the authored entries answering it and their
+        ancestors, tried also prefixed with the app's mount — and ``view`` names a type the app
+        EXPOSES (a registered view or an authored view model) whose class-level ``@eyes_only`` they
+        satisfy, as the route's own view."""
         from .. import action_guard
 
         path = str(route or "").split("?", 1)[0].split("#", 1)[0]
-        if self.routes.refusing_entry(path, self.mapper.authorized) is not None:
+        authorized = self.mapper.authorized
+        if self.routes.refusing_entry(path, authorized) is not None:
             return False
+        from ..registry import normalize
+
+        mount = normalize(
+            (type_.__dict__.get("__mateu_app_route__") or type_.__dict__.get("__mateu_ui__") or "")
+            if isinstance(type_, type) else ""
+        )
+        relative = normalize(path)
+        if mount and relative != mount and not relative.startswith(mount + "/"):
+            if self.routes.refusing_entry(mount + "/" + relative, authorized) is not None:
+                return False
         owner = self.registry.resolve(None, path) or (self.registry.resolve_by_prefix(path) or (None,))[0]
-        named = self.registry.known_type(view) if view else None
+        if view and view.strip():
+            named = self.registry.known_type(view.strip())
+            if named is None:
+                return False  # no type the app exposes: nothing to learn about
+        else:
+            named = None
         return all(action_guard.class_access_granted(self.mapper, t) for t in (owner, named) if t is not None)
 
     @staticmethod
