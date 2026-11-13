@@ -129,6 +129,9 @@ file larger than `maxBytes`, or 10 MB when undeclared**, with *"This file is too
   store, the field's limits and a hash of the caller's identity. No ticket, a forged or expired one,
   or another caller's → 403. A read-only field, or one hidden by `@EyesOnly` / an access key, never
   gets a ticket.
+- A ticket sends a bounded number of files: 10 for a single-file field (the file and its
+  replacements before the form is saved), `mateu.uploads.max-files-per-ticket` (100) for a
+  `multiple` one; past it → 429 *"Too many uploads"*, and a reload of the page issues a new ticket.
 - The ticket travels in the `X-Mateu-Upload-Ticket` header: a cross-site page cannot send it
   without a CORS preflight, which is what makes the endpoint CSRF-safe without a JSON body (Spring
   Security's CSRF exemption covers it). CORS follows the usual `mateu.cors.allowed-origins`.

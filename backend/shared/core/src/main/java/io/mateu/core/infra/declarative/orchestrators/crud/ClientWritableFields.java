@@ -32,6 +32,7 @@ import java.util.Map;
  * <p>Left to the client on purpose: the optimistic-lock {@code @Version} (the save compares it), a
  * {@code @GeneratedValue} on a create (the server generated it for the form being saved).
  */
+@io.mateu.uidl.annotations.Internal
 public final class ClientWritableFields {
 
   private ClientWritableFields() {}

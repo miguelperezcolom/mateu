@@ -159,6 +159,15 @@ The Java, .NET and Python servers honour it on the sync endpoint:
 
   Tune both with `mateu.idempotency.max-entries` / `mateu.idempotency.ttl-seconds` (Java),
   `MATEU_IDEMPOTENCY_MAX_ENTRIES` / `MATEU_IDEMPOTENCY_TTL_SECONDS` (.NET, Python).
+- Each **caller** has its own share of both tables (`mateu.idempotency.max-entries-per-caller`,
+  100): past it, the caller's new key is refused with the same *"Too many pending requests"* while
+  its runs are in flight, and its own least recently used answer is forgotten when it finishes
+  more — one caller can never fill the tables for the others or evict their answers.
+- The same key sent with a **different request** (another component state or parameters) is not a
+  retry: it is refused with *"Idempotency key reused — This key was already used for a different
+  request. Send this one with a new key."*
+- A run does not depend on the connection that started it: if the client gives up (its timeout
+  drops the connection), the run goes on and keeps its key, and the retry joins it.
 
 :::note[Several instances]
 The memory is per process: it does not survive a restart and is not shared. Behind a load balancer,

@@ -99,6 +99,13 @@ An empty class renders an empty page. For a complete project on this runtime —
 a full CRUD, with this exact build setup — copy the [`starters/spring-webflux`](https://github.com/miguelperezcolom/mateu/tree/master/starters/spring-webflux) project; CI
 compiles and boots it on every change.
 
+## Blocking code is fine
+
+Your `CrudStore`, `load()` and action methods are ordinary synchronous code (JDBC, files, a REST
+client): Mateu runs every action off the Netty event loop, on Reactor's `boundedElastic`
+scheduler, so a slow store never stalls the loop that serves the other requests and the static
+assets.
+
 ## Troubleshooting
 
 In case you are using a maven project and you are setting custom annotation processor paths (e.g. because you are using mapstruct) you must add the annotation processor from Mateu, in your pom.xml:
