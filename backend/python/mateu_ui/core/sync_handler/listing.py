@@ -25,7 +25,7 @@ from mateu_ui.uidl import (
     SortSpec,
 )
 
-from .. import action_guard
+from .. import action_guard, idempotency_keys
 from ..mapper import (
     capability_class,
     crud_element_type,
@@ -190,6 +190,7 @@ class ListingHandlerMixin(MixinBase):
         if editable and aid == "save":
             editor = editor_type()
             self.bind_state(editor, rq.component_state or {})
+            idempotency_keys.checkpoint()  # the capability is declared: the write may replay
             saved_id = self._invoke(view.save, editor, rq)
             if drawer_editor:
                 return self._close_drawer_and_research(rq)
@@ -198,6 +199,7 @@ class ListingHandlerMixin(MixinBase):
         if creatable and aid == "create":
             form = form_type()
             self.bind_state(form, rq.component_state or {})
+            idempotency_keys.checkpoint()  # the capability is declared: the write may replay
             self._invoke(view.create, form, rq)
             if drawer_editor:
                 return self._close_drawer_and_research(rq)
@@ -205,6 +207,7 @@ class ListingHandlerMixin(MixinBase):
             return self.navigate_after_create(base_route, rq)
         if deletable and aid == "delete":
             deleted = self._selected_ids(rq)
+            idempotency_keys.checkpoint()  # the capability is declared: the write may replay
             self._invoke(view.delete_all_by_id, deleted, rq)
             refreshed = self.listing_search(view, rq)
             # a listing declaring Restorable offers the way back (W-V-DELETE-FEEDBACK)
@@ -214,6 +217,7 @@ class ListingHandlerMixin(MixinBase):
             ]})
         if deletable and is_restorable(view) and aid == Restorable.RESTORE_ACTION:
             ids = restore_ids(rq)
+            idempotency_keys.checkpoint()  # the capability is declared: the write may replay
             if ids:
                 self._invoke(view.restore_all_by_id, ids, rq)
             refreshed = self.listing_search(view, rq)

@@ -138,6 +138,9 @@ internal static class ActionGuard
         if (!Authorized(method.Find<DisabledUnlessAttribute>())) reason = "[DisabledUnless]";
         else if (!Authorized(method.Find<EyesOnlyAttribute>())) reason = "[EyesOnly]";
         if (reason is not null) Deny($"action '{actionId}' on {type.FullName} denied by {reason}");
+        // the action passed every check it is subject to: only NOW may a repeated Idempotency-Key
+        // be answered from memory (a refused request never is)
+        IdempotencyKeys.Checkpoint();
     }
 
     /// <summary>Enforces a class-level [EyesOnly] on a view type resolved from the wire.</summary>

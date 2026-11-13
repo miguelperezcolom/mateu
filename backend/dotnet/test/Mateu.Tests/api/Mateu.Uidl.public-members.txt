@@ -1246,6 +1246,7 @@ Mateu.Uidl.Icon property System.String Name { get;init; }
 Mateu.Uidl.IdAttribute ctor()
 Mateu.Uidl.Identity ctor(System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null)
 Mateu.Uidl.Identity property System.Collections.Generic.IReadOnlyList<System.String> Groups { get;init; }
+Mateu.Uidl.Identity property System.String Name { get;init; }
 Mateu.Uidl.Identity property System.Collections.Generic.IReadOnlyList<System.String> Permissions { get;init; }
 Mateu.Uidl.Identity property System.Collections.Generic.IReadOnlyList<System.String> Roles { get;init; }
 Mateu.Uidl.Identity property System.Collections.Generic.IReadOnlyList<System.String> Scopes { get;init; }
