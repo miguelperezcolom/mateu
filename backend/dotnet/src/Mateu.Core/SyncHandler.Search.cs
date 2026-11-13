@@ -112,7 +112,7 @@ internal sealed partial class SyncHandler
     /// ran the count + page queries itself) goes to the wire as-is with its real total.</summary>
     private static UIIncrementDto EmitListingData(object? found, Type rowType, RunActionRqDto rq, object? listing = null)
     {
-        var props = ReflectionMapper.EditableProperties(rowType).ToList();
+        var props = RowProperties(rowType);
         if (found is null) return PageRows([], props, rq);
         var content = ((System.Collections.IEnumerable)found.GetType().GetProperty("Content")!.GetValue(found)!)
             .Cast<object>().ToList();
@@ -239,6 +239,15 @@ internal sealed partial class SyncHandler
         return rows;
     }
 
+    /// <summary>The properties a listing row carries FOR THIS CALLER: an [EyesOnly] property the
+    /// caller may not see is neither a cell of the row (at any level of a tree) nor a sort, filter
+    /// or summary key — hiding only its column left the value in the row data (Java's listing
+    /// columns and DataMapper apply the same predicate).</summary>
+    internal static List<PropertyInfo> RowProperties(Type rowType) =>
+        ReflectionMapper.EditableProperties(rowType)
+            .Where(p => ActionGuard.Authorized(p.Find<EyesOnlyAttribute>()))
+            .ToList();
+
     /// <summary>A row as a camelCase dict; a self-referential children list (tree layouts)
     /// recurses so every level of the hierarchy rides in the same payload.</summary>
     private static Dictionary<string, object?> RowDict(object item, List<PropertyInfo> props) =>
@@ -247,7 +256,7 @@ internal sealed partial class SyncHandler
             if (ReflectionMapper.GridRowType(p) is { } childType
                 && p.GetValue(item) is System.Collections.IEnumerable children)
             {
-                var childProps = ReflectionMapper.EditableProperties(childType).ToList();
+                var childProps = RowProperties(childType);
                 return (object?)children.Cast<object>().Select(child => RowDict(child, childProps)).ToList();
             }
             return MappedCell(p, p.GetValue(item));
@@ -282,7 +291,7 @@ internal sealed partial class SyncHandler
 
     private static UIIncrementDto CrudSearch(object instance, Type element, RunActionRqDto rq)
     {
-        var props = ReflectionMapper.EditableProperties(element).ToList();
+        var props = RowProperties(element);
         var summarySpec = SummarySpecOf(props);
         // The [GroupBy] column is the implicit primary sort, so rows of the same group stay
         // contiguous in the listing (the user's own sort applies within groups; mirrors Java's
