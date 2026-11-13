@@ -102,6 +102,9 @@ public final class UploadEndpoint {
     if (!Accept.allows(granted.accept(), name, type)) {
       return notAccepted();
     }
+    if (!UploadTickets.consume(ticket, granted)) {
+      return tooMany();
+    }
     var limited = new LimitedInputStream(body, max);
     try {
       var stored =
@@ -167,6 +170,9 @@ public final class UploadEndpoint {
     }
     if (!store.get().directUploads()) {
       return noTarget();
+    }
+    if (!UploadTickets.consume(ticket, granted)) {
+      return tooMany();
     }
     try {
       var target =
@@ -241,6 +247,14 @@ public final class UploadEndpoint {
 
   private static Answer forbidden() {
     return error(403, "Forbidden", "This upload is not allowed.");
+  }
+
+  /** The ticket sent its share of files (see {@link UploadTickets#consume}). */
+  private static Answer tooMany() {
+    return error(
+        429,
+        "Too many uploads",
+        "This form has sent too many files. Reload the page to upload more.");
   }
 
   private static Answer notAvailable() {
