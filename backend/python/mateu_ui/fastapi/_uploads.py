@@ -54,6 +54,10 @@ def _too_large(max_bytes: int) -> JSONResponse:
     return _error(413, "Too large", f"This file is too large (max {format_size(max_bytes)}).")
 
 
+def _too_many() -> JSONResponse:
+    return _error(429, "Too many uploads", "This form has sent too many files. Reload the page to upload more.")
+
+
 def _not_accepted() -> JSONResponse:
     return _error(415, "Not accepted", "This type of file is not accepted.")
 
@@ -120,6 +124,8 @@ def add_upload_endpoints(
         content_type = (request.headers.get("content-type") or "").strip() or "application/octet-stream"
         if not accepts(claims.accept, name, content_type):
             return _not_accepted()
+        if not uploads_of().consume(request.headers.get(TICKET_HEADER) or "", claims):
+            return _too_many()
         declared = _content_length(request)
         if declared > claims.max_bytes:
             return _too_large(claims.max_bytes)
@@ -175,6 +181,8 @@ def add_upload_endpoints(
             return _too_large(claims.max_bytes)
         if not getattr(store, "direct_uploads", False):
             return _not_found()
+        if not uploads_of().consume(request.headers.get(TICKET_HEADER) or "", claims):
+            return _too_many()
         try:
             with bound_request(mateu_request):
                 issued = await _awaited(
