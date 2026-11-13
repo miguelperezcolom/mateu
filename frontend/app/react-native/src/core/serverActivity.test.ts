@@ -195,3 +195,39 @@ test('GA-5.7: one delay decision per UI counter, however many bars; a hidden UI\
   endShown();
   endHidden();
 });
+
+test('a listener that unsubscribed hears nothing more: neither the visibility nor the shown period', () => {
+  const timer = fakeTimer();
+  const activity = new ServerActivity();
+  const busy = new DelayedBusy(activity, timer);
+  const visibility: boolean[] = [];
+  let shown = 0;
+  const offVisibility = busy.subscribe((v) => visibility.push(v));
+  const offShown = busy.onShown(() => shown++);
+  offVisibility();
+  offShown();
+  const end = activity.begin();
+  timer.advance(SHOW_AFTER_MS + 1);
+  assert.equal(busy.visible, true);
+  end();
+  assert.deepEqual(visibility, []);
+  assert.equal(shown, 0);
+  busy.dispose();
+});
+
+test('the default timer is the real clock: a long wait shows, an early answer clears it', async () => {
+  const activity = new ServerActivity();
+  const busy = new DelayedBusy(activity, undefined, 5);
+  const end = activity.begin();
+  assert.equal(busy.visible, false);
+  await new Promise((resolve) => setTimeout(resolve, 40));
+  assert.equal(busy.visible, true);
+  end();
+  assert.equal(busy.visible, false);
+  await new Promise((resolve) => setTimeout(resolve, HANDOVER_MS + 20));
+  const again = activity.begin();
+  again(); // answered before the delay: the pending timer is cleared, nothing shows
+  await new Promise((resolve) => setTimeout(resolve, 40));
+  assert.equal(busy.visible, false);
+  busy.dispose();
+});

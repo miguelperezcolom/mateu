@@ -304,3 +304,15 @@ test('a corrupt outbox is DAMAGED, never empty; a locked store is unavailable; c
   off();
   assert.deepEqual(heard, ['ui1']);
 });
+
+test('a sign-in or sign-out of a UI is told to the hub (changed); nobody (null) has no queue to count', async () => {
+  const store = memory();
+  await new OfflineQueue(store, 'ui1').enqueue(request(), 'key-0003-cccc', 'z');
+  const heard: string[] = [];
+  const off = OfflineQueue.onAnyChange((uiId) => heard.push(uiId));
+  OfflineQueue.changed('ui1');
+  off();
+  assert.deepEqual(heard, ['ui1']);
+  assert.equal(await OfflineQueue.countOf(store, 'ui1', null), 0);
+  assert.equal(await OfflineQueue.countOf(store, 'ui1'), 1);
+});
