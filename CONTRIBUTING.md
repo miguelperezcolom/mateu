@@ -152,6 +152,31 @@ symbolic links. Use `deleteTree()`, which removes a link as a link (CI checks fo
 
 ## Releases
 
-Maintainers cut releases (`gh release create vX.Y-…`); GitHub Actions build, test and publish to
-Maven Central. After a release reaches Central, `scripts/bump-example-version.sh <version>` moves
-the starters and the start-here demos to it.
+Maintainers cut releases; GitHub Actions (`.github/workflows/buid-and-publish.yml`) build, test and
+publish everything. The recipe:
+
+```bash
+# a release of the current line (v3.0.1 now, v3.0-rc.N before the GA):
+gh release create v3.0.1 --title "Mateu v3.0.1" --notes "…" --latest=false
+# a backport to an older minor, or a pre-release of a later line:
+gh release create v3.0.2 --title "Mateu v3.0.2" --notes "…" --latest=false
+gh release create v3.1-rc.1 --title "Mateu v3.1-rc.1" --notes "…" --prerelease
+```
+
+`--latest=false` because the release must not become GitHub's "Latest" before its installers are
+there: installed desktop apps poll `releases/latest/download/mateu-desktop-update.json`, and the docs
+and `mateu.io/add` link to `releases/latest`. The workflow's `latest-mark` job makes it Latest at the
+end, once the desktop app, the APK and SHA256SUMS are attached — and only when it is the newest
+final of its line (`scripts/release-line.mjs`). Forgetting the flag is caught: `latest-hold` hands
+"Latest" back to the previous release first. If a part fails, the release does not become Latest;
+fix the part (re-run the failed jobs) and then run `gh release edit <tag> --latest` by hand.
+
+A release that is not the newest of its line (a backport `v3.0.2` published after `v3.1.0`, or a
+re-run of an older release) publishes its packages to Maven Central, PyPI, NuGet and npm (npm under
+the dist-tag `release-3.0`, never `latest`) but ships nothing that would reach users as an update:
+no over-the-air phone update, no IDE plugins, no desktop app, no example repin. A pre-release of a
+later line (`v3.1-rc.1`) does the same. PyPI, NuGet and npm publish only after the Maven Central
+deploy succeeded, so a port never gets a number Java does not have.
+
+After a release reaches Central, the workflow's `bump-examples` job opens a PR that moves the
+starters and the start-here demos to it (`scripts/bump-example-version.sh <version>` by hand).

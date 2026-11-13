@@ -13,22 +13,29 @@
 # before the 3.0 betas), and `npm i mateu-vaadin` must not keep handing that out. A pre-release of a
 # LATER minor or major goes out as `next`, so it never replaces the current release for anyone who
 # did not ask for it. Any other tag (an alpha, a non-framework release) fails instead of guessing.
+#
+# The optional second argument says whether the release is the NEWEST of its line
+# (scripts/release-line.mjs, default true). A final release that is not — a backport v3.0.2 published
+# after v3.1.0 — goes out under `release-<major>.<minor>` (release-3.0), never as `latest`: npm would
+# otherwise hand 3.0.2 to everyone who runs `npm i mateu-vaadin`. An older pre-release goes out as
+# `next`.
 set -euo pipefail
 
-tag="${1:?usage: npm-version.sh <release tag>}"
+tag="${1:?usage: npm-version.sh <release tag> [newest true|false]}"
+newest="${2:-true}"
 v="${tag#v}"
 if [[ "$tag" != v* ]]; then
   echo "npm-version.sh: '$tag' is not a framework release" >&2
   exit 1
 elif [[ "$v" =~ ^([0-9]+)\.([0-9]+)-(beta|rc)\.([0-9]+)$ ]]; then
   echo "NPM_VERSION=${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.0-${BASH_REMATCH[3]}.${BASH_REMATCH[4]}"
-  if [[ "$v" =~ ^3\.0- ]]; then echo "NPM_TAG=latest"; else echo "NPM_TAG=next"; fi
-elif [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  if [[ "$v" =~ ^3\.0- && "$newest" != false ]]; then echo "NPM_TAG=latest"; else echo "NPM_TAG=next"; fi
+elif [[ "$v" =~ ^([0-9]+)\.([0-9]+)\.[0-9]+$ ]]; then
   echo "NPM_VERSION=$v"
-  echo "NPM_TAG=latest"
-elif [[ "$v" =~ ^[0-9]+\.[0-9]+$ ]]; then
+  if [[ "$newest" != false ]]; then echo "NPM_TAG=latest"; else echo "NPM_TAG=release-${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"; fi
+elif [[ "$v" =~ ^([0-9]+)\.([0-9]+)$ ]]; then
   echo "NPM_VERSION=$v.0"
-  echo "NPM_TAG=latest"
+  if [[ "$newest" != false ]]; then echo "NPM_TAG=latest"; else echo "NPM_TAG=release-${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"; fi
 else
   echo "npm-version.sh: no npm version for '$tag'" >&2
   exit 1

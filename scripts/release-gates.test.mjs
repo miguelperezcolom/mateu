@@ -17,8 +17,11 @@ const jobIf = (workflow, job) => {
 
 const startsWith = (a, b) => String(a ?? '').startsWith(b)
 const contains = (a, b) => String(a ?? '').includes(b)
-const runs = (expression, tag) => new Function('github', 'inputs', 'startsWith', 'contains', `return (${expression})`)(
-    { event_name: 'release', event: { release: { tag_name: tag } } }, {}, startsWith, contains)
+// `newest`: what buid-and-publish.yml's `line` job (scripts/release-line.mjs) says of the release —
+// handed to the called workflows as `inputs.newest`, read by its own jobs as needs.line.outputs.newest
+const runs = (expression, tag, newest = 'true') => new Function('github', 'inputs', 'needs', 'startsWith', 'contains', `return (${expression})`)(
+    { event_name: 'release', event: { release: { tag_name: tag } } }, { newest },
+    { line: { outputs: { newest } } }, startsWith, contains)
 
 const GATED = [
     ['mobile.yml', 'ota'],
@@ -41,7 +44,22 @@ for (const [workflow, job] of GATED) {
     test(`${workflow} ${job} stays out of a pre-release of a later minor or major`, () => {
         for (const tag of ['v3.1-rc.1', 'v3.1-beta.2', 'v4.0-rc.1']) assert.equal(runs(expression, tag), false, tag)
     })
+
+    // GA review S2: a backport v3.0.2 published after v3.1.0 would downgrade every phone, repin the
+    // examples to 3.0, fail the VS Code publish and move the desktop feed
+    test(`${workflow} ${job} stays out of a release that is not the newest of its line`, () => {
+        for (const tag of ['v3.0.2', 'v3.0-beta.63', 'v3.1.0']) assert.equal(runs(expression, tag, 'false'), false, tag)
+    })
 }
+
+test('a manual run of the desktop/mobile workflows (no `newest` input) is not held back', () => {
+    for (const [workflow, job] of [['desktop.yml', 'macos'], ['desktop.yml', 'linux-windows']]) {
+        const expression = jobIf(workflow, job)
+        const viaDispatch = new Function('github', 'inputs', 'startsWith', 'contains', `return (${expression})`)(
+            { event_name: 'workflow_dispatch', event: { release: {} } }, { tag: 'v3.0-beta.64' }, startsWith, contains)
+        assert.equal(viaDispatch, true, `${workflow} ${job}`)
+    }
+})
 
 const workflowText = (workflow) => readFileSync(new URL(`../.github/workflows/${workflow}`, import.meta.url), 'utf8')
 const jobBlock = (workflow, job) => {
@@ -57,8 +75,11 @@ const jobBlock = (workflow, job) => {
 for (const [job, workflow] of [['plugins', 'publish-plugins.yml'], ['desktop', 'desktop.yml'], ['mobile', 'mobile.yml']]) {
     test(`${workflow} runs only after e2e passed`, () => {
         const caller = jobBlock('buid-and-publish.yml', job)
-        assert.match(caller, /\n {4}needs: e2e\n/)
+        assert.match(caller, /\n {4}needs: \[e2e, line\]\n/)
         assert.match(caller, new RegExp(`uses: \\./\\.github/workflows/${workflow.replace('.', '\\.')}`))
+        // and tells it whether the release is the newest of its line
+        assert.match(caller, /\n {4}with:\n {6}newest: \$\{\{ needs\.line\.outputs\.newest \}\}\n/)
+        assert.match(workflowText(workflow), /\n {2}workflow_call:\n {4}inputs:\n(?: {6}#.*\n)* {6}newest:\n {8}type: string\n {8}required: false\n {8}default: 'true'\n/)
         const on = workflowText(workflow).match(/\non:\n([\s\S]*?)\n\S/)[1]
         assert.doesNotMatch(on, /^ {2}release:/m, `${workflow} must not start on the release event by itself`)
         assert.match(on, /^ {2}workflow_call:/m)
@@ -110,13 +131,15 @@ test('the desktop installer releases are not framework releases', () => {
 // The npm package (mateu-vaadin): built after the tests, the token only in the job that publishes.
 test('the npm package is built only after e2e passed, with no secret and no write token', () => {
     const build = jobBlock('buid-and-publish.yml', 'npm-build')
-    assert.match(build, /\n {4}needs: e2e\n/)
+    assert.match(build, /\n {4}needs: \[e2e, line\]\n/)
+    assert.match(build, /NEWEST: \$\{\{ needs\.line\.outputs\.newest \}\}/)
+    assert.match(build, /npm-version\.sh "\$TAG" "\$NEWEST"/)
     assert.doesNotMatch(build, /secrets\.|id-token: write|contents: write/)
 })
 
 test('the npm publish job runs no third-party code and is skipped without an NPM_TOKEN', () => {
     const publish = jobBlock('buid-and-publish.yml', 'npm')
-    assert.match(publish, /\n {4}needs: npm-build\n/)
+    assert.match(publish, /\n {4}needs: \[npm-build, all\]\n/)
     assert.doesNotMatch(publish, /actions\/checkout|npm ci|npm install|npm run|contents: write/)
     assert.match(publish, /HAS_TOKEN: \$\{\{ secrets\.NPM_TOKEN != '' \}\}/)
     const steps = publish.split('\n      - ').slice(1).filter((s) => !s.startsWith('name: Choose the credential'))
@@ -158,7 +181,7 @@ for (const [workflow, idToken, attestations] of [
 }
 
 test('buid-and-publish.yml: only the upload jobs (and bump-examples) hold contents: write', () => {
-    const writers = ['bump-examples', 'redwood-embedded-attach', 'sbom-attach', 'checksums-attach']
+    const writers = ['bump-examples', 'redwood-embedded-attach', 'sbom-attach', 'checksums-attach', 'latest-hold', 'latest-mark']
     for (const job of jobsOf('buid-and-publish.yml')) {
         const block = withoutComments(jobBlock('buid-and-publish.yml', job))
         // the reusable-workflow callers (desktop, mobile) pass contents: write down to their own
@@ -178,4 +201,91 @@ test('the provenance job waits for every job that attaches a release asset or bu
     }
     assert.match(block, /actions\/attest-build-provenance@[0-9a-f]{40} /, 'the attest action is pinned by SHA')
     assert.match(block, /!cancelled\(\)/, 'a skipped optional part (APK, desktop) does not skip the attestation')
+})
+
+// GitHub's "Latest" (GA review S3): installed desktop apps poll releases/latest/download/…, the docs
+// and mateu.io/add link to releases/latest. The release being built gives "Latest" back at the start
+// (latest-hold) and takes it only at the end, with every installer attached (latest-mark).
+const needsOf = (workflow, job) => {
+    const block = jobBlock(workflow, job)
+    const list = block.match(/\n {4}needs: \[([^\]]+)\]/)
+    if (list) return list[1].split(',').map((s) => s.trim())
+    const one = block.match(/\n {4}needs: ([a-z0-9-]+)\n/)
+    return one ? [one[1]] : []
+}
+
+test('line decides read-only, from scripts/release-line.mjs over the published releases', () => {
+    const block = withoutComments(jobBlock('buid-and-publish.yml', 'line'))
+    assert.doesNotMatch(block, /contents: write|id-token|secrets\./)
+    assert.match(block, /node scripts\/release-line\.mjs "\$TAG" "\$PRERELEASE"/)
+    assert.match(block, /PRERELEASE: \$\{\{ github\.event\.release\.prerelease \}\}/)
+    for (const out of ['newest', 'latest', 'hold']) assert.match(block, new RegExp(`\\n {6}${out}: \\$\\{\\{ steps\\.decide\\.outputs\\.${out} \\}\\}`))
+})
+
+test('latest-hold runs right after line, before any test, and only when there is something to hold', () => {
+    assert.deepEqual(needsOf('buid-and-publish.yml', 'latest-hold'), ['line'])
+    assert.equal(jobIf('buid-and-publish.yml', 'latest-hold'), "needs.line.outputs.hold != ''")
+    assert.match(jobBlock('buid-and-publish.yml', 'latest-hold'), /gh release edit "\$HOLD" --latest/)
+})
+
+test('latest-mark moves "Latest" only after the installers, the APK and the checksums, and only for the newest final', () => {
+    const needs = needsOf('buid-and-publish.yml', 'latest-mark')
+    for (const job of ['line', 'e2e', 'all', 'desktop', 'mobile', 'checksums-attach']) assert.ok(needs.includes(job), `latest-mark needs ${job}`)
+    const expression = jobIf('buid-and-publish.yml', 'latest-mark')
+    for (const part of ["needs.line.outputs.latest == 'true'", "needs.e2e.result == 'success'", "needs.all.result == 'success'",
+        "needs.desktop.result == 'success'", "needs.mobile.result == 'success'", '!cancelled()']) {
+        assert.ok(expression.includes(part), part)
+    }
+    assert.match(jobBlock('buid-and-publish.yml', 'latest-mark'), /gh release edit "\$TAG" --latest/)
+})
+
+// GA review S5: a version on PyPI, NuGet or npm can never be replaced. They publish only once Maven
+// Central has the release, so a Central refusal that needs a commit never leaves the ports with a
+// number Java does not have.
+test('PyPI, NuGet and npm publish only after the Maven Central deploy succeeded', () => {
+    for (const [job, build] of [['pypi', 'pypi-build'], ['nuget', 'nuget-pack'], ['npm', 'npm-build']]) {
+        assert.deepEqual(needsOf('buid-and-publish.yml', job).sort(), ['all', build].sort(), job)
+        assert.doesNotMatch(jobBlock('buid-and-publish.yml', job), /\n {4}if: .*always\(\)/, `${job} is skipped when all fails`)
+    }
+})
+
+// GA review M7: every package of a framework release, whatever its major
+test('every package build job is gated on the same framework-release rule', () => {
+    for (const job of ['all', 'pypi-build', 'nuget-pack', 'npm-build', 'sbom', 'redwood-embedded']) {
+        assert.equal(jobIf('buid-and-publish.yml', job), "startsWith(github.event.release.tag_name, 'v')", job)
+        assert.equal(runs(jobIf('buid-and-publish.yml', job), 'v4.0.0'), true, `${job} runs for v4.0.0`)
+    }
+})
+
+// GA review M2: Directory.Build.props builds .snupkg symbol packages; they reach nuget.org with the
+// .nupkg they belong to (`dotnet nuget push` sends the x.snupkg next to x.nupkg).
+test('the NuGet symbol packages travel with the packages', () => {
+    const pack = jobBlock('buid-and-publish.yml', 'nuget-pack')
+    assert.match(pack, /\/nupkgs\/\*\.snupkg/)
+    assert.match(pack, /no symbol package/)
+})
+
+// GA review M5: the Vaadin renderer published to Central is the committed bundle the e2e ran against.
+test('the Maven release job publishes the committed renderer bundle, not a fresh build, with its notices', () => {
+    const all = withoutComments(jobBlock('buid-and-publish.yml', 'all'))
+    assert.doesNotMatch(all, /npm (ci|run|install)|setup-node/)
+    assert.match(all, /static\/assets\/THIRD-PARTY-LICENSES\.txt/)
+    assert.match(all, /META-INF\/LICENSE\.txt META-INF\/NOTICE/)
+})
+
+// GA review S1: the npm package carries the licence, the NOTICE and the bundled packages' notices.
+test('the npm package is checked for its licence files before it is handed over', () => {
+    const build = jobBlock('buid-and-publish.yml', 'npm-build')
+    assert.match(build, /cp \.\.\/\.\.\/\.\.\/\.\.\/\.\.\/LICENSE\.txt \.\.\/\.\.\/\.\.\/\.\.\/\.\.\/NOTICE \./)
+    assert.match(build, /for f in dist\/assets\/mateu-vaadin\.js dist\/assets\/THIRD-PARTY-LICENSES\.txt LICENSE\.txt NOTICE; do/)
+})
+
+test('every pull request checks the committed bundles carry current third-party notices', () => {
+    const lib = jobBlock('run_tests.yml', 'frontend-lib')
+    for (const [bundle, file] of [
+        ['vaadin', 'backend/shared/frontend/vaadin-lit/src/main/resources/static/assets/THIRD-PARTY-LICENSES.txt'],
+        ['vaadin', 'demo/sites/vaadin/assets/THIRD-PARTY-LICENSES.txt'],
+        ['visual-editor', 'frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/THIRD-PARTY-LICENSES.txt'],
+    ]) assert.ok(lib.includes(`node scripts/third-party-notices.mjs ${bundle} --check ${file}`), file)
+    assert.match(workflowText('run_tests.yml'), /node --test .*scripts\/release-gates\.test\.mjs scripts\/release-line\.test\.mjs/)
 })

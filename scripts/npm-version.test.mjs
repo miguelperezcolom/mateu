@@ -7,8 +7,8 @@ import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
 const script = fileURLToPath(new URL('./npm-version.sh', import.meta.url))
-const versions = (tag) => {
-    const r = spawnSync('bash', [script, tag], { encoding: 'utf8' })
+const versions = (tag, ...rest) => {
+    const r = spawnSync('bash', [script, tag, ...rest], { encoding: 'utf8' })
     return r.status === 0 ? Object.fromEntries(r.stdout.trim().split('\n').map((l) => l.split('='))) : null
 }
 
@@ -30,4 +30,11 @@ test('a pre-release of a later line goes out as next, never as latest', () => {
 
 test('anything else fails instead of guessing', () => {
     for (const tag of ['v3.0-alpha.412', 'mateu-desktop-1.0', 'plugins-v0.2.17', 'v3']) assert.equal(versions(tag), null, tag)
+})
+
+test('a final release that is not the newest of its line (a backport) never takes latest', () => {
+    assert.deepEqual(versions('v3.0.2', 'false'), { NPM_VERSION: '3.0.2', NPM_TAG: 'release-3.0' })
+    assert.deepEqual(versions('v3.1', 'false'), { NPM_VERSION: '3.1.0', NPM_TAG: 'release-3.1' })
+    assert.deepEqual(versions('v3.0-rc.1', 'false'), { NPM_VERSION: '3.0.0-rc.1', NPM_TAG: 'next' })
+    assert.deepEqual(versions('v3.0.2', 'true'), { NPM_VERSION: '3.0.2', NPM_TAG: 'latest' })
 })

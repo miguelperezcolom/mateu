@@ -1236,10 +1236,23 @@ Releases follow the pattern `Mateu v3.0-beta.N` (formerly `v3.0-alpha.N`). To cu
    ```
 2. Create the next release (increment N by 1):
    ```bash
-   gh release create v3.0-beta.N --title "Mateu v3.0-beta.N" --notes "- summary of changes"
+   gh release create v3.0-beta.N --title "Mateu v3.0-beta.N" --notes "- summary of changes" --latest=false
    ```
+   (`--latest=false`; a pre-release of a LATER line takes `--prerelease` — CONTRIBUTING.md "Releases".)
 
 GitHub Actions handle the rest (build, publish to Maven Central, etc.) automatically once the tag is pushed.
+**Release line + "Latest" (GA review 2026-11)**: job `line` (`scripts/release-line.mjs`, tests
+`release-line.test.mjs`) decides `newest` (a final with no higher final; a pre-release only before the
+first final and above every release) / `latest` / `hold`. Only `newest` ships the OTA update, the
+plugins, the desktop app, `bump-examples` and npm `latest` (a backport goes out as npm
+`release-<M>.<m>`); the called workflows take it as input `newest` (string, default 'true' — a manual
+dispatch is not held back). `latest-hold` (start) hands "Latest" back to the previous release when
+GitHub made the new one latest on creation; `latest-mark` (end, after desktop + mobile + checksums)
+makes it Latest. PyPI/NuGet/npm publish jobs `need` `all` (Maven Central first); `all` publishes the
+COMMITTED Vaadin bundle (the one e2e tested — no rebuild) and checks every jar carries
+`META-INF/LICENSE.txt`+`NOTICE` (parent pom `legal-notices`) and the renderer jar
+`static/assets/THIRD-PARTY-LICENSES.txt` (`scripts/third-party-notices.mjs`, written by `npm run copy`
+of apps/vaadin and apps/visual-editor, `--check`ed in CI `frontend-lib`).
 The same release also publishes the IDE plugins (`publish-plugins.yml`) at the framework's version:
 IntelliJ `3.0-beta.N`, VS Code `2.99.N` (the VS Code Marketplace takes only numeric, ever-growing
 versions, so betas stay below `3.0.0` and an rc `v3.0-rc.N` goes out as `2.999.N`; from the GA `v3.0.0` on, every version is identical — mapping

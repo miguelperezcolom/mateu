@@ -45,6 +45,14 @@ name: Desktop app
 
 on:
   workflow_call:
+    inputs:
+      # From buid-and-publish.yml's `line` job (scripts/release-line.mjs): 'false' for a release that
+      # is not the newest of its line (a backport v3.0.2 after v3.1.0, a re-run of an older release),
+      # which must not reach users as an update.
+      newest:
+        type: string
+        required: false
+        default: 'true'
     secrets:
       MACOS_CERTIFICATE_P12:
         required: false
@@ -84,7 +92,7 @@ env:
 
 jobs:
   macos:
-    if: startsWith(github.event.release.tag_name || inputs.tag, 'v') && (!contains((github.event.release.tag_name || inputs.tag), '-') || startsWith((github.event.release.tag_name || inputs.tag), 'v3.0-'))
+    if: startsWith(github.event.release.tag_name || inputs.tag, 'v') && (!contains((github.event.release.tag_name || inputs.tag), '-') || startsWith((github.event.release.tag_name || inputs.tag), 'v3.0-')) && inputs.newest != 'false'
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -193,7 +201,7 @@ jobs:
           compression-level: 0
 
   linux-windows:
-    if: startsWith(github.event.release.tag_name || inputs.tag, 'v') && (!contains((github.event.release.tag_name || inputs.tag), '-') || startsWith((github.event.release.tag_name || inputs.tag), 'v3.0-'))
+    if: startsWith(github.event.release.tag_name || inputs.tag, 'v') && (!contains((github.event.release.tag_name || inputs.tag), '-') || startsWith((github.event.release.tag_name || inputs.tag), 'v3.0-')) && inputs.newest != 'false'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
