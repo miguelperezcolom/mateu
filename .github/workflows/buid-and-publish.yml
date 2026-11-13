@@ -580,12 +580,17 @@ jobs:
           # build scripts
           npm pkg delete dependencies devDependencies scripts
           test -f dist/assets/mateu-vaadin.js
+          # the licence and the notices travel with the package (Apache-2.0 §4; the bundled
+          # packages' own notices are dist/assets/THIRD-PARTY-LICENSES.txt, written by the build)
+          cp ../../../../../LICENSE.txt ../../../../../NOTICE .
           mkdir -p "$RUNNER_TEMP/npm"
           npm pack --pack-destination "$RUNNER_TEMP/npm"
           # list first, then look: `tar | grep -q` stops reading at the first match, tar dies of SIGPIPE
           # and pipefail fails the job (v3.0-beta.63)
           tar -tzf "$RUNNER_TEMP"/npm/*.tgz > "$RUNNER_TEMP/npm-contents.txt"
-          grep -q 'package/dist/assets/mateu-vaadin.js' "$RUNNER_TEMP/npm-contents.txt"
+          for f in dist/assets/mateu-vaadin.js dist/assets/THIRD-PARTY-LICENSES.txt LICENSE.txt NOTICE; do
+            grep -qx "package/$f" "$RUNNER_TEMP/npm-contents.txt" || { echo "::error::the npm package has no $f"; exit 1; }
+          done
           echo "$NPM_TAG" > "$RUNNER_TEMP/npm/dist-tag"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

@@ -18,37 +18,7 @@
  * The Redwood renderer has no production npm dependency (JET/Spectra come from Oracle's CDN at
  * runtime, nothing is vendored — apps/redwood/NOTICE.md), so it has no target.
  */
-import { existsSync, readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-const repo = join(dirname(fileURLToPath(import.meta.url)), '..')
-
-// What we publish, and the packages whose production dependencies end up in it. `notBundled`:
-// declared as RUNTIME dependencies by a shipped package but never part of what ships (a package's
-// sloppy dependency list, or build tooling an SDK declares as a dependency): their subtree is not
-// walked. Each one with its reason; adding one is a reviewed change.
-const TARGETS = {
-  web: {
-    dir: 'frontend/web/monorepo',
-    entries: ['apps/vaadin', 'libs/mateu', 'apps/visual-editor'],
-    notBundled: {
-      // @vaadin-component-factory/vcf-date-range-picker lists its dev server as a dependency; the
-      // picker never imports it, and Vite only bundles what is imported.
-      '@web/dev-server': 'dev server listed as a runtime dependency of vcf-date-range-picker',
-    },
-  },
-  'react-native': {
-    dir: 'frontend/app/react-native',
-    entries: ['.'],
-    notBundled: {},
-  },
-  'vscode-extension': {
-    dir: 'frontend/app/vscode-extension',
-    entries: ['.'],
-    notBundled: {},
-  },
-}
+import { TARGETS, licenceOf, walk } from './frontend-deps.mjs'
 
 // SPDX identifiers compatible with shipping inside an Apache-2.0 artifact.
 const ALLOWED = new Set([
@@ -64,59 +34,23 @@ const REVIEWED = {
   'bpmn-js': 'bpmn.io License (MIT + keep the bpmn.io watermark visible)',
 }
 
-const licenceOf = (pkg) => {
-  const l = pkg.license ?? pkg.licenses
-  if (typeof l === 'string') return l
-  if (Array.isArray(l)) return l.map((x) => (typeof x === 'string' ? x : x.type)).join(' OR ')
-  if (l && typeof l === 'object') return l.type
-  return 'UNKNOWN'
-}
-
 // "MIT OR Apache-2.0" passes if ANY alternative is allowed; "(A AND B)" needs all of them.
 const allowed = (expr) => {
   const clean = expr.replace(/[()]/g, ' ').trim()
   return clean.split(/\s+OR\s+/).some((alt) => alt.split(/\s+AND\s+/).every((id) => ALLOWED.has(id.trim())))
 }
 
-const check = (name, { dir, entries, notBundled }) => {
-  const root = join(repo, dir)
-  // Node's resolution: look for node_modules/<dep> from the requiring package upwards.
-  const resolve = (dep, fromDir) => {
-    let at = fromDir
-    for (;;) {
-      const candidate = join(at, 'node_modules', dep, 'package.json')
-      if (existsSync(candidate)) return candidate
-      if (at === root || at === dirname(at)) return null
-      at = dirname(at)
-    }
-  }
-  const entryPaths = entries.map((e) => join(root, e, 'package.json'))
-  const seen = new Map()
+const check = (name, target) => {
+  const { dir } = target
+  const { packages, unresolved } = walk(target)
   const problems = []
-  const unresolved = []
-  const visit = (pkgJsonPath, via) => {
-    if (seen.has(pkgJsonPath)) return
-    const pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf8'))
-    seen.set(pkgJsonPath, pkg.name)
-    const isEntry = entryPaths.includes(pkgJsonPath)
-    if (notBundled[pkg.name]) return
-    if (!isEntry) {
-      const licence = licenceOf(pkg)
-      if (!allowed(licence) && !REVIEWED[pkg.name]) problems.push(`${pkg.name}@${pkg.version}  ${licence}  (via ${via})`)
-    }
-    for (const dep of Object.keys({ ...(pkg.dependencies ?? {}), ...(pkg.optionalDependencies ?? {}) })) {
-      const target = resolve(dep, dirname(pkgJsonPath))
-      if (target) visit(target, isEntry ? pkg.name : `${via} > ${pkg.name}`)
-      // a missing install would make the check pass by seeing less; optional deps may legitimately
-      // be absent (platform-specific binaries)
-      else if (!(pkg.optionalDependencies ?? {})[dep]) unresolved.push(`${dep}  (required by ${pkg.name})`)
-    }
+  for (const { pkg, via } of packages) {
+    const licence = licenceOf(pkg)
+    if (!allowed(licence) && !REVIEWED[pkg.name]) problems.push(`${pkg.name}@${pkg.version}  ${licence}  (via ${via})`)
   }
-  for (const entry of entryPaths) visit(entry, name)
-
   if (unresolved.length) {
     console.error(`✗ [${name}] ${unresolved.length} dependency(ies) not installed — run \`npm ci\` in ${dir} first:\n`)
-    for (const u of [...new Set(unresolved)].sort((a, b) => a.localeCompare(b))) console.error('  ' + u)
+    for (const u of unresolved) console.error('  ' + u)
     return 2
   }
   if (problems.length) {
@@ -125,7 +59,7 @@ const check = (name, { dir, entries, notBundled }) => {
     console.error('\nReplace the package, or — if its licence is in fact compatible — add the SPDX id to ALLOWED (or the package to REVIEWED) in this script, in a reviewed change.')
     return 1
   }
-  console.log(`✓ [${name}] ${seen.size - entryPaths.length} shipped packages, all under approved licences`)
+  console.log(`✓ [${name}] ${packages.length} shipped packages, all under approved licences`)
   return 0
 }
 

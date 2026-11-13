@@ -103,6 +103,15 @@ jobs:
       - name: Shipped frontend dependencies are under approved licences
         run: node scripts/check-frontend-licenses.mjs web react-native vscode-extension
 
+      # Permissive is not enough: MIT, BSD and Apache-2.0 want their notices to travel with every
+      # copy, and a minified bundle keeps none. Each shipped bundle carries THIRD-PARTY-LICENSES.txt
+      # (written by its `npm run copy`); a dependency change without regenerating it fails here.
+      - name: The shipped bundles carry their dependencies' licence notices
+        run: |
+          node scripts/third-party-notices.mjs vaadin --check backend/shared/frontend/vaadin-lit/src/main/resources/static/assets/THIRD-PARTY-LICENSES.txt
+          node scripts/third-party-notices.mjs vaadin --check demo/sites/vaadin/assets/THIRD-PARTY-LICENSES.txt
+          node scripts/third-party-notices.mjs visual-editor --check frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/THIRD-PARTY-LICENSES.txt
+
       # Mateu's own components take colour, spacing and type from the design system's tokens; a
       # hard-coded literal ignores dark mode, forced colours and a customer theme. A ratchet: the
       # per-file counts in scripts/design-tokens-baseline.json may only go down (UX review 2026-10).

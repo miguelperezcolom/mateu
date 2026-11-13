@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling>=1.21"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
@@ -12,6 +12,9 @@ description = "Mateu server-side for Python — annotate Python classes; any Mat
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
+# PEP 639: the licence and the NOTICE go into the sdist and the wheel (copies of the repository's, pinned
+# byte-equal by tests/test_legal_files.py — a build cannot reach above this directory)
+license-files = ["LICENSE.txt", "NOTICE"]
 authors = [{ name = "Miguel Pérez Colom" }]
 keywords = ["ui", "low-code", "model-driven", "backend-driven-ui", "fastapi", "crud", "forms"]
 classifiers = [
@@ -65,6 +68,8 @@ include = [
     "README.md",
     "DESIGN.md",
     "pyproject.toml",
+    "LICENSE.txt",
+    "NOTICE",
 ]
 exclude = ["**/__pycache__"]
 

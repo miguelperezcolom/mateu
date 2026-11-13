@@ -7,12 +7,13 @@
   "description": "Cross-IDE web-based visual editor for Mateu YAML pages (palette + WYSIWYG canvas + properties). Hosted by JCEF in IntelliJ and a Webview in VSCode.",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && npm run notices",
+    "notices": "node ../../../../../scripts/third-party-notices.mjs visual-editor --out dist/assets/THIRD-PARTY-LICENSES.txt",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "preview": "vite preview",
-    "copy": "vite build && rm -rf ../../../../app/intellij-plugin/src/main/resources/visual-editor && mkdir -p ../../../../app/intellij-plugin/src/main/resources/visual-editor && cp -rf dist/* ../../../../app/intellij-plugin/src/main/resources/visual-editor/"
+    "copy": "vite build && npm run notices && rm -rf ../../../../app/intellij-plugin/src/main/resources/visual-editor && mkdir -p ../../../../app/intellij-plugin/src/main/resources/visual-editor && cp -rf dist/* ../../../../app/intellij-plugin/src/main/resources/visual-editor/"
   },
   "dependencies": {
     "lit": "^3.3.1",

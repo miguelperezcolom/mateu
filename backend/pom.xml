@@ -237,6 +237,37 @@
               </plugins>
           </pluginManagement>
     <plugins>
+      <!-- Every jar carries the project's licence and NOTICE in META-INF (Apache-2.0 §4: the notice
+           travels with every copy). maven.multiModuleProjectDirectory is the repository root for any
+           build started inside it (the root's .mvn/ anchors it), whichever module or -f is used. The
+           web renderer jar also carries its bundled packages' notices,
+           static/assets/THIRD-PARTY-LICENSES.txt (scripts/third-party-notices.mjs). The release job
+           `all` checks they are there. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.1</version>
+        <executions>
+          <execution>
+            <id>legal-notices</id>
+            <phase>process-resources</phase>
+            <goals><goal>copy-resources</goal></goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${maven.multiModuleProjectDirectory}</directory>
+                  <includes>
+                    <include>LICENSE.txt</include>
+                    <include>NOTICE</include>
+                  </includes>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>

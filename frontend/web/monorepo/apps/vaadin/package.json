@@ -24,7 +24,9 @@
   "license": "Apache-2.0",
   "files": [
     "dist/assets",
-    "README.md"
+    "README.md",
+    "LICENSE.txt",
+    "NOTICE"
   ],
   "module": "dist/assets/mateu-vaadin.js",
   "exports": {
@@ -36,9 +38,10 @@
   "sideEffects": true,
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && npm run notices",
+    "notices": "node ../../../../../scripts/third-party-notices.mjs vaadin --out dist/assets/THIRD-PARTY-LICENSES.txt",
     "preview": "vite preview",
-    "copy": "tsc && vite build && mv dist/index.html dist/_index.html && rm -rf ../../../../../backend/shared/frontend/vaadin-lit/src/main/resources/META-INF ../../../../../backend/shared/frontend/vaadin-lit/src/main/resources/static/assets && cp -rf dist/* ../../../../../backend/shared/frontend/vaadin-lit/src/main/resources/static && rm -rf ../../../../../demo/sites/vaadin/assets && mkdir -p ../../../../../demo/sites/vaadin/assets && cp -rf dist/assets/* ../../../../../demo/sites/vaadin/assets",
+    "copy": "tsc && vite build && npm run notices && mv dist/index.html dist/_index.html && rm -rf ../../../../../backend/shared/frontend/vaadin-lit/src/main/resources/META-INF ../../../../../backend/shared/frontend/vaadin-lit/src/main/resources/static/assets && cp -rf dist/* ../../../../../backend/shared/frontend/vaadin-lit/src/main/resources/static && rm -rf ../../../../../demo/sites/vaadin/assets && mkdir -p ../../../../../demo/sites/vaadin/assets && cp -rf dist/assets/* ../../../../../demo/sites/vaadin/assets",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
