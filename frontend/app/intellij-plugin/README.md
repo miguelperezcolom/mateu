@@ -105,6 +105,13 @@ together sign + notarize the `.dmg` and staple the ticket onto the `.dmg` and th
 launcher is a shell script set as `CFBundleExecutable` — if notarization ever rejects that, the
 fallback is a tiny native launcher stub.
 
+The re-sign is INSIDE-OUT (`installer/macos/sign-app.sh`): every Mach-O, then every nested bundle,
+then the app, each with our identity and its own JetBrains entitlements kept
+(`--preserve-metadata=entitlements`). Never `codesign --deep`: it leaves the JBR (`Contents/jbr`) and
+the JCEF helpers with JetBrains' Team ID and drops the launcher's entitlements, and the hardened
+launcher then refuses `libjli.dylib` ("different Team IDs" — 3.0-beta.64 did not start).
+`scripts/macos-signature-check.sh <app>` checks a packaged app for exactly that (read-only).
+
 Passing `-Pmateu.registryUrl`/`-Pmateu.appId` bakes the app-registry coordinates into the launcher VM
 options (they override the plugin's bundled `application.properties`). The IDE archive downloads once
 into `build/installer/downloads/` and is reused.

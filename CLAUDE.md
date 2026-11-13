@@ -160,7 +160,10 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             machine to "try it": until #1000 its macOS dmg stage (a link dmg/Applications -> /Applications)
                             was cleaned with File.deleteRecursively(), which FOLLOWS links, and it deleted a developer's
                             /Applications (2026-11-01). The build now uses deleteTree() (never follows links; CI fails if
-                            deleteRecursively() returns). It is also the DESKTOP APP: `./gradlew buildInstaller` packages IntelliJ IDEA Open Source 2026.3 (JetBrains/intellij-community GitHub Release
+                            deleteRecursively() returns). macOS RE-SIGN (2026-11-13): inside-out, entitlements kept
+                            (installer/macos/sign-app.sh), NEVER `codesign --deep` — it skipped Contents/jbr and dropped the
+                            launcher's entitlements, so 3.0-beta.64 died on "libjli.dylib … different Team IDs"; desktop.yml
+                            checks (scripts/macos-signature-check.sh) and launches the PUBLISHED zip + dmg. It is also the DESKTOP APP: `./gradlew buildInstaller` packages IntelliJ IDEA Open Source 2026.3 (JetBrains/intellij-community GitHub Release
                             assets, pinned sha256 = `desktopIdeVersion`; the plugin still compiles against IC 2025.2) +
                             the plugin as an installable, self-updating app (hub | fixed variants, mateu://
                             links) — doc native/desktop-app.md, CI .github/workflows/desktop.yml

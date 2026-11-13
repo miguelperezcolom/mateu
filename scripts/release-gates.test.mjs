@@ -179,3 +179,39 @@ test('the provenance job waits for every job that attaches a release asset or bu
     assert.match(block, /actions\/attest-build-provenance@[0-9a-f]{40} /, 'the attest action is pinned by SHA')
     assert.match(block, /!cancelled\(\)/, 'a skipped optional part (APK, desktop) does not skip the attestation')
 })
+
+// macOS desktop app (3.0-beta.64 did not start on a Mac: "Failed to load libjli.dylib … different Team
+// IDs"). The checks run on what is PUBLISHED, and the re-sign never goes back to `codesign --deep`.
+const repoText = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8')
+const withoutShellComments = (text) => text.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n')
+
+test('desktop.yml checks and launches the published macOS app (zip and dmg), not the build folder', () => {
+    const macos = withoutComments(jobBlock('desktop.yml', 'macos'))
+    assert.match(macos, /ditto -x -k "\$zip"/, 'the published zip is unpacked')
+    assert.match(macos, /hdiutil attach "\$dmg" -nobrowse -readonly/, 'the published dmg is mounted')
+    for (const app of ['PUBLISHED_ZIP_APP', 'PUBLISHED_DMG_APP']) {
+        assert.match(macos, new RegExp(`scripts/desktop-smoke\\.sh macos "\\$${app}"`), `smoke on ${app}`)
+    }
+    assert.match(macos, /for app in "\$PUBLISHED_ZIP_APP" "\$PUBLISHED_DMG_APP"/)
+    assert.match(macos, /scripts\/macos-signature-check\.sh "\$app" \|\| rc=1/, 'the signature check fails the step')
+    assert.doesNotMatch(macos, /desktop-smoke\.sh macos [^\n]*build\/installer/, 'never the build folder')
+    assert.doesNotMatch(macos, /::warning::[^\n]*allow-jit/, 'a lost JVM entitlement is an error, not a warning')
+    assert.ok(macos.indexOf('macos-signature-check.sh') < macos.indexOf('actions/upload-artifact'), 'checked before it is handed on')
+})
+
+test('the macOS re-sign is inside-out with the entitlements kept, never --deep', () => {
+    const gradle = repoText('frontend/app/intellij-plugin/build.gradle.kts')
+    assert.doesNotMatch(gradle, /run\("codesign"/, 'buildInstaller signs only through installer/macos/sign-app.sh')
+    assert.match(gradle, /macos\/sign-app\.sh/)
+    const sign = withoutShellComments(repoText('frontend/app/intellij-plugin/installer/macos/sign-app.sh'))
+    assert.match(sign, /--preserve-metadata=entitlements/, 'JetBrains entitlements (allow-jit, disable-library-validation) survive')
+    assert.match(sign, /--options runtime --timestamp/)
+    assert.doesNotMatch(sign.replace(/codesign --verify --deep --strict/g, ''), /--deep/, 'no --deep signing')
+})
+
+test('the macOS signature check refuses mixed Team IDs and a hardened JVM without its entitlements', () => {
+    const check = withoutShellComments(repoText('scripts/macos-signature-check.sh'))
+    assert.match(check, /not signed with the app's Team ID/)
+    for (const e of ['com.apple.security.cs.allow-jit', 'com.apple.security.cs.disable-library-validation']) assert.ok(check.includes(e), e)
+    assert.match(check, /exit "\$fail"/)
+})

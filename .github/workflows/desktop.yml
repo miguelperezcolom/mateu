@@ -147,41 +147,69 @@ jobs:
           if [ "$HAS_SIGNING" = "true" ] && [ "$HAS_NOTARY" = "true" ]; then args+=(-Pmacos.notarize.profile=mateu-notary); fi
           # through the helper: a cold IDE layout index loses com.intellij.java now and then (#2192)
           cd ../../.. && scripts/intellij-gradle.sh buildInstaller "${args[@]}" --console=plain
+      # Every check below runs on EXACTLY what is published — the .app unpacked from the zip and the
+      # .app inside the mounted dmg — never on the build folder. 3.0-beta.64 passed every check here
+      # and did not start on a Mac: the re-sign (codesign --deep) left the JBR with JetBrains' Team ID
+      # under a launcher with ours and without its entitlements, so the hardened launcher refused
+      # libjli.dylib. The old check read only bin/java's entitlements — java had NOT been re-signed,
+      # so it still had them — and this runner did not refuse the library at launch. Hence the STATIC
+      # check (scripts/macos-signature-check.sh): one Team ID for every Mach-O and the JVM's
+      # entitlements on every hardened launcher — errors, not warnings — whatever the runner enforces.
+      - name: Unpack what is published (the zip and the dmg)
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          dir=frontend/app/intellij-plugin/build/installer
+          pub="$RUNNER_TEMP/published"
+          mkdir -p "$pub/zip" "$pub/dmg"
+          zip=$(ls "$dir"/mateu-desktop-*-macos-"$ARCH".zip)
+          dmg=$(ls "$dir"/mateu-desktop-*-macos-"$ARCH".dmg)
+          ditto -x -k "$zip" "$pub/zip"
+          hdiutil attach "$dmg" -nobrowse -readonly -mountpoint "$pub/dmg" > /dev/null
+          zip_app=$(ls -d "$pub"/zip/*.app)
+          dmg_app=$(ls -d "$pub"/dmg/*.app)
+          echo "zip: $zip_app"; echo "dmg: $dmg_app"
+          { echo "PUBLISHED_ZIP_APP=$zip_app"; echo "PUBLISHED_DMG_APP=$dmg_app"; echo "PUBLISHED_DMG=$dmg"; } >> "$GITHUB_ENV"
       # With a Developer ID the release must really be what users are told: hardened runtime, a
-      # Developer ID authority, the JVM keeping the entitlements it needs (JIT) after the re-sign, and —
-      # when notarized — a stapled ticket Gatekeeper accepts. Without secrets: ad-hoc, reported only.
-      - name: How the app is signed
+      # Developer ID authority, OUR Team ID on every piece of code, the JVM keeping its entitlements
+      # (JIT, library validation off) after the re-sign, and — when notarized — a stapled ticket
+      # Gatekeeper accepts. Without secrets: ad-hoc, and still one consistent signature throughout.
+      - name: How the published app is signed
         run: |
           set +o pipefail # grep -q closes the pipe early; the checks below read captured text
-          dir=frontend/app/intellij-plugin/build/installer
-          app=$dir/Mateu.app
-          codesign -dv --verbose=2 "$app" 2>&1 | grep -E 'Identifier|Authority|TeamIdentifier|Signature|flags' || true
-          codesign --verify --deep --strict "$app" || { echo "::error::codesign: the app's signature is invalid"; exit 1; }
-          echo "codesign: valid"
-          java=$(find "$app/Contents" -path '*/Contents/Home/bin/java' -type f | head -1)
-          jvm_entitlements=""
-          if [ -n "$java" ]; then jvm_entitlements=$(codesign -d --entitlements - "$java" 2>/dev/null || true); echo "JVM entitlements ($java):"; echo "$jvm_entitlements"; fi
-          if [ "$HAS_SIGNING" != "true" ]; then echo "::notice::Ad-hoc signature (no MACOS_* signing secrets): Gatekeeper will warn on first launch."; exit 0; fi
-          info=$(codesign -dv --verbose=2 "$app" 2>&1)
-          echo "$info" | grep -q '^Authority=Developer ID Application' || { echo "::error::not signed with a Developer ID Application certificate"; exit 1; }
-          echo "$info" | grep -Eq 'flags=.*runtime' || { echo "::error::hardened runtime is off (notarization needs it)"; exit 1; }
-          if [ -n "$java" ]; then
-            echo "$jvm_entitlements" | grep -q 'com.apple.security.cs.allow-jit' \
-              || echo "::warning::the bundled JVM lost the allow-jit entitlement in the re-sign — the hardened app may not start (the aarch64 smoke test tells)"
-          fi
-          if [ "$HAS_NOTARY" = "true" ]; then
-            for f in "$app" "$dir"/mateu-desktop-*-macos-*.dmg; do
-              xcrun stapler validate "$f" || { echo "::error::no stapled notarization ticket on $f"; exit 1; }
-            done
-            spctl --assess --type execute --verbose=2 "$app" || { echo "::error::Gatekeeper rejects the app"; exit 1; }
-            echo "Developer ID + notarized + stapled — Gatekeeper accepts it."
+          rc=0
+          for app in "$PUBLISHED_ZIP_APP" "$PUBLISHED_DMG_APP"; do
+            codesign -dv --verbose=2 "$app" 2>&1 | grep -E 'Identifier|Authority|TeamIdentifier|Signature|flags' || true
+            scripts/macos-signature-check.sh "$app" || rc=1
+            if [ "$HAS_SIGNING" = "true" ]; then
+              info=$(codesign -dv --verbose=2 "$app" 2>&1)
+              echo "$info" | grep -q '^Authority=Developer ID Application' || { echo "::error::$app: not signed with a Developer ID Application certificate"; rc=1; }
+              echo "$info" | grep -Eq 'flags=.*runtime' || { echo "::error::$app: hardened runtime is off (notarization needs it)"; rc=1; }
+              if [ "$HAS_NOTARY" = "true" ]; then
+                xcrun stapler validate "$app" || { echo "::error::no stapled notarization ticket on $app"; rc=1; }
+                spctl --assess --type execute --verbose=2 "$app" || { echo "::error::Gatekeeper rejects $app"; rc=1; }
+              fi
+            fi
+          done
+          if [ "$HAS_SIGNING" != "true" ]; then
+            echo "::notice::Ad-hoc signature (no MACOS_* signing secrets): Gatekeeper will warn on first launch."
+          elif [ "$HAS_NOTARY" = "true" ]; then
+            xcrun stapler validate "$PUBLISHED_DMG" || { echo "::error::no stapled notarization ticket on $PUBLISHED_DMG"; rc=1; }
+            [ "$rc" = 0 ] && echo "Developer ID + notarized + stapled — Gatekeeper accepts it."
           else
             echo "::warning::Signed with a Developer ID but NOT notarized (MACOS_NOTARY_* secrets missing): Gatekeeper still blocks a downloaded copy."
           fi
-      # The runner is Apple silicon: only the aarch64 app can run here.
-      - name: Smoke test — launch the app, the Mateu plugin must load
+          exit "$rc"
+      # The runner is Apple silicon: only the aarch64 app can run here. Both published copies launch.
+      - name: Smoke test — launch the published app (zip and dmg), the Mateu plugin must load
         if: matrix.arch == 'aarch64'
-        run: scripts/desktop-smoke.sh macos frontend/app/intellij-plugin/build/installer/Mateu.app
+        run: |
+          scripts/desktop-smoke.sh macos "$PUBLISHED_ZIP_APP"
+          scripts/desktop-smoke.sh macos "$PUBLISHED_DMG_APP"
+      - name: Unmount the dmg
+        if: always()
+        run: hdiutil detach "$RUNNER_TEMP/published/dmg" -force -quiet || true
       - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: mateu-desktop-macos-${{ matrix.arch }}

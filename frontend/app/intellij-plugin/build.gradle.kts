@@ -692,15 +692,14 @@ tasks.register("buildInstaller") {
             // (-Pmacos.sign.identity="Developer ID Application: Name (TEAMID)") sign with the hardened
             // runtime + a secure timestamp (both required for notarization); otherwise ad-hoc, which
             // at least launches locally (first launch needs right-click ▸ Open).
+            // INSIDE-OUT, every Mach-O with our identity and its own JetBrains entitlements kept —
+            // never `codesign --deep`: it skips Contents/jbr (and the JCEF helpers) and drops the
+            // launcher's entitlements, so 3.0-beta.64's hardened launcher refused the JetBrains-signed
+            // libjli.dylib ("different Team IDs") and the app did not start. See installer/macos/sign-app.sh.
             val signId = (findProperty("macos.sign.identity") as String?)?.ifBlank { null }
             val notaryProfile = (findProperty("macos.notarize.profile") as String?)?.ifBlank { null }
-            if (signId != null) {
-                logger.lifecycle("Signing with Developer ID (hardened runtime)…")
-                run("codesign", "--force", "--deep", "--options", "runtime", "--timestamp", "--sign", signId, app.absolutePath, dir = work)
-            } else {
-                logger.lifecycle("Re-signing (ad-hoc)…")
-                run("codesign", "--force", "--deep", "--sign", "-", app.absolutePath, dir = work)
-            }
+            logger.lifecycle(if (signId != null) "Signing with Developer ID (hardened runtime), inside-out…" else "Re-signing (ad-hoc), inside-out…")
+            run("bash", File(src, "macos/sign-app.sh").absolutePath, app.absolutePath, signId ?: "-", dir = work)
 
             // Double-click .dmg: the .app beside a drag-to-/Applications shortcut. Move (not copy) the
             // work .app into the staging dir — same filesystem, so it's free.
