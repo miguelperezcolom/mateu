@@ -1,5 +1,6 @@
-import { describe, it, expect, afterEach } from 'vitest'
-import { getByPath, mapItemsToOptions, mapItemsToRows, fetchExternalOptions, fetchExternalRows, fetchExternalJson, registerExternalJsonMock } from './externalOptions'
+import { describe, it, expect, afterEach, vi } from 'vitest'
+import { getByPath, mapItemsToOptions, mapItemsToRows, fetchExternalOptions, fetchExternalRows, fetchExternalJson, registerExternalJsonMock, EXTERNAL_REST_TIMEOUT_MS } from './externalOptions'
+import { ExternalRestError } from './serviceMessage'
 import { registerExternalAuthProvider } from './externalAuth'
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
 
@@ -239,5 +240,34 @@ describe('fetchExternalOptions', () => {
         await fetchExternalOptions(source, (t) => t, fetchImpl)
         expect(sentBody).toBe('{"q":1}')
         void ok
+    })
+})
+
+describe('W-1: a direct REST call has a ceiling', () => {
+    const hanging = (init: RequestInit) => new Promise<never>((_resolve, reject) => {
+        init.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))
+    })
+
+    it('a source that never answers — or stalls in its body — fails as a timeout, said in words', async () => {
+        vi.useFakeTimers()
+        try {
+            const source = { url: 'https://api.example/people', method: 'POST' } as RestDataSource
+            const hang = ((_url: string, init: RequestInit) => hanging(init)) as unknown as typeof fetch
+            const call = fetchExternalJson(source, (t) => t, hang).catch((e: unknown) => e)
+            await vi.advanceTimersByTimeAsync(EXTERNAL_REST_TIMEOUT_MS + 1)
+            const error = await call as ExternalRestError
+            expect(error).toBeInstanceOf(ExternalRestError)
+            expect(error.status).toBe(0)
+            expect(error.detail).toMatch(/too long/)
+
+            const stalledBody = ((_url: string, init: RequestInit) => Promise.resolve({
+                ok: true, status: 200, text: () => hanging(init),
+            })) as unknown as typeof fetch
+            const body = fetchExternalJson(source, (t) => t, stalledBody).catch((e: unknown) => e)
+            await vi.advanceTimersByTimeAsync(EXTERNAL_REST_TIMEOUT_MS + 1)
+            expect(await body).toBeInstanceOf(ExternalRestError)
+        } finally {
+            vi.useRealTimers()
+        }
     })
 })

@@ -218,6 +218,68 @@ describe('a proxied @RestAction', () => {
     })
 })
 
+describe('W-1: a REST write is guarded like a server action', () => {
+    const press = (el: HTMLElement, actionId: string, button: Element) =>
+        (el as any).manageActionRequestedEvent(new CustomEvent('action-requested', { detail: { actionId, _originElement: button } }))
+
+    it('direct: a double press sends one request, the pressed control is busy until it answers', async () => {
+        let answer: (v: unknown) => void = () => {}
+        fetchExternalJson.mockImplementation(() => new Promise(r => { answer = r }))
+        const el = await mount([{ id: 'save', restAction: { source: { url: '/people', method: 'POST' }, successMessage: 'Saved' } }])
+        const button = document.createElement('vaadin-button')
+        el.renderRoot.appendChild(button)
+        press(el, 'save', button)
+        press(el, 'save', button)
+        expect(fetchExternalJson).toHaveBeenCalledTimes(1)
+        expect(button.hasAttribute('data-mateu-pending')).toBe(true)
+        answer({})
+        await flush()
+        expect(button.hasAttribute('data-mateu-pending')).toBe(false)
+        expect(toasts.map(t => t.text)).toEqual(['Saved'])
+        press(el, 'save', button)
+        expect(fetchExternalJson).toHaveBeenCalledTimes(2)
+    })
+
+    it('a failed write gives its slot back', async () => {
+        fetchExternalJson.mockRejectedValueOnce(new Error('down'))
+        vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const el = await mount([{ id: 'save', restAction: { source: { url: '/people', method: 'POST' } } }])
+        run(el, 'save')
+        await flush()
+        fetchExternalJson.mockResolvedValue({})
+        run(el, 'save')
+        expect(fetchExternalJson).toHaveBeenCalledTimes(2)
+    })
+
+    it('proxied: one __restfetch__ for a double press, not background (the page shows it), the slot back on its answer', async () => {
+        const el = await mount([
+            { id: 'send', restAction: { source: { url: '/x', proxy: true }, successMessage: 'Done' } },
+            { id: '__restfetch__' },
+        ])
+        run(el, 'send')
+        run(el, 'send')
+        expect(sent).toHaveLength(1)
+        expect(sent[0].detail.background).toBe(false)
+        sent[0].detail.callback({ appData: { _restfetch: {} } })
+        run(el, 'send')
+        expect(sent).toHaveLength(2)
+    })
+
+    it('two different REST writes of a component do not block each other; a read is never exclusive', async () => {
+        const el = await mount([
+            { id: 'a', restAction: { source: { url: '/x', proxy: true } } },
+            { id: 'b', restAction: { source: { url: '/y', proxy: true } } },
+            { id: '__restdata__', restAction: { source: { url: '/z' }, resultPath: '' } },
+            { id: '__restfetch__' },
+        ])
+        fetchExternalJson.mockImplementation(() => new Promise(() => {}))
+        run(el, 'a'); run(el, 'b')
+        expect(sent).toHaveLength(2)
+        run(el, '__restdata__'); run(el, '__restdata__')
+        expect(fetchExternalJson).toHaveBeenCalledTimes(2)
+    })
+})
+
 describe('rules that touch the rendered DOM', () => {
     const rule = (over: Record<string, unknown>) => ({
         filter: 'true', fieldName: 'f', fieldAttribute: RuleFieldAttribute.none, value: undefined,

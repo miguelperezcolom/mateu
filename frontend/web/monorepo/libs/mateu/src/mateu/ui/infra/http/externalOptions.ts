@@ -5,6 +5,7 @@ import { underPublicBase } from './publicBase.ts'
 import { ExternalRestError, serviceMessageOf } from './serviceMessage.ts'
 import { UnknownRestSourceError, getRestSource, isSampled, pathOfField, remoteCataloguesSettled, resolveRestSource, sampleOf, totalPathOf } from './restSourceCatalogue.ts'
 import type { TemplateResolver } from '../ui/interpolation.ts'
+import { chromeText } from '../ui/chromeTexts.ts'
 
 /**
  * Client-side consumption of an arbitrary (non-Mateu) REST endpoint for a field's select options —
@@ -183,7 +184,30 @@ const inFlightReads = (fetchImpl: typeof fetch): Map<string, Promise<unknown>> =
     return reads
 }
 
-async function readJson(fetchImpl: typeof fetch, url: string, init: RequestInit): Promise<unknown> {
+/**
+ * How long a direct REST call may take, body included (W-1): `fetch` has no timeout, so a stalled
+ * API left the page waiting for ever — and a REST action is how a definition-only page or a static
+ * bundle WRITES. Same ceiling as the Mateu transport's default.
+ */
+export const EXTERNAL_REST_TIMEOUT_MS = 60000
+
+async function readJson(fetchImpl: typeof fetch, url: string, init: RequestInit,
+                        timeoutMs: number = EXTERNAL_REST_TIMEOUT_MS): Promise<unknown> {
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : undefined
+    let timedOut = false
+    const timer = controller ? setTimeout(() => { timedOut = true; controller.abort() }, timeoutMs) : undefined
+    try {
+        return await readJsonOnce(fetchImpl, url, controller ? { ...init, signal: controller.signal } : init)
+    } catch (e) {
+        // our own abort is a timeout the user is told about, not a silent cancellation
+        if (timedOut) throw new ExternalRestError(0, chromeText('failTimeout'))
+        throw e
+    } finally {
+        if (timer !== undefined) clearTimeout(timer)
+    }
+}
+
+async function readJsonOnce(fetchImpl: typeof fetch, url: string, init: RequestInit): Promise<unknown> {
     const res = await fetchImpl(url, init)
     if (!res.ok) {
         // keep what the service said about it (its error body) for the user's toast
