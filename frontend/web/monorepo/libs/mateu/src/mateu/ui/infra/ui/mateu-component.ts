@@ -58,7 +58,7 @@ const hasEntries = (state: Record<string, any> | undefined): boolean => {
 }
 import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validation.ts";
 import {evaluateExpression, interpolate, interpolateAndEvaluate, templateResolver} from "@infra/ui/interpolation.ts";
-import {navigateToRoute} from "@infra/ui/rowRoute.ts";
+import {leaveToRoute, navigateToRoute} from "@infra/ui/rowRoute.ts";
 import { restActionSettlesTheForm } from "./restActionSettles";
 import {fetchExternalJson, getByPath} from "@infra/http/externalOptions.ts";
 import RestActionDto from "@mateu/shared/apiClients/dtos/componentmetadata/RestActionDto.ts";
@@ -796,21 +796,27 @@ export class MateuComponent extends ComponentElement {
         const isProxy = viaProxy(rest.source)
         const kind = actionId === '__restdata__' ? 'data' : 'action'
 
+        // The proxied leg rides `__restfetch__`, which reads as a component's own (local, background)
+        // request; a WRITE is the user's press, so it shows the page's busy state like any action
+        // (W-1). Its exclusivity is the REST action's own slot (taken in manageActionRequestedEvent),
+        // not `__restfetch__`'s, which several sources share.
+        const proxiedBackground = kind === 'action' ? false : undefined
+
         // Bulk: run the call once per checked row (crud_selected_items). For a PROXY source the loop
         // runs server-side (one __restfetch__ with _forEachSelectedRow — one round trip, the secret
-        // stays on the server, and the client's write-exclusivity guard would otherwise drop all but
-        // the first of N identical actions). For a DIRECT source the browser loops: a raw fetch does
-        // not pass through that guard, so the calls can run concurrently. Either way, announce once.
+        // stays on the server). For a DIRECT source the browser loops, the calls concurrently.
+        // Either way, announce once — and say how it went (`settled`: the action's slot is given back).
         if (rest.forEachSelectedRow) {
             const rows = (this.state['crud_selected_items'] as Record<string, unknown>[] | undefined) ?? []
-            if (!rows.length) { this.notify(chromeText('selectRowsFirst')); return }
+            if (!rows.length) { this.notify(chromeText('selectRowsFirst')); call.settled?.(false); return }
             if (isProxy) {
                 this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                     detail: {
                         actionId: '__restfetch__',
                         parameters: { _sourceKind: kind, _sourceId: actionId, _forEachSelectedRow: true },
-                        callback: (uiIncrement: any) => handleProxyResult(uiIncrement, () => announce()),
-                        callbackonly: true
+                        callback: (uiIncrement: any) => handleProxyResult(uiIncrement, () => { announce(); call.settled?.(true) }),
+                        callbackonly: true,
+                        background: proxiedBackground,
                     },
                     bubbles: true,
                     composed: true
@@ -819,7 +825,7 @@ export class MateuComponent extends ComponentElement {
             }
             Promise.all(rows.map(row =>
                 fetchExternalJson(rest.source, templateResolver({ ...this.state, ...row }, this.data))))
-                .then(() => announce())
+                .then(() => { announce(); call.settled?.(true) })
                 .catch(onError)
             return
         }
@@ -833,7 +839,8 @@ export class MateuComponent extends ComponentElement {
                     actionId: '__restfetch__',
                     parameters: { ...(call.parameters ?? {}), _sourceKind: kind, _sourceId: actionId },
                     callback: (uiIncrement: any) => handleProxyResult(uiIncrement, applyResult),
-                    callbackonly: true
+                    callbackonly: true,
+                    background: proxiedBackground,
                 },
                 bubbles: true,
                 composed: true
@@ -931,7 +938,7 @@ export class MateuComponent extends ComponentElement {
         if (command.type === 'NavigateTo') {
             const route = inAppRoute(command.data)
             if (route !== undefined) {
-                navigateToRoute(this, route)
+                leaveToRoute(this, route)
                 return
             }
         }
@@ -1024,9 +1031,26 @@ export class MateuComponent extends ComponentElement {
         // @RestAction: call an arbitrary REST endpoint CLIENT-SIDE instead of dispatching to the
         // Mateu server — fetch + toast + optional merge of the response into the form state.
         if (action && action.restAction) {
+            const outerSettled = (detail as { settled?: (ok: boolean) => void }).settled
+            // A REST action is how a definition-only page or a static bundle WRITES: it gets the
+            // double-submit guard and the pressed control's busy state of a server action (W-1) —
+            // a double click on Save sent two POSTs, and nothing showed the press was heard.
+            // A read (the route's __restdata__ load, an idempotent action) is not exclusive.
+            const exclusive = action.id !== '__restdata__' && !isIdempotentAction(action.id, action.idempotent)
+            let settled = outerSettled
+            if (exclusive) {
+                const key = pendingKey(this.id, action.id)
+                if (!pendingActions.begin(key)) return
+                const control = decorable(origin)
+                markPending(control)
+                this._pendingRestWrites.set(key, control)
+                settled = (ok: boolean) => {
+                    this._releaseRestWrite(key)
+                    outerSettled?.(ok)
+                }
+            }
             this.handleRestAction(action.restAction, action.id,
-                { parameters: detail.parameters as Record<string, unknown> | undefined,
-                  settled: (detail as { settled?: (ok: boolean) => void }).settled })
+                { parameters: detail.parameters as Record<string, unknown> | undefined, settled })
             return
         }
 
@@ -1058,7 +1082,9 @@ export class MateuComponent extends ComponentElement {
         if (!detail.fromOnLoad && !isIdempotentAction(detail.actionId, action?.idempotent)) {
             this._userWroteSinceRender = true
         }
-        if (!background) {
+        if (!background && detail.actionId !== '__restfetch__') {
+            // (the proxied leg of a REST write is guarded, and its control shown busy, by the REST
+            // action that sends it — W-1)
             // Reads are exempt from the EXCLUSIVITY half of the guard. The guard exists because a
             // second POST of a write means a second row; a second read means fresher data. Worse,
             // blocking them would break type-ahead: while the search for "ma" is in flight the
@@ -1241,7 +1267,24 @@ export class MateuComponent extends ComponentElement {
     private _backendSettledListener = (e: Event) => {
         const path = typeof e.composedPath === 'function' ? e.composedPath() : []
         if ((path[0] ?? e.target) !== this) return
-        this._releasePending((e as CustomEvent).detail?.actionId)
+        const actionId = (e as CustomEvent).detail?.actionId
+        this._releasePending(actionId)
+        // the proxied leg of a REST write (`__restfetch__`) that failed in transport never reaches
+        // its callback: what it held is given back here (an answer reaches it — no harm twice)
+        if (actionId === '__restfetch__' && e.type !== 'backend-succeeded-event') this._releaseRestWrite()
+    }
+
+    /** The REST writes in flight (W-1), by their slot, with the control shown busy. */
+    private _pendingRestWrites = new Map<string, Element | undefined>()
+
+    /** Gives back a REST write's slot and un-dims its control; every one of them without a key. */
+    private _releaseRestWrite(key?: string) {
+        const keys = key !== undefined ? [key] : Array.from(this._pendingRestWrites.keys())
+        keys.forEach(k => {
+            pendingActions.end(k)
+            clearPending(this._pendingRestWrites.get(k))
+            this._pendingRestWrites.delete(k)
+        })
     }
 
     private _shortcutMatchesEvent(shortcut: string, e: KeyboardEvent): boolean {
@@ -1324,6 +1367,7 @@ export class MateuComponent extends ComponentElement {
         // A component torn down mid-request will never see its outcome event: release its slots
         // now, or the same action would stay blocked if the component is mounted again.
         this._releasePending()
+        this._releaseRestWrite()
     }
 
     render() {

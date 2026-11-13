@@ -181,7 +181,7 @@ export class MateuUi extends LitElement {
         this._lastUrl = window.location.href
 
         installHistoryIndex(window)
-        window.onpopstate = (e) => {
+        this.popStateListener = (e: PopStateEvent) => {
             // Back/forward has already changed the URL by the time popstate fires. Our own undo of a
             // refused move (below) fires one too: that one is not a navigation.
             const moved = notePopState(e.state, window)
@@ -208,6 +208,10 @@ export class MateuUi extends LitElement {
             this.loadUrl(w)
             announceUrlChange()
         };
+        // Only the TOP mateu-ui owns the browser's history, and it LISTENS rather than taking
+        // window.onpopstate: an embedded widget used to replace the host page's own handler and
+        // then load the host's URL as a Mateu route on Back (W-6). Removed on disconnect.
+        if (this.top == 'true') window.addEventListener('popstate', this.popStateListener)
 
         if (this.top == 'true') {
             // The errors the user sees (and uncaught JS errors) go to the server log, at the app's
@@ -280,7 +284,11 @@ export class MateuUi extends LitElement {
         window.removeEventListener(URL_CHANGED_EVENT, this.urlChangedListener)
         this.removeEventListener('navigate-to-requested', this.navigateToRequestedListener)
         this.removeEventListener('action-requested', this.unclaimedActionListener)
+        if (this.popStateListener) window.removeEventListener('popstate', this.popStateListener)
     }
+
+    /** Back/forward of the TOP mateu-ui (built in connectedCallback; W-6). */
+    popStateListener: ((e: PopStateEvent) => void) | undefined
 
     /** Rebuilds the whole tree on the current URL (live reload of an app-level change). */
     remount() {

@@ -7,6 +7,7 @@ vi.mock('@infra/http/AxiosMateuApiClient.ts', () => ({ mateuApiClient: { runActi
 import './mateu-command-center'
 import type { MateuCommandCenter } from './mateu-command-center'
 import { listRecentRoutes, pushRecentRoute } from '@infra/recentRoutesStore.ts'
+import { dirtyGuard } from './dirtyGuard'
 
 /**
  * The command center (`@App(commandCenter = true)`): a FAB and ⌘K open a palette over the whole
@@ -89,6 +90,27 @@ describe('mateu-command-center', () => {
         ])
         expect($(cc, '.cc-panel')).toBeNull()
         expect(listRecentRoutes('my.App')).toEqual([{ route: 'setup/hotels', label: 'Hotels' }])
+    })
+
+    it('W-3: with unsaved changes it asks first; «stay» navigates nowhere and keeps the palette open', async () => {
+        const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+        dirtyGuard.markDirty()
+        try {
+            const cc = await mount()
+            await openIt(cc)
+            $$(cc, '.cc-tile')[1].click()
+            await cc.updateComplete
+            expect(confirm).toHaveBeenCalledTimes(1)
+            expect(events).toEqual([])
+            expect($(cc, '.cc-panel')).not.toBeNull()
+            confirm.mockReturnValue(true)
+            $$(cc, '.cc-tile')[1].click()
+            await cc.updateComplete
+            expect(events.map(e => e.type)).toEqual(['route-changed', 'navigate-to-requested'])
+        } finally {
+            dirtyGuard.markClean()
+            confirm.mockRestore()
+        }
     })
 
     it('recents are scoped to the app', async () => {

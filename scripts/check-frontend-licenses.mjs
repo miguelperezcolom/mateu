@@ -31,7 +31,13 @@ const ALLOWED = new Set([
 const REVIEWED = {
   // MIT plus one condition: the bpmn.io watermark on rendered diagrams must stay visible and not be
   // overlapped. mateu-bpmn does not hide or restyle it — keep it that way.
-  'bpmn-js': 'bpmn.io License (MIT + keep the bpmn.io watermark visible)',
+  'bpmn-js': { licence: 'SEE LICENSE IN LICENSE', why: 'bpmn.io License (MIT + keep the bpmn.io watermark visible)' },
+}
+
+/** Whether `pkg` is reviewed for the licence it declares NOW (a release with another licence fails again). */
+const reviewedFor = (pkg, licence, reviewed = REVIEWED) => {
+  const entry = reviewed[pkg.name]
+  return !!entry && entry.licence === licence
 }
 
 // "MIT OR Apache-2.0" passes if ANY alternative is allowed; "(A AND B)" needs all of them.
@@ -46,7 +52,7 @@ const check = (name, target) => {
   const problems = []
   for (const { pkg, via } of packages) {
     const licence = licenceOf(pkg)
-    if (!allowed(licence) && !REVIEWED[pkg.name]) problems.push(`${pkg.name}@${pkg.version}  ${licence}  (via ${via})`)
+    if (!allowed(licence) && !reviewedFor(pkg, licence)) problems.push(`${pkg.name}@${pkg.version}  ${licence}  (via ${via})`)
   }
   if (unresolved.length) {
     console.error(`✗ [${name}] ${unresolved.length} dependency(ies) not installed — run \`npm ci\` in ${dir} first:\n`)

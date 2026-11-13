@@ -11,7 +11,7 @@ import { announce } from '@infra/a11y/announcer.ts';
 import { fetchExternalJson } from '@infra/http/externalOptions.ts';
 import { resolveRestSource, viaProxy } from '@infra/http/restSourceCatalogue.ts';
 import { templateResolver } from '@infra/ui/interpolation.ts';
-import { navigateToRoute } from '@infra/ui/rowRoute.ts';
+import { leaveToRoute } from '@infra/ui/rowRoute.ts';
 import { chromeTextf, chromeText } from '@infra/ui/chromeTexts.ts';
 import {
     BoardCard, BoardColumn, KanbanMove, cardRouteOf, cardsFromRows, dropIndexOf, isRealMove, itemsOf,
@@ -198,6 +198,9 @@ export class MateuKanban extends LitElement {
             color: var(--lumo-secondary-text-color, #666);
             border-radius: var(--lumo-border-radius-s, 4px);
             padding: .15rem .35rem;
+            /* WCAG 2.5.8: a 24px target at least (axe target-size, Explorer F5) */
+            min-width: 24px;
+            min-height: 24px;
             cursor: pointer;
         }
         .move:hover {
@@ -338,7 +341,7 @@ export class MateuKanban extends LitElement {
     private clickCard(card: BoardCard) {
         const route = cardRouteOf(this.cardRoute, card, this.state, this.data)
         if (route) {
-            navigateToRoute(this, route)
+            leaveToRoute(this, route)
             return
         }
         if (!card.actionId) {

@@ -28,9 +28,14 @@ define([
     async run(context, { actionId, parameters, fromNested, route, surfaceId }) {
       const click = bridge.blockClickOf({ actionId, parameters, route, state: bridge.routeStateOf(context.$application.variables.mateuRegistry, context.$page?.variables.mateuDraft) });
       if (click.navigate) {
+        // a route of a page embedded from ANOTHER mount is that mount's: its page loads in the browser (F4)
+        const mountPath = bridge.surfaceMountPathOf(context.$application.variables.mateuRegistry, surfaceId, click.navigate);
+        if (mountPath) { window.location.assign(mountPath); return; }
         await Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: click.navigate, force: true } });
         return;
       }
+      // nobody on screen claims it (a YAML Button with a label and no action): inert, as on Vaadin
+      if (!bridge.contentActionIsClaimed(context.$application.variables.mateuRegistry, actionId)) return;
       // an atom of a surface of its own goes back to that surface
       if (surfaceId && (context.$application.variables.mateuRegistry.contexts || {})[surfaceId]) {
         await Actions.callChain(context, { chain: 'runMateuSurfaceAction', params: { surfaceId, actionId, parameters } });

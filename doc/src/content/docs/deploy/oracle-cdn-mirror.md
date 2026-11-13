@@ -100,7 +100,10 @@ cd e2e && BASE=http://localhost:8080 ROUTE=/products node oracle-cdn-mirror-prob
 ## What it does not cover
 
 - **Leaflet and map tiles.** The `Map` component loads Leaflet from cdnjs and tiles from
-  OpenStreetMap — neither is Oracle's. Point maps at your own tile server with `Map.tileUrl`.
+  OpenStreetMap — neither is Oracle's, so an organisation that mirrors Oracle's CDN still calls
+  `cdnjs.cloudflare.com` and `tile.openstreetmap.org` from a page with a map. Both Leaflet files
+  are loaded with subresource integrity (the browser refuses a changed byte), and nothing else is
+  loaded from cdnjs. Point maps at your own tile server with `Map.tileUrl`.
 - **The embedded component** (`<mateu-ui>` inside your own Visual Builder app) uses whatever runtime
   the host application loads, so the mirror is the host's choice there.
 - **The Vaadin renderer** loads nothing from a CDN: its assets are inside its jar.

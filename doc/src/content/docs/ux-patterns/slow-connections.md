@@ -36,6 +36,8 @@ The marker is the `data-mateu-pending` attribute, so a renderer or an app styles
 
 While a given action of a given component is in flight, the same action of the same component is refused before any request is built. This covers the paths the loading veil never could: `background` actions, and keyboard shortcuts, where there is no pointer to block.
 
+The same holds for a **REST action** (`restAction`, the way a definition-only page or a static bundle writes), direct or proxied: the pressed control shows it is busy, a second press sends nothing, and a direct call to the API has the same 60-second ceiling as Mateu's own requests — the body included — and says so in words when it is reached. On the Redwood renderer a second press answers nothing at all (no toast, no navigation), and two edits of *different* rows are two writes, not a double press.
+
 **Reads are exempt from the block.** The guard exists because a second `POST` of a write means a second row; a second read just means fresher data. Blocking reads would break type-ahead — the search for `mad` would be dropped while the search for `ma` was still in flight, leaving the user looking at stale results.
 
 ### Loading skeletons on navigation

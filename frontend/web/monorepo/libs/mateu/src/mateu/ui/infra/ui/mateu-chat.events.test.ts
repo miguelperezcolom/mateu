@@ -89,7 +89,7 @@ describe('mateu-chat, the events of the stream', () => {
         live.write(sse({ event: 'close-requested' }))
         live.close()
         await sending
-        expect(shellTook).toEqual([detail])
+        expect(shellTook).toEqual([{ route: '/bookings', consumedRoute: '', baseUrl: '/b', serverSideType: 'x.Home', uriPrefix: '' }]) // never an action id (S7)
         expect(navigated).toEqual(['/orders'])
     })
 

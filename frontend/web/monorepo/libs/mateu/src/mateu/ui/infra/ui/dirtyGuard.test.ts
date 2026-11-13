@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { dirtyGuard } from './dirtyGuard'
+import { chromeText } from './chromeTexts'
 
 // dirtyGuard talks to `document` / `window` directly; stub the two entry points
 // it uses so the wiring can be verified without a DOM implementation.
@@ -67,6 +68,23 @@ describe('dirtyGuard', () => {
         expect(confirmMock).toHaveBeenCalledWith(dirtyGuard.message)
         // confirming clears the dirty state so a follow-up navigation does not prompt twice
         expect(dirtyGuard.dirty).toBe(false)
+    })
+
+    it('W-4: the question is in the page\'s language WHEN asked (the locale lands after boot); an assigned text wins', () => {
+        const english = dirtyGuard.message
+        vi.stubGlobal('navigator', { language: 'es-ES' })
+        try {
+            expect(dirtyGuard.message).toBe(chromeText('unsavedChanges', 'es'))
+            expect(dirtyGuard.message).not.toBe(english)
+            expect(dirtyGuard.discardMessage).toBe(chromeText('unsavedChangesInOverlay', 'es'))
+            dirtyGuard.message = 'Custom'
+            expect(dirtyGuard.message).toBe('Custom')
+        } finally {
+            dirtyGuard.message = undefined as unknown as string
+            vi.unstubAllGlobals()
+            vi.stubGlobal('document', { addEventListener: (type: string, listener: EventListener) => { documentListeners[type] = listener } })
+            vi.stubGlobal('window', { addEventListener: (type: string, listener: EventListener) => { windowListeners[type] = listener }, confirm: confirmMock })
+        }
     })
 
     it('confirmLeave blocks navigation and stays dirty when the user cancels', () => {

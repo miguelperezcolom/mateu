@@ -211,5 +211,28 @@
   ],
   "reservedPatterns": [
     "^oj[A-Z-]"
+  ],
+  "navigationsDescription": "S7: what an agent's navigation-requested detail may carry — a WHITELIST of where-to-go fields (route, consumedRoute, serverSideType, uriPrefix, baseUrl; string values only). A menu leaf's `rules` (RunAction/RunJS) and `actionId` never travel: an agent must not run an app action, or script, without a click. A same-origin base url is kept (a foreign one is dropped by the trust rule, tested per renderer). Read by libs/mateu agentEvents.test.ts and Redwood test-chat-events.mjs (chatNavigationOf).",
+  "navigations": [
+    {
+      "name": "where to go travels",
+      "detail": { "route": "/orders", "consumedRoute": "/o", "serverSideType": "a.B", "uriPrefix": "/p", "baseUrl": "/_pod" },
+      "expected": { "route": "/orders", "consumedRoute": "/o", "serverSideType": "a.B", "uriPrefix": "/p", "baseUrl": "/_pod" }
+    },
+    {
+      "name": "menu rules never travel",
+      "detail": { "route": "/orders", "rules": [ { "action": "RunAction", "actionId": "deleteEverything" }, { "action": "RunJS", "value": "alert(1)" } ] },
+      "expected": { "route": "/orders" }
+    },
+    {
+      "name": "an action id never travels",
+      "detail": { "route": "/orders", "actionId": "deleteEverything", "serverSideType": "a.B" },
+      "expected": { "route": "/orders", "serverSideType": "a.B" }
+    },
+    {
+      "name": "anything else is dropped, and only strings count",
+      "detail": { "route": "/orders", "parameters": { "x": 1 }, "consumedRoute": 7, "initialState": { "a": 1 } },
+      "expected": { "route": "/orders" }
+    }
   ]
 }

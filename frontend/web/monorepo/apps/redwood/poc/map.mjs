@@ -15,6 +15,10 @@ import { surfaceAtomOf } from './surfaces.mjs'
 
 export const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js'
 export const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css'
+// Subresource integrity of the two files (R-9): the CDN serves them, the browser refuses a byte
+// that changed. Computed from cdnjs' 1.9.4 files — a version bump changes both.
+export const LEAFLET_JS_INTEGRITY = 'sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg=='
+export const LEAFLET_CSS_INTEGRITY = 'sha512-Zcn6bjR/8RZbLEpLIeOwNtzREBAJnUKESxces60Mpoj+2okopSAcSUIUOseddDm0cxnGQzxIR7vJgsLZbdLE3w=='
 export const OSM_TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 export const DEFAULT_PIN = '#c74634'
 export const DEFAULT_ZOOM = 3
@@ -22,13 +26,27 @@ export const SINGLE_MARKER_ZOOM = 15
 
 export const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 
+const mapEscapeText = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+
 /** A map's tile layer: the wire's (tileUrl + attribution) or, without tileUrl, OSM. The
- *  wire's template is already Leaflet's ({s}, {z}, {x}, {y}), so it passes through as is. */
+ *  wire's template is already Leaflet's ({s}, {z}, {x}, {y}), so it passes through as is.
+ *  Leaflet writes the attribution with innerHTML: the wire's is TEXT, so it is escaped (R-1) —
+ *  only our own OSM credit is markup. */
 export function tileLayerOf(spec) {
   const url = spec && typeof spec.tileUrl === 'string' ? spec.tileUrl.trim() : ''
   if (!url) return { url: OSM_TILES, options: { maxZoom: 19, attribution: OSM_ATTRIBUTION } }
-  const attribution = spec.attribution ? String(spec.attribution).trim() : ''
+  const attribution = spec.attribution ? mapEscapeText(String(spec.attribution).trim()) : ''
   return { url, options: { maxZoom: 19, ...(attribution ? { attribution } : {}) } }
+}
+
+/** A marker's permanent label as a DOM node holding TEXT: Leaflet assigns a string tooltip with
+ *  innerHTML, and the label is record data (a hotel, a customer) — a name like
+ *  `<img src=x onerror=…>` ran script in every tab that opened the map, no click needed (R-1). */
+export function markerTooltipOf(doc, label) {
+  const span = doc.createElement('span')
+  span.textContent = String(label)
+  return span
 }
 
 let mapSink = null
@@ -75,6 +93,24 @@ export function mapViewPlanOf(spec) {
 /** The parameters of a marker's action. */
 export const mapMarkerParams = (markerId) => ({ _markerId: markerId })
 
+/** requirejs creates the <script> itself: its `onNodeCreated` hook puts the integrity on the
+ *  Leaflet node (only that one), chained after any hook the page already had. */
+export function withLeafletIntegrity(requirejs) {
+  if (!requirejs || typeof requirejs.config !== 'function') return
+  const ctx = requirejs.s && requirejs.s.contexts && requirejs.s.contexts._
+  const previous = ctx && ctx.config ? ctx.config.onNodeCreated : undefined
+  if (previous && previous.__mateuLeafletIntegrity) return
+  const hook = function (node, config, moduleName, url) {
+    if (typeof previous === 'function') previous.call(this, node, config, moduleName, url)
+    if (String(url || '').startsWith(LEAFLET_JS) || moduleName === LEAFLET_JS) {
+      node.setAttribute('integrity', LEAFLET_JS_INTEGRITY)
+      node.setAttribute('crossorigin', 'anonymous')
+    }
+  }
+  hook.__mateuLeafletIntegrity = true
+  requirejs.config({ onNodeCreated: hook })
+}
+
 let leafletPromise = null
 function loadLeaflet(doc) {
   if (typeof window !== 'undefined' && window.L && window.L.map) return Promise.resolve(window.L)
@@ -83,6 +119,8 @@ function loadLeaflet(doc) {
     const link = doc.createElement('link')
     link.rel = 'stylesheet'
     link.href = LEAFLET_CSS
+    link.integrity = LEAFLET_CSS_INTEGRITY
+    link.crossOrigin = 'anonymous'
     link.setAttribute('data-mateu-leaflet', '')
     doc.head.appendChild(link)
   }
@@ -90,10 +128,13 @@ function loadLeaflet(doc) {
     const amd = typeof window !== 'undefined' && typeof window.require === 'function'
       && typeof window.define === 'function' && window.define.amd
     if (amd) {
+      withLeafletIntegrity(window.requirejs || window.require)
       window.require([LEAFLET_JS], (L) => resolve(L || window.L), reject)
       return
     }
     const script = doc.createElement('script')
+    script.integrity = LEAFLET_JS_INTEGRITY
+    script.crossOrigin = 'anonymous'
     script.src = LEAFLET_JS
     script.onload = () => resolve(window.L)
     script.onerror = reject
@@ -102,7 +143,10 @@ function loadLeaflet(doc) {
   return leafletPromise
 }
 
-function drawMap(L, el, spec) {
+const mapHostDocument = () => document
+
+/** Paints `spec` on `el` with Leaflet `L` (exported for the tests, which hand it a fake). */
+export function drawMap(L, el, spec) {
   if (el.__mateuMap) { el.__mateuMap.remove(); el.__mateuMap = null }
   const map = L.map(el, { scrollWheelZoom: true })
   const tiles = tileLayerOf(spec)
@@ -112,7 +156,7 @@ function drawMap(L, el, spec) {
       radius: 8, color: '#ffffff', weight: 2, fillColor: m.color || DEFAULT_PIN, fillOpacity: 1,
       bubblingMouseEvents: false,
     }).addTo(map)
-    if (m.label) pin.bindTooltip(m.label, { permanent: true, direction: 'right', offset: [8, 0], className: 'mateu-map-label' })
+    if (m.label) pin.bindTooltip(markerTooltipOf(el.ownerDocument || mapHostDocument(), m.label), { permanent: true, direction: 'right', offset: [8, 0], className: 'mateu-map-label' })
     const hover = [m.label, m.description].filter(Boolean).join(' · ')
     const run = spec.markerActionId ? () => { if (mapSink) mapSink(spec.markerActionId, mapMarkerParams(m.id), surfaceAtomOf(el)) } : null
     if (run) pin.on('click', run)
@@ -125,7 +169,8 @@ function drawMap(L, el, spec) {
       if (!pinEl || decorated) return
       decorated = true
       if (hover) pinEl.setAttribute('aria-label', hover)
-      if (!run) return
+      // a name needs a role (axe aria-prohibited-attr on a bare <path>): an image, or a button below
+      if (!run) { if (hover) pinEl.setAttribute('role', 'img'); return }
       pinEl.style.cursor = 'pointer'
       // a marker that runs something is a BUTTON, reachable with the keyboard (like <mateu-map>'s):
       // Leaflet draws it as a bare SVG path with no role and no tab stop

@@ -12,7 +12,9 @@ vi.mock('./builtInRenderTarget', () => ({
 const navigated: string[] = []
 vi.mock('./rowRoute', () => ({ navigateToRoute: (_from: unknown, route: string) => { navigated.push(route) } }))
 
-import { applyAgentEvent, navigatingShellOf } from './agentEvents'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { applyAgentEvent, navigatingShellOf, trustedNavigationOf } from './agentEvents'
 import { claimEvent } from './chatEvents'
 import { declareAgentEvent } from './agentEventPolicy'
 import { resetCredentialScope, trustDeclaredRemotes } from '@infra/http/credentialScope.ts'
@@ -69,7 +71,7 @@ describe('applyAgentEvent', () => {
 
     it('a navigation the shell\'s listener took is done; one dispatched from the shell itself reaches its handler like a menu click', () => {
         const app = shell()
-        const detail = { route: '/orders', consumedRoute: '', actionId: '', baseUrl: '/b', serverSideType: 'x.Home', uriPrefix: '' }
+        const detail = { route: '/orders', consumedRoute: '', baseUrl: '/b', serverSideType: 'x.Home', uriPrefix: '' }
         const listener = document.createElement('div')
         app.shadowRoot!.appendChild(listener)
         const took: unknown[] = []
@@ -143,5 +145,28 @@ describe('applyAgentEvent', () => {
         // what bubbles to the shell's own listener is the same sanitised detail, the route kept
         expect(heard.map((d) => (d as { baseUrl?: string }).baseUrl)).toEqual(bases)
         expect(delivered.every((d: { route?: string }) => d.route === '/x')).toBe(true)
+    })
+})
+
+describe('S7: an agent navigation carries where to go, nothing that runs', () => {
+    // jsdom gives import.meta.url an http scheme: resolve from the package (vitest's cwd)
+    const corpus = JSON.parse(readFileSync(
+        resolve(process.cwd(), '../../../../../conformance/client/agent-events.json'), 'utf8',
+    )) as { navigations: { name: string, detail: unknown, expected: unknown }[] }
+
+    for (const c of corpus.navigations) {
+        it(c.name, () => expect(trustedNavigationOf(c.detail)).toEqual(c.expected))
+    }
+
+    it('a navigation carrying menu rules reaches the shell without them — no app action, no RunJS', () => {
+        const app = shell()
+        const heard: unknown[] = []
+        app.addEventListener('navigation-requested', (e) => heard.push((e as CustomEvent).detail))
+        applyAgentEvent(app, 'navigation-requested', {
+            route: '/x', actionId: 'wipe', rules: [{ action: 'RunAction', actionId: 'wipe' }, { action: 'RunJS', value: 'alert(1)' }],
+        })
+        const delivered = (app.updateRoute as ReturnType<typeof vi.fn>).mock.calls.map((c) => (c[0] as CustomEvent).detail)
+        expect(delivered).toEqual([{ route: '/x' }])
+        expect(heard).toEqual([{ route: '/x' }])
     })
 })

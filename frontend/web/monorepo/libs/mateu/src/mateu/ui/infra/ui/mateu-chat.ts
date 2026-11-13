@@ -758,7 +758,7 @@ export class MateuChat extends LitElement {
                                         <span class="message-name">${item.userName}</span>
                                         <span class="message-time">${item.time}</span>
                                     </div>
-                                    <mateu-markdown class="message-text" .content="${item.text ?? ''}"></mateu-markdown>
+                                    <mateu-markdown class="message-text" no-remote-images .content="${item.text ?? ''}"></mateu-markdown>
                                     ${item.deferred?.length ? html`
                                         <div class="chat-deferred">
                                             ${item.deferred.map(action => html`

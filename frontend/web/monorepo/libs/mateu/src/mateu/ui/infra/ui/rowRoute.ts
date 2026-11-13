@@ -49,6 +49,15 @@ export function navigateToRoute(from: HTMLElement, route: string): void {
         safeNavigate(route, { newTab: true })
         return
     }
+    // A route is relative to ITS mount: in a page EMBEDDED from another mount of this app (a
+    // MicroFrontend of `/yaml-mount` inside `/`), it names a place under that mount — the host's
+    // router resolved it under its own and landed on "Page not found" (Explorer F4). That place is
+    // another app's page: loaded by the browser, like Redwood's leftMountFor.
+    const mount = embeddingMountOf(from)
+    if (mount !== undefined) {
+        safeNavigate(mount.replace(/\/+$/, '') + '/' + route.replace(/^\/+/, ''))
+        return
+    }
     for (const type of ['route-changed', 'navigate-to-requested']) {
         from.dispatchEvent(new CustomEvent(type, { detail: { route }, bubbles: true, composed: true }))
     }
@@ -80,6 +89,23 @@ export function appRouteHref(from: Element, route: string): string {
     } catch {
         return fallback
     }
+}
+
+const samePath = (a: string | undefined | null, b: string | undefined | null): boolean =>
+    (a ?? '').replace(/\/+$/, '') === (b ?? '').replace(/\/+$/, '')
+
+/**
+ * The base path of ANOTHER mount of this app that `from` is embedded from — the nearest micro
+ * frontend's `mateu-ux` whose base url is a same-origin path different from the page's
+ * `mateu-ui` — or undefined (the page's own mount, a remote of another origin, no shell around).
+ */
+export function embeddingMountOf(from: Element): string | undefined {
+    const ui = closestAcrossShadows(from, 'mateu-ui') as (Element & { baseUrl?: string }) | undefined
+    const ux = closestAcrossShadows(from, 'mateu-ux[micro-frontend]') as (Element & { baseUrl?: string }) | undefined
+    if (!ui || !ux) return undefined
+    const base = ux.baseUrl ?? ux.getAttribute('baseurl') ?? ux.getAttribute('baseUrl') ?? undefined
+    if (!base || !base.startsWith('/') || base.startsWith('//') || base.startsWith('/\\')) return undefined
+    return samePath(base, ui.baseUrl ?? ui.getAttribute('baseurl')) ? undefined : base
 }
 
 const closestAcrossShadows = (from: Element, selector: string): Element | undefined => {

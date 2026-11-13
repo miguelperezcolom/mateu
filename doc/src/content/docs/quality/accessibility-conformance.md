@@ -195,6 +195,21 @@ What Mateu can change and has not, at this version:
 4. **Nothing measures** reflow, text spacing, non-text contrast or target size beyond axe's
    `target-size` rule; the native probes do not run in CI.
 5. **No external audit and no hand testing with assistive technology** for this report.
+6. **What the GA pass of the Explorer still finds with axe** (2026-11-13; fixed in the same pass:
+   the unnamed frames of Redwood's whole-page examples, a named map pin and the skeleton without a
+   role, the 24px targets of the kanban Move, a clickable calendar chip and the form editor's row
+   buttons, an unnamed listBox field):
+   - *nested-interactive* (4.1.2) on the Vaadin calendar's day cells, the kanban cards and the form
+     editor's rows — a clickable container holding buttons; it needs a redesign of those widgets;
+   - Redwood: a `ProgressBar`'s name does not reach JET's inner progressbar, a switch without a
+     name in the pickers example, the content `MenuBar`'s `role=menubar` children, `aria-label`
+     on `mateu-rich-text-field`, `link-in-text-block`, the foldout page's `aria-allowed-attr` and
+     target size;
+   - contrast below 4.5:1 on the record-merge "(empty)" text, the form editor's type badge, the
+     task-queue chip and the calendar's day label;
+   - Vaadin: the `VirtualList` scrollable region has no tab stop, a `@TitlePlaceholder` page with
+     no title leaves `document.title` empty, and the item overview's photo (`TemplateImage`) has no
+     alt text to give its `<img>`.
 
 And two that only upstream can change: the `vaadin-tabs` and `oj-navigation-list` role-children
 findings (4.1.2).

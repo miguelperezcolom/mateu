@@ -13,6 +13,8 @@
 // <meta name="mateu-auth">) refreshes the token and retries, or asks the user to sign in again.
 // Without that either, the request fails exactly as before (no behavior change).
 
+import { clearStructureCache } from '@infra/routeStructureCache.ts'
+
 export interface SessionExpiredContext {
     /** Re-run the failed request with the (re-newed) credentials; resolves the original call. */
     retry: () => void
@@ -46,6 +48,8 @@ export const handleSessionExpired = <T>(
     error: unknown,
     retryRequest: () => Promise<T>,
 ): Promise<T> => {
+    // the session that saw those screens is over: what the structure cache kept of them goes (W-2)
+    clearStructureCache()
     return new Promise<T>((resolve, reject) => {
         let settled = false
         const context: SessionExpiredContext = {

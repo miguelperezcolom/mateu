@@ -58,8 +58,27 @@ export class MateuMarkdown extends Base {
         // which must survive sanitization; custom elements only from the allow-list (a
         // `<mateu-ux baseurl=…>` in an answer must not boot a client against another origin).
         installDataHtmlHooks(DOMPurify as never)
-        this.innerHTML = DOMPurify.sanitize(await marked.parse(content), dataHtmlPolicy()) as unknown as string
+        const html = DOMPurify.sanitize(await marked.parse(content), dataHtmlPolicy()) as unknown as string
+        this.innerHTML = this.hasAttribute('no-remote-images') ? withoutRemoteImages(html) : html
     }
+}
+
+/**
+ * The HTML with every image that would be FETCHED (not a `data:` one) turned into its alt text (S13):
+ * in an assistant's answer, text the model was steered into writing could name an image URL that
+ * carries state values in its query — a request leaving the tab with no click. Redwood's chat does
+ * the same. Inline `data:` images (a diagram the agent drew) fetch nothing and stay.
+ */
+export const withoutRemoteImages = (html: string): string => {
+    if (typeof document === 'undefined') return html
+    const template = document.createElement('template')
+    template.innerHTML = html
+    template.content.querySelectorAll('img').forEach((img) => {
+        const src = (img.getAttribute('src') ?? '').trim()
+        if (/^data:/i.test(src) && !img.hasAttribute('srcset')) return
+        img.replaceWith(document.createTextNode(img.getAttribute('alt') ?? ''))
+    })
+    return template.innerHTML
 }
 
 if (typeof customElements !== 'undefined' && !customElements.get('mateu-markdown')) {

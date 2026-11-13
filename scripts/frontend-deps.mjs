@@ -14,8 +14,18 @@ import { fileURLToPath } from 'node:url'
 export const repo = join(dirname(fileURLToPath(import.meta.url)), '..')
 
 // @vaadin-component-factory/vcf-date-range-picker lists its dev server as a dependency; the picker
-// never imports it, and Vite only bundles what is imported.
-const VCF_DEV_SERVER = { '@web/dev-server': 'dev server listed as a runtime dependency of vcf-date-range-picker' }
+// never imports it, and Vite only bundles what is imported. Skipped ONLY under that package: the same
+// name required by anything else is walked like any dependency.
+const VCF_DEV_SERVER = {
+  '@web/dev-server': { via: '@vaadin-component-factory/vcf-date-range-picker',
+    why: 'dev server listed as a runtime dependency of vcf-date-range-picker' },
+}
+
+/** Whether `pkgName`, required by `parentName`, is outside what ships (its `notBundled` entry names that parent). */
+export const notBundledUnder = (pkgName, parentName, notBundled) => {
+  const entry = notBundled[pkgName]
+  return !!entry && entry.via === parentName
+}
 
 // What we publish, and the packages whose production dependencies end up in it. `notBundled`:
 // declared as RUNTIME dependencies by a shipped package but never part of what ships (a package's
@@ -86,18 +96,20 @@ export const walk = ({ dir, entries, notBundled }) => {
   const seen = new Set()
   const packages = []
   const unresolved = new Set()
-  const visit = (pkgJsonPath, via) => {
+  const visit = (pkgJsonPath, via, parentName) => {
     const path = real(pkgJsonPath)
     if (seen.has(path)) return
-    seen.add(path)
     const pkg = JSON.parse(readFileSync(path, 'utf8'))
-    if (notBundled[pkg.name]) return
+    // not bundled UNDER the parent its entry names — checked before it counts as seen, so the same
+    // package reached through another parent is still walked
+    if (notBundledUnder(pkg.name, parentName, notBundled)) return
+    seen.add(path)
     // a workspace package (reached through its node_modules symlink) is our own code
     const ours = entryPaths.has(path) || !path.includes(`${sep}node_modules${sep}`)
     if (!ours) packages.push({ pkg, dir: dirname(path), via })
     for (const dep of Object.keys({ ...(pkg.dependencies ?? {}), ...(pkg.optionalDependencies ?? {}) })) {
       const target = resolve(dep, dirname(path))
-      if (target) visit(target, ours ? pkg.name : `${via} > ${pkg.name}`)
+      if (target) visit(target, ours ? pkg.name : `${via} > ${pkg.name}`, pkg.name)
       // optional deps may legitimately be absent (platform-specific binaries)
       else if (!(pkg.optionalDependencies ?? {})[dep]) unresolved.add(`${dep}  (required by ${pkg.name})`)
     }

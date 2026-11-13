@@ -9,7 +9,7 @@ import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOf, ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes, factProjectionOf, pageHeaderExtrasOf, pageKpisOf, pageSubtitleOf } from './pageHeader.mjs'
 import { nestedListingAtomOf, templateNestsListings, pageListingNodeOf, findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, leafColumnsOf, LABEL_CELL_SUFFIX, alignOf, columnWidthOf, nestedListingKeyOf, valueLabelOf } from './listing.mjs'
-import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, readOnlyDisplayOf } from './rowEditor.mjs'
+import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf, propertyRowBoolOf, readOnlyDisplayOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
 import { safeHref, treeDisclosureOf, iconNameLike, VISITOR_PASS_THROUGH, AUTO_FIT_DEFAULT, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, progressStepsAtomOf, statAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
@@ -1402,7 +1402,8 @@ export function islandContentOf(ctx, opts = {}) {
         const shown = lookupLabel != null && lookupLabel !== ''
           ? readOnlyDisplayOf({ ...m, dataType: 'string', stereotype: m.stereotype === 'password' ? 'password' : 'regular', options: [] }, lookupLabel)
           : readOnlyDisplayOf(m, raw, ctx.data)
-        atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(shown.text), valueClass: shown.badgeClass }, container)
+        atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(shown.text), valueClass: shown.badgeClass,
+          ...propertyRowBoolOf(shown) }, container)
         return
       }
       if (m.dataType === 'status') {
@@ -1860,7 +1861,14 @@ export function islandContentOf(ctx, opts = {}) {
     // handler in links.mjs navigates INSIDE the shell if it is an app route, and target=_blank
     // (an external URL, a PDF) opens another tab without going through the server
     if (t === 'Anchor') {
-      const href = interp(m.url)
+      // the url may come from a record (`${state.website}`): a `javascript:`/`data:` one is no
+      // link — safeHref, like every other link here and the web's anchor (R-2); its text stays
+      const raw = interp(m.url)
+      const href = safeHref(raw)
+      if (raw && !href) {
+        atom({ isText: true, text: interp(m.text) || raw, cls: '' }, container)
+        return
+      }
       if (href) {
         const target = m.target ? String(m.target) : ''
         atom({
@@ -2851,7 +2859,7 @@ export function withSubresources(blocks, contexts, opts = {}) {
       // its shell (menu, pickers, header actions, shortcuts) is its own, as on its own page
       if (ctx.embeddedApp) {
         const href = safeHref(ctx.embeddedApp.src)
-        return href ? [{ isAppFrame: true, src: href, title: ctx.embeddedApp.title || '', frameStyle: { height: ctx.embeddedApp.height || '36rem' }, fromSurface: true }] : []
+        return href ? [{ isAppFrame: true, src: href, title: ctx.embeddedApp.title || href, frameStyle: { height: ctx.embeddedApp.height || '36rem' }, fromSurface: true }] : []
       }
       const crud = findByType(ctx.tree, 'Crud')
       // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page

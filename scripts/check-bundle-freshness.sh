@@ -25,8 +25,11 @@ check() {
 
   local bundle_commit
   bundle_commit=$(git log -1 --format=%H -- "$bundle")
+  # A gate that sees nothing must not pass (G-1): a renamed entry file or a moved source tree turned
+  # the check off with a "skipping" and exit 0.
   if [ -z "$bundle_commit" ]; then
-    echo "?? $name: no commit found for $bundle — skipping"
+    status=1
+    echo "?? $name: no commit found for $bundle — the bundle moved or was renamed; fix this script"
     return
   fi
 
@@ -34,7 +37,8 @@ check() {
   local source_commit
   source_commit=$(git log -1 --format=%H -- $sources ':(exclude)**/*.test.ts' ':(exclude)**/*.spec.ts')
   if [ -z "$source_commit" ]; then
-    echo "?? $name: no commit found for its sources — skipping"
+    status=1
+    echo "?? $name: no commit found for its sources ($sources) — they moved; fix this script"
     return
   fi
 
@@ -58,7 +62,7 @@ check() {
 
 check vaadin \
   "backend/shared/frontend/vaadin-lit/src/main/resources/static/assets/mateu-vaadin.js" \
-  "frontend/web/monorepo/apps/vaadin/src frontend/web/monorepo/libs/mateu/src"
+  "frontend/web/monorepo/apps/vaadin/src frontend/web/monorepo/libs/mateu/src frontend/web/monorepo/apps/vaadin/index.html frontend/web/monorepo/apps/vaadin/vite.config.ts frontend/web/monorepo/vite.vendorChunks.ts frontend/web/monorepo/apps/vaadin/package.json frontend/web/monorepo/libs/mateu/package.json frontend/web/monorepo/package-lock.json"
 # the renderer jars carry each asset ONCE, under static/ (every adapter serves it from there): a
 # second copy under META-INF/resources (the pre-2026-10 layout) is ~4 MB nobody serves
 if [ -d "backend/shared/frontend/vaadin-lit/src/main/resources/META-INF/resources" ]; then

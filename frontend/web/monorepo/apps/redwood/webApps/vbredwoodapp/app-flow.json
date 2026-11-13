@@ -910,6 +910,11 @@
       "defaultValue": false,
       "description": "the error band shows a version-skew notice (app updated / stale screen, versionSkew.mjs): its button reloads the page instead of retrying"
     },
+    "mateuRetryOffered": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "the band's failure can be retried (offline, timeout, 5xx): a refusal (403, 4xx) never offers a Retry that cannot succeed"
+    },
     "mateuChatSseUrl": {
       "type": "string",
       "defaultValue": "",

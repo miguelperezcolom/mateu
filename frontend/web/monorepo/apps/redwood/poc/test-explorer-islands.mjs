@@ -174,6 +174,13 @@ test('a MicroFrontend answering a whole app or a page only a page can draw is fr
   assert.equal(embeddedAppOf(crud, { baseUrl: '', route: '/x/crud' }).src, '/x/crud')
   const templated = { fragments: [{ component: cs({ type: 'Form', title: 'Impressions', template: { type: 'FoldoutPage' } }) }] }
   assert.equal(embeddedAppOf(templated, { route: 'x/foldout-page' }).src, '/x/foldout-page')
+  // F5 (axe frame-title): the frame is named — the page's title, else the page it frames
+  assert.equal(embeddedAppOf(templated, { route: 'x/foldout-page' }).title, 'Impressions')
+  const untitled = { fragments: [{ component: cs({ type: 'Form', template: { type: 'FoldoutPage' } }) }] }
+  assert.equal(embeddedAppOf(untitled, { route: 'x/foldout-page' }).title, '/x/foldout-page')
+  const unnamed = itemsOf(withSubresources([{ items: [{ isSubresource: true, islandId: 'n', subresource: { id: 'n' } }] }],
+    { n: { id: 'n', tree: { type: 'ServerSide' }, embeddedApp: { src: '/apps/y', title: '', height: '36rem' } } }))[0]
+  assert.equal(unnamed.title, '/apps/y', 'never an unnamed frame')
   const plain = { fragments: [{ component: ss('p', 'demo.Planet', [cs({ type: 'Form', title: 'Tatooine' })]) }] }
   assert.equal(embeddedAppOf(plain, { route: '/x/planets/1' }), null, 'a plain page is painted inline')
   const contexts = { m: { id: 'm', tree: { type: 'ServerSide' }, embeddedApp: { src: '/apps/x', title: 'X', height: '36rem' } } }
