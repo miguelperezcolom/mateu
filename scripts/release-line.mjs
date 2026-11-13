@@ -55,10 +55,14 @@ export const decide = (tag, prerelease, releases) => {
     .map((r) => ({ ...r, v: versionOf(r.tagName) }))
     .filter((r) => r.v)
   const finals = published.filter((r) => isFinal(r.v))
+  // the GA that ends pre-releases is one of THIS major (or a later one): the 2.x finals still on
+  // the releases page say nothing about where a 3.0 beta stands (beta.65 shipped no desktop app
+  // and no plugins because v2.4.94 counted as "the GA")
+  const gaFinals = self ? finals.filter((r) => r.v[0] >= self[0]) : finals
 
   let newest = false
   if (self && isFinal(self)) newest = finals.every((r) => compare(r.v, self) < 0)
-  else if (self) newest = finals.length === 0 && published.every((r) => compare(r.v, self) < 0)
+  else if (self) newest = gaFinals.length === 0 && published.every((r) => compare(r.v, self) < 0)
 
   const latest = newest && !prerelease
 
@@ -66,7 +70,7 @@ export const decide = (tag, prerelease, releases) => {
   // non-pre-release one that was itself eligible — a pre-release counts only while no final exists
   const eligible = published
     .filter((r) => !r.isPrerelease)
-    .filter((r) => isFinal(r.v) || finals.length === 0)
+    .filter((r) => isFinal(r.v) || gaFinals.length === 0)
     .sort((a, b) => compare(b.v, a.v))
   const selfIsLatest = releases.some((r) => r.tagName === tag && r.isLatest)
   const hold = selfIsLatest && eligible.length ? eligible[0].tagName : ''

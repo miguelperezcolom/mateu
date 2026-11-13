@@ -65,7 +65,7 @@ public static partial class MateuExtensions
             await NotAccepted(ctx);
             return;
         }
-        if (!FileUploads.Consume(ctx.Request.Headers[FileUploads.TicketHeader].FirstOrDefault(), ticket))
+        if (!ctx.RequestServices.GetRequiredService<SyncHandler>().Uploads!.Consume(ctx.Request.Headers[FileUploads.TicketHeader].FirstOrDefault(), ticket))
         {
             await TooMany(ctx);
             return;
@@ -147,7 +147,7 @@ public static partial class MateuExtensions
             return;
         }
         // a target the store issues counts as a file of the ticket, like an upload through us
-        if (store!.DirectUploads && !FileUploads.Consume(ctx.Request.Headers[FileUploads.TicketHeader].FirstOrDefault(), ticket))
+        if (store!.DirectUploads && !ctx.RequestServices.GetRequiredService<SyncHandler>().Uploads!.Consume(ctx.Request.Headers[FileUploads.TicketHeader].FirstOrDefault(), ticket))
         {
             await TooMany(ctx);
             return;

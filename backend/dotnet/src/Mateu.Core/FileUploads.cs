@@ -77,9 +77,11 @@ internal sealed class FileUploads
     public static int MaxFilesPerTicket { get; set; } =
         int.TryParse(Environment.GetEnvironmentVariable("MATEU_UPLOADS_MAX_FILES_PER_TICKET"), out var n) && n > 0 ? n : 100;
 
-    /// <summary>Tickets seen (the SHA-256 of their text) and how many files each sent: bounded LRU.</summary>
-    private static readonly Dictionary<string, (int Count, long Touched)> Uses = new();
-    private static long _usesClock;
+    /// <summary>Tickets seen (the SHA-256 of their text) and how many files each sent: bounded LRU.
+    /// Per instance (= per app): a ticket is deterministic (secret, field, caller, expiry to the
+    /// second), so two apps in one process would otherwise spend each other's share.</summary>
+    private readonly Dictionary<string, (int Count, long Touched)> Uses = new();
+    private long _usesClock;
     private const int MaxTicketsCounted = 10_000;
 
     /// <summary>Counts one file against <paramref name="ticketText"/>: false once it sent its share —
@@ -87,7 +89,7 @@ internal sealed class FileUploads
     /// multiple one. A ticket is valid for hours and an anonymous one is the same for every anonymous
     /// caller: without a count it allowed unlimited storage use (GA review S11; Java's
     /// UploadTickets.consume).</summary>
-    public static bool Consume(string? ticketText, Ticket granted)
+    public bool Consume(string? ticketText, Ticket granted)
     {
         var cap = granted.Multiple ? MaxFilesPerTicket : Math.Min(SingleFileUses, MaxFilesPerTicket);
         var key = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes("uses|" + ticketText)));
