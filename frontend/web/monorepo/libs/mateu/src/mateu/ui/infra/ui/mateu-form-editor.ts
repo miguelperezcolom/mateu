@@ -404,6 +404,8 @@ export class MateuFormEditor extends LitElement {
             background: none; border: none; cursor: pointer;
             font-size: .9rem; padding: .15rem .3rem; border-radius: 4px; line-height: 1;
             color: #94a3b8; flex-shrink: 0;
+            /* WCAG 2.5.8: a 24px target at least (axe target-size, Explorer F5) */
+            min-width: 24px; min-height: 24px;
         }
         .row-btn:hover { background: #f1f5f9; color: #475569; }
         .row-btn.danger:hover { background: #fee2e2; color: #b91c1c; }

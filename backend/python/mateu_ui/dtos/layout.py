@@ -82,6 +82,7 @@ class TemplateImageRecord(Wire):
 
     src: str | None = None
     initials: str | None = None
+    alt: str | None = None
 
 
 class PageTemplateRecord(Wire):

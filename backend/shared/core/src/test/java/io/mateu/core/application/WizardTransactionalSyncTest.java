@@ -57,6 +57,7 @@ class WizardTransactionalSyncTest {
 
   static final List<String> DRAFTS = new ArrayList<>();
   static String resumeOn;
+  static Object closeWith = java.net.URI.create("/home");
 
   @UI("/draft-wizard")
   @Title("Onboarding")
@@ -74,7 +75,7 @@ class WizardTransactionalSyncTest {
 
     @Override
     public Object closeDraft(HttpRequest httpRequest) {
-      return java.net.URI.create("/home");
+      return closeWith;
     }
 
     @Override
@@ -133,6 +134,7 @@ class WizardTransactionalSyncTest {
   void reset() {
     DRAFTS.clear();
     resumeOn = null;
+    closeWith = java.net.URI.create("/home");
   }
 
   @Test
@@ -165,6 +167,49 @@ class WizardTransactionalSyncTest {
               assertThat(c.data()).isEqualTo("/home");
             });
     assertThat(increment.commands()).anyMatch(c -> c.type() == UICommandTypeDto.MarkAsClean);
+  }
+
+  @Test
+  void aMessageReturnedByCloseDraftIsShownNotTurnedIntoAUrl() {
+    closeWith = Message.success("Saved, see you later");
+    var increment =
+        run("/draft-wizard", DraftWizard.class, "saveAndClose", state(mateu.sync("/draft-wizard")));
+    assertThat(increment.messages())
+        .anySatisfy(m -> assertThat(m.text()).isEqualTo("Saved, see you later"));
+    assertThat(increment.messages())
+        .noneSatisfy(m -> assertThat(m.text()).isEqualTo("Draft saved"));
+    assertThat(increment.commands())
+        .filteredOn(c -> c.type() == UICommandTypeDto.NavigateTo)
+        .singleElement()
+        .satisfies(c -> assertThat(c.data()).isEqualTo("/"));
+  }
+
+  @Test
+  void aRouteStringReturnedByCloseDraftNavigatesAndNullLandsOnTheRoot() {
+    closeWith = "/claims";
+    var increment =
+        run("/draft-wizard", DraftWizard.class, "saveAndClose", state(mateu.sync("/draft-wizard")));
+    assertThat(increment.commands())
+        .filteredOn(c -> c.type() == UICommandTypeDto.NavigateTo)
+        .singleElement()
+        .satisfies(c -> assertThat(c.data()).isEqualTo("/claims"));
+
+    closeWith = null;
+    increment =
+        run("/draft-wizard", DraftWizard.class, "saveAndClose", state(mateu.sync("/draft-wizard")));
+    assertThat(increment.commands())
+        .filteredOn(c -> c.type() == UICommandTypeDto.NavigateTo)
+        .singleElement()
+        .satisfies(c -> assertThat(c.data()).isEqualTo("/"));
+  }
+
+  @Test
+  void aCommandReturnedByCloseDraftIsAppliedAsIs() {
+    closeWith = io.mateu.uidl.data.UICommand.closeModal();
+    var increment =
+        run("/draft-wizard", DraftWizard.class, "saveAndClose", state(mateu.sync("/draft-wizard")));
+    assertThat(increment.commands()).anyMatch(c -> c.type() == UICommandTypeDto.CloseModal);
+    assertThat(increment.commands()).noneMatch(c -> c.type() == UICommandTypeDto.NavigateTo);
   }
 
   @Test

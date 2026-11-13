@@ -32,9 +32,22 @@ internal sealed partial class ReflectionMapper
     {
         "view" => member.Find<HiddenInViewAttribute>() is not null,
         "edit" => member.Find<HiddenInEditorAttribute>() is not null,
-        "new" => member.Find<HiddenInCreateAttribute>() is not null,
+        "new" => member.Find<HiddenInCreateAttribute>() is not null || IsTechnicalId(member),
         _ => false,
     };
+
+    /// <summary>A crud entity's TECHNICAL id: its declared id (<c>[Id]</c>, else <c>Id</c>) when the
+    /// entity does not let the user choose it — no <c>[EditableOnlyWhenCreating]</c> (the user types
+    /// it on the creation form) and no <c>[GeneratedValue]</c> (the server fills it into the form).
+    /// The store assigns it, so a creation form draws no input for it and a create never takes it
+    /// from the client: typing an existing id overwrote that record (Java's <c>TechnicalId</c>,
+    /// Python's <c>is_technical_id</c>).</summary>
+    internal static bool IsTechnicalId(MemberInfo member) =>
+        member is PropertyInfo property
+        && property.ReflectedType is { } owner
+        && EntityIds.PropertyOf(owner)?.Name == property.Name
+        && property.Find<EditableOnlyWhenCreatingAttribute>() is null
+        && property.Find<GeneratedValueAttribute>() is null;
 
     /// <summary>Not a column of a listing, a grid field or an export.</summary>
     internal static bool HiddenInList(MemberInfo member) => member.Find<HiddenInListAttribute>() is not null;

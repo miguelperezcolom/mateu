@@ -4,8 +4,10 @@ import {
     parsePage, serializePage, nodeAt, isContainer,
     insertAt, insertAfter, removeAt, reorder, moveNode, isPrefix,
     pathToId, idToPath, decorateForPreview,
-    PageDoc, PageNode,
+    PageDoc, PageNode, updateProp,
 } from './pageModel'
+import { writePreserving } from './yamlPreserve'
+import { parseSpec } from './specYaml'
 
 const layout = (yaml: string): PageDoc => parsePage(yaml)
 
@@ -310,5 +312,52 @@ describe('Slotted deep-edit (single-child slot normalised to an array on the way
         const slotted = parse(serializePage(doc)).content[0]
         expect(slotted.content.type).toBe('VerticalLayout')
         expect(slotted.content.content).toHaveLength(2)
+    })
+})
+
+describe('a file that does not parse (V-1)', () => {
+    it('opens as a parse error, never as an empty page an edit would overwrite the file with', () => {
+        const doc = parsePage('type: Form\ncontent:\n  - type: Text\n   text: mis-indented\n')
+        expect(doc.parseError).toBeTruthy()
+        expect(parsePage('a: &loop {content: [*loop]}\n').parseError).toMatch(/recursive alias/i)
+    })
+
+    it('a blank file is still an empty, editable page (no error)', () => {
+        expect(parsePage('').parseError).toBeUndefined()
+        expect(parsePage('  \n').parseError).toBeUndefined()
+        expect(parsePage('type: Form\n').parseError).toBeUndefined()
+    })
+})
+
+describe('aliases are edited per use (V-3)', () => {
+    const ALIASED = '# buttons\ncontent:\n  - &save {type: Button, label: Save}\n  - {type: Text, text: Hello}\n  - *save\n'
+
+    it('editing the third item (an alias) does not rename the anchored first one, and the anchor survives', () => {
+        const doc = parsePage(ALIASED)
+        updateProp(nodeAt(doc, [2])!, 'label', 'Store')
+        expect((nodeAt(doc, [0]) as any).label).toBe('Save')
+        const out = writePreserving(ALIASED, parseSpec(serializePage(doc)))
+        expect(out).toContain('&save {type: Button, label: Save}')
+        expect(parseSpec(out).content.map((c: any) => c.label ?? c.text)).toEqual(['Save', 'Hello', 'Store'])
+    })
+
+    it('an edit elsewhere leaves `*t` and `<<: *base` as written', () => {
+        const merged = 'base: &base {type: Button, variant: primary}\ncontent:\n  - <<: *base\n    label: Save\n  - &t {type: Text, text: x}\n  - *t\n'
+        const doc = parsePage(merged)
+        updateProp(nodeAt(doc, [0])!, 'label', 'Keep')
+        const out = writePreserving(merged, parseSpec(serializePage(doc)))
+        expect(out).toContain('<<: *base')
+        expect(out).toContain('- *t')
+        expect(out).toContain('label: Keep')
+    })
+})
+
+describe('a rootless partial keeps its other top-level keys (V-5)', () => {
+    it('writes any other key back next to content', () => {
+        const doc = parsePage('description: An address block\ncontent:\n  - type: FormField\n    id: street\n')
+        expect(doc.fragment).toBe(true)
+        removeAt(doc, [0])
+        const out = parse(serializePage(doc))
+        expect(out).toEqual({ description: 'An address block', content: [] })
     })
 })

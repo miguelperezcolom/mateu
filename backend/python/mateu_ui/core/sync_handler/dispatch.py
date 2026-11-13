@@ -218,7 +218,8 @@ class DispatchMixin(MixinBase):
 
             routed_mount = routed_tabs.mount_of(self.routes, rq.route, rq.server_side_type)
             if routed_mount is not None:
-                master = self.registry.type_by_name(rq.server_side_type)
+                # safe to import: mount_of found an AUTHORED entry binding exactly this name
+                master = self.registry.authored_type(rq.server_side_type)
                 if master is not None and "__mateu_app__" in master.__dict__:
                     return self.render_app(master, rq, request_base_url, routed_mount=routed_mount)
 
@@ -311,7 +312,7 @@ class DispatchMixin(MixinBase):
                 }
             )
             if route_match.entry.view_model:
-                type_ = self.registry.type_by_name(route_match.entry.view_model)
+                type_ = self.registry.authored_type(route_match.entry.view_model)
         if type_ is None:
             type_ = self.registry.resolve(rq.server_side_type, rq.route)
         from ..translations import locale_of
@@ -420,7 +421,7 @@ class DispatchMixin(MixinBase):
                     ),
                     rq,
                 )
-            type_ = self.registry.type_by_name(yaml_spec.model_view)
+            type_ = self.registry.authored_type(yaml_spec.model_view)
         if type_ is None:
             return self.error(f"Route not found: {rq.route}")
         # A YAML page bound to this modelView re-applies its layout on every render (first load AND

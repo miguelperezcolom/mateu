@@ -188,11 +188,14 @@ define([
           base, transportCtx, route, id, componentState, {
             ...transportExtra, parameters: parameters || {}, appState,
           });
+        if (bridge.isDuplicateAnswer(increments)) return; // a double press: the first one answers (R-4)
         increments.forEach(applyInc);
       } else {
-        applyInc(await bridge.runMateuAction(
+        const answered = await bridge.runMateuAction(
           base, transportCtx, route, id, componentState,
-          { ...transportExtra, parameters: parameters || {}, appState }));
+          { ...transportExtra, parameters: parameters || {}, appState });
+        if (bridge.isDuplicateAnswer(answered)) return; // a double press: the first one answers (R-4)
+        applyInc(answered);
       }
       // RE-RENDER of the host by the action (it returned the page: a new component, with another
       // id): as on the web (applyFragment → triggerOnLoad), what just arrived asks for its OnLoad
@@ -591,7 +594,10 @@ define([
         bleedingHeader: !!(welcome || overviewProjection || wizardProjection || listingSummary || vars.mateuPageHeader),
         band: pageHeader.showBand || pageHeader.showListBand,
       }).vars);
-      vars.mateuDirty = false;
+      // typed edits still in the draft (an overlay opened over them) stay unsaved changes (R-7)
+      // (an overlay's MarkAsClean is the overlay's, not the page's: only the page's own actions count)
+      vars.mateuDirty = bridge.pageDirtyAfterAction({ wasDirty: $application.variables.mateuDirty, draft: $page.variables.mateuDraft,
+        hostBefore: overlayBefore ? null : host, hostAfter: overlayBefore ? null : hostAfter, replaced: reRendered });
       const committed = staged.commit();
       if (bridge.keepsViewport({ navigate: effects.navigate, flipRoute, reRendered })) viewport.restore(); // same screen: stay put
       // the oj-tab-bar parses its <ul> on initialization and the for-each's <li>s arrive later: without
@@ -690,7 +696,10 @@ define([
         $page.variables.mateuDrawerDraft = bridge.pickerSearchStateOf(pickerNow);
         await Actions.callChain(context, { chain: 'runMateuAction', params: { actionId: 'search' } });
       }
-      if (effects.navigate && (effects.navigate.route || effects.navigate.url)) {
+      // a flow the browser ran leaves like a menu click: unsaved changes (a MarkDirty step of the
+      // same flow included) ask first, and «stay» navigates nowhere (W-3, as on Vaadin)
+      const flowStays = !!(effects.navigate && effects.navigate.route) && !bridge.confirmFlowNavigation($application.variables, !!clientFlow);
+      if (!flowStays && effects.navigate && (effects.navigate.route || effects.navigate.url)) {
         if ($page.variables.mateuModalOpen) {
           $page.variables.mateuModalOpen = false;
           await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'close' });

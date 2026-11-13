@@ -328,6 +328,8 @@ class ShareDialog(project: Project, title: String, private val link: String, pri
 
 /** Adding something the user brought: propose (in the background), confirm, store, open. */
 object HubAdd {
+    const val LINK_RECEIVED = "Mateu hub: a link asks to add"
+
     fun run(project: Project, raw: String, store: HubStore, onOpen: (HubEntry, String?) -> Unit) {
         val proposal = ProgressManager.getInstance().runProcessWithProgressSynchronously<HubFlow.Proposal, Exception>(
             { HubFlow.propose(raw, store.list, options = hubOptions()) },
@@ -369,6 +371,8 @@ object HubAdd {
     fun fromLink(project: Project, link: String, store: HubStore, onOpen: (HubEntry, String?) -> Unit) {
         ApplicationManager.getApplication().invokeLater {
             val address = HubFlow.addressOf(link, hubOptions())
+            // read by the desktop smoke test (scripts/desktop-smoke.sh): the link reached the hub's flow
+            com.intellij.openapi.diagnostic.Logger.getInstance(HubAdd::class.java).info("$LINK_RECEIVED ${address ?: "(no address)"}")
             if (address != null && store.list.findByBaseUrl(address) == null) {
                 val look = Messages.showYesNoDialog(
                     project,

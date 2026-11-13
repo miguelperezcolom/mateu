@@ -118,4 +118,147 @@ class CapabilityRowActionSyncTest {
                 .build());
     assertThat(increment.messages()).extracting(m -> m.text()).contains("Approved Ada");
   }
+
+  // ── java-core #4: the row walk does not initialise what the rows hold lazily ──────────────
+
+  /** A collection counting its initialisations, standing in for Hibernate's PersistentBag. */
+  public static class LazyBag<E> extends java.util.AbstractList<E> {
+    static final java.util.concurrent.atomic.AtomicInteger INITIALISED =
+        new java.util.concurrent.atomic.AtomicInteger();
+    private final List<E> items;
+
+    LazyBag(List<E> items) {
+      this.items = items;
+    }
+
+    @Override
+    public E get(int index) {
+      INITIALISED.incrementAndGet();
+      return items.get(index);
+    }
+
+    @Override
+    public int size() {
+      INITIALISED.incrementAndGet();
+      return items.size();
+    }
+
+    @Override
+    public java.util.Iterator<E> iterator() {
+      INITIALISED.incrementAndGet();
+      return items.iterator();
+    }
+  }
+
+  public static class Order {
+    public String code = "O-1";
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public java.util.Collection<String> lines = new LazyBag<>(List.of("a", "b"));
+  }
+
+  @UI("/lazy-customers-crud")
+  public static class CustomersCrud
+      extends io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud<Customer> {
+    @Override
+    public io.mateu.uidl.interfaces.CrudStore<Customer> store() {
+      return new io.mateu.uidl.interfaces.CrudStore<>() {
+        final List<Customer> rows = List.of(new Customer("c1", "Ada"), new Customer("c2", "Bea"));
+
+        @Override
+        public java.util.Optional<Customer> findById(String id) {
+          return rows.stream().filter(c -> c.id.equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(Customer entity) {
+          return entity.id;
+        }
+
+        @Override
+        public List<Customer> findAll() {
+          return rows;
+        }
+
+        @Override
+        public void deleteAllById(List<String> ids) {}
+      };
+    }
+  }
+
+  public static class Customer implements io.mateu.uidl.interfaces.Identifiable {
+    @Override
+    public String id() {
+      return id;
+    }
+
+    public String id;
+    public String name;
+    public ColumnAction open = new ColumnAction("approve", "Approve");
+    public Order lastOrder = new Order();
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public java.util.Collection<Order> orders = new LazyBag<>(List.of(new Order(), new Order()));
+
+    public Customer() {}
+
+    Customer(String id, String name) {
+      this.id = id;
+      this.name = name;
+    }
+  }
+
+  @UI("/lazy-customers")
+  public static class Customers implements Listing<Customer> {
+    @Override
+    public ListingData<Customer> search(SearchRequest request, HttpRequest httpRequest) {
+      return ListingData.from(List.of(new Customer("c1", "Ada"), new Customer("c2", "Bea")));
+    }
+
+    public Message approve(Customer row) {
+      return new Message("Approved " + row.name);
+    }
+  }
+
+  @Test
+  void servingRowsDoesNotWalkIntoWhatTheyHoldLazily() {
+    try (var lazy = TestMateu.withUis(Customers.class, CustomersCrud.class)) {
+      LazyBag.INITIALISED.set(0);
+      lazy.run(
+          RunActionRqDto.builder()
+              .route("/lazy-customers-crud")
+              .consumedRoute("/lazy-customers-crud")
+              .serverSideType(CustomersCrud.class.getName())
+              .actionId("search")
+              .componentState(Map.of())
+              .parameters(Map.of())
+              .initiatorComponentId("c1")
+              .build());
+      assertThat(LazyBag.INITIALISED.get()).as("crud search").isZero();
+      lazy.run(
+          RunActionRqDto.builder()
+              .route("/lazy-customers")
+              .consumedRoute("/lazy-customers")
+              .serverSideType(Customers.class.getName())
+              .actionId("search")
+              .componentState(Map.of())
+              .parameters(Map.of())
+              .initiatorComponentId("c1")
+              .build());
+      assertThat(LazyBag.INITIALISED.get()).isZero();
+      // the row action the rows declare is still handed out
+      var increment =
+          lazy.run(
+              RunActionRqDto.builder()
+                  .route("/lazy-customers")
+                  .consumedRoute("/lazy-customers")
+                  .serverSideType(Customers.class.getName())
+                  .actionId("action-on-row-approve")
+                  .componentState(Map.of())
+                  .parameters(Map.of("_clickedRow", Map.of("id", "c1", "name", "Ada")))
+                  .initiatorComponentId("c1")
+                  .build());
+      assertThat(increment.messages()).extracting(m -> m.text()).contains("Approved Ada");
+    }
+  }
 }

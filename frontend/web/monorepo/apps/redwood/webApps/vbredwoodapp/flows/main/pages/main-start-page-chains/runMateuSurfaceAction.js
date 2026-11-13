@@ -30,6 +30,13 @@ define([
     async run(context, { surfaceId, actionId, parameters }) {
       const { $application, $page } = context;
       const before = $application.variables.mateuRegistry;
+      // its validationRequired action does not leave with required fields empty: marked on the
+      // field, the focus on the first — as a page's or a drawer's (Explorer F2)
+      const refusal = bridge.surfaceRefusalOf(before, surfaceId, actionId);
+      if (refusal) {
+        await bridge.showFieldErrors(refusal.missing, null, { messages: refusal.messages });
+        return;
+      }
       const confirmation = bridge.confirmationOf((before.contexts || {})[surfaceId], actionId);
       if (confirmation) {
         $page.variables.mateuConfirm = confirmation;

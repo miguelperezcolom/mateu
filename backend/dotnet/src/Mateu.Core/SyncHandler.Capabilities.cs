@@ -36,6 +36,7 @@ internal sealed partial class SyncHandler
         // A listing that opted into an export answers it with the whole filtered result set.
         if (ExportKind(listing, rq.ActionId) is { } export)
         {
+            rq = NarrowListingQuery(rq, profile.RowType, profile.FiltersType);
             var all = new SearchRequest(
                 profile.Searchable ? SearchText(rq) : null,
                 profile.FiltersType is { } filtersType ? AssembleFilters(filtersType, rq.ComponentState) : null,
@@ -104,6 +105,7 @@ internal sealed partial class SyncHandler
 
     private static UIIncrementDto CapabilitySearch(CapabilityProfile profile, object listing, RunActionRqDto rq)
     {
+        rq = NarrowListingQuery(rq, profile.RowType, profile.FiltersType);
         // Free text only when the listing declared ISearchable; typed filters only when it
         // declared IFilterable (mirrors Java's SearchRequestBuilder).
         var request = new SearchRequest(
@@ -176,8 +178,12 @@ internal sealed partial class SyncHandler
     private UIIncrementDto CapabilitySave(
         CapabilityProfile profile, object listing, string baseRoute, RunActionRqDto rq)
     {
-        var editor = New(profile.EditorType);
-        BindState(editor, rq.ComponentState);
+        // laid over the record being edited (Edit(id)), binding only what the editor form let the
+        // user write ([ReadOnly] & co. keep the loaded value — the crud editor's WritableOnSave);
+        // with no record to name, a fresh editor takes what the form may write
+        var recordId = ParseCrudRoute(baseRoute, rq.Route).Id ?? CapabilityRowId(rq, profile);
+        var editor = (recordId is null ? null : CapabilityEdit(profile, listing, recordId)) ?? New(profile.EditorType);
+        BindState(editor, ReflectionMapper.WritableOnSave(profile.EditorType, rq.ComponentState, creating: false));
         var id = profile.EditableInterface!.GetMethod("Save")!.Invoke(listing, [editor]);
         return CapabilityPersisted(profile, baseRoute, id, rq);
     }
@@ -185,8 +191,9 @@ internal sealed partial class SyncHandler
     private UIIncrementDto CapabilityCreate(
         CapabilityProfile profile, object listing, string baseRoute, RunActionRqDto rq)
     {
-        var form = New(profile.FormType);
-        BindState(form, rq.ComponentState);
+        // laid over the creation form the user was shown, binding only what it let them write
+        var form = CapabilityCreationForm(profile, listing);
+        BindState(form, ReflectionMapper.WritableOnSave(profile.FormType, rq.ComponentState, creating: true));
         var id = profile.CreatableInterface!.GetMethod("Create")!.Invoke(listing, [form]);
         // a create's confirmation offers "Add another" (the drawer closes onto the listing's New)
         if (!profile.EditInDrawer)

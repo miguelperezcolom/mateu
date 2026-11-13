@@ -17,10 +17,21 @@ export const SAFE_CUSTOM_ELEMENTS: readonly string[] = ['vaadin-icon']
 /** Attributes a safe custom element may carry, besides the global ones DOMPurify allows. */
 export const SAFE_CUSTOM_ELEMENT_ATTRIBUTES: readonly string[] = ['icon', 'theme', 'slot']
 
-/** Tags never rendered from data. */
+/** Tags never rendered from data. `style`: a stylesheet in a value restyles the whole app. */
 export const FORBIDDEN_DATA_TAGS: readonly string[] = [
-    'form', 'input', 'button', 'select', 'option', 'optgroup', 'textarea', 'datalist', 'output',
+    'form', 'input', 'button', 'select', 'option', 'optgroup', 'textarea', 'datalist', 'output', 'style',
 ]
+
+/**
+ * Inline style declarations dropped from data (W-5): with them a value painted a page-covering
+ * overlay (`position:fixed; inset:0; z-index:9999` + "Session expired — sign in again") — the
+ * same phishing the form-control rule refuses, without a form. Everything else in `style` stays.
+ */
+const OVERLAY_DECLARATION = /^\s*(position\s*:\s*(fixed|absolute|sticky)\b.*|z-index\s*:.*)$/i
+
+/** A `style` attribute's value without the overlay-capable declarations. */
+export const withoutOverlayStyles = (style: string): string =>
+    style.split(';').filter((d) => d.trim() !== '' && !OVERLAY_DECLARATION.test(d)).join(';')
 
 /** Attributes never rendered from data. */
 export const FORBIDDEN_DATA_ATTRIBUTES: readonly string[] = ['formaction', 'form', 'is']
@@ -42,7 +53,7 @@ const CUSTOM_ELEMENT_GLOBAL_ATTRIBUTES = ['class', 'style', 'title', 'id', 'role
 
 type PurifyLike = {
     addHook: (entryPoint: 'uponSanitizeAttribute',
-              hook: (node: Element, data: { attrName: string, keepAttr: boolean }) => void) => void
+              hook: (node: Element, data: { attrName: string, attrValue: string, keepAttr: boolean }) => void) => void
 }
 
 const hooked = new WeakSet<object>()
@@ -56,6 +67,9 @@ export const installDataHtmlHooks = (purify: PurifyLike): void => {
     if (hooked.has(purify)) return
     hooked.add(purify)
     purify.addHook('uponSanitizeAttribute', (node, data) => {
+        if (data.attrName.toLowerCase() === 'style' && typeof data.attrValue === 'string') {
+            data.attrValue = withoutOverlayStyles(data.attrValue)
+        }
         const tag = node.nodeName?.toLowerCase() ?? ''
         if (!SAFE_CUSTOM_ELEMENTS.includes(tag)) return
         const name = data.attrName.toLowerCase()

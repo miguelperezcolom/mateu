@@ -17,6 +17,7 @@ public class PgDraftWizard : Wizard, IDraftable
 {
     public static readonly List<string> Drafts = [];
     public static int? ResumeOn;
+    public static object? CloseWith = "/home";
 
     [Step(1)] public string Email { get; set; } = "";
     [Step(2)] public string Newsletter { get; set; } = "no";
@@ -45,7 +46,7 @@ public class PgDraftWizard : Wizard, IDraftable
         return null;
     }
 
-    public object? CloseDraft() => "/home";
+    public object? CloseDraft() => CloseWith;
 
     public int? ResumeStep() => ResumeOn;
 }
@@ -216,6 +217,7 @@ public class PatternGapsTests
     {
         PgDraftWizard.Drafts.Clear();
         PgDraftWizard.ResumeOn = null;
+        PgDraftWizard.CloseWith = "/home";
         PgRoomsBase.Rooms.Clear();
         PgRoomsBase.Rooms.AddRange([
             new PgRoom { Id = "r1", Name = "Ocean view" },
@@ -302,6 +304,36 @@ public class PatternGapsTests
         Assert.Equal(["ada@x.test"], PgDraftWizard.Drafts);
         Assert.Contains(inc.Commands, c => c.Type == "NavigateTo" && (string?)c.Data == "/home");
         Assert.Contains(inc.Commands, c => c.Type == "MarkAsClean");
+    }
+
+    [Fact]
+    public void A_message_returned_by_close_draft_is_shown_not_turned_into_a_url()
+    {
+        PgDraftWizard.CloseWith = new Message("Saved, see you later");
+        var inc = Run("/pg-draft-wizard", typeof(PgDraftWizard), "saveAndClose", WizardState(1, "ada@x.test"));
+        Assert.Equal(["Saved, see you later"], inc.Messages.Select(m => m.Text));
+        Assert.Equal(["/"], inc.Commands.Where(c => c.Type == "NavigateTo").Select(c => (string?)c.Data));
+    }
+
+    [Fact]
+    public void Null_from_close_draft_lands_on_the_root_and_a_uri_navigates()
+    {
+        PgDraftWizard.CloseWith = null;
+        var inc = Run("/pg-draft-wizard", typeof(PgDraftWizard), "saveAndClose", WizardState(1, "ada@x.test"));
+        Assert.Equal(["/"], inc.Commands.Where(c => c.Type == "NavigateTo").Select(c => (string?)c.Data));
+
+        PgDraftWizard.CloseWith = new Uri("/claims", UriKind.Relative);
+        inc = Run("/pg-draft-wizard", typeof(PgDraftWizard), "saveAndClose", WizardState(1, "ada@x.test"));
+        Assert.Equal(["/claims"], inc.Commands.Where(c => c.Type == "NavigateTo").Select(c => (string?)c.Data));
+    }
+
+    [Fact]
+    public void A_command_returned_by_close_draft_is_applied_as_is()
+    {
+        PgDraftWizard.CloseWith = UICommandDto.CloseModal();
+        var inc = Run("/pg-draft-wizard", typeof(PgDraftWizard), "saveAndClose", WizardState(1, "ada@x.test"));
+        Assert.Contains(inc.Commands, c => c.Type == "CloseModal");
+        Assert.DoesNotContain(inc.Commands, c => c.Type == "NavigateTo");
     }
 
     [Fact]

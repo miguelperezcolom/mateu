@@ -8,6 +8,93 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Security
+
+- **Licence notices travel with every artifact.** Every jar carries `META-INF/LICENSE.txt` and
+  `NOTICE`; the web renderer bundle (the `io.mateu:mateu-vaadin` jar, the `mateu-vaadin` npm package,
+  the static sites) and the visual editor embedded in the IDE plugins carry `THIRD-PARTY-LICENSES.txt`
+  — every bundled package with its version, licence and its own licence/notice files, generated from
+  the production dependency tree (`scripts/third-party-notices.mjs`) and checked in CI; the npm
+  package and the Python sdist/wheel carry the licence and the NOTICE too.
+
+### Changed — releases
+
+- **Only the newest release of its line reaches users as an update.** A backport (`v3.0.2` published
+  after `v3.1.0`), a re-run of an older release or a pre-release of a later line still publishes its
+  packages, but sends no over-the-air phone update, publishes no IDE plugins or desktop app, does not
+  repin the examples and goes to npm under `release-<major>.<minor>`, never `latest`
+  (`scripts/release-line.mjs`).
+- **GitHub's "Latest" moves only once a release's installers are attached** (desktop app, update
+  feed, APK, `SHA256SUMS`), and only for the newest final of its line: installed desktop apps and the
+  download links follow `releases/latest`. Releases are created with `--latest=false`
+  (CONTRIBUTING.md › Releases).
+- **PyPI, NuGet and npm publish after Maven Central**, so a port never gets a version number Java
+  does not have. The NuGet symbol packages (`.snupkg`) are pushed, and the `.nupkg` files as built
+  are attached to the release — nuget.org signs inside the package, so its copy is not the one the
+  provenance attestation covers ([Verify what you download](https://mateu.io/reference/verify-downloads/#nuget-mateu)).
+- **The Vaadin renderer published to Maven Central is the committed bundle the release's browser
+  tests ran against**, not a fresh build. The Maven archetype's integration test runs on every pull
+  request (it ran only after publishing). The docs print the newest stable release of the starters'
+  major, not Maven Central's last-deployed `<release>`.
+- **The Android APK on the GitHub releases keeps updating from there after an over-the-air update**
+  (it has its own update channel, `github`); "Update Mateu" sent it to Google Play.
+
+## [3.0-beta.64] — 2026-11-13
+
+The offline send queue's known issues announced in beta.62 and beta.63 are fixed here, together with
+a security fix in YAML partials.
+
+### Security
+
+- **YAML partials keep their root and its access keys** (#1184). A partial file whose root was a
+  typed component with a `content:` list was replaced by its children, so its `eyesOnly` /
+  `readOnlyUnless` / `disabledUnless` were dropped and the content reached every caller. Fixed in Java,
+  Python and .NET; the access keys of partial documents and of the partial reference are honoured too.
+- **Idempotency keys use the caller's real identity** (#1180). The scope is the complete identity
+  authorization uses (name, roles, groups, scopes, permissions) plus the view, the action and the key,
+  and the key is claimed only when the action is about to run, after every access check — the same in
+  the three backends, so a refused request is never answered from memory.
+
+### Fixed — offline send queue (mobile)
+
+- **One queue per signed-in person** (#1179): suspended on sign-out, back only for its owner (renewed
+  tokens included; opaque tokens resolve their owner through OIDC `userinfo`).
+- **An interrupted write cannot corrupt it** (#1179): generational writes with a checksum; a damaged
+  queue is shown with "Discard them", never presented as empty.
+- **An action still running is never evicted and run twice** (#1180): in-flight runs and finished
+  answers are kept apart, with an explicit "Too many pending requests" refusal when the in-flight
+  space is full.
+
+### Changed — mobile app
+
+- **Remote push only in your own app** (#1178): the Mateu hub app never asks for a push token. Push
+  needs a `fixed` build with your own FCM/APNs credentials
+  ([Push notifications › Your own app](https://mateu.io/deploy/push-notifications/)).
+
+### Added — mobile app
+
+- **Loading feedback** (#1181): a thin bar under the top bar while the app waits for the server
+  (after 500 ms; announced to screen readers); images show a placeholder while loading and a "could
+  not be loaded" mark when they fail.
+
+### Fixed
+
+- **Hybrid static bundles** (#1182): streamed (`sse`) actions reach the server behind the bundle.
+- **Visual editor and VS Code YAML parsing** (#1183): recursive aliases are refused with a controlled
+  error instead of overflowing the stack, and `<<` merge keys apply like the backend's (an explicit
+  key wins, the earlier base wins).
+- Release: `npm-build` no longer fails on a `tar | grep -q` pipe (#1177); an intermittent .NET
+  micro-frontend deadline test is fixed (#1185).
+
+## [3.0-beta.57 – 3.0-beta.63] — 2026-11-10 to 2026-11-13
+
+Seven releases in four days, listed together. beta.57 (2026-11-10) and beta.58 (2026-11-11) reached
+the registries; beta.59 to beta.62 did not — beta.59 and beta.60 were refused at startup (a called
+workflow asked for a permission its caller did not grant, #1173, now guarded by a test), beta.61 and
+beta.62 stopped on intermittent tests (#1174, #1175) — and beta.63 (2026-11-13) published all of it.
+beta.62 and beta.63 announced a known issue: the offline send queue was not safe in UIs with sign-in;
+beta.64 fixed it.
+
 ### Added
 
 - **Split buttons.** A `ButtonGroup` with a `primary` is a split button: the primary action runs
@@ -90,7 +177,9 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   in order, one at a time, when the connection is back, stopping at a refusal. Every attempt carries
   an `Idempotency-Key`, and the Java, .NET and Python servers run a keyed request once per caller,
   action and key (a repeat gets the first answer; failures are forgotten; in memory, 2000 entries /
-  24 h). Docs: `native/offline-forms`.
+  24 h). Docs: `native/offline-forms`. (As released in beta.63 it was not safe in UIs with sign-in
+  — the queue was not tied to its user and the key's scope was not the authorised identity; fixed in
+  beta.64.)
 - **Observability: an OpenTelemetry span and metrics per Mateu request, and an audit hook.** Every
   sync/sse request is a span (`mateu <action> <route template>`: route, template, action, view,
   outcome, correlation id) with child spans for proxied REST calls and server-resolved micro
@@ -180,16 +269,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **Remote push to phones (experimental).** With `@App(osNotifications = true)` and a sender, an
   `inbox` message to a signed-in user also reaches their phone while the Mateu app is suspended or
   closed. The phone registers its Expo push token through the reserved app-level action
-  `_push-register`, and removes it with `_push-unregister` on sign-out, when the UI leaves the hub, or
-  when notifications are turned off. A tapped push opens its UI at its route, and a push that arrives
+  `_push-register`, and removes it with `_push-unregister` on sign-out or when notifications are
+  turned off. A tapped push opens its UI at its route, and a push that arrives
   while the app is in front is not shown twice. Delivery is behind interfaces: `PushSender` and
   `PushTokenStore` (in memory by default, lost on restart, with a WARN), plus
   `PushNotifications.send(user, …)` for your own entries. Mateu's optional Expo sender is turned on
   with `mateu.push.expo.enabled=true` (batches of 100; `DeviceNotRegistered` unregisters the token).
   The wire adds `AppDto.pushNotifications`. The same API exists in .NET (`IPushSender`,
   `IPushTokenStore`, `MateuOptions.ExpoPush`) and Python (`add_mateu(push_sender=…, expo_push=True)`).
-  Phone builds need your FCM `google-services.json` (`GOOGLE_SERVICES_JSON`) and an APNs key
-  (`MATEU_IOS_PUSH=true`); the "Push notifications to phones" deploy guide has the steps.
+  Push reaches your OWN phone app only — a `fixed` build with your FCM `google-services.json`
+  (`GOOGLE_SERVICES_JSON`) and an APNs key (`MATEU_IOS_PUSH=true`); since beta.64 (#1178) the Mateu
+  hub app never registers a push token. The "Push notifications to phones" deploy guide has the steps.
 
 ### Added
 

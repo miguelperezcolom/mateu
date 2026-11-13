@@ -53,6 +53,12 @@ if (!existsSync(join(dist, 'index.html'))) {
 }
 
 const files = eagerChunks(dist)
+// a gate that sees nothing must not pass: an index.html whose script/preload tags the patterns no
+// longer match (a renamed entry, another attribute order) measured 0 bytes and said "Within budget"
+if (!files.length) {
+    console.error(`No eagerly loaded chunk found from ${join(dist, 'index.html')} — the entry-script/modulepreload patterns of this script no longer match the build. Fix them; a budget of nothing proves nothing.`)
+    process.exit(2)
+}
 let raw = 0
 let gzip = 0
 const rows = []

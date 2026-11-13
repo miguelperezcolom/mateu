@@ -95,6 +95,9 @@ final class ListingColumnBuilder {
         && visibilitySupplier.isHidden(field.getName(), httpRequest)) return false;
     if (MetaAnnotations.isPresent(field, Hidden.class)) return false;
     if (MetaAnnotations.isPresent(field, HiddenInList.class)) return false;
+    // @EyesOnly + @Audience: the same rule as a form field (its value is not sent either, see
+    // DataMapper)
+    if (!io.mateu.core.domain.FieldAccess.isShown(field, httpRequest)) return false;
     if (MetaAnnotations.isPresent(field, Menu.class)) return false;
     // the row detail is not a column: it is what opens under the row (see detailPath)
     if (MetaAnnotations.isPresent(field, Details.class)) return false;

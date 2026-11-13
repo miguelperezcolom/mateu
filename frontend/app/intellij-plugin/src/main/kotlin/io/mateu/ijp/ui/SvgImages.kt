@@ -48,18 +48,50 @@ object SvgImages {
 
     /**
      * Any image [src] — a data URI or an http(s) url, SVG or raster — read as an image (blocking: call
-     * it off the EDT for a url); null when it cannot be read.
+     * it off the EDT for a url); null when it cannot be read or names any other scheme ([fetchBytes]).
      */
-    fun load(src: String): BufferedImage? {
-        val s = src.trim()
-        if (s.isEmpty()) return null
-        val svg = isSvg(s)
-        val bytes = runCatching {
-            if (s.startsWith("data:")) {
-                if (svg) dataUriBytes(s) else java.util.Base64.getDecoder().decode(s.substringAfter("base64,", ""))
-            } else java.net.URI.create(s).toURL().openStream().use { it.readBytes() }
-        }.getOrNull() ?: return null
-        return decodeImage(bytes, svg || looksLikeSvg(bytes))
+    fun load(src: String): BufferedImage? = readImageSource(src)
+
+    /** The most an image read from a url may weigh: an answer that never stops is cut here. */
+    const val MAX_IMAGE_BYTES = 16 * 1024 * 1024
+
+    /**
+     * THE one way the desktop reads an image from a url (GA-5.2): only `http(s)` — never `file:`
+     * (on Windows a host-bearing `file://host/share` opens an SMB session with that host), `ftp:`,
+     * `jar:` or anything else a UI the user has not trusted yet could name —, with connect/read
+     * timeouts, no redirect to another scheme, and at most [MAX_IMAGE_BYTES]. Null when refused or
+     * unreadable.
+     */
+    fun fetchBytes(url: String, maxBytes: Int = MAX_IMAGE_BYTES): ByteArray? {
+        if (!isRemoteImage(url)) return null
+        return runCatching {
+            val conn = java.net.URI.create(url.trim()).toURL().openConnection() as java.net.HttpURLConnection
+            conn.connectTimeout = 10_000
+            conn.readTimeout = 30_000
+            // a redirect is followed only within http(s) — HttpURLConnection never changes protocol
+            // itself, so a 3xx to another scheme is not followed
+            conn.instanceFollowRedirects = true
+            conn.setRequestProperty("Accept", "image/*")
+            try {
+                if (conn.responseCode !in 200..299) return null
+                if (conn.contentLengthLong > maxBytes) return null
+                conn.inputStream.use { input -> readCapped(input, maxBytes) }
+            } finally {
+                conn.disconnect()
+            }
+        }.getOrNull()
+    }
+
+    /** At most [max] bytes of [input]; null when there is more. */
+    internal fun readCapped(input: java.io.InputStream, max: Int): ByteArray? {
+        val out = java.io.ByteArrayOutputStream()
+        val buf = ByteArray(16 * 1024)
+        while (true) {
+            val n = input.read(buf)
+            if (n < 0) return out.toByteArray()
+            if (out.size() + n > max) return null
+            out.write(buf, 0, n)
+        }
     }
 
     /** An SVG served without telling (no .svg in the url): its text starts like XML/SVG. */
@@ -85,20 +117,19 @@ internal fun decodeImage(bytes: ByteArray, svg: Boolean = false): BufferedImage?
     else runCatching { javax.imageio.ImageIO.read(bytes.inputStream()) }.getOrNull()
 
 /**
- * The image a `src` names — a data URI (base64 or, for SVG, percent-encoded) or an http(s)/file url —
- * decoded like [decodeImage]. Blocking: call it off the EDT for a remote url.
+ * The image a `src` names — a data URI (base64 or, for SVG, percent-encoded) or an http(s) url (read
+ * through [SvgImages.fetchBytes]: no other scheme, timeouts, a size cap) — decoded like [decodeImage].
+ * Blocking: call it off the EDT for a remote url.
  */
 internal fun readImageSource(src: String): BufferedImage? = runCatching {
     val s = src.trim()
+    if (s.isEmpty()) return null
     val svg = SvgImages.isSvg(s)
-    val bytes = if (s.startsWith("data:")) {
+    val bytes = if (s.regionMatches(0, "data:", 0, 5, ignoreCase = true)) {
         if (svg || !s.substringBefore(',').contains(";base64")) SvgImages.dataUriBytes(s)
         else java.util.Base64.getDecoder().decode(s.substringAfter("base64,", ""))
     } else {
-        val conn = java.net.URI.create(s).toURL().openConnection()
-        conn.connectTimeout = 10_000
-        conn.readTimeout = 30_000
-        conn.getInputStream().use { it.readBytes() }
+        SvgImages.fetchBytes(s)
     }
     bytes?.takeIf { it.isNotEmpty() }?.let { decodeImage(it, svg) }
 }.getOrNull()

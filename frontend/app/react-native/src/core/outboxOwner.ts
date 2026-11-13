@@ -12,6 +12,7 @@
 // nothing — the server checks every request it is sent.
 import { parseStoredTokens, type StoredTokens } from './oidcConfig.ts';
 import type { KeyValueStore } from './sessionId.ts';
+import { onSignedInAgain, type TokenProvider } from './auth.ts';
 
 /** The owner of the queue of a UI with no sign-in. */
 export const ANONYMOUS_OWNER = 'anonymous';
@@ -125,6 +126,35 @@ export async function storedOwnerOf(store: KeyValueStore, tokensKey: string, sig
   }
   if (tokens) return ownerOfTokens(tokens);
   return signsIn ? null : ANONYMOUS_OWNER;
+}
+
+/**
+ * Keeps a session's queue owner in step with who is signed in: a 401 mid-session may open the
+ * sign-in browser and somebody ELSE may sign in (a shared phone). After every such sign-in through
+ * `provider`, who owns the queue is read again and handed to `setOwner` — the host then opens the
+ * new person's queue (and screen) instead of filing their changes in the previous person's queue.
+ * Returns the unsubscriber.
+ */
+export function followSignIns(
+  provider: TokenProvider | null | undefined,
+  ownerNow: () => Promise<string | null>,
+  setOwner: (owner: string | null) => void,
+): () => void {
+  if (!provider) return () => undefined;
+  return onSignedInAgain((who) => {
+    if (who !== provider) return;
+    void ownerNow().then(setOwner, () => setOwner(null));
+  });
+}
+
+/**
+ * Whether a session opened for `before` may go on for `after`: yes unless both are PEOPLE and they
+ * differ. Somebody signing in where nobody was (a lazy sign-in a 401 opened) keeps the screen and
+ * only gets their own queue; a different person signing in gets a new session — what is on screen
+ * was loaded as the previous one.
+ */
+export function sameSessionFor(before: string | null | undefined, after: string | null | undefined): boolean {
+  return !before || !after || before === after;
 }
 
 /** A short, store-key-safe digest (two FNV-1a 32-bit lanes → 16 hex chars). Not cryptographic: it

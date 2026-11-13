@@ -170,6 +170,9 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
             </body></html>`
         }
         let html = fs.readFileSync(indexPath.fsPath, 'utf8')
+        // The bundle carries the standalone (browser-hosted) editor's policy; the webview sets its own
+        // below. Both would apply (policies intersect) and 'self' would block the webview's resources.
+        html = html.replace(/<meta[^>]*data-mateu-standalone-csp[^>]*>/g, '')
 
         // Rewrite the entry module src (./assets/index-*.js) to a webview resource URI. Its lazy
         // chunks resolve relative to this URL, so they load from media/assets too.

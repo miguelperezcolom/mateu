@@ -132,6 +132,14 @@ dependencies {
     // the plugin rather than reaching into the platform's own SVG code, which is internal API the
     // plugin verifier refuses (and whose jsvg copy is a JetBrains fork, `-jb.N`).
     implementation("com.github.weisj:jsvg:2.0.0")
+    // Jackson (JsonNode/ObjectMapper: the whole wire model) — BUNDLED. 2025.2 exposed the platform's
+    // copy to every plugin (lib-client.jar); from 2026.x it is the content module
+    // intellij.libraries.jackson.databind, NOT embedded in the core classloader, so a plugin that does
+    // not declare it gets NoClassDefFoundError: com/fasterxml/jackson/databind/ObjectMapper (the
+    // 3.0-beta.64 desktop app on its 2026.3 base). Declaring that module would break the 2025.2 floor
+    // (no such module there), so the plugin carries its own: databind + core + annotations, nothing
+    // else, all from our jar — the platform never sees our Jackson objects.
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.22.2")
     testImplementation("junit:junit:4.13.2")
 }
 
@@ -501,6 +509,12 @@ fun desktopVmOptions(o: DesktopOptions, installerKey: String): List<String> = li
     // (any value = "updates managed by <value>") and switches its own platform update off. The value is
     // the name the Settings page shows.
     "-Dide.no.platform.update=${o.product}",
+    // 2026.x tracks where each plugin was installed from and, for one it cannot tell (ours: the
+    // launcher copies it into the plugins dir), shows a sticky "Cannot update plugin — Unable to identify
+    // where Mateu was installed from" on EVERY installed copy. The app updates Mateu itself
+    // (io.mateu.ijp.update) and IntelliJ's plugin updates are off (updates.xml), so the feature has
+    // nothing to do here: its registry switch, overridden as a system property (unknown key on 2025.2).
+    "-Dplatform.enable.plugin.update.source.feature=false",
 )
 
 /** Release asset names, shared by the installers and the update feed (keys = installerKey). */
@@ -692,15 +706,14 @@ tasks.register("buildInstaller") {
             // (-Pmacos.sign.identity="Developer ID Application: Name (TEAMID)") sign with the hardened
             // runtime + a secure timestamp (both required for notarization); otherwise ad-hoc, which
             // at least launches locally (first launch needs right-click ▸ Open).
+            // INSIDE-OUT, every Mach-O with our identity and its own JetBrains entitlements kept —
+            // never `codesign --deep`: it skips Contents/jbr (and the JCEF helpers) and drops the
+            // launcher's entitlements, so 3.0-beta.64's hardened launcher refused the JetBrains-signed
+            // libjli.dylib ("different Team IDs") and the app did not start. See installer/macos/sign-app.sh.
             val signId = (findProperty("macos.sign.identity") as String?)?.ifBlank { null }
             val notaryProfile = (findProperty("macos.notarize.profile") as String?)?.ifBlank { null }
-            if (signId != null) {
-                logger.lifecycle("Signing with Developer ID (hardened runtime)…")
-                run("codesign", "--force", "--deep", "--options", "runtime", "--timestamp", "--sign", signId, app.absolutePath, dir = work)
-            } else {
-                logger.lifecycle("Re-signing (ad-hoc)…")
-                run("codesign", "--force", "--deep", "--sign", "-", app.absolutePath, dir = work)
-            }
+            logger.lifecycle(if (signId != null) "Signing with Developer ID (hardened runtime), inside-out…" else "Re-signing (ad-hoc), inside-out…")
+            run("bash", File(src, "macos/sign-app.sh").absolutePath, app.absolutePath, signId ?: "-", dir = work)
 
             // Double-click .dmg: the .app beside a drag-to-/Applications shortcut. Move (not copy) the
             // work .app into the staging dir — same filesystem, so it's free.

@@ -9,6 +9,7 @@ import {
   outboxIndexKeyOf,
   outboxKeyOf,
   refusalOf,
+  retryDelayAfter,
   shouldQueue,
   type QueuedRequest,
 } from './offlineQueue.ts';
@@ -155,6 +156,35 @@ test('a refusal stops the queue, is shown, and blocks what follows until retried
   assert.deepEqual(sent, ['a', 'b']);
 });
 
+test('GA-5.6: the servers\' "Too many pending requests" is not a refusal: the item waits and goes again', async () => {
+  const q = new OfflineQueue(memory(), 'ui1');
+  await q.enqueue(request('a'), 'key-a-000001', 'A');
+  const busy = async () => ({
+    messages: [{ variant: 'error', title: 'Too many pending requests', text: 'The server is still processing too many requests. Try again in a moment.' }],
+  });
+  const result = await q.drain(busy);
+  assert.equal(result.stoppedBy?.kind, 'waiting');
+  const [head] = await q.list();
+  assert.equal(head.state, 'pending');
+  assert.equal(head.error, undefined);
+  // the next drain sends it with the same key
+  const keys: string[] = [];
+  assert.equal((await q.drain(async (_rq, key) => (keys.push(key), {}))).sent.length, 1);
+  assert.deepEqual(keys, ['key-a-000001']);
+});
+
+test('GA-5.6: a busy / failing server is tried again on its own after a while; no connection waits for it', () => {
+  const item = { key: 'k', request: request(), label: '', createdAt: 0, state: 'pending' as const };
+  const waiting = (reason: 'server' | 'timeout' | 'offline') => ({ sent: [], stoppedBy: { kind: 'waiting' as const, reason, item } });
+  assert.equal(retryDelayAfter(waiting('server'), 0), 30_000);
+  assert.equal(retryDelayAfter(waiting('timeout'), 1), 60_000);
+  assert.equal(retryDelayAfter(waiting('server'), 20), 600_000, 'capped at 10 minutes');
+  assert.equal(retryDelayAfter(waiting('offline'), 0), null);
+  assert.equal(retryDelayAfter({ sent: [], stoppedBy: { kind: 'refused', message: 'x', item } }, 0), null);
+  assert.equal(retryDelayAfter({ sent: [] }, 0), null);
+  assert.equal(retryDelayAfter(null, 0), null);
+});
+
 test('a 4xx is a refusal; a retried refused item goes again with the same key', async () => {
   const q = new OfflineQueue(memory(), 'ui1');
   await q.enqueue(request('a'), 'key-a-000001', 'A');
@@ -273,4 +303,16 @@ test('a corrupt outbox is DAMAGED, never empty; a locked store is unavailable; c
   await OfflineQueue.clear(broken, 'ui1');
   off();
   assert.deepEqual(heard, ['ui1']);
+});
+
+test('a sign-in or sign-out of a UI is told to the hub (changed); nobody (null) has no queue to count', async () => {
+  const store = memory();
+  await new OfflineQueue(store, 'ui1').enqueue(request(), 'key-0003-cccc', 'z');
+  const heard: string[] = [];
+  const off = OfflineQueue.onAnyChange((uiId) => heard.push(uiId));
+  OfflineQueue.changed('ui1');
+  off();
+  assert.deepEqual(heard, ['ui1']);
+  assert.equal(await OfflineQueue.countOf(store, 'ui1', null), 0);
+  assert.equal(await OfflineQueue.countOf(store, 'ui1'), 1);
 });

@@ -9,19 +9,22 @@ import {
     structureCacheKey,
     structureOf,
 } from './routeStructureCache.ts'
+import { handleSessionExpired } from './http/sessionGuard.ts'
 
-// the vitest environment is plain node: back localStorage with a Map
-const backing = new Map<string, string>()
-vi.stubGlobal('localStorage', {
+// the vitest environment is plain node: back both storages with Maps
+const storageOn = (backing: Map<string, string>) => ({
     getItem: (key: string) => backing.get(key) ?? null,
     setItem: (key: string, value: string) => void backing.set(key, value),
     removeItem: (key: string) => void backing.delete(key),
     clear: () => backing.clear(),
 })
+vi.stubGlobal('localStorage', storageOn(new Map()))
+vi.stubGlobal('sessionStorage', storageOn(new Map()))
 
 beforeEach(() => {
     clearStructureCache()
     localStorage.clear()
+    sessionStorage.clear()
     setStructureCacheEnabled(true)
 })
 
@@ -98,7 +101,7 @@ describe('routeStructureCache', () => {
 
     it('invalidates entries written under a different cache version', () => {
         // simulate a stale entry from an older CACHE_VERSION
-        localStorage.setItem('mateu-route-structure-cache', JSON.stringify({
+        sessionStorage.setItem('mateu-route-structure-cache', JSON.stringify({
             [key('/a')]: { v: 999, t: Date.now(), component: comp('stale') },
         }))
         expect(getCachedStructure(key('/a'))).toBeUndefined()
@@ -126,7 +129,7 @@ describe('routeStructureCache', () => {
     })
 
     it('survives corrupt storage', () => {
-        localStorage.setItem('mateu-route-structure-cache', 'not json')
+        sessionStorage.setItem('mateu-route-structure-cache', 'not json')
         expect(getCachedStructure(key('/a'))).toBeUndefined()
         putCachedStructure(key('/a'), comp('a'))
         expect(getCachedStructure(key('/a'))?.component.id).toBe('a')
@@ -141,7 +144,7 @@ describe('routeStructureCache', () => {
     it('never persists the values the page was opened with (final review H2)', async () => {
         const page = { ...comp('a'), initialData: { name: 'OLD-SECRET-VALUE' } } as Component
         putCachedStructure(key('/a'), page, 'h1')
-        expect(localStorage.getItem('mateu-route-structure-cache') ?? '').not.toContain('OLD-SECRET-VALUE')
+        expect(sessionStorage.getItem('mateu-route-structure-cache') ?? '').not.toContain('OLD-SECRET-VALUE')
         // a revisit in the same tab paints it as before, values included
         const cached = getCachedStructure(key('/a'))
         expect((cached?.component as { initialData?: unknown }).initialData).toEqual({ name: 'OLD-SECRET-VALUE' })
@@ -154,8 +157,27 @@ describe('routeStructureCache', () => {
     it("drops an island's values too", async () => {
         const island = { ...comp('island'), initialData: { iban: 'ES00-SECRET' } } as Component
         putCachedStructure(key('/a'), { ...comp('a'), children: [island] } as Component, 'h1')
-        expect(localStorage.getItem('mateu-route-structure-cache') ?? '').not.toContain('ES00-SECRET')
+        expect(sessionStorage.getItem('mateu-route-structure-cache') ?? '').not.toContain('ES00-SECRET')
         expect((await inAFreshTab()).getCachedStructure(key('/a'))).toBeUndefined()
+    })
+
+    it('W-2: nothing reaches localStorage (a composed page carries its values in the structure); what an older release left there goes', async () => {
+        const dashboard = { ...comp('d'), children: [{ type: 'ClientSide', metadata: { type: 'MetricCard', value: '1.2', unit: 'M€' } }] } as unknown as Component
+        putCachedStructure(key('/dashboard'), dashboard, 'h1')
+        expect(localStorage.getItem('mateu-route-structure-cache')).toBeNull()
+        expect(sessionStorage.getItem('mateu-route-structure-cache') ?? '').toContain('M€')
+        localStorage.setItem('mateu-route-structure-cache', JSON.stringify({ old: 'M€' }))
+        await inAFreshTab()
+        expect(localStorage.getItem('mateu-route-structure-cache')).toBeNull()
+        clearStructureCache()
+        expect(sessionStorage.getItem('mateu-route-structure-cache')).toBeNull()
+    })
+
+    it('W-2: a 401 (the session is over) wipes the cache', async () => {
+        putCachedStructure(key('/dashboard'), comp('d'), 'h1')
+        void handleSessionExpired(new Error('401'), () => Promise.resolve()).catch(() => undefined)
+        expect(getCachedStructure(key('/dashboard'))).toBeUndefined()
+        expect(sessionStorage.getItem('mateu-route-structure-cache')).toBeNull()
     })
 
     it('a structure that carries no values survives a reload, with its ETag', async () => {

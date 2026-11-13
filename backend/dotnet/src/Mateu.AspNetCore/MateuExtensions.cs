@@ -212,10 +212,15 @@ public static partial class MateuExtensions
                 // runs once per caller, action and key: a repeat gets the first answer back. The key
                 // is looked up only at the handler's checkpoint, once the request passed the checks
                 // its action would pass: a refused request is never answered from memory.
-                return await IdempotencyKeys.GuardedAsync(CallerOf(ctx), rq.ActionId,
-                    ctx.Request.Headers[IdempotencyKeys.Header].FirstOrDefault(),
-                    () => handler.HandleAsync(rq, prefix, ctx.RequestAborted),
-                    view: rq.ServerSideType, route: rq.Route);
+                // A keyed run is DETACHED: the client leaving stops only the waiting, never the
+                // write (the key stays claimed until it ends; a retry joins it).
+                var key = ctx.Request.Headers[IdempotencyKeys.Header].FirstOrDefault();
+                var keyed = IdempotencyKeys.KeyOf(key) is not null;
+                return await IdempotencyKeys.GuardedAsync(CallerOf(ctx), rq.ActionId, key,
+                    () => handler.HandleAsync(rq, prefix, keyed ? CancellationToken.None : ctx.RequestAborted),
+                    view: rq.ServerSideType, route: rq.Route,
+                    fingerprint: keyed ? IdempotencyKeys.FingerprintOf(rq.ComponentState, rq.Parameters) : null,
+                    listen: ctx.RequestAborted);
             });
             EndObservation(ctx, observation);
             ctx.Response.ContentType = "application/json";
@@ -308,6 +313,15 @@ public static partial class MateuExtensions
                 {
                     EndObservation(ctx, observation);
                 }
+                return;
+            }
+            // the stream is the handler's to grant, like any action: the view the request names
+            // ([EyesOnly] on the app class), the route's access: — a refusal answers its 403 and
+            // the stream never opens (Python runs the handler first too)
+            var admission = await RunGuarded(ctx, rq, () => handler.HandleAsync(rq, prefix, ctx.RequestAborted));
+            if (ctx.Response.StatusCode == StatusCodes.Status403Forbidden)
+            {
+                await Send(admission, ctx.RequestAborted);
                 return;
             }
             using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(ctx.RequestAborted);
@@ -532,6 +546,8 @@ public static partial class MateuExtensions
         if (Pwa.IsEndpoint(path)) return null;
         if (path != "/" && UiPage.IsAsset(path))
         {
+            // an empty segment (/assets//x.js) is not the file's name: one file, one address
+            if (path.Contains("//", StringComparison.Ordinal)) return null;
             var file = renderer.Read(path);
             return file is null ? null : (UiPage.ContentTypeOf(path), file, UiPage.CacheControlFor(path));
         }
@@ -563,8 +579,9 @@ public static partial class MateuExtensions
                     "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}");
                 return;
             }
-            var baseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}";
-            var mcp = new McpService(handler, Json, baseUrl, rq => GuardMcp(ctx, rq, () => handler.Handle(rq, baseUrl)))
+            // the MOUNT path, never an origin built from the request (the Host header is the
+            // caller's to choose): what the sync and SSE endpoints pass the handler too
+            var mcp = new McpService(handler, Json, prefix, rq => GuardMcp(ctx, rq, () => handler.Handle(rq, prefix)))
             {
                 Push = handler.AgentPush,
                 Caller = Mateu.Core.AgentPush.AgentCaller.From(PrincipalName(ctx),

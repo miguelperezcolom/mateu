@@ -198,7 +198,7 @@ export function expandComponent(authored: FluentNode): Component {
         // shapes them
         expandFormHeader(metadata)
         if ('template' in metadata) {
-            const template = templateMetadataOf(metadata.template)
+            const template = templateMetadataOf(metadata.template, fields.title)
             if (template) metadata.template = template
             else delete metadata.template
             // a template that draws the header (a welcome banner): no header, no toolbar of the form's
@@ -418,7 +418,8 @@ const toCamelCase = (label: string): string => {
 /**
  * An authored toolbar/footer Button → its wire shape, as the server's ButtonMapper does it: a
  * Button whose `actionable` is a RouteLink NAVIGATES on the client, so the link's route becomes the
- * button's `route`; a button with no `actionId` gets one from its label. A Button is not
+ * button's `route` (and, with no `actionId`, gets one from its label); a button with neither is
+ * INERT (no action id). A Button is not
  * ClientSide-wrapped on the wire. Anything else passes through as authored.
  */
 export function expandButton(node: FluentNode): Record<string, unknown> {
@@ -443,7 +444,11 @@ export function expandButton(node: FluentNode): Record<string, unknown> {
     const { actionable, ...button } = node as FluentNode & { actionable?: { type?: string, route?: string } }
     const out: Record<string, unknown> = { ...button }
     if (actionable?.type === 'RouteLink' && actionable.route) out.route = actionable.route
-    if (!out.actionId && typeof out.label === 'string') out.actionId = toCamelCase(out.label)
+    // A button that declares neither an actionId nor an actionable is INERT: no action id (Java's
+    // YamlUidlMapperFactory.InertButton — the label's echo was dispatched and refused with a 403).
+    // A route button keeps the one derived from its label, as the server's resolvedActionId does.
+    if (!out.actionId && actionable && typeof out.label === 'string') out.actionId = toCamelCase(out.label)
+    if (!out.actionId) delete out.actionId
     return out
 }
 

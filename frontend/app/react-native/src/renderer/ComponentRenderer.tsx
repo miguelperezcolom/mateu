@@ -209,12 +209,18 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
           </View>
         );
       }
+      // A content button runs its action only when somebody claims it (the view advertises it, it
+      // bubbles to the crud/opener, or a flow runs it) — the web's rule. A YAML `{type: Button,
+      // label: Primary}` with no action carries only the label's echo: sent, it answered 403.
+      const runClaimed = (a: string, p?: Record<string, unknown>) => {
+        if (controller.claimsButtonAction(a)) void controller.runAction(a, p);
+      };
       // a split button in content: the primary + a ▾ opening the rest
       const split = splitButtonParts(metadata);
       if (split) {
         return (
           <SplitMenuButton primary={split.primary} more={split.more} ctx={{ state, data }}
-            run={(a, p) => void controller.runAction(a, p)} />
+            run={runClaimed} />
         );
       }
       const id =(metadata['actionId'] as string) ?? (metadata['id'] as string) ?? '';
@@ -226,7 +232,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       // the emphasis — primary filled, tertiary a borderless text button (section Add/Edit/View more).
       // A button with a `route` NAVIGATES (like the web): its ${…} must all resolve to a value,
       // else the button is disabled — never a navigation to "/p/" nor a fall-through to the action.
-      const press = pressButton(metadata, { state, data }, () => void controller.runAction(id, parameters), label);
+      const press = pressButton(metadata, { state, data }, () => runClaimed(id, parameters), label);
       const disabled = metadata['disabled'] === true || press.disabled;
       const onPress = popoverTrigger
         ? () => {

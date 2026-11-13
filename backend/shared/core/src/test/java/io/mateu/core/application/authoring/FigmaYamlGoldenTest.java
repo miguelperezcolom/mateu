@@ -105,6 +105,17 @@ class FigmaYamlGoldenTest {
     assertThat(order.body()).hasSize(1);
   }
 
+  /**
+   * Figma types U+2028 for Shift+Enter in a text layer; YAML 1.1 reads it as a line break, so the
+   * converter escapes it — the text has to come back with it, not as an unparseable file.
+   */
+  @Test
+  void aSoftLineBreakInATextReadsBackAsItself() throws Exception {
+    var component = LOADER.parseText(Files.readString(golden().resolve("about-this-demo.yaml")));
+    assertThat(component).isNotNull();
+    assertThat(component.toString()).contains("Every screen is YAML.\u2028No Java behind it.");
+  }
+
   private static Object templateOf(String name) throws Exception {
     var component = LOADER.parseText(Files.readString(golden().resolve(name)));
     assertThat(component).isInstanceOf(Form.class);

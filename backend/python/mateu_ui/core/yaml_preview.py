@@ -13,7 +13,8 @@ built tree — so nothing downstream, and no renderer, has to know partials exis
 from __future__ import annotations
 
 from contextvars import ContextVar
-from typing import Any
+from dataclasses import dataclass as _dataclass
+from typing import Any, ClassVar
 
 import yaml
 
@@ -439,17 +440,31 @@ def _record_defaults(kind: Any, node: dict) -> dict:
     return node
 
 
+@_dataclass(frozen=True)
+class InertButton(fluent.Button):
+    """A YAML ``Button`` that declares no action (``actionId:``) and no ``actionable:`` (a route):
+    it reaches the wire with NO action id. The fluent button derives one from its label (the code
+    convention: ``Button(label="Save")`` runs ``save()``), which a page written as data never
+    meant — renderers dispatched the label's echo and the server answered 403 for a button that
+    does nothing (Java's ``YamlUidlMapperFactory.InertButton``)."""
+
+    inert: ClassVar[bool] = True  # a class attribute, not a field: read by the toolbar mapper
+
+
 def _button(node: dict) -> fluent.Button:
-    """A YAML ``type: Button`` (Java's Button record): its action id is the declared one, else the
-    one derived from its label (``resolvedActionId``); an absent colour is ``normal``; an
-    ``actionable: {type: RouteLink}`` makes it navigate."""
+    """A YAML ``type: Button`` (Java's Button record): its action id is the declared one; with
+    neither an ``actionId:`` nor an ``actionable:`` it is INERT (no action id, see
+    :class:`InertButton`), else — a route button — the one derived from its label
+    (``resolvedActionId``); an absent colour is ``normal``; an ``actionable: {type: RouteLink}``
+    makes it navigate."""
     from .naming import camelcasize
 
     label = str(node.get("label") or "")
     params = node.get("parameters")
-    return fluent.Button(
+    inert = not node.get("actionId") and node.get("actionable") is None
+    return (InertButton if inert else fluent.Button)(
         label=label,
-        action_id=str(node.get("actionId") or camelcasize(label) or ""),
+        action_id="" if inert else str(node.get("actionId") or camelcasize(label) or ""),
         button_style=_str(node.get("buttonStyle")),
         disabled=bool(node.get("disabled", False)),
         parameters=params if isinstance(params, dict) else None,

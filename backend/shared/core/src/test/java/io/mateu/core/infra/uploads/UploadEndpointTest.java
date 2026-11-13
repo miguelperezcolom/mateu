@@ -105,4 +105,45 @@ class UploadEndpointTest {
     assertThat(new UploadEndpoint(List::of).target(ticket, "{}", ANONYMOUS).status())
         .isEqualTo(404);
   }
+
+  /** GA review S11: a ticket sends its share of files, not an unlimited number for hours. */
+  @Test
+  void aTicketSendsItsShareOfFilesOnly() {
+    UploadTickets.clearUses();
+    var stored = new java.util.concurrent.atomic.AtomicInteger();
+    FileStorage disk =
+        (file, httpRequest) -> {
+          stored.incrementAndGet();
+          return StoredFile.builder().id("f" + stored.get()).name(file.name()).size(1).build();
+        };
+    var endpoint = new UploadEndpoint(() -> List.of(disk));
+    var single = UploadTickets.issue("", "photo", 0, "", false, ANONYMOUS);
+    for (int i = 0; i < UploadTickets.SINGLE_FILE_USES; i++) {
+      assertThat(upload(endpoint, single).status()).isEqualTo(200);
+    }
+    assertThat(upload(endpoint, single).status()).isEqualTo(429);
+    assertThat(stored.get()).isEqualTo(UploadTickets.SINGLE_FILE_USES);
+    // a multiple field's ticket has a larger share, capped too
+    System.setProperty(UploadTickets.MAX_FILES_PROPERTY, "15");
+    try {
+      var many = UploadTickets.issue("", "docs", 0, "", true, ANONYMOUS);
+      for (int i = 0; i < 15; i++) {
+        assertThat(upload(endpoint, many).status()).isEqualTo(200);
+      }
+      assertThat(upload(endpoint, many).status()).isEqualTo(429);
+    } finally {
+      System.clearProperty(UploadTickets.MAX_FILES_PROPERTY);
+      UploadTickets.clearUses();
+    }
+  }
+
+  private static UploadEndpoint.Answer upload(UploadEndpoint endpoint, String ticket) {
+    return endpoint.upload(
+        ticket,
+        "a.txt",
+        "text/plain",
+        1,
+        new java.io.ByteArrayInputStream(new byte[] {1}),
+        ANONYMOUS);
+  }
 }

@@ -160,6 +160,65 @@ describe('<mateu-visual-editor> against an IDE host', () => {
         expect(posted.filter((m) => m.type === 'contentChanged').at(-1).yaml).toBe(commented)
     })
 
+    it('a file that does not parse opens in an error state and no edit is written over it (V-1)', async () => {
+        const broken = '# keep me\ntype: Form\ncontent:\n  - type: Text\n   text: mis-indented\nactions: [a\n'
+        const el = await mount(broken)
+        const root = el.shadowRoot
+        expect(root.querySelector('.parse-error')?.textContent).toMatch(/does not load/i)
+        expect(root.querySelector('editor-canvas')).toBeNull()
+        // every way of editing is refused: an insert from the palette, a structured editor save, keys
+        root.querySelector('.app').dispatchEvent(new CustomEvent('palette-add', { detail: { node: { type: 'Text', text: 'x' } }, bubbles: true, composed: true }))
+        root.querySelector('.app').dispatchEvent(new CustomEvent('routes-save', { detail: { yaml: 'type: Routes\nroutes: []\n' }, bubbles: true, composed: true }))
+        el.selectedPath = []
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete' }))
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', ctrlKey: true }))
+        await settle()
+        expect(posted.filter((m) => m.type === 'contentChanged')).toEqual([])
+        // a recursive alias (#1183) is the same case
+        send({ type: 'externalChange', yaml: 'a: &loop {content: [*loop]}\n' })
+        await settle()
+        await el.updateComplete
+        expect(root.querySelector('.parse-error')?.textContent).toMatch(/recursive alias/i)
+        root.querySelector('.app').dispatchEvent(new CustomEvent('palette-add', { detail: { node: { type: 'Text', text: 'x' } }, bubbles: true, composed: true }))
+        await settle()
+        expect(posted.filter((m) => m.type === 'contentChanged')).toEqual([])
+        // fixing the text where it is shown loads the page again
+        const source = root.querySelector('.parse-error textarea') as HTMLTextAreaElement
+        source.value = PAGE
+        source.dispatchEvent(new Event('change'))
+        await settle()
+        await el.updateComplete
+        expect(root.querySelector('.parse-error')).toBeNull()
+        expect(root.querySelector('editor-canvas')).toBeTruthy()
+        expect(posted.filter((m) => m.type === 'contentChanged').at(-1).yaml).toBe(PAGE)
+    })
+
+    it('a design opened from a share link is untrusted until the author trusts it: stripped canvas, no Play/board (V-4)', async () => {
+        const { encodeShareLink } = await import('./model/shareLink')
+        const el = await mount()
+        const root = el.shadowRoot
+        const tabs = () => [...root.querySelectorAll('.views button')] as HTMLButtonElement[]
+        expect(root.querySelector('editor-canvas').untrusted).toBe(false)
+        expect(tabs().every((b) => !b.disabled)).toBe(true)
+        // Open… a pasted link
+        ;[...root.querySelectorAll('button')].find((b: any) => b.textContent.includes('Open…'))!.click()
+        await el.updateComplete
+        const link = await encodeShareLink({ v: 1, yaml: 'type: VerticalLayout\ncontent:\n  - type: Element\n    name: img\n    attributes: {src: x, onerror: "alert(1)"}\n' } as any, 'http://x/')
+        ;(root.querySelector('#share-in') as HTMLInputElement).value = link
+        ;[...root.querySelectorAll('button')].find((b: any) => b.textContent.trim() === 'Open')!.click()
+        await settle()
+        await el.updateComplete
+        expect(root.querySelector('.untrusted')?.textContent).toMatch(/came from a link/i)
+        expect(root.querySelector('editor-canvas').untrusted).toBe(true)
+        expect(tabs().filter((b) => b.disabled).map((b) => b.textContent!.trim())).toEqual(['Board', '▶ Play'])
+        // trusting it renders it as written
+        ;(root.querySelector('.untrusted button') as HTMLButtonElement).click()
+        await el.updateComplete
+        expect(root.querySelector('.untrusted')).toBeNull()
+        expect(root.querySelector('editor-canvas').untrusted).toBe(false)
+        expect(tabs().every((b) => !b.disabled)).toBe(true)
+    })
+
     it('Ctrl+D duplicates the selected node and selects the copy; arrows walk the tree', async () => {
         const el = await mount()
         el.selectedPath = [0]

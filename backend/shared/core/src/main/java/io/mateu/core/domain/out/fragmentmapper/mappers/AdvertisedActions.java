@@ -99,7 +99,31 @@ public final class AdvertisedActions {
     collectSuppliers(view, httpRequest, ids, visited);
     collectYamlLayout(view, httpRequest, ids, visited);
     ids.removeIf(id -> id == null || id.isBlank() || id.contains("*"));
+    // an Element's on: handler counts only when the view has a method for it — the rule the
+    // advertised LIST follows (TreeActionHarvester): an id with none may belong to an enclosing
+    // component and is no action of this view
+    var handlers = ids.stream().filter(id -> id.startsWith(ON_HANDLER)).toList();
+    ids.removeAll(handlers);
+    for (var marked : handlers) {
+      var id = marked.substring(ON_HANDLER.length());
+      if (hasInvocableMethod(view, id, httpRequest)) {
+        ids.add(id);
+      }
+    }
     return ids;
+  }
+
+  /** Marks an Element {@code on:} handler id until it is checked against the view's methods. */
+  private static final String ON_HANDLER = "\u0000on:";
+
+  private static boolean hasInvocableMethod(Object view, String name, HttpRequest httpRequest) {
+    for (var method : view.getClass().getMethods()) {
+      if (method.getName().equals(name)
+          && io.mateu.core.application.security.ActionMethods.isHandler(method, view.getClass())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** The components the view's fields hold (directly, or behind a Callable/Supplier). */
@@ -324,6 +348,14 @@ public final class AdvertisedActions {
       if (value instanceof String id) {
         if (name.equals("actionId") || name.endsWith("ActionId")) {
           ids.add(id);
+        }
+      } else if (name.equals("on") && value instanceof Map<?, ?> handlers) {
+        // an Element's DOM event → action id map: advertised to the browser
+        // (TreeActionHarvester), so it must be accepted back — it was refused with 403
+        for (var handler : handlers.values()) {
+          if (handler instanceof String id && !id.isBlank()) {
+            ids.add(ON_HANDLER + id);
+          }
         }
       } else {
         // a function-typed component (a fluent button's handler) is never called here

@@ -7,6 +7,7 @@ from typing import Annotated
 
 from mateu_ui.uidl import (
     Crud,
+    EditableOnlyWhenCreating,
     EyesOnly,
     HomeRouteSupplier,
     Message,
@@ -25,7 +26,9 @@ class HarnessStatus(Enum):
 
 
 class HarnessProduct:
-    id: Annotated[str, Required()] = ""
+    # a product code the user types on create (without the marker the id would be technical: the
+    # store assigns it and the creation form draws no input for it)
+    id: Annotated[str, Required(), EditableOnlyWhenCreating()] = ""
     name: Annotated[str, Required()] = ""
     price: float = 0.0
     status: HarnessStatus = HarnessStatus.Available

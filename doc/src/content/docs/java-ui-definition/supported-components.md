@@ -138,7 +138,7 @@ or a pattern page, its name links there.
 | [`MatrixGrid`](/ux-patterns/matrix-grid/) | A MATRIX of values by column — typically metrics or types (rows) by dates (columns), the shape of an availability or forecast grid. | `id`, `rowHeaderLabel`, `columns`, `sections`, `cellActionId`, `editActionId` |
 | [`MenuBar`](/java-user-manual/build/navigation-and-menus/) | A horizontal bar of menu entries, some of which may open submenus. | `options` |
 | `MessageInput` | A chat-style message input. | `id`, `actionId` |
-| `MessageList` | A read-only chat-style list of MessageListItems (Vaadin/PatternFly message list). | `id`, `items` |
+| `MessageList` | A read-only chat-style list of MessageListItems (the Vaadin message list). | `id`, `items` |
 | [`Meter`](/ux-patterns/meter/) | Consumption against a limit (e.g. balance vs preauthorization): a small-caps label, the formatted value big with the unit symbol appended, a progress track filled to value/max, and a muted caption (absent → the computed fill percent). | `id`, `label`, `value`, `max`, `unit`, `caption`, `warnAt`, `dangerAt` |
 | [`MetricCard`](/ux-patterns/dashboard/) | A KPI tile for dashboards: a title, a prominent value, an optional trend indicator and an optional drill-in action. | `id`, `title`, `value`, `unit`, `trend`, `trendLabel`, `icon`, `description`, `actionId`, `timeframe` |
 | [`MicroFrontend`](/java-ui-definition/components/micro-frontend/) | Embeds a UI served from another backend (baseUrl) or route inside the current page. | `baseUrl`, `route`, `consumedRoute`, `serverSideType`, `appState`, `actionId`, `resolve`, `timeoutMs`, `chrome` |

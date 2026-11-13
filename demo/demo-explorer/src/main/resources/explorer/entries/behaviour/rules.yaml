@@ -10,11 +10,6 @@ description: |
 
   Try it: tick **Company** — *Company name* and *Vat number* appear; tick **Gift wrap** and *Gift
   message* becomes editable.
-
-  Known gap (3.0-beta.51): the Vaadin renderer applies only the `hidden` and `disabled` attributes
-  of a rule — the `required` rule below reaches the browser but does not mark the field yet.
-knownIssue: >-
-  Vaadin, 3.0-beta.51: only the `hidden` and `disabled` attributes of a rule are applied — `required` is not.
 examples:
   - title: Shipping details
     java: io.mateu.explorer.examples.behaviour.rules.ShippingForm

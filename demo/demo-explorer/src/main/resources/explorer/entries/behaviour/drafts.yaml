@@ -9,7 +9,9 @@ description: |
   which step a fresh visit resumes. (`display()` can switch the draft buttons off or disable them.)
 
   **Try it:** type a purpose, **Next**, enter a hotel cost, press **Save** ("Draft saved on step
-  'costs'"); reload this page — the wizard reopens on the costs step with your values.
+  'costs'"); reload this page — the wizard reopens on the costs step with your values. **Save and
+  close** saves too and then goes where `closeDraft` says: a route (here, back to this entry), or
+  `null` for `/`. A `Message` returned there replaces the "Draft saved" toast.
 examples:
   - title: "Expense claim"
     route: x/behaviour/drafts/claim

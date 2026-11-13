@@ -41,20 +41,33 @@ object ChatEvents {
         else -> Effect.Bus(event, detail)
     }
 
+    /** The fields of a navigation an agent may set: where to go — nothing that RUNS something. */
+    val AGENT_NAVIGATION_FIELDS = listOf("route", "consumedRoute", "serverSideType", "uriPrefix", "baseUrl")
+
     /**
-     * A navigation-requested detail as a menu entry: all its fields (route, consumedRoute, actionId,
-     * baseUrl, serverSideType, uriPrefix) travel, plus a label for the tab — the matching menu
-     * entry's, else the route.
+     * What an agent's `navigation-requested` detail may carry (S7): a WHITELIST of where-to-go
+     * fields, string values only. A menu leaf's `rules` (RunAction / RunJS — [AppSession.openMenuEntry]
+     * RUNS a rule leaf) and its `actionId` never travel: a navigation an agent asks for must not run
+     * an app action as the signed-in user without a click. Pinned by the `navigations` cases of
+     * conformance/client/agent-events.json (the web, Redwood and the phone run them too).
+     */
+    fun agentNavigationFields(detail: JsonNode): ObjectNode {
+        val out = mapper.createObjectNode()
+        if (!detail.isObject) return out
+        for (k in AGENT_NAVIGATION_FIELDS) detail.get(k)?.takeIf { it.isTextual }?.let { out.put(k, it.asText()) }
+        return out
+    }
+
+    /**
+     * A navigation-requested detail as a menu entry: only its where-to-go fields
+     * ([agentNavigationFields]) travel, plus a label for the tab — the matching menu entry's, else the
+     * route. No route, nothing to open.
      */
     fun navigation(detail: JsonNode, menu: JsonNode? = null): Effect {
-        if (!detail.isObject) return Effect.Ignore
-        val route = detail.path("route").asText("")
-        val actionId = detail.path("actionId").asText("")
-        if (route.isBlank() && actionId.isBlank()) return Effect.Ignore
-        val entry = (detail.deepCopy<JsonNode>() as ObjectNode)
-        if (entry.path("label").asText("").isBlank()) {
-            entry.put("label", labelOf(menu, route, entry.path("consumedRoute").asText("")) ?: route.ifBlank { actionId })
-        }
+        val entry = agentNavigationFields(detail)
+        val route = entry.path("route").asText("")
+        if (route.isBlank()) return Effect.Ignore
+        entry.put("label", labelOf(menu, route, entry.path("consumedRoute").asText("")) ?: route)
         return Effect.Navigate(entry)
     }
 

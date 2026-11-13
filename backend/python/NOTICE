@@ -1,0 +1,65 @@
+Mateu
+Copyright 2016-2026 Miguel Pérez Colom
+
+This product is licensed under the Apache License, Version 2.0 (the "License");
+you may not use this project except in compliance with the License. A copy of
+the License is provided in LICENSE.txt and at:
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+------------------------------------------------------------------------------
+Third-party components
+------------------------------------------------------------------------------
+
+The Redwood / Visual Builder renderer (frontend/web/monorepo/apps/redwood)
+integrates with Oracle JET (Universal Permissive License 1.0) and loads Oracle
+Spectra / Visual Builder Runtime from Oracle's CDN. Those components are NOT
+part of this project and are NOT relicensed here; see
+frontend/web/monorepo/apps/redwood/NOTICE.md for details. The renderer jar
+(io.mateu:mateu-redwood) contains only Mateu code: it vendors nothing from
+Oracle's CDN and no file of the Visual Builder starter template or of its
+build tooling's output markup (its page is written by Mateu's own build
+script, which reads only CDN urls and configuration values off the VB build).
+
+All other renderers and the Mateu runtime, annotations, wire DTOs, generated
+schemas and tooling are licensed under Apache License 2.0.
+
+The web renderer bundles (the io.mateu:mateu-vaadin jar) include third-party
+open-source packages under permissive licences (MIT, BSD, Apache-2.0, ISC and
+similar); scripts/check-frontend-licenses.mjs lists the approved licences and
+fails the build on any other, so no commercially licensed component is shipped.
+Their copyright and licence notices travel next to the bundle, in
+THIRD-PARTY-LICENSES.txt (static/assets/ in the jar, dist/assets/ in the
+mateu-vaadin npm package, assets/ of the visual editor embedded in the IDE
+plugins), generated from the dependency tree by scripts/third-party-notices.mjs.
+One of them carries a condition:
+
+  bpmn-js (Camunda Services GmbH, bpmn.io License): MIT terms plus the
+  requirement that the bpmn.io watermark shown on rendered diagrams stays fully
+  visible and is not removed, changed or overlapped. Mateu's BPMN component
+  keeps it as bpmn-js renders it.
+
+The Mateu desktop app installers (built on CI from
+frontend/app/intellij-plugin, `buildInstaller`) redistribute IntelliJ IDEA
+Open Source (the open-source IntelliJ IDEA built from
+https://github.com/JetBrains/intellij-community, which replaced IntelliJ IDEA
+Community Edition from 2025.3 on), Copyright (C) JetBrains s.r.o., licensed
+under the Apache License, Version 2.0, as JetBrains publishes it on that
+repository's GitHub Releases. The installers repackage that distribution with the
+Mateu plugin preinstalled and their own name, icon, launcher and settings
+(IntelliJ's own update checks are switched off); its code is not modified. It
+ships with the JetBrains Runtime (a build of OpenJDK, GPLv2 with the
+Classpath Exception) and the third-party libraries it bundles, each under its
+own licence; their notices travel inside the distribution (LICENSE.txt,
+NOTICE.txt and the license/ directory). IntelliJ, IntelliJ IDEA and JetBrains
+are trademarks of JetBrains s.r.o.; the Mateu desktop app is not a JetBrains
+product and is not endorsed by JetBrains. The Mateu plugin itself (the
+io.mateu.ijp code) is Mateu code under Apache License 2.0.
+
+The IntelliJ plugin (and so the desktop app) bundles two pure-Java libraries,
+each under its own permissive licence: ZXing core (QR codes; Apache License
+2.0) and JSVG by Jannis Weis (SVG images; MIT License).
+
+The Map component draws OpenStreetMap tiles by default (map data
+© OpenStreetMap contributors, ODbL). The public OSM tile servers are not meant
+for heavy production traffic: deployments should configure their own provider.

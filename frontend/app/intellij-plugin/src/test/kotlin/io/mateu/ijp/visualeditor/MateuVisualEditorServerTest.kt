@@ -36,6 +36,19 @@ class MateuVisualEditorServerTest {
     }
 
     @Test
+    fun dropsTheStandaloneCspWhoseNoInlineScriptRuleWouldBlockTheBootstrap() {
+        val bundle = """
+            <html><head>
+            <meta http-equiv="Content-Security-Policy" data-mateu-standalone-csp
+                  content="script-src 'self'; object-src 'none'; base-uri 'self'" />
+            <script type="module" src="./assets/index-abc.js"></script></head><body></body></html>
+        """.trimIndent()
+        val html = String(MateuVisualEditorServer.injectHostBootstrap(bundle.toByteArray()), Charsets.UTF_8)
+        assertFalse("standalone CSP removed", html.contains("data-mateu-standalone-csp"))
+        assertTrue("bootstrap before module", html.indexOf("window.__mateuHost") in 0 until html.indexOf("<script type=\"module\""))
+    }
+
+    @Test
     fun servesTheHashedJsEntryAsset() {
         val port = MateuVisualEditorServer.ensureStarted(backend)
         val html = get("http://127.0.0.1:$port/index.html").body()

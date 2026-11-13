@@ -11,23 +11,11 @@ description: |
   `@Menu` fields. Also in the C# and Python ports. **The live example is the Explorer itself**: its
   shell (`ExplorerShell`, a `@UI("")` class whose menu a `MenuSupplier` derives) is what you are
   navigating.
-
-  > **Known issue (3.0-beta.51):** a shell cannot be shown below a mount root. Bound to another
-  > route the YAML shell answers "Page not found"; a fluent `AppShell` returned by a view at another
-  > route draws its chrome but every content load answers "Not found" and the request-loop guard
-  > trips. A second mount (`type: UI`) would show it properly, but declaring one switches off the
-  > app's conventional `specs/ui/routes.yaml` (RouteRegistry.authoredFrom reads it only when no
-  > mount is declared) — see distributed › Several mounts.
 notDemonstrable: >-
-  an AppShell is the chrome of a whole mount and cannot be nested inside the Explorer's own mount
-  (see the known issue) — the Explorer's own shell is the running example; the YAML and Java
-  definitions of a shell are in the Code tabs.
-knownIssue: >-
-  3.0-beta.51: a `type: AppShell` definition bound to a non-root route renders "Page not found"; a
-  ComponentTreeSupplier returning a fluent AppShell at a non-root route draws the chrome but every
-  content load answers "Not found" and loops (request-loop guard). Adding a `type: UI` mount
-  disables the conventional specs/ui/routes.yaml (RouteRegistry.authoredFrom step 3), so a demo
-  mount cannot be added without side effects.
+  an AppShell is the chrome of a whole mount, and its menu routes are relative to that mount: drawn
+  inside this Explorer, its Collection / Visitors entries would point at the Explorer's own routes.
+  The Explorer's own shell is the running example; the YAML and Java definitions of a shell are in
+  the Code tabs.
 code:
   - {label: "YAML · a shell", path: src/main/resources/specs/ui/explorer/components/app-shell/shell.yaml}
   - {label: "Java · the same shell, fluent", path: src/main/java/io/mateu/explorer/examples/components/appshell/MuseumShell.java}

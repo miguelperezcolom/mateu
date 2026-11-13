@@ -105,6 +105,71 @@ def test_the_creation_form_starts_with_the_generated_value():
     assert frag["component"]["initialData"]["reference"] == "T-100"
 
 
+# ── A technical id (Java's TechnicalId / CrudTechnicalIdSyncTest) ────────────────────────────
+
+
+class Sku:
+    id: Annotated[str, EditableOnlyWhenCreating()] = ""
+    title: str = ""
+
+
+SKUS: dict[str, Sku] = {}
+
+
+@ui("ga-skus")
+class Skus(Crud[Sku]):
+    def fetch(self, search):
+        return list(SKUS.values())
+
+    def get(self, id):
+        return SKUS.get(id)
+
+    def save(self, entity):
+        if not entity.id:
+            entity.id = "generated"
+        SKUS[entity.id] = entity
+
+    def delete(self, id):
+        SKUS.pop(id, None)
+
+
+def _field_ids(node, out: list) -> list:
+    if isinstance(node, dict):
+        if node.get("type") == "FormField":
+            out.append(node.get("fieldId"))
+        for v in node.values():
+            _field_ids(v, out)
+    elif isinstance(node, list):
+        for v in node:
+            _field_ids(v, out)
+    return out
+
+
+def test_a_technical_id_has_no_input_on_the_creation_form_and_is_never_taken_from_a_create():
+    _seed()
+    form = handle(route="/ga-tickets/new").model_dump(by_alias=True, mode="json")
+    assert "title" in _field_ids(form, []) and "id" not in _field_ids(form, [])
+    # a create naming an existing id does not overwrite it: the store assigns a new one
+    handle(route="/ga-tickets/new", action_id="create",
+           component_state={"id": "T-001", "reference": "T-100", "title": "Forged"})
+    assert STORE["T-001"].title == "Printer jam"
+    assert len(STORE) == 2
+
+
+def test_an_id_the_user_chooses_on_create_keeps_its_input():
+    SKUS.clear()
+    skus = SyncHandler(MateuRegistry(MODULE))
+    form = skus.handle(
+        RunActionRq(server_side_type=type_name(Skus), route="/ga-skus/new")
+    ).model_dump(by_alias=True, mode="json")
+    assert {"id", "title"} <= set(_field_ids(form, []))
+    skus.handle(RunActionRq(
+        server_side_type=type_name(Skus), route="/ga-skus/new", action_id="create",
+        component_state={"id": "SKU-1", "title": "Lamp"},
+    ))
+    assert list(SKUS) == ["SKU-1"]
+
+
 # ── type: Project ────────────────────────────────────────────────────────────────────────────
 
 

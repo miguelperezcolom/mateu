@@ -174,7 +174,7 @@ def _static_title_of(registry, view_model: str | None) -> str | None:
     if not view_model or registry is None:
         return None
     try:
-        cls = registry.type_by_name(view_model)
+        cls = registry.authored_type(view_model)
     except Exception:  # noqa: BLE001
         return None
     value = getattr(cls, "__mateu_title__", None) if cls is not None else None
@@ -313,7 +313,7 @@ def pending_app_ancestor(routes, registry, route: str | None, consumed: str | No
     )
     if pending is None or pending == chain[-1] or not pending[0].view_model:
         return None
-    cls = registry.type_by_name(pending[0].view_model)
+    cls = registry.authored_type(pending[0].view_model)
     if cls is None or "__mateu_app__" not in cls.__dict__:
         return None
     return cls, pending[1]

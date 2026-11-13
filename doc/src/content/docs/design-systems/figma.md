@@ -128,7 +128,10 @@ flowchart LR
 
 - **One top-level frame per page**; its name becomes the file name (`Fleet` → `fleet.yaml`). Frames
   whose name starts with `_` are scratch and skipped, and so are the library's own `Mateu · …`
-  pages.
+  pages. The frames inside a Figma Section are pages of their own. A name that would land on a
+  specs/ui file that is not a page (`routes`, `sources`, `project`, `actions`, `types`,
+  `components`, or under `translations/`, `environments/`, `partials/`) is written as `<name>-page`
+  with a warning, and no front door writes over a file the converter did not write (unless forced).
 - **A templated page**: a page template instance — as the screen itself, or inside the screen frame.
   A frame named `slot:<name>` next to the template instance fills that slot; anything else next to it
   is the page's `content`.
@@ -136,11 +139,13 @@ flowchart LR
   gives its title, subtitle and toolbar, everything else is its content.
 - A plain frame is a layout (horizontal or vertical by its auto-layout, or the layout its name
   says: `FormLayout`); a plain text layer is a `Text` (a heading from 18 px).
-- A frame named `partial:<ref>` is shared: it becomes `{type: Partial, ref}` and its content is
-  written once to `partials/<ref>.yaml`.
+- A frame named `partial:<name>` is shared: it becomes `{type: Partial, ref: <slug>}` and its
+  content is written once to `partials/<slug>.yaml` (two names with the same slug get `-2`).
 - Hidden layers and layers whose name starts with `#` are notes, never content. A layer of a type
   with no Mateu reading (a widget, a sticky note) is reported as a warning.
-- Variants map to the param of the same name; a `false` and the default value are omitted.
+- Variants map to the param of the same name; a `false` and the default value are omitted. What a
+  YAML key turns ON by default is switched off by a property of its own: `unspaced` on a
+  `HorizontalLayout` (→ `spacing: false`), `folded` on a `FoldoutPanel` (→ `open: false`).
 
 ### What the converter writes
 

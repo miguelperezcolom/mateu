@@ -1,4 +1,4 @@
-import { reduceContexts, HOST_ID, MENU_RULE_PREFIX, menuNodeIdOf, autoSaveOf, rangeEditOf } from './reduceContexts.mjs'
+import { reduceContexts, HOST_ID, MENU_RULE_PREFIX, menuNodeIdOf, autoSaveOf, rangeEditOf, declaredActionOf } from './reduceContexts.mjs'
 import { valueChangeActionOf } from './rules.mjs'
 import { chromeText } from './i18n.mjs'
 import { urlOfRoute } from './mount.mjs'
@@ -69,6 +69,23 @@ export function resolveFlowCommands(commands, scope) {
  * action goes to the server as before. With a `scope` the commands' placeholders are resolved
  * ({@link resolveFlowCommands}) — the page's state with the action's parameters on top of it.
  */
+/**
+ * Whether a content button's action is CLAIMED by something on screen — a context (page, overlay,
+ * island, micro frontend) that advertises it (its actions, a `prefix*` wildcard included, or its
+ * declared flows) or the app's action catalogue. Vaadin's rule (mateu-component sends only what it
+ * advertises): a button with no action behind it — a YAML `Button` with a label and a style, whose
+ * id the server derives from the label — is inert. Redwood used to send it and answer the user
+ * «You're not allowed to do this» (403) with a Retry that could never succeed (Explorer F3).
+ */
+export function contentActionIsClaimed(reg, actionId) {
+  if (!actionId) return false
+  for (const ctx of Object.values((reg && reg.contexts) || {})) {
+    if (declaredActionOf(ctx, actionId)) return true
+    if (((ctx && ctx.declaredActions) || []).some((a) => a && a.id === actionId)) return true
+  }
+  return !!catalogueActionOf(reg && reg.shell, actionId)
+}
+
 export function pageFlowOf(reg, actionId, scope, contextId = HOST_ID) {
   // `contextId`: a SURFACE of its own (an inline island, a MicroFrontend) owns ITS actions the same way
   const host = reg && reg.contexts ? reg.contexts[contextId || HOST_ID] : null
@@ -223,14 +240,14 @@ export function screenActionIdsOf(reg) {
 export function confirmLeaveAction(actionId, vars, win = (typeof window !== 'undefined' ? window : undefined), parameters = undefined) {
   if (!vars) return true
   const top = topOverlayContextOf(vars.mateuRegistry)
-  const dirty = top ? !!top.dirty : !!vars.mateuDirty
+  const dirty = top ? !!top.dirty : (!!vars.mateuDirty || pageMarkedDirty(vars.mateuRegistry))
   if (!dirty) return true
   if (!isLeaveAction(actionId, screenActionIdsOf(vars.mateuRegistry))) return true
   // the conflict dialog's Reload already said it drops the edits: no second question
   if (isConflictDialogAnswer(parameters)) return true
   if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
   if (top) vars.mateuRegistry = withOverlayDirty(vars.mateuRegistry, false)
-  else vars.mateuDirty = false
+  else { vars.mateuDirty = false; vars.mateuRegistry = withPageClean(vars.mateuRegistry) }
   return true
 }
 
@@ -268,7 +285,37 @@ export function overlaysHoldUnsavedChanges(reg) {
  * replacing the screen asks about. The web's `dirtyGuard.dirty`.
  */
 export function hasUnsavedChanges(vars) {
-  return !!vars && (!!vars.mateuDirty || overlaysHoldUnsavedChanges(vars.mateuRegistry))
+  return !!vars && (!!vars.mateuDirty || pageMarkedDirty(vars.mateuRegistry) || overlaysHoldUnsavedChanges(vars.mateuRegistry))
+}
+
+/** The server said the PAGE has unsaved changes (a MarkAsDirty aimed at the host context: the
+ *  reducer keeps it there) — counted like the user's own edits (R-7). */
+export function pageMarkedDirty(reg) {
+  const host = reg && reg.contexts && reg.contexts[HOST_ID]
+  return !!(host && host.dirty === true)
+}
+
+/** The registry with the host context's server-set flag cleared (the user discarded the page). */
+function withPageClean(reg) {
+  if (!pageMarkedDirty(reg)) return reg
+  return { ...reg, contexts: { ...reg.contexts, [HOST_ID]: { ...reg.contexts[HOST_ID], dirty: false } } }
+}
+
+/**
+ * The page's own unsaved-changes flag (`mateuDirty`) after an action re-projected the screen —
+ * runMateuAction (the page's or an overlay's action) and runMateuIslandAction (R-7). It used to be
+ * cleared by ANY re-projection: type in two fields, open a lookup dialog, close it, click a menu
+ * entry — no question, edits lost. The edits survive while the page's draft (`draft`, the values
+ * typed and not yet sent, as the chain leaves it) still holds them, unless the server said the page
+ * is clean (a MarkAsClean aimed at it with this action: its context's `cleaned` count grew) or the
+ * page was replaced by another (`replaced`).
+ */
+export function pageDirtyAfterAction({ wasDirty, draft, hostBefore, hostAfter, replaced = false }) {
+  if (replaced) return false
+  const markedClean = !!hostAfter && (hostAfter.cleaned || 0) > ((hostBefore && hostBefore.cleaned) || 0)
+  if (markedClean) return false
+  const pending = !!draft && typeof draft === 'object' && Object.keys(draft).length > 0
+  return !!wasDirty && pending
 }
 
 /**
@@ -281,8 +328,19 @@ export function confirmNavigationAway(vars, win = (typeof window !== 'undefined'
   if (!hasUnsavedChanges(vars)) return true
   if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
   vars.mateuDirty = false
-  vars.mateuRegistry = withoutOverlays(vars.mateuRegistry)
+  vars.mateuRegistry = withPageClean(withoutOverlays(vars.mateuRegistry))
   return true
+}
+
+/**
+ * A NavigateTo of a flow the BROWSER ran (the page's or the catalogue's `steps:`, no server answer)
+ * leaves the screen like a menu click, so with unsaved changes — the user's, or a MarkDirty step of
+ * that same flow — it asks first (W-3; Vaadin's mateu-component leaveToRoute). True = go on (the
+ * flags are cleared when it asked), false = stay. A server's NavigateTo is the server's decision:
+ * it never asks (`ranInBrowser` false).
+ */
+export function confirmFlowNavigation(vars, ranInBrowser, win = (typeof window !== 'undefined' ? window : undefined)) {
+  return !ranInBrowser || confirmNavigationAway(vars, win)
 }
 
 /**

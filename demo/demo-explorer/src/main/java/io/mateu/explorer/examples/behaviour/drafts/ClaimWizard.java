@@ -55,10 +55,13 @@ public class ClaimWizard extends Wizard implements Draftable {
     return Message.success("Draft saved on step '" + draft.step() + "'");
   }
 
+  /**
+   * Where "Save and close" lands — Mateu has already called {@link #saveDraft}. A route navigates;
+   * a {@code Message} would replace the "Draft saved" toast and land on {@code "/"}.
+   */
   @Override
   public Object closeDraft(HttpRequest httpRequest) {
-    saveDraft(httpRequest);
-    return Message.success("Draft saved — open this entry again to resume where you left it");
+    return "/behaviour/wizards/drafts";
   }
 
   @Override

@@ -5,7 +5,7 @@
 
 import { againstBase } from './backendUrl.ts';
 import { interpolateBody } from './jsonTemplate.ts';
-import { serverActivity } from './serverActivity.ts';
+import { serverActivity, type ServerActivity } from './serverActivity.ts';
 
 type Json = Record<string, any>;
 
@@ -104,6 +104,8 @@ const deepCopy = (v: unknown): unknown =>
   typeof structuredClone === 'function' ? structuredClone(v) : JSON.parse(JSON.stringify(v));
 
 export class RestSourceCatalogue {
+  /** The "waiting for the server" counter of the UI these sources belong to (its session's). */
+  activity: ServerActivity = serverActivity;
   private catalogue: Record<string, Json> = {};
   // The entries a RESPONSE named (`UIIncrementDto.restSources`): a page served with no app shell
   // never receives the App's catalogue, so each response carries the entries its components
@@ -331,7 +333,7 @@ export async function fetchExternalJson(
     init.body = interpolateBody(String(source['body']), (source['headers'] as Json) ?? undefined, (t) => resolve(t));
   }
   // a screen waits for it: counted by the "waiting for the server" indicator until its body is read
-  return serverActivity.track(async () => {
+  return sources.activity.track(async () => {
     const res = await fetch(url, init);
     if (!res.ok) throw new Error(`External REST fetch failed: ${res.status}`);
     return jsonBodyOf(res);

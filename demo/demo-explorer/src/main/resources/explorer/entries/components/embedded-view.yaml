@@ -13,14 +13,6 @@ description: |
 
   Java only (they wrap a Java object). For a view served by ANOTHER app, use a MicroFrontend.
   Try: press *Arrive* and *Sell one*.
-
-  > **Known issues (3.0-beta.51):** a `FutureComponent` draws its instance's fields as an empty
-  > form — no values, no actions, and a component tree's `component()` is not called; an
-  > `EmbeddedView` of a reflected form repeats the HOST page's breadcrumb trail in its header.
-knownIssue: >-
-  3.0-beta.51: FutureComponent(instance) renders the instance reflectively with no state (fields
-  show "—") and without its actions, even for a ComponentTreeSupplier (component() is ignored);
-  EmbeddedView of a reflected form shows the host route's breadcrumbs inside the island.
 examples:
   - title: In Java — views embedded as islands
     java: io.mateu.explorer.examples.components.embeddedview.TwoGalleries

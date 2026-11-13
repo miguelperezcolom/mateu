@@ -602,6 +602,32 @@ the host configures (JWT bearer, cookies, Windows) applies as is:
 | scopes | `scope`, `scp` (space-separated) |
 | permissions | `permissions`, `permission` |
 
+The gates hold on every path a request can take, not only on what is drawn:
+
+- an `[EyesOnly]` property of a **listing row** is neither a column nor a value in the rows (nor a
+  sort, filter or totals key) for a caller who may not see it; inside a **nested form** the
+  attributes hold at every level;
+- a **proxied** `[RestAction]`/`[RestOptions]` is refused (403) by `__restfetch__` when its method's
+  `[EyesOnly]`/`[DisabledUnless]` (or its property's `[EyesOnly]`) refuses the caller — the server
+  never makes, with your secrets, a call the caller could not trigger;
+- a **save** binds only what its form let the user write: a `[ReadOnly]`, hidden or create-only
+  property keeps the stored value on a crud save, an inline row edit, an editable view's save and a
+  capability listing's save/create; a crud *create* whose id names a stored record is an edit and
+  needs `CanEdit`;
+- a view model a `routes.yaml` entry binds keeps its entries' keys when a request names it under
+  another route: allowed only when one of its own routes is reachable for the caller, and then
+  with the union of their locked fields, refused actions and hidden fields; a field its layout
+  hides (`eyesOnly:`) is not in the view model's state either;
+- a listing query is bounded: a page below 0 is the first, a page size is at most
+  `MATEU_LISTING_MAX_PAGE_SIZE` (500), and a sort or filter on a field the caller cannot read is
+  dropped;
+- `_presence` answers nothing about a record whose route or view the caller may not open;
+- an `Idempotency-Key` has a per-caller share (`MATEU_IDEMPOTENCY_MAX_ENTRIES_PER_CALLER`, 100) of
+  both tables, a key resent with another request is refused, and a keyed run goes on (keeping its
+  key) when the client leaves;
+- an upload ticket sends 10 files for a single-file field, `MATEU_UPLOADS_MAX_FILES_PER_TICKET`
+  (100) for a multiple one; past it both upload endpoints answer 429.
+
 A claim holding a JSON array is split. When your claims are shaped differently, map them yourself:
 
 ```csharp

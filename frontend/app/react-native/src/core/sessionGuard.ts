@@ -29,15 +29,17 @@ export const onSessionExpired = (h: SessionExpiredHandler | undefined): void => 
   handler = h;
 };
 
-const reauthenticate = async (): Promise<boolean> => {
+const reauthenticate = async (interactive: boolean): Promise<boolean> => {
   if (handler) {
+    // the app owns re-auth (its own login screen): a silent attempt cannot be asked of it
+    if (!interactive) return false;
     try {
       return await handler();
     } catch {
       return false;
     }
   }
-  return reauthenticateWithProvider(true);
+  return reauthenticateWithProvider(interactive);
 };
 
 /**
@@ -64,8 +66,11 @@ export const handleSessionExpired = (own?: TokenProvider | null, mayPrompt: bool
     }
     return flight;
   }
+  // a SILENT re-auth (a hidden UI, the offline queue draining) never opens the browser, and never
+  // joins one that may: it only tries a refresh of its own
+  if (!mayPrompt) return reauthenticate(false);
   if (!inFlight) {
-    inFlight = reauthenticate().finally(() => {
+    inFlight = reauthenticate(true).finally(() => {
       inFlight = undefined;
     });
   }

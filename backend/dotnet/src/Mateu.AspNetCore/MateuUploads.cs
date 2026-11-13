@@ -53,15 +53,21 @@ public static partial class MateuExtensions
             await RefuseUpload(ctx, ticket);
             return;
         }
-        var name = ctx.Request.Headers[FileUploads.FileNameHeader].FirstOrDefault() is { Length: > 0 } header
+        // the store gets a bare name, never the path a client sent (../x, C:\x)
+        var name = FileUploads.BareFileName(ctx.Request.Headers[FileUploads.FileNameHeader].FirstOrDefault() is { Length: > 0 } header
             ? StoredFile.Decode(header)
-            : "file";
+            : null);
         var contentType = string.IsNullOrWhiteSpace(ctx.Request.ContentType)
             ? "application/octet-stream"
             : ctx.Request.ContentType!;
         if (!FileUploads.Accepts(ticket!.Accept, name, contentType))
         {
             await NotAccepted(ctx);
+            return;
+        }
+        if (!FileUploads.Consume(ctx.Request.Headers[FileUploads.TicketHeader].FirstOrDefault(), ticket))
+        {
+            await TooMany(ctx);
             return;
         }
         var length = ctx.Request.ContentLength;
@@ -124,7 +130,7 @@ public static partial class MateuExtensions
             isObject && body.TryGetProperty(property, out var v) && v.ValueKind == JsonValueKind.String
                 ? v.GetString()
                 : null;
-        var name = Text("name") is { Length: > 0 } declaredName ? declaredName : "file";
+        var name = FileUploads.BareFileName(Text("name"));
         var contentType = Text("contentType") is { Length: > 0 } declaredType ? declaredType : "application/octet-stream";
         var size = isObject && body.TryGetProperty("size", out var s) && s.ValueKind == JsonValueKind.Number
                    && s.TryGetInt64(out var n)
@@ -138,6 +144,12 @@ public static partial class MateuExtensions
         if (!FileUploads.Accepts(ticket.Accept, name, contentType))
         {
             await NotAccepted(ctx);
+            return;
+        }
+        // a target the store issues counts as a file of the ticket, like an upload through us
+        if (store!.DirectUploads && !FileUploads.Consume(ctx.Request.Headers[FileUploads.TicketHeader].FirstOrDefault(), ticket))
+        {
+            await TooMany(ctx);
             return;
         }
         UploadTarget? target;
@@ -190,6 +202,10 @@ public static partial class MateuExtensions
         Logger(ctx, "Mateu.Security").LogWarning("Mateu upload refused ({Path}): no valid ticket", ctx.Request.Path.Value);
         return UploadError(ctx, StatusCodes.Status403Forbidden, "Forbidden", "This upload is not allowed.");
     }
+
+    /// <summary>The ticket sent its share of files (<see cref="FileUploads.Consume"/>) — Java's texts.</summary>
+    private static Task TooMany(HttpContext ctx) => UploadError(ctx, StatusCodes.Status429TooManyRequests,
+        "Too many uploads", "This form has sent too many files. Reload the page to upload more.");
 
     private static Task NotAccepted(HttpContext ctx) => UploadError(ctx,
         StatusCodes.Status415UnsupportedMediaType, "Not accepted", "This type of file is not accepted.");

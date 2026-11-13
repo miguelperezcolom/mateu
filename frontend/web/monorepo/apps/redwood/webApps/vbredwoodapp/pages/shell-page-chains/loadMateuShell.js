@@ -235,6 +235,8 @@ define([
             $application.variables.mateuLastError = failure.message;
             // a Mateu refusal from another build: the screen is stale, the band offers Reload
             $application.variables.mateuReloadOffered = !!failure.reload;
+            // a refusal (403/4xx) offers no Retry: repeating it can never succeed (Explorer F3)
+            $application.variables.mateuRetryOffered = bridge.offersRetry(failure);
             // The band is a visual signal; a screen-reader user would not notice it.
             bridge.announce(failure.message, { politeness: 'assertive' });
           }

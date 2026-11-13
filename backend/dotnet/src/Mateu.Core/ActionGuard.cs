@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Reflection;
 using Mateu.Uidl;
+using Microsoft.Extensions.Logging;
 
 namespace Mateu.Core;
 
@@ -37,6 +38,9 @@ internal static class ActionGuard
         [typeof(ButtonAttribute).Assembly, typeof(ActionGuard).Assembly, typeof(Mateu.Dtos.ActionDto).Assembly];
 
     internal static void SetIdentity(Func<Identity?>? source) => IdentitySource.Value = source;
+
+    /// <summary>The identity of the request being handled (null when anonymous).</summary>
+    internal static Identity? CurrentIdentity() => IdentitySource.Value?.Invoke();
 
     /// <summary>Whether the caller passes <paramref name="gate"/> — the same rule as the mapper
     /// (Java's Authorizer): AND across declared dimensions, OR within each; nothing declared →
@@ -170,15 +174,21 @@ internal static class ActionGuard
     /// never an error toast.</summary>
     internal static MateuForbiddenException NoSuchAction(string actionId)
     {
-        var id = actionId.Length > 120 ? actionId[..120] + "…" : actionId;
-        Console.Error.WriteLine($"[mateu] security: action '{id}': no such action — the request was rejected (403)");
+        // wire text: clipped and without control characters, so it cannot forge a log line
+        var id = MateuLogging.Safe(actionId.Length > 120 ? actionId[..120] + "…" : actionId);
+        MateuLogging.For(SecurityCategory).LogWarning(
+            "action '{ActionId}': no such action — the request was rejected (403)", id);
         return new MateuForbiddenException($"Forbidden: action '{id}': no such action");
     }
 
+    /// <summary>The log category of every security refusal (the app's ILogger, never the console).</summary>
+    internal const string SecurityCategory = "Mateu.Security";
+
     internal static void Deny(string what)
     {
-        Console.Error.WriteLine($"[mateu] security: {what} — the request was rejected (403)");
-        throw new MateuForbiddenException($"Forbidden: {what}");
+        var safe = MateuLogging.Safe(what);
+        MateuLogging.For(SecurityCategory).LogWarning("{What} — the request was rejected (403)", safe);
+        throw new MateuForbiddenException($"Forbidden: {safe}");
     }
 
     /// <summary>Every action id the view advertises besides its marked methods — the ids the

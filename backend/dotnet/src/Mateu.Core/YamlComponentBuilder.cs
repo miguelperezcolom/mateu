@@ -521,10 +521,16 @@ internal static class YamlComponentBuilder
         return ObjectOf(type, template, partials, chain) as IFormTemplate;
     }
 
-    /// <summary>The action a YAML button dispatches: its <c>actionId</c>, else derived from its label
-    /// ("Save draft" → <c>saveDraft</c>, Java's Button.resolvedActionId).</summary>
+    /// <summary>The action a YAML button dispatches: its <c>actionId</c>; a button that declares
+    /// neither one nor an <c>actionable:</c> is INERT and carries none (Java's
+    /// YamlUidlMapperFactory.InertButton — the label's echo was dispatched and refused with a 403);
+    /// a route button keeps the one derived from its label ("Save draft" → <c>saveDraft</c>, Java's
+    /// Button.resolvedActionId).</summary>
     private static string ActionIdOf(IDictionary<object, object> button) =>
-        Str(button, "actionId") is { Length: > 0 } declared ? declared : Camelcasize(Str(button, "label"));
+        Str(button, "actionId") is { Length: > 0 } declared ? declared
+        : button.TryGetValue("actionable", out var actionable) && actionable is not null
+            ? Camelcasize(Str(button, "label"))
+            : "";
 
     /// <summary>Java's Button.camelcasize: words split at case changes and non-letters, lower-cased,
     /// joined in camelCase.</summary>

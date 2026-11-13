@@ -103,6 +103,15 @@ jobs:
       - name: Shipped frontend dependencies are under approved licences
         run: node scripts/check-frontend-licenses.mjs web react-native vscode-extension
 
+      # Permissive is not enough: MIT, BSD and Apache-2.0 want their notices to travel with every
+      # copy, and a minified bundle keeps none. Each shipped bundle carries THIRD-PARTY-LICENSES.txt
+      # (written by its `npm run copy`); a dependency change without regenerating it fails here.
+      - name: The shipped bundles carry their dependencies' licence notices
+        run: |
+          node scripts/third-party-notices.mjs vaadin --check backend/shared/frontend/vaadin-lit/src/main/resources/static/assets/THIRD-PARTY-LICENSES.txt
+          node scripts/third-party-notices.mjs vaadin --check demo/sites/vaadin/assets/THIRD-PARTY-LICENSES.txt
+          node scripts/third-party-notices.mjs visual-editor --check frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/THIRD-PARTY-LICENSES.txt
+
       # Mateu's own components take colour, spacing and type from the design system's tokens; a
       # hard-coded literal ignores dark mode, forced colours and a customer theme. A ratchet: the
       # per-file counts in scripts/design-tokens-baseline.json may only go down (UX review 2026-10).
@@ -194,7 +203,7 @@ jobs:
         run: cd frontend/web/monorepo/apps/redwood/poc && node parity-check.mjs
 
       - name: The IDE plugins' versions follow the framework's release tag; pre-releases of a later line stay out of production
-        run: node --test scripts/plugin-versions.test.mjs scripts/npm-version.test.mjs scripts/release-gates.test.mjs scripts/archetype-post-generate.test.mjs
+        run: node --test scripts/plugin-versions.test.mjs scripts/npm-version.test.mjs scripts/release-gates.test.mjs scripts/release-line.test.mjs scripts/archetype-post-generate.test.mjs doc/src/plugins/mateu-version.test.mjs scripts/bump-example-version.test.mjs scripts/desktop-checks.test.mjs
 
       - name: The docs' component list is the component catalogue (uidl-catalog.json)
         run: node scripts/gen-supported-components.mjs --check
@@ -234,6 +243,12 @@ jobs:
 
       - name: React Native renderer type check
         run: cd frontend/app/react-native && npm ci --ignore-scripts && npx --no -- tsc --noEmit
+
+      # Every release pushes this JavaScript over the air to installed apps of the same app version;
+      # a native change (module, permission, config plugin, icon…) without a new expo.version would
+      # crash them. The surface is recorded in native-surface.json with its app version.
+      - name: React Native native changes come with a new app version
+        run: cd frontend/app/react-native && node scripts/native-surface.mjs --check
 
       # Typecheck, unit tests (manifest contract + New File skeletons) and a real non-interactive
       # `vsce package` — packaging stages LICENSE, the specs schema, the New File templates and the

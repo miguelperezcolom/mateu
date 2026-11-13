@@ -161,8 +161,35 @@ class ProxyHandlerMixin(MixinBase):
                     instance = None
             source = self.mapper.resolve_rest_source(cls, kind, source_id, instance)
             if source is not None:
+                self._check_rest_source_access(cls, kind, source_id)
                 return self._proxied_answer(source, rq)
         return UIIncrement(app_data={"_restfetch": {}})
+
+    def _check_rest_source_access(self, cls, kind, source_id) -> None:
+        """Refuses (403) a proxy fetch whose DECLARING member the caller may not use: the
+        ``eyes_only``/``disabled_unless`` of an ``action`` method, the ``EyesOnly`` of an
+        ``options`` field — the answer the method or the field gives when asked directly. Without
+        it a caller who gets no button could still send ``__restfetch__`` and have the server make
+        the call, secrets included (Java's ``RestSourceResolver.checkAccess``). ``rows``/``data``
+        are declared on the class, whose access was enforced when the request resolved it."""
+        from .. import action_guard
+        from ..naming import camel_case
+        from ..reflection import view_fields
+
+        if not isinstance(cls, type) or not source_id:
+            return
+        wanted = str(source_id)
+        if kind == "action":
+            for klass in cls.__mro__:
+                for name, member in vars(klass).items():
+                    if (name == wanted or camel_case(name) == wanted) and callable(member):
+                        action_guard.ensure_may_invoke(self.mapper, cls, member, wanted)
+                        return
+        elif kind == "options":
+            for f in view_fields(cls):
+                if f.name == wanted or camel_case(f.name) == wanted:
+                    action_guard.ensure_field_visible(self.mapper, cls, f)
+                    return
 
     def _proxied_answer(self, source, rq: RunActionRq) -> UIIncrement:
         """What ``__restfetch__`` answers for a source the page declares, a class view's or a

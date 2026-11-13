@@ -47,7 +47,8 @@
           "separatorBefore" : false,
           "children" : null,
           "route" : null,
-          "rowsSelectedRequired" : false
+          "rowsSelectedRequired" : false,
+          "split" : false
         } ],
         "buttons" : [ ],
         "avatar" : null,
@@ -64,7 +65,8 @@
           "type" : "ItemOverviewPage",
           "avatar" : {
             "src" : "${state.image}",
-            "initials" : "LS"
+            "initials" : "LS",
+            "alt" : "${state.name}"
           },
           "photo" : null
         }
@@ -133,9 +135,9 @@
                   "metadata" : {
                     "type" : "Image",
                     "src" : "${state.image}",
-                    "alt" : null
+                    "alt" : "${state.name}"
                   },
-                  "id" : "image-ca7b7cdb",
+                  "id" : "image-eccf359",
                   "children" : [ ],
                   "style" : "width: 8rem; height: 8rem; border-radius: 50%; object-fit: cover",
                   "cssClasses" : null,
@@ -208,7 +210,8 @@
                     "treeLeavesOnly" : false,
                     "multiline" : false,
                     "propertyRow" : false,
-                    "link" : null
+                    "link" : null,
+                    "autocomplete" : null
                   },
                   "id" : "gender",
                   "children" : [ ],
@@ -262,7 +265,8 @@
                     "treeLeavesOnly" : false,
                     "multiline" : false,
                     "propertyRow" : false,
-                    "link" : null
+                    "link" : null,
+                    "autocomplete" : null
                   },
                   "id" : "homeworld",
                   "children" : [ ],
@@ -299,9 +303,10 @@
                     "attributes" : { },
                     "text" : "Last seen on Tatooine",
                     "size" : null,
-                    "noMargins" : false
+                    "noMargins" : false,
+                    "variants" : null
                   },
-                  "id" : "6019cb33-07f7-4265-a951-c841471082c9",
+                  "id" : "e530daad-77e7-483b-b5a2-60b216435343",
                   "children" : [ ],
                   "style" : null,
                   "cssClasses" : null,
@@ -411,7 +416,8 @@
                   "treeLeavesOnly" : false,
                   "multiline" : false,
                   "propertyRow" : false,
-                  "link" : null
+                  "link" : null,
+                  "autocomplete" : null
                 },
                 "id" : "height",
                 "children" : [ ],
@@ -482,7 +488,8 @@
                   "treeLeavesOnly" : false,
                   "multiline" : false,
                   "propertyRow" : false,
-                  "link" : null
+                  "link" : null,
+                  "autocomplete" : null
                 },
                 "id" : "eyeColor",
                 "children" : [ ],

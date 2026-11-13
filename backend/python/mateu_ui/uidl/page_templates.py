@@ -24,10 +24,13 @@ class FormTemplate:
 
 @dataclass(frozen=True)
 class TemplateImage:
-    """The image of a template: a ``src`` url, or the ``initials`` an avatar shows without one."""
+    """The image of a template: a ``src`` url, or the ``initials`` an avatar shows without one.
+    ``alt`` is what a screen reader reads for it; without one, the page's title (the image is the
+    record the page is about)."""
 
     src: str | None = None
     initials: str | None = None
+    alt: str | None = None
 
 
 @dataclass(frozen=True)

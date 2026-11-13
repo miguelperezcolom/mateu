@@ -72,6 +72,7 @@ define([
       const refreshed = bridge.listingOf(reg.contexts[bridge.HOST_ID]);
       $application.variables.mateuListing = refreshed;
       $application.variables.mateuListingRows = refreshed ? refreshed.rows : [];
+      bridge.forgetEditedRows(); // the rows are the server's again (inline editing, R-3)
       // another page, other rows: the selection (the page's _rowNumber keys) is not inherited
       if (page) {
         $application.variables.mateuListingSelection = { all: false, keys: [], except: [] };

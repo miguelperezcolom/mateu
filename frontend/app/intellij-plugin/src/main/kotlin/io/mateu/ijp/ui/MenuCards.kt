@@ -34,14 +34,16 @@ object MenuCards {
     }
 
     /**
-     * Resolves an entry image: data:/http(s)/file URIs are kept, anything else is relative to the
-     * backend base URL (the plugin has no document origin to resolve it against).
+     * Resolves an entry image: data: and http(s) URIs are kept, a scheme-less path is relative to
+     * the backend base URL (the plugin has no document origin to resolve it against). Any other
+     * scheme (`file:`, `ftp:`, `jar:`…) is never fetched: null (GA-5.2).
      */
     fun resolveImageUri(image: String?, baseUrl: String): String? {
         val src = image?.trim().orEmpty()
         if (src.isEmpty()) return null
-        if (Regex("^(data:|https?:|file:)", RegexOption.IGNORE_CASE).containsMatchIn(src)) return src
+        if (Regex("^(data:|https?:)", RegexOption.IGNORE_CASE).containsMatchIn(src)) return src
         if (src.startsWith("//")) return "https:$src"
+        if (Regex("^[A-Za-z][A-Za-z0-9+.-]*:").containsMatchIn(src)) return null
         return baseUrl.trimEnd('/') + "/" + src.trimStart('/')
     }
 

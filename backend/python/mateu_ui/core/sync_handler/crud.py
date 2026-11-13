@@ -316,7 +316,8 @@ class CrudHandlerMixin(MixinBase):
             raise UserFacingException(
                 "This application has no exporter for that format.", title="Export not available"
             )
-        rows = self._filtered_rows(crud, view_fields(element), rq)
+        rq = self.guarded_query(rq, element)
+        rows = self._filtered_rows(crud, self.row_props(element), rq)
         file = exporter.export(
             ListingExport(
                 format=export_format,
@@ -706,12 +707,20 @@ class CrudHandlerMixin(MixinBase):
         read_only = bool(class_flag(element, "__mateu_read_only__", False))
         from ..mapper.crud_modes import server_owned
 
-        # ...nor does an edit's server-owned value (GeneratedValue / EditableOnlyWhenCreating)
+        # ...nor does an edit's server-owned value (GeneratedValue / EditableOnlyWhenCreating),
+        # nor a field the LISTING does not show (HiddenInList): an inline edit can only have
+        # touched a cell on screen
+        from mateu_ui.uidl import HiddenInList
+
         locked = {
             camel_case(f.name) for f in view_fields(element)
-            if read_only or f.has(ReadOnly) or server_owned(f, False)
+            if read_only or f.has(ReadOnly) or f.has(HiddenInList) or server_owned(f, False)
         }
-        self.bind_state(entity, {k: v for k, v in row.items() if k not in locked})
+        # ...nor a HiddenInEditor() field: the row is the EDIT form's record, and what that form
+        # does not render is not the user's to write (the editor save's without_hidden_inputs)
+        self.bind_state(
+            entity, without_hidden_inputs(element, {k: v for k, v in row.items() if k not in locked}, False)
+        )
         entity.id = stored.id if hasattr(stored, "id") else raw_id
         # the row is the EDIT form's record: a HiddenInEditor() field is not the user's to fill,
         # and the constraints the editor would check are checked here too (Java's
@@ -732,10 +741,7 @@ class CrudHandlerMixin(MixinBase):
             stored = crud.get(crud.id_of(entity))
             if stored is not None:
                 stored_version = self._version_of(stored, version)
-                if self._force_overwrite(rq):
-                    # adopt the STORED version so the bump moves it forward, never backwards
-                    setattr(entity, version.name, stored_version)
-                elif stored_version > self._version_of(entity, version):
+                if not self._force_overwrite(rq) and stored_version > self._version_of(entity, version):
                     return self.conflict_response(
                         "This row changed while you were editing it. Reload to see the"
                         " changes or overwrite them with your version.",
@@ -744,6 +750,10 @@ class CrudHandlerMixin(MixinBase):
                         rq,
                         {"_editedRow": row},
                     )
+                # the row is saved FROM the stored version (on an overwrite too): the client's copy
+                # only answered "did you see the latest?" -- a crafted version ahead of the stored
+                # one (999) used to be saved and bumped to 1000 (the editor save's rule)
+                setattr(entity, version.name, stored_version)
             setattr(entity, version.name, self._version_of(entity, version) + 1)
         crud.save(entity)
         observability.record_id(getattr(entity, "id", None))

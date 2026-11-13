@@ -8,6 +8,7 @@ from typing import Annotated
 
 from mateu_ui.uidl import (
     Crud,
+    EditableOnlyWhenCreating,
     HomeRouteSupplier,
     Money,
     Panel,
@@ -30,7 +31,9 @@ class ProductStatus(Enum):
 class Product:
     """The model, declared once: columns, form fields and validation are derived from it."""
 
-    id: Annotated[str, Required()] = ""
+    # a product code the user types on create (without the marker the id would be technical: the
+    # store assigns it and the creation form draws no input for it)
+    id: Annotated[str, Required(), EditableOnlyWhenCreating()] = ""
     name: Annotated[str, Required()] = ""
     price: Annotated[float, Money()] = 0.0
     status: ProductStatus = ProductStatus.Available

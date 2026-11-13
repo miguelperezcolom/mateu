@@ -31,11 +31,17 @@ class DirtyGuard {
     private _overlays = new Map<EventTarget, { dirty: boolean, hold: boolean }>()
     private _installed = false
 
-    /** Message shown in the confirmation dialog. Assign to localise it. */
-    message = chromeText('unsavedChanges')
+    private _message?: string
+    private _discardMessage?: string
+
+    /** Message shown in the confirmation dialog: in the page's language when it is asked (the
+     *  server's locale lands after this module is built — W-4); assign to override it. */
+    get message(): string { return this._message ?? chromeText('unsavedChanges') }
+    set message(text: string) { this._message = text }
 
     /** Message shown when closing an overlay (dialog/drawer) that holds unsaved changes. */
-    discardMessage = chromeText('unsavedChangesInOverlay')
+    get discardMessage(): string { return this._discardMessage ?? chromeText('unsavedChangesInOverlay') }
+    set discardMessage(text: string) { this._discardMessage = text }
 
     /**
      * Idempotent. Wires the document-level `dirty` / `clean` listeners and the

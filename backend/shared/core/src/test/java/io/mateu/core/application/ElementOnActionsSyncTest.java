@@ -53,4 +53,33 @@ class ElementOnActionsSyncTest {
       assertThat(ids).doesNotContain("notHandledHere");
     }
   }
+
+  /**
+   * What is advertised is ACCEPTED back: the strict server check read only {@code actionId} keys,
+   * so the advertised {@code on:} handler answered 403 when the browser sent it.
+   */
+  @Test
+  void theAdvertisedHandlerRunsAndAnIdWithNoMethodIsRefused() {
+    try (var mateu = TestMateu.withUis(Elements.class)) {
+      var answer = mateu.run(rq("elementClicked"));
+      assertThat(answer.messages()).extracting(m -> m.text()).contains("clicked");
+      org.assertj.core.api.Assertions.assertThatThrownBy(() -> mateu.run(rq("notHandledHere")))
+          .satisfies(
+              e ->
+                  assertThat(io.mateu.core.application.security.MateuForbiddenException.find(e))
+                      .isNotNull());
+    }
+  }
+
+  private static io.mateu.dtos.RunActionRqDto rq(String actionId) {
+    return io.mateu.dtos.RunActionRqDto.builder()
+        .route("/element-on-actions")
+        .consumedRoute("/element-on-actions")
+        .serverSideType(Elements.class.getName())
+        .actionId(actionId)
+        .initiatorComponentId("c1")
+        .componentState(Map.of())
+        .parameters(Map.of())
+        .build();
+  }
 }

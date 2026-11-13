@@ -60,8 +60,10 @@ public class ExportActionRunner implements ActionRunner {
           new UserFacingException(
               "Export not available", "This application has no exporter for that format."));
     }
-    var search = exportSearch(instance, httpRequest);
-    return fetchAllRows(instance, search, httpRequest)
+    // no filtering or sorting by what the caller may not read (the page is the server's)
+    var guarded = ListingQueryGuard.apply(instance, httpRequest);
+    var search = exportSearch(instance, guarded);
+    return fetchAllRows(instance, search, guarded)
         .flatMapMany(
             rows ->
                 Flux.just(
@@ -84,7 +86,8 @@ public class ExportActionRunner implements ActionRunner {
       Class<?> rowClass,
       HttpRequest httpRequest) {
     var export =
-        new ListingExport(format, titleOf(instance), buildExportColumns(rowClass), rows, search);
+        new ListingExport(
+            format, titleOf(instance), buildExportColumns(rowClass, httpRequest), rows, search);
 
     ExportedFile file;
     // the port declares `throws Exception` (IO/format failures) — surface it as itself
@@ -149,11 +152,13 @@ public class ExportActionRunner implements ActionRunner {
     return Object.class;
   }
 
-  private List<ExportColumn> buildExportColumns(Class<?> rowClass) {
+  private List<ExportColumn> buildExportColumns(Class<?> rowClass, HttpRequest httpRequest) {
     var columns = new ArrayList<ExportColumn>();
     for (Field field : rowClass.getDeclaredFields()) {
       if (MetaAnnotations.isPresent(field, Hidden.class)
-          || MetaAnnotations.isPresent(field, HiddenInList.class)) {
+          || MetaAnnotations.isPresent(field, HiddenInList.class)
+          // the column the listing does not draw for the caller is not in their file either
+          || !io.mateu.core.domain.FieldAccess.isShown(field, httpRequest)) {
         continue;
       }
       String label =

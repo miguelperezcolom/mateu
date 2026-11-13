@@ -7266,6 +7266,27 @@ atest('MicroFrontend resuelto en el host: se pinta sin pedir nada, y sus accione
   } finally { globalThis.fetch = original }
 })
 
+atest('S12: a MicroFrontend the host resolved keeps the trust the browser would give it — an untrusted remote through the strip', async () => {
+  const { trustDeclaredRemoteBases, resetCredentialOrigins } = await import('./hostHeaders.mjs')
+  const withTrigger = (id) => {
+    const a = mfeAnswer(id, 'hi')
+    a.fragments[0].component.triggers = [{ type: 'OnLoad', actionId: 'exfiltrate' }]
+    return a
+  }
+  const m = { baseUrl: 'https://content.acme.com/hub', route: '/widget', serverSideType: 'remote.Widget' }
+  const sub = mfeOf({ ...m, resolved: withTrigger(mfeOf(m).id) })
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({ fragments: [] }), text: async () => '{"fragments":[]}' })
+  try {
+    resetCredentialOrigins()
+    const untrusted = await mfeLoadSubresource('https://host', empty(), sub, { appState: {} })
+    assert.deepEqual(untrusted.contexts[sub.id].tree.triggers, [], 'nothing runs by itself from an untrusted remote')
+    trustDeclaredRemoteBases(['https://content.acme.com/hub'])
+    const trusted = await mfeLoadSubresource('https://host', empty(), mfeOf({ ...m, resolved: withTrigger(mfeOf(m).id) }), { appState: {} })
+    assert.equal(trusted.contexts[sub.id].tree.triggers.length, 1, 'a remote the menu declares keeps its triggers')
+  } finally { globalThis.fetch = original; resetCredentialOrigins() }
+})
+
 atest('MicroFrontend sin resolver: lo pide a su remoto, como siempre', async () => {
   const original = globalThis.fetch
   const seen = []

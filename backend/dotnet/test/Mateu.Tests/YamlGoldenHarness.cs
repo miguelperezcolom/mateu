@@ -27,8 +27,10 @@ internal static class YamlGoldenHarness
     public static string GoldenPath(string name) => Path.Combine(RepoRoot(),
         "frontend/web/monorepo/libs/mateu/src/mateu/ui/infra/expander/__fixtures__", name + ".golden.json");
 
+    // a generated id: a UUID, or Java's WireIds `<type>-<Integer.toHexString(hashCode)>` — the hex
+    // drops leading zeros, so it is not always 8 digits (an Image's came out as 7 once its alt changed)
     private static readonly Regex Generated =
-        new("^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Za-z]+-[0-9a-f]{8}|fieldId)$");
+        new("^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[A-Za-z]+-[0-9a-f]{6,8}|fieldId)$");
 
     /// <summary>Keeps the authored ids (renamed so the conformance normaliser, which drops every
     /// <c>id</c>, keeps them) and drops the generated ones.</summary>

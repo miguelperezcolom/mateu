@@ -349,6 +349,22 @@ public class FileUploadEndpointTests
     }
 
     [Fact]
+    public async Task A_single_file_ticket_sends_its_share_then_answers_429()
+    {
+        var store = new InMemoryFileStorage();
+        await using var host = await Boot(store);
+        var ticket = (await AttributesOf(host.Http, "contract"))["uploadTicket"];
+        for (var i = 0; i < FileUploads.SingleFileUses; i++)
+        {
+            using var ok = await host.Http.SendAsync(Upload(ticket, Encoding.ASCII.GetBytes("%PDF-1.7")));
+            Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
+        }
+        using var refused = await host.Http.SendAsync(Upload(ticket, Encoding.ASCII.GetBytes("%PDF-1.7")));
+        Assert.Equal((HttpStatusCode)429, refused.StatusCode);
+        Assert.Contains("Too many uploads", await refused.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
     public async Task An_upload_without_a_valid_ticket_of_this_caller_is_refused()
     {
         await using var host = await Boot(new InMemoryFileStorage());

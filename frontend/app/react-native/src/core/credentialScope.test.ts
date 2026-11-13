@@ -122,3 +122,40 @@ test('R5: a backslash or a tab does not make another origin "relative" — expo 
     setTokenProvider(undefined);
   }
 });
+
+test('GA-5.1: a HUB UI (its own provider, no global one) sends its Bearer to the remotes its backend names', async () => {
+  // the hub never registers a global provider: each UI session carries its own
+  const host = new MateuSession('https://app.example', 'sid', {}, tokens);
+  const island = islandSession(host, 'https://inbox.example/_inbox');
+  const islandHeaders = await island.api.headers();
+  assert.equal(islandHeaders['Authorization'], 'Bearer tok');
+  assert.equal(islandHeaders['X-Session-Id'], 'sid');
+  assert.equal(island.api.auth, tokens, "a 401 re-authenticates against the UI's own provider");
+
+  declareMenuRemotes(host, [{ label: 'Mail', baseUrl: 'https://mail.example/_mail' }]);
+  assert.equal((await navigationSession(host, 'https://mail.example/_mail').api.headers())['Authorization'], 'Bearer tok');
+
+  // an origin nobody named stays anonymous, and never falls back to the process-wide provider
+  const stranger = navigationSession(host, 'https://stranger.example');
+  const strangerHeaders = await stranger.api.headers();
+  assert.equal(strangerHeaders['Authorization'], undefined);
+  assert.equal(strangerHeaders['X-Session-Id'], undefined);
+  assert.equal(stranger.api.auth, null);
+
+  // an open hub UI (null provider) stays open on its remotes too
+  const open = new MateuSession('https://app.example', 'sid', {}, null);
+  assert.equal(islandSession(open, 'https://inbox.example/_inbox').api.auth, null);
+});
+
+test('GA-5.1: a single-backend build (the global provider) keeps using it for a trusted remote', async () => {
+  setTokenProvider(tokens);
+  try {
+    const host = new MateuSession('https://app.example', 'sid', {});
+    const island = islandSession(host, 'https://inbox.example/_inbox');
+    assert.equal(island.api.auth, undefined);
+    assert.equal((await island.api.headers())['Authorization'], 'Bearer tok');
+    assert.equal(navigationSession(host, 'https://stranger.example').api.auth, null);
+  } finally {
+    setTokenProvider(undefined);
+  }
+});

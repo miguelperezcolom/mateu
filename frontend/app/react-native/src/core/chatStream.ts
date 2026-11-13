@@ -615,15 +615,33 @@ export function previewOverlayOf(fragment: Json, target: 'drawer' | 'dialog', ti
 
 /** A navigation-requested detail as the navigation a menu click carries. */
 export function chatNavigationOf(detail: unknown): ChatNavigation | null {
-  const d = (detail && typeof detail === 'object' ? detail : {}) as Json;
-  const s = (k: string) => (typeof d[k] === 'string' ? (d[k] as string) : undefined);
-  const nav: ChatNavigation = { route: s('route') ?? '', consumedRoute: s('consumedRoute') ?? '', actionId: s('actionId') ?? '' };
-  if (!nav.route && !nav.actionId) return null;
+  const fields = agentNavigationFieldsOf(detail);
+  if (!fields.route) return null;
+  // the action id never travels (S7): an agent's navigation opens a place, it never runs an action
+  const nav: ChatNavigation = { route: fields.route, consumedRoute: fields.consumedRoute ?? '', actionId: '' };
   for (const k of ['baseUrl', 'serverSideType', 'uriPrefix'] as const) {
-    const v = s(k);
+    const v = fields[k];
     if (v) nav[k] = v;
   }
   return nav;
+}
+
+/** The fields of a navigation an agent may set: where to go — nothing that RUNS something. */
+export const AGENT_NAVIGATION_FIELDS = ['route', 'consumedRoute', 'serverSideType', 'uriPrefix', 'baseUrl'] as const;
+
+/**
+ * What an agent's `navigation-requested` detail may carry (S7): a WHITELIST of where-to-go fields,
+ * string values only. A menu leaf's `rules` (RunAction / RunJS) and its `actionId` never travel — a
+ * navigation an agent asks for must not run an app action as the signed-in user without a click.
+ * Pinned by the `navigations` cases of conformance/client/agent-events.json (the web's
+ * agentEvents.trustedNavigationOf and Redwood's chatNavigationOf run them too). The base url is
+ * then held to the trust rule by uiEvents.trustedNavigationOf.
+ */
+export function agentNavigationFieldsOf(detail: unknown): Partial<Record<(typeof AGENT_NAVIGATION_FIELDS)[number], string>> {
+  const d = (detail && typeof detail === 'object' ? detail : {}) as Json;
+  const out: Partial<Record<(typeof AGENT_NAVIGATION_FIELDS)[number], string>> = {};
+  for (const k of AGENT_NAVIGATION_FIELDS) if (typeof d[k] === 'string') out[k] = d[k] as string;
+  return out;
 }
 
 // ── links in answers ─────────────────────────────────────────────────────────────────────────

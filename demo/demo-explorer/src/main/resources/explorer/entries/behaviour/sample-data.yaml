@@ -17,10 +17,10 @@ description: |
   from the sample, with no request to the endpoint. (Sample mode is a switch of the whole server,
   which is why it cannot be flipped from this page.)
 
-  > **Known issue (3.0-beta.51):** the failed first load (the 404) is silent — no error is shown,
+  > **Known issue (3.0-beta.64):** the failed first load (the 404) is silent — no error is shown,
   > although a failed call is documented to show what the service said. Reported.
 knownIssue: >-
-  3.0-beta.51: a listing whose first load fails (404) shows no error.
+  3.0-beta.64: a listing whose first load fails (404) shows no error.
 probeAllows: ["status of 404"]   # done on purpose (see the description)
 examples:
   - title: "An endpoint still to be built"

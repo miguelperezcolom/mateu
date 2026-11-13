@@ -8527,7 +8527,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           const shown = lookupLabel != null && lookupLabel !== ''
             ? readOnlyDisplayOf({ ...m, dataType: 'string', stereotype: m.stereotype === 'password' ? 'password' : 'regular', options: [] }, lookupLabel)
             : readOnlyDisplayOf(m, raw, ctx.data)
-          atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(shown.text), valueClass: shown.badgeClass }, container)
+          atom({ isPropertyRow: true, label: m.label || m.displayName || fieldId, value: interp(shown.text), valueClass: shown.badgeClass,
+            ...propertyRowBoolOf(shown) }, container)
           return
         }
         if (m.dataType === 'status') {
@@ -8985,7 +8986,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // handler in links.mjs navigates INSIDE the shell if it is an app route, and target=_blank
       // (an external URL, a PDF) opens another tab without going through the server
       if (t === 'Anchor') {
-        const href = interp(m.url)
+        // the url may come from a record (`${state.website}`): a `javascript:`/`data:` one is no
+        // link — safeHref, like every other link here and the web's anchor (R-2); its text stays
+        const raw = interp(m.url)
+        const href = safeHref(raw)
+        if (raw && !href) {
+          atom({ isText: true, text: interp(m.text) || raw, cls: '' }, container)
+          return
+        }
         if (href) {
           const target = m.target ? String(m.target) : ''
           atom({
@@ -9976,7 +9984,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // its shell (menu, pickers, header actions, shortcuts) is its own, as on its own page
         if (ctx.embeddedApp) {
           const href = safeHref(ctx.embeddedApp.src)
-          return href ? [{ isAppFrame: true, src: href, title: ctx.embeddedApp.title || '', frameStyle: { height: ctx.embeddedApp.height || '36rem' }, fromSurface: true }] : []
+          return href ? [{ isAppFrame: true, src: href, title: ctx.embeddedApp.title || href, frameStyle: { height: ctx.embeddedApp.height || '36rem' }, fromSurface: true }] : []
         }
         const crud = findByType(ctx.tree, 'Crud')
         // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
@@ -11229,6 +11237,39 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const ROW_CLICK_EXCLUDED = '.' + NO_OPEN_CELL_CLASS + ', [data-method], oj-button, oj-c-button, button, a, input, select, textarea, label, '
     + 'oj-selector, oj-c-selector, oj-checkboxset, [role="checkbox"], [role="button"], [role="link"], [role="menuitem"], '
     + 'oj-input-text, oj-input-number, oj-switch, oj-select-single, oj-c-select-single, oj-menu-button, oj-c-menu-button'
+
+  // ── inline editing: the row a committed cell sends (R-3) ──────────────────────────────────────
+  // The cell editors are one-way bound and update-row answers no fragments, so the listing's rows
+  // keep the values the server first sent: built from them, the SECOND edit of a row sent the first
+  // edited cell's OLD value and the store reverted it. What was committed is kept here per row key,
+  // with the row it was committed over: while the listing still shows that row, the commits ride
+  // along; once it shows another (a search brought the saved values, or another row) they are
+  // dropped — the server's row is then the truth.
+  const committedEdits = new Map()
+  const committedRowKeyOf = (row) => (row && row._rowNumber !== undefined ? String(row._rowNumber) : null)
+  const sameCommittedRow = (a, b) => { try { return JSON.stringify(a) === JSON.stringify(b) } catch { return false } }
+
+  /** The whole row an inline edit of `field` to `value` sends as `_editedRow`: the listing's row,
+   *  plus every cell committed earlier on it, plus this one. Records this commit. */
+  function editedRowOf(rowData, field, value) {
+    const key = committedRowKeyOf(rowData)
+    const kept = key != null ? committedEdits.get(key) : undefined
+    const earlier = kept && sameCommittedRow(kept.base, rowData) ? kept.patch : {}
+    const patch = { ...earlier, [field]: value }
+    if (key != null) committedEdits.set(key, { base: { ...rowData }, patch })
+    return { ...rowData, ...patch }
+  }
+
+  /** The value a cell shows as committed (the listing's own, or a commit riding along). */
+  function committedCellValueOf(rowData, field) {
+    const key = committedRowKeyOf(rowData)
+    const kept = key != null ? committedEdits.get(key) : undefined
+    if (kept && sameCommittedRow(kept.base, rowData) && field in kept.patch) return kept.patch[field]
+    return rowData ? rowData[field] : undefined
+  }
+
+  /** A listing (re)loaded or a commit failed: what was kept is no longer known to be the server's. */
+  function forgetEditedRows() { committedEdits.clear() }
 
   /** Whether a row action that started on `origin` (the original event target) is the ROW's — a
    *  click on a plain cell — rather than a control's or a display column's. `row` is the element
@@ -13145,6 +13186,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return byTreeId || t
   }
 
+  /** Which context a MarkAsClean / MarkAsDirty is about: its target (a context id, or the tree id a
+   *  context answers to), else the surface that launched the request (opts.initiator), else — no
+   *  target and no initiator — the page, like any command with an empty target (R-7: the page's
+   *  MarkAsDirty used to land nowhere). */
+  function markTargetOf(contexts, t, refreshed, opts) {
+    if (t && contexts[t]) return t
+    const launched = refreshed[opts.initiator] || opts.initiator
+    if (launched) return launched
+    if (t) {
+      const resolved = resolveTarget(contexts, t)
+      return contexts[resolved] ? resolved : undefined
+    }
+    return HOST_ID
+  }
+
   /**
    * THE REDUCER. reg = { contexts, stack, shell }; returns the NEW reg + the effects VB
    * applies. Pure and immutable with structural sharing: only the touched entries change ref.
@@ -13419,12 +13475,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           break
         }
         case 'MarkAsClean': {
-          const id = t && contexts[t] ? t : (refreshed[opts.initiator] || opts.initiator)
-          if (id && contexts[id]) contexts[id] = { ...contexts[id], dirty: false }
+          const id = markTargetOf(contexts, t, refreshed, opts)
+          // `cleaned` counts the MarkAsCleans: a second one on an already clean context is still news
+          // to whoever keeps its own flag (the page's mateuDirty — shellFlows.pageDirtyAfterAction)
+          if (id && contexts[id]) contexts[id] = { ...contexts[id], dirty: false, cleaned: (contexts[id].cleaned || 0) + 1 }
           break
         }
         case 'MarkAsDirty': {
-          const id = t && contexts[t] ? t : (refreshed[opts.initiator] || opts.initiator)
+          const id = markTargetOf(contexts, t, refreshed, opts)
           if (id && contexts[id]) contexts[id] = { ...contexts[id], dirty: true }
           break
         }
@@ -13889,11 +13947,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if ((f.dataType === 'money' || f.stereotype === 'money') && value != null && value !== '') {
       return { text: moneyText(value), badgeClass: '' }
     }
+    // a boolean reads like Vaadin's read-only one: a check / a dash, its accessible name Yes / No
+    // in the page's language — never the raw `true` (the Museums record page's «On view»)
+    if (f.dataType === 'bool' || f.dataType === 'boolean' || value === true || value === false) {
+      const checked = value === true || value === 'true'
+      return { text: chromeText(checked ? 'yes' : 'no'), badgeClass: '', bool: { checked } }
+    }
     const plain = plainValueOf(value)
     const label = optionLabel(plain)
     if (label != null) return { text: label, badgeClass: '' }
     const shown = shownReadOnlyValueOf(f, plain)
     return { text: shown == null ? '' : String(shown), badgeClass: '' }
+  }
+  /** The flags a property row's atom carries for a boolean value (readOnlyDisplayOf's `bool`): the
+   *  template draws the check / the dash with the value text (Yes / No) as its accessible name. */
+  function propertyRowBoolOf(shown) {
+    if (!shown || !shown.bool) return { isBoolValue: false, boolIconClass: '' }
+    return { isBoolValue: true, boolIconClass: shown.bool.checked ? 'oj-ux-ico-check' : 'oj-ux-ico-minus' }
   }
   const EMPTY_READONLY_WIDGET = { isText: false, isEmptyReadonly: true, isTextArea: false, isNumber: false, isDate: false, isDateTime: false,
     isSelect: false, isLookup: false, lookupActionId: '', options: [] }
@@ -18334,7 +18404,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const pendingActions = {
     _started: new Map(),
 
-    key(componentId, actionId) { return `${componentId || '_'}::${actionId}` },
+    /** The slot of an action of a component. With `parameters`, the slot is per parameter set: two
+     *  inline edits of DIFFERENT rows (update-row with another _editedRow) are two writes, not a
+     *  double click (R-4); the same parameters twice are one. */
+    key(componentId, actionId, parameters) {
+      const base = `${componentId || '_'}::${actionId}`
+      if (!parameters || typeof parameters !== 'object' || !Object.keys(parameters).length) return base
+      let tag
+      try { tag = JSON.stringify(parameters) } catch { tag = '' }
+      return tag ? `${base}::${tag}` : base
+    },
 
     /** Claims the slot. false = an identical one is already in flight and this is a duplicate. */
     begin(key, now = Date.now()) {
@@ -18353,6 +18432,36 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
     reset() { this._started.clear() },
   }
+
+  /** Whether the error band offers Retry for a failure: what can succeed on a second try (offline,
+   *  a timeout, a 5xx — `retryable`). A refusal (403, another 4xx) never: a Retry on «You're not
+   *  allowed to do this» can never succeed (Explorer F3). */
+  function offersRetry(failure) {
+    return !!(failure && failure.retryable)
+  }
+
+  /**
+   * What a DUPLICATE action answers (a second press while the first is in flight): an increment
+   * that changes nothing — never null, which the chains passed to the reducer and threw on, leaving a
+   * retry for an action that never failed, and which the proxied REST leg read as a success (R-4,
+   * R-5). Marked, not by content: isDuplicateAnswer tells it from a real empty answer.
+   */
+  function duplicateAnswer() {
+    const inc = { fragments: [], commands: [], messages: [] }
+    Object.defineProperty(inc, '__mateuDuplicate', { value: true, enumerable: false })
+    return inc
+  }
+
+  /** The same for a stream (runMateuActionSse answers its increments): none, marked. */
+  function duplicateStream() {
+    const increments = []
+    Object.defineProperty(increments, '__mateuDuplicate', { value: true, enumerable: false })
+    return increments
+  }
+
+  /** Whether an answer (an increment, or a stream's increments) is a dropped duplicate's: the chain
+   *  that asked stops there — the first press is the one that answers. */
+  function isDuplicateAnswer(inc) { return !!(inc && inc.__mateuDuplicate) }
 
   // ── lifecycle hooks ─────────────────────────────────────────────────────────────
 
@@ -18431,7 +18540,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * One send: applies the timeout (fetch has none) and turns a 4xx/5xx into an error that
    * CARRIES the status, because fetch resolves those as success and further down there would be no way to know.
    */
-  async function sendOnce(url, init, timeoutMillis) {
+  async function sendOnce(url, init, timeoutMillis, { httpErrors = true } = {}) {
     // Negative = NO ceiling, for a stream that lasts as long as it lasts (LongTask). Different from 0 /
     // absent, which means "use the default one".
     const noCeiling = timeoutMillis != null && timeoutMillis < 0
@@ -18442,9 +18551,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       timedOut = true
       if (controller) controller.abort()
     }, ms)
+    let bodyPending = false
     try {
       const res = await fetch(url, controller ? { ...init, signal: controller.signal } : init)
-      if (!res.ok) {
+      if (!res.ok && httpErrors) {
         const text = await res.text().catch(() => '')
         const error = new Error(`Mateu → HTTP ${res.status}${text ? `: ${text}` : ''}`)
         error.status = res.status
@@ -18453,15 +18563,59 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         error.build = buildOfHeaders(res.headers)
         throw error
       }
-      return res
+      if (!timer) return res
+      // The ceiling covers the BODY too (R-8): a server that sends its headers and then stalls held
+      // the chain and its double-submit slot for ever. The timer keeps running until the body is
+      // read (json/text/…); our abort then fails that read, marked as a timeout.
+      bodyPending = true
+      // a body nobody reads (a 204, a stream read by hand) must not keep a Node test process alive
+      if (typeof timer === 'object' && timer && typeof timer.unref === 'function') timer.unref()
+      return bodyBoundBy(res, () => { clearTimeout(timer) }, () => timedOut)
     } catch (e) {
       // An abort fired by OUR timeout must read as a timeout, not as a cancellation:
       // the user does need to find out.
       if (timedOut && e) e.__mateuTimedOut = true
       throw e
     } finally {
-      if (timer) clearTimeout(timer)
+      if (timer && !bodyPending) clearTimeout(timer)
     }
+  }
+
+  /**
+   * A request to a REST source in the browser (the direct leg, restSources.fetchRestJson): fetch has
+   * no timeout, so a stalled API hung the page for ever — this one has the transport's ceiling (body
+   * included) and, for a WRITE, the busy state of the press (the transport hooks). It carries none of
+   * Mateu's credentials or headers (a third party's endpoint) and answers the Response as it is,
+   * 4xx/5xx included: the REST code reads the service's error body itself (R-6). A timeout rejects
+   * marked `__mateuTimedOut`.
+   */
+  async function fetchDirect(url, init, options = {}) {
+    const method = String((init && init.method) || 'GET').toUpperCase()
+    const quiet = options.quiet != null ? !!options.quiet : (method === 'GET' || method === 'HEAD')
+    if (!quiet) notify('onStart', { actionId: options.actionId })
+    try {
+      return await sendOnce(url, init, options.timeoutMillis, { httpErrors: false })
+    } finally {
+      // a REST failure is shown by the REST code (its toast): the busy state only goes off
+      if (!quiet) notify('onSettle', { actionId: options.actionId, failure: null })
+    }
+  }
+
+  const BODY_READERS = new Set(['json', 'text', 'arrayBuffer', 'blob', 'formData'])
+
+  /** `res` whose body readers stop the request's timer when they settle, and whose read cut by our
+   *  timeout carries `__mateuTimedOut` like the request itself would. Everything else is `res`'s. */
+  function bodyBoundBy(res, done, timedOut) {
+    const guarded = (read) => Promise.resolve().then(read).then(
+      (v) => { done(); return v },
+      (e) => { done(); if (timedOut() && e) e.__mateuTimedOut = true; throw e })
+    return new Proxy(res, {
+      get(target, prop) {
+        const value = Reflect.get(target, prop, target)
+        if (BODY_READERS.has(prop) && typeof value === 'function') return (...args) => guarded(() => value.apply(target, args))
+        return typeof value === 'function' ? value.bind(target) : value
+      },
+    })
   }
 
   /**
@@ -18614,7 +18768,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // notify the hooks — the busy bar and the error band are about what the user does.
     // Neither does one from a component that already shows its own loading (isLocalRequest): the combo searching
     // its options spins its own indicator, and the bar on top meant two waits for one keystroke
-    const quiet = options.quiet || isLocalRequest(actionId)
+    // `local: false`: a request whose id reads local but is not — a proxied REST WRITE rides
+    // `__restfetch__`, and the user pressed a button for it (R-6)
+    const quiet = options.quiet || (options.local !== false && isLocalRequest(actionId))
     const notifyUnlessQuiet = (hook, payload) => { if (!quiet) notify(hook, payload) }
     // `isolated`: whatever happens to this request says nothing about the connection — a federated
     // pod's menu, often from another origin: a pod that is down is ITS section unavailable, not "offline"
@@ -23190,6 +23346,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * action goes to the server as before. With a `scope` the commands' placeholders are resolved
    * ({@link resolveFlowCommands}) — the page's state with the action's parameters on top of it.
    */
+  /**
+   * Whether a content button's action is CLAIMED by something on screen — a context (page, overlay,
+   * island, micro frontend) that advertises it (its actions, a `prefix*` wildcard included, or its
+   * declared flows) or the app's action catalogue. Vaadin's rule (mateu-component sends only what it
+   * advertises): a button with no action behind it — a YAML `Button` with a label and a style, whose
+   * id the server derives from the label — is inert. Redwood used to send it and answer the user
+   * «You're not allowed to do this» (403) with a Retry that could never succeed (Explorer F3).
+   */
+  function contentActionIsClaimed(reg, actionId) {
+    if (!actionId) return false
+    for (const ctx of Object.values((reg && reg.contexts) || {})) {
+      if (declaredActionOf(ctx, actionId)) return true
+      if (((ctx && ctx.declaredActions) || []).some((a) => a && a.id === actionId)) return true
+    }
+    return !!catalogueActionOf(reg && reg.shell, actionId)
+  }
+
   function pageFlowOf(reg, actionId, scope, contextId = HOST_ID) {
     // `contextId`: a SURFACE of its own (an inline island, a MicroFrontend) owns ITS actions the same way
     const host = reg && reg.contexts ? reg.contexts[contextId || HOST_ID] : null
@@ -23344,14 +23517,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function confirmLeaveAction(actionId, vars, win = (typeof window !== 'undefined' ? window : undefined), parameters = undefined) {
     if (!vars) return true
     const top = topOverlayContextOf(vars.mateuRegistry)
-    const dirty = top ? !!top.dirty : !!vars.mateuDirty
+    const dirty = top ? !!top.dirty : (!!vars.mateuDirty || pageMarkedDirty(vars.mateuRegistry))
     if (!dirty) return true
     if (!isLeaveAction(actionId, screenActionIdsOf(vars.mateuRegistry))) return true
     // the conflict dialog's Reload already said it drops the edits: no second question
     if (isConflictDialogAnswer(parameters)) return true
     if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
     if (top) vars.mateuRegistry = withOverlayDirty(vars.mateuRegistry, false)
-    else vars.mateuDirty = false
+    else { vars.mateuDirty = false; vars.mateuRegistry = withPageClean(vars.mateuRegistry) }
     return true
   }
 
@@ -23389,7 +23562,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * replacing the screen asks about. The web's `dirtyGuard.dirty`.
    */
   function hasUnsavedChanges(vars) {
-    return !!vars && (!!vars.mateuDirty || overlaysHoldUnsavedChanges(vars.mateuRegistry))
+    return !!vars && (!!vars.mateuDirty || pageMarkedDirty(vars.mateuRegistry) || overlaysHoldUnsavedChanges(vars.mateuRegistry))
+  }
+
+  /** The server said the PAGE has unsaved changes (a MarkAsDirty aimed at the host context: the
+   *  reducer keeps it there) — counted like the user's own edits (R-7). */
+  function pageMarkedDirty(reg) {
+    const host = reg && reg.contexts && reg.contexts[HOST_ID]
+    return !!(host && host.dirty === true)
+  }
+
+  /** The registry with the host context's server-set flag cleared (the user discarded the page). */
+  function withPageClean(reg) {
+    if (!pageMarkedDirty(reg)) return reg
+    return { ...reg, contexts: { ...reg.contexts, [HOST_ID]: { ...reg.contexts[HOST_ID], dirty: false } } }
+  }
+
+  /**
+   * The page's own unsaved-changes flag (`mateuDirty`) after an action re-projected the screen —
+   * runMateuAction (the page's or an overlay's action) and runMateuIslandAction (R-7). It used to be
+   * cleared by ANY re-projection: type in two fields, open a lookup dialog, close it, click a menu
+   * entry — no question, edits lost. The edits survive while the page's draft (`draft`, the values
+   * typed and not yet sent, as the chain leaves it) still holds them, unless the server said the page
+   * is clean (a MarkAsClean aimed at it with this action: its context's `cleaned` count grew) or the
+   * page was replaced by another (`replaced`).
+   */
+  function pageDirtyAfterAction({ wasDirty, draft, hostBefore, hostAfter, replaced = false }) {
+    if (replaced) return false
+    const markedClean = !!hostAfter && (hostAfter.cleaned || 0) > ((hostBefore && hostBefore.cleaned) || 0)
+    if (markedClean) return false
+    const pending = !!draft && typeof draft === 'object' && Object.keys(draft).length > 0
+    return !!wasDirty && pending
   }
 
   /**
@@ -23402,8 +23605,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!hasUnsavedChanges(vars)) return true
     if (!win || typeof win.confirm !== 'function' || !win.confirm(chromeText('unsavedLeave'))) return false
     vars.mateuDirty = false
-    vars.mateuRegistry = withoutOverlays(vars.mateuRegistry)
+    vars.mateuRegistry = withPageClean(withoutOverlays(vars.mateuRegistry))
     return true
+  }
+
+  /**
+   * A NavigateTo of a flow the BROWSER ran (the page's or the catalogue's `steps:`, no server answer)
+   * leaves the screen like a menu click, so with unsaved changes — the user's, or a MarkDirty step of
+   * that same flow — it asks first (W-3; Vaadin's mateu-component leaveToRoute). True = go on (the
+   * flags are cleared when it asked), false = stay. A server's NavigateTo is the server's decision:
+   * it never asks (`ranInBrowser` false).
+   */
+  function confirmFlowNavigation(vars, ranInBrowser, win = (typeof window !== 'undefined' ? window : undefined)) {
+    return !ranInBrowser || confirmNavigationAway(vars, win)
   }
 
   /**
@@ -25168,6 +25382,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js'
   const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css'
+  // Subresource integrity of the two files (R-9): the CDN serves them, the browser refuses a byte
+  // that changed. Computed from cdnjs' 1.9.4 files — a version bump changes both.
+  const LEAFLET_JS_INTEGRITY = 'sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg=='
+  const LEAFLET_CSS_INTEGRITY = 'sha512-Zcn6bjR/8RZbLEpLIeOwNtzREBAJnUKESxces60Mpoj+2okopSAcSUIUOseddDm0cxnGQzxIR7vJgsLZbdLE3w=='
   const OSM_TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
   const DEFAULT_PIN = '#c74634'
   const DEFAULT_ZOOM = 3
@@ -25175,13 +25393,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 
+  const mapEscapeText = (t) => String(t).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;').replaceAll("'", '&#39;')
+
   /** A map's tile layer: the wire's (tileUrl + attribution) or, without tileUrl, OSM. The
-   *  wire's template is already Leaflet's ({s}, {z}, {x}, {y}), so it passes through as is. */
+   *  wire's template is already Leaflet's ({s}, {z}, {x}, {y}), so it passes through as is.
+   *  Leaflet writes the attribution with innerHTML: the wire's is TEXT, so it is escaped (R-1) —
+   *  only our own OSM credit is markup. */
   function tileLayerOf(spec) {
     const url = spec && typeof spec.tileUrl === 'string' ? spec.tileUrl.trim() : ''
     if (!url) return { url: OSM_TILES, options: { maxZoom: 19, attribution: OSM_ATTRIBUTION } }
-    const attribution = spec.attribution ? String(spec.attribution).trim() : ''
+    const attribution = spec.attribution ? mapEscapeText(String(spec.attribution).trim()) : ''
     return { url, options: { maxZoom: 19, ...(attribution ? { attribution } : {}) } }
+  }
+
+  /** A marker's permanent label as a DOM node holding TEXT: Leaflet assigns a string tooltip with
+   *  innerHTML, and the label is record data (a hotel, a customer) — a name like
+   *  `<img src=x onerror=…>` ran script in every tab that opened the map, no click needed (R-1). */
+  function markerTooltipOf(doc, label) {
+    const span = doc.createElement('span')
+    span.textContent = String(label)
+    return span
   }
 
   let mapSink = null
@@ -25228,6 +25460,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The parameters of a marker's action. */
   const mapMarkerParams = (markerId) => ({ _markerId: markerId })
 
+  /** requirejs creates the <script> itself: its `onNodeCreated` hook puts the integrity on the
+   *  Leaflet node (only that one), chained after any hook the page already had. */
+  function withLeafletIntegrity(requirejs) {
+    if (!requirejs || typeof requirejs.config !== 'function') return
+    const ctx = requirejs.s && requirejs.s.contexts && requirejs.s.contexts._
+    const previous = ctx && ctx.config ? ctx.config.onNodeCreated : undefined
+    if (previous && previous.__mateuLeafletIntegrity) return
+    const hook = function (node, config, moduleName, url) {
+      if (typeof previous === 'function') previous.call(this, node, config, moduleName, url)
+      if (String(url || '').startsWith(LEAFLET_JS) || moduleName === LEAFLET_JS) {
+        node.setAttribute('integrity', LEAFLET_JS_INTEGRITY)
+        node.setAttribute('crossorigin', 'anonymous')
+      }
+    }
+    hook.__mateuLeafletIntegrity = true
+    requirejs.config({ onNodeCreated: hook })
+  }
+
   let leafletPromise = null
   function loadLeaflet(doc) {
     if (typeof window !== 'undefined' && window.L && window.L.map) return Promise.resolve(window.L)
@@ -25236,6 +25486,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const link = doc.createElement('link')
       link.rel = 'stylesheet'
       link.href = LEAFLET_CSS
+      link.integrity = LEAFLET_CSS_INTEGRITY
+      link.crossOrigin = 'anonymous'
       link.setAttribute('data-mateu-leaflet', '')
       doc.head.appendChild(link)
     }
@@ -25243,10 +25495,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const amd = typeof window !== 'undefined' && typeof window.require === 'function'
         && typeof window.define === 'function' && window.define.amd
       if (amd) {
+        withLeafletIntegrity(window.requirejs || window.require)
         window.require([LEAFLET_JS], (L) => resolve(L || window.L), reject)
         return
       }
       const script = doc.createElement('script')
+      script.integrity = LEAFLET_JS_INTEGRITY
+      script.crossOrigin = 'anonymous'
       script.src = LEAFLET_JS
       script.onload = () => resolve(window.L)
       script.onerror = reject
@@ -25255,6 +25510,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return leafletPromise
   }
 
+  const mapHostDocument = () => document
+
+  /** Paints `spec` on `el` with Leaflet `L` (exported for the tests, which hand it a fake). */
   function drawMap(L, el, spec) {
     if (el.__mateuMap) { el.__mateuMap.remove(); el.__mateuMap = null }
     const map = L.map(el, { scrollWheelZoom: true })
@@ -25265,7 +25523,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         radius: 8, color: '#ffffff', weight: 2, fillColor: m.color || DEFAULT_PIN, fillOpacity: 1,
         bubblingMouseEvents: false,
       }).addTo(map)
-      if (m.label) pin.bindTooltip(m.label, { permanent: true, direction: 'right', offset: [8, 0], className: 'mateu-map-label' })
+      if (m.label) pin.bindTooltip(markerTooltipOf(el.ownerDocument || mapHostDocument(), m.label), { permanent: true, direction: 'right', offset: [8, 0], className: 'mateu-map-label' })
       const hover = [m.label, m.description].filter(Boolean).join(' · ')
       const run = spec.markerActionId ? () => { if (mapSink) mapSink(spec.markerActionId, mapMarkerParams(m.id), surfaceAtomOf(el)) } : null
       if (run) pin.on('click', run)
@@ -25278,7 +25536,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (!pinEl || decorated) return
         decorated = true
         if (hover) pinEl.setAttribute('aria-label', hover)
-        if (!run) return
+        // a name needs a role (axe aria-prohibited-attr on a bare <path>): an image, or a button below
+        if (!run) { if (hover) pinEl.setAttribute('role', 'img'); return }
         pinEl.style.cursor = 'pointer'
         // a marker that runs something is a BUTTON, reachable with the keyboard (like <mateu-map>'s):
         // Leaflet draws it as a bare SVG path with no role and no tab stop
@@ -25935,6 +26194,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // ── the catalogue ─────────────────────────────────────────────────────────────────────────────
 
   let restCatalogue = []
@@ -26269,7 +26529,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const restClone = (v) => (v === undefined ? v : JSON.parse(JSON.stringify(v)))
 
-  const defaultRestFetch = (url, init) => fetch(url, init)
+  // a request with a ceiling and the busy state of a write, never Mateu's credentials (resilience.fetchDirect, R-6)
+  const defaultRestFetch = (url, init) => fetchDirect(url, init)
 
   /**
    * Fetches a source in the browser — the single choke point of every surface (= fetchExternalJson).
@@ -26765,6 +27026,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       return restIncrement(fragments, messages, commands)
     }
     const fromProxy = (inc, mergeResult) => {
+      // the same call is still in flight (a double click): it answers for itself — this one is no
+      // success to report, nor a successRoute to follow while the first may yet be refused (R-5)
+      if (!inc || isDuplicateAnswer(inc)) return duplicateAnswer()
       const appData = (inc && inc.appData) || {}
       const err = appData._restfetchError
       if (err) return failure(typeof err.status === 'number' ? err.status : 0, err.detail)
@@ -27155,7 +27419,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // GENERATED by poc/make-expander.mjs from libs/mateu/src/mateu/ui/infra — DO NOT EDIT.
   // http/bundleResolver.ts, expander/expandDefinition.ts, ui/layout/templatePageTypes.ts, ui/humanize.ts, expander/accessKeys.ts, expander/expandComponent.ts, expander/pageHeader.ts, expander/pageTemplates.ts, http/componentCatalogue.ts, ui/renderers/nodeIdStampFlag.ts, ui/actionCatalogue.ts, expander/fieldTypes.ts, i18n/translations.ts
-  // source sha256 209a724c472a4e8c3de2e4beb969137805fdc5186683494ac015a2032f2fb36d
+  // source sha256 9091935e833eba9e4c61284560f37d502494bc3430393c9d989e4b47aa8620c4
   // The web renderers' static-bundle resolver + YAML expander, for a static remote (transport.mjs).
   const mateuBundleResolver = (function () {
     'use strict'
@@ -28529,7 +28793,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
               // shapes them
               expandFormHeader(metadata)
               if ('template' in metadata) {
-                  const template = templateMetadataOf(metadata.template)
+                  const template = templateMetadataOf(metadata.template, fields.title)
                   if (template) metadata.template = template
                   else delete metadata.template
                   // a template that draws the header (a welcome banner): no header, no toolbar of the form's
@@ -28749,7 +29013,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       /**
        * An authored toolbar/footer Button → its wire shape, as the server's ButtonMapper does it: a
        * Button whose `actionable` is a RouteLink NAVIGATES on the client, so the link's route becomes the
-       * button's `route`; a button with no `actionId` gets one from its label. A Button is not
+       * button's `route` (and, with no `actionId`, gets one from its label); a button with neither is
+       * INERT (no action id). A Button is not
        * ClientSide-wrapped on the wire. Anything else passes through as authored.
        */
       function expandButton(node            )                          {
@@ -28774,7 +29039,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           const { actionable, ...button } = node
           const out                          = { ...button }
           if (actionable?.type === 'RouteLink' && actionable.route) out.route = actionable.route
-          if (!out.actionId && typeof out.label === 'string') out.actionId = toCamelCase(out.label)
+          // A button that declares neither an actionId nor an actionable is INERT: no action id (Java's
+          // YamlUidlMapperFactory.InertButton — the label's echo was dispatched and refused with a 403).
+          // A route button keeps the one derived from its label, as the server's resolvedActionId does.
+          if (!out.actionId && actionable && typeof out.label === 'string') out.actionId = toCamelCase(out.label)
+          if (!out.actionId) delete out.actionId
           return out
       }
 
@@ -28871,6 +29140,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
     // ── expander/pageTemplates.ts ──
     __defs["expander/pageTemplates.ts"] = function (exports, __mateuRequire) {
+      Object.defineProperty(exports, "altOf", { enumerable: true, get: () => altOf });
       Object.defineProperty(exports, "templateMetadataOf", { enumerable: true, get: () => templateMetadataOf });
       Object.defineProperty(exports, "ownsHeader", { enumerable: true, get: () => ownsHeader });
       Object.defineProperty(exports, "contentOf", { enumerable: true, get: () => contentOf });
@@ -28890,17 +29160,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
       const filled = (value         )                  => typeof value === 'string' && value.trim() !== ''
 
-      const image = (value         )              => {
-          if (!value || typeof value !== 'object') return null
-          const v = value
-          return { src: v.src ?? null, initials: v.initials ?? null }
+      /** The text a screen reader reads for a template's image: the declared `alt`, else the page's
+       *  title (the image is the record the page is about) — Java's `PageTemplates.altOf`. */
+      function altOf(image      , pageTitle         )                {
+          if (filled(image.alt)) return image.alt
+          return filled(pageTitle) ? pageTitle : null
       }
 
-      /** The template's own values, for the Form metadata; undefined for a free page or an unknown template. */
-      function templateMetadataOf(template         )                   {
+      const image = (value         , pageTitle         )              => {
+          if (!value || typeof value !== 'object') return null
+          const v = value
+          return { src: v.src ?? null, initials: v.initials ?? null, alt: altOf(v, pageTitle) }
+      }
+
+      /** The template's own values, for the Form metadata; undefined for a free page or an unknown
+       *  template. `pageTitle` is the form's title, the alt of a template image that declares none. */
+      function templateMetadataOf(template         , pageTitle          )                   {
           const t = template
           if (!t) return undefined
-          if (t.type === 'ItemOverviewPage') return { type: 'ItemOverviewPage', avatar: image(t.avatar), photo: image(t.photo) }
+          if (t.type === 'ItemOverviewPage') {
+              return { type: 'ItemOverviewPage', avatar: image(t.avatar, pageTitle), photo: image(t.photo, pageTitle) }
+          }
           if (t.type === 'WelcomePage') return { type: 'WelcomePage', avatar: null, photo: null }
           if (t.type === 'DashboardLandingPage') return { type: 'DashboardLandingPage', avatar: null, photo: null }
           if (t.type === 'GeneralOverviewPage') return { type: 'GeneralOverviewPage', avatar: null, photo: null }
@@ -28928,7 +29208,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       function contentOf(template         , content         , form       = {})          {
           const t = template
           if (!t) return content
-          if (t.type === 'ItemOverviewPage') return [itemOverview(t, nodes(content))]
+          if (t.type === 'ItemOverviewPage') return [itemOverview(t, nodes(content), form.title)]
           if (t.type === 'WelcomePage') return banner('welcome', t, nodes(content), form)
           if (t.type === 'MultimediaContentPage') return banner('multimedia-banner', t, nodes(content), form)
           if (t.type === 'HeroSearchPage') return banner('hero-search', t, nodes(content), form)
@@ -28973,24 +29253,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const slot = (id        , content              , style         )             =>
           ({ type: 'VerticalLayout', id, content, spacing: false, ...(style ? { style } : {}) })
 
-      function media(t      )                    {
+      function media(t      , pageTitle         )                    {
           const avatar = t.avatar
           if (avatar && filled(avatar.src)) {
-              return { type: 'Image', src: avatar.src, style: 'width: 8rem; height: 8rem; border-radius: 50%; object-fit: cover' }
+              return {
+                  type: 'Image', src: avatar.src, alt: altOf(avatar, pageTitle),
+                  style: 'width: 8rem; height: 8rem; border-radius: 50%; object-fit: cover',
+              }
           }
           if (avatar && filled(avatar.initials)) {
               return { type: 'Avatar', abbreviation: avatar.initials, style: 'width: 8rem; height: 8rem' }
           }
           const photo = t.photo
           if (photo && filled(photo.src)) {
-              return { type: 'Image', src: photo.src, style: 'width: 100%; aspect-ratio: 4 / 3; object-fit: cover' }
+              return {
+                  type: 'Image', src: photo.src, alt: altOf(photo, pageTitle),
+                  style: 'width: 100%; aspect-ratio: 4 / 3; object-fit: cover',
+              }
           }
           return null
       }
 
-      function itemOverview(t      , main              )             {
+      function itemOverview(t      , main              , pageTitle         )             {
           const panel               = []
-          const m = media(t)
+          const m = media(t, pageTitle)
           if (m) panel.push(slot('item-overview-media', [m], 'width: 100%; align-items: center'))
           panel.push(slot('item-overview-body', nodes(t.body), 'width: 100%'))
           const footer = nodes(t.footer)
@@ -29715,6 +30001,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
+  // trailing '/'s off, in linear time (a /\/+$/ regex backtracks on a long run of slashes)
+  const trimSlashesAtEnd = (s) => {
+    let end = s.length
+    while (end > 0 && s.codePointAt(end - 1) === 47) end--
+    return s.slice(0, end)
+  }
+
   function normalizeMount(value) {
     let v = String(value == null ? '' : value).trim()
     if (!v || v === '/') return ''
@@ -29903,6 +30197,36 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if ((menuRoutes || []).some(own)) return null
     // another mount of the same app: under the public base too (the server names it without it)
     return publicBasePath && !(r === publicBasePath || r.startsWith(publicBasePath + '/')) ? publicBasePath + r : r
+  }
+
+  const mountPathOfBase = (base) => {
+    if (typeof base !== 'string' || base === '') return ''
+    if (/^https?:\/\//i.test(base)) {
+      try { return trimSlashesAtEnd(new URL(base).pathname) } catch { return null }
+    }
+    if (!base.startsWith('/') || base.startsWith('//') || base.startsWith('/\\')) return null
+    return trimSlashesAtEnd(base)
+  }
+
+  /**
+   * The browser path of a route clicked inside a SURFACE embedded from ANOTHER mount of this app (a
+   * MicroFrontend of `/yaml-mount` on a page of `/`): a route is relative to its own mount, so it
+   * names `/yaml-mount/second` — the host navigated to its own `/second`, «Page not found»
+   * (Explorer F4). Null when the surface is the page's own mount, a remote of another origin, not a
+   * surface, or the route is a whole URL. The caller loads it in the browser (another app's page).
+   */
+  function surfaceMountPathOf(reg, surfaceId, route) {
+    const contexts = (reg && reg.contexts) || {}
+    const ctx = surfaceId ? contexts[surfaceId] : null
+    if (!ctx || typeof route !== 'string' || !route.trim() || isExternalRoute(route)) return null
+    const raw = ctx.outbound && ctx.outbound.baseUrl
+    if (typeof raw !== 'string' || /^https?:\/\//i.test(raw) && typeof location !== 'undefined'
+      && (() => { try { return new URL(raw).origin !== location.origin } catch { return true } })()) return null
+    const base = mountPathOfBase(raw)
+    const hostCtx = contexts[HOST_ID]
+    const own = mountPathOfBase(hostCtx && hostCtx.outbound ? hostCtx.outbound.baseUrl : '')
+    if (!base || base === own) return null
+    return underPublicBase(base + '/' + route.trim().replace(/^\/+/, ''))
   }
 
   /** pathLeavingMountOf for a reducer's `navigate` effect, against the registry's shell menu. */
@@ -30141,7 +30465,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         ...body,
         route: bare ? `/${bare}` : '',
       }),
-    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, view })
+    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, local: options.local, view })
     // R1: an origin the shell does not trust (an agent-named base, a remote's own remote) answers
     // through the untrusted strip: what it sends cannot run code in this tab
     const increment = answeredBy(base, await res.json())
@@ -30336,18 +30660,38 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  The 4 route fields come from the `outbound` that loadRouteInto stamped when loading the
    *  context (a mediator needs consumedRoute + serverSideType on actions too). */
   function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
+    // Double-submit guard — BEFORE the REST branch too: a REST action is how a definition-only page
+    // or a static bundle WRITES, and a double click sent two POSTs (R-6). A read is EXEMPT from
+    // exclusivity: the guard exists because a second POST of a write means a second row, whereas a
+    // second read only means fresher data — and blocking them would break type-ahead, where the
+    // search for "mad" would be dropped because the one for "ma" is in flight. The slot is per
+    // parameter set (pendingActions.key): edits of two rows are two writes (R-4).
+    const initiator = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || ''
+    const exclusive = !isIdempotentAction(actionId, extra && extra.idempotent) && actionId !== '__restdata__'
+    const key = pendingActions.key(initiator, actionId, extra && extra.parameters)
+    if (exclusive && !pendingActions.begin(key)) {
+      // Duplicate: dropped BEFORE building the request; answered with an increment that changes nothing
+      return Promise.resolve(duplicateAnswer())
+    }
+    const release = () => { if (exclusive) pendingActions.end(key) }
     // A REST-backed action never reaches the Mateu server as itself: the `search` of a listing with a
     // rowsSource, and any action declaring a restAction (the route's `__restdata__` load included),
     // are answered here — direct with fetch, or proxied through the reserved `__restfetch__` action
     // (restSources.mjs). The increment is shaped like the server's, so the chains do not know.
-    const restAnswer = restAnswerOf(ctx, actionId, componentState, {
-      route,
-      appState: (extra && extra.appState) || {},
-      parameters: (extra && extra.parameters) || {},
-      server: (parameters, idempotent) => runMateuAction(base, ctx, route, '__restfetch__', componentState,
-        { ...extra, parameters, idempotent: !!idempotent }),
-    })
-    if (restAnswer) return restAnswer
+    let restAnswer
+    try {
+      restAnswer = restAnswerOf(ctx, actionId, componentState, {
+        route,
+        appState: (extra && extra.appState) || {},
+        parameters: (extra && extra.parameters) || {},
+        server: (parameters, idempotent) => runMateuAction(base, ctx, route, '__restfetch__', componentState,
+          { ...extra, parameters, idempotent: !!idempotent }),
+      })
+    } catch (e) {
+      release()
+      throw e
+    }
+    if (restAnswer) return Promise.resolve(restAnswer).then((inc) => { release(); return inc }, (e) => { release(); throw e })
     // the OnSuccess ones (periodic refresh) are read from the context that LAUNCHES the action
     const source = ctx
     // the action goes to the ServerSide that DECLARES it (the view, not the mediator that loaded it): also
@@ -30359,18 +30703,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // `search` trigger, a toolbar button) knows which context it comes from, but
     // not which backend it came from — and sending it to the shell answers it empty, with no error.
     base = outbound.baseUrl != null ? outbound.baseUrl : base
-    const initiator = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || ''
-    // Double-submit guard. A read is EXEMPT from exclusivity: the guard exists because
-    // a second POST of a write means a second row, whereas a second
-    // read only means fresher data — and blocking them would break type-ahead, where the
-    // search for "mad" would be dropped because the one for "ma" is in flight.
-    const exclusive = !isIdempotentAction(actionId, extra && extra.idempotent)
-    const key = pendingActions.key(initiator, actionId)
-    if (exclusive && !pendingActions.begin(key)) {
-      // Duplicate: dropped BEFORE building the request.
-      return Promise.resolve(null)
-    }
-    const release = () => { if (exclusive) pendingActions.end(key) }
+    // a proxied REST WRITE rides `__restfetch__`, which reads as a component's own (local) request:
+    // it is the user's press, so it shows the busy state like any action (R-6)
+    const proxiedWrite = actionId === '__restfetch__' && !!(extra && extra.parameters && extra.parameters._sourceKind === 'action')
     return callMateu(base, {
       route: outbound.route || route,
       consumedRoute: outbound.consumedRoute || '',
@@ -30382,7 +30717,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       ...(outbound.embeddedChrome ? { embeddedChrome: outbound.embeddedChrome } : {}),
       ...extra,
       appState: requestAppStateOf(outbound, extra && extra.appState),
-    }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
+    }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent, ...(proxiedWrite ? { local: false } : {}) })
       .then((inc) => {
         release()
         if (inc) (isErrorAnswer(inc) ? actionFailed : actionSucceeded)(source, actionId)
@@ -30443,6 +30778,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // tied to the current screen, like callMateu (each increment is checked as it arrives) — unless
     // the caller says otherwise: `view: null` belongs to no screen (a reattached task's resume)
     const view = extra && 'view' in extra ? ownView : currentView()
+    // the double-submit guard of the sync path, for a stream too: a double click on a LongTask
+    // button started two tasks (R-4). A resume that belongs to no screen (`view: null`) is not a press.
+    const initiatorId = (ctx && ctx.tree && ctx.tree.id) || (ctx && ctx.id) || (bodyExtra && bodyExtra.initiatorComponentId) || ''
+    const exclusive = view !== null && !isIdempotentAction(actionId, bodyExtra && bodyExtra.idempotent)
+    const key = pendingActions.key(initiatorId, actionId, bodyExtra && bodyExtra.parameters)
+    if (exclusive && !pendingActions.begin(key)) return duplicateStream()
+    try {
+      return await streamMateuAction(base, ctx, route, actionId, componentState, { onIncrement, view, recover, bodyExtra })
+    } finally {
+      if (exclusive) pendingActions.end(key)
+    }
+  }
+
+  async function streamMateuAction(base, ctx, route, actionId, componentState, { onIncrement, view, recover, bodyExtra }) {
     ctx = actionTransportOf(ctx, actionId)
     const outbound = (ctx && ctx.outbound) || {}
     base = outbound.baseUrl != null ? outbound.baseUrl : base
@@ -30800,10 +31149,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // opened inside one replaced the host page's address)
       ...(sub.windowless ? { windowless: true } : {}) }
     // a MicroFrontend the host resolved (resolve = SERVER) brings the answer to its load: no request;
-    // its actions and triggers still go to ITS baseUrl (outbound, below)
+    // its actions and triggers still go to ITS baseUrl (outbound, below) — with the trust the browser
+    // would have given it fetched: a remote the app does not trust through the untrusted strip (S12)
     let answer
     try {
-      answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
+      answer = sub.resolved ? answeredBy(base, sub.resolved) : await loadRoute(base, sub.route, sub.id, {
       ...extra,
       consumedRoute: sub.consumedRoute,
       serverSideType: sub.serverSideType,
@@ -30860,7 +31210,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const route = String((sub && sub.route) || '')
     const raw = app ? (base || route || app.metadata.route || '/') : base + (route.startsWith('/') || !route ? route : '/' + route)
     const src = /^(https?:)?\/\//i.test(raw) || raw.startsWith('/') ? raw : '/' + raw
-    return { src: src || '/', title: (app && app.metadata.title) || '', height: app ? '36rem' : '40rem' }
+    // the frame's accessible name (axe frame-title, Explorer F5): the app's title, the page's (its
+    // form's, a crud listing's), else the page it frames — never an unnamed «frame»
+    const listing = page && pageListingNodeOf(page)
+    const title = (app && app.metadata.title)
+      || (form && form.metadata && form.metadata.title)
+      || (listing && listing.metadata && listing.metadata.title)
+      || src || '/'
+    return { src: src || '/', title: String(title), height: app ? '36rem' : '40rem' }
   }
 
   /** The window effects of the registry an embedded island was loaded into: what the HOST's answer
@@ -31826,7 +32183,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const load = (async () => {
       try {
         // resolved by the host: no request for the first paint; its triggers still go to the remote
-        apply(item.resolved || (await request('')))
+        apply(item.resolved ? answeredBy(item.baseUrl || '', item.resolved) : (await request(''))) // the browser's trust (S12)
         // a remote that answers with a mediator (chromeless App) brings the content in a 2nd hop
         const info = rt.ctx && mediatorOf(rt.ctx)
         if (info) {
@@ -33028,12 +33385,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { yaml, target, ...(title ? { title } : {}) }
   }
 
-  /** The navigation a navigation-requested detail asks for — the menu-click fields it carries — or
-   *  null without a route. Only the fields that are set travel. */
+  /** The navigation a navigation-requested detail asks for — WHERE to go, from a whitelist — or null
+   *  without a route. Only the fields that are set travel. A menu leaf's `rules` and its `actionId`
+   *  never do: an agent's navigation must not run an app action as the user without a click (S7,
+   *  the `navigations` cases of conformance/client/agent-events.json; libs/mateu trustedNavigationOf). */
   function chatNavigationOf(detail) {
     if (!detail || typeof detail !== 'object' || typeof detail.route !== 'string') return null
     const out = { route: detail.route }
-    for (const k of ['consumedRoute', 'actionId', 'baseUrl', 'serverSideType', 'uriPrefix']) {
+    for (const k of ['consumedRoute', 'baseUrl', 'serverSideType', 'uriPrefix']) {
       if (typeof detail[k] === 'string' && detail[k] !== '') out[k] = detail[k]
     }
     return out
@@ -34672,6 +35031,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       transportCtx = actionTransportOf(host, id)
     }
     return { componentState, parameters, transportCtx, transportExtra, listReq, overlay, host }
+  }
+
+  /**
+   * The browser's refusal of an action of a SURFACE of its own — an inline island, a MicroFrontend,
+   * the page's embedded island (`ctxId`) — before it leaves: its validationRequired action with
+   * required fields empty, or a wire validation failing, on ITS form (its tree, its state + `draft`).
+   * `{ missing, messages }` to mark on the fields and focus the first, or null when it may leave.
+   * The page's and the overlay's actions had it (outboundActionOf); an island's went out unchecked,
+   * the server refused it and only a page band said so — no field marked, the focus left on the
+   * button (Explorer F2: the validation and focus-on-errors entries, both drawn as islands).
+   */
+  function surfaceRefusalOf(reg, ctxId, actionId, draft = {}) {
+    const ctx = reg && reg.contexts && reg.contexts[ctxId]
+    const validation = ctx && validationOf(ctx, actionId)
+    if (!validation) return null
+    const merged = Object.assign({}, ctx.state || {}, draft || {})
+    const refusal = formRefusalOf(formSectionsOf(ctx.tree, merged, ctx.data || {}), ctx.state, draft,
+      ctx.tree && ctx.tree.validations, validation.fields, ctx.tree && ctx.tree.rules)
+    return refusal.missing.length ? refusal : null
   }
 
   /** The stop of an action refused in the browser: the fields to mark, the messages the wire
@@ -37577,6 +37955,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // clic de fila entera: qué celdas tienen clic propio (decisión U1)
     isDisplayColumn,
     rowActionIsRows,
+    // inline editing: the row a committed cell sends, with the earlier commits on it (R-3)
+    editedRowOf,
+    committedCellValueOf,
+    forgetEditedRows,
     // paginación y orden del listing (pie de la tabla, cabecera → server)
     listingPagingOf,
     targetPageOf,
@@ -37666,7 +38048,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     withOverlayDirty,
     overlaysHoldUnsavedChanges,
     hasUnsavedChanges,
+    pageDirtyAfterAction,
+    // a content button whose action nobody on screen claims is inert, as on Vaadin (Explorer F3)
+    contentActionIsClaimed,
     confirmNavigationAway,
+    confirmFlowNavigation,
     // a refused back/forward is undone, not papered over with a push (historyIndex.mjs)
     installHistoryIndex,
     notePopState,
@@ -37745,6 +38131,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     pathLeavingMountOf,
     navigationLeavingMountOf,
     leftMountFor,
+    surfaceMountPathOf,
     requestPeerNavigation,
     openExternalRoute,
     isExternalRoute,
@@ -37787,6 +38174,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     isNarrowViewport,
     watchNarrowViewport,
     pendingActions,
+    // a dropped double press answers this: the chain that asked stops (R-4)
+    isDuplicateAnswer,
+    offersRetry,
     setTransportHooks,
     authHeadersOf,
     // errores del cliente → log del servidor (POST <base>/mateu/v3/client-log)
@@ -37943,6 +38333,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     changedOnly,
     stagedVariables,
     outboundActionOf,
+    surfaceRefusalOf,
     // the fields the server refused in an answer (a data fragment with errors), to mark them
     refusedFieldsOf,
     blockClickOf,

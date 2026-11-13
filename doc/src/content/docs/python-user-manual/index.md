@@ -214,7 +214,15 @@ add_mateu(
   loop); per-request state lives in `ContextVar`s.
 - **Audience is a projection, not security.** `Audience()` / `@audience` read the client-controlled
   `appState["audience"]` — any caller can send any value. Tailor screens with it; hide data with
-  `EyesOnly`.
+  `EyesOnly`. Like Java and .NET, an `@audience` action is therefore never refused at invocation;
+  an `Audience()` row field is left out of listing columns AND row data, like an `EyesOnly` one.
+- **Bounded by default.** A listing page asks for at most 500 rows (`listing_max_page_size` /
+  `MATEU_LISTING_MAX_PAGE_SIZE`); an upload ticket sends 10 files for a single-file field and
+  `uploads_max_files_per_ticket` / `MATEU_UPLOADS_MAX_FILES_PER_TICKET` (100) for a multiple one
+  (then 429); each caller holds at most `MATEU_IDEMPOTENCY_MAX_ENTRIES_PER_CALLER` (100) keyed
+  requests in each idempotency table, and a repeat joining a keyed run still in flight waits at
+  most `MATEU_IDEMPOTENCY_JOIN_SECONDS` (60) — the handler runs in a worker thread — before the
+  *"Too many pending requests"* refusal.
 
 ### Server options
 

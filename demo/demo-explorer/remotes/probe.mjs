@@ -106,7 +106,7 @@ await check('several mounts: ...and the URL it pushes is /yaml-mount/second', as
   await click(page, 'Go to /yaml-mount/second')
   await waitForText(page, 'The second page of the YAML mount')
   assert(page.url().endsWith('/yaml-mount/second'), `url is ${page.url()}`)
-}, { knownBug: 'a RouteLink on a non-root YAML mount pushes /yaml-mountsecond (no slash)' })
+})
 await check('several mounts: the entry embeds both mounts\' welcome', async () => {
   const page = await newPage()
   await page.goto(entry('mounts/several-mounts'))
@@ -155,7 +155,7 @@ await check('deep link: reloading /fed/stock opens the remote screen inside the 
   const page = await newPage()
   await page.goto(`${EXPLORER}/fed/stock`)
   await waitForText(page, 'Madrid central')
-}, { knownBug: 'a fresh deep link to a remote screen is loaded from the SHELL with the remote app\'s serverSideType → 403' })
+})
 await check('remote menu: a YAML-only remote screen loads in the shell', async () => {
   const page = await newPage()
   await page.goto(`${EXPLORER}/fed`)

@@ -57,6 +57,14 @@ export interface PageDoc {
      * VERBATIM so a round-trip through the editor never drops the write half of a classless page.
      */
     rest?: Record<string, unknown>
+    /**
+     * The file did not load — invalid YAML or a recursive alias — and this is why. The doc is then a
+     * read-only placeholder: the editor shows the error and refuses every edit, because writing its
+     * empty layout back would replace the whole file (which the author can fix as text).
+     */
+    parseError?: string
+    /** A rootless fragment's top-level keys other than `content` (kept verbatim on write). */
+    fragmentRest?: Record<string, unknown>
 }
 
 /** A page-level trigger. Known fields are edited; `extra` preserves anything else on round-trip. */
@@ -161,7 +169,19 @@ const RESERVED = new Set(['type', 'content'])
 /** Parse YAML page text into a PageDoc (envelope-aware, like YamlUidlLoader). */
 export function parsePage(yaml: string): PageDoc {
     let root: unknown
-    try { root = parseSpec(yaml) } catch { root = null }
+    try {
+        // An alias (`*x`) parses as the SAME object as its anchor: editing one use in the editor
+        // would edit every use. Each position gets its own copy; on write, `writePreserving` puts
+        // the alias back wherever the data still equals the anchor.
+        root = unshared(parseSpec(yaml))
+    } catch (e) {
+        // Not blank and does not load: say so, and give nothing an edit could be written from.
+        return {
+            layout: { type: 'VerticalLayout', content: [] },
+            bare: true,
+            parseError: e instanceof Error ? e.message : String(e),
+        }
+    }
     if (root && typeof root === 'object' && 'layoutDelta' in (root as object)) {
         // A delta is not a tree: there is nothing to render until inference says what it applies
         // to. `hydrate` turns it into an editable layout once the contract arrives.
@@ -189,10 +209,12 @@ export function parsePage(yaml: string): PageDoc {
     // A partial authored as a `content:` list (no top-level `type`): a rootless fragment. Wrap its
     // children in a synthetic VerticalLayout so it has a tree root + previews, remembering the shape.
     if (typeof root === 'object' && !('type' in (root as object)) && Array.isArray((root as any).content)) {
+        const rest = omit(root as Record<string, unknown>, ['content'])
         return {
             layout: { type: 'VerticalLayout', content: (root as any).content.map(normalize) },
             bare: true,
             fragment: true,
+            ...(Object.keys(rest).length ? { fragmentRest: rest } : {}),
         }
     }
     return { layout: normalize(root), bare: true }
@@ -214,7 +236,8 @@ export function serializePage(doc: PageDoc): string {
     if (doc.fragment) {
         // Unwrap the synthetic editing container back to the authored `content:` list, so the partial
         // stays a rootless fragment (inlined at the use site) rather than gaining a VerticalLayout.
-        return stringify({ content: (layout.content ?? []) })
+        // Any other top-level key the fragment carried is written back verbatim.
+        return stringify({ ...(doc.fragmentRest ?? {}), content: (layout.content ?? []) })
     }
     // A bare page (a single component, no envelope) serializes as just that component — UNLESS it has
     // gained an envelope concern (page-level triggers or other keys like `actions:`), in which case it
@@ -315,6 +338,20 @@ function fieldNode(id: string, inferred: InferredField[], delta: LayoutDelta): P
     if (label) node.label = label
     if (override.colspan) node.colspan = override.colspan
     return node
+}
+
+/**
+ * A copy of parsed data in which no object is reached twice: every alias use becomes its own object.
+ * Terminates because `parseSpec` refuses a recursive alias; the `yaml` library caps alias expansion.
+ */
+export function unshared<T>(value: T): T {
+    if (Array.isArray(value)) return value.map(unshared) as T
+    if (value && typeof value === 'object') {
+        const out: Record<string, unknown> = {}
+        for (const [k, v] of Object.entries(value)) out[k] = unshared(v)
+        return out as T
+    }
+    return value
 }
 
 function normalize(node: any): PageNode {

@@ -93,3 +93,36 @@ test('as a script: --json → a JSON report on stdout; a usage error exits 1 wit
   const text = execFileSync(process.execPath, [script, '--json', fixturePath, '--out', dir, '--frames', 'species', '--dry-run'], { encoding: 'utf8' })
   assert.match(text, /^unchanged +species\.yaml/m)
 })
+
+test('a Figma Section lists and selects its frames, never itself; an authored name is renamed', () => {
+  const text = (characters) => ({ id: `t-${characters}`, name: 'Text', type: 'TEXT', characters })
+  const file = {
+    document: {
+      children: [
+        {
+          type: 'CANVAS',
+          name: 'Screens',
+          children: [
+            {
+              id: '1:1',
+              name: 'Flows',
+              type: 'SECTION',
+              children: [
+                { id: '1:2', name: 'Login', type: 'FRAME', children: [text('a')] },
+                { id: '1:3', name: 'Signup', type: 'FRAME', children: [text('b')] },
+              ],
+            },
+            { id: '1:4', name: 'Routes', type: 'FRAME', children: [text('c')] },
+          ],
+        },
+      ],
+    },
+  }
+  assert.deepEqual(frameNames(file), ['Login', 'Signup', 'Routes'])
+  const dir = out()
+  writeFileSync(join(dir, 'routes.yaml'), 'type: Routes\nroutes: []\n')
+  const report = importFile(file, { out: dir, frames: ['signup', 'Routes'] })
+  assert.deepEqual(report.files.map((f) => [f.path, f.status]), [['signup.yaml', 'created'], ['routes-page.yaml', 'created']])
+  assert.equal(readFileSync(join(dir, 'routes.yaml'), 'utf8'), 'type: Routes\nroutes: []\n')
+  assert.throws(() => selectFrames(file, ['Flows']), /No frame called "Flows"/)
+})

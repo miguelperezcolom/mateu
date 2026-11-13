@@ -93,7 +93,6 @@ test('a load through the stream is still answered by the bundle, with no request
 for (const [what, answer] of [
   ['404', async () => ({ ok: false, status: 404, text: async () => 'Not found', headers: { get: () => null } })],
   ['405', async () => ({ ok: false, status: 405, text: async () => 'Method not allowed', headers: { get: () => null } })],
-  ['no answer', async () => { throw new TypeError('Network request failed'); }],
 ] as const) {
   test(`a purely static host (${what}) tells a streamed action there is no server — and does not hang`, async () => {
     const api = new MateuApiClient('https://ui.example', 's');
@@ -104,6 +103,18 @@ for (const [what, answer] of [
     });
   });
 }
+
+test('GA-5.9: OFFLINE (no connection at all) is not "no server": a hybrid UI\'s action fails as a network error', async () => {
+  const api = new MateuApiClient('https://ui.example', 's');
+  api.local = local;
+  await withFetch((async () => { throw new TypeError('Network request failed'); }) as any, async (seen) => {
+    await assert.rejects(
+      api.runActionStream({ route: '/people', actionId: 'import' } as any, () => {}),
+      (e: unknown) => e instanceof TypeError && !/no server/.test(String((e as Error).message)),
+    );
+    assert.deepEqual(seen, ['https://ui.example/mateu/v3/sse/people']);
+  });
+});
 
 test('a server error on a streamed action is reported as such, not as "no server"', async () => {
   const api = new MateuApiClient('https://ui.example', 's');

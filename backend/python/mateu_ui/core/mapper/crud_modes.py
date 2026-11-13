@@ -36,6 +36,8 @@ def without_hidden_inputs(element, state: dict, creating: bool) -> dict:
     owned = [
         f for f in view_fields(element)
         if f.has(marker)
+        # a technical id on a create: the store assigns it, the creation form has no input for it
+        or (creating and is_technical_id(f))
         or ((read_only_record or f.has(ReadOnly)) and not f.has(Version))
         # the server's own values: a GeneratedValue() on an edit (the stored one stands; on a
         # create the client keeps the copy the server handed out) and an
@@ -63,6 +65,18 @@ def server_owned(f, creating: bool) -> bool:
     return f.has(GeneratedValue) or (not creating and f.has(EditableOnlyWhenCreating))
 
 
+def is_technical_id(f) -> bool:
+    """Whether ``f`` is a crud entity's TECHNICAL id: the field named ``id`` when the entity does
+    not let the user choose it — no ``EditableOnlyWhenCreating()`` (the user types it on the
+    creation form) and no ``GeneratedValue()`` (the server fills it into the form). The store
+    assigns it, so a creation form draws no input for it and a create never takes it from the
+    client: typing an existing id overwrote that record (Java's ``TechnicalId``, .NET's
+    ``TechnicalId``)."""
+    from mateu_ui.uidl.markers import EditableOnlyWhenCreating, GeneratedValue
+
+    return f.name == "id" and not f.has(EditableOnlyWhenCreating) and not f.has(GeneratedValue)
+
+
 def hidden_in_current_form(f) -> bool:
     """Whether the field has no place in the crud record form being drawn."""
     mode = _mode.get()
@@ -71,5 +85,5 @@ def hidden_in_current_form(f) -> bool:
     if mode == "edit":
         return f.has(HiddenInEditor)
     if mode == "new":
-        return f.has(HiddenInCreate)
+        return f.has(HiddenInCreate) or is_technical_id(f)
     return False

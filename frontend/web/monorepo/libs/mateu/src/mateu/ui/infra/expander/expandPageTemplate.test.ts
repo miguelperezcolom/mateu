@@ -41,8 +41,21 @@ describe('client-side expander — a page template, against the Java golden', ()
     it('the item overview page: the slots laid out, the template values on the Form', () => {
         const wire = expandComponent(authored('specs/ui/item-overview-page.yaml')) as any
         expectSubset(withoutGeneratedIds(wire), goldenComponent(itemOverview))
-        expect(wire.metadata.template).toEqual({ type: 'ItemOverviewPage', avatar: { src: '${state.image}', initials: 'LS' }, photo: null })
+        // the image's alt: none declared, so the page's title (Java's PageTemplates.altOf)
+        expect(wire.metadata.template).toEqual({ type: 'ItemOverviewPage', avatar: { src: '${state.image}', initials: 'LS', alt: '${state.name}' }, photo: null })
         expect(wire.children[0].id).toBe('item-overview')
+        expect(JSON.stringify(wire)).toContain('"alt":"${state.name}"')
+    })
+
+    it('a declared alt wins over the page title, on the wire and on the drawn image', () => {
+        const wire = expandComponent({
+            type: 'Form', title: 'Luke',
+            template: { type: 'ItemOverviewPage', photo: { src: '/luke.png', alt: 'Luke on Tatooine' } },
+            content: [],
+        } as unknown as FluentNode) as any
+        expect(wire.metadata.template.photo).toEqual({ src: '/luke.png', initials: null, alt: 'Luke on Tatooine' })
+        const media = wire.children[0].children[0].metadata.content.children[0].children[0]
+        expect(media.metadata).toMatchObject({ type: 'Image', src: '/luke.png', alt: 'Luke on Tatooine' })
     })
 
     it('a photo is the media, and an absent footer leaves no slot', () => {

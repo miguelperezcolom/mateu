@@ -79,11 +79,14 @@ define([
         const increments = await bridge.runMateuActionSse(
           base, nestedContext, outbound.route || '',
           actionId, componentState, { appState, parameters: parameters || {} });
+        if (bridge.isDuplicateAnswer(increments)) return; // a double press: the first one answers (R-4)
         increments.forEach(apply);
       } else {
-        apply(await bridge.runMateuAction(
+        const answered = await bridge.runMateuAction(
           base, nestedContext, outbound.route || '',
-          actionId, componentState, { appState, parameters: parameters || {} }));
+          actionId, componentState, { appState, parameters: parameters || {} });
+        if (bridge.isDuplicateAnswer(answered)) return; // a double press: the first one answers (R-4)
+        apply(answered);
       }
       await maybeFlip(nestedId, previousRoute);
 

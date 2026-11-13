@@ -1377,7 +1377,9 @@ class ComponentMapperMixin(MixinBase):
         if members:
             return self._form_button(dataclasses.replace(b, buttons=())).model_copy(
                 update={"children": [self._form_button(m) for m in members], "split": True})
-        action_id = b.action_id or camelcasize(b.label) or ""
+        # an INERT YAML button (no actionId, no actionable) carries no action id (yaml_preview's
+        # InertButton, Java's YamlUidlMapperFactory.InertButton)
+        action_id = "" if getattr(b, "inert", False) else (b.action_id or camelcasize(b.label) or "")
         style = b.button_style
         if style is None and action_id in ("save", "create"):
             style = "primary"
@@ -1464,7 +1466,7 @@ class ComponentMapperMixin(MixinBase):
                 next_route=peer.next_route,
             ),
             switcher=switcher,
-            template=page_templates.record_of(c.template),
+            template=page_templates.record_of(c.template, c.title),
         )
 
     @staticmethod

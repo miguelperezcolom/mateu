@@ -431,7 +431,7 @@ internal static class ComponentMapper
         // a template that draws the header itself (its banner): the form carries none, nor a toolbar
         NoHeader = f.NoHeader || PageTemplateLayout.OwnsHeader(f),
         Toolbar = PageTemplateLayout.OwnsHeader(f) ? [] : f.Toolbar.Select(FormButton).ToList(),
-        Template = PageTemplateLayout.DtoOf(f.Template),
+        Template = PageTemplateLayout.DtoOf(f.Template, f.Title),
         Buttons = f.Buttons.Select(FormButton).ToList(),
         Overline = f.Overline,
         TitlePlaceholder = f.TitlePlaceholder,

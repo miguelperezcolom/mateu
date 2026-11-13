@@ -456,6 +456,7 @@ test('onMateuNavigate: a failed load registers a retry of the whole navigation, 
   await navigate(ctx, '/flaky')
   assert.equal(ctx.$application.variables.mateuNavigating, false, 'never an old screen hidden forever')
   assert.ok(ctx.$application.variables.mateuLastError, 'the error band says it')
+  assert.equal(ctx.$application.variables.mateuRetryOffered, true, 'a 5xx may succeed again: Retry is offered')
   assert.ok(bridge.hasLastRetry())
   assert.deepEqual(bridge.takeLastRetry(), { kind: 'navigate', route: '/flaky' })
   routes = []
@@ -463,6 +464,72 @@ test('onMateuNavigate: a failed load registers a retry of the whole navigation, 
   await navigate(ctx, '/flaky')
   assert.equal(ctx.$application.variables.mateuHostTitle, 'Back again')
   assert.equal(bridge.hasLastRetry(), false, 'a painted screen clears the retry')
+})
+
+test('F2: an island\'s validated action with an empty required field does not leave — the fields are marked, nothing is sent', async () => {
+  const surfaceChain = chain('flows/main/pages/main-start-page-chains/runMateuSurfaceAction.js')
+  const field = (fieldId, extra = {}) => ({ type: 'ClientSide', id: fieldId, metadata: { type: 'FormField', fieldId, label: fieldId, dataType: 'string', required: true, ...extra }, children: [] })
+  const islandTree = { type: 'ServerSide', id: 'signup', serverSideType: 'x.SignUp',
+    actions: [{ id: 'signUp', validationRequired: true }, { id: 'help' }],
+    validations: [{ fieldId: 'email', condition: "state.email == null || state.email == '' || /@/.test(state.email)", message: 'Not an email' }],
+    children: [{ type: 'ClientSide', metadata: { type: 'FormLayout' }, children: [field('name'), field('email', { required: false })] }] }
+  const ctx = newContext()
+  ctx.$application.variables.mateuRegistry = { contexts: {
+    [bridge.HOST_ID]: { id: bridge.HOST_ID, tree: { type: 'ServerSide', id: 'host', actions: [], children: [] }, state: {} },
+    signup: { id: 'signup', tree: islandTree, state: { email: 'nope' }, outbound: { baseUrl: 'https://api', route: '/x' } },
+  }, stack: [], shell: null }
+  const refusal = bridge.surfaceRefusalOf(ctx.$application.variables.mateuRegistry, 'signup', 'signUp')
+  assert.deepEqual([...refusal.missing].sort((a, b) => a.localeCompare(b)), ['email', 'name'])
+  assert.deepEqual(refusal.messages, { email: 'Not an email' })
+  assert.equal(bridge.surfaceRefusalOf(ctx.$application.variables.mateuRegistry, 'signup', 'help'), null, 'an action that does not validate')
+  const input = doc.createElement('oj-input-text')
+  input.setAttribute('data-field-id', 'name')
+  doc.body.appendChild(input)
+  try {
+    await new surfaceChain().run(ctx, { surfaceId: 'signup', actionId: 'signUp' })
+    assert.deepEqual(sent, [], 'nothing reaches the server')
+  } finally { input.remove() }
+  // filled in: it leaves
+  ctx.$application.variables.mateuRegistry.contexts.signup.state = { name: 'Ana', email: 'ana@example.com' }
+  assert.equal(bridge.surfaceRefusalOf(ctx.$application.variables.mateuRegistry, 'signup', 'signUp'), null)
+})
+
+test('F4: a RouteLink inside a page embedded from ANOTHER mount goes to that mount\'s page, not the host\'s', async () => {
+  const dispatchHost = chain('flows/main/pages/main-start-page-chains/dispatchHostBlockAction.js')
+  const ctx = newContext()
+  const reg = { contexts: {
+    [bridge.HOST_ID]: { id: bridge.HOST_ID, tree: { type: 'ServerSide', id: 'host', actions: [], children: [] }, outbound: { baseUrl: '' } },
+    mfe: { id: 'mfe', tree: { type: 'ServerSide', id: 'w', actions: [], children: [] }, outbound: { baseUrl: '/yaml-mount', route: '/welcome' } },
+    remote: { id: 'remote', tree: { type: 'ServerSide', id: 'r', actions: [], children: [] }, outbound: { baseUrl: 'https://other.example', route: '/x' } },
+    own: { id: 'own', tree: { type: 'ServerSide', id: 'o', actions: [], children: [] }, outbound: { baseUrl: '', route: '/x' } },
+  }, stack: [], shell: null }
+  ctx.$application.variables.mateuRegistry = reg
+  assert.equal(bridge.surfaceMountPathOf(reg, 'mfe', '/second'), '/yaml-mount/second')
+  assert.equal(bridge.surfaceMountPathOf(reg, 'mfe', 'second'), '/yaml-mount/second')
+  assert.equal(bridge.surfaceMountPathOf(reg, 'remote', '/second'), null, 'a remote of another origin is not this app')
+  assert.equal(bridge.surfaceMountPathOf(reg, 'own', '/second'), null, 'the page\'s own mount')
+  assert.equal(bridge.surfaceMountPathOf(reg, undefined, '/second'), null)
+  assert.equal(bridge.surfaceMountPathOf(reg, 'mfe', 'https://x.example'), null)
+  const assigned = []
+  win.location.assign = (u) => assigned.push(u)
+  calls.length = 0
+  try {
+    await new dispatchHost().run(ctx, { route: '/second', surfaceId: 'mfe' })
+  } finally { delete win.location.assign }
+  assert.deepEqual(assigned, ['/yaml-mount/second'])
+  assert.deepEqual(calls.filter((c) => c[0] === 'event'), [], 'the host does not navigate to its own /second')
+})
+
+test('F3: a refusal (403) shows the band WITHOUT a Retry that could never succeed', async () => {
+  const ctx = await bootShell()
+  answer(byRoute('/refused'), { status: 403 })
+  await navigate(ctx, '/refused')
+  assert.ok(ctx.$application.variables.mateuLastError)
+  assert.equal(ctx.$application.variables.mateuRetryOffered, false)
+  assert.equal(bridge.offersRetry({ kind: 'forbidden', retryable: false }), false)
+  assert.equal(bridge.offersRetry({ kind: 'timeout', retryable: true }), true)
+  const shell = readFileSync(join(webApp, 'pages', 'shell-page.html'), 'utf8')
+  assert.match(shell, /<oj-bind-if test="\[\[ \$application\.variables\.mateuReloadOffered \|\| \$application\.variables\.mateuRetryOffered \]\]">\s*<oj-button chroming="callToAction"[^>]*on-oj-action="\[\[ \$listeners\.retryMateuAction \]\]"/)
 })
 
 test('onMateuNavigate: the not-found page is all the content, without the page header', async () => {
@@ -597,6 +664,7 @@ test('dispatchHostBlockAction: a welcome secondary CTA (oj-sp-welcome-page says 
   const dispatch = chain('flows/main/pages/main-start-page-chains/dispatchHostBlockAction.js')
   const ctas = { cta1: { actionId: 'openDashboard', route: '' }, cta2: { actionId: '', route: 'products' } }
   const ctx = newContext()
+  ctx.$application.variables.mateuRegistry = { contexts: { [bridge.HOST_ID]: { id: bridge.HOST_ID, tree: { type: 'ServerSide', id: 'w', actions: [{ id: 'openDashboard' }], children: [] } } }, stack: [], shell: null }
   const real = chains.runMateuAction
   delete chains.runMateuAction // recorded, not run: only WHICH action matters here
   calls.length = 0
@@ -605,6 +673,29 @@ test('dispatchHostBlockAction: a welcome secondary CTA (oj-sp-welcome-page says 
   calls.length = 0
   await new dispatch().run(ctx, { ctaId: 'cta2', ctas })
   assert.deepEqual(calls.filter((c) => c[0] === 'event').map((c) => c[1]), ['application:mateuNavigate'])
+})
+
+test('F3: a content button whose action nobody on screen claims is inert, as on Vaadin — no 403, no band', async () => {
+  const dispatchHost = chain('flows/main/pages/main-start-page-chains/dispatchHostBlockAction.js')
+  const dispatchIsland = chain('flows/main/pages/main-start-page-chains/dispatchIslandAction.js')
+  const ctx = newContext()
+  ctx.$application.variables.mateuRegistry = { contexts: {
+    [bridge.HOST_ID]: { id: bridge.HOST_ID, tree: { type: 'ServerSide', id: 'p', actions: [{ id: 'save' }, { id: 'row-*' }], children: [] } },
+  }, stack: [], shell: null }
+  const real = chains.runMateuAction
+  delete chains.runMateuAction
+  calls.length = 0
+  try {
+    await new dispatchHost().run(ctx, { actionId: 'primary' }) // the label's echo of a YAML Button with no action
+    await new dispatchIsland().run(ctx, { actionId: 'primary' })
+    assert.deepEqual(calls.filter((c) => c[0] === 'callChain'), [], 'nothing sent')
+    await new dispatchHost().run(ctx, { actionId: 'save' })
+    await new dispatchHost().run(ctx, { actionId: 'row-delete' }) // a wildcard claims it
+    assert.deepEqual(calls.filter((c) => c[0] === 'callChain').map((c) => c[2].actionId), ['save', 'row-delete'])
+  } finally { chains.runMateuAction = real }
+  // the app's action catalogue claims its ids too
+  assert.equal(bridge.contentActionIsClaimed({ contexts: {}, shell: { actionCatalogue: [{ id: 'cat' }] } }, 'cat'), true)
+  assert.equal(bridge.contentActionIsClaimed({ contexts: {}, shell: null }, 'cat'), false)
 })
 
 // ═══ runMateuAction ═══════════════════════════════════════════════════════════════════════════
@@ -715,6 +806,40 @@ test('mateuFieldEdited: ONE dirty rule with Vaadin — only a form that asks bef
   assert.equal(ctx.$application.variables.mateuRegistry.contexts.dr.dirty, true, 'the drawer holds the unsaved changes')
   assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), true)
   ctx.$application.variables.mateuDrawerOpen = false
+})
+
+test('R-7: edits typed on a page survive an overlay opened over them; a server MarkAsDirty counts; MarkAsClean clears', async () => {
+  answer(byRoute('/tracked'), replace(page('pt', 'x.Edit', 'Edit', [], { actions: [{ id: 'pick' }, { id: 'recalc' }, { id: 'touch' }, { id: 'save' }] })))
+  answer((b) => b.actionId === 'pick', crudDrawerOpen())
+  answer((b) => b.actionId === 'recalc', { commands: [], messages: [], fragments: [] })
+  answer((b) => b.actionId === 'touch', { commands: [{ type: 'MarkAsDirty', targetComponentId: '', data: null }], messages: [], fragments: [] })
+  answer((b) => b.actionId === 'save', { commands: [{ type: 'MarkAsClean', targetComponentId: '', data: null }], messages: [], fragments: [] })
+  const ctx = newContext()
+  ctx.$page.variables.mateuModalOpen = false
+  await navigate(ctx, '/tracked')
+  ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID].tree.confirmOnNavigationIfDirty = true
+  await new chains.mateuFieldEdited().run(ctx, { fieldId: 'nombre', event: { detail: { value: 'Ana', updatedFrom: 'internal' } } })
+  assert.equal(ctx.$application.variables.mateuDirty, true)
+  // a lookup dialog / drawer over the page: the draft stays, so do the unsaved changes
+  await act(ctx, 'pick')
+  assert.equal(ctx.$application.variables.mateuDrawerOpen, true)
+  assert.equal(ctx.$page.variables.mateuDraft.nombre, 'Ana', 'the typed value is still in the draft')
+  assert.equal(ctx.$application.variables.mateuDirty, true, 'opening an overlay is no save')
+  assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), true)
+  // the pure rule
+  assert.equal(bridge.pageDirtyAfterAction({ wasDirty: true, draft: {} }), false, 'what was typed went with the action')
+  assert.equal(bridge.pageDirtyAfterAction({ wasDirty: true, draft: { a: 1 }, replaced: true }), false, 'another page')
+  assert.equal(bridge.pageDirtyAfterAction({ wasDirty: true, draft: { a: 1 }, hostBefore: { cleaned: 1 }, hostAfter: { cleaned: 2 } }), false, 'MarkAsClean')
+  assert.equal(bridge.pageDirtyAfterAction({ wasDirty: true, draft: { a: 1 }, hostBefore: { cleaned: 1 }, hostAfter: { cleaned: 1 } }), true)
+  // the server says the page has unsaved changes
+  ctx.$application.variables.mateuDrawerOpen = false
+  ctx.$application.variables.mateuRegistry = { ...ctx.$application.variables.mateuRegistry, stack: [] }
+  ctx.$application.variables.mateuDirty = false
+  ctx.$page.variables.mateuDraft = {}
+  await act(ctx, 'touch')
+  assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), true, 'MarkAsDirty from the server counts')
+  await act(ctx, 'save')
+  assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), false, 'MarkAsClean clears it')
 })
 
 // ── the crud's create/edit DRAWER (CrudDrawerBuilder): its form sits in metadata.content ───────────
@@ -1006,6 +1131,49 @@ test('runMateuAction: a flow the page declares runs in the browser, with no serv
   assert.deepEqual(nav[2], { route: '/home', force: true }, 'a NavigateTo forces the shell to the route')
 })
 
+test('runMateuAction: a flow that marks the page dirty asks before its Navigate leaves (W-3, as on Vaadin)', async () => {
+  const p = page('pd', 'x.Flows', 'Flows', [text('x')], { actions: [
+    { id: 'localFlow', commands: [{ type: 'MarkAsDirty' }, { type: 'NavigateTo', data: '/fluent-counter' }] }] })
+  answer(byRoute('/dirty-flow'), replace(p))
+  const ctx = newContext()
+  await navigate(ctx, '/dirty-flow')
+  const before = sent.length
+  const navs = () => calls.filter((c) => c[0] === 'event' && c[1] === 'application:mateuNavigate')
+  const asked = []
+  const realConfirm = win.confirm
+  win.confirm = (text) => { asked.push(text); return confirmAnswer }
+  try {
+    confirmAnswer = false
+    const navsBefore = navs().length
+    await act(ctx, 'localFlow')
+    assert.equal(asked.length, 1, 'it asked')
+    assert.equal(navs().length, navsBefore, '«stay» navigates nowhere')
+    assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), true, 'the page stays dirty')
+    confirmAnswer = true
+    await act(ctx, 'localFlow')
+    assert.equal(asked.length, 2)
+    assert.deepEqual(navs().at(-1)[2], { route: '/fluent-counter', force: true }, 'confirmed: it leaves')
+    assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), false, 'the discarded changes ask no more')
+    assert.equal(sent.length, before, 'no server round trip')
+  } finally { win.confirm = realConfirm; confirmAnswer = true }
+})
+
+test('runMateuAction: a server NavigateTo never asks, even with unsaved changes (the server decided)', async () => {
+  answer(byRoute('/person'), fx('load-form'))
+  answer((b) => b.actionId === 'save', { commands: [{ type: 'MarkAsDirty' }, { type: 'NavigateTo', data: '/home' }], fragments: [], messages: [] })
+  const ctx = newContext()
+  await navigate(ctx, '/person')
+  const realConfirm = win.confirm
+  let asked = 0
+  win.confirm = () => { asked++; return false }
+  try {
+    await act(ctx, 'save')
+    assert.equal(asked, 0)
+    const nav = calls.filter((c) => c[0] === 'event' && c[1] === 'application:mateuNavigate').at(-1)
+    assert.deepEqual(nav[2], { route: '/home', force: true })
+  } finally { win.confirm = realConfirm }
+})
+
 test('runMateuAction: an absolute NavigateTo opens the other console in its own tab', async () => {
   const opened = []
   const realOpen = win.open
@@ -1277,6 +1445,38 @@ test('embedded: boots the route the host names, tells it ready/title, and the po
     bridge.setEmbeddedHost(null)
     bridge.setHostHeaderProvider(null)
     bridge.setTransportHooks(null)
+  }
+})
+
+test('R-3: inline editing — the second edit of a row carries the first, a search forgets them', async () => {
+  const cellEdited = chain('flows/main/pages/main-start-page-chains/mateuCellEdited.js')
+  const sentRows = []
+  const real = chains.runMateuAction
+  chains.runMateuAction = class { async run(_ctx, params) { sentRows.push(params.parameters._editedRow) } }
+  try {
+    const ctx = newContext()
+    ctx.$application.variables.mateuListing = { editable: true, columns: [{ field: 'price', template: 'number' }, { field: 'stock', template: 'number' }] }
+    const row = { _rowNumber: 0, id: 'P1', price: 10, stock: 5 } // one-way editors: the listing row stays as served
+    const edit = (columnIndex, value) => new cellEdited().run(ctx, { event: { detail: { value, updatedFrom: 'internal' } }, row: { data: row }, columnIndex })
+    await edit(0, 12)
+    await edit(1, 7)
+    assert.deepEqual(sentRows, [
+      { _rowNumber: 0, id: 'P1', price: 12, stock: 5 },
+      { _rowNumber: 0, id: 'P1', price: 12, stock: 7 },
+    ])
+    // back to the served value is a real change now (the committed one is 12)
+    await edit(0, 10)
+    assert.deepEqual(sentRows[2], { _rowNumber: 0, id: 'P1', price: 10, stock: 7 })
+    // the same value again is no edit
+    await edit(0, 10)
+    assert.equal(sentRows.length, 3)
+    // a listing that shows other values for the row (the saved ones, after a search) is the truth
+    bridge.forgetEditedRows()
+    await edit(1, 9)
+    assert.deepEqual(sentRows[3], { _rowNumber: 0, id: 'P1', price: 10, stock: 9 })
+  } finally {
+    chains.runMateuAction = real
+    bridge.forgetEditedRows()
   }
 })
 

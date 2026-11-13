@@ -12,11 +12,6 @@ description: |
 
   Try it: on the page of its own, click the **Arrivals** card — this class's `openArrivals` runs;
   press **Start check-in** on the welcome page.
-
-  Known gap (3.0-beta.51): in the embedded island (the first example) a click on the card sends
-  nothing; the same class as a page answers.
-knownIssue: >-
-  3.0-beta.51: in the embedded island a click on an inferred page's card sends nothing (the same class as a page answers).
 examples:
   - title: Inferred dashboard
     java: io.mateu.explorer.examples.behaviour.autopage.FrontDeskBoard

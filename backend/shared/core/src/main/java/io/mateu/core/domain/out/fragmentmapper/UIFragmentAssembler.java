@@ -32,10 +32,10 @@ public final class UIFragmentAssembler {
     // — no mapper, no DTO, no renderer — ever has to know they existed.
     component = PartialExpander.expand(component, httpRequest);
     if (component instanceof State state) {
-      return mapStateToDto(state, initiatorComponentId);
+      return mapStateToDto(state, initiatorComponentId, httpRequest);
     }
     if (component instanceof Data data) {
-      return mapDataToDto(data, initiatorComponentId, componentSupplier);
+      return mapDataToDto(data, initiatorComponentId, componentSupplier, httpRequest);
     }
     if (component != null && component.containerId() != null) {
       initiatorComponentId = component.containerId();

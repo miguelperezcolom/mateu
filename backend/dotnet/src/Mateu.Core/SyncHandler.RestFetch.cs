@@ -25,7 +25,11 @@ internal sealed partial class SyncHandler
         var kind = StateString(GetState(rq.Parameters, "_sourceKind"));
         var id = StateString(GetState(rq.Parameters, "_sourceId"));
         var type = registry.Resolve(rq.ServerSideType, rq.Route);
-        if (type is not null) ActionGuard.EnsureViewVisible(type);
+        if (type is not null)
+        {
+            ActionGuard.EnsureViewVisible(type);
+            EnsureMayFetch(type, kind, id);
+        }
         // a definition-only page (no class): the source is the one its OWN `actions:` declares for
         // that id, resolved against the server's catalogue (Java's SeededYamlPage as a
         // RestSourceSupplier) — the only channel that injects ${secret.X} for such a page. A refused
@@ -67,6 +71,35 @@ internal sealed partial class SyncHandler
         }
         return new UIIncrementDto([], [], [], [], false,
             new Dictionary<string, object?> { ["_restfetch"] = json }, null);
+    }
+
+    /// <summary>Refuses a proxy fetch whose declaring member the caller may not use: the
+    /// [EyesOnly]/[DisabledUnless] of an <c>action</c> method, the [EyesOnly] of an <c>options</c>
+    /// property — the answer the method or the field would give if asked directly (Java's
+    /// RestSourceResolver.checkAccess). Without it a caller who gets no button could still send
+    /// <c>__restfetch__</c> and have the server make the call, secrets included. <c>rows</c> and
+    /// <c>data</c> are declared on the class, whose [EyesOnly] <see cref="ActionGuard.EnsureViewVisible"/>
+    /// already enforced.</summary>
+    internal static void EnsureMayFetch(Type type, string? kind, string? id)
+    {
+        if (string.IsNullOrEmpty(id)) return;
+        switch (kind)
+        {
+            case "action":
+                foreach (var m in type.GetMethods().Where(m => m.Name == id || Naming.CamelCase(m.Name) == id))
+                {
+                    if (!ActionGuard.Authorized(m.Find<Mateu.Uidl.DisabledUnlessAttribute>()))
+                        ActionGuard.Deny($"proxied action '{id}' on {type.FullName} denied by [DisabledUnless]");
+                    if (!ActionGuard.Authorized(m.Find<Mateu.Uidl.EyesOnlyAttribute>()))
+                        ActionGuard.Deny($"proxied action '{id}' on {type.FullName} denied by [EyesOnly]");
+                }
+                break;
+            case "options":
+                foreach (var p in type.GetProperties().Where(p => p.Name == id || Naming.CamelCase(p.Name) == id))
+                    if (!ActionGuard.Authorized(p.Find<Mateu.Uidl.EyesOnlyAttribute>()))
+                        ActionGuard.Deny($"proxied options '{id}' on {type.FullName} denied by [EyesOnly]");
+                break;
+        }
     }
 
     /// <summary>The proxy's own routing keys: what to call, never a value to interpolate.</summary>

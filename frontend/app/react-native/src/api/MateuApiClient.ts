@@ -18,7 +18,7 @@ import { uiLocale } from '../core/money.ts';
 import { classifyFailure, DEFAULT_TIMEOUT_MS, HttpStatusError, isIdempotentAction, RequestTimeoutError, retryDelayMs, shouldRetry } from '../core/requestPolicy.ts';
 import { connectivity } from '../core/connectivity.ts';
 import { IDEMPOTENCY_HEADER } from '../core/offlineQueue.ts';
-import { isBackgroundRequest, serverActivity } from '../core/serverActivity.ts';
+import { isBackgroundRequest, serverActivity, type ServerActivity } from '../core/serverActivity.ts';
 
 /** A fetch whose response body is a readable STREAM (React Native's global fetch buffers the whole
  *  body). Registered by the app (expo/fetch); without one a stream is read once it has ended. */
@@ -55,9 +55,9 @@ export interface RunActionParams {
   background?: boolean;
 }
 
-/** Counts `call` as a request the UI on screen is waiting for — unless it is background traffic. */
-const counted = <T>(params: { actionId?: string; background?: boolean }, call: () => Promise<T>): Promise<T> =>
-  isBackgroundRequest(params.actionId, params.background) ? call() : serverActivity.track(call);
+/** Counts `call` on `activity` as a request the UI is waiting for — unless it is background traffic. */
+const countedOn = <T>(activity: ServerActivity, params: { actionId?: string; background?: boolean }, call: () => Promise<T>): Promise<T> =>
+  isBackgroundRequest(params.actionId, params.background) ? call() : activity.track(call);
 
 declare const __DEV__: boolean | undefined;
 
@@ -101,6 +101,10 @@ export class MateuApiClient {
    * Absent (a bare client) = only this client's own base url.
    */
   private readonly credentialsFor: (url: string) => boolean;
+
+  /** What the "waiting for the server" bar of THIS client's UI counts (core/serverActivity.ts): its
+   *  session's own (MateuSession sets it — a hub keeps several UIs open), the app's one otherwise. */
+  activity: ServerActivity = serverActivity;
 
   /** Whether a 401 may open the sign-in browser: a hub UI that is not on screen may not. */
   mayPrompt: () => boolean = () => true;
@@ -164,7 +168,7 @@ export class MateuApiClient {
   /** The stream, counted by the server-activity bar: a LongTask counts as long as its stream is open;
    *  the app's own long-lived streams (`_live-updates`, `_agent-channel`, `_progress-resume`) never do. */
   private streamAction(params: RunActionParams, onIncrement: (increment: unknown) => void, signal?: AbortSignal): Promise<void> {
-    return counted(params, () => this.openActionStream(params, onIncrement, signal));
+    return countedOn(this.activity, params, () => this.openActionStream(params, onIncrement, signal));
   }
 
   private async openActionStream(params: RunActionParams, onIncrement: (increment: unknown) => void, signal?: AbortSignal): Promise<void> {
@@ -240,7 +244,7 @@ export class MateuApiClient {
    * with them, but NO Content-Type — the runtime writes the multipart boundary. Answers the JSON.
    */
   async postForm(url: string, form: FormData): Promise<unknown> {
-    return serverActivity.track(() => this.sendForm(url, form));
+    return this.activity.track(() => this.sendForm(url, form));
   }
 
   private async sendForm(url: string, form: FormData): Promise<unknown> {
@@ -293,14 +297,14 @@ export class MateuApiClient {
     if (this.local) {
       if (!params.actionId) return this.local.answer(params);
       try {
-        return await counted(params, () => this.postAction(params));
+        return await countedOn(this.activity, params, () => this.postAction(params));
       } catch (e) {
         if (e instanceof StaleScreenError || !isNoServer(e)) throw e;
         return this.local.answer(params); // throws "This UI has no server: …"
       }
     }
     // counted from the first attempt to the last retry: one wait, however many tries it takes
-    return counted(params, () => this.postAction(params));
+    return countedOn(this.activity, params, () => this.postAction(params));
   }
 
   private async postAction(params: RunActionParams): Promise<unknown> {
@@ -487,8 +491,10 @@ export class MateuApiClient {
   }
 }
 
-/** A host with no Mateu server behind it: nothing listens at /mateu (404/405), or nothing answers. */
+/** A host with no Mateu server behind it: it ANSWERS, and nothing listens at /mateu (404/405/501).
+ *  A request that got no answer at all (a network failure: offline, the server down) is NOT that —
+ *  a hybrid deployment has a server, and the user is told about the connection (GA-5.9). */
 function isNoServer(e: unknown): boolean {
   const text = e instanceof Error ? e.message : String(e);
-  return /^HTTP (404|405|501)\b/.test(text) || e instanceof TypeError;
+  return /^HTTP (404|405|501)\b/.test(text);
 }

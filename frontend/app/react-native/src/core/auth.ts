@@ -95,9 +95,25 @@ export async function reauthenticate(p: TokenProvider | null | undefined, intera
     // fall through to the interactive login
   }
   if (!interactive || !p.login) return false;
+  let signedIn: boolean;
   try {
-    return await p.login();
+    signedIn = await p.login();
   } catch {
     return false;
   }
+  if (signedIn) for (const l of [...signedInListeners]) l(p);
+  return signedIn;
+}
+
+const signedInListeners = new Set<(p: TokenProvider) => void>();
+
+/**
+ * Hears every INTERACTIVE sign-in a 401 opened mid-session (never a silent refresh: that is the
+ * same person). Whoever signed in may be somebody else than who was signed in when the session
+ * opened — a shared phone —, so a host re-reads who owns what (the offline send queue). Returns an
+ * unsubscriber.
+ */
+export function onSignedInAgain(listener: (p: TokenProvider) => void): () => void {
+  signedInListeners.add(listener);
+  return () => signedInListeners.delete(listener);
 }

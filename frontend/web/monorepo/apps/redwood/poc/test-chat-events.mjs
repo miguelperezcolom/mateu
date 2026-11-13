@@ -139,16 +139,22 @@ test('a subscriber answering a bare component (ChatGenerate.renderScreen returns
 
 // ── navigation-requested / close-requested / others ────────────────────────────────────────────
 
-test('navigation-requested: every menu-click field travels, not only the route', () => {
+test('navigation-requested: every where-to-go field travels, not only the route — never an action id', () => {
   const detail = { route: '/orders', consumedRoute: '', actionId: 'open', baseUrl: '/_pod', serverSideType: 'a.B', uriPrefix: '/p', junk: 1 }
-  assert.deepEqual(chatNavigationOf(detail), { route: '/orders', actionId: 'open', baseUrl: '/_pod', serverSideType: 'a.B', uriPrefix: '/p' })
+  assert.deepEqual(chatNavigationOf(detail), { route: '/orders', baseUrl: '/_pod', serverSideType: 'a.B', uriPrefix: '/p' })
   assert.deepEqual(chatEventPlanOf({ event: 'navigation-requested', detail }, regWith()),
     { kind: 'navigate', navigation: chatNavigationOf(detail) })
   assert.equal(chatEventPlanOf({ event: 'navigation-requested', detail: {} }, null).kind, 'ignore')
   // what the load adds: the menu-click fields (baseUrl is where it goes, registered apart)
-  assert.deepEqual(navigationLoadExtraOf(chatNavigationOf(detail)), { serverSideType: 'a.B', actionId: 'open' })
+  assert.deepEqual(navigationLoadExtraOf(chatNavigationOf(detail)), { serverSideType: 'a.B' })
   assert.deepEqual(navigationLoadExtraOf({ route: '/x', consumedRoute: '/x' }), { consumedRoute: '/x' })
   assert.deepEqual(navigationLoadExtraOf(undefined), {})
+})
+
+test('S7: an agent navigation carries where to go, nothing that runs (shared corpus)', () => {
+  const corpus = JSON.parse(readFileSync(new URL('../../../../../../conformance/client/agent-events.json', import.meta.url), 'utf8'))
+  assert.ok(corpus.navigations.length > 0)
+  for (const c of corpus.navigations) assert.deepEqual(chatNavigationOf(c.detail), c.expected, c.name)
 })
 
 test('R1: an agent navigation keeps a base url only for the shell\'s own origin or a remote its app names', () => {

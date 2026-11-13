@@ -70,7 +70,7 @@ public final class PageTemplates {
   /** The page's content: the template laid out, or the authored content of a free page. */
   static List<Component> contentOf(Form form) {
     if (form.template() instanceof ItemOverviewPage itemOverview) {
-      return List.of(itemOverview(itemOverview, form.content()));
+      return List.of(itemOverview(itemOverview, form.content(), form.title()));
     }
     if (form.template() instanceof WelcomePage welcome) {
       return banner("welcome", welcome.toneOrNull(), form);
@@ -118,10 +118,12 @@ public final class PageTemplates {
   }
 
   /** The template's own values, for the wire; {@code null} for a free page. */
-  static PageTemplateDto dtoOf(FormTemplate template) {
+  static PageTemplateDto dtoOf(FormTemplate template, String pageTitle) {
     if (template instanceof ItemOverviewPage itemOverview) {
       return new PageTemplateDto(
-          ITEM_OVERVIEW, imageDto(itemOverview.avatar()), imageDto(itemOverview.photo()));
+          ITEM_OVERVIEW,
+          imageDto(itemOverview.avatar(), pageTitle),
+          imageDto(itemOverview.photo(), pageTitle));
     }
     if (template instanceof WelcomePage) {
       return new PageTemplateDto(WELCOME, null, null);
@@ -156,8 +158,22 @@ public final class PageTemplates {
     return null;
   }
 
-  private static TemplateImageDto imageDto(TemplateImage image) {
-    return image == null ? null : new TemplateImageDto(image.src(), image.initials());
+  private static TemplateImageDto imageDto(TemplateImage image, String pageTitle) {
+    return image == null
+        ? null
+        : new TemplateImageDto(image.src(), image.initials(), altOf(image, pageTitle));
+  }
+
+  /**
+   * The text a screen reader reads for a template's image: the declared {@code alt}, else the
+   * page's title (the image is the record the page is about) — an image without one was announced
+   * as its file name, or not at all.
+   */
+  static String altOf(TemplateImage image, String pageTitle) {
+    if (image.alt() != null && !image.alt().isBlank()) {
+      return image.alt();
+    }
+    return pageTitle != null && !pageTitle.isBlank() ? pageTitle : null;
   }
 
   /**
@@ -165,9 +181,10 @@ public final class PageTemplates {
    * The look here is Mateu's own drawing of the template for the renderers that do not have it — a
    * fixed-width panel pinned while the main area scrolls, wrapping under it on a narrow screen.
    */
-  private static Component itemOverview(ItemOverviewPage template, List<Component> main) {
+  private static Component itemOverview(
+      ItemOverviewPage template, List<Component> main, String pageTitle) {
     List<Component> panel = new ArrayList<>();
-    Component media = media(template);
+    Component media = media(template, pageTitle);
     if (media != null) {
       panel.add(slot("item-overview-media", List.of(media), "width: 100%; align-items: center"));
     }
@@ -462,14 +479,14 @@ public final class PageTemplates {
   }
 
   /** The avatar (a round image, else the initials) or the 4:3 photo. */
-  private static Component media(ItemOverviewPage template) {
+  private static Component media(ItemOverviewPage template, String pageTitle) {
     var avatar = template.avatar();
     if (avatar != null && avatar.src() != null && !avatar.src().isBlank()) {
       return new Image(
           avatar.src(),
           "width: 8rem; height: 8rem; border-radius: 50%; object-fit: cover",
           null,
-          null);
+          altOf(avatar, pageTitle));
     }
     if (avatar != null && avatar.initials() != null && !avatar.initials().isBlank()) {
       return new Avatar(null, avatar.initials(), null, "width: 8rem; height: 8rem", null);
@@ -477,7 +494,10 @@ public final class PageTemplates {
     var photo = template.photo();
     if (photo != null && photo.src() != null && !photo.src().isBlank()) {
       return new Image(
-          photo.src(), "width: 100%; aspect-ratio: 4 / 3; object-fit: cover", null, null);
+          photo.src(),
+          "width: 100%; aspect-ratio: 4 / 3; object-fit: cover",
+          null,
+          altOf(photo, pageTitle));
     }
     return null;
   }

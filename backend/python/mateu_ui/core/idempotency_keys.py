@@ -3,7 +3,8 @@
 
 A sync request carrying an ``Idempotency-Key`` header runs ONCE per caller, action and key; a repeat
 gets the first answer back, and a repeat arriving while the first run is still in flight waits for
-it and gets its answer.
+it (at most ``MATEU_IDEMPOTENCY_JOIN_SECONDS``, 60 by default; then the "Too many pending requests"
+refusal, which the client keeps queued) and gets its answer.
 
 Remembered in memory, per process — lost on a restart and never shared between workers/instances
 (several of them need sticky routing for the guarantee to hold). Two separate tables:
@@ -36,6 +37,7 @@ search, an app-level action) simply runs.
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import re
 import threading
@@ -50,10 +52,15 @@ HEADER = "Idempotency-Key"
 #: Title and text of the refusal when too many keyed requests are in flight (same in the 3 backends).
 BUSY_TITLE = "Too many pending requests"
 BUSY_MESSAGE = "The server is still processing too many requests. Try again in a moment."
+#: Title and text of the refusal when a key is sent again with a DIFFERENT request (same in the 3).
+REUSED_TITLE = "Idempotency key reused"
+REUSED_MESSAGE = "This key was already used for a different request. Send this one with a new key."
 
 _VALID = re.compile(r"^[A-Za-z0-9_\-:.]{8,128}$")
 
 T = TypeVar("T")
+
+log = logging.getLogger("mateu.idempotency")
 
 
 def _env_number(name: str, fallback: int) -> int:
@@ -66,16 +73,28 @@ def _env_number(name: str, fallback: int) -> int:
 
 max_entries: int = _env_number("MATEU_IDEMPOTENCY_MAX_ENTRIES", 2000)
 ttl_seconds: float = float(_env_number("MATEU_IDEMPOTENCY_TTL_SECONDS", 24 * 60 * 60))
+#: Each caller's share of EACH table (GA review S10): one caller sending many keyed requests can
+#: neither fill the in-flight table for everybody else nor evict their remembered answers.
+max_entries_per_caller: int = _env_number("MATEU_IDEMPOTENCY_MAX_ENTRIES_PER_CALLER", 100)
+#: How long a repeat waits for the run of its key still in flight before it is answered with the
+#: "Too many pending requests" refusal (which the client keeps queued and sends again). The sync
+#: handler runs in a worker THREAD: an unbounded wait parked one thread per retry of a stuck key,
+#: and a few stuck keys with retrying clients exhausted the pool every request shares.
+join_timeout_seconds: float = float(_env_number("MATEU_IDEMPOTENCY_JOIN_SECONDS", 60))
 
 
 class _Entry:
-    __slots__ = ("created_at", "done", "answer", "error")
+    __slots__ = ("created_at", "done", "answer", "error", "caller", "fingerprint")
 
-    def __init__(self) -> None:
+    def __init__(self, caller: str = "", fingerprint: str | None = None) -> None:
         self.created_at = time.monotonic()
         self.done = threading.Event()
         self.answer: Any = None
         self.error: BaseException | None = None
+        #: the SHA-256 of the caller's complete identity: whose share the entry counts against
+        self.caller = caller
+        #: the SHA-256 of what the request asked for (its state and parameters, canonical)
+        self.fingerprint = fingerprint
 
 
 _lock = threading.Lock()
@@ -83,6 +102,41 @@ _lock = threading.Lock()
 _in_flight: dict[str, _Entry] = {}
 #: answers of finished runs: LRU + TTL
 _finished: "OrderedDict[str, _Entry]" = OrderedDict()
+#: how many entries each caller (identity hash) holds in either table
+_in_flight_by_caller: dict[str, int] = {}
+_finished_by_caller: dict[str, int] = {}
+
+
+def _count(counts: dict[str, int], caller: str) -> int:
+    return counts.get(caller, 0)
+
+
+def _recount(counts: dict[str, int], caller: str) -> None:
+    counts[caller] = counts.get(caller, 0) + 1
+
+
+def _uncount(counts: dict[str, int], caller: str) -> None:
+    left = counts.get(caller, 0) - 1
+    if left > 0:
+        counts[caller] = left
+    else:
+        counts.pop(caller, None)
+
+
+def _sha256(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def fingerprint_of(component_state: Any, parameters: Any) -> str | None:
+    """What a request asks for — its component state and parameters, canonical JSON (sorted keys)
+    — hashed: the same key resent with another request is refused, not answered from memory."""
+    import json
+
+    try:
+        body = {"componentState": component_state or {}, "parameters": parameters or {}}
+        return _sha256(json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str))
+    except (TypeError, ValueError):
+        return None  # not comparable: never refused for it
 
 
 def key_of(header: str | None) -> str | None:
@@ -127,15 +181,17 @@ def once(
     run: Callable[[], T],
     view: str | None = None,
     route: str | None = None,
+    fingerprint: str | None = None,
 ) -> T:
     """Runs ``run`` unless ``caller`` already sent ``key`` for ``action_id``; then the first answer
     is returned (waiting for it when that run is still in flight). Raises a ``UserFacingException``
-    when the key is new and too many keyed runs are already in flight."""
+    when the key is new and too many keyed runs are already in flight (in all or for this caller),
+    or when the key was sent before with another request (``fingerprint``)."""
     valid = key_of(key)
     if valid is None:
         return run()
     scoped = _scoped(caller, action_id, valid, view, route)
-    known, mine = _claim(scoped)
+    known, mine = _claim(scoped, _sha256(caller or ""), fingerprint)
     if mine is None:
         return _replay(known)
     return _run_mine(scoped, mine, run)
@@ -161,33 +217,58 @@ def _scoped(
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def _claim(scoped: str) -> tuple[_Entry | None, _Entry | None]:
+def _refuse_another_request(entry: _Entry, fingerprint: str | None) -> None:
+    """The same key sent with a DIFFERENT request is no retry: answering it with the first
+    request's answer would hide that it never ran."""
+    if entry.fingerprint is not None and fingerprint is not None and entry.fingerprint != fingerprint:
+        from mateu_ui.uidl.messages import UserFacingException
+
+        log.warning("Idempotency key reused with a different request: refused")
+        raise UserFacingException(REUSED_MESSAGE, REUSED_TITLE)
+
+
+def _claim(scoped: str, caller: str = "", fingerprint: str | None = None) -> tuple[_Entry | None, _Entry | None]:
     """``(known, None)`` when the key has a finished answer or a run in flight to join, else
     ``(None, mine)`` — a new in-flight entry. Raises the admission refusal when the in-flight
-    table is full."""
+    table is full, in all or for this caller's share, and the reuse refusal when the key belongs
+    to another request."""
     with _lock:
         known = _finished.get(scoped)
         if known is not None and time.monotonic() - known.created_at > ttl_seconds:
-            del _finished[scoped]
+            _remove_finished(scoped, known)
             known = None
         if known is not None:
+            _refuse_another_request(known, fingerprint)
             _finished.move_to_end(scoped)
             return known, None
         running = _in_flight.get(scoped)
         if running is not None:
+            _refuse_another_request(running, fingerprint)
             return running, None
-        if len(_in_flight) >= max(1, max_entries):
+        if len(_in_flight) >= max(1, max_entries) or _count(_in_flight_by_caller, caller) >= max(
+            1, max_entries_per_caller
+        ):
             from mateu_ui.uidl.messages import UserFacingException
 
             raise UserFacingException(BUSY_MESSAGE, BUSY_TITLE)
-        mine = _Entry()
+        mine = _Entry(caller, fingerprint)
         _in_flight[scoped] = mine
+        _recount(_in_flight_by_caller, caller)
         return None, mine
+
+
+def _remove_finished(scoped: str, entry: _Entry) -> None:
+    if _finished.get(scoped) is entry:
+        del _finished[scoped]
+        _uncount(_finished_by_caller, entry.caller)
 
 
 def _replay(known: _Entry | None):
     assert known is not None
-    known.done.wait()
+    if not known.done.wait(join_timeout_seconds):
+        from mateu_ui.uidl.messages import UserFacingException
+
+        raise UserFacingException(BUSY_MESSAGE, BUSY_TITLE)
     if known.error is not None:
         raise known.error
     return known.answer
@@ -217,12 +298,14 @@ class _Pending:
     """A keyed request in flight through the handler: not claimed until the handler reaches a
     :func:`checkpoint` — i.e. until the request passed the checks the action itself would pass."""
 
-    __slots__ = ("scoped", "claimed", "mine")
+    __slots__ = ("scoped", "claimed", "mine", "caller", "fingerprint")
 
-    def __init__(self, scoped: str) -> None:
+    def __init__(self, scoped: str, caller: str = "", fingerprint: str | None = None) -> None:
         self.scoped = scoped
         self.claimed = False
         self.mine: _Entry | None = None
+        self.caller = caller
+        self.fingerprint = fingerprint
 
 
 class _Replay(BaseException):
@@ -245,6 +328,7 @@ def guarded(
     run: Callable[[], T],
     view: str | None = None,
     route: str | None = None,
+    fingerprint: str | None = None,
 ) -> T:
     """Runs ``run`` (the sync handler) with the request's key PENDING: the key is looked up only
     when the handler calls :func:`checkpoint`, right after the request passed the checks its
@@ -256,7 +340,7 @@ def guarded(
     valid = key_of(key)
     if valid is None:
         return run()
-    pending = _Pending(_scoped(caller, action_id, valid, view, route))
+    pending = _Pending(_scoped(caller, action_id, valid, view, route), _sha256(caller or ""), fingerprint)
     token = _pending.set(pending)
     try:
         try:
@@ -283,7 +367,7 @@ def checkpoint() -> None:
     if pending is None or pending.claimed:
         return
     pending.claimed = True
-    known, mine = _claim(pending.scoped)
+    known, mine = _claim(pending.scoped, pending.caller, pending.fingerprint)
     if mine is None:
         assert known is not None
         raise _Replay(known)
@@ -297,12 +381,23 @@ def _settle(scoped: str, entry: _Entry, remember: bool) -> None:
         if _in_flight.get(scoped) is not entry:
             return
         del _in_flight[scoped]
+        _uncount(_in_flight_by_caller, entry.caller)
         if remember:
+            # the caller's share full: its own least recently used answer goes, never another's
+            if _count(_finished_by_caller, entry.caller) >= max(1, max_entries_per_caller):
+                eldest = next((k for k, e in _finished.items() if e.caller == entry.caller), None)
+                if eldest is not None:
+                    _remove_finished(eldest, _finished[eldest])
+            previous = _finished.get(scoped)
+            if previous is not None:
+                _remove_finished(scoped, previous)
             entry.created_at = time.monotonic()
             _finished[scoped] = entry
             _finished.move_to_end(scoped)
+            _recount(_finished_by_caller, entry.caller)
             while len(_finished) > max(1, max_entries):
-                _finished.popitem(last=False)
+                _, dropped = _finished.popitem(last=False)
+                _uncount(_finished_by_caller, dropped.caller)
 
 
 def in_flight() -> int:
@@ -316,9 +411,11 @@ def clear() -> None:
     with _lock:
         _in_flight.clear()
         _finished.clear()
+        _in_flight_by_caller.clear()
+        _finished_by_caller.clear()
 
 
 __all__ = [
-    "BUSY_MESSAGE", "BUSY_TITLE", "HEADER", "caller_of", "checkpoint", "clear", "guarded", "in_flight", "key_of",
-    "once", "refused", "view_of",
+    "BUSY_MESSAGE", "BUSY_TITLE", "HEADER", "REUSED_MESSAGE", "REUSED_TITLE", "caller_of", "checkpoint", "clear",
+    "fingerprint_of", "guarded", "in_flight", "key_of", "once", "refused", "view_of",
 ]

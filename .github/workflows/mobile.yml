@@ -27,6 +27,14 @@ name: Mobile app (Android APK)
 
 on:
   workflow_call:
+    inputs:
+      # From buid-and-publish.yml's `line` job (scripts/release-line.mjs): 'false' for a release that
+      # is not the newest of its line (a backport v3.0.2 after v3.1.0, a re-run of an older release),
+      # which must not reach users as an update.
+      newest:
+        type: string
+        required: false
+        default: 'true'
     secrets:
       ANDROID_KEYSTORE_BASE64:
         required: false
@@ -200,8 +208,10 @@ jobs:
     # (workflow_dispatch, to rebuild its APK) would republish OLD JS over the newer release, and
     # expo-updates serves the latest published update — every phone on that runtime would downgrade.
     # And no pre-release of a later minor or major (v3.1-rc.1) reaches the production channel;
-    # the v3.0 pre-releases do, until the GA. Same rule as bump-examples and the plugin jobs.
-    if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'v') && (!contains(github.event.release.tag_name, '-') || startsWith(github.event.release.tag_name, 'v3.0-'))
+    # the v3.0 pre-releases do, until the GA. Nor does a release that is not the newest of its line
+    # (`newest`: a backport v3.0.2 after v3.1.0 would move every phone from 3.1 JS back to 3.0).
+    # Same rule as bump-examples and the plugin jobs.
+    if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'v') && (!contains(github.event.release.tag_name, '-') || startsWith(github.event.release.tag_name, 'v3.0-')) && inputs.newest != 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -242,3 +252,8 @@ jobs:
           npm install --no-save --ignore-scripts --no-audit --no-fund eas-cli@16.32.0
           ./node_modules/.bin/eas update --channel production --environment production \
             --message "Mateu $MATEU_VERSION" --non-interactive
+          # the same JavaScript for the APK on the GitHub releases, on ITS channel (app.config.ts asks
+          # for `github` when MATEU_DISTRIBUTION=github): an update carries its own app config, and the
+          # APK's must keep saying it updates from the releases page, not from Google Play (GA review S8)
+          MATEU_DISTRIBUTION=github ./node_modules/.bin/eas update --channel github --environment production \
+            --message "Mateu $MATEU_VERSION (GitHub APK)" --non-interactive

@@ -15,7 +15,7 @@ import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from
 import { interpolate, templateResolver } from './interpolation'
 import { fetchExternalPage, fetchExternalRows, pageOf } from '@infra/http/externalOptions.ts'
 import { filterExternalRows, sortExternalRows } from '@infra/http/restRowFilters.ts'
-import { rowRouteFields, navigateToRoute } from '@infra/ui/rowRoute.ts'
+import { rowRouteFields, navigateToRoute, leaveToRoute } from '@infra/ui/rowRoute.ts'
 import { rowOpenTargetOf } from '@infra/ui/rowOpen.ts'
 import { sameSort, sortAfterChange, sortOfGrid } from './gridSort'
 import { isSampled, totalPathOf, viaProxy } from '@infra/http/restSourceCatalogue.ts'
@@ -1086,7 +1086,7 @@ export class MateuTableCrud extends LitElement {
         // off so we never navigate to a literal placeholder.
         const route = button.route ? interpolate(button.route, this.state, this.data) : undefined
         if (route && !route.includes('${')) {
-            navigateToRoute(this, route)
+            leaveToRoute(this, route)
             return
         }
         if (button.actionId === 'import') {

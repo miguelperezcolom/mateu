@@ -6299,7 +6299,7 @@
       }
     },
     "MessageList" : {
-      "description" : "A read-only chat-style list of MessageListItems (Vaadin/PatternFly message list).",
+      "description" : "A read-only chat-style list of MessageListItems (the Vaadin message list).",
       "type" : "object",
       "required" : [ "type" ],
       "properties" : {
@@ -8991,6 +8991,9 @@
           "type" : "string"
         },
         "initials" : {
+          "type" : "string"
+        },
+        "alt" : {
           "type" : "string"
         }
       }

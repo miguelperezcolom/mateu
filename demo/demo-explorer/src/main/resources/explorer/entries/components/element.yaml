@@ -18,15 +18,10 @@ description: |
 
   Both are in the C# and Python ports.
 
-  > **Known issue (3.0-beta.51):** an Element's `on` action ids are not advertised the way a
-  > component's `actionId` is, so the handler needs `@Action` (or the click is dropped in the
-  > browser: "no component on the page handles it").
+  The handlers an `on` names are plain public methods of the view: naming them is what makes them
+  callable (no `@Action` needed).
 
   Try: click / double-click the raw button.
-knownIssue: >-
-  3.0-beta.51: Element `on:` action ids are not harvested as tree-referenced actions
-  (TreeActionHarvester reads actionId/*ActionId keys only), so a plain public handler method is not
-  advertised and the browser drops the event; marking it @Action works around it.
 examples:
   - title: In YAML — markup and an unregistered custom component
     yaml: specs/ui/explorer/components/element/elements.yaml

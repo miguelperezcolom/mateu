@@ -82,3 +82,19 @@ if [[ -f $exclusions ]]; then
   printf 'japicmp.reviewedExcludes=\\\n  io.mateu.__none__\n' >> "$exclusions"
   echo "$exclusions → reset to the sentinel"
 fi
+# The first FINAL release of a line (the GA, 3.0.0; later 3.1.0…) also ends the pre-release wording
+# that would otherwise ship with it (GA review M3): the Python package's classifier and the
+# supported-versions row of SECURITY.md. Idempotent: on a later patch nothing matches any more.
+if [[ $new =~ ^([0-9]+)\.([0-9]+)\.[0-9]+$ ]]; then
+  line="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
+  if [[ -f backend/python/pyproject.toml ]]; then
+    sed -E -i.bak 's#"Development Status :: [0-9] - [A-Za-z/]+"#"Development Status :: 5 - Production/Stable"#' backend/python/pyproject.toml
+    rm -f backend/python/pyproject.toml.bak
+    echo "backend/python/pyproject.toml → Development Status :: 5 - Production/Stable"
+  fi
+  if [[ -f SECURITY.md ]]; then
+    sed -E -i.bak "s#^\| Latest [0-9]+\.[0-9]+ beta \(until [0-9.]+ is out\) \| ✅ security fixes, in the next beta \|\$#| $line.x — the latest $line release | ✅ security fixes, in the next patch release |#" SECURITY.md
+    rm -f SECURITY.md.bak
+    echo "SECURITY.md (supported versions) → $line.x"
+  fi
+fi

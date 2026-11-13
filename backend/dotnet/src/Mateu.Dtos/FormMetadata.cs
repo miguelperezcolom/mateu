@@ -79,4 +79,8 @@ public record FormMetadataDto : ComponentMetadataDto
 public record PageTemplateDto(string Type, TemplateImageDto? Avatar = null, TemplateImageDto? Photo = null);
 
 /// <summary>A template image: a picture or initials. (Mirrors io.mateu.dtos.TemplateImageDto.)</summary>
-public record TemplateImageDto(string? Src, string? Initials);
+public record TemplateImageDto(string? Src, string? Initials)
+{
+    /// <summary>The text a screen reader reads: the declared alt, else the page's title.</summary>
+    public string? Alt { get; init; }
+}

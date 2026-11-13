@@ -1,6 +1,7 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 import { applyVariant, type VariantEnv } from './src/core/buildVariant.ts';
 import { applyPushConfig, type PushEnv } from './src/core/pushConfig.ts';
+import { updateChannelFor } from './src/hub/updateTargets.ts';
 
 /**
  * Build-variant overrides on top of app.json (which holds the production-safe defaults).
@@ -40,13 +41,18 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   // (eas.json) itself; a build made outside EAS — the Play bundle built locally, the GitHub APK —
   // carries none and would never receive the `production` updates the release workflow publishes
   // (mobile.yml, job `ota`). Only a hub build asks: a fixed app is somebody else's, with its own updates.
+  // The GitHub APK asks for its own channel, `github` (src/hub/updateTargets.ts): an update's app
+  // config is published per channel, and the APK's must keep saying it updates from GitHub.
   const base: ExpoConfig = !process.env.EAS_BUILD && extended.updates?.url && process.env.MATEU_VARIANT !== 'fixed'
     && process.env.APP_VARIANT !== 'development'
     ? {
         ...extended,
         updates: {
           ...extended.updates,
-          requestHeaders: { 'expo-channel-name': 'production', ...(extended.updates.requestHeaders ?? {}) },
+          requestHeaders: {
+            'expo-channel-name': updateChannelFor(process.env.MATEU_DISTRIBUTION?.trim()),
+            ...(extended.updates.requestHeaders ?? {}),
+          },
         },
       }
     : extended;

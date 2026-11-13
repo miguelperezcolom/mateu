@@ -123,9 +123,10 @@ class SearchHandlerMixin(MixinBase):
         returned rows (unless the ListingData carries its own total: database pushdown, the
         rows are the already-paged window)."""
         filters_type, row_type = listing_types(type(view)) or (None, None)
+        rq = self.guarded_query(rq, row_type)
         request = self.build_search_request(view, filters_type, rq)
         found = self._invoke(view.search, request, rq)
-        props = view_fields(row_type) if row_type is not None else []
+        props = self.row_props(row_type) if row_type is not None else []
         supplied_groups = None
         if isinstance(found, ListingData):
             if found.groups is not None:
@@ -226,10 +227,11 @@ class SearchHandlerMixin(MixinBase):
         """Sorts (Pageable.sort), paginates and serializes rows into the standard listing data
         fragment — shared by crud and declarative-listing searches."""
         state = rq.component_state or {}
-        prop_by_camel = {camel_case(p.name): p.name for p in props}
+        prop_by_camel = {**{p.name: p.name for p in props}, **{camel_case(p.name): p.name for p in props}}
         for spec in reversed(state.get("sort") or []):
             key = spec.get("fieldId") or spec.get("field") or ""
-            field = prop_by_camel.get(key, key)
+            # only a row field the caller may see: sorting by a hidden one leaks its order
+            field = prop_by_camel.get(key)
             if not field:
                 continue
             reverse = spec.get("direction", "ascending") == "descending"
@@ -254,14 +256,61 @@ class SearchHandlerMixin(MixinBase):
             child_type = ReflectionMapper.grid_row_type(p)
             value = getattr(item, p.name, None)
             if child_type is not None:
-                child_props = view_fields(child_type)
+                child_props = self.row_props(child_type)
                 row[camel_case(p.name)] = [self._row_dict(c, child_props) for c in (value or [])]
             else:
                 row[camel_case(p.name)] = self.cell_value(_mapped_value(p, value))
         return row
 
+    def guarded_query(self, rq: RunActionRq, row_type) -> RunActionRq:
+        """The listing query of ``rq`` held to what the caller may ask (Java's ListingQueryGuard):
+        a sort or filter key naming a row field the caller may not read is dropped (sorting or
+        filtering by a hidden value leaks it), a page below zero is the first page, and a page
+        size of 0 or less, or above the cap, is the cap: ``listing_max_page_size`` (``MATEU_LISTING_MAX_PAGE_SIZE``, 500)."""
+        state = dict(rq.component_state or {})
+        if row_type is not None:
+            hidden = {
+                key for p in view_fields(row_type) if not self.mapper._permitted(p)
+                for key in (p.name, camel_case(p.name))
+            }
+        else:
+            hidden = set()
+        changed = False
+        if hidden:
+            sort = state.get("sort")
+            if isinstance(sort, list):
+                kept = [
+                    s for s in sort
+                    if not (isinstance(s, dict) and (s.get("fieldId") or s.get("field") or "") in hidden)
+                ]
+                if len(kept) != len(sort):
+                    state["sort"], changed = kept, True
+            for key in list(state):
+                base = key[:-5] if key.endswith(("_from")) else key[:-3] if key.endswith("_to") else key
+                if key in hidden or base in hidden:
+                    del state[key]
+                    changed = True
+        page = _as_int(state.get("page"))
+        if page is not None and page < 0:
+            state["page"], changed = 0, True
+        size = _as_int(state.get("size"))
+        cap = listing_max_page_size(self)
+        # a size of 0 or less meant "every row" to a default fetch: it is the cap too (Java's
+        # ListingQueryGuard, .NET's GuardedQuery)
+        if size is not None and (size <= 0 or size > cap):
+            state["size"], changed = cap, True
+        return rq.model_copy(update={"component_state": state}) if changed else rq
+
+    def row_props(self, row_type) -> list:
+        """The fields of a listing row the CALLER may see — ONE filter for the row cells (tree
+        children too), the sort and filter keys, the summaries and the exports: an ``EyesOnly``
+        field the caller does not satisfy, or one the ``Audience`` projects out, is never a value
+        of the row data (the column was already dropped; the value still travelled)."""
+        return [p for p in view_fields(row_type) if self.mapper._permitted(p)]
+
     def crud_search(self, crud, element, rq: RunActionRq) -> UIIncrement:
-        props = view_fields(element)
+        rq = self.guarded_query(rq, element)
+        props = self.row_props(element)
         state = rq.component_state or {}
         spec = self._summary_spec(props)
         # The GroupBy() column is the implicit primary sort, so rows of the same group stay
@@ -315,9 +364,10 @@ class SearchHandlerMixin(MixinBase):
         items = self._filtered_rows(crud, props, rq)
         # sort — Pageable.sort is a list of {field, direction:'ascending'|'descending'}; the field
         # is the camelCased column, mapped back to the item attribute.
-        prop_by_camel = {camel_case(p.name): p.name for p in props}
+        prop_by_camel = {**{p.name: p.name for p in props}, **{camel_case(p.name): p.name for p in props}}
         for sort_spec in reversed(sort):
-            field = prop_by_camel.get(sort_spec.get("field", ""), sort_spec.get("field", ""))
+            # only a row field the caller may see: sorting by a hidden one leaks its order
+            field = prop_by_camel.get(sort_spec.get("field", ""))
             if not field:
                 continue
             reverse = sort_spec.get("direction", "ascending") == "descending"
@@ -639,3 +689,32 @@ def _mapped_value(p, value):
         raw = value.value if hasattr(value, "value") and not isinstance(value, str) else value
         return mapped.mappings.get(str(raw), mapped.default)
     return value
+
+
+#: The rows one page of a listing may ask for, unless the handler says otherwise.
+DEFAULT_MAX_PAGE_SIZE = 500
+
+
+def listing_max_page_size(handler=None) -> int:
+    """``add_mateu(listing_max_page_size=…)``, else ``MATEU_LISTING_MAX_PAGE_SIZE``, else 500."""
+    import os
+
+    configured = getattr(handler, "listing_max_page_size", None)
+    if isinstance(configured, int) and configured > 0:
+        return configured
+    try:
+        value = int(os.environ.get("MATEU_LISTING_MAX_PAGE_SIZE", ""))
+        return value if value > 0 else DEFAULT_MAX_PAGE_SIZE
+    except ValueError:
+        return DEFAULT_MAX_PAGE_SIZE
+
+
+def _as_int(value):
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return int(value)
+    try:
+        return int(str(value))
+    except (TypeError, ValueError):
+        return None

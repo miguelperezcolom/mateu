@@ -2,6 +2,7 @@
 // call it. Deploy this Worker in YOUR Cloudflare account (free plan) and give the plugin its url: it
 // forwards Cloudflare Pages calls and adds the CORS headers. It stores nothing and adds no
 // credentials: the token is the one each request brings, and nothing but the Pages API is reachable.
+// Keep it on its workers.dev address: the plugin may only reach https://*.workers.dev.
 const ALLOWED = /^\/client\/v4\/(accounts\/[^/]+\/pages\/projects(\/|$)|pages\/assets\/)/
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +13,10 @@ const CORS = {
 
 export default {
   async fetch(request) {
+    // A Figma plugin's iframe has the opaque origin `null`: a web page (a real origin) is refused, so
+    // nobody's site can spend this Worker's requests from its visitors' browsers.
+    const origin = request.headers.get('origin')
+    if (origin !== null && origin !== 'null') return new Response('Only the Mateu Publish plugin', { status: 403, headers: CORS })
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
     const url = new URL(request.url)
     if (!ALLOWED.test(url.pathname) || !['GET', 'POST'].includes(request.method)) {

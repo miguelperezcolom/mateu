@@ -140,8 +140,7 @@ public final class ComponentState {
       GeneratedValueInitializer.initialize(
           getViewModelClass(modelView, httpRequest), newState, httpRequest);
       addRowNumber(modelView.getClass(), newState);
-      stripRestricted(state, newState, httpRequest);
-      return newState;
+      return stripRestricted(state, newState, httpRequest);
     }
     return state;
   }
@@ -149,48 +148,60 @@ public final class ComponentState {
   /**
    * A field the caller may not see ({@code @EyesOnly}) must not travel in the state either: hiding
    * the input while sending its value in {@code initialData} would leak exactly what the annotation
-   * protects.
+   * protects — at any depth (a nested form's restricted field too), and the fields a YAML layout
+   * bound to this view model hides from the caller ({@code eyesOnly:}).
    */
   @SuppressWarnings("unchecked")
-  private static void stripRestricted(Object source, Object state, HttpRequest httpRequest) {
+  private static Object stripRestricted(Object source, Object state, HttpRequest httpRequest) {
     if (source == null || !(state instanceof Map<?, ?> map)) {
-      return;
+      return state;
     }
-    for (var name : restrictedFields(source, httpRequest)) {
-      ((Map<String, Object>) map).remove(name);
+    var readable =
+        io.mateu.core.domain.FieldAccess.readable(
+            source.getClass(), (Map<String, Object>) map, httpRequest);
+    var hidden = yamlHidden(source, httpRequest);
+    if (hidden.isEmpty() || hidden.stream().noneMatch(readable::containsKey)) {
+      return readable;
     }
+    var out = new LinkedHashMap<>(readable);
+    hidden.forEach(out::remove);
+    return out;
+  }
+
+  /**
+   * Request attribute: view model class name → the fields the YAML layout it is drawn with hides
+   * from the caller (set by the YAML guard, see {@code YamlUidlLoader}).
+   */
+  public static final String YAML_HIDDEN_ATTRIBUTE = "mateu.yamlHiddenFields";
+
+  @SuppressWarnings("unchecked")
+  private static java.util.Set<String> yamlHidden(Object source, HttpRequest httpRequest) {
+    if (httpRequest == null
+        || !(httpRequest.getAttribute(YAML_HIDDEN_ATTRIBUTE) instanceof Map<?, ?> byType)) {
+      return java.util.Set.of();
+    }
+    var hidden = byType.get(source.getClass().getName());
+    return hidden instanceof java.util.Set<?> set
+        ? (java.util.Set<String>) set
+        : java.util.Set.of();
   }
 
   /**
    * The instance itself when the caller may see all of it; otherwise its state as a map WITHOUT the
-   * fields an {@code @EyesOnly} hides from this caller — for the places that hand the raw instance
-   * to the wire as state / initial data.
+   * fields hidden from this caller — for the places that hand the raw instance to the wire as state
+   * / initial data.
    */
   public static Object withoutRestricted(Object instance, HttpRequest httpRequest) {
     if (instance == null || instance instanceof Map<?, ?>) {
       return instance;
     }
-    var restricted = restrictedFields(instance, httpRequest);
-    if (restricted.isEmpty()) {
+    if (!io.mateu.core.domain.FieldAccess.isGuarded(instance.getClass())
+        && yamlHidden(instance, httpRequest).isEmpty()) {
       return instance;
     }
     var map = new LinkedHashMap<>(toMap(instance));
-    restricted.forEach(map::remove);
-    return map;
-  }
-
-  private static List<String> restrictedFields(Object source, HttpRequest httpRequest) {
-    List<String> names = new ArrayList<>();
-    for (var field :
-        io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields(source.getClass())) {
-      var eyesOnly =
-          io.mateu.core.infra.reflection.MetaAnnotations.find(
-              field, io.mateu.uidl.annotations.EyesOnly.class);
-      if (eyesOnly != null && !Authorizer.isAuthorized(eyesOnly, httpRequest)) {
-        names.add(field.getName());
-      }
-    }
-    return names;
+    var stripped = stripRestricted(instance, map, httpRequest);
+    return stripped == map ? instance : stripped;
   }
 
   public static String getAppRoute(Object potentialApp) {

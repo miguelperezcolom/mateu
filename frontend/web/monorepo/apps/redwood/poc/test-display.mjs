@@ -30,7 +30,7 @@ import { hexColorOf } from './inputs.mjs'
 import { reprojectedContentOf } from './reproject.mjs'
 import { chatTurnsOf } from './displayDom.mjs'
 import { REDWOOD_COVERAGE } from './coverage.mjs'
-import { setChromeLanguage, CHROME_TEXTS, dateLocale, dateConverterOptions, temporalText } from './i18n.mjs'
+import { chromeText, setChromeLanguage, CHROME_TEXTS, dateLocale, dateConverterOptions, temporalText } from './i18n.mjs'
 import { smartFilterValueMetadataOf, labelCellRows, valueLabelOf } from './core/listing.mjs'
 import { ruleSurfacesOf, surfaceOfElement } from './rules.mjs'
 import { kanbanKeyOf, kanbanTriggersOf, kanbanCardsFromRows, kanbanMovedColumns, kanbanIsRealMove, kanbanMoveParametersOf,
@@ -1294,6 +1294,27 @@ test('a YAML record page: property rows and a status field read formatted (they 
   assert.deepEqual(rows.map((a) => [a.label, a.value, a.valueClass]), [
     ['Price', '249.00', ''], ['Kind', 'Kettle', ''], ['Status', 'Available', 'oj-badge oj-badge-success oj-badge-subtle']])
   assert.equal(rows[2].stacked, true)
+})
+
+test('a read-only boolean property row is a check / a dash named Yes / No, like Vaadin — never the raw `true` (Museums «On view»)', () => {
+  const field = (m) => node({ type: 'FormField', readOnly: true, propertyRow: true, ...m })
+  const tree = node({ type: 'VerticalLayout' }, [
+    field({ fieldId: 'onView', label: 'On view', dataType: 'bool' }),
+    field({ fieldId: 'highlight', label: 'Highlight', dataType: 'boolean' }),
+    field({ fieldId: 'loaned', label: 'Loaned', dataType: 'bool' }),
+    field({ fieldId: 'gallery', label: 'Gallery' }),
+  ])
+  const rows = atomsOf(tree, { onView: true, highlight: false, gallery: 'true' }).filter((a) => a.isPropertyRow)
+  assert.deepEqual(rows.map((a) => [a.label, a.value, a.isBoolValue, a.boolIconClass]), [
+    ['On view', chromeText('yes'), true, 'oj-ux-ico-check'],
+    ['Highlight', chromeText('no'), true, 'oj-ux-ico-minus'],
+    ['Loaned', chromeText('no'), true, 'oj-ux-ico-minus'],
+    ['Gallery', 'true', false, ''],
+  ])
+  assert.deepEqual(readOnlyDisplayOf({ fieldId: 'x', dataType: 'string' }, true), { text: chromeText('yes'), badgeClass: '', bool: { checked: true } })
+  // the template draws the icon with the value as its accessible name, in both property-row branches
+  const atomsHtml = readFileSync(new URL('./templates/atoms.html', import.meta.url), 'utf8')
+  assert.equal((atomsHtml.match(/role="img" :class="\[\[ \$current\.data\.boolIconClass \]\]" :aria-label="\[\[ \$current\.data\.value \]\]"/g) || []).length, 2)
 })
 
 test('date / dateTime / time listing cells read in the UI locale, the ISO components taken literally', () => {

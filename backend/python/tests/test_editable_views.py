@@ -190,3 +190,33 @@ def test_embedded_as_an_island_the_toggle_stays_in_place():
 def test_an_unknown_action_is_refused():
     with pytest.raises(MateuForbiddenException):
         run("ev-open", OpenProfileView, "dropTables")
+
+
+# ── a save writes only what the editor lets the user write (GA review, cross-backend rule) ────
+
+from mateu_ui.uidl import HiddenInEditor, ReadOnly  # noqa: E402
+
+
+class LedgerAccount:
+    name: str = "Ann"
+    balance: Annotated[float, ReadOnly()] = 50.0
+    is_admin: Annotated[bool, HiddenInEditor()] = False
+
+
+LEDGER_SAVED: list[LedgerAccount] = []
+
+
+@ui("ev-ledger")
+class LedgerView(AutoEditableView[LedgerAccount]):
+    def load(self):
+        return LedgerAccount()
+
+    def persist(self, entity):
+        LEDGER_SAVED.append(entity)
+
+
+def test_a_save_keeps_read_only_and_hidden_fields_from_the_loaded_editor():
+    LEDGER_SAVED.clear()
+    run("ev-ledger/edit", LedgerView, "save", {"name": "Ann B", "balance": 1e9, "isAdmin": True})
+    saved = LEDGER_SAVED[-1]
+    assert (saved.name, saved.balance, saved.is_admin) == ("Ann B", 50.0, False)

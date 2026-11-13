@@ -21,6 +21,17 @@ import reactor.core.publisher.Flux;
 @Singleton
 public class PresenceActionRunner implements ActionRunner {
 
+  private final io.mateu.core.application.runaction.RouteRegistry routeRegistry;
+  private final io.mateu.core.application.security.WireTypePolicy wireTypePolicy;
+
+  @jakarta.inject.Inject
+  public PresenceActionRunner(
+      io.mateu.core.application.runaction.RouteRegistry routeRegistry,
+      io.mateu.core.application.security.WireTypePolicy wireTypePolicy) {
+    this.routeRegistry = routeRegistry;
+    this.wireTypePolicy = wireTypePolicy;
+  }
+
   @Override
   public int priority() {
     return 100;
@@ -43,7 +54,10 @@ public class PresenceActionRunner implements ActionRunner {
             ? httpRequest.runActionRq().parameters()
             : Map.of();
     var record = Presence.recordOf(text(parameters.get("route")), text(parameters.get("view")));
-    if (record == null) {
+    if (record == null
+        || !mayOpen(text(parameters.get("route")), text(parameters.get("view")), command)) {
+      // a record the caller may not open: they learn nothing about it and are not shown there
+      // (GA review S9) — answered exactly like a page that is no record
       return Flux.just(UIIncrementDto.builder().build());
     }
     var scope = Presence.scopeOf(instance, command);
@@ -60,6 +74,35 @@ public class PresenceActionRunner implements ActionRunner {
         UIIncrementDto.builder()
             .commands(List.of(Presence.command(Presence.snapshot(scope, record, principal))))
             .build());
+  }
+
+  /**
+   * Whether the caller may open the record: its route is reachable for them (the {@code access:} of
+   * the authored entries answering it, as a load would check) and its view is a type the
+   * application exposes that they may see (class-level {@code @EyesOnly}, as for any request).
+   */
+  boolean mayOpen(String route, String view, RunActionCommand command) {
+    var httpRequest = command.httpRequest();
+    if (routeRegistry != null) {
+      if (!routeRegistry.isReachable(route, httpRequest)) {
+        return false;
+      }
+      var mount = io.mateu.core.application.MountPaths.mountOf(command);
+      if (!mount.isEmpty()
+          && !io.mateu.core.application.MountPaths.startsWithMount(route, mount)
+          && !routeRegistry.isReachable(
+              io.mateu.core.application.MountPaths.withMount(mount, route), httpRequest)) {
+        return false;
+      }
+    }
+    if (wireTypePolicy != null && view != null && !view.isBlank()) {
+      try {
+        wireTypePolicy.check(view.trim(), route, httpRequest);
+      } catch (io.mateu.core.application.security.MateuForbiddenException refused) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private static String text(Object value) {

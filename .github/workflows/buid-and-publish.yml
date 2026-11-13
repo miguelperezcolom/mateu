@@ -25,15 +25,69 @@ jobs:
     if: startsWith(github.event.release.tag_name, 'v')
     uses: ./.github/workflows/run_tests.yml
 
+  # Where this release stands among the others (scripts/release-line.mjs). `newest`: it moves what
+  # everybody gets — the over-the-air phone update, the examples' pins, the IDE plugins, the desktop
+  # app and its feed, npm's `latest`; a backport v3.0.2 published after v3.1.0 is not newest, and
+  # neither is a re-run of an older release. `latest`: it becomes GitHub's "Latest" (latest-mark,
+  # once its installers are attached). `hold`: the release that stays "Latest" meanwhile, when
+  # GitHub made this one latest on creation (latest-hold). Read-only: it only lists the releases.
+  line:
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      newest: ${{ steps.decide.outputs.newest }}
+      latest: ${{ steps.decide.outputs.latest }}
+      hold: ${{ steps.decide.outputs.hold }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts
+      - name: Where this release stands
+        id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          set -euo pipefail
+          gh release list --repo "$GITHUB_REPOSITORY" --limit 1000 \
+            --json tagName,isDraft,isPrerelease,isLatest > "$RUNNER_TEMP/releases.json"
+          node scripts/release-line.mjs "$TAG" "$PRERELEASE" "$RUNNER_TEMP/releases.json" | tee -a "$GITHUB_OUTPUT"
+
+  # The write half of `line`, at the START of the run: a release GitHub made "Latest" on creation
+  # gives it back to the previous one until its own installers are attached (latest-mark) — so
+  # releases/latest never points at a release with no installers, no APK and no update feed, and a
+  # release whose tests fail never stays "Latest". No checkout, no build: only `gh release edit`.
+  latest-hold:
+    needs: line
+    if: needs.line.outputs.hold != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # gh release edit --latest
+    steps:
+      - name: Keep the previous release as Latest for now
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HOLD: ${{ needs.line.outputs.hold }}
+        run: gh release edit "$HOLD" --latest --repo "$GITHUB_REPOSITORY"
+
   # What reaches users outside the package registries — the IDE plugins, the desktop app and its
   # update feed, the Android APK and the over-the-air phone update — waits for e2e like Maven
   # Central does: a release whose tests fail ships none of it. Each called workflow keeps its own
-  # per-job `if:` (no pre-release of a later minor or major) and its own read-only build jobs; the
+  # per-job `if:` (no pre-release of a later minor or major, and — `newest`, from the `line` job — no
+  # release that is not the newest of its line) and its own read-only build jobs; the
   # `contents: write` granted here only reaches their small upload jobs.
   plugins:
-    needs: e2e
+    needs: [e2e, line]
     if: startsWith(github.event.release.tag_name, 'v')
     uses: ./.github/workflows/publish-plugins.yml
+    with:
+      newest: ${{ needs.line.outputs.newest }}
     permissions:
       contents: read
     secrets:
@@ -45,9 +99,11 @@ jobs:
       PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
 
   desktop:
-    needs: e2e
+    needs: [e2e, line]
     if: startsWith(github.event.release.tag_name, 'v')
     uses: ./.github/workflows/desktop.yml
+    with:
+      newest: ${{ needs.line.outputs.newest }}
     permissions:
       contents: write # only desktop.yml's attach job asks for it
       actions: read # desktop.yml's sign-windows: SignPath reads this run's job and its artifact
@@ -61,9 +117,11 @@ jobs:
       SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
 
   mobile:
-    needs: e2e
+    needs: [e2e, line]
     if: startsWith(github.event.release.tag_name, 'v')
     uses: ./.github/workflows/mobile.yml
+    with:
+      newest: ${{ needs.line.outputs.newest }}
     permissions:
       contents: write # only mobile.yml's android-attach job asks for it
     secrets:
@@ -110,25 +168,11 @@ jobs:
           echo "$HOME/apache-maven-$V/bin" >> "$GITHUB_PATH"
       - name: Maven version
         run: mvn -v
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 24
-
-      # npm ci contra el lockfile commiteado, NO `rm package-lock.json && npm install`.
-      # Re-resolver desde cero en cada release hacía dos cosas malas: la build dejaba de ser
-      # reproducible (el artefacto publicado dependía del estado del registro en ese minuto) y
-      # cualquier publicación de una dependencia transitiva podía romper la release sin que
-      # nadie hubiera tocado el repo — que es exactamente lo que pasó con la v3.0-alpha.274
-      # (ERESOLVE determinista en CI, imposible de reproducir en local).
-      # El e2e no lo detecta: solo instala e2e/, no el monorepo.
-      # Only the workspaces the Vaadin bundle is built from (not apps/redwood's Oracle tooling, which
-      # comes from static.oracle.com), and --ignore-scripts: the build needs no install hook — esbuild's
-      # platform binary is an optional dependency, not a postinstall download (frontend-lib in
-      # run_tests.yml builds the same bundle from the same install on every PR).
-      - name: Install monorepo dependencies
-        run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-vaadin --include-workspace-root --ignore-scripts
-      - name: Build Vaadin front
-        run: cd frontend/web/monorepo/apps/vaadin && npm run copy
+      # The Vaadin renderer goes out as COMMITTED (vaadin-lit's static/assets), not rebuilt here: that
+      # is the bundle the release's e2e ran its browser tests against (run_tests.yml builds the
+      # backend from it), and the e2e's bundle-freshness job already failed this release if it is
+      # older than its sources. A fresh build would publish bytes no browser test ever loaded (GA
+      # review M5). The npm package (npm-build) is built from the same sources and lockfile.
 
       - name: fix version
         run: grep -rl '<version>0.0.1-MATEU</version>' --exclude-dir=.git backend | grep pom.xml | xargs sed -i "s/0\.0\.1\-MATEU/$RELEASE_VERSION/g"
@@ -138,7 +182,17 @@ jobs:
       - name: Build backend shared
         run: mvn -Dmaven.test.skip -Dgpg.skip=true -B install --file backend/pom.xml
 
-      # The signing key enters the keyring only now, AFTER npm ci, the Vite build and the first Maven
+      # Every jar carries the licence + NOTICE (backend/pom.xml `legal-notices`), the renderer jar its
+      # bundled packages' notices too: an artifact without them is not compliant (GA review S1).
+      - name: The jars carry their licence notices
+        run: |
+          set -euo pipefail
+          check() { unzip -Z1 "$1" > "$RUNNER_TEMP/jar-list.txt"; for f in "${@:2}"; do grep -qx "$f" "$RUNNER_TEMP/jar-list.txt" || { echo "::error::$1 has no $f"; exit 1; }; done; }
+          check "backend/shared/core/target/mateu-core-$RELEASE_VERSION.jar" META-INF/LICENSE.txt META-INF/NOTICE
+          check "backend/shared/uidl/target/mateu-uidl-$RELEASE_VERSION.jar" META-INF/LICENSE.txt META-INF/NOTICE
+          check "backend/shared/frontend/vaadin-lit/target/mateu-vaadin-$RELEASE_VERSION.jar" META-INF/LICENSE.txt META-INF/NOTICE static/assets/THIRD-PARTY-LICENSES.txt static/assets/mateu-vaadin.js
+
+      # The signing key enters the keyring only now, AFTER the first Maven
       # build — third-party code that has no reason to see it.
       - name: Import GPG Key
         uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7.0.0
@@ -175,9 +229,11 @@ jobs:
   # the required checks (Tests, Examples, Docs) on the bump branch. Touches no publishing step and
   # needs no publishing secret.
   bump-examples:
-    needs: all
+    needs: [all, line]
     # A pre-release of a later minor (v3.1-rc.1) does not repin the examples; v3.0-beta/rc still do.
-    if: startsWith(github.event.release.tag_name, 'v3.') && (!contains(github.event.release.tag_name, '-') || startsWith(github.event.release.tag_name, 'v3.0-'))
+    # Nor does a release that is not the newest of its line (a backport v3.0.2 after v3.1.0 would pin
+    # everything back to 3.0).
+    if: startsWith(github.event.release.tag_name, 'v3.') && (!contains(github.event.release.tag_name, '-') || startsWith(github.event.release.tag_name, 'v3.0-')) && needs.line.outputs.newest == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 200
     permissions:
@@ -374,7 +430,7 @@ jobs:
   # the publish step (`with: password:`), and `id-token: write` exists only in that small job.
   pypi-build:
     needs: e2e
-    if: startsWith(github.event.release.tag_name, 'v3.')
+    if: startsWith(github.event.release.tag_name, 'v')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -411,8 +467,12 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  # Publishes only once Maven Central has the release (`all` deploys with waitUntil=published): a
+  # version on PyPI can never be replaced, so the ports never go out with a number Java does not
+  # have (a Central refusal that needs a commit ships Java as the next number). Re-running the failed
+  # `all` job runs this one after it.
   pypi:
-    needs: pypi-build
+    needs: [pypi-build, all]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -494,6 +554,7 @@ jobs:
             dotnet pack "$p" -c Release -o "$RUNNER_TEMP/nupkgs" -p:MateuVersion="$NUGET_VERSION"
           done
           ls -l "$RUNNER_TEMP/nupkgs"
+          ls "$RUNNER_TEMP"/nupkgs/*.snupkg > /dev/null || { echo "::error::no symbol package (.snupkg) was built"; exit 1; }
           # Directory.Build.props builds net10.0 only on a .NET 10 SDK (MSBuild 18): a package
           # without it would be a silent downgrade, so fail the release instead.
           for n in "$RUNNER_TEMP"/nupkgs/*.nupkg; do
@@ -503,12 +564,37 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: nupkgs
-          path: ${{ runner.temp }}/nupkgs/*.nupkg
+          # the symbol packages too (Directory.Build.props builds them so a debugger can step into
+          # Mateu from a NuGet reference): `dotnet nuget push x.nupkg` sends the x.snupkg next to it
+          path: |
+            ${{ runner.temp }}/nupkgs/*.nupkg
+            ${{ runner.temp }}/nupkgs/*.snupkg
           if-no-files-found: error
           retention-days: 1
 
-  nuget:
+  # The packed .nupkg files, exactly as built, onto the GitHub release: nuget.org adds its repository
+  # signature INSIDE every package it accepts (.signature.p7s), so the copy on nuget.org never has the
+  # attested SHA-256 — the release copy is the one `gh attestation verify` checks
+  # (doc reference/verify-downloads.md). No checkout, no build: only the upload.
+  nuget-attach:
     needs: nuget-pack
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # gh release upload
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: nupkgs
+          path: nupkgs
+      - name: Attach the packages to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" nupkgs/*.nupkg --clobber --repo "$GITHUB_REPOSITORY"
+
+  # After Maven Central too, like pypi.
+  nuget:
+    needs: [nuget-pack, all]
     runs-on: ubuntu-latest
     # NuGet Trusted Publishing: the job exchanges its GitHub OIDC token for a short-lived API key
     # (policy on nuget.org: owner miguelperezcolom, repo mateu, workflow buid-and-publish.yml).
@@ -549,7 +635,7 @@ jobs:
   # only downloads it and publishes. Without the NPM_TOKEN secret the job builds the package and
   # stops — a fork, or a repo whose npm account is not set up, gets a green run, not a failed release.
   npm-build:
-    needs: e2e
+    needs: [e2e, line]
     if: startsWith(github.event.release.tag_name, 'v')
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -565,7 +651,9 @@ jobs:
       - name: Package version from the release tag
         env:
           TAG: ${{ github.event.release.tag_name }}
-        run: bash scripts/npm-version.sh "$TAG" | tee -a "$GITHUB_ENV"
+          # a backport (not the newest of its line) goes out under release-<major>.<minor>, never `latest`
+          NEWEST: ${{ needs.line.outputs.newest }}
+        run: bash scripts/npm-version.sh "$TAG" "$NEWEST" | tee -a "$GITHUB_ENV"
       - name: Install monorepo dependencies
         run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-vaadin --include-workspace-root --ignore-scripts
       - name: Build and pack
@@ -580,12 +668,17 @@ jobs:
           # build scripts
           npm pkg delete dependencies devDependencies scripts
           test -f dist/assets/mateu-vaadin.js
+          # the licence and the notices travel with the package (Apache-2.0 §4; the bundled
+          # packages' own notices are dist/assets/THIRD-PARTY-LICENSES.txt, written by the build)
+          cp ../../../../../LICENSE.txt ../../../../../NOTICE .
           mkdir -p "$RUNNER_TEMP/npm"
           npm pack --pack-destination "$RUNNER_TEMP/npm"
           # list first, then look: `tar | grep -q` stops reading at the first match, tar dies of SIGPIPE
           # and pipefail fails the job (v3.0-beta.63)
           tar -tzf "$RUNNER_TEMP"/npm/*.tgz > "$RUNNER_TEMP/npm-contents.txt"
-          grep -q 'package/dist/assets/mateu-vaadin.js' "$RUNNER_TEMP/npm-contents.txt"
+          for f in dist/assets/mateu-vaadin.js dist/assets/THIRD-PARTY-LICENSES.txt LICENSE.txt NOTICE; do
+            grep -qx "package/$f" "$RUNNER_TEMP/npm-contents.txt" || { echo "::error::the npm package has no $f"; exit 1; }
+          done
           echo "$NPM_TAG" > "$RUNNER_TEMP/npm/dist-tag"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -594,8 +687,9 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  # After Maven Central too, like pypi.
   npm:
-    needs: npm-build
+    needs: [npm-build, all]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -699,6 +793,7 @@ jobs:
             ${{ runner.temp }}/subjects/maven/**/*.jar
             ${{ runner.temp }}/subjects/pypi/*
             ${{ runner.temp }}/subjects/nuget/*.nupkg
+            ${{ runner.temp }}/subjects/nuget/*.snupkg
             ${{ runner.temp }}/subjects/npm/*.tgz
             ${{ runner.temp }}/subjects/plugins/*
             ${{ runner.temp }}/subjects/release/*
@@ -729,3 +824,24 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.release.tag_name }}
         run: gh release upload "$TAG" checksums/SHA256SUMS --clobber --repo "$GITHUB_REPOSITORY"
+
+  # GitHub's "Latest" moves to this release only now — every installer, the APK, the update feed and
+  # SHA256SUMS attached — and only when it is the newest of its line and was not published as a
+  # pre-release (`line`). Installed desktop apps read releases/latest/download/mateu-desktop-update.json
+  # and the docs / mateu.io/add link to releases/latest: none of them may land on a release without
+  # its files, a backport, or a pre-release of a later line. If a part failed, "Latest" stays where
+  # latest-hold left it: fix the part and run `gh release edit <tag> --latest` (CONTRIBUTING.md).
+  # No checkout, no build: only `gh release edit`.
+  latest-mark:
+    needs: [line, e2e, all, desktop, mobile, checksums-attach]
+    if: ${{ !cancelled() && needs.line.outputs.latest == 'true' && needs.e2e.result == 'success' && needs.all.result == 'success' && needs.desktop.result == 'success' && needs.mobile.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # gh release edit --latest
+    steps:
+      - name: Make this release Latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release edit "$TAG" --latest --repo "$GITHUB_REPOSITORY"

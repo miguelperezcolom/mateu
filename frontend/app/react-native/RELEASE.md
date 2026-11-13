@@ -47,11 +47,21 @@ the job says so and skips.
 An over-the-air update only reaches installs of the **same app version** (`runtimeVersion.policy =
 appVersion`). A **native** change — a new native module, a permission, an Expo SDK upgrade, anything
 under `ios/`/`android/` or in `app.json` plugins — needs a store build (§1) with a bumped
-`expo.version`; publishing it over the air would crash the old binaries, so do not.
+`expo.version`; publishing it over the air would crash the old binaries, so do not. CI enforces it:
+`scripts/native-surface.mjs --check` fails a pull request whose native surface (the autolinked
+native modules and their versions, React Native's version, `app.json`'s `plugins`/`ios`/`android`/
+`scheme`) differs from `native-surface.json` while `expo.version` is unchanged. After bumping the
+version, record the new surface with `node scripts/native-surface.mjs --write`.
 
-A build made OUTSIDE EAS (the local Play bundle, the GitHub APK) gets the `production` channel from
-`app.config.ts` (`updates.requestHeaders`); EAS builds take their profile's channel from `eas.json`.
-Without a channel an install never receives an update.
+A build made OUTSIDE EAS gets its channel from `app.config.ts` (`updates.requestHeaders`): the local
+Play bundle `production`, the GitHub APK (`MATEU_DISTRIBUTION=github`) its own channel **`github`**.
+EAS builds take their profile's channel from `eas.json`. Without a channel an install never receives
+an update. The `ota` job publishes every release's update to both channels — the `github` one with
+`MATEU_DISTRIBUTION=github` — because an update carries its own app config: published once for both,
+it made the APK forget it updates from the GitHub releases, and "Update Mateu" sent it to Google Play.
+The app reads the distribution from the binary's channel (`Updates.channel`), which no update changes
+(`src/hub/updateTargets.ts`). An APK installed before this (asking for `production`) learns it with
+its next APK update.
 
 When a build is made by hand (`eas build`), pass `MATEU_VERSION=<release>` (e.g. `3.0-beta.33`) in
 its environment so the hub knows which release the binary carries; without it the app compares only

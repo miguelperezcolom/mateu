@@ -20,7 +20,7 @@
 // navigation-requested, which the shell listens to.
 
 import { ojIconOf, interpolate, mediatorOf } from './reduceContexts.mjs'
-import { callMateu } from './transport.mjs'
+import { callMateu, answeredBy } from './transport.mjs'
 import { chromeText } from './i18n.mjs'
 import { sanitizeHtml } from './richtext.mjs'
 import { safeHref, embeddedChromeOf } from './core/display.mjs'
@@ -248,7 +248,7 @@ export function startRemoteWidget(item, onHtml, deps = {}) {
   const load = (async () => {
     try {
       // resolved by the host: no request for the first paint; its triggers still go to the remote
-      apply(item.resolved || (await request('')))
+      apply(item.resolved ? answeredBy(item.baseUrl || '', item.resolved) : (await request(''))) // the browser's trust (S12)
       // a remote that answers with a mediator (chromeless App) brings the content in a 2nd hop
       const info = rt.ctx && mediatorOf(rt.ctx)
       if (info) {

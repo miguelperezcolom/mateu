@@ -119,6 +119,8 @@ from ..agent_push import (
     AgentSessions,
 )
 from .. import action_guard, islands, progress
+from ..action_guard import _for_log
+from ..yaml_access import yaml_hidden
 from ._base import MixinBase
 from .dispatch import DispatchMixin
 from .wizard import WizardHandlerMixin
@@ -262,6 +264,9 @@ class SyncHandler(
         from mateu_ui.core.presence import DEFAULT_STORE
 
         self.presence_store = DEFAULT_STORE
+        #: The rows one page of a listing may ask for: ``add_mateu(listing_max_page_size=…)``;
+        #: None = ``MATEU_LISTING_MAX_PAGE_SIZE``, else 500 (``search.listing_max_page_size``).
+        self.listing_max_page_size: int | None = None
         #: Whether the app exposes its authoring plane (the MCP endpoint is on): the reserved
         #: __validate__ action is then served on the plain sync endpoint too (the sidecar calls it
         #: there); otherwise only to an MCP tool call or in dev mode (mateu_ui.core.authoring_gate).
@@ -442,7 +447,10 @@ class SyncHandler(
                 increment, rq.action_id, request, *self._fragment_cache_candidates(rq)
             )
         # the HOST side: the micro frontends this server resolves (resolve=SERVER, content slots)
-        if pending[0] and self.microfrontends is not None:
+        # never for a PREVIEW: its tree is built from the request's YAML, and the host would ask a
+        # registered remote, with its identity, at whatever route the caller wrote (Java's preview
+        # branch returns before resolveMicroFrontends: a previewed island stays client-resolved)
+        if pending[0] and self.microfrontends is not None and rq.action_id != "__preview__":
             increment = self.microfrontends.resolve_sync(increment, request)
         if rq.embedded():
             increment = without_window_commands(increment)
@@ -554,52 +562,131 @@ class SyncHandler(
                 resolved_view = True
         # The YAML access keys (the data twin of @eyes_only & co.): a refused route / declared
         # action answers 403, and fields locked for the caller lose their client-sent values.
-        rq = self._guard_yaml_access(rq)
-        flags_token = islands.set_flags(markers)
+        hidden_token = yaml_hidden.set(frozenset())
         try:
-            return self._handle_routed(rq, request_base_url)
+            rq = self._guard_yaml_access(rq)
+            flags_token = islands.set_flags(markers)
+            try:
+                return self._handle_routed(rq, request_base_url)
+            finally:
+                islands.reset_flags(flags_token)
         finally:
-            islands.reset_flags(flags_token)
+            yaml_hidden.reset(hidden_token)
 
     def _guard_yaml_access(self, rq: RunActionRq) -> RunActionRq:
         """Java's ``YamlUidlLoader.guard``: route ``access:`` (the entry and its ancestors) → 403;
         a declared action whose ``access:`` the caller does not satisfy → 403 (dispatched, or
-        proxied through ``__restfetch__`` by source id); locked fields dropped from the state."""
-        if rq.route is None:
+        proxied through ``__restfetch__`` by source id); locked fields dropped from the state, and
+        the fields the layout HIDES from the caller kept out of the view model's outgoing state.
+
+        The view model that runs is the one the request NAMES. When that type is bound by authored
+        routes and the request's route is not one of them (another route, an unknown one, none, a
+        ``./..`` spelling), the route says nothing about it: one of the type's own routes must be
+        reachable for the caller, and the locks, refused actions and hidden fields of EVERY one of
+        them apply (GA review S1). A sub-path of a bound route (``/payroll/7``) keeps THAT entry's
+        rules."""
+        route = rq.route if rq.route is not None else ""
+        if rq.route is not None:
+            refusing = self.routes.refusing_entry(rq.route, self.mapper.authorized)
+            if refusing is not None:
+                action_guard.deny(f"route '{refusing.route}' declares access: not satisfied")
+        foreign = self._foreign_bindings_of(rq.server_side_type, route)
+        if foreign is not None:
+            if not any(self.routes.is_reachable(b, self.mapper.authorized) for b in foreign):
+                action_guard.deny(
+                    f"{_for_log(rq.server_side_type)} is bound by routes the caller may not reach and "
+                    f"was named at route '{_for_log(route)}', which does not bind it"
+                )
+            spec_routes = list(foreign)
+        elif rq.route is None:
             return rq
-        refusing = self.routes.refusing_entry(rq.route, self.mapper.authorized)
-        if refusing is not None:
-            action_guard.deny(f"route '{refusing.route}' declares access: not satisfied")
-        spec = self.yaml_specs.load_spec(rq.route)
-        if spec is None:
-            return rq
+        else:
+            spec_routes = [route if self.yaml_specs.load_spec(route) is not None else self._deepest_spec_prefix(route)]
         # the business components (components.yaml) lock fields too: they are resolved while the
         # tree is mapped, after the view model is bound. STRICT, like a code view: every restricted
         # component of the app is checked, not only the ones this layout names
         components = getattr(self, "components", None)
         by_pieces = components.app_wide_locked_by(self.mapper.authorized) if components is not None else {}
-        if not spec.depends_on_request():
-            return self._without_locked_by_pieces(rq, by_pieces)
         from ..translations import locale_of
 
-        personal = self.yaml_specs.load_spec_for(rq.route, self.mapper.authorized, locale_of(self.mapper))
-        if personal is None:
-            return self._without_locked_by_pieces(rq, by_pieces)
-        if rq.action_id and rq.action_id in personal.refused_actions:
-            action_guard.deny(f"action '{rq.action_id}' declares access: not satisfied")
-        if rq.action_id == "__restfetch__":
-            source_id = (rq.parameters or {}).get("_sourceId")
-            if source_id is not None and str(source_id) in personal.refused_actions:
-                action_guard.deny(f"action '{source_id}' declares access: not satisfied")
-        # a business component the layout draws only under a section the caller may not see
-        # locks every field it holds, even with no access keys of its own (fail closed)
-        if components is not None:
-            from ..component_registry import component_refs_in
+        any_spec = False
+        locked: set[str] = set()
+        hidden_fields: set[str] = set()
+        for spec_route in spec_routes:
+            spec = self.yaml_specs.load_spec(spec_route)
+            if spec is None:
+                continue
+            any_spec = True
+            if not spec.depends_on_request():
+                continue
+            personal = self.yaml_specs.load_spec_for(spec_route, self.mapper.authorized, locale_of(self.mapper))
+            if personal is None:
+                continue
+            if rq.action_id and rq.action_id in personal.refused_actions:
+                action_guard.deny(f"action '{_for_log(rq.action_id)}' declares access: not satisfied")
+            if rq.action_id == "__restfetch__":
+                source_id = (rq.parameters or {}).get("_sourceId")
+                if source_id is not None and str(source_id) in personal.refused_actions:
+                    action_guard.deny(f"action '{_for_log(str(source_id))}' declares access: not satisfied")
+            # a business component the layout draws only under a section the caller may not see
+            # locks every field it holds, even with no access keys of its own (fail closed)
+            if components is not None:
+                from ..component_registry import component_refs_in
 
-            hidden = component_refs_in(spec.layout) - component_refs_in(personal.layout)
-            if hidden:
-                by_pieces = {**by_pieces, **components.all_fields_of(sorted(hidden))}
-        return self._without_locked_by_pieces(self._without_locked(rq, set(personal.locked_fields)), by_pieces)
+                pieces_hidden = component_refs_in(spec.layout) - component_refs_in(personal.layout)
+                if pieces_hidden:
+                    by_pieces = {**by_pieces, **components.all_fields_of(sorted(pieces_hidden))}
+            locked |= set(personal.locked_fields)
+            hidden_fields |= set(personal.hidden_fields)
+        if hidden_fields:
+            # ...and what the layout hides from the caller is not SENT in the view model's state
+            # either: the layout leaves the field out, its value travelled in the state all the same
+            yaml_hidden.set(frozenset(hidden_fields))
+        narrowed = self._without_locked(rq, locked)
+        return self._without_locked_by_pieces(narrowed, by_pieces) if any_spec else narrowed
+
+    def _foreign_bindings_of(self, name: str | None, route: str) -> list[str] | None:
+        """The authored routes binding view model ``name`` when the request names it at ``route``,
+        a route that does NOT bind it — nor is a sub-path of one that does; None when no authored
+        route binds the type or ``route`` is (under) one of its own (Java's foreignBindingsOf)."""
+        if not name or not name.strip():
+            return None
+        name = name.strip()
+        bound = []
+        for entry in self.routes.authored().routes:
+            view_model = entry.view_model
+            if not view_model:
+                spec = self.yaml_specs.load_spec(entry.route)
+                view_model = spec.model_view if spec is not None else None
+            if view_model and view_model.strip() == name:
+                bound.append(entry.route)
+        if not bound:
+            return None
+        path = str(route or "").split("?", 1)[0]
+        segments = [x for x in path.split("/") if x]
+        if any(x in (".", "..") for x in path.split("/")):
+            return bound  # a ./.. spelling is no route of the type
+        for n in range(len(segments), -1, -1):
+            prefix = "/".join(segments[:n])
+            match = self.routes.match(prefix)
+            if match is not None and (match.entry.view_model or "").strip() == name:
+                return None
+            spec = self.yaml_specs.load_spec(prefix) if n == len(segments) else None
+            if spec is not None and (spec.model_view or "").strip() == name:
+                return None
+            if match is not None:
+                break  # the deepest entry answering a prefix is another type's: foreign
+        return bound
+
+    def _deepest_spec_prefix(self, route: str) -> str:
+        """The longest proper prefix of ``route`` an authored entry answers with a definition (the
+        route a sub-path belongs to), else ``route`` itself."""
+        segments = [x for x in str(route or "").split("?", 1)[0].split("/") if x]
+        for n in range(len(segments) - 1, 0, -1):
+            prefix = "/".join(segments[:n])
+            if self.routes.match(prefix) is not None and self.yaml_specs.load_spec(prefix) is not None:
+                return prefix
+        return route
 
     @staticmethod
     def _without_locked_by_pieces(rq: RunActionRq, locked_by: dict[str, str]) -> RunActionRq:

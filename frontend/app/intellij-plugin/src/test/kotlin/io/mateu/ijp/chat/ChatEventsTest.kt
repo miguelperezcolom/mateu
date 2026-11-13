@@ -28,10 +28,10 @@ class ChatEventsTest : TestCase() {
     fun testNavigationWithoutAMenuMatchIsLabelledByItsRouteAndAnEmptyOneIsIgnored() {
         val e = (ChatEvents.navigation(json("""{"route":"/x/1"}"""), menu) as ChatEvents.Effect.Navigate).entry
         assertEquals("/x/1", e.path("label").asText())
-        val byAction = (ChatEvents.navigation(json("""{"actionId":"go"}""")) as ChatEvents.Effect.Navigate).entry
-        assertEquals("go", byAction.path("label").asText())
+        // S7: an action alone is not a place, and the tab label is the app's, not the agent's
+        assertEquals(ChatEvents.Effect.Ignore, ChatEvents.navigation(json("""{"actionId":"go"}""")))
         val labelled = (ChatEvents.navigation(json("""{"route":"/orders","label":"Mine"}"""), menu) as ChatEvents.Effect.Navigate).entry
-        assertEquals("Mine", labelled.path("label").asText())
+        assertEquals("Orders", labelled.path("label").asText())
         assertEquals(ChatEvents.Effect.Ignore, ChatEvents.navigation(json("{}")))
         assertEquals(ChatEvents.Effect.Ignore, ChatEvents.navigation(json("[]")))
     }

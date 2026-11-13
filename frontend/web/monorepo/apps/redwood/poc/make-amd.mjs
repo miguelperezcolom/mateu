@@ -345,6 +345,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // clic de fila entera: qué celdas tienen clic propio (decisión U1)
     isDisplayColumn,
     rowActionIsRows,
+    // inline editing: the row a committed cell sends, with the earlier commits on it (R-3)
+    editedRowOf,
+    committedCellValueOf,
+    forgetEditedRows,
     // paginación y orden del listing (pie de la tabla, cabecera → server)
     listingPagingOf,
     targetPageOf,
@@ -434,7 +438,11 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     withOverlayDirty,
     overlaysHoldUnsavedChanges,
     hasUnsavedChanges,
+    pageDirtyAfterAction,
+    // a content button whose action nobody on screen claims is inert, as on Vaadin (Explorer F3)
+    contentActionIsClaimed,
     confirmNavigationAway,
+    confirmFlowNavigation,
     // a refused back/forward is undone, not papered over with a push (historyIndex.mjs)
     installHistoryIndex,
     notePopState,
@@ -513,6 +521,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pathLeavingMountOf,
     navigationLeavingMountOf,
     leftMountFor,
+    surfaceMountPathOf,
     requestPeerNavigation,
     openExternalRoute,
     isExternalRoute,
@@ -555,6 +564,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     isNarrowViewport,
     watchNarrowViewport,
     pendingActions,
+    // a dropped double press answers this: the chain that asked stops (R-4)
+    isDuplicateAnswer,
+    offersRetry,
     setTransportHooks,
     authHeadersOf,
     // errores del cliente → log del servidor (POST <base>/mateu/v3/client-log)
@@ -711,6 +723,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     changedOnly,
     stagedVariables,
     outboundActionOf,
+    surfaceRefusalOf,
     // the fields the server refused in an answer (a data fragment with errors), to mark them
     refusedFieldsOf,
     blockClickOf,

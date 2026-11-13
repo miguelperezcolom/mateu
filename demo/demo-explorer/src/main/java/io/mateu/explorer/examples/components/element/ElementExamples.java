@@ -1,6 +1,5 @@
 package io.mateu.explorer.examples.components.element;
 
-import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.data.Element;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.VerticalLayout;
@@ -37,15 +36,12 @@ public class ElementExamples implements ComponentTreeSupplier {
         .build();
   }
 
-  // @Action: as of 3.0-beta.51 an Element's `on` actions are not advertised by themselves (unlike a
-  // component's actionId), so the handlers are marked to reach the server.
-  @Action
+  // a plain public method: the Element's `on:` names it, which is what advertises it
   public Message elementClicked(HttpRequest httpRequest) {
     var event = (Map<?, ?>) httpRequest.runActionRq().parameters().get("event");
     return new Message(event.get("type") + " at x=" + event.get("clientX") + ", y=" + event.get("clientY"));
   }
 
-  @Action
   public Message elementDoubleClicked() {
     return Message.success("dblclick!");
   }

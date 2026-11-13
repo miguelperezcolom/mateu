@@ -2621,7 +2621,7 @@
           "id": "734:56",
           "name": "Body",
           "type": "TEXT",
-          "characters": "Every screen is YAML.",
+          "characters": "Every screen is YAML.\u2028No Java behind it.",
           "style": {
            "fontFamily": "Inter",
            "fontSize": 13

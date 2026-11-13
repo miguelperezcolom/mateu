@@ -110,7 +110,11 @@ class EditableViewHandlerMixin(MixinBase):
         if aid == "save":
             editable()
             editor = view.editor()
-            self.bind_state(editor, rq.component_state or {})
+            # only what the editor lets the user write: a ReadOnly() / HiddenInEditor() /
+            # server-owned field keeps the loaded value (the crud editor's rule)
+            from ..mapper.crud_modes import without_hidden_inputs
+
+            self.bind_state(editor, without_hidden_inputs(type(editor), rq.component_state or {}, False))
             # the editor advertises save as validationRequired: the server re-checks the same
             # constraints (Java's AutoEditableView.save → ServerConstraintCheck) instead of
             # trusting a client that may not have validated

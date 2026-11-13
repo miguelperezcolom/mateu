@@ -54,7 +54,8 @@ describe('client-side expander — a ButtonGroup in content', () => {
         expect(wire.children).toEqual([])
         expect(wire.metadata).toEqual({
             type: 'Button', label: 'More', children: [
-                { type: 'Button', label: 'Export', actionId: 'export' },
+                // no actionId, no actionable: INERT (Java's YamlUidlMapperFactory.InertButton)
+                { type: 'Button', label: 'Export' },
                 { type: 'Button', label: 'Home', actionId: 'home', route: 'home' },
             ],
         })
@@ -63,8 +64,8 @@ describe('client-side expander — a ButtonGroup in content', () => {
     it('with a primary is a SPLIT button: the primary itself, split, the rest as children', () => {
         const wire = expandComponent({
             type: 'ButtonGroup', id: 'save',
-            primary: { type: 'Button', label: 'Save', buttonStyle: 'primary' },
-            buttons: [{ type: 'Button', label: 'Save as draft' }],
+            primary: { type: 'Button', label: 'Save', actionId: 'save', buttonStyle: 'primary' },
+            buttons: [{ type: 'Button', label: 'Save as draft', actionId: 'saveAsDraft' }],
         } as unknown as FluentNode) as any
         expect(wire.id).toBe('save')
         expect(wire.metadata).toEqual({

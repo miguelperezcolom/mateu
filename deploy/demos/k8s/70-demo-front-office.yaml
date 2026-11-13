@@ -1,0 +1,85 @@
+# demo-front-office — the front-office UX reference (check-in queue + wizard, check-out folio, En Casa
+# 360, automations; @AppContext Staff/Cliente + hotel) on the Vaadin renderer. H2 in memory, re-seeded at
+# boot. Public so Visual Builder apps can embed its screens with <mateu-ui> (CORS open, no credentials).
+# The H2 console is OFF here (the demo's application.properties enables it for local runs).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-front-office
+  namespace: mateu-demos
+  labels: { app: demo-front-office }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: demo-front-office }
+  template:
+    metadata:
+      labels: { app: demo-front-office }
+    spec:
+      # the app never talks to the Kubernetes API: no service account token in the pod
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: app
+          image: miguelperezcolom/demo-front-office:3.0-beta.64-20261113
+          env:
+            - { name: SERVER_PORT, value: "8594" }
+            - { name: SPRING_H2_CONSOLE_ENABLED, value: "false" }
+            - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:+UseSerialGC -Xms32m -Xmx160m -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30 -XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=48m -XX:MaxMetaspaceSize=224m -Xss512k -XX:+ExitOnOutOfMemoryError" }
+            - { name: MATEU_CORS_ALLOWED_ORIGINS, value: "*" }
+          ports:
+            - { name: http, containerPort: 8594 }
+          readinessProbe:
+            httpGet: { path: /, port: 8594 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          resources:
+            requests: { memory: "224Mi", cpu: "50m", ephemeral-storage: "64Mi" }
+            limits:   { memory: "448Mi", ephemeral-storage: "256Mi" }
+      volumes:
+        - { name: tmp, emptyDir: { sizeLimit: 128Mi } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-front-office
+  namespace: mateu-demos
+spec:
+  selector: { app: demo-front-office }
+  ports:
+    - { name: http, port: 8594, targetPort: 8594 }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-front-office
+  namespace: mateu-demos
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    # check-in documents travel as data URIs in a JSON body
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [frontoffice.ec1.mateu.io]
+      secretName: demo-front-office-tls
+  rules:
+    - host: frontoffice.ec1.mateu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: demo-front-office, port: { number: 8594 } }

@@ -122,7 +122,8 @@ export class MateuCalendar extends LitElement {
         }
         .grid.week .chip, .grid.day .chip, .agenda .chip { white-space: normal; }
         .time { font-variant-numeric: tabular-nums; opacity: .8; margin-right: .25rem; }
-        .chip.clickable { cursor: pointer; }
+        /* WCAG 2.5.8: a clickable chip is a 24px target (axe target-size, Explorer F5) */
+        .chip.clickable { cursor: pointer; min-height: 24px; box-sizing: border-box; line-height: 22px; }
         .chip.clickable:hover { filter: brightness(.95); }
         .agenda { border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08)); border-radius: var(--lumo-border-radius-m, 8px); }
         .agenda .date { padding: .5rem .75rem; font-weight: 600; background: var(--lumo-contrast-5pct, #f7f7f8); display: flex; justify-content: space-between; }

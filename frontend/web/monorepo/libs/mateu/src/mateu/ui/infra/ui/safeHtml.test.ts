@@ -17,6 +17,20 @@ describe('sanitizeHtml (HTML sinks fed with data: header texts, texts, html cell
         expect(out).not.toMatch(/onerror|<script|javascript:/i)
     })
 
+    it('W-5: a value cannot paint a page-covering overlay — no <style>, no fixed/absolute position, no z-index', () => {
+        const out = sanitizeHtml('<style>body{display:none}</style>'
+            + '<div style="position:fixed;inset:0;background:#fff;z-index:9999;color:red">Session expired — '
+            + '<a href="https://evil.example">sign in again</a></div>'
+            + '<span style="POSITION : Absolute ; top:0">x</span><b style="font-weight:bold">ok</b>')
+        expect(out).not.toMatch(/<style|display:none/i)
+        expect(out).not.toMatch(/position\s*:\s*(fixed|absolute|sticky)/i)
+        expect(out).not.toMatch(/z-index/i)
+        expect(out).toContain('background:#fff')
+        expect(out).toContain('color:red')
+        expect(out).toContain('font-weight:bold')
+        expect(out).toContain('Session expired')
+    })
+
     it('keeps an allow-listed custom element (vaadin-icon) but drops its on… attributes', () => {
         const out = sanitizeHtml('<vaadin-icon icon="vaadin:check" onclick="x()"></vaadin-icon>')
         expect(out).toContain('<vaadin-icon icon="vaadin:check">')

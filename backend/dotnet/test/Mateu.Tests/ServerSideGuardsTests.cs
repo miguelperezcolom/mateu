@@ -30,7 +30,12 @@ public class GuardInvoices : Crud<GuardInvoice>
     public static readonly Dictionary<string, GuardInvoice> Store = new();
     public override IEnumerable<GuardInvoice> Fetch(string? search) => Store.Values;
     public override GuardInvoice? Get(string id) => Store.GetValueOrDefault(id);
-    public override void Save(GuardInvoice entity) => Store[entity.Id] = entity;
+    public override void Save(GuardInvoice entity)
+    {
+        // the id is technical: the store assigns it
+        if (string.IsNullOrEmpty(entity.Id)) entity.Id = "generated";
+        Store[entity.Id] = entity;
+    }
 }
 
 public class GuardRow
@@ -124,8 +129,10 @@ public class ServerSideGuardsTests
             ["id"] = Json("8"), ["customer"] = Json("New"), ["paid"] = Json(99), ["status"] = Json("APPROVED"),
         });
 
-        Assert.Equal(0, GuardInvoices.Store["8"].Paid);
-        Assert.Equal("DRAFT", GuardInvoices.Store["8"].Status);
+        // the id is technical: the client's "8" is not taken, the store assigns one
+        Assert.False(GuardInvoices.Store.ContainsKey("8"));
+        Assert.Equal(0, GuardInvoices.Store["generated"].Paid);
+        Assert.Equal("DRAFT", GuardInvoices.Store["generated"].Status);
     }
 
     // ── the preview's alias budget ──

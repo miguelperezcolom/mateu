@@ -12,7 +12,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 /**
  * A component tree whose buttons carry their OWN handler — a lambda run on the server against this
  * instance — instead of naming an action method. The handler returns what an action returns (here,
- * the new state). Give each one an {@code actionId}: it is what the browser sends.
+ * the new state). No {@code actionId} is needed: Mateu names the action after the label.
  */
 public class TipJar implements ComponentTreeSupplier {
 
@@ -30,7 +30,6 @@ public class TipJar implements ComponentTreeSupplier {
                         java.util.List.of(
                             Button.builder()
                                 .label("+1 €")
-                                .actionId("tipOne")
                                 .callable(() -> {
                                   tips += 1;
                                   return new State(this);
@@ -38,7 +37,6 @@ public class TipJar implements ComponentTreeSupplier {
                                 .build(),
                             Button.builder()
                                 .label("+5 €")
-                                .actionId("tipFive")
                                 .callable(() -> {
                                   tips += 5;
                                   return new State(this);

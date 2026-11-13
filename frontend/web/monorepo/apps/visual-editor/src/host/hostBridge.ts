@@ -74,6 +74,16 @@ export interface HostBridge {
      * through `onContentChanged`. The host pushes the files again afterwards (`onFilesChanged`).
      */
     writeFile?(path: string, content: string | null): void
+    /**
+     * Whether the edited design arrived by a share link and the author has not trusted it yet. A
+     * link is anyone's: until it is trusted the canvas renders it through the untrusted strip (no
+     * `on…` attributes, raw HTML, triggers, code), and Play and the board stay closed. A host that
+     * cannot persist it (the IDEs: the design is the file) leaves it out; the editor then tracks a
+     * link opened in this session itself.
+     */
+    untrustedDesign?(): boolean
+    /** The author looked at the design and trusts it: render it as written from now on. */
+    trustDesign?(): void
 }
 
 /** A path the board may write: relative to specs/ui, no `..`, no absolute path. */
@@ -273,6 +283,8 @@ class BrowserHost implements HostBridge {
     /** A whole mount for standalone dev: a `{path: yaml}` JSON map. Enables the reference pickers. */
     private projectKey = 'mateu-visual-editor-project'
     private pathKey = 'mateu-visual-editor-path'
+    /** Set while the draft is a design from a link the author has not trusted yet (survives a reload). */
+    private untrustedKey = 'mateu-visual-editor-untrusted'
     /** A design arriving in the URL (`#mateuz=…`) is imported once, before anything reads the draft. */
     private imported: Promise<void> = this.importSharedDesign()
 
@@ -351,7 +363,16 @@ class BrowserHost implements HostBridge {
         this.adoptShared(design)
     }
 
+    untrustedDesign() {
+        return localStorage.getItem(this.untrustedKey) === '1'
+    }
+
+    trustDesign() {
+        localStorage.removeItem(this.untrustedKey)
+    }
+
     adoptShared(design: SharedDesign) {
+        localStorage.setItem(this.untrustedKey, '1')
         if (design.path) localStorage.setItem(this.pathKey, design.path)
         else localStorage.removeItem(this.pathKey)
         if (design.files) {

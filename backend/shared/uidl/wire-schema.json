@@ -5704,6 +5704,9 @@
     "TemplateImageDto" : {
       "type" : "object",
       "properties" : {
+        "alt" : {
+          "type" : "string"
+        },
         "initials" : {
           "type" : "string"
         },

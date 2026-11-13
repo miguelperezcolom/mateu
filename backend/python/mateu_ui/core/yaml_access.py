@@ -28,7 +28,22 @@ import copy
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
+from contextvars import ContextVar
+
 from mateu_ui.uidl import Access
+
+#: The fields the YAML layout(s) guarding THIS request hide from the caller (eyesOnly:/access:):
+#: kept out of the view model's outgoing state (Java's ComponentState.YAML_HIDDEN_ATTRIBUTE).
+yaml_hidden: ContextVar[frozenset] = ContextVar("mateu_yaml_hidden", default=frozenset())
+
+
+def without_yaml_hidden(state: dict) -> dict:
+    """``state`` without the fields the request's layout hides from the caller (a nested
+    ``<field>-x`` key of a hidden field too)."""
+    hidden = yaml_hidden.get()
+    if not hidden or not state:
+        return state
+    return {k: v for k, v in state.items() if k not in hidden and k.split("-", 1)[0] not in hidden}
 
 ACCESS = "access"
 EYES_ONLY = "eyesOnly"

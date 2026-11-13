@@ -74,6 +74,15 @@ describe('the visual editor host', () => {
         expect(webview.options.localResourceRoots.map((u: vscode.Uri) => u.fsPath)).toContain(ws)
     })
 
+    it('replaces the bundle\'s standalone CSP with its own (two policies would intersect and block the webview\'s scripts)', async () => {
+        writeFileSync(join(ext, 'media/index.html'), '<html><head><meta http-equiv="Content-Security-Policy" data-mateu-standalone-csp\n          content="script-src \'self\'; object-src \'none\'; base-uri \'self\'" />'
+            + '<script type="module" src="./assets/index-abc.js"></script></head><body></body></html>')
+        const { webview } = await open('page.yaml', 'type: Form\ntitle: A\n')
+        expect(webview.html).not.toContain('data-mateu-standalone-csp')
+        expect(webview.html.match(/Content-Security-Policy/g)).toHaveLength(1)
+        expect(webview.html).toMatch(/script-src 'nonce-/)
+    })
+
     it('answers ready with init: the document text, the loopback baseUrl and its specs/ui path', async () => {
         const { webview } = await open('orders/list.yaml', 'type: Listing\n')
         webview.send({ type: 'ready' })

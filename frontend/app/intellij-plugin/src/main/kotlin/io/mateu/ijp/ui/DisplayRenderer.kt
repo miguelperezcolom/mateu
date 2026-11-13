@@ -30,7 +30,7 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
     val panel = HeroPanel(minHeight)
     panel.layout = javax.swing.BoxLayout(panel, javax.swing.BoxLayout.Y_AXIS)
     panel.border = JBUI.Borders.empty(28, 16)
-    metadata.text("image").takeIf { it.isNotBlank() }?.let { src -> panel.loadBackground(heroImageUrl(r.ctx.session.baseUrl, src)) }
+    metadata.text("image").takeIf { it.isNotBlank() }?.let { src -> heroImageUrl(r.ctx.session.baseUrl, src)?.let(panel::loadBackground) }
     val centered = !metadata.has("centered") || metadata.path("centered").isNull || metadata.path("centered").asBoolean(true)
     val textAlign = if (centered) SwingConstants.CENTER else SwingConstants.LEADING
     // `tone` (ocean, pine, …): a dark tinted band with light ink; absent/unknown → the default look.
@@ -77,9 +77,13 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
     return panel
 }
 
-/** A hero's image url: a root-relative path resolves against the app's own origin. */
-internal fun heroImageUrl(baseUrl: String, src: String): String =
-    if (src.startsWith("data:")) src else io.mateu.ijp.api.Urls.resolve(baseUrl, src)
+/** A hero's image url: a data URI, or an http(s) url — a root-relative path resolves against the
+ *  app's own origin. Any other scheme (`file:`…) is never fetched: null (GA-5.2). */
+internal fun heroImageUrl(baseUrl: String, src: String): String? {
+    val s = src.trim()
+    if (s.regionMatches(0, "data:", 0, 5, ignoreCase = true)) return s
+    return io.mateu.ijp.api.Urls.resolve(baseUrl, s).takeIf(::isRemoteImage)
+}
 
 /** The hero band: at least [minHeight] tall, painting an optional background image (cover + veil). */
 internal class HeroPanel(private val minHeight: Int) : JPanel() {

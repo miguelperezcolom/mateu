@@ -6,9 +6,19 @@
 const RESERVED = /^(true|false|yes|no|on|off|null|~|y|n)$/i
 const NUMERIC = /^[-+]?(\d[\d_]*)?(\.\d+)?([eE][-+]?\d+)?$|^0x|^0o|^\.inf$|^\.nan$/i
 
+/**
+ * What a plain scalar cannot hold: the line breaks YAML 1.1 knows besides `\n` (CR, NEL, LINE and
+ * PARAGRAPH SEPARATOR: Figma types U+2028 for Shift+Enter in a text layer) and every character
+ * outside YAML's printable set (C0/C1 controls, DEL, U+FFFE/U+FFFF, lone surrogates).
+ */
+const UNPRINTABLE =
+  /[\u0000-\u0008\u000b\u000c\u000d\u000e-\u001f\u007f-\u009f\u2028\u2029\ufffe\uffff]|[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/
+const ESCAPED = new RegExp(UNPRINTABLE.source, 'g')
+
 /** True when `s` can be written unquoted and still reads back as the same string. */
 export function isPlain(s) {
   if (s === '' || s !== s.trim()) return false
+  if (UNPRINTABLE.test(s)) return false
   if (RESERVED.test(s) || NUMERIC.test(s)) return false
   // starts with an indicator, or holds a sequence YAML gives meaning to
   if (/^[-?:,\[\]{}#&*!|>'"%@`]/.test(s)) return false
@@ -21,7 +31,10 @@ function scalar(v) {
   if (v === null || v === undefined) return 'null'
   if (typeof v === 'boolean' || typeof v === 'number') return String(v)
   const s = String(v)
-  return isPlain(s) ? s : JSON.stringify(s)
+  if (isPlain(s)) return s
+  // a JSON string is a YAML double-quoted scalar, but JSON leaves NEL, the C1 controls, U+2028/2029
+  // and U+FFFE/FFFF raw: escape them the way YAML reads them back (`\uXXXX`)
+  return JSON.stringify(s).replace(ESCAPED, (c) => `\\u${c.codePointAt(0).toString(16).padStart(4, '0')}`)
 }
 
 function key(k) {

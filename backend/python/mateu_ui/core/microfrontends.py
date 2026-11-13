@@ -793,6 +793,10 @@ class MicroFrontendServerResolver:
                 f"no remote is registered as '{remote_id}'" if remote_id is not None
                 else f"{base_url} is not under any registered remote"
             )
+        elif base_url is not None and ("?" in base_url or "#" in base_url):
+            # the sync suffix is APPENDED to the base url: a query or fragment in it would push
+            # "/mateu/v3/sync…" out of the path and reach any path under the remote
+            problem = f"its base url {base_url} carries a query or a fragment"
         else:
             call_base_url = self._absolute(base_url, request)
             if call_base_url is None:

@@ -178,6 +178,21 @@ export const resolveTarget = (contexts, t) => {
   return byTreeId || t
 }
 
+/** Which context a MarkAsClean / MarkAsDirty is about: its target (a context id, or the tree id a
+ *  context answers to), else the surface that launched the request (opts.initiator), else — no
+ *  target and no initiator — the page, like any command with an empty target (R-7: the page's
+ *  MarkAsDirty used to land nowhere). */
+function markTargetOf(contexts, t, refreshed, opts) {
+  if (t && contexts[t]) return t
+  const launched = refreshed[opts.initiator] || opts.initiator
+  if (launched) return launched
+  if (t) {
+    const resolved = resolveTarget(contexts, t)
+    return contexts[resolved] ? resolved : undefined
+  }
+  return HOST_ID
+}
+
 /**
  * THE REDUCER. reg = { contexts, stack, shell }; returns the NEW reg + the effects VB
  * applies. Pure and immutable with structural sharing: only the touched entries change ref.
@@ -452,12 +467,14 @@ export function reduceContexts(reg, increment, opts = {}) {
         break
       }
       case 'MarkAsClean': {
-        const id = t && contexts[t] ? t : (refreshed[opts.initiator] || opts.initiator)
-        if (id && contexts[id]) contexts[id] = { ...contexts[id], dirty: false }
+        const id = markTargetOf(contexts, t, refreshed, opts)
+        // `cleaned` counts the MarkAsCleans: a second one on an already clean context is still news
+        // to whoever keeps its own flag (the page's mateuDirty — shellFlows.pageDirtyAfterAction)
+        if (id && contexts[id]) contexts[id] = { ...contexts[id], dirty: false, cleaned: (contexts[id].cleaned || 0) + 1 }
         break
       }
       case 'MarkAsDirty': {
-        const id = t && contexts[t] ? t : (refreshed[opts.initiator] || opts.initiator)
+        const id = markTargetOf(contexts, t, refreshed, opts)
         if (id && contexts[id]) contexts[id] = { ...contexts[id], dirty: true }
         break
       }

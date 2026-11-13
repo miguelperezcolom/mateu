@@ -20,10 +20,12 @@ const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
  * it read steered it to write.
  */
 export function trustedNavigationOf(session: MateuSession, nav: ChatNavigation): ChatNavigation {
-  if (!nav.baseUrl || session.credentials.mayCarryCredentials(nav.baseUrl)) return nav;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { baseUrl, ...rest } = nav;
-  return rest;
+  // where to go only (S7): whatever built `nav`, an agent's navigation never names an action to run
+  const place: ChatNavigation = { route: nav.route, consumedRoute: nav.consumedRoute, actionId: '' };
+  for (const k of ['serverSideType', 'uriPrefix', 'baseUrl'] as const) if (nav[k]) place[k] = nav[k];
+  if (!place.baseUrl || session.credentials.mayCarryCredentials(place.baseUrl)) return place;
+  delete place.baseUrl;
+  return place;
 }
 
 /** What the session lets an agent's event do. `close` hides the assistant (a phone's sheet would

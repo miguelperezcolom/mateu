@@ -42,7 +42,14 @@ export async function publishNetlify({ token, siteId, siteName, files, fetch: f 
     if (!bySha.has(sha)) bySha.set(sha, { path, bytes })
   }
   log('Preparing the deploy…')
-  let deploy = await json(await f(`${api}/sites/${id}/deploys`, { method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' }, body: JSON.stringify({ files: digests }) }), 'Netlify, preparing the deploy')
+  const prepared = await f(`${api}/sites/${encodeURIComponent(id)}/deploys`, { method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' }, body: JSON.stringify({ files: digests }) })
+  if (siteId && prepared.status === 404) {
+    // deleted in Netlify, or another account's token: say so, so the panel can offer a new site
+    const e = new Error('Netlify does not know the site this file published to (deleted, or another account\'s token). Publish it as a new site.')
+    e.code = 'SITE_NOT_FOUND'
+    throw e
+  }
+  let deploy = await json(prepared, 'Netlify, preparing the deploy')
   const required = deploy.required ?? []
   let done = 0
   for (const sha of required) {
@@ -73,15 +80,18 @@ export const pagesHash = (b64, extension) => hex(blake3(new TextEncoder().encode
  * Returns `{url}`.
  */
 export async function publishCloudflare({ relayUrl, token, accountId, project, files, fetch: f = fetch, log = () => {} }) {
+  // the token travels to the relay: never over plain http
+  if (!/^https:\/\/[^/]/.test(String(relayUrl ?? ''))) throw new Error('The relay Worker URL has to start with https://')
   const base = relayUrl.replace(/\/$/, '') + '/client/v4'
   const auth = { Authorization: `Bearer ${token}` }
-  const projectUrl = `${base}/accounts/${accountId}/pages/projects/${project}`
+  const projectUrl = `${base}/accounts/${encodeURIComponent(accountId)}/pages/projects/${encodeURIComponent(project)}`
   const exists = await f(projectUrl, { headers: auth })
+  let projectInfo
   if (exists.status === 404) {
     log('Creating the project…')
-    await json(await f(`${base}/accounts/${accountId}/pages/projects`, { method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: project, production_branch: 'main' }) }), 'Cloudflare, creating the project')
-  } else if (!exists.ok) {
-    await json(exists, 'Cloudflare, reading the project')
+    projectInfo = (await json(await f(`${base}/accounts/${encodeURIComponent(accountId)}/pages/projects`, { method: 'POST', headers: { ...auth, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: project, production_branch: 'main' }) }), 'Cloudflare, creating the project')).result
+  } else {
+    projectInfo = (await json(exists, 'Cloudflare, reading the project')).result
   }
   const { result: jwt } = await json(await f(`${projectUrl}/upload-token`, { headers: auth }), 'Cloudflare, asking to upload').then((r) => ({ result: r.result.jwt }))
   const upload = { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' }
@@ -123,5 +133,7 @@ export async function publishCloudflare({ relayUrl, token, accountId, project, f
   form.append('branch', 'main')
   if (redirects) form.append('_redirects', new Blob([redirects]), '_redirects')
   const deployed = await json(await f(`${projectUrl}/deployments`, { method: 'POST', headers: auth, body: form }), 'Cloudflare, deploying')
-  return { url: `https://${project}.pages.dev`, deploymentUrl: deployed.result?.url }
+  // Cloudflare gives another subdomain when the project name is taken on pages.dev: never assume it
+  const subdomain = typeof projectInfo?.subdomain === 'string' && /^[a-z0-9.-]+$/i.test(projectInfo.subdomain) ? projectInfo.subdomain : null
+  return { url: subdomain ? `https://${subdomain}` : deployed.result?.url ?? `https://${project}.pages.dev`, deploymentUrl: deployed.result?.url }
 }

@@ -24,6 +24,7 @@ import type { TokenProvider } from '../core/auth';
 import type { StaticBundle } from '../core/staticBundle';
 import type { ScreenSnapshots } from '../core/screenSnapshots';
 import type { OfflineQueue } from '../core/offlineQueue';
+import type { ServerActivity } from '../core/serverActivity';
 
 export interface MateuConfig {
   baseUrl: string;
@@ -39,6 +40,9 @@ export interface MateuConfig {
   snapshots?: ScreenSnapshots | null;
   /** The offline send queue of this UI (`@Action(offline = QUEUE)`, core/offlineQueue.ts). */
   outbox?: OfflineQueue | null;
+  /** This UI's "waiting for the server" counter, when the host already counted on it (the hub
+   *  opening the UI: its manifest, its bundle). Absent: the session's own. */
+  activity?: ServerActivity;
 }
 
 interface AppContextValue {
@@ -49,6 +53,11 @@ interface AppContextValue {
 }
 
 const AppCtx = createContext<AppContextValue | null>(null);
+
+/** The context when drawn inside a MateuAppProvider, else null (a hub bar above its UI). */
+export function useOptionalAppContext(): AppContextValue | null {
+  return useContext(AppCtx);
+}
 
 export function useAppContext(): AppContextValue {
   const ctx = useContext(AppCtx);
@@ -65,12 +74,17 @@ export function MateuAppProvider({ config, children }: Props) {
   const ref = useRef<MateuSession | null>(null);
   if (!ref.current) {
     ref.current = new MateuSession(config.baseUrl, config.sessionId ?? randomUuid(), config.appState ?? {}, config.auth);
+    if (config.activity) ref.current.adoptActivity(config.activity);
     if (config.bundle) ref.current.openStaticBundle(config.bundle);
     if (config.snapshots) ref.current.snapshots = config.snapshots;
     if (config.outbox) ref.current.outbox = config.outbox;
     config.onSession?.(ref.current);
   }
   const session = ref.current;
+  // the queue follows who is signed in: somebody signing in where nobody was (a lazy sign-in a 401
+  // opened) gets their queue on the SAME session — the screen stays where it is
+  // (core/outboxOwner.ts `sameSessionFor`; a different PERSON gets a new session instead)
+  if (config.outbox !== undefined && session.outbox !== config.outbox) session.outbox = config.outbox;
 
   const value: AppContextValue = {
     session,
