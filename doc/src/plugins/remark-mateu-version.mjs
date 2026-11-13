@@ -53,11 +53,11 @@ async function fromMavenCentral() {
 
 function fromGitTags() {
 	try {
-		const out = execFileSync('git', ['tag', '--list', 'v[0-9]*'], {
+		// the system's git by its absolute path, never whatever an inherited PATH names first (on a
+		// machine without /usr/bin/git this fallback answers null and the pinned version is used)
+		const out = execFileSync('/usr/bin/git', ['tag', '--list', 'v[0-9]*'], {
 			encoding: 'utf8',
 			stdio: ['ignore', 'pipe', 'ignore'],
-			// the system's own directories, never a writable folder an inherited PATH names first
-			env: { ...process.env, PATH: '/usr/bin:/bin:/usr/local/bin' },
 		});
 		const versions = out.split('\n').map((t) => t.trim().replace(/^v/, '')).filter(Boolean);
 		return chooseVersion(versions, pinOr(versions));

@@ -94,7 +94,7 @@ export function appRouteHref(from: Element, route: string): string {
 /** Trailing '/'s off, in linear time (a /\/+$/ regex backtracks on a long run of slashes). */
 const trimSlashesAtEnd = (s: string): string => {
     let end = s.length
-    while (end > 0 && s.charCodeAt(end - 1) === 47) end--
+    while (end > 0 && s.codePointAt(end - 1) === 47) end--
     return s.slice(0, end)
 }
 
