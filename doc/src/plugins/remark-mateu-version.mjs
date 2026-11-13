@@ -1,14 +1,19 @@
 import { visit } from 'unist-util-visit';
 import { execFileSync } from 'node:child_process';
+import { chooseVersion, metadataVersions, starterPin } from './mateu-version.mjs';
 
 /**
  * Replaces the MATEU_VERSION placeholder in the docs with the version a reader can actually
  * download. Resolution order:
  *
- *   1. the MATEU_VERSION environment variable (the docs workflow sets it from the release tag);
- *   2. the <release> of io.mateu:mateu-mvc in Maven Central's metadata — what a pom can resolve
- *      today (a GitHub release can exist minutes or hours before its artifacts reach Central);
- *   3. the newest `vX.Y…` git tag of this repository.
+ *   1. the MATEU_VERSION environment variable, when a build sets it by hand (the docs workflow
+ *      does not: it builds daily and on every push, not per release);
+ *   2. io.mateu:mateu-mvc's versions in Maven Central's metadata — what a pom can resolve today (a
+ *      GitHub release can exist minutes or hours before its artifacts reach Central) — chosen by
+ *      the New Project generator's rule (mateu-version.mjs): the highest FINAL of the starters'
+ *      major, or before its GA the newest pre-release. Never `<release>`, which is only the last one
+ *      deployed (a later line's rc, or a backport published after a newer minor);
+ *   3. the repository's `vX.Y…` git tags, chosen the same way.
  *
  * If none answers, the build FAILS. A hard-coded fallback silently published a version two
  * hundred releases old in every snippet, which is worse than no build.
@@ -22,6 +27,9 @@ function fromEnv() {
 	return v ? v.replace(/^v/, '') : null;
 }
 
+// the starters' pinned release: its major is the docs' major
+const pinOr = (versions) => starterPin() ?? versions.find(Boolean) ?? null;
+
 // mateu-mvc is the artifact's name from the mateu-* rename on; mvc-core answers for the releases
 // before it.
 const METADATA = ['mateu-mvc', 'mvc-core'].map(
@@ -33,9 +41,9 @@ async function fromMavenCentral() {
 		try {
 			const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
 			if (!res.ok) continue;
-			const xml = await res.text();
-			const release = xml.match(/<release>([^<]+)<\/release>/)?.[1];
-			if (release) return release;
+			const versions = metadataVersions(await res.text());
+			const chosen = chooseVersion(versions, pinOr(versions));
+			if (chosen) return chosen;
 		} catch (e) {
 			console.warn('[mateu-version] Maven Central lookup failed:', e.message);
 		}
@@ -45,13 +53,12 @@ async function fromMavenCentral() {
 
 function fromGitTags() {
 	try {
-		const out = execFileSync(
-			'git',
-			['tag', '--list', 'v[0-9]*', '--sort=-version:refname'],
-			{ encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }
-		);
-		const tag = out.split('\n').find((t) => t.trim());
-		return tag ? tag.trim().replace(/^v/, '') : null;
+		const out = execFileSync('git', ['tag', '--list', 'v[0-9]*'], {
+			encoding: 'utf8',
+			stdio: ['ignore', 'pipe', 'ignore'],
+		});
+		const versions = out.split('\n').map((t) => t.trim().replace(/^v/, '')).filter(Boolean);
+		return chooseVersion(versions, pinOr(versions));
 	} catch {
 		return null;
 	}
