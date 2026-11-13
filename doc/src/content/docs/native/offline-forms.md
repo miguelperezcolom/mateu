@@ -70,8 +70,15 @@ person who filled it — its **owner** — and to nobody else:
   `sub`) of the id token — or of a JWT access token when there is no id token — plus the **tenant**
   when the token names one (`tid`, `tenant_id`, `tenant`). A renewed or refreshed token of the same
   person is the same owner. On a UI with no sign-in, everything goes to one anonymous queue, as
-  before. A sign-in whose tokens do not say who it is (no JWT at all) queues nothing: those writes
-  fail as an ordinary write does.
+  before.
+- When the tokens do not say who signed in (**opaque** tokens, no JWT at all), the app asks the
+  provider at sign-in and at each token refresh — while online — through its OpenID Connect
+  **`userinfo_endpoint`** (from the discovery document, HTTPS only), and keeps the answer's `sub`
+  (plus tenant) with the stored tokens, at the configured issuer, so the owner is known later offline.
+  A refresh that answers another `sub` is another owner; a refresh whose userinfo call fails keeps
+  the owner of the sign-in it refreshed. Claims in the tokens always win over userinfo. If the
+  provider offers no userinfo endpoint, or it fails at sign-in, nothing is guessed: that sign-in
+  queues nothing, and those writes fail as an ordinary write does.
 - Each owner has **their own queue** on the device. Before **each** send the app checks that the one
   signed in now is the queue's owner; otherwise nothing is sent. A send that has to refresh an
   expired token does it **silently** and is repeated only if the same person is still signed in —

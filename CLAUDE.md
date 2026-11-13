@@ -103,7 +103,8 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             OFFLINE SEND QUEUE (2026-11-11, @Experimental): `@Action(offline = QUEUE)` (fluent/YAML `offline`,
                             .NET `[ActionOptions(Offline)]`, Python `@action_options(offline=)`) → wire `ActionDto.offline: "queue"`.
                             core/offlineQueue.ts (pure, tested) = a queue per UI AND OWNER (core/outboxOwner.ts: iss+sub+tenant of the
-                            id token / JWT access token, `anonymous` without sign-in; no identity → no queue) — owner re-checked before
+                            id token / JWT access token, else — opaque tokens — the userinfo `sub` resolved ONLINE at sign-in/refresh by
+                            `withResolvedOwner` and stored as `StoredTokens.owner`; `anonymous` without sign-in; no identity → no queue) — owner re-checked before
                             EACH send (`notOwner`), sends use `silentReauth` (never a sign-in browser; not repeated if the owner changed);
                             sign-out SUSPENDS it (kept, hidden, uncounted) until the same iss+sub signs in. Stored GENERATIONALLY
                             (`generations`: chunks under a new gen id → one pointer switch → older gen deleted; len+digest checked;
