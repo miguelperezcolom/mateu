@@ -37,7 +37,8 @@
           "avatar" : null,
           "photo" : {
             "src" : "${state.picture}",
-            "initials" : null
+            "initials" : null,
+            "alt" : "${state.name}"
           }
         }
       },
@@ -105,9 +106,9 @@
                   "metadata" : {
                     "type" : "Image",
                     "src" : "${state.picture}",
-                    "alt" : null
+                    "alt" : "${state.name}"
                   },
-                  "id" : "image-51140e41",
+                  "id" : "image-956584bf",
                   "children" : [ ],
                   "style" : "width: 100%; aspect-ratio: 4 / 3; object-fit: cover",
                   "cssClasses" : null,
@@ -142,9 +143,10 @@
                     "attributes" : { },
                     "text" : "A starship",
                     "size" : null,
-                    "noMargins" : false
+                    "noMargins" : false,
+                    "variants" : null
                   },
-                  "id" : "b032da85-a8fc-4812-b334-345e811abef4",
+                  "id" : "99bd680c-cb68-4136-8ad4-f24c83ccfab4",
                   "children" : [ ],
                   "style" : null,
                   "cssClasses" : null,
@@ -194,9 +196,10 @@
               "attributes" : { },
               "text" : "Main area",
               "size" : null,
-              "noMargins" : false
+              "noMargins" : false,
+              "variants" : null
             },
-            "id" : "139563c9-e4f7-4bc8-ba84-77c0afb888de",
+            "id" : "f68e6705-31a4-4cf3-acbc-f3a02774d65b",
             "children" : [ ],
             "style" : null,
             "cssClasses" : null,

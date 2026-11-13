@@ -18,6 +18,9 @@ public sealed record TemplateImage
 {
     public string? Src { get; init; }
     public string? Initials { get; init; }
+    /// <summary>What a screen reader reads for the image; null = the page's title (the image is the
+    /// record the page is about).</summary>
+    public string? Alt { get; init; }
 }
 
 /// <summary>Redwood's Item overview page: an overview panel (its <see cref="Avatar"/> or

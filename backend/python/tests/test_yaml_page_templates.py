@@ -70,7 +70,8 @@ def test_the_template_rides_the_form_metadata_and_its_slots_are_named(tmp_path):
     form = served(tmp_path, "item-overview-page")
     assert form["metadata"]["template"] == {
         "type": "ItemOverviewPage",
-        "avatar": {"src": "${state.image}", "initials": "LS"},
+        # no alt declared: the page's title is the image's (Java's PageTemplates.altOf)
+        "avatar": {"src": "${state.image}", "initials": "LS", "alt": "${state.name}"},
         "photo": None,
     }
     (row,) = form["children"]
@@ -118,7 +119,7 @@ def test_a_code_authored_form_fills_a_template_too():
         content=(fluent.Text(text="Main"),),
     )
     wire = json.loads(ReflectionMapper().map_component(form).model_dump_json(by_alias=True))
-    assert wire["metadata"]["template"]["avatar"] == {"src": None, "initials": "LS"}
+    assert wire["metadata"]["template"]["avatar"] == {"src": None, "initials": "LS", "alt": "Luke"}
     assert wire["metadata"]["toolbar"][0]["actionId"] == "edit"  # the item keeps its header
     media = wire["children"][0]["children"][0]["metadata"]["content"]["children"][0]
     assert media["id"] == "item-overview-media"
@@ -150,3 +151,14 @@ def test_each_template_implies_its_page_type():
     assert page_templates.page_type_of(ItemOverviewPage()) == "detail"
     assert page_templates.page_type_of(DashboardLandingPage()) == "dashboard"
     assert page_templates.page_type_of(None) is None
+
+
+def test_a_declared_alt_wins_over_the_page_title_on_the_wire_and_on_the_drawn_image():
+    form = fluent.Form(
+        title="Luke",
+        template=ItemOverviewPage(photo=TemplateImage(src="/luke.png", alt="Luke on Tatooine")),
+    )
+    wire = json.loads(ReflectionMapper().map_component(form).model_dump_json(by_alias=True))
+    assert wire["metadata"]["template"]["photo"]["alt"] == "Luke on Tatooine"
+    media = wire["children"][0]["children"][0]["metadata"]["content"]["children"][0]
+    assert media["children"][0]["metadata"] == {"type": "Image", "src": "/luke.png", "alt": "Luke on Tatooine"}

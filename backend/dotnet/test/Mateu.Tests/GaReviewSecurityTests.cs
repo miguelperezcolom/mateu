@@ -164,7 +164,8 @@ public class GaCapBooks : IListing<GaBook>, IEditable<GaBook, string>, ICreatabl
 
 public class GaNote
 {
-    public string Id { get; set; } = "";
+    // the user types the id on create: the path S6 gates (a technical id never reaches a create)
+    [EditableOnlyWhenCreating] public string Id { get; set; } = "";
     public string Text { get; set; } = "";
 }
 

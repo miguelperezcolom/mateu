@@ -1246,10 +1246,10 @@ Mateu.Uidl.Icon property System.String Name { get;init; }
 Mateu.Uidl.IdAttribute ctor()
 Mateu.Uidl.Identity ctor(System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null, System.Collections.Generic.IReadOnlyList<System.String> = null)
 Mateu.Uidl.Identity property System.Collections.Generic.IReadOnlyList<System.String> Groups { get;init; }
-Mateu.Uidl.Identity property System.String Name { get;init; }
 Mateu.Uidl.Identity property System.Collections.Generic.IReadOnlyList<System.String> Permissions { get;init; }
 Mateu.Uidl.Identity property System.Collections.Generic.IReadOnlyList<System.String> Roles { get;init; }
 Mateu.Uidl.Identity property System.Collections.Generic.IReadOnlyList<System.String> Scopes { get;init; }
+Mateu.Uidl.Identity property System.String Name { get;init; }
 Mateu.Uidl.IdentityGatedAttribute ctor()
 Mateu.Uidl.IdentityGatedAttribute property System.String[] Groups { get;set; }
 Mateu.Uidl.IdentityGatedAttribute property System.String[] Permissions { get;set; }
@@ -2311,6 +2311,7 @@ Mateu.Uidl.TaskQueue ctor()
 Mateu.Uidl.TaskQueue property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.QueueGroup> Groups { get;init; }
 Mateu.Uidl.TaskQueue property System.String ActionId { get;init; }
 Mateu.Uidl.TemplateImage ctor()
+Mateu.Uidl.TemplateImage property System.String Alt { get;init; }
 Mateu.Uidl.TemplateImage property System.String Initials { get;init; }
 Mateu.Uidl.TemplateImage property System.String Src { get;init; }
 Mateu.Uidl.TemplateTones static method Mateu.Uidl.HeroTone? ToneOf(System.String)

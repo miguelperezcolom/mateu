@@ -8,7 +8,9 @@ public enum ProductStatus { Available, OutOfStock, Discontinued }
 /// <summary>The model, declared once: columns, form fields and validation are derived from it.</summary>
 public class Product
 {
-    [Required] public string Id { get; set; } = "";
+    // a product code the user types on create (without the attribute the id would be technical:
+    // the store assigns it and the creation form draws no input for it)
+    [Required, EditableOnlyWhenCreating] public string Id { get; set; } = "";
     [Required] public string Name { get; set; } = "";
     [Range(0, double.MaxValue), Money] public double Price { get; set; }
     public ProductStatus Status { get; set; }

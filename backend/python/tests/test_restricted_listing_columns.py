@@ -180,6 +180,10 @@ def test_a_page_below_zero_is_the_first_and_a_page_size_is_capped(monkeypatch):
     assert first["pageNumber"] == 0 and first["content"][0]["name"] == "N0000"
     big = page({"size": 100000})
     assert big["pageSize"] == 500 and len(big["content"]) == 500
+    # 0 or less is not "every row": it is the cap too (Java's ListingQueryGuard, .NET's)
+    for size in (0, -1):
+        none = page({"size": size})
+        assert none["pageSize"] == 500 and len(none["content"]) == 500
     monkeypatch.setenv("MATEU_LISTING_MAX_PAGE_SIZE", "50")
     assert len(page({"size": 100000})["content"]) == 50
     h = _handler()

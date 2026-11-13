@@ -21,7 +21,7 @@ internal static class PageTemplateLayout
         List<ComponentDto> Content() => form.Content.Select(map).ToList();
         return form.Template switch
         {
-            ItemOverviewPage io => [ItemOverview(io, Content(), map)],
+            ItemOverviewPage io => [ItemOverview(io, Content(), form.Title, map)],
             WelcomePage w => Banner("welcome", TemplateTones.ToneOf(w.BackgroundColor), form, map),
             MultimediaContentPage m => Banner("multimedia-banner", TemplateTones.ToneOf(m.BackgroundColor), form, map),
             HeroSearchPage h => Banner("hero-search", TemplateTones.ToneOf(h.BackgroundColor), form, map),
@@ -42,10 +42,11 @@ internal static class PageTemplateLayout
         form.Template is WelcomePage or MultimediaContentPage or DataManagementPage or HeroSearchPage;
 
     /// <summary>The template's own values, for the wire; null for a free page.</summary>
-    public static PageTemplateDto? DtoOf(IFormTemplate? template) => template switch
+    public static PageTemplateDto? DtoOf(IFormTemplate? template, string? pageTitle = null) => template switch
     {
         null => null,
-        ItemOverviewPage io => new PageTemplateDto(nameof(ItemOverviewPage), ImageDto(io.Avatar), ImageDto(io.Photo)),
+        ItemOverviewPage io => new PageTemplateDto(
+            nameof(ItemOverviewPage), ImageDto(io.Avatar, pageTitle), ImageDto(io.Photo, pageTitle)),
         _ => new PageTemplateDto(template.GetType().Name),
     };
 
@@ -77,17 +78,24 @@ internal static class PageTemplateLayout
         _ => [],
     };
 
-    private static TemplateImageDto? ImageDto(TemplateImage? image) =>
-        image is null ? null : new TemplateImageDto(image.Src, image.Initials);
+    private static TemplateImageDto? ImageDto(TemplateImage? image, string? pageTitle) =>
+        image is null ? null : new TemplateImageDto(image.Src, image.Initials) { Alt = AltOf(image, pageTitle) };
+
+    /// <summary>The text a screen reader reads for a template's image: the declared alt, else the
+    /// page's title (the image is the record the page is about) — Java's <c>PageTemplates.altOf</c>.</summary>
+    internal static string? AltOf(TemplateImage image, string? pageTitle) =>
+        !string.IsNullOrWhiteSpace(image.Alt) ? image.Alt
+        : !string.IsNullOrWhiteSpace(pageTitle) ? pageTitle
+        : null;
 
     // ── the templates ──────────────────────────────────────────────────────────────────────
 
     /// <summary>The overview panel (its image, its body and footer slots) beside the main slot — a
     /// fixed-width panel pinned while the main area scrolls, wrapping under it on a narrow screen.</summary>
-    private static ComponentDto ItemOverview(ItemOverviewPage t, List<ComponentDto> main, Func<IComponent, ComponentDto> map)
+    private static ComponentDto ItemOverview(ItemOverviewPage t, List<ComponentDto> main, string? pageTitle, Func<IComponent, ComponentDto> map)
     {
         var panel = new List<ComponentDto>();
-        if (Media(t) is { } media) panel.Add(Slot("item-overview-media", [media], "width: 100%; align-items: center"));
+        if (Media(t, pageTitle) is { } media) panel.Add(Slot("item-overview-media", [media], "width: 100%; align-items: center"));
         panel.Add(Slot("item-overview-body", t.Body.Select(map).ToList(), "width: 100%"));
         if (t.Footer.Count > 0) panel.Add(Slot("item-overview-footer", t.Footer.Select(map).ToList(), "width: 100%"));
         var card = new ClientSideComponentDto(
@@ -98,14 +106,14 @@ internal static class PageTemplateLayout
     }
 
     /// <summary>The avatar (a round image, else the initials) or the 4:3 photo.</summary>
-    private static ComponentDto? Media(ItemOverviewPage t)
+    private static ComponentDto? Media(ItemOverviewPage t, string? pageTitle)
     {
         if (t.Avatar is { Src: { } src } && !string.IsNullOrWhiteSpace(src))
-            return Client(new ImageMetadataDto(src), null, [], "width: 8rem; height: 8rem; border-radius: 50%; object-fit: cover");
+            return Client(new ImageMetadataDto(src) { Alt = AltOf(t.Avatar, pageTitle) }, null, [], "width: 8rem; height: 8rem; border-radius: 50%; object-fit: cover");
         if (t.Avatar is { Initials: { } initials } && !string.IsNullOrWhiteSpace(initials))
             return Client(new AvatarMetadataDto(null, initials), null, [], "width: 8rem; height: 8rem");
         if (t.Photo is { Src: { } photo } && !string.IsNullOrWhiteSpace(photo))
-            return Client(new ImageMetadataDto(photo), null, [], "width: 100%; aspect-ratio: 4 / 3; object-fit: cover");
+            return Client(new ImageMetadataDto(photo) { Alt = AltOf(t.Photo, pageTitle) }, null, [], "width: 100%; aspect-ratio: 4 / 3; object-fit: cover");
         return null;
     }
 

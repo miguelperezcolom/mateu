@@ -9,7 +9,7 @@ public enum HarnessStatus { Available, OutOfStock }
 
 public class HarnessProduct
 {
-    [Required] public string Id { get; set; } = "";
+    [Required, EditableOnlyWhenCreating] public string Id { get; set; } = "";
     [Required] public string Name { get; set; } = "";
     public double Price { get; set; }
     public HarnessStatus Status { get; set; }

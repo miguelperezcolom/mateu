@@ -266,7 +266,7 @@ class SearchHandlerMixin(MixinBase):
         """The listing query of ``rq`` held to what the caller may ask (Java's ListingQueryGuard):
         a sort or filter key naming a row field the caller may not read is dropped (sorting or
         filtering by a hidden value leaks it), a page below zero is the first page, and a page
-        size is capped at ``listing_max_page_size`` (``MATEU_LISTING_MAX_PAGE_SIZE``, 500)."""
+        size of 0 or less, or above the cap, is the cap: ``listing_max_page_size`` (``MATEU_LISTING_MAX_PAGE_SIZE``, 500)."""
         state = dict(rq.component_state or {})
         if row_type is not None:
             hidden = {
@@ -295,7 +295,9 @@ class SearchHandlerMixin(MixinBase):
             state["page"], changed = 0, True
         size = _as_int(state.get("size"))
         cap = listing_max_page_size(self)
-        if size is not None and size > cap:
+        # a size of 0 or less meant "every row" to a default fetch: it is the cap too (Java's
+        # ListingQueryGuard, .NET's GuardedQuery)
+        if size is not None and (size <= 0 or size > cap):
             state["size"], changed = cap, True
         return rq.model_copy(update={"component_state": state}) if changed else rq
 

@@ -189,8 +189,10 @@ def test_a_save_keeps_the_stored_value_of_a_read_only_field():
 
 
 def test_a_create_starts_a_read_only_field_from_the_server():
+    # (the id is technical: the store assigns it — "generated" here — whatever the client sends)
     crud_call("invoices/new", "create", state={"id": "8", "customer": "New", "paid": 99, "status": "APPROVED"})
-    assert (INVOICES["8"].paid, INVOICES["8"].status) == (0.0, "DRAFT")
+    assert "8" not in INVOICES
+    assert (INVOICES["generated"].paid, INVOICES["generated"].status) == (0.0, "DRAFT")
 
 
 def test_a_read_only_record_class_takes_nothing_from_the_client():
@@ -217,8 +219,8 @@ def test_a_create_on_a_record_route_needs_edit_permission():
 def test_each_save_still_works_where_it_is_allowed():
     crud_call("invoices-no-create/7/edit", "save", cls=InvoicesNoCreate, state={"customer": "Edited"})
     assert INVOICES["7"].customer == "Edited"
-    crud_call("invoices-no-edit/new", "create", cls=InvoicesNoEdit, state={"id": "10", "customer": "Created"})
-    assert INVOICES["10"].customer == "Created"
+    crud_call("invoices-no-edit/new", "create", cls=InvoicesNoEdit, state={"customer": "Created"})
+    assert INVOICES["generated"].customer == "Created"
 
 
 # ── the live preview's alias budget ───────────────────────────────────────────────────────────

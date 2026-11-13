@@ -50,7 +50,7 @@ def content_of(form: fluent.Form) -> tuple:
     t = form.template
     content = tuple(form.content)
     if isinstance(t, ItemOverviewPage):
-        return (_item_overview(t, content),)
+        return (_item_overview(t, content, form.title),)
     if isinstance(t, WelcomePage):
         return _banner("welcome", t.background_color, form)
     if isinstance(t, MultimediaContentPage):
@@ -82,15 +82,15 @@ def owns_header(form: fluent.Form) -> bool:
     )
 
 
-def record_of(template) -> PageTemplateRecord | None:
+def record_of(template, page_title: str | None = None) -> PageTemplateRecord | None:
     """The template's own values, for the wire; None for a free page (or an unknown template)."""
     if not isinstance(template, _TEMPLATES):
         return None
     if isinstance(template, ItemOverviewPage):
         return PageTemplateRecord(
             type=type(template).__name__,
-            avatar=_image_record(template.avatar),
-            photo=_image_record(template.photo),
+            avatar=_image_record(template.avatar, page_title),
+            photo=_image_record(template.photo, page_title),
         )
     return PageTemplateRecord(type=type(template).__name__)
 
@@ -127,8 +127,22 @@ def tone_of(background_color: str | None) -> HeroTone | None:
     return None
 
 
-def _image_record(image: TemplateImage | None) -> TemplateImageRecord | None:
-    return None if image is None else TemplateImageRecord(src=image.src, initials=image.initials)
+def _image_record(image: TemplateImage | None, page_title: str | None) -> TemplateImageRecord | None:
+    return (
+        None
+        if image is None
+        else TemplateImageRecord(
+            src=image.src, initials=image.initials, alt=alt_of(image, page_title)
+        )
+    )
+
+
+def alt_of(image: TemplateImage, page_title: str | None) -> str | None:
+    """The text a screen reader reads for a template's image: the declared ``alt``, else the
+    page's title (the image is the record the page is about) — Java's ``PageTemplates.altOf``."""
+    if _filled(getattr(image, "alt", None)):
+        return image.alt
+    return page_title if _filled(page_title) else None
 
 
 def _slot(id: str, content, style: str | None) -> fluent.VerticalLayout:
@@ -145,26 +159,29 @@ def _filled(value: str | None) -> bool:
     return value is not None and bool(str(value).strip())
 
 
-def _media(t: ItemOverviewPage):
+def _media(t: ItemOverviewPage, page_title: str | None):
     """The avatar (a round image, else the initials) or the 4:3 photo."""
     avatar, photo = t.avatar, t.photo
     if avatar is not None and _filled(avatar.src):
         return fluent.Image(
             src=str(avatar.src),
             style="width: 8rem; height: 8rem; border-radius: 50%; object-fit: cover",
+            alt=alt_of(avatar, page_title),
         )
     if avatar is not None and _filled(avatar.initials):
         return fluent.Avatar(abbreviation=avatar.initials, style="width: 8rem; height: 8rem")
     if photo is not None and _filled(photo.src):
         return fluent.Image(
-            src=str(photo.src), style="width: 100%; aspect-ratio: 4 / 3; object-fit: cover"
+            src=str(photo.src),
+            style="width: 100%; aspect-ratio: 4 / 3; object-fit: cover",
+            alt=alt_of(photo, page_title),
         )
     return None
 
 
-def _item_overview(t: ItemOverviewPage, main: tuple):
+def _item_overview(t: ItemOverviewPage, main: tuple, page_title: str | None = None):
     panel = []
-    media = _media(t)
+    media = _media(t, page_title)
     if media is not None:
         panel.append(_slot("item-overview-media", [media], "width: 100%; align-items: center"))
     panel.append(_slot("item-overview-body", t.body, "width: 100%"))
