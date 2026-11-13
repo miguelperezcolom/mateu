@@ -73,7 +73,15 @@ public final class IdempotencyKeys {
   public static final String BUSY_MESSAGE =
       "The server is still processing too many requests. Try again in a moment.";
 
+  /** Title of the refusal when a key is sent again with a different request. */
+  public static final String REUSED_TITLE = "Idempotency key reused";
+
+  /** Text of the refusal when a key is sent again with a different request. */
+  public static final String REUSED_MESSAGE =
+      "This key was already used for a different request. Send this one with a new key.";
+
   static final int DEFAULT_MAX_ENTRIES = 2000;
+  static final int DEFAULT_MAX_ENTRIES_PER_CALLER = 100;
   static final long DEFAULT_TTL_SECONDS = 24 * 60 * 60;
 
   /** What a key may look like: a UUID, or any opaque token of 8–128 url-safe characters. */
@@ -83,10 +91,14 @@ public final class IdempotencyKeys {
   private static final class Run {
     final Mono<List<UIIncrementDto>> answer;
     final long createdAt;
+    final String caller;
+    final String fingerprint;
 
-    Run(Mono<List<UIIncrementDto>> answer, long createdAt) {
+    Run(Mono<List<UIIncrementDto>> answer, long createdAt, String caller, String fingerprint) {
       this.answer = answer;
       this.createdAt = createdAt;
+      this.caller = caller;
+      this.fingerprint = fingerprint;
     }
   }
 
@@ -97,13 +109,17 @@ public final class IdempotencyKeys {
   private static final class Pending {
     final String scoped;
     final String actionId;
+    final String caller;
+    final String fingerprint;
     boolean claimed;
     Run mine;
     Sinks.One<List<UIIncrementDto>> sink;
 
-    Pending(String scoped, String actionId) {
+    Pending(String scoped, String actionId, String caller, String fingerprint) {
       this.scoped = scoped;
       this.actionId = actionId;
+      this.caller = caller;
+      this.fingerprint = fingerprint;
     }
 
     /** The claimed run ended: settled (only if still its own), then handed to its joiners. */
@@ -156,17 +172,44 @@ public final class IdempotencyKeys {
 
   private static final Object LOCK = new Object();
 
-  /** Runs that have not finished: never evicted, admission bounded. */
+  /** Runs that have not finished: never evicted, admission bounded (in all, and per caller). */
   private static final Map<String, Run> IN_FLIGHT = new HashMap<>();
 
-  /** Answers of finished runs: LRU + TTL. */
+  /** How many entries each caller holds in either table: the shares are per caller. */
+  private static final Map<String, Integer> IN_FLIGHT_BY_CALLER = new HashMap<>();
+
+  private static final Map<String, Integer> FINISHED_BY_CALLER = new HashMap<>();
+
+  /** Answers of finished runs: LRU + TTL, and each caller's share bounded on its own. */
   private static final Map<String, Run> FINISHED =
       new LinkedHashMap<>(64, 0.75f, true) {
         @Override
         protected boolean removeEldestEntry(Map.Entry<String, Run> eldest) {
-          return size() > maxEntries();
+          if (size() > maxEntries()) {
+            uncount(FINISHED_BY_CALLER, eldest.getValue().caller);
+            return true;
+          }
+          return false;
         }
       };
+
+  private static int count(Map<String, Integer> counts, String caller) {
+    return counts.getOrDefault(caller, 0);
+  }
+
+  private static void recount(Map<String, Integer> counts, String caller) {
+    counts.merge(caller, 1, Integer::sum);
+  }
+
+  private static void uncount(Map<String, Integer> counts, String caller) {
+    counts.computeIfPresent(caller, (k, v) -> v <= 1 ? null : v - 1);
+  }
+
+  private static void removeFinished(String scoped, Run run) {
+    if (FINISHED.remove(scoped, run)) {
+      uncount(FINISHED_BY_CALLER, run.caller);
+    }
+  }
 
   private IdempotencyKeys() {}
 
@@ -186,35 +229,42 @@ public final class IdempotencyKeys {
     if (key == null) {
       return run.get();
     }
+    var caller = sha256(caller(IdentityResolver.resolve(httpRequest)));
     var scoped = scope(httpRequest, actionId, key);
+    var fingerprint = fingerprint(httpRequest);
     return Flux.defer(
         () -> {
-          var pending = new Pending(scoped, actionId);
+          var pending = new Pending(scoped, actionId, caller, fingerprint);
           try {
             httpRequest.setAttribute(PENDING, pending);
           } catch (RuntimeException noAttributes) {
             return run.get();
           }
-          return Flux.defer(run)
-              .collectList()
-              .doOnSuccess(increments -> pending.finish(increments, null))
-              .doOnError(
-                  failure -> {
-                    if (Replay.find(failure) == null) {
-                      pending.finish(null, failure);
-                    }
-                  })
-              .doOnCancel(
-                  () ->
-                      pending.finish(
-                          null, new java.util.concurrent.CancellationException("cancelled")))
+          // The run is DETACHED from the caller: subscribed once on its own and only LISTENED to
+          // by this request, so a client that leaves (its timeout drops the connection; WebFlux
+          // and Micronaut then cancel the request) neither stops the work nor releases the key
+          // while the write may still land — a retry of the key joins the run, which settles on
+          // its real outcome (GA review java-core #5).
+          var work =
+              Flux.defer(run)
+                  .collectList()
+                  .doOnSuccess(increments -> pending.finish(increments, null))
+                  .doOnError(
+                      failure -> {
+                        if (Replay.find(failure) == null) {
+                          pending.finish(null, failure);
+                        }
+                      })
+                  .doFinally(signal -> forget(httpRequest, pending))
+                  .cache();
+          work.subscribe(ignored -> {}, ignored -> {});
+          return work
               // a known key: the run stopped at its checkpoint — answer with the remembered one
               .onErrorResume(
                   failure -> {
                     var replay = Replay.find(failure);
                     return replay != null ? replay.answer : Mono.error(failure);
                   })
-              .doFinally(signal -> forget(httpRequest, pending))
               .flatMapMany(Flux::fromIterable);
         });
   }
@@ -263,30 +313,73 @@ public final class IdempotencyKeys {
       var finished = FINISHED.get(pending.scoped);
       if (finished != null) {
         if (now - finished.createdAt <= ttlMillis()) {
+          refuseAnotherRequest(pending, finished);
           log.info(
               "Idempotency key replayed for action {}: answering with the first run",
               pending.actionId);
           throw new Replay(finished.answer);
         }
-        FINISHED.remove(pending.scoped, finished);
+        removeFinished(pending.scoped, finished);
       }
       var running = IN_FLIGHT.get(pending.scoped);
       if (running != null) {
+        refuseAnotherRequest(pending, running);
         log.info(
             "Idempotency key repeated for action {}: joining the run in flight", pending.actionId);
         throw new Replay(running.answer);
       }
-      if (IN_FLIGHT.size() >= maxEntries()) {
+      // a share PER CALLER, so one caller sending many keyed requests can neither fill the table
+      // for everybody else nor evict their remembered answers (GA review S10)
+      if (IN_FLIGHT.size() >= maxEntries()
+          || count(IN_FLIGHT_BY_CALLER, pending.caller) >= maxEntriesPerCaller()) {
         log.warn(
-            "Idempotency: {} keyed requests already in flight, refusing a new one for action {}",
+            "Idempotency: too many keyed requests in flight ({} in all), refusing a new one for"
+                + " action {}",
             IN_FLIGHT.size(),
             pending.actionId);
         throw new UserFacingException(BUSY_TITLE, BUSY_MESSAGE);
       }
       // a sink replays its one value (or error) to every joiner, late ones included
       pending.sink = Sinks.one();
-      pending.mine = new Run(pending.sink.asMono(), now);
+      pending.mine = new Run(pending.sink.asMono(), now, pending.caller, pending.fingerprint);
       IN_FLIGHT.put(pending.scoped, pending.mine);
+      recount(IN_FLIGHT_BY_CALLER, pending.caller);
+    }
+  }
+
+  /**
+   * The same key sent with a DIFFERENT request (another state or parameters): it is not a retry,
+   * and answering it with the first request's answer would hide that it never ran.
+   */
+  private static void refuseAnotherRequest(Pending pending, Run run) {
+    if (run.fingerprint != null
+        && pending.fingerprint != null
+        && !run.fingerprint.equals(pending.fingerprint)) {
+      log.warn(
+          "Idempotency key reused with a different request for action {}: refused",
+          pending.actionId);
+      throw new UserFacingException(REUSED_TITLE, REUSED_MESSAGE);
+    }
+  }
+
+  private static final com.fasterxml.jackson.databind.ObjectMapper CANONICAL =
+      new com.fasterxml.jackson.databind.ObjectMapper()
+          .configure(
+              com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+
+  /** What the request asks for — its component state and parameters, canonical — hashed. */
+  static String fingerprint(HttpRequest httpRequest) {
+    var rq = runActionRq(httpRequest);
+    if (rq == null) {
+      return null;
+    }
+    try {
+      var body = new java.util.TreeMap<String, Object>();
+      body.put("componentState", rq.componentState() == null ? Map.of() : rq.componentState());
+      body.put("parameters", rq.parameters() == null ? Map.of() : rq.parameters());
+      return sha256(CANONICAL.writeValueAsString(body));
+    } catch (RuntimeException | com.fasterxml.jackson.core.JsonProcessingException e) {
+      return null; // not comparable: never refused for it
     }
   }
 
@@ -311,8 +404,23 @@ public final class IdempotencyKeys {
       if (!IN_FLIGHT.remove(scoped, run)) {
         return;
       }
+      uncount(IN_FLIGHT_BY_CALLER, run.caller);
       if (remember) {
-        FINISHED.put(scoped, new Run(run.answer, System.currentTimeMillis()));
+        // the caller's share full: its own least recently used answer goes, never another's
+        if (count(FINISHED_BY_CALLER, run.caller) >= maxEntriesPerCaller()) {
+          FINISHED.entrySet().stream()
+              .filter(entry -> run.caller.equals(entry.getValue().caller))
+              .findFirst()
+              .ifPresent(eldest -> removeFinished(eldest.getKey(), eldest.getValue()));
+        }
+        var previous =
+            FINISHED.put(
+                scoped,
+                new Run(run.answer, System.currentTimeMillis(), run.caller, run.fingerprint));
+        if (previous != null) {
+          uncount(FINISHED_BY_CALLER, previous.caller);
+        }
+        recount(FINISHED_BY_CALLER, run.caller);
       }
     }
   }
@@ -424,6 +532,10 @@ public final class IdempotencyKeys {
     return (int) number("mateu.idempotency.max-entries", DEFAULT_MAX_ENTRIES);
   }
 
+  private static int maxEntriesPerCaller() {
+    return (int) number("mateu.idempotency.max-entries-per-caller", DEFAULT_MAX_ENTRIES_PER_CALLER);
+  }
+
   private static long ttlMillis() {
     return number("mateu.idempotency.ttl-seconds", DEFAULT_TTL_SECONDS) * 1000L;
   }
@@ -446,6 +558,8 @@ public final class IdempotencyKeys {
     synchronized (LOCK) {
       IN_FLIGHT.clear();
       FINISHED.clear();
+      IN_FLIGHT_BY_CALLER.clear();
+      FINISHED_BY_CALLER.clear();
     }
   }
 }

@@ -1,7 +1,5 @@
 package io.mateu.core.domain.out.componentmapper;
 
-import io.mateu.core.domain.AudienceGate;
-import io.mateu.core.domain.Authorizer;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.*;
@@ -22,12 +20,22 @@ final class FormFieldFilter {
         && visibilitySupplier.isHidden(field.getName(), httpRequest)) {
       return false;
     }
-    if (MetaAnnotations.isPresent(field, EyesOnly.class)
-        && !Authorizer.isAuthorized(MetaAnnotations.find(field, EyesOnly.class), httpRequest)) {
-      return false; // not authorized to see this field
+    // not authorized to see this field (@EyesOnly), or not part of the current audience's
+    // projection (@Audience, a UX aid) — the one rule every path shares (FieldAccess)
+    if (!io.mateu.core.domain.FieldAccess.isShown(field, httpRequest)) {
+      return false;
     }
-    if (!AudienceGate.visible(MetaAnnotations.find(field, Audience.class), httpRequest)) {
-      return false; // not part of the current audience's projection (UX aid, not security)
+    // a crud's creation form draws no input for a technical id: the store assigns it
+    if (forCreationForm
+        && !readOnly
+        && field
+            .getName()
+            .equals(
+                TechnicalId.of(
+                    instance == null
+                        ? field.getDeclaringClass()
+                        : instance instanceof Class<?> type ? type : instance.getClass()))) {
+      return false;
     }
     if (ComponentDto.class.isAssignableFrom(field.getType())) {
       return false;

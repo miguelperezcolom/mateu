@@ -31,6 +31,7 @@ YAML record page — takes part; nothing is declared per screen.
 | Who | the name of the identity the **host framework authenticated** (see [security](/java-user-manual/advanced/security/#how-authorization-works)); a `PrincipalResolver` can make it a full name. An anonymous caller neither shows nor sees anyone. |
 | Viewing / editing | editing = the page holds **unsaved changes** (the same flag the [unsaved-changes guard](/reference/key-annotations/) uses). |
 | The app | presence of one app (base url + app class) never reaches another, nor another record. |
+| Access | a record the caller may not open — its route's `access:` refuses them, or its view is not a type the app exposes to them (class-level `@EyesOnly`) — is answered with nothing: they neither see who is there nor show up there. |
 
 On the web, a page counts as a record page when its route has two or more segments
 (`orders/7`) — or, for a one-segment route (`profile`), when the page edits (it asks to confirm

@@ -381,7 +381,7 @@ public class AdapterParityITFoundation {
   public static final String ECHO_EXPECTED =
       "q=hello;tags=a,b;named=true;header=hola;multi=one,two;"
           + "absentParam=null;absentParams=0;absentHeader=null;absentHeaders=0;path=true;"
-          + "remote=local";
+          + "remote=local;eventLoop=false";
 
   /**
    * The text {@code echo(HttpRequest)} answers — kept here so the five adapters' fixtures build it
@@ -409,7 +409,21 @@ public class AdapterParityITFoundation {
         + ";path="
         + (rq.path() != null && rq.path().endsWith("_no_route"))
         + ";remote="
-        + localOr(rq.getRemoteAddress());
+        + localOr(rq.getRemoteAddress())
+        // the action runs off the server's event loop (GA review java-core #6): a synchronous
+        // store must never stall the loop that serves every other request
+        + ";eventLoop="
+        + onEventLoop();
+  }
+
+  /** Whether the current thread is a Netty / Reactor Netty / Vert.x event-loop thread. */
+  private static boolean onEventLoop() {
+    var name = Thread.currentThread().getName().toLowerCase(java.util.Locale.ROOT);
+    // reactor-http-nio-* (WebFlux), *EventLoopGroup-* (Netty / Micronaut), vert.x-eventloop-*
+    // (Quarkus); Tomcat's http-nio-*-exec-* is a worker, not a loop
+    return name.startsWith("reactor-http-")
+        || name.contains("eventloop")
+        || name.contains("event-loop");
   }
 
   /** {@code local} for a loopback address (the tests' client), else the address as given. */

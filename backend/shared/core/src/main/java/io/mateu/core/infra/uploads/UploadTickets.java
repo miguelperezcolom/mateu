@@ -43,6 +43,62 @@ public final class UploadTickets {
 
   private UploadTickets() {}
 
+  /** The setting capping the files one ticket of a MULTIPLE upload field may send. */
+  public static final String MAX_FILES_PROPERTY = "mateu.uploads.max-files-per-ticket";
+
+  /** Files a ticket of a multiple field may send by default. */
+  public static final int DEFAULT_MAX_FILES = 100;
+
+  /** Files a ticket of a SINGLE-file field may send: the file and a few replacements of it. */
+  public static final int SINGLE_FILE_USES = 10;
+
+  /** Tickets seen, by the hash of the ticket: how many files each has sent. Bounded LRU. */
+  private static final java.util.Map<String, int[]> USES =
+      java.util.Collections.synchronizedMap(
+          new java.util.LinkedHashMap<>(64, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(java.util.Map.Entry<String, int[]> eldest) {
+              return size() > 10_000;
+            }
+          });
+
+  /**
+   * Counts one file against {@code ticket}: false once it sent its share — a single-file field's
+   * ticket allows {@value #SINGLE_FILE_USES} (the file and its replacements before the form is
+   * saved), a multiple field's {@value #MAX_FILES_PROPERTY} (default {@value #DEFAULT_MAX_FILES}).
+   * A ticket is valid for hours and an anonymous one is the same for every anonymous caller:
+   * without a count it allowed unlimited storage use (GA review S11).
+   */
+  public static boolean consume(String ticket, Ticket granted) {
+    var cap = granted.multiple() ? maxFiles() : Math.min(SINGLE_FILE_USES, maxFiles());
+    var key = base64(hmac("uses|" + ticket));
+    synchronized (USES) {
+      var count = USES.computeIfAbsent(key, k -> new int[1]);
+      if (count[0] >= cap) {
+        return false;
+      }
+      count[0]++;
+      return true;
+    }
+  }
+
+  private static int maxFiles() {
+    try {
+      var value = io.mateu.core.infra.MateuSettings.get(MAX_FILES_PROPERTY);
+      if (value != null && !value.isBlank() && Integer.parseInt(value.trim()) > 0) {
+        return Integer.parseInt(value.trim());
+      }
+    } catch (RuntimeException e) {
+      // unreadable: the default
+    }
+    return DEFAULT_MAX_FILES;
+  }
+
+  /** Forgets every count (tests). */
+  static void clearUses() {
+    USES.clear();
+  }
+
   /** What a ticket grants. */
   public record Ticket(
       String storage,

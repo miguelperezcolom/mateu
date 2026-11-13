@@ -100,6 +100,16 @@ business component drawn inside a page written in **code** (`new Partial("payrol
 `new ComponentRef("Payroll")` in a Java `ComponentTreeSupplier`, a C# or Python view building its
 own tree, or a YAML layout bound to a code view model).
 
+### The keys follow the view model, not the URL
+
+A request names the route it is for and, separately, the view model it talks to. The keys of a
+route bound to a view model protect that **view model**: when a request names a view model that
+`routes.yaml` binds, at a route that does not bind it (another route, an unknown one, none), the
+view model's **own** routes decide — at least one of them must be reachable for the caller (else
+**403**), and the locks, hidden fields and refused actions of **every** route that binds it apply.
+A sub-path of a bound route (a crud's `/payroll/7`, `/payroll/7/edit`) keeps that route's locks. A
+field a layout hides from the caller is not sent in the view model's state either.
+
 ### Locked fields are enforced on writes
 
 Hiding a field or drawing it read-only only changes the screen; a client can still post any state

@@ -194,22 +194,66 @@ public final class IssuedActions {
     if (type.getName().startsWith("java.") || type.getName().startsWith("javax.")) {
       return;
     }
-    for (var c = type; c != null && c != Object.class; c = c.getSuperclass()) {
-      for (var field : c.getDeclaredFields()) {
-        if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
-            || field.getType().isPrimitive()) {
-          continue;
+    // Mateu's own data records (ListingData, Page…) are walked whole; an APPLICATION object (a row,
+    // an entity) only through the fields DECLARED to hold row actions — never into its other
+    // fields: a JPA row's lazy associations were initialised on every search, recursively (an
+    // N+1 per listing), and a lazy proxy was walked into its session (GA review java-core #4)
+    var framework = type.getName().startsWith("io.mateu.uidl.");
+    for (var field : ROW_ACTION_FIELDS.get(type)) {
+      if (!framework && !holdsRowActions(field)) {
+        continue;
+      }
+      try {
+        if (!field.canAccess(node)) {
+          field.setAccessible(true);
         }
-        try {
-          if (!field.canAccess(node)) {
-            field.setAccessible(true);
-          }
-          collectRowActions(field.get(node), ids, visited, depth + 1);
-        } catch (ReflectiveOperationException | RuntimeException e) {
-          // an inaccessible field (a module boundary): nothing to harvest there
-        }
+        collectRowActions(field.get(node), ids, visited, depth + 1);
+      } catch (ReflectiveOperationException | RuntimeException e) {
+        // an inaccessible field (a module boundary): nothing to harvest there
       }
     }
+  }
+
+  /** The instance, non-primitive fields of a class and its superclasses, read once per class. */
+  private static final ClassValue<java.util.List<java.lang.reflect.Field>> ROW_ACTION_FIELDS =
+      new ClassValue<>() {
+        @Override
+        protected java.util.List<java.lang.reflect.Field> computeValue(Class<?> type) {
+          var out = new java.util.ArrayList<java.lang.reflect.Field>();
+          for (var c = type; c != null && c != Object.class; c = c.getSuperclass()) {
+            for (var field : c.getDeclaredFields()) {
+              if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                  && !field.getType().isPrimitive()) {
+                out.add(field);
+              }
+            }
+          }
+          return java.util.List.copyOf(out);
+        }
+      };
+
+  /**
+   * Whether a field of an application object is declared to hold row actions: a {@code
+   * ColumnAction}, a {@code ColumnActionGroup}, an array of them, or a collection whose element
+   * type is one.
+   */
+  static boolean holdsRowActions(java.lang.reflect.Field field) {
+    var type = field.getType();
+    if (isRowActionType(type) || (type.isArray() && isRowActionType(type.getComponentType()))) {
+      return true;
+    }
+    if (java.util.Collection.class.isAssignableFrom(type)
+        && field.getGenericType() instanceof java.lang.reflect.ParameterizedType parameterized
+        && parameterized.getActualTypeArguments().length == 1
+        && parameterized.getActualTypeArguments()[0] instanceof Class<?> element) {
+      return isRowActionType(element);
+    }
+    return false;
+  }
+
+  private static boolean isRowActionType(Class<?> type) {
+    return io.mateu.uidl.data.ColumnAction.class.isAssignableFrom(type)
+        || io.mateu.uidl.data.ColumnActionGroup.class.isAssignableFrom(type);
   }
 
   /** Test hook: forget everything. */

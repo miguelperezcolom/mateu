@@ -68,19 +68,8 @@ public class ${simpleClassName}MateuController implements MateuController {
         var httpRequest = new SpringHttpRequest(serverHttpRequest).storeRunActionRqDto(rq);
         httpRequest.setAttribute("uiId", uiId);
         httpRequest.setAttribute("baseUrl", baseUrl);
-        SseEmitter emitter = new SseEmitter(0L);
-        service.runAction(uiId, rq, baseUrl, httpRequest).subscribe(
-            increment -> {
-                try {
-                    emitter.send(SseEmitter.event().data(increment, MediaType.APPLICATION_JSON));
-                } catch (IOException e) {
-                    emitter.completeWithError(e);
-                }
-            },
-            emitter::completeWithError,
-            emitter::complete
-        );
-        return emitter;
+        // disposed when the client leaves (io.mateu.MateuSseEmitter)
+        return io.mateu.MateuSseEmitter.stream(service.runAction(uiId, rq, baseUrl, httpRequest));
     }
 
     // Every other action: POST v3/sync/{route}. Disjoint from v3/sse/**, so no URL is matched by

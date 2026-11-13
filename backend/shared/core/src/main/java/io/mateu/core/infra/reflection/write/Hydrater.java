@@ -5,11 +5,7 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import static io.mateu.core.infra.reflection.read.HolderFieldChecker.isNonDataHolder;
 import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
-import io.mateu.core.domain.Authorizer;
 import io.mateu.core.domain.ports.InstanceFactory;
-import io.mateu.core.infra.reflection.MetaAnnotations;
-import io.mateu.uidl.annotations.EyesOnly;
-import io.mateu.uidl.annotations.ReadOnlyUnless;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -92,37 +88,19 @@ public class Hydrater {
 
   /**
    * Write-side enforcement of the field-level access-control annotations: the browser is untrusted,
-   * so a field the UI hides ({@link EyesOnly}) or locks ({@link ReadOnlyUnless}, {@code
+   * so a field the UI hides ({@code EyesOnly}) or locks ({@code ReadOnlyUnless}, {@code
    * DisabledUnless}) for this request must not be writable by tampering with the component state
    * either. The read side (what is rendered) is enforced by FormFieldFilter / PageFormBuilder; this
    * is its symmetric counterpart. Unauthorized entries are dropped, so the field keeps the
    * server-side value (initializer or whatever load()/actions set) — protected values must be
    * computed server-side, never trusted from the round-tripped state. Class-level restrictions are
    * intentionally not enforced here: a fully read-only view still legitimately round-trips state
-   * its actions need (e.g. the id).
+   * its actions need (e.g. the id). The rule itself is {@link
+   * io.mateu.core.domain.FieldAccess#mayWrite}, shared with every other write path.
    */
   private static boolean isClientWritable(Field field, HttpRequest httpRequest) {
-    // A dependency the container injected (or a static) is not view state: writing wire data into
-    // it would replace — or, for a container bean, mutate — the service itself.
-    if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
-        || io.mateu.core.application.security.WireTypes.isInjected(field)) {
-      return false;
-    }
-    var eyesOnly = MetaAnnotations.find(field, EyesOnly.class);
-    if (eyesOnly != null && !Authorizer.isAuthorized(eyesOnly, httpRequest)) {
-      return false;
-    }
-    var readOnlyUnless = MetaAnnotations.find(field, ReadOnlyUnless.class);
-    if (readOnlyUnless != null && !Authorizer.isAuthorized(readOnlyUnless, httpRequest)) {
-      return false;
-    }
-    // a field rendered disabled for the caller can no more be changed than a read-only one
-    var disabledUnless =
-        MetaAnnotations.find(field, io.mateu.uidl.annotations.DisabledUnless.class);
-    if (disabledUnless != null && !Authorizer.isAuthorized(disabledUnless, httpRequest)) {
-      return false;
-    }
-    return true;
+    return io.mateu.core.domain.FieldAccess.inServerScope()
+        || io.mateu.core.domain.FieldAccess.mayWrite(field, httpRequest);
   }
 
   public static void setValue(String fn, Object o, Object v) throws Exception {

@@ -53,6 +53,9 @@ final class YamlUidlMapperFactory {
             if (description.getBeanClass() == io.mateu.uidl.data.FoldoutPanel.class) {
               return new SpacingDefault(deserializer, "autoOpen", "open");
             }
+            if (description.getBeanClass() == io.mateu.uidl.data.Button.class) {
+              return new InertButton(deserializer);
+            }
             return deserializer;
           }
         });
@@ -94,6 +97,44 @@ final class YamlUidlMapperFactory {
           && !object.has(key)
           && java.util.Arrays.stream(unlessPresent).noneMatch(object::has)) {
         object.put(key, true);
+      }
+      var replay = tree.traverse(parser.getCodec());
+      replay.nextToken();
+      return _delegatee.deserialize(replay, context);
+    }
+  }
+
+  /**
+   * A YAML {@code Button} that declares no action ({@code actionId:}) and no {@code actionable:} (a
+   * route) is INERT: it reaches the wire with no action id. The fluent record derives one from the
+   * label (the Java convention: {@code new Button("Save")} runs {@code save()}), which a page
+   * written as data never meant — renderers dispatched the label's echo and the server answered 403
+   * "not allowed" for a button that does nothing (GA Explorer pass, F3). Marked with a blank {@code
+   * actionId}, which {@code FluentHandlerButtons.actionIdOf} sends as none.
+   */
+  static final class InertButton
+      extends com.fasterxml.jackson.databind.deser.std.DelegatingDeserializer {
+
+    InertButton(com.fasterxml.jackson.databind.JsonDeserializer<?> delegate) {
+      super(delegate);
+    }
+
+    @Override
+    protected com.fasterxml.jackson.databind.JsonDeserializer<?> newDelegatingInstance(
+        com.fasterxml.jackson.databind.JsonDeserializer<?> newDelegatee) {
+      return new InertButton(newDelegatee);
+    }
+
+    @Override
+    public Object deserialize(
+        com.fasterxml.jackson.core.JsonParser parser,
+        com.fasterxml.jackson.databind.DeserializationContext context)
+        throws java.io.IOException {
+      com.fasterxml.jackson.databind.JsonNode tree = context.readTree(parser);
+      if (tree instanceof com.fasterxml.jackson.databind.node.ObjectNode object
+          && !object.hasNonNull("actionId")
+          && !object.hasNonNull("actionable")) {
+        object.put("actionId", "");
       }
       var replay = tree.traverse(parser.getCodec());
       replay.nextToken();

@@ -246,6 +246,26 @@ public record User(
 
 Users without the `admin` role see `id` and `name` but not `internalNote`.
 
+One rule decides what a caller may read and write of a field, on every path:
+
+- **Read** (`@EyesOnly`): the field is not drawn — in a form, a nested (`@Inline` or not) form, a
+  listing column, an editable grid, an export — and its **value is not sent**: not in the page
+  state, not in a listing's rows (nested objects and child rows included), not in a `State` an
+  action returns. A listing cannot be **sorted or filtered** by it either (the order would tell
+  its values). `@Audience` also takes a field out of what is drawn (a UX aid, not security).
+- **Write** (`@EyesOnly`, `@ReadOnlyUnless`, `@DisabledUnless`, plus static and injected fields):
+  the value a client posts is dropped before the object is built — by a setter, a **record**
+  constructor or a builder alike, at **any depth** (a nested form, a list of nested objects, the
+  flattened `pay-salary` keys of an inline form).
+- **Saves keep what the caller may not write.** A crud save, an inline row edit, an
+  `AutoEditableView` save and a capability listing's `save`/`create` start from the stored record
+  (`edit(id)`, `load()`) or the fresh creation form: the id, read-only, hidden and locked fields
+  keep **their stored values** — a user who cannot see a field never erases it by saving. An inline
+  row edit writes only the cells of the grid (not a `@HiddenInList` field). A crud save at a route
+  naming a record that does not exist is refused.
+- A listing page asks for at most `mateu.listing.max-page-size` rows (500 by default); a negative
+  page number is the first page.
+
 ---
 
 ## What a request can reach
@@ -316,6 +336,10 @@ a public method's name made that method callable. A method only another backend 
 dispatches needs `@Action`. Row actions (`action-on-row-<method>`) are accepted once a served row
 offered them, or when marked (`@ListToolbarButton`, `@Action`…): the old inference "a method taking
 the clicked row is a row action" is off.
+
+A **public `Runnable` / `Callable` field** of a view is the field form of a button: strict mode
+lets an `actionId` naming it run it, like a marked method. Keep such a field private (or out of the
+view) when it is not meant to be pressed.
 
 `mateu.actions.strict=false` (in `application.properties`, as a JVM system property, or
 `MATEU_ACTIONS_STRICT=false`) brings back the old convention, for an app that has not been

@@ -66,7 +66,13 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
 
           @Override
           public Flux<?> run(Object instance, RunActionCommand command) {
-            var result = handlesActions.handleAction(actionId, httpRequest);
+            var target = httpRequest;
+            if ("search".equals(actionId)
+                || io.mateu.uidl.data.ExportFormat.ofActionId(actionId) != null) {
+              // bounded page, no sorting or filtering by what the caller may not read
+              target = ListingQueryGuard.apply(instance, httpRequest);
+            }
+            var result = handlesActions.handleAction(actionId, target);
             return asFlux(result, instance);
           }
         };

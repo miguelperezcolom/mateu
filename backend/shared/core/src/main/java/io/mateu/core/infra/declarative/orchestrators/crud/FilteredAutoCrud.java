@@ -150,22 +150,23 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
             .idFromRoute(this, httpRequest);
     var postedId = posted != null ? posted.get(getIdFieldForRow()) : null;
     var loaded = routeId != null ? recordAt(routeId) : null;
-    if (loaded == null && routeId == null && postedId != null) {
+    if (routeId != null && loaded == null) {
+      // the route names a record that is not there: saving the posted state as it came would let a
+      // forged route (/products/does-not-exist/edit) write every field of the record the posted id
+      // names, read-only ones included (GA review). Refused, like an inline row edit.
+      throw new io.mateu.uidl.UserFacingException(
+          "This record no longer exists. Reload the list to see the current records.");
+    }
+    if (loaded == null && postedId != null) {
       loaded = store().findById(String.valueOf(postedId)).orElse(null); // a drawer: no record url
     }
     if (loaded == null) {
-      return toEntity(httpRequest); // nothing loaded to compare with: a new record by its id
+      // nothing stored to compare with: a NEW record, held to what a creation form lets the user
+      // write — never the posted state as it came
+      return toCreatedEntity(httpRequest);
     }
-    var restricted =
-        ClientWritableFields.restrict(
-            entityClass(),
-            posted,
-            loaded,
-            io.mateu.core.infra.declarative.FormViewModel.toMap(loaded),
-            getIdFieldForRow(),
-            false,
-            httpRequest);
-    return (T) MateuInstanceFactory.newInstance(entityClass(), restricted, httpRequest);
+    return ClientWritableFields.entityFor(
+        entityClass(), posted, loaded, getIdFieldForRow(), false, httpRequest);
   }
 
   /**
@@ -198,16 +199,8 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
                 io.mateu.core.application.runaction.RouteChains.scopeValuesFor(
                     entityClass(), httpRequest),
                 httpRequest);
-    var restricted =
-        ClientWritableFields.restrict(
-            entityClass(),
-            postedState(httpRequest),
-            fresh,
-            io.mateu.core.infra.declarative.FormViewModel.toMap(fresh),
-            getIdFieldForRow(),
-            true,
-            httpRequest);
-    return (T) MateuInstanceFactory.newInstance(entityClass(), restricted, httpRequest);
+    return ClientWritableFields.entityFor(
+        entityClass(), postedState(httpRequest), fresh, getIdFieldForRow(), true, httpRequest);
   }
 
   @Override
@@ -269,13 +262,14 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
       throw new io.mateu.uidl.UserFacingException(
           "This row no longer exists. Reload the list to see the current rows.");
     }
-    var stored = io.mateu.core.infra.declarative.FormViewModel.toMap(loaded);
-    var restricted =
-        ClientWritableFields.restrict(
-            entityClass(), row, loaded, stored, getIdFieldForRow(), false, httpRequest);
-    var merged = new java.util.LinkedHashMap<String, Object>(stored);
-    merged.putAll(restricted);
-    var entity = (T) MateuInstanceFactory.newInstance(entityClass(), merged, httpRequest);
+    var entity =
+        ClientWritableFields.entityFor(
+            entityClass(),
+            ClientWritableFields.gridCells(entityClass(), row, httpRequest),
+            loaded,
+            getIdFieldForRow(),
+            false,
+            httpRequest);
     io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck.enforce(
         entity, httpRequest, false);
     OptimisticLock.check(entity, java.util.Optional.of(loaded), httpRequest);
