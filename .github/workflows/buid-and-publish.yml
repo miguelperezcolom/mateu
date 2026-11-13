@@ -582,7 +582,10 @@ jobs:
           test -f dist/assets/mateu-vaadin.js
           mkdir -p "$RUNNER_TEMP/npm"
           npm pack --pack-destination "$RUNNER_TEMP/npm"
-          tar -tzf "$RUNNER_TEMP"/npm/*.tgz | grep -q 'package/dist/assets/mateu-vaadin.js'
+          # list first, then look: `tar | grep -q` stops reading at the first match, tar dies of SIGPIPE
+          # and pipefail fails the job (v3.0-beta.63)
+          tar -tzf "$RUNNER_TEMP"/npm/*.tgz > "$RUNNER_TEMP/npm-contents.txt"
+          grep -q 'package/dist/assets/mateu-vaadin.js' "$RUNNER_TEMP/npm-contents.txt"
           echo "$NPM_TAG" > "$RUNNER_TEMP/npm/dist-tag"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
