@@ -8,7 +8,32 @@ import { slugify } from '../../to-yaml/src/convert.mjs'
 const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v)
 const LOCAL_SOURCE = '__mateu_local__'
 const SHELL = '__shell.yaml'
-const dataPath = (ref) => `/data/${encodeURIComponent(ref)}.json`
+
+/**
+ * The file of the site each source's rows are written to, by source name: `data/<slug>.json`, the
+ * slug plain ASCII (a space, a `/` or an accent in a name would make a file the host serves under
+ * another path than the one the page asks for), distinct names kept distinct (`-2`).
+ */
+export function dataPaths(refs) {
+  const out = new Map()
+  const used = new Set()
+  for (const ref of refs) {
+    const base =
+      String(ref)
+        .normalize('NFKD')
+        .replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'data'
+    let slug = base
+    for (let i = 2; used.has(slug); i++) slug = `${base}-${i}`
+    used.add(slug)
+    out.set(ref, `data/${slug}.json`)
+  }
+  return out
+}
+
+const FIELD_ID = /^[A-Za-z_][A-Za-z0-9_-]*$/
 
 function walk(value, visit) {
   if (Array.isArray(value)) value.forEach((v) => walk(v, visit))
@@ -123,6 +148,10 @@ export function defaultConfig(files, title) {
 function bodyOf(page) {
   const ids = new Set()
   walk(page.value, (o) => { if (o.type === 'FormField' && o.id && !o.readOnly) ids.add(o.id) })
+  for (const id of ids) {
+    // the id is written into a JSON template and an expression: a quote would break both
+    if (!FIELD_ID.test(id)) throw new Error(`the field id "${id}" (screen "${page.frame}") cannot be sent: use letters, digits, _ and - only`)
+  }
   return `{${[...ids].map((id) => `"${id}": "\${state['${id}'] ?? ''}"`).join(', ')}}`
 }
 
@@ -187,9 +216,10 @@ export function buildManifest(files, config) {
   }
 
   const sources = [{ name: LOCAL_SOURCE, source: { url: `/${LOCAL_SOURCE}`, method: 'POST' }, sample: { ok: true } }]
+  const paths = dataPaths(Object.keys(config.data))
   for (const [ref, data] of Object.entries(config.data)) {
     if (data.url) sources.push({ name: ref, source: { url: data.url } })
-    else sources.push({ name: ref, source: { url: dataPath(ref) } })
+    else sources.push({ name: ref, source: { url: `/${paths.get(ref)}` } })
   }
   const found = actionsOf(files)
   const actions = [...found.values()].map((a) => actionEntry(a, config.actions[a.id] ?? { kind: 'message' }))
@@ -216,8 +246,9 @@ export function siteFiles(manifest, config, indexTemplate, assets) {
   const out = new Map(assets)
   out.set('index.html', stampIndex(indexTemplate, config.title))
   out.set('manifest.json', JSON.stringify(manifest))
+  const paths = dataPaths(Object.keys(config.data))
   for (const [ref, data] of Object.entries(config.data)) {
-    if (!data.url) out.set(dataPath(ref).substring(1), JSON.stringify(data.rows ?? []))
+    if (!data.url) out.set(paths.get(ref), JSON.stringify(data.rows ?? []))
   }
   out.set('_redirects', '/*    /index.html    200\n')
   return out

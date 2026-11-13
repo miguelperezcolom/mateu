@@ -21,7 +21,7 @@ content:
         container: h3
         text: Made with Mateu
       - type: Text
-        text: Every screen is YAML.
+        text: "Every screen is YAML.\u2028No Java behind it."
   - type: HorizontalLayout
     content:
       - type: Notice

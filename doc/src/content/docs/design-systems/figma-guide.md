@@ -93,7 +93,12 @@ file, re-publish, and **accept the library update** in every design file (Figma 
 In your design file, with the library enabled:
 
 - **One top-level frame per page.** Its name becomes the YAML file name: a frame `Order` gives
-  `order.yaml`. A frame whose name starts with `_` is a draft and is skipped.
+  `order.yaml` (letters of any script are kept: `Заказы` gives `заказы.yaml`; a `/` makes a folder).
+  A frame whose name starts with `_` is a draft and is skipped. A Figma **Section** only organises
+  the canvas: each frame inside it is a page of its own. A frame named like a specs/ui file that is
+  not a page — `Routes`, `Sources`, `Project`, `Actions`, `Types`, `Components`, or a frame under
+  `translations/`, `environments/`, `partials/` — is written as `routes-page.yaml` (and so on), with
+  a warning, so it never lands on your route table.
 - **Use library instances only** (from the *Assets* panel). Free-drawn rectangles and vectors are
   decoration and are ignored; plain frames are layouts (horizontal or vertical, by their
   auto-layout); a plain text is a text (a heading from 18 px).
@@ -112,8 +117,14 @@ In your design file, with the library enabled:
   (`ItemOverviewPage`, `WelcomePage`, `DashboardLandingPage`…), as the screen itself or inside the
   screen frame, and fill its slots. A screen without a template is a free page: a `Mateu/Page/Header`
   instance gives it a title and a toolbar.
-- **Shared blocks.** A frame named `partial:<name>` is written once to `partials/<name>.yaml` and
-  referenced from every page that contains it.
+- **Shared blocks.** A frame named `partial:<name>` is written once to `partials/<slug>.yaml` and
+  referenced by that slug from every page that contains it (`partial:Species List` →
+  `partials/species-list.yaml`, `ref: species-list`).
+- **Switches that are on by default.** A `HorizontalLayout` spaces its items and a `FoldoutPanel`
+  opens on its own unless told otherwise; turn on their **`unspaced`** / **`folded`** property to
+  say otherwise (an off switch is never written, so turning `spacing` off does nothing). A library
+  generated before these two properties existed lacks them: run the library plugin again.
+- **Line breaks.** A Shift+Enter inside a text layer is kept as it is.
 - **Notes.** Hidden layers and layers whose name starts with `#` are never read.
 
 ### Select and radio options
@@ -186,8 +197,12 @@ convert again.
 
 Add `--clean` to delete, first, the pages a previous conversion wrote (files that start with the
 converter's `# Generated from the Figma frame …` header). Hand-written files in the same folder —
-`routes.yaml`, `sources.yaml`, the app shell — are never touched. Do not edit a generated file:
-change the design and convert again.
+`routes.yaml`, `sources.yaml`, the app shell — are never touched: a file the converter did not
+write is never written over either (a warning names it; `--force` overwrites it). Do not edit a
+generated file: change the design and convert again.
+
+Put a page template straight inside the screen frame: one inside a wrapper frame is read as
+content, and the converter warns about it.
 
 ## 5. Serve the pages
 
@@ -263,22 +278,39 @@ by anyone. Never put a key or a secret in a URL. If an action needs one, it need
 [section 5](#5-serve-the-pages).
 :::
 
-**Netlify**: create a personal access token (*User settings › Applications*). The next publish
-updates the same site. The site's title comes from the panel's **Title** field, which starts as the file's name.
+**Netlify**: create a personal access token (*User settings › Applications*). Each Figma file
+keeps its own site: the first publish of a file creates one, the next publishes of that file update
+it, and another file never replaces it. The line above the **Publish** button says what will happen
+("replaces this file's Netlify site: https://…" or "creates a new Netlify site"); **Publish as a new
+site instead** forgets this file's site, and when Netlify no longer knows it (deleted, or a token of
+another account) the panel offers a new one. The site's title comes from the panel's **Title**
+field, which starts as the file's name.
+
+If you published with an earlier version of the plugin, it kept one site for all your
+files: the panel offers that site once, and only updates it if you say the open file is the one
+published there.
 
 **Cloudflare Pages**: Cloudflare's API cannot be called from a Figma plugin (it does not allow
 cross-origin calls), so the plugin goes through a small Worker that lives in **your own** account:
 
 1. Create a Worker on the free plan and paste `design/figma/publish/cloudflare-relay/worker.js`. It
-   stores nothing and forwards only the Pages API.
+   stores nothing, forwards only the Pages API and answers only the plugin (a web page calling it is
+   refused). Keep it on its `https://<name>.<account>.workers.dev` address: the plugin may reach
+   nothing else, so a custom domain does not work.
 2. Create an API token with *Cloudflare Pages: Edit*.
-3. In the panel, give the Worker's URL, your account ID, the token and a project name.
+3. In the panel, give the Worker's URL, your account ID, the token and a project name. The project
+   is this file's, like a Netlify site; the link shown after publishing is the address Cloudflare
+   gave it (another one than `<project>.pages.dev` when that name is taken).
 
 If your network cannot reach `workers.dev`, or you would rather not run a Worker, choose **Download a
 zip** and drop it on a Cloudflare Pages project.
 
-Tokens stay on your device (Figma's client storage), never in the Figma file. Routes, data and
-button settings do travel in the file, so write nothing secret there.
+Tokens stay on your device (Figma's client storage), never in the Figma file; which site a file
+publishes to stays on your device too. Routes, data and button settings do travel in the file, so
+write nothing secret there. When a setting cannot be saved (a file you can only view), the panel says
+so: it lasts until you close the plugin. Name the fields a form sends with letters, digits, `_` and
+`-` only: another id stops the publish and says which. A source's rows are published as
+`data/<name>.json`, the name made plain (`My list` → `data/my-list.json`).
 ## Check the whole pipeline (end to end)
 
 Before you design a real app, it is worth checking once that every link of the chain works for you:

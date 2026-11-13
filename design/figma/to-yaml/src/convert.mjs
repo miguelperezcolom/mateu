@@ -25,16 +25,39 @@ const DECORATION = new Set([
 ])
 const CONTAINER_KEY ={ VerticalLayout: 'content', HorizontalLayout: 'content', FormLayout: 'content' }
 
+/**
+ * A frame name as a file path / route: lower case, Latin accents dropped, every run of what is not a
+ * letter or a digit (in ANY script: a Japanese or Cyrillic name keeps its meaning) turned into `-`.
+ * A `/` nests a folder; empty segments (`/x/`, `a//b`, `..`) are dropped, so a path never starts or
+ * ends with `/` and never climbs out of the output folder.
+ */
 export function slugify(name) {
-  return (
-    String(name)
-      .normalize('NFKD')
-      .replace(/[̀-ͯ]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9/]+/g, '-')
-      .replace(/^-+|-+$/g, '') || 'page'
-  )
+  const segments = String(name)
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .normalize('NFC')
+    .toLowerCase()
+    .split('/')
+    .map((s) => s.replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, ''))
+    .filter(Boolean)
+  return segments.join('/') || 'page'
 }
+
+/**
+ * The file names and folders of specs/ui that are not pages (DevSpecs/SpecWriter read them by name):
+ * a screen whose name slugifies to one of them is renamed, never written over the authored file.
+ */
+export const AUTHORED_FILES = new Set(['routes', 'sources', 'project', 'actions', 'types', 'components'])
+export const AUTHORED_FOLDERS = new Set(['translations', 'environments', 'partials'])
+
+/** The first line of every file the converter writes: what tells it from a hand-written one. */
+export const GENERATED_HEADER = '# Generated from the Figma frame '
+
+/** True when [text] was written by this converter (so it may be written over or cleaned). */
+export const wasGenerated = (text) => String(text ?? '').replace(/^\uFEFF/, '').startsWith(GENERATED_HEADER)
+
+/** A one-line, comment-safe form of a name for the generated header. */
+const oneLine = (s) => String(s ?? '').replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]+/g, ' ')
 
 /** Every action id a converted value names: `actionId` and the `*ActionId` keys, at any depth. */
 export function actionIdsOf(value, out = new Set()) {
@@ -114,6 +137,31 @@ export function parseOptions(text) {
   return { options, problems }
 }
 
+/** A top-level layer that can be a screen (hidden ones and `_` scratch frames never are). */
+export function isScreen(node) {
+  if (node.visible === false || String(node.name ?? '').startsWith('_')) return false
+  return ['FRAME', 'INSTANCE', 'SECTION', 'GROUP'].includes(node.type)
+}
+
+/**
+ * The screens of a file, in document order: the top-level layers of every design page (the
+ * library's `Mateu ·` pages skipped). A Figma SECTION only organises the canvas, so its own
+ * screens are the screens (sections nest), never one page stacking them all.
+ */
+export function screensOf(file) {
+  const out = []
+  const visit = (node) => {
+    if (!isScreen(node)) return
+    if (node.type === 'SECTION') (node.children ?? []).forEach(visit)
+    else out.push(node)
+  }
+  for (const canvas of file.document?.children ?? []) {
+    if (canvas.type !== 'CANVAS' || /^Mateu ·/.test(canvas.name)) continue
+    for (const node of canvas.children ?? []) visit(node)
+  }
+  return out
+}
+
 /** The contract, indexed for reading instances back. */
 export class Contract {
   constructor(json) {
@@ -188,22 +236,20 @@ export class FigmaToYaml {
     this.file = file
     this.warnings = []
     this.partials = new Map()
+    this.partialSlugs = new Map()
     const files = []
     const taken = new Set()
-    for (const canvas of file.document?.children ?? []) {
-      if (canvas.type !== 'CANVAS' || /^Mateu ·/.test(canvas.name)) continue
-      for (const node of canvas.children ?? []) {
-        if (!this.isScreen(node)) continue
-        const value = this.screen(node)
-        if (!value) continue
-        let path = `${slugify(node.name)}.yaml`
-        for (let i = 2; taken.has(path); i++) path = `${slugify(node.name)}-${i}.yaml`
-        taken.add(path)
-        files.push({ path, frame: node.name, nodeId: node.id, value, ...(Object.keys(this.drawn).length ? { drawn: this.drawn } : {}) })
-      }
+    for (const node of screensOf(file)) {
+      const value = this.screen(node)
+      if (!value) continue
+      const base = this.pagePath(node)
+      let path = `${base}.yaml`
+      for (let i = 2; taken.has(path); i++) path = `${base}-${i}.yaml`
+      taken.add(path)
+      files.push({ path, frame: node.name, nodeId: node.id, value, ...(Object.keys(this.drawn).length ? { drawn: this.drawn } : {}) })
     }
-    for (const [ref, p] of this.partials) {
-      files.push({ path: `partials/${slugify(ref)}.yaml`, frame: p.frame, nodeId: p.nodeId, value: p.value, partial: true })
+    for (const [slug, p] of this.partials) {
+      files.push({ path: `partials/${slug}.yaml`, frame: p.frame, nodeId: p.nodeId, value: p.value, partial: true })
     }
     for (const f of files) f.text = this.render(f)
     return { files, warnings: this.warnings }
@@ -219,6 +265,7 @@ export class FigmaToYaml {
   selfTest(file, pageName = SELF_TEST_PAGE) {
     this.file = file
     this.partials = new Map()
+    this.partialSlugs = new Map()
     const canvas = (file.document?.children ?? []).find((c) => c.type === 'CANVAS' && c.name === pageName)
     if (!canvas) return { page: null, results: [] }
     const results = []
@@ -265,7 +312,7 @@ export class FigmaToYaml {
 
   render(f) {
     const head = [
-      `# Generated from the Figma frame "${f.frame}" (node ${f.nodeId}) by design/figma/to-yaml.`,
+      `${GENERATED_HEADER}"${oneLine(f.frame)}" (node ${oneLine(f.nodeId)}) by design/figma/to-yaml.`,
       '# Regenerate it from the design rather than editing it by hand.',
     ]
     const value = f.partial || !f.value.type ? f.value : { $schema: SCHEMA_URL, ...f.value }
@@ -277,8 +324,21 @@ export class FigmaToYaml {
   }
 
   isScreen(node) {
-    if (node.visible === false || node.name.startsWith('_')) return false
-    return ['FRAME', 'INSTANCE', 'SECTION', 'GROUP'].includes(node.type)
+    return isScreen(node)
+  }
+
+  /**
+   * The file a screen is written to, without `.yaml`: its name slugified, renamed (`routes-page`)
+   * when it would land on a file or folder of specs/ui that is not a page.
+   */
+  pagePath(node) {
+    const slug = slugify(node.name)
+    const [first, ...rest] = slug.split('/')
+    const authored = rest.length === 0 ? AUTHORED_FILES.has(first) : AUTHORED_FOLDERS.has(first)
+    if (!authored) return slug
+    const renamed = [`${first}-page`, ...rest].join('/')
+    this.warn(node, `"${slug}.yaml" is a specs/ui file that is not a page: written as "${renamed}.yaml" (rename the frame to choose another name)`)
+    return renamed
   }
 
   // ── instances ────────────────────────────────────────────────────────────────────────────
@@ -646,13 +706,26 @@ export class FigmaToYaml {
     return { type, content: children }
   }
 
-  partial(node, ref) {
-    if (!this.partials.has(ref)) {
+  /**
+   * A `partial:<name>` frame: written once to partials/<slug>.yaml and referenced by that SAME slug
+   * (the server reads `partials/<ref>.yaml` literally, so a ref in words would name no file). Two
+   * names that slugify alike get distinct files (`-2`), like screens.
+   */
+  partial(node, name) {
+    const key = name.trim()
+    let slug = this.partialSlugs.get(key)
+    if (!slug) {
+      const base = slugify(key)
+      slug = base
+      const used = new Set(this.partialSlugs.values())
+      for (let i = 2; used.has(slug); i++) slug = `${base}-${i}`
+      this.partialSlugs.set(key, slug)
+      if (slug !== key) this.warn(node, `partial "${key}" is written as partials/${slug}.yaml and referenced as "${slug}"`)
       const items = this.nodes(node.children ?? [])
       const value = items.length === 1 ? items[0] : { content: items }
-      this.partials.set(ref, { frame: node.name, nodeId: node.id, value })
+      this.partials.set(slug, { frame: node.name, nodeId: node.id, value })
     }
-    return { type: 'Partial', ref }
+    return { type: 'Partial', ref: slug }
   }
 
   // ── screens ──────────────────────────────────────────────────────────────────────────────
@@ -684,6 +757,8 @@ export class FigmaToYaml {
       if (template) {
         page = this.instance(template, this.entryOf(template), slots)
       } else {
+        const deep = this.deepTemplate(children)
+        if (deep) this.warn(deep, `${this.entryOf(deep).name} is inside a frame of the screen, so it is read as content: put the page template straight inside the screen frame to fill it`)
         page = { type: 'Form' }
         const toolbar = this.slotValue(slots.get('toolbar') ?? [], { many: true, flatten: true })
         if (toolbar) page.toolbar = toolbar
@@ -697,6 +772,20 @@ export class FigmaToYaml {
     if (!page) return null
     for (const { into, value } of this.into) this.applyInto(page, into, value)
     return page
+  }
+
+  /** A page-template instance below the screen's direct children (inside a wrapper frame), or null. */
+  deepTemplate(children) {
+    for (const c of children) {
+      if (c.visible === false || c.type === 'INSTANCE') continue
+      for (const g of c.children ?? []) {
+        if (g.visible === false) continue
+        if (this.isTemplate(g) && this.entryOf(g).yaml) return g
+        const deeper = this.deepTemplate([g])
+        if (deeper) return deeper
+      }
+    }
+    return null
   }
 
   applyInto(page, into, value) {

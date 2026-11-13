@@ -27,7 +27,7 @@
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { FigmaToYaml, slugify } from '../to-yaml/src/convert.mjs'
+import { FigmaToYaml, screensOf, slugify, wasGenerated } from '../to-yaml/src/convert.mjs'
 import { loadContract, loadSchema } from '../to-yaml/src/load.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -73,14 +73,9 @@ export async function fetchFigmaFile(key, token, { api = 'https://api.figma.com'
   return res.json()
 }
 
-/** The names of the screen frames of a file (top-level children of its non-library canvases). */
+/** The names of the screens of a file, as the converter reads them (a Section's frames, not the Section). */
 export function frameNames(file) {
-  const out = []
-  for (const canvas of file.document?.children ?? []) {
-    if (canvas.type !== 'CANVAS' || /^Mateu ·/.test(canvas.name)) continue
-    for (const node of canvas.children ?? []) if (node.visible !== false && !node.name.startsWith('_')) out.push(node.name)
-  }
-  return out
+  return screensOf(file).map((node) => node.name)
 }
 
 /**
@@ -95,16 +90,17 @@ export function selectFrames(file, frames) {
   const missing = wanted.filter((w) => !frameNames(file).some((n) => norm(w) === norm(n) || slugify(w) === slugify(n)))
   if (missing.length)
     throw new ImportError(`No frame called ${missing.map((m) => `"${m}"`).join(', ')}. Frames in the file: ${frameNames(file).join(', ') || '(none)'}`)
+  // the screens kept, each canvas flattened to them (Sections dissolved: they only organise the canvas)
+  const kept = new Set(screensOf(file).filter(matches))
+  const within = (canvas) => screensOf({ document: { children: [canvas] } }).filter((n) => kept.has(n))
   const document = {
     ...file.document,
     children: (file.document?.children ?? []).map((canvas) =>
-      canvas.type !== 'CANVAS' || /^Mateu ·/.test(canvas.name) ? canvas : { ...canvas, children: (canvas.children ?? []).filter(matches) },
+      canvas.type !== 'CANVAS' || /^Mateu ·/.test(canvas.name) ? canvas : { ...canvas, children: within(canvas) },
     ),
   }
   return { ...file, document }
 }
-
-const GENERATED = /Generated from the Figma/
 
 /**
  * Converts [file] and writes the pages into [out] (nothing written when [dryRun]). Returns the
@@ -123,7 +119,7 @@ export function importFile(file, { out, frames, dryRun = false, force = false, c
     else {
       const before = readFileSync(target, 'utf8')
       if (before === f.text) status = 'unchanged'
-      else if (!force && !GENERATED.test(before.split('\n').slice(0, 5).join('\n'))) {
+      else if (!force && !wasGenerated(before)) {
         status = 'skipped'
         report.warnings.push(`${f.path}: exists and was not generated from Figma — left as it is (force to overwrite)`)
       } else status = 'updated'
