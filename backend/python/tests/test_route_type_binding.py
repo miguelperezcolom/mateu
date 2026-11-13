@@ -128,3 +128,17 @@ def test_a_view_model_bound_only_by_routes_yaml_is_reached_only_through_its_rout
     except MateuForbiddenException:
         out = "refused"
     assert "paid 999.0" not in (out or "")
+
+
+def test_a_dotted_spelling_of_the_types_own_route_gets_the_union(tmp_path):
+    with pytest.raises(MateuForbiddenException):
+        pay(handler(specs(tmp_path)), "/payroll-code/../payroll-code")
+
+
+def test_a_sub_path_of_a_bound_route_keeps_that_entrys_locks(tmp_path):
+    (tmp_path / "routes.yaml").write_text(
+        "routes:\n"
+        f"  - route: payroll-locked\n    layout: locked.yaml\n    viewModel: {type_name(PayrollView)}\n"
+    )
+    (tmp_path / "locked.yaml").write_text(LOCKED)
+    assert pay(handler(tmp_path), "/payroll-locked/7") == "paid 100.0"

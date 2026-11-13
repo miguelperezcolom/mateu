@@ -619,11 +619,13 @@ class SyncHandler(
         bound = [e for e in self.routes.authored().routes if e.view_model == name]
         if not bound:
             return rq
-        match = self.routes.match(rq.route) if rq.route is not None else None
+        # a route spelt with ./.. segments is no route of the type: the union applies
+        dotted = any(s in (".", "..") for s in str(rq.route or "").split("?", 1)[0].split("/"))
+        match = self.routes.match(rq.route) if rq.route is not None and not dotted else None
         if match is not None and match.entry.view_model == name:
             return rq  # one of its own routes: that entry's rules apply (below)
         cls = self.registry.resolve(name, None)
-        own = self.registry.resolve_by_prefix(rq.route) if cls is not None and rq.route else None
+        own = self.registry.resolve_by_prefix(rq.route) if cls is not None and rq.route and not dotted else None
         if own is not None and own[0] is cls:
             return rq  # the type's own @ui route (the derived binding): the code's own rules
         from ..translations import locale_of
