@@ -16,10 +16,12 @@ description: |
   **Try it:** open `/yaml-mount` — it lands on its home, `welcome`; its button goes to
   `/yaml-mount/second` with a mount-relative `RouteLink`. Then open `/fed/welcome`.
 
-  > **Known issue (3.0-beta.51):** A RouteLink on the non-root YAML mount pushes `/yaml-mountsecond` (no slash) to the address
-  > bar, although the right page is shown. Reported.
+  > **Known issue (3.0-beta.64):** opened on its own, the `/yaml-mount` welcome's button lands on
+  > `/yaml-mount/second`; EMBEDDED here (the example below) the same mount-relative `RouteLink` is
+  > resolved against the Explorer's mount and the browser goes to `/second` — "Page not found".
+  > Reported.
 knownIssue: >-
-  3.0-beta.51: a RouteLink on a non-root YAML mount pushes /yaml-mountsecond (no slash) to the address bar; the page itself is right.
+  3.0-beta.64: a mount-relative RouteLink inside an EMBEDDED page of another mount navigates the host to /second (the host's mount) instead of /yaml-mount/second; standalone it is right.
 examples:
   - title: Each mount's own welcome route, embedded
     java: io.mateu.explorer.examples.distributed.severalmounts.SeveralMounts

@@ -16,11 +16,11 @@ description: |
   **Try it:** pick **es** in the "Language" selector of the embedded app (the page reloads), then look
   at the YAML page above it: title, text, label and button are in Spanish. Pick **en** to come back.
 
-  > **Known issue (3.0-beta.51):** the Java twin (`Greeting`, `@Title` / `@Label("${i18n.…}")`)
-  > reaches the screen untranslated — the key is shown — although the docs say the default translator
-  > resolves it. Reported; the YAML path works.
+  > **Known issue (3.0-beta.64, Vaadin):** in the Java twin the page's `@Title` / `@Label("${i18n.…}")`
+  > are translated, but the APP's title (`@Title` on `I18nDemoApp`, the shell header) shows the raw
+  > key. Reported; the YAML path works.
 knownIssue: >-
-  3.0-beta.51: the Java twin's ${i18n.…} @Title / @Label reaches the screen untranslated (the YAML path works).
+  3.0-beta.64 (Vaadin): the ${i18n.…} @Title of the @UI app class (the shell header) is shown raw; page titles and labels are translated.
 examples:
   - title: "A YAML page with ${i18n.x}"
     route: x/behaviour/i18n/page

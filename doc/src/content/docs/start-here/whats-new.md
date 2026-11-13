@@ -11,7 +11,7 @@ read more. The full list of changes is the
 :::tip[See it running]
 The [Mateu Explorer](https://explorer.mateu.io) shows every component, page template, archetype,
 behaviour and distributed-UI pattern running live, next to the code that renders it. It is itself a
-Mateu app. (Preview, currently on `3.0-beta.51`.)
+Mateu app. (A preview: it is built on the release pinned in `demo/demo-explorer`, `3.0-beta.64` today.)
 :::
 
 ## What Mateu is

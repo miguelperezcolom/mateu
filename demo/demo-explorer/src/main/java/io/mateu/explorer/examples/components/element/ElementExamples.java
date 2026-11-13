@@ -37,8 +37,9 @@ public class ElementExamples implements ComponentTreeSupplier {
         .build();
   }
 
-  // @Action: as of 3.0-beta.51 an Element's `on` actions are not advertised by themselves (unlike a
-  // component's actionId), so the handlers are marked to reach the server.
+  // @Action: as of 3.0-beta.64 the browser is told about an Element's `on` actions, but the
+  // server's strict action check does not count them yet (403 "mark it @Action"), so the handlers
+  // are marked to reach the server.
   @Action
   public Message elementClicked(HttpRequest httpRequest) {
     var event = (Map<?, ?>) httpRequest.runActionRq().parameters().get("event");

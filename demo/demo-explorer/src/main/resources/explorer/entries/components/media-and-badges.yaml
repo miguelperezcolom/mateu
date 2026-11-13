@@ -3,12 +3,8 @@ area: components
 group: display
 title: Images, icons, avatars & badges
 covers: [component:Image, component:Icon, component:Avatar, component:AvatarGroup, component:Badge]
-# KNOWN ISSUES (beta.51) are shown on the page, in the YAML example's description.
-knownIssue: >-
-  Vaadin, 3.0-beta.51: a Badge's iconOnLeft / iconOnRight are not drawn.
 examples:
   - title: In YAML
-    description: "Known issues (3.0-beta.51, Vaadin): A Badge's `iconOnLeft` / `iconOnRight` are not drawn."
     yaml: specs/ui/explorer/components/media-and-badges/media.yaml
   - title: "In Java"
     java: io.mateu.explorer.examples.components.media.FluentMedia

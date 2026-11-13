@@ -13,12 +13,6 @@ description: |
   **Try it:** click the browser's address bar, press **Tab** once: "Skip to content" appears top-left;
   press **Enter** and **Tab** again — you are in the content, not the menu. A screen reader's landmarks
   list (VoiceOver: ⌃⌥U) shows "main".
-
-  > **Known issue (3.0-beta.51, Vaadin, this HAMBURGER_SECTIONS shell):** after **Enter** on the skip
-  > link the focus lands on the page's root element, and the next **Tab** goes to the header's
-  > "Sections" button instead of the content. Reported.
-knownIssue: >-
-  Vaadin, 3.0-beta.51 (HAMBURGER_SECTIONS shell): after Enter on the skip link the next Tab goes to the header, not the content.
 examples:
   - title: "Content after the menu"
     java: io.mateu.explorer.examples.behaviour.skiplink.Landmarks

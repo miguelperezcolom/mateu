@@ -2,8 +2,8 @@
 
 Everything Mateu can do — every component, page template, archetype, behaviour and distributed-UI
 pattern — **running live**, next to the very source that renders it. It is itself a Mateu app
-(Spring Boot MVC, Java shell + YAML/Java examples). Live at **https://explorer.mateu.io** (a preview
-on 3.0-beta.51; `deploy/demos/demo-explorer.Dockerfile` + `deploy/demos/k8s/70-demo-explorer.yaml`,
+(Spring Boot MVC, Java shell + YAML/Java examples). Live at **https://explorer.mateu.io** (it runs
+the pinned `mateu.version`; `deploy/demos/demo-explorer.Dockerfile` + `deploy/demos/k8s/70-demo-explorer.yaml`,
 how to redeploy in `deploy/demos/README.md`).
 
 ```bash
@@ -13,7 +13,8 @@ mvn clean spring-boot:run -Dmateu.renderer=mateu-redwood   # Redwood (clean: a s
 mvn test                                              # the coverage guard (see below)
 ```
 
-Uses the released `mateu.version` (3.0-beta.51) from Maven Central.
+Uses the released `mateu.version` pinned in `pom.xml` (3.0-beta.64) from Maven Central;
+`scripts/bump-example-version.sh` moves it after each release.
 
 ## How it works
 
@@ -92,24 +93,16 @@ whole YAML page), `entries/behaviour/validation.yaml` (a Java view island + C#/P
 - **A YAML partial's actions bubble to the entry page**, which handles none: in a partial use buttons
   with an `actionable` (RouteLink), a `restAction`, or client rules — for server actions use a `java:`
   island.
-- **A fluent handler button needs an explicit `actionId`** (beta.51): without one it is not advertised
-  and its click never reaches the server.
-- **`ButtonGroup` renders only in a toolbar**, not in a content tree (dropped silently) — show it on a
-  page.
-- An embedded archetype's composed heading shows the app title, not the view's `@Title`.
 - The menu nests paths: a leaf's route must start with its group's path (hence `/<area>/<group>/<id>`).
-- **A `pages:` route with only a `layout:` renders embedded but not on its own** (beta.51): the
-  "Open this page on its own ↗" link lands on "Page not found". The route is registered and works.
-  But under the class shell, the content load names `ExplorerShell` as its type, and Mateu resolves
-  that through the shell's menu and the routed classes only. It never reaches the definition. This
-  is a framework bug, and it is being fixed in `fix/explorer-findings-2`.
 
-> **These workarounds are temporary.** The notes on handler buttons needing an explicit `actionId`,
-> on `ButtonGroup` rendering only in a toolbar, on the embedded heading
-> describe beta.51 bugs. Framework PR #1092 (branch `fix/explorer-findings`) and its follow-up
-> `fix/explorer-findings-2` fix them. Once both are merged and `mateu.version` moves to the release
-> that contains them, drop these notes. Also drop the workarounds in the examples, such as the
-> explicit `actionId`s and showing `ButtonGroup` only on a page.
+(The beta.51 workarounds once listed here — explicit `actionId`s on fluent handler buttons,
+`ButtonGroup` only in toolbars, the embedded archetype heading, layout-only `pages:` routes not
+opening on their own, `@RowRoute` only on a CRUD — are gone: re-checked on 3.0-beta.64 and the
+examples no longer carry them.)
+
+**Known issues** live in the entries themselves (`knownIssue:`, shown on the page too): the coverage
+guard lists them on every `mvn test`. Re-check each one against every new pinned release and delete
+it as soon as it no longer reproduces.
 
 ## Run the distributed examples
 
@@ -146,11 +139,10 @@ the Java remote with another `MATEU_BUILD_ID` (version skew) during which the co
 paint their fallbacks. Checks marked *known Mateu bug* are reported but tolerated
 (`KNOWN_BUGS=strict` fails on them):
 
-- a fresh deep link / reload of a remote screen (`/fed/stock`) is loaded from the SHELL with the
-  remote app's `serverSideType` → 403 (clicking the menu works);
 - a leaf of a YAML-only remote (no `serverSideType`) is sent to the remote with the SHELL's
-  `serverSideType` (`appRenderer.chooseAppServerSideType`) → the remote answers 403;
-- a `RouteLink` on the non-root YAML mount pushes `/yaml-mountsecond` (no slash).
+  `serverSideType` (`appRenderer.chooseAppServerSideType`) → the remote answers 403 (still there on
+  3.0-beta.64; the deep-link reload and the `/yaml-mountsecond` slash bugs listed here before no
+  longer reproduce).
 
 Gotchas found building the area:
 
@@ -202,30 +194,29 @@ What each renderer still does differently is in `doc/.../reference/parity.md` (R
 
 ## Status
 
-Measured 2026-11-08 on `explorer/integration` (all eight area PRs merged, Mateu 3.0-beta.51, Vaadin
-renderer, Explorer + every remote booted with `remotes/run.sh`).
+Measured 2026-11-13 on Mateu 3.0-beta.64 (Vaadin renderer, Explorer + the Java, YAML and static
+remotes booted with `remotes/run.sh`; the Python remote not started).
 
-**Coverage:** 299 / 299 checklist ids covered by **206 entries** (2 of them `notDemonstrable:` —
-AppShell, and ContentLayout, removed in 3.0.0); **31 entries declare a known Mateu bug**.
+**Coverage:** 298 / 298 checklist ids covered by **205 entries** (1 of them `notDemonstrable:` —
+AppShell); **6 entries declare a known Mateu bug** (each one re-checked on beta.64 — the 25 others
+declared on beta.51 no longer reproduce and were removed).
 
 **`e2e/explorer-probe.mjs`** — every entry page in a browser:
 
 | Area | Entries | Pass | Failed, known issue (reported) | Fail | Known issues declared |
 |---|---|---|---|---|---|
 | archetypes | 17 | 17 | 0 | 0 | 0 |
-| behaviour | 110 | 110 | 0 | 0 | 11 |
-| components | 53 | 50 | 3 | 0 | 18 |
-| distributed | 15 | 15 | 0 | 0 | 2 |
+| behaviour | 110 | 110 | 0 | 0 | 3 |
+| components | 52 | 52 | 0 | 0 | 1 |
+| distributed | 15 | 14 | 0 | 1 | 2 |
 | page-templates | 11 | 11 | 0 | 0 | 0 |
-| **total** | **206** | **203** | **3** | **0** | **31** |
+| **total** | **205** | **204** | **0** | **1** | **6** |
 
-The three reported: `components/composition/app-shell` ("Page not found"), `components/fields/form-layout`
-and `components/status-and-kpis/kpis` ("Unknown metadata type"). The other declared known issues are
-visual or need an interaction, which this probe does not try.
+The one failure is `distributed/federation/cross-backend`: the Python remote was not running. The
+declared known issues are visual or need an interaction, which this probe does not try.
 
-**`remotes/probe.mjs`** — the "Try it"s of the distributed area: 23 / 23 (3 known Mateu bugs
-tolerated: a fresh deep link of a remote screen and a YAML-only remote's leaf answer 403; a RouteLink
-on the non-root YAML mount pushes `/yaml-mountsecond`).
+**`remotes/probe.mjs`** — the "Try it"s of the distributed area: 21 / 23 with `KNOWN_BUGS=strict`:
+the YAML-only remote's leaf answers 403 (the known bug) and the Python check needs that remote.
 
 Run it:
 
