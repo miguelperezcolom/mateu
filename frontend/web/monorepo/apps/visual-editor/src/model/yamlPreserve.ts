@@ -147,7 +147,7 @@ function merge(node: Node | null | undefined, value: unknown, doc: Document, tra
         const old = node.items as Node[]
         const oldJson = old.map((n) => toJs(n, doc))
         const used = new Set<number>()
-        const newIds = new Set(value.map(identity).filter((id) => id !== undefined))
+        const newIds = new Set<string | undefined>(value.map(identity).filter((id) => id !== undefined))
         const flowItems = old.length > 0 && old.every((n) => isMap(n) && n.flow)
         if (value.length !== old.length) track.structural = true
         node.items = value.map((v, i) => {

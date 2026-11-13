@@ -6,7 +6,7 @@ import {
     insertAfter, insertChild, insertAt, isContainer, removeAt, reorder, moveNode, updateProp, childAt, splitSeg, withIndex,
     listOf, insertIntoSlot,
 } from './model/pageModel'
-import { writePreserving } from './model/yamlPreserve'
+import { UnparseableYamlError, writePreservingReport } from './model/yamlPreserve'
 import { EditHistory } from './model/history'
 import { renameBinding, mentionsIn } from './model/rename'
 import { pageActions, upsertAction, newRestAction, setActionField, PageAction } from './model/pageActions'
@@ -279,6 +279,11 @@ export class MateuVisualEditor extends LitElement {
                   display: flex; gap: 0.5rem; align-items: center; }
         .notice button { padding: 0.1rem 0.4rem; }
         .notice input.link { flex: 1; min-width: 0; font: 12px ui-monospace, monospace; }
+        .parse-error { padding: 1rem 1.25rem; overflow: auto; display: flex; flex-direction: column; gap: 0.6rem; color: var(--ve-text); }
+        .parse-error h3 { margin: 0; color: var(--ve-error); }
+        .parse-error pre { margin: 0; white-space: pre-wrap; background: var(--ve-error-10); color: var(--ve-error);
+                           border-radius: var(--ve-radius); padding: 0.45rem 0.6rem; font: 12px ui-monospace, monospace; }
+        .parse-error textarea.source { flex: 1; min-height: 18rem; }
     `
 
     @property() baseUrl = ''
@@ -309,6 +314,13 @@ export class MateuVisualEditor extends LitElement {
     @state() private historyTick = 0
     /** The file text as last loaded or written — the base every edit is merged into (comments kept). */
     private lastText = ''
+    /**
+     * Why the open file does not load (invalid YAML, a recursive alias), or undefined. While set, the
+     * editor shows the error and the text instead of the canvas, and REFUSES every edit: there is no
+     * model of the file to merge an edit into, and writing the editor's empty page back would replace
+     * the whole file. Fixing the text (here, or in the IDE) loads it again.
+     */
+    @state() private parseError?: string
     /**
      * The editor kind, auto-detected by the file's discriminator: `page` = the WYSIWYG canvas
      * (page/partial); `mount` = a `type: UI` descriptor; `app` = a `type: AppShell` definition;
@@ -472,7 +484,7 @@ export class MateuVisualEditor extends LitElement {
         if (mod && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); this.redo(); return }
         if (this.view === 'play' && e.key === 'Escape') { this.view = 'edit'; return }
         if (this.view !== 'edit') return
-        if (this.mode !== 'page' || !this.doc) return
+        if (this.mode !== 'page' || !this.doc || this.parseError) return
         const sel = this.selectedPath
         if ((e.key === 'Delete' || e.key === 'Backspace') && sel) { e.preventDefault(); this.onDelete() }
         else if ((e.metaKey || e.ctrlKey) && (e.key === 'd' || e.key === 'D') && sel) { e.preventDefault(); this.onDuplicate() }
@@ -593,6 +605,8 @@ export class MateuVisualEditor extends LitElement {
                     ? html`<types-editor .yaml=${this.structuredYaml}></types-editor>`
                     : this.mode === 'project'
                     ? html`<project-editor .yaml=${this.structuredYaml}></project-editor>`
+                    : this.parseError
+                    ? this.renderParseError()
                     : html`
                 <div class="work">
                     <div style="display:grid; grid-template-rows:auto 1fr; min-height:0">
@@ -623,6 +637,17 @@ export class MateuVisualEditor extends LitElement {
                 </div>`}
             </div>
         `
+    }
+
+    /** The open file does not load: say why, and offer its text to fix (nothing is written until it loads). */
+    private renderParseError() {
+        return html`
+            <div class="parse-error" role="alert">
+                <h3>This file does not load, so it cannot be edited visually</h3>
+                <pre>${this.parseError}</pre>
+                <div>Nothing is written to the file while it does not load. Fix the YAML below (click outside to apply) or in the text editor.</div>
+                <textarea class="source" .value=${this.lastText} @change=${this.onSourceEdit}></textarea>
+            </div>`
     }
 
     private renderToolbar() {
@@ -902,6 +927,14 @@ export class MateuVisualEditor extends LitElement {
      */
     private load(yaml: string) {
         this.lastText = yaml
+        // A file that does not load is not guessed at: no structured editor, no empty canvas — the
+        // error and its text, until it is fixed.
+        this.parseError = loadErrorOf(yaml)
+        if (this.parseError) {
+            this.mode = 'page'
+            this.doc = parsePage(yaml)
+            return
+        }
         // Structured-data files (mount / app shell / route table / source catalogue) are not
         // component trees — each opens in its own editor, chosen by the file's `type:` discriminator.
         // A `type: UI` mount also has a `routes:` list, so check it BEFORE the routes table.
@@ -1141,6 +1174,7 @@ export class MateuVisualEditor extends LitElement {
 
     /** A structured editor (mount / app / routes / sources) changed — merge its YAML and notify the host. */
     private saveYaml(yaml: string) {
+        if (this.refusedWhileInvalid()) return
         this.structuredYaml = yaml
         this.notifyChanged()
         if (this.mode === 'sources') setRestSourceCatalogue(parseSourcesFromText(this.lastText) as never)
@@ -1150,6 +1184,7 @@ export class MateuVisualEditor extends LitElement {
 
     /** A page edit — re-render (new doc reference) and notify the host. */
     private commit() {
+        if (this.refusedWhileInvalid()) return
         this.doc = { ...this.doc! }
         this.notifyChanged()
     }
@@ -1166,13 +1201,33 @@ export class MateuVisualEditor extends LitElement {
      * it — there is no save button here. Standalone, the host keeps a localStorage draft.
      */
     private notifyChanged() {
+        if (this.refusedWhileInvalid()) return
         const fresh = this.currentYaml()
-        let text: string
-        try { text = writePreserving(this.lastText, parseSpec(fresh)) } catch { text = fresh }
-        this.emitText(text)
+        let written: { text: string; rewritten: boolean }
+        try {
+            written = writePreservingReport(this.lastText, parseSpec(fresh))
+        } catch (e) {
+            // never fall back to the editor's own text over a file it could not read
+            if (e instanceof UnparseableYamlError) this.parseError = e.message
+            this.notice = 'That edit was not applied: the file does not load as YAML.'
+            return
+        }
+        if (written.rewritten) {
+            this.notice = 'This edit could not be merged into the file\'s text, so the file was written from its data: '
+                + 'comments, anchors (&x / *x) and merge keys (<<) were not kept. ⌘Z undoes it.'
+        }
+        this.emitText(written.text)
+    }
+
+    /** True (and a notice) while the open file does not load: no edit may be written over it. */
+    private refusedWhileInvalid(): boolean {
+        if (!this.parseError) return false
+        this.notice = 'The file does not load, so edits are not applied — fix its YAML first.'
+        return true
     }
 
     private emitText(text: string, force = false) {
+        if (!force && this.parseError) return
         if (!force && text === this.lastText) return
         this.lastText = text
         this.history.push(text)
@@ -1498,6 +1553,8 @@ export class MateuVisualEditor extends LitElement {
         }
         for (const w of writes) {
             if (norm(w.path) === current && w.content !== null) {
+                // the board read this file as nothing: its version must not replace the unreadable text
+                if (this.refusedWhileInvalid()) continue
                 this.history.push(w.content)
                 this.historyTick++
                 this.load(w.content)
@@ -1836,6 +1893,12 @@ declare global {
 }
 
 /** The address a share link opens: a configured hosted editor, else this page (when it is a web page). */
+/** Why non-blank `yaml` does not load as a spec (invalid YAML, a recursive alias), or undefined. */
+function loadErrorOf(yaml: string): string | undefined {
+    if (!yaml.trim()) return undefined
+    try { parseSpec(yaml); return undefined } catch (e) { return e instanceof Error ? e.message : String(e) }
+}
+
 function editorLinkBase(): string {
     if (window.__mateuEditorUrl) return window.__mateuEditorUrl
     return /^https?:$/.test(location.protocol) ? location.href.split('#')[0] : 'http://localhost:5199/'

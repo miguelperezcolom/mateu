@@ -170,5 +170,12 @@ content:
         const ok = writePreservingReport(ALIASED, parseSpec(ALIASED))
         expect(ok.rewritten).toBe(false)
         expect(writePreservingReport('', { a: 1 }).rewritten).toBe(false)
+        // the anchored item is replaced while an alias to it stays: the node tree cannot be written
+        // as it stands, so the data is — correctly, and reported
+        const text = '# c\nitems: [&x {type: A, id: a}, *x]\n'
+        const value = { items: [{ type: 'C', id: 'c' }, { type: 'A', id: 'a' }] }
+        const out = writePreservingReport(text, value)
+        expect(parseSpec(out.text)).toEqual(value)
+        expect(out.rewritten || /&x/.test(out.text)).toBe(true)
     })
 })
