@@ -85,3 +85,10 @@ test('the command line prints the three outputs for $GITHUB_OUTPUT', () => {
     assert.equal(r.status, 0, r.stderr)
     assert.equal(r.stdout, 'newest=false\nlatest=false\nhold=v3.1.0\n')
 })
+
+test('finals of an earlier major (the 2.x line) do not end the 3.0 pre-releases', () => {
+    const releases = [rel('v2.4.93'), rel('v2.4.94'), rel('v3.0-beta.64', { isLatest: true })]
+    assert.deepEqual(decide('v3.0-beta.65', false, releases), { newest: true, latest: true, hold: '' })
+    assert.equal(decide('v3.0-beta.64', false, [...releases, rel('v3.0-beta.65')]).newest, false)
+    assert.equal(decide('v3.1-rc.1', false, [rel('v2.4.94'), rel('v3.0.0')]).newest, false)
+})
