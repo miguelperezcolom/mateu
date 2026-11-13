@@ -5,7 +5,7 @@ import { MIN_WIRE_VERSION } from '../core/wireVersion.ts';
 import { openExternal } from '../renderer/openExternal.ts';
 import type { AppSide } from './compat.ts';
 import { appVersion } from './storage.ts';
-import { storeUrlFor } from './updateTargets.ts';
+import { distributionOf, storeUrlFor } from './updateTargets.ts';
 
 /**
  * What this app knows of itself for the compatibility check (compat.ts): the wire it was built for,
@@ -25,7 +25,8 @@ export function appSide(): AppSide {
 /** The store (or release page) this installable updates from. */
 export function storeUrl(): string {
   const extra = (Constants.expoConfig?.extra ?? {}) as { distribution?: unknown };
-  return storeUrlFor(Platform.OS, typeof extra.distribution === 'string' ? extra.distribution : undefined);
+  // the binary's update channel first: the running update's config is the update's (updateTargets.ts)
+  return storeUrlFor(Platform.OS, distributionOf(Updates.channel, extra));
 }
 
 export type UpdateOutcome = 'reloading' | 'store' | 'failed';

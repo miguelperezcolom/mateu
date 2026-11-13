@@ -309,3 +309,15 @@ test('the .nupkg files as built are attached to the release', () => {
     assert.doesNotMatch(doc, /download the package\s+from nuget\.org first/)
     assert.match(doc, /gh release download v3\.0\.0 --repo miguelperezcolom\/mateu --pattern 'Mateu\.\*\.nupkg'/)
 })
+
+// GA review S8: an over-the-air update carries its own app config. The GitHub APK listens to its own
+// channel, published with MATEU_DISTRIBUTION=github, so an update never sends it to Google Play.
+test('the over-the-air update goes to the store channel and to the GitHub APK channel', () => {
+    const ota = jobBlock('mobile.yml', 'ota')
+    assert.match(ota, /eas update --channel production /)
+    assert.match(ota, /MATEU_DISTRIBUTION=github \.\/node_modules\/\.bin\/eas update --channel github /)
+    const android = jobBlock('mobile.yml', 'android')
+    assert.match(android, /echo "MATEU_DISTRIBUTION=github" >> "\$GITHUB_ENV"/)
+    const config = readFileSync(new URL('../frontend/app/react-native/app.config.ts', import.meta.url), 'utf8')
+    assert.match(config, /'expo-channel-name': updateChannelFor\(process\.env\.MATEU_DISTRIBUTION\?\.trim\(\)\)/)
+})

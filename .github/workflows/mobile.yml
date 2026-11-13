@@ -252,3 +252,8 @@ jobs:
           npm install --no-save --ignore-scripts --no-audit --no-fund eas-cli@16.32.0
           ./node_modules/.bin/eas update --channel production --environment production \
             --message "Mateu $MATEU_VERSION" --non-interactive
+          # the same JavaScript for the APK on the GitHub releases, on ITS channel (app.config.ts asks
+          # for `github` when MATEU_DISTRIBUTION=github): an update carries its own app config, and the
+          # APK's must keep saying it updates from the releases page, not from Google Play (GA review S8)
+          MATEU_DISTRIBUTION=github ./node_modules/.bin/eas update --channel github --environment production \
+            --message "Mateu $MATEU_VERSION (GitHub APK)" --non-interactive

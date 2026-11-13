@@ -181,8 +181,10 @@ npm run submit:ios         # App Store Connect
 provide them on the submitting machine (`EXPO_ASC_API_KEY_PATH`, `EXPO_ASC_KEY_ID`,
 `EXPO_ASC_ISSUER_ID`). **Over-the-air updates** are published by the `ota` job of
 `mobile.yml` when a release is PUBLISHED (with `EXPO_TOKEN` set) — never on a manual re-run of an
-older tag, which would push old JS over the newer release; `npx eas-cli update --channel production`
-does the same by hand. `runtimeVersion` follows the app version, so an update only reaches binaries
+older tag, which would push old JS over the newer release, nor for a release that is not the newest
+of its line (a backport); `npx eas-cli update --channel production` does the same by hand. The APK on
+the GitHub releases listens to its own channel, `github`, which the job publishes to as well (with
+`MATEU_DISTRIBUTION=github`, so the updated APK still updates from the releases page). `runtimeVersion` follows the app version, so an update only reaches binaries
 it is compatible with — bump `expo.version` whenever a release changes native dependencies. The camera permission is the only
 runtime permission requested on its own (for `@PhotoCapture`); the microphone is explicitly not. An
 app with `@App(osNotifications = true)` also offers "Notify me on this device", which asks for the
