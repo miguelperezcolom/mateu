@@ -253,6 +253,7 @@
   .screen .band.b1 { top: 30%; } .screen .band.b2 { top: 45%; width: 70%; }
   .screen .band.b3 { top: 60%; } .screen .band.b4 { top: 75%; width: 55%; }
   .screen .chipm { position: absolute; right: 10%; top: 12%; width: 26px; height: 10px; border-radius: 3px; background: var(--amber); opacity: .8; }
+  .screen.shot { display: block; width: 100%; height: auto; object-fit: cover; object-position: top center; background: #fff; }
   .devtag { font-family: var(--mono); font-size: clamp(11px,1.4vw,15px); color: var(--muted); }
   .devtag b { color: var(--ink); }
 
@@ -378,22 +379,22 @@
     <!-- Scene 4 — every surface -->
     <section class="scene surf" data-scene="4">
       <div class="eyebrow">One backend</div>
-      <h2>The same app on <span class="amber">every surface</span>.</h2>
+      <h2>The same screen on <span class="amber">every surface</span>.</h2>
       <div class="devices">
         <div class="dev d1">
-          <div class="screen"><span class="band head"></span><span class="chipm"></span><span class="band b1"></span><span class="band b2"></span><span class="band b3"></span><span class="band b4"></span></div>
-          <div class="cap">WEB · Vaadin &amp; Oracle Redwood</div>
+          <img class="screen shot" src="/images/home/museums-vaadin.jpg" alt="An artwork page of the museums demo on the Vaadin renderer" loading="lazy">
+          <div class="cap">WEB · Vaadin</div>
         </div>
         <div class="dev d2">
-          <div class="screen phone"><span class="band head"></span><span class="band b1"></span><span class="band b2"></span><span class="band b3"></span></div>
+          <img class="screen phone shot" src="/images/home/museums-phone.jpg" alt="The same artwork page in the Mateu phone app" loading="lazy">
           <div class="cap">MOBILE · iOS &amp; Android</div>
         </div>
         <div class="dev d3">
-          <div class="screen"><span class="band head" style="background:var(--amber);opacity:.5"></span><span class="band b1"></span><span class="band b2"></span><span class="band b3"></span><span class="band b4"></span></div>
-          <div class="cap">DESKTOP · Windows · macOS · Linux</div>
+          <img class="screen shot" src="/images/home/museums-redwood.jpg" alt="The same artwork page on the Oracle Redwood renderer" loading="lazy">
+          <div class="cap">WEB · Oracle Redwood</div>
         </div>
       </div>
-      <div class="devtag">Vaadin · Oracle Redwood — <b>zero client code</b>.</div>
+      <div class="devtag">One YAML model, one backend — also on the desktop. <b>Zero client code</b>.</div>
     </section>
 
     <!-- Scene 5 — capabilities -->
