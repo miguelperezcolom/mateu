@@ -1,4 +1,5 @@
-import { parse, stringify } from 'yaml'
+import { stringify } from 'yaml'
+import { parseSpec } from './specYaml'
 import { actionIdsIn, stepsIn, withStepsIn, withFlowActionIn, withoutActionIn, type FlowStep, type RawAction } from './flowEditor'
 
 /**
@@ -27,13 +28,13 @@ export interface CatalogueAction {
 /** Whether this YAML is an action catalogue: `type: Actions` (a bare top-level list of actions is not told apart from other files). */
 export function isActionsYaml(yaml: string): boolean {
     let root: unknown
-    try { root = parse(yaml) } catch { return false }
+    try { root = parseSpec(yaml) } catch { return false }
     return !!root && typeof root === 'object' && !Array.isArray(root) && (root as any).type === 'Actions'
 }
 
 export function parseActionsDoc(yaml: string): ActionsDoc {
     let root: any
-    try { root = parse(yaml) } catch { root = null }
+    try { root = parseSpec(yaml) } catch { root = null }
     if (Array.isArray(root)) return { actions: root.filter(isObject) as RawAction[], preamble: {} }
     if (!root || typeof root !== 'object') return { actions: [], preamble: { type: 'Actions' } }
     const { actions, ...preamble } = root

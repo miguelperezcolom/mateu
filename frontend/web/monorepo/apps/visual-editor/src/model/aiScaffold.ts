@@ -1,4 +1,4 @@
-import { parse } from 'yaml'
+import { parseSpec } from './specYaml'
 
 /**
  * AI-assisted scaffolds (visual-editor Phase 6) — the "have the AI build it" on-ramp, done the €0,
@@ -62,7 +62,7 @@ export interface ScaffoldValidation {
 export function validateScaffoldYaml(yaml: string, knownTypes: string[]): ScaffoldValidation {
     let root: unknown
     try {
-        root = parse(stripFences(yaml))
+        root = parseSpec(stripFences(yaml))
     } catch (e) {
         return { ok: false, unknownTypes: [], error: 'Not valid YAML: ' + (e as Error).message }
     }
