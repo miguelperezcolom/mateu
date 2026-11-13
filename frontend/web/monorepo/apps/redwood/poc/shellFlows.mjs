@@ -333,6 +333,17 @@ export function confirmNavigationAway(vars, win = (typeof window !== 'undefined'
 }
 
 /**
+ * A NavigateTo of a flow the BROWSER ran (the page's or the catalogue's `steps:`, no server answer)
+ * leaves the screen like a menu click, so with unsaved changes — the user's, or a MarkDirty step of
+ * that same flow — it asks first (W-3; Vaadin's mateu-component leaveToRoute). True = go on (the
+ * flags are cleared when it asked), false = stay. A server's NavigateTo is the server's decision:
+ * it never asks (`ranInBrowser` false).
+ */
+export function confirmFlowNavigation(vars, ranInBrowser, win = (typeof window !== 'undefined' ? window : undefined)) {
+  return !ranInBrowser || confirmNavigationAway(vars, win)
+}
+
+/**
  * The user chose to STAY (confirmNavigationAway said no): the address goes back to the screen still
  * on display (`route`, as urlOfRoute writes it). After a back/forward (`fromUrl`) the browser has
  * already moved to the other entry, so the URL is PUSHED — what the web renderer does (mateu-ui's

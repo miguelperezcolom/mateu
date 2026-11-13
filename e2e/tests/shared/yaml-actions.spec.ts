@@ -55,14 +55,13 @@ test.describe('YAML actions (/yaml-actions)', () => {
   test('a flow of steps runs in the browser, with no server round trip', async ({ page }) => {
     await open(page)
     const sent = posts(page)
-    // the flow's first step marks the page dirty: on the Vaadin renderer its Navigate then asks
-    // before leaving like every other way out (W-3); Redwood's flow does not ask yet (a known
-    // difference). Confirming leaves on both.
+    // the flow's first step marks the page dirty, so its Navigate asks before leaving like every
+    // other way out (W-3) — on every renderer; confirming it leaves
     const asked: string[] = []
     page.on('dialog', d => { asked.push(d.type()); void d.accept() })
     await btn(page, 'Run a flow').click()
     await expect(page).toHaveURL(/\/fluent-counter$/)
-    if (test.info().project.name !== 'renderer-vb') expect(asked).toEqual(['confirm'])
+    expect(asked).toEqual(['confirm'])
     expect(sent.filter(s => s.body.includes('localFlow'))).toEqual([])
   })
 

@@ -442,6 +442,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // a content button whose action nobody on screen claims is inert, as on Vaadin (Explorer F3)
     contentActionIsClaimed,
     confirmNavigationAway,
+    confirmFlowNavigation,
     // a refused back/forward is undone, not papered over with a push (historyIndex.mjs)
     installHistoryIndex,
     notePopState,

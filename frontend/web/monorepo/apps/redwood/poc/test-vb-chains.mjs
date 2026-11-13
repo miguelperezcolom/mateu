@@ -1131,6 +1131,49 @@ test('runMateuAction: a flow the page declares runs in the browser, with no serv
   assert.deepEqual(nav[2], { route: '/home', force: true }, 'a NavigateTo forces the shell to the route')
 })
 
+test('runMateuAction: a flow that marks the page dirty asks before its Navigate leaves (W-3, as on Vaadin)', async () => {
+  const p = page('pd', 'x.Flows', 'Flows', [text('x')], { actions: [
+    { id: 'localFlow', commands: [{ type: 'MarkAsDirty' }, { type: 'NavigateTo', data: '/fluent-counter' }] }] })
+  answer(byRoute('/dirty-flow'), replace(p))
+  const ctx = newContext()
+  await navigate(ctx, '/dirty-flow')
+  const before = sent.length
+  const navs = () => calls.filter((c) => c[0] === 'event' && c[1] === 'application:mateuNavigate')
+  const asked = []
+  const realConfirm = win.confirm
+  win.confirm = (text) => { asked.push(text); return confirmAnswer }
+  try {
+    confirmAnswer = false
+    const navsBefore = navs().length
+    await act(ctx, 'localFlow')
+    assert.equal(asked.length, 1, 'it asked')
+    assert.equal(navs().length, navsBefore, '«stay» navigates nowhere')
+    assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), true, 'the page stays dirty')
+    confirmAnswer = true
+    await act(ctx, 'localFlow')
+    assert.equal(asked.length, 2)
+    assert.deepEqual(navs().at(-1)[2], { route: '/fluent-counter', force: true }, 'confirmed: it leaves')
+    assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), false, 'the discarded changes ask no more')
+    assert.equal(sent.length, before, 'no server round trip')
+  } finally { win.confirm = realConfirm; confirmAnswer = true }
+})
+
+test('runMateuAction: a server NavigateTo never asks, even with unsaved changes (the server decided)', async () => {
+  answer(byRoute('/person'), fx('load-form'))
+  answer((b) => b.actionId === 'save', { commands: [{ type: 'MarkAsDirty' }, { type: 'NavigateTo', data: '/home' }], fragments: [], messages: [] })
+  const ctx = newContext()
+  await navigate(ctx, '/person')
+  const realConfirm = win.confirm
+  let asked = 0
+  win.confirm = () => { asked++; return false }
+  try {
+    await act(ctx, 'save')
+    assert.equal(asked, 0)
+    const nav = calls.filter((c) => c[0] === 'event' && c[1] === 'application:mateuNavigate').at(-1)
+    assert.deepEqual(nav[2], { route: '/home', force: true })
+  } finally { win.confirm = realConfirm }
+})
+
 test('runMateuAction: an absolute NavigateTo opens the other console in its own tab', async () => {
   const opened = []
   const realOpen = win.open

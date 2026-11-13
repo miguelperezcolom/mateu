@@ -696,7 +696,10 @@ define([
         $page.variables.mateuDrawerDraft = bridge.pickerSearchStateOf(pickerNow);
         await Actions.callChain(context, { chain: 'runMateuAction', params: { actionId: 'search' } });
       }
-      if (effects.navigate && (effects.navigate.route || effects.navigate.url)) {
+      // a flow the browser ran leaves like a menu click: unsaved changes (a MarkDirty step of the
+      // same flow included) ask first, and «stay» navigates nowhere (W-3, as on Vaadin)
+      const flowStays = !!(effects.navigate && effects.navigate.route) && !bridge.confirmFlowNavigation($application.variables, !!clientFlow);
+      if (!flowStays && effects.navigate && (effects.navigate.route || effects.navigate.url)) {
         if ($page.variables.mateuModalOpen) {
           $page.variables.mateuModalOpen = false;
           await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'close' });
