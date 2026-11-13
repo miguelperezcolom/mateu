@@ -287,11 +287,12 @@ test('the first fragment with a component, and the overlay it opens as', () => {
   assert.deepEqual(previewOverlayOf({ component: { type: 'X', initialData: null }, state: { s: 1 } }, 'drawer').metadata, { type: 'Drawer', headerTitle: '', content: { type: 'X', initialData: { s: 1 } } });
 });
 
-test('a navigation-requested detail keeps every field a menu click carries', () => {
-  assert.deepEqual(chatNavigationOf({ route: '/a', consumedRoute: '', actionId: '', baseUrl: 'http://b', serverSideType: 'S', uriPrefix: '/p' }), {
+test('a navigation-requested detail keeps where to go, never an action to run (S7)', () => {
+  assert.deepEqual(chatNavigationOf({ route: '/a', consumedRoute: '', actionId: 'wipe', baseUrl: 'http://b', serverSideType: 'S', uriPrefix: '/p' }), {
     route: '/a', consumedRoute: '', actionId: '', baseUrl: 'http://b', serverSideType: 'S', uriPrefix: '/p',
   });
-  assert.deepEqual(chatNavigationOf({ actionId: 'run', serverSideType: 7 }), { route: '', consumedRoute: '', actionId: 'run' });
+  // an action-only "navigation" (a menu action entry) is not a place: ignored
+  assert.equal(chatNavigationOf({ actionId: 'run', serverSideType: 7 }), null);
   assert.equal(chatNavigationOf({}), null);
   assert.equal(chatNavigationOf(undefined), null);
 });
