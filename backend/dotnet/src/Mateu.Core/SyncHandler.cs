@@ -340,6 +340,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     /// fields hidden or made read-only for the caller are dropped from the incoming state.</summary>
     private RunActionRqDto GuardYamlAccess(RunActionRqDto rq)
     {
+        rq = GuardBoundType(rq);
         if (_routes.RefusingEntry(rq.Route, ActionGuard.Authorized) is { } refusing)
             ActionGuard.Deny($"route '{refusing.Route}' denied by access:");
         if (_yaml.LoadSpec(rq.Route) is not { } spec) return rq;
@@ -367,6 +368,58 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         }
         return WithoutLockedByPieces(WithoutLocked(rq, personal.LockedFields.ToHashSet()), byPieces);
     }
+
+    /// <summary>The route's <c>access:</c> and the locks of its layout are keyed on the request's
+    /// ROUTE, while the view model is the type the request NAMES: a type the authored route table
+    /// binds must not escape those keys by being named under another route (GA review S1).
+    /// <list type="bullet">
+    /// <item>the route IS an entry binding the type: that entry's keys apply (below, as for any route);</item>
+    /// <item>the route is UNDER an entry binding it (a record master's tab, a crud's <c>/new</c>):
+    /// that entry's locks apply too — its layout's, not the sub-path's (which has none);</item>
+    /// <item>the route is the type's own declared ([UI]/[App]) route: the author's public declaration;</item>
+    /// <item>anywhere else (another route, no route, a route with dot segments): the union of every
+    /// binding entry — any <c>access:</c> refusing the caller answers 403, any action one of them
+    /// refuses is refused, every field one of their layouts locks is dropped from the posted state.</item>
+    /// </list></summary>
+    private RunActionRqDto GuardBoundType(RunActionRqDto rq)
+    {
+        if (string.IsNullOrEmpty(rq.ServerSideType)) return rq;
+        var binding = _routes.Authored().Routes.Where(e => e.ViewModel == rq.ServerSideType).ToList();
+        if (binding.Count == 0) return rq;
+        var plain = !HasDotSegments(rq.Route);
+        if (plain && _routes.Match(rq.Route)?.Entry.ViewModel == rq.ServerSideType) return rq;
+        if (plain && RoutedTabs.MountOf(_routes, rq.Route, rq.ServerSideType) is { } mount)
+        {
+            var under = _routes.Match(mount)!.Entry;
+            return WithEntryKeys(rq, under);
+        }
+        if (plain && registry.Resolve(rq.ServerSideType, null) is { } declared
+            && (registry.ResolveByPrefix(rq.Route)?.Type == declared
+                || (MateuRegistry.Normalize(rq.Route) == "" && registry.AppType == declared)))
+            return rq;
+        foreach (var entry in binding)
+        {
+            if (_routes.RefusingEntry(entry.Route, ActionGuard.Authorized) is { } refusing)
+                ActionGuard.Deny($"view {rq.ServerSideType} denied by access: of route '{refusing.Route}'");
+            rq = WithEntryKeys(rq, entry);
+        }
+        return rq;
+    }
+
+    /// <summary><paramref name="rq"/> under the keys of <paramref name="entry"/>'s layout: an action it
+    /// refuses the caller is refused (403), the fields it locks for the caller are dropped.</summary>
+    private RunActionRqDto WithEntryKeys(RunActionRqDto rq, RouteEntry entry)
+    {
+        if (_yaml.LoadSpec(entry.Route) is not { DependsOnRequest: true }) return rq;
+        if (_yaml.LoadSpec(entry.Route, ActionGuard.Authorized, _i18n.Locale) is not { } personal) return rq;
+        if (rq.ActionId is { Length: > 0 } actionId && personal.RefusedActions.Contains(actionId))
+            ActionGuard.Deny($"action '{actionId}' denied by access: of route '{entry.Route}'");
+        return WithoutLocked(rq, personal.LockedFields.ToHashSet());
+    }
+
+    /// <summary>A route with a <c>.</c> or <c>..</c> segment names no authored place.</summary>
+    private static bool HasDotSegments(string? route) =>
+        (route ?? "").Split('?')[0].Split('/').Any(segment => segment is "." or "..");
 
     /// <summary><paramref name="rq"/> without the posted state the business components lock for the caller.</summary>
     private static RunActionRqDto WithoutLockedByPieces(RunActionRqDto rq, IReadOnlyDictionary<string, string> lockedBy)
