@@ -61,7 +61,54 @@ export function ownerOfTokens(tokens: StoredTokens | null | undefined, fallbackI
     if (!iss) continue;
     return ownerOf(iss, sub, tenantOf(claims));
   }
-  return null;
+  // opaque tokens: the owner resolved from userinfo when they were obtained (withResolvedOwner)
+  return typeof tokens.owner === 'string' && tokens.owner ? tokens.owner : null;
+}
+
+/** The owner a userinfo answer names: its `sub` (+ tenant) at `issuer`; null when it names nobody. */
+export function ownerFromUserinfo(body: unknown, issuer: string): string | null {
+  if (!body || typeof body !== 'object' || Array.isArray(body) || !issuer) return null;
+  const claims = body as Record<string, unknown>;
+  const sub = claims['sub'];
+  return typeof sub === 'string' && sub ? ownerOf(issuer, sub, tenantOf(claims)) : null;
+}
+
+/** Fetches userinfo (fetch's shape, injectable for tests). */
+export type UserinfoFetch = (url: string, init: { headers: Record<string, string> }) => Promise<{ ok: boolean; json(): Promise<unknown> }>;
+
+/**
+ * Tokens just obtained (sign-in or refresh), with the owner they sign in as recorded when NO token
+ * says it (opaque tokens): asked ONLINE of the provider's `userinfo_endpoint` with the access token —
+ * its `sub` (+ tenant) at the configured issuer. Token claims win, so then nothing is asked and no
+ * stored owner is kept. When userinfo is not offered, fails or names nobody: a refresh keeps the
+ * owner of the same grant it refreshed (`previous`); a sign-in records none (→ no offline queue).
+ * Never guesses, never logs the token. A refresh that resolves ANOTHER sub records that other owner.
+ */
+export async function withResolvedOwner(
+  tokens: StoredTokens,
+  issuer: string,
+  userinfoEndpoint: string | undefined,
+  previous: StoredTokens | null,
+  fetchFn: UserinfoFetch = globalThis.fetch as unknown as UserinfoFetch,
+): Promise<StoredTokens> {
+  const { owner: _ignored, ...bare } = tokens;
+  if (ownerOfTokens(bare, issuer)) return bare;
+  const resolved = await userinfoOwner(bare.accessToken, issuer, userinfoEndpoint, fetchFn);
+  const owner = resolved ?? (previous ? ownerOfTokens(previous, issuer) : null);
+  return owner ? { ...bare, owner } : bare;
+}
+
+async function userinfoOwner(accessToken: string, issuer: string, endpoint: string | undefined, fetchFn: UserinfoFetch): Promise<string | null> {
+  // https only (a loopback dev provider excepted): the access token goes in the request
+  const secure = /^https:\/\//i.test(endpoint ?? '') || /^http:\/\/(localhost|127\.0\.0\.1|\[::1\])[:/]/i.test(endpoint ?? '');
+  if (!endpoint || !accessToken || !secure) return null;
+  try {
+    const res = await fetchFn(endpoint, { headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' } });
+    if (!res.ok) return null;
+    return ownerFromUserinfo(await res.json(), issuer);
+  } catch {
+    return null;
+  }
 }
 
 /**

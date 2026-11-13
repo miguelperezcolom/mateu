@@ -74,6 +74,10 @@ export interface StoredTokens {
   /** Who minted them: a token is only ever sent back to that issuer and client (see `oidc.ts`). */
   issuer?: string;
   clientId?: string;
+  /** Who signed in, when NO token says it (opaque tokens): resolved online from the provider's
+   *  `userinfo_endpoint` at sign-in / refresh (outboxOwner.ts `withResolvedOwner`) and kept here, so
+   *  the offline queue can tell its owner offline. Token claims always win over it. */
+  owner?: string;
 }
 
 /** Whether `tokens` were minted by this configuration's identity provider and client. */
@@ -124,7 +128,9 @@ export function parseStoredTokens(raw: string | null): StoredTokens | null {
   if (!raw) return null;
   try {
     const t = JSON.parse(raw) as StoredTokens;
-    return t && typeof t.accessToken === 'string' && t.accessToken ? t : null;
+    if (!t || typeof t.accessToken !== 'string' || !t.accessToken) return null;
+    if (t.owner !== undefined && (typeof t.owner !== 'string' || !t.owner)) delete t.owner; // only a real owner
+    return t;
   } catch {
     return null;
   }

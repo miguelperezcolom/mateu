@@ -4,7 +4,7 @@ import * as WebBrowser from 'expo-web-browser';
 import type { TokenProvider } from './auth.ts';
 import { endSessionUrl, isExpiring, parseStoredTokens, tokensBelongTo, tokensFromResponse, type OidcConfig, type StoredTokens } from './oidcConfig.ts';
 import type { KeyValueStore } from './sessionId.ts';
-import { ownerOfTokens } from './outboxOwner.ts';
+import { ownerOfTokens, withResolvedOwner } from './outboxOwner.ts';
 
 // On web the identity provider redirects back into a popup; this closes it and hands the result
 // to the opener. A no-op on iOS/Android.
@@ -93,6 +93,12 @@ export class OidcTokenProvider implements TokenProvider {
     return ownerOfTokens(this.tokens, this.config.issuer);
   }
 
+  /** The tokens with who they sign in as, when no token says it: asked of the provider's userinfo
+   *  endpoint now, while online (outboxOwner.ts withResolvedOwner — never guessed, never logged). */
+  private owned(tokens: StoredTokens, previous: StoredTokens | null, discovery: AuthSession.DiscoveryDocument): Promise<StoredTokens> {
+    return withResolvedOwner(tokens, this.config.issuer, discovery.userInfoEndpoint, previous);
+  }
+
   /** True when a usable (or refreshable) session exists — the boot gate's question. */
   async isSignedIn(): Promise<boolean> {
     return (await this.getToken()) !== null;
@@ -117,7 +123,7 @@ export class OidcTokenProvider implements TokenProvider {
         { clientId: this.config.clientId, refreshToken, extraParams: this.extraParams() },
         discovery,
       );
-      await this.save(tokensFromResponse(res, this.tokens));
+      await this.save(await this.owned(tokensFromResponse(res, this.tokens), this.tokens, discovery));
       return true;
     } catch (e) {
       // Only the identity provider saying no ends the session (expired or revoked). No network, a
@@ -151,7 +157,7 @@ export class OidcTokenProvider implements TokenProvider {
       },
       discovery,
     );
-    await this.save(tokensFromResponse(res, null));
+    await this.save(await this.owned(tokensFromResponse(res, null), null, discovery));
     return true;
   }
 
