@@ -302,9 +302,18 @@ class DeadSlotPage:
                                              timeout_ms=100)] = None
 
 
+@ui("mfe-query-base")
+class QueryInBase(_Page):
+    """A base url under a registered remote whose query would swallow the sync suffix."""
+
+    def parts(self):
+        return [fluent.MicroFrontend(base_url=f"{BASE}/fast/internal/api?x=", route="/widget",
+                                     resolve=fluent.Resolve.SERVER)]
+
+
 SOURCES = (Remotes, ExchangeIdentity, Recorder, ClientOnly, FastServer, SlowServer, BrokenServer,
            Unregistered, UnknownIdentity, Parallel, CacheByKey, CachePerUser, CacheShared, CacheNone,
-           Anonymous, Exchanged, SlotPage, DeadSlotPage)
+           Anonymous, Exchanged, SlotPage, DeadSlotPage, QueryInBase)
 
 
 # ── fixtures and helpers ──────────────────────────────────────────────────────────────────────
@@ -611,3 +620,27 @@ def test_a_duplicated_slot_key_fails_at_registration():
         pass
 
     assert set(MateuRegistry(Child1, Child2).content_slots) == {"app.screen.same"}
+
+
+# ── GA review P3: what the CALLER writes is never resolved by the host ───────────────────────
+
+
+def test_a_base_url_carrying_a_query_is_a_configuration_error_and_nothing_is_asked(host):
+    client, _ = host
+    increment = load(client, "mfe-query-base").json()
+    assert REQUESTS == []
+    assert micro_frontends(increment) == []
+    assert any("Reference" in m["text"] for m in increment["messages"])
+
+
+def test_a_previewed_server_micro_frontend_stays_client_resolved(host):
+    client, _ = host
+    yaml_text = (
+        f"type: MicroFrontend\nbaseUrl: {BASE}/fast\nroute: /admin/secrets\nresolve: SERVER\n"
+    )
+    response = client.post("/mateu/v3/sync/mfe-client", json={
+        "route": "mfe-client", "actionId": "__preview__", "parameters": {"_yaml": yaml_text},
+    }, headers={"authorization": "Bearer alice"})
+    microfrontend = only_micro_frontend(response.json())
+    assert "resolved" not in microfrontend
+    assert REQUESTS == [], "the host asked a remote at a route the caller wrote"

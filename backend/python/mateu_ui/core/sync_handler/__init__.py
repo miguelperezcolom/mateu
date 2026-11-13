@@ -442,7 +442,10 @@ class SyncHandler(
                 increment, rq.action_id, request, *self._fragment_cache_candidates(rq)
             )
         # the HOST side: the micro frontends this server resolves (resolve=SERVER, content slots)
-        if pending[0] and self.microfrontends is not None:
+        # never for a PREVIEW: its tree is built from the request's YAML, and the host would ask a
+        # registered remote, with its identity, at whatever route the caller wrote (Java's preview
+        # branch returns before resolveMicroFrontends: a previewed island stays client-resolved)
+        if pending[0] and self.microfrontends is not None and rq.action_id != "__preview__":
             increment = self.microfrontends.resolve_sync(increment, request)
         if rq.embedded():
             increment = without_window_commands(increment)
