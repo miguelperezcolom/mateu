@@ -758,10 +758,11 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
     // opened inside one replaced the host page's address)
     ...(sub.windowless ? { windowless: true } : {}) }
   // a MicroFrontend the host resolved (resolve = SERVER) brings the answer to its load: no request;
-  // its actions and triggers still go to ITS baseUrl (outbound, below)
+  // its actions and triggers still go to ITS baseUrl (outbound, below) — with the trust the browser
+  // would have given it fetched: a remote the app does not trust through the untrusted strip (S12)
   let answer
   try {
-    answer = sub.resolved || await loadRoute(base, sub.route, sub.id, {
+    answer = sub.resolved ? answeredBy(base, sub.resolved) : await loadRoute(base, sub.route, sub.id, {
     ...extra,
     consumedRoute: sub.consumedRoute,
     serverSideType: sub.serverSideType,

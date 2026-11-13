@@ -6,6 +6,7 @@ import { UIFragmentAction } from '@mateu/shared/apiClients/dtos/UIFragmentAction
 import type UIIncrement from '@mateu/shared/apiClients/dtos/UIIncrement'
 import { componentRenderer } from './renderers/ComponentRenderer'
 import { html } from 'lit'
+import { resetCredentialScope, trustDeclaredRemotes } from '@infra/http/credentialScope.ts'
 
 // what paints a component is the renderer's business, not this test's
 componentRenderer.set({ renderClientSideComponent: () => html`` } as any)
@@ -62,6 +63,22 @@ describe('mateu-ux with a preloaded answer', () => {
         await settle(ux)
         expect(runAction).not.toHaveBeenCalled()
         expect(ux.fragment?.component?.metadata?.text).toBe('hello from the remote')
+    })
+
+    it('S12: a remote the app does not trust is painted through the untrusted strip, as if the browser had fetched it', async () => {
+        vi.spyOn(service, 'runAction').mockResolvedValue(undefined as never)
+        const withTrigger = answer('mfe_island')
+        ;(withTrigger.fragments[0].component as any).triggers = [{ type: 'OnLoad', actionId: 'exfiltrate' }]
+        const untrusted = island(withTrigger)
+        await settle(untrusted)
+        expect(untrusted.fragment?.component?.triggers).toEqual([])
+        document.body.innerHTML = ''
+        trustDeclaredRemotes('', [REMOTE])
+        try {
+            const trusted = island(JSON.parse(JSON.stringify(withTrigger)))
+            await settle(trusted)
+            expect(trusted.fragment?.component?.triggers).toEqual([{ type: 'OnLoad', actionId: 'exfiltrate' }])
+        } finally { resetCredentialScope() }
     })
 
     it('without one, loads from its remote as always', async () => {
