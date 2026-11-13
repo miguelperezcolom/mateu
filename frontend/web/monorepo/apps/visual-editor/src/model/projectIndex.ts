@@ -1,6 +1,6 @@
 import { isMountYaml } from './mountModel'
 import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
-import { parse } from 'yaml'
+import { parseSpec } from './specYaml'
 import { hasAppShell } from './appModel'
 import { environmentName, parseTranslationsFile, type TranslationsFile } from './translationsModel'
 import { parseComponentCatalogue } from './componentCatalogue'
@@ -65,7 +65,7 @@ export interface FieldTypeEntry {
 /** Whether this YAML is the field type catalogue (`type: Types`, or a top-level `types:` list). */
 export function isTypesYaml(yaml: string): boolean {
     let root: unknown
-    try { root = parse(yaml) } catch { return false }
+    try { root = parseSpec(yaml) } catch { return false }
     if (!root || typeof root !== 'object' || Array.isArray(root)) return false
     const type = (root as any).type
     return type === 'Types' || (!type && Array.isArray((root as any).types))
@@ -74,7 +74,7 @@ export function isTypesYaml(yaml: string): boolean {
 /** The entries of a types file (those with an id). */
 export function parseTypes(yaml: string): FieldTypeEntry[] {
     let root: any
-    try { root = parse(yaml) } catch { return [] }
+    try { root = parseSpec(yaml) } catch { return [] }
     const list = Array.isArray(root?.types) ? root.types : Array.isArray(root) ? root : []
     return list.filter((t: any) => t && typeof t.id === 'string' && t.id.trim() !== '')
 }
@@ -92,7 +92,7 @@ export interface SourceEntry {
 /** Whether this YAML is the REST source catalogue (`type: Sources`, or a top-level `sources:` list). */
 export function isSourcesYaml(yaml: string): boolean {
     let root: unknown
-    try { root = parse(yaml) } catch { return false }
+    try { root = parseSpec(yaml) } catch { return false }
     if (!root || typeof root !== 'object' || Array.isArray(root)) return false
     const type = (root as any).type
     return type === 'Sources' || (!type && Array.isArray((root as any).sources))
@@ -101,7 +101,7 @@ export function isSourcesYaml(yaml: string): boolean {
 /** The entries of a sources file (named ones only). */
 export function parseSources(yaml: string): SourceEntry[] {
     let root: any
-    try { root = parse(yaml) } catch { return [] }
+    try { root = parseSpec(yaml) } catch { return [] }
     const list = Array.isArray(root?.sources) ? root.sources : []
     return list.filter((s: any) => s && typeof s.name === 'string')
 }
@@ -195,7 +195,7 @@ export function withSampleFiles(entries: SourceEntry[], files: ProjectFile[]): S
         if (!file || e.sample !== undefined) return e
         const found = (files ?? []).find((f) => normalize(f.path) === file)
         if (!found) return e
-        try { return { ...e, sample: parse(found.content) } } catch { return e }
+        try { return { ...e, sample: parseSpec(found.content) } } catch { return e }
     })
 }
 

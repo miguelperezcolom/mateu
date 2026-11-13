@@ -1,4 +1,4 @@
-import { parse } from 'yaml'
+import { parseSpec } from './specYaml'
 import type { ProjectFile } from './projectIndex'
 import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
 import { isMountYaml } from './mountModel'
@@ -93,7 +93,7 @@ function readMount(files: ProjectFile[]): { byPath: Map<string, unknown>; routeR
 
 function parseObject(text: string): Record<string, unknown> | undefined {
     try {
-        const parsed = parse(text)
+        const parsed = parseSpec(text)
         return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : undefined
     } catch {
         return undefined

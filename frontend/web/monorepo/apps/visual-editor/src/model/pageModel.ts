@@ -1,4 +1,5 @@
-import { parse, stringify } from 'yaml'
+import { stringify } from 'yaml'
+import { parseSpec } from './specYaml'
 import {
     FieldOverride, InferredField, LayoutDelta, applyDelta, deltaBetween, readDelta, writeDelta,
 } from './layoutDelta'
@@ -160,7 +161,7 @@ const RESERVED = new Set(['type', 'content'])
 /** Parse YAML page text into a PageDoc (envelope-aware, like YamlUidlLoader). */
 export function parsePage(yaml: string): PageDoc {
     let root: unknown
-    try { root = parse(yaml) } catch { root = null }
+    try { root = parseSpec(yaml) } catch { root = null }
     if (root && typeof root === 'object' && 'layoutDelta' in (root as object)) {
         // A delta is not a tree: there is nothing to render until inference says what it applies
         // to. `hydrate` turns it into an editable layout once the contract arrives.

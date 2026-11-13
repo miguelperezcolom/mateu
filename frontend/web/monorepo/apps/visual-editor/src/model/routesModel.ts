@@ -1,4 +1,5 @@
-import { parse, stringify } from 'yaml'
+import { stringify } from 'yaml'
+import { parseSpec } from './specYaml'
 
 /**
  * The editor's model of a mount's route registry (`routes.yaml`): the list of entries binding a URL
@@ -38,7 +39,7 @@ export interface RoutesDoc {
 /** Whether this YAML is a route file (`type: Routes`, a `routes:` envelope, or a bare list). */
 export function isRoutesYaml(yaml: string): boolean {
     let root: unknown
-    try { root = parse(yaml) } catch { return false }
+    try { root = parseSpec(yaml) } catch { return false }
     if (Array.isArray(root)) return true
     if (!root || typeof root !== 'object') return false
     const type = (root as any).type
@@ -67,7 +68,7 @@ function toRow(entry: any): RouteRow {
 
 export function parseRoutes(yaml: string): RoutesDoc {
     let root: unknown
-    try { root = parse(yaml) } catch { root = null }
+    try { root = parseSpec(yaml) } catch { root = null }
     if (Array.isArray(root)) {
         return { routes: root.map(toRow), enveloped: false, preamble: {} }
     }

@@ -1,4 +1,4 @@
-import { parse } from 'yaml'
+import { assertAcyclic, parseSpec } from './specYaml'
 import type { ProjectFile } from './projectIndex'
 import { parseComponentCatalogue } from './componentCatalogue'
 
@@ -40,6 +40,12 @@ const namesAPartialByPath = (node: unknown): boolean => {
 }
 
 export function inlineReferences(definition: unknown, files: ProjectFile[], options: InlineOptions = {}): unknown {
+    // A definition parsed by a reader other than parseSpec may reach itself (a recursive YAML alias
+    // becomes a cyclic object), and every walk below would follow it until the stack overflows. It
+    // is refused here, as the backend refuses the file (YamlAliasCycleError, a controlled error the
+    // canvas reports). The partials and the catalogue are read with parseSpec, so a cyclic one reads
+    // as unreadable and its reference is left as it was. A shared alias (no cycle) passes.
+    assertAcyclic(definition)
     // Every YAML file by its path relative to specs/ui: a partial may be named by its short name
     // (`partials/<ref>.yaml`) or — as PartialRegistry.java honours — by an explicit `.yaml`/`.yml`
     // path, the classpath one (`specs/ui/partials/x.yaml`) or the specs-relative one, even outside
@@ -57,7 +63,7 @@ export function inlineReferences(definition: unknown, files: ProjectFile[], opti
             continue
         }
         if (parseComponentCatalogue(f.content ?? '')) {
-            const doc = parse(f.content) as { components?: { name?: string, component?: unknown }[] }
+            const doc = parseSpec(f.content) as { components?: { name?: string, component?: unknown }[] }
             for (const e of doc.components ?? []) if (e?.name && e.component) components.set(e.name, e.component)
         }
     }
@@ -68,7 +74,7 @@ export function inlineReferences(definition: unknown, files: ProjectFile[], opti
     const partial = (path: string): unknown => {
         if (!parsed.has(path)) {
             let root: unknown
-            try { root = parse(yamlFiles.get(path) ?? '') } catch { root = undefined /* unreadable: left as a reference */ }
+            try { root = parseSpec(yamlFiles.get(path) ?? '') } catch { root = undefined /* unreadable: left as a reference */ }
             parsed.set(path, root)
         }
         return parsed.get(path)

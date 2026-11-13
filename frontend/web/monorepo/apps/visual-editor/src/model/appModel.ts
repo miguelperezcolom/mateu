@@ -1,4 +1,5 @@
-import { parse, stringify } from 'yaml'
+import { stringify } from 'yaml'
+import { parseSpec } from './specYaml'
 import {
     type FlowStep, type RawAction, actionIdsIn, stepsIn, withStepsIn, withFlowActionIn, withoutActionIn,
 } from './flowEditor'
@@ -67,13 +68,13 @@ const SCALARS: (keyof AppFields)[] = [
 /** Whether this YAML is an app-shell definition (`type: AppShell`). */
 export function hasAppShell(yaml: string): boolean {
     let root: unknown
-    try { root = parse(yaml) } catch { return false }
+    try { root = parseSpec(yaml) } catch { return false }
     return !!root && typeof root === 'object' && (root as any).type === 'AppShell'
 }
 
 export function parseApp(yaml: string): AppDoc {
     let root: any
-    try { root = parse(yaml) } catch { root = null }
+    try { root = parseSpec(yaml) } catch { root = null }
     if (!root || typeof root !== 'object' || Array.isArray(root)) root = {}
 
     const fields: AppFields = {}

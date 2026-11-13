@@ -1,4 +1,4 @@
-import { parse } from 'yaml'
+import { parseSpec } from './specYaml'
 
 /**
  * The business component catalogue (`specs/ui/components.yaml`): a `components:` list of
@@ -16,7 +16,7 @@ export interface BusinessComponent {
 export function parseComponentCatalogue(content: string): BusinessComponent[] | undefined {
     let root: unknown
     try {
-        root = parse(content)
+        root = parseSpec(content)
     } catch {
         return undefined
     }
