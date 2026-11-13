@@ -118,14 +118,16 @@ public class RunActionUseCase {
       return Flux.error(e);
     }
     // a request carrying an Idempotency-Key (the mobile app's offline send queue) runs once per
-    // caller, action and key: a repeat gets the first answer back (IdempotencyKeys). Consulted
-    // only once the request passed the checks above, so a refused request is never answered from
-    // memory; the caller's complete identity is part of the key, so changed grants never replay.
-    // Its own refusal (too many keyed runs in flight) answers through the error boundary.
+    // caller, action and key: a repeat gets the first answer back (IdempotencyKeys). The key stays
+    // PENDING while the request is handled and is claimed at IdempotencyKeys.checkpoint — where
+    // the action is about to run, after every check it is subject to — so a request refused by any
+    // rule is never answered from memory; the caller's complete identity is part of the key, so
+    // changed grants never replay. Its own refusal (too many keyed runs in flight) answers through
+    // the error boundary.
     return guarded(
         command,
         () ->
-            io.mateu.core.infra.idempotency.IdempotencyKeys.once(
+            io.mateu.core.infra.idempotency.IdempotencyKeys.guarded(
                 command.httpRequest(), command.actionId(), () -> dispatch(command)));
   }
 
@@ -269,6 +271,12 @@ public class RunActionUseCase {
             })
         .onErrorResume(
             error -> {
+              var replay = io.mateu.core.infra.idempotency.IdempotencyKeys.Replay.find(error);
+              if (replay != null) {
+                // a known Idempotency-Key stopped the run at its checkpoint: IdempotencyKeys
+                // answers with the remembered run — never an error message of its own
+                return Mono.error(replay);
+              }
               var forbidden =
                   io.mateu.core.application.security.MateuForbiddenException.find(error);
               if (forbidden != null) {
@@ -336,6 +344,10 @@ public class RunActionUseCase {
     return Flux.defer(branch)
         .onErrorResume(
             error -> {
+              var replay = io.mateu.core.infra.idempotency.IdempotencyKeys.Replay.find(error);
+              if (replay != null) {
+                return Flux.error(replay);
+              }
               var forbidden =
                   io.mateu.core.application.security.MateuForbiddenException.find(error);
               if (forbidden != null) {

@@ -17,6 +17,8 @@ public class DeleteEditActionHandler implements CrudOrchestratorActionHandler {
     // the Delete button is not drawn for a crud that may not delete — and a crafted request is
     // refused too (403), not just undrawn
     io.mateu.core.infra.declarative.orchestrators.crud.CrudWriteGate.checkDelete(orchestrator);
+    // the write gate passed: a repeated Idempotency-Key may now answer from memory
+    io.mateu.core.infra.idempotency.IdempotencyKeys.checkpoint(httpRequest);
     List<?> selection = httpRequest.getSelectedRows(Map.class);
     if (selection != null) {
       var idField = orchestrator.getIdFieldForRow();

@@ -14,12 +14,15 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 /**
  * The server half of the offline send queue: an action request carrying an {@value #HEADER} header
@@ -53,9 +56,9 @@ import reactor.core.publisher.Flux;
  * <p>The key is scoped to the CALLER — the complete identity {@link IdentityResolver} resolves, the
  * one every access check reads (name, roles, groups, scopes, permissions; each sorted; hashed) —
  * and the action id, so one user's key never answers for another's request, and a caller whose
- * grants changed is not served an answer remembered for the old ones. {@code RunActionUseCase}
- * consults it only AFTER the request-level checks (exposed type, YAML route/action access), so a
- * refused request is never answered from memory.
+ * grants changed is not served an answer remembered for the old ones. The key is looked up only at
+ * a {@link #checkpoint}, where the action is about to run after every check it is subject to (see
+ * {@link #guarded}), so a request refused by any rule is never answered from memory.
  */
 @Slf4j
 public final class IdempotencyKeys {
@@ -78,14 +81,78 @@ public final class IdempotencyKeys {
 
   /** One run of a key. Compared by identity: a late completion only ever touches its own. */
   private static final class Run {
-    final Flux<UIIncrementDto> answer;
+    final Mono<List<UIIncrementDto>> answer;
     final long createdAt;
 
-    Run(Flux<UIIncrementDto> answer, long createdAt) {
+    Run(Mono<List<UIIncrementDto>> answer, long createdAt) {
       this.answer = answer;
       this.createdAt = createdAt;
     }
   }
+
+  /**
+   * A keyed request going through the handler: not claimed until the handler reaches a {@link
+   * #checkpoint}, i.e. until the request passed the checks its action would pass.
+   */
+  private static final class Pending {
+    final String scoped;
+    final String actionId;
+    boolean claimed;
+    Run mine;
+    Sinks.One<List<UIIncrementDto>> sink;
+
+    Pending(String scoped, String actionId) {
+      this.scoped = scoped;
+      this.actionId = actionId;
+    }
+
+    /** The claimed run ended: settled (only if still its own), then handed to its joiners. */
+    void finish(List<UIIncrementDto> increments, Throwable failure) {
+      Run run;
+      Sinks.One<List<UIIncrementDto>> out;
+      synchronized (LOCK) {
+        run = mine;
+        out = sink;
+        mine = null;
+        sink = null;
+      }
+      if (run == null) {
+        return;
+      }
+      settle(scoped, run, failure == null && !refused(increments));
+      if (failure != null) {
+        out.tryEmitError(failure);
+      } else {
+        out.tryEmitValue(increments);
+      }
+    }
+  }
+
+  /**
+   * Unwinds the handler to {@link #guarded}, which answers with the remembered run. Carried as an
+   * error so it crosses every layer between the checkpoint and the endpoint; {@link #find} spots it
+   * however wrapped, and the error boundaries on the way let it through.
+   */
+  public static final class Replay extends RuntimeException {
+    private final transient Mono<List<UIIncrementDto>> answer;
+
+    Replay(Mono<List<UIIncrementDto>> answer) {
+      super("idempotency replay", null, false, false);
+      this.answer = answer;
+    }
+
+    /** The replay carried by {@code error} or one of its causes; null when there is none. */
+    public static Replay find(Throwable error) {
+      for (var e = error; e != null; e = e.getCause() == e ? null : e.getCause()) {
+        if (e instanceof Replay replay) {
+          return replay;
+        }
+      }
+      return null;
+    }
+  }
+
+  private static final String PENDING = "mateu.idempotency.pending";
 
   private static final Object LOCK = new Object();
 
@@ -104,59 +171,132 @@ public final class IdempotencyKeys {
   private IdempotencyKeys() {}
 
   /**
-   * Runs {@code run} unless this caller already sent the request's key for {@code actionId}, in
-   * which case the first run's answer is replayed (or, while it is still running, joined). Without
-   * a (valid) key, simply runs it. Nothing is registered until the answer is subscribed to.
+   * Runs {@code run} (the request's handling) with the request's key PENDING: it is looked up only
+   * when the handling reaches a {@link #checkpoint} — right where the action is about to run, after
+   * every check it is subject to (the strict / advertised-action check, {@code @EyesOnly} / {@code
+   * DisabledUnless}, the CRUD write gates, an editable view's read-only gate, the capability
+   * gates). A request refused before that is never answered from memory, whatever rule refused it;
+   * one that passed them and repeats a known key gets the first answer back (joining it while in
+   * flight); a request that never reaches a checkpoint (a load, a search) simply runs. Without a
+   * (valid) key, simply runs it. Nothing is registered until the answer is subscribed to.
    */
-  public static Flux<UIIncrementDto> once(
+  public static Flux<UIIncrementDto> guarded(
       HttpRequest httpRequest, String actionId, Supplier<Flux<UIIncrementDto>> run) {
     var key = keyOf(httpRequest);
     if (key == null) {
       return run.get();
     }
     var scoped = scope(httpRequest, actionId, key);
-    return Flux.defer(() -> admit(scoped, actionId, run));
+    return Flux.defer(
+        () -> {
+          var pending = new Pending(scoped, actionId);
+          try {
+            httpRequest.setAttribute(PENDING, pending);
+          } catch (RuntimeException noAttributes) {
+            return run.get();
+          }
+          return Flux.defer(run)
+              .collectList()
+              .doOnSuccess(increments -> pending.finish(increments, null))
+              .doOnError(
+                  failure -> {
+                    if (Replay.find(failure) == null) {
+                      pending.finish(null, failure);
+                    }
+                  })
+              .doOnCancel(
+                  () ->
+                      pending.finish(
+                          null, new java.util.concurrent.CancellationException("cancelled")))
+              // a known key: the run stopped at its checkpoint — answer with the remembered one
+              .onErrorResume(
+                  failure -> {
+                    var replay = Replay.find(failure);
+                    return replay != null ? replay.answer : Mono.error(failure);
+                  })
+              .doFinally(signal -> forget(httpRequest, pending))
+              .flatMapMany(Flux::fromIterable);
+        });
   }
 
-  private static Flux<UIIncrementDto> admit(
-      String scoped, String actionId, Supplier<Flux<UIIncrementDto>> run) {
+  /**
+   * As {@link #guarded}, claiming the key at once: for a caller whose checks all ran before {@code
+   * run} is called.
+   */
+  public static Flux<UIIncrementDto> once(
+      HttpRequest httpRequest, String actionId, Supplier<Flux<UIIncrementDto>> run) {
+    return guarded(
+        httpRequest,
+        actionId,
+        () -> {
+          checkpoint(httpRequest);
+          return run.get();
+        });
+  }
+
+  /**
+   * The request passed its checks and its action is about to run: claims the request's pending key.
+   * Returns when the key is new (the action runs, its answer is remembered); throws a {@link
+   * Replay} — answered by {@link #guarded} with the remembered run — when the key is known; throws
+   * the admission refusal ({@value #BUSY_TITLE}) when too many keyed runs are in flight. A no-op
+   * without a pending key, or once claimed.
+   */
+  public static void checkpoint(HttpRequest httpRequest) {
+    if (httpRequest == null) {
+      return;
+    }
+    Object attribute;
+    try {
+      attribute = httpRequest.getAttribute(PENDING);
+    } catch (RuntimeException noAttributes) {
+      return;
+    }
+    if (!(attribute instanceof Pending pending)) {
+      return;
+    }
     synchronized (LOCK) {
+      if (pending.claimed) {
+        return;
+      }
+      pending.claimed = true;
       var now = System.currentTimeMillis();
-      var finished = FINISHED.get(scoped);
+      var finished = FINISHED.get(pending.scoped);
       if (finished != null) {
         if (now - finished.createdAt <= ttlMillis()) {
           log.info(
-              "Idempotency key replayed for action {}: answering with the first run", actionId);
-          return finished.answer;
+              "Idempotency key replayed for action {}: answering with the first run",
+              pending.actionId);
+          throw new Replay(finished.answer);
         }
-        FINISHED.remove(scoped, finished);
+        FINISHED.remove(pending.scoped, finished);
       }
-      var running = IN_FLIGHT.get(scoped);
+      var running = IN_FLIGHT.get(pending.scoped);
       if (running != null) {
-        log.info("Idempotency key repeated for action {}: joining the run in flight", actionId);
-        return running.answer;
+        log.info(
+            "Idempotency key repeated for action {}: joining the run in flight", pending.actionId);
+        throw new Replay(running.answer);
       }
       if (IN_FLIGHT.size() >= maxEntries()) {
         log.warn(
             "Idempotency: {} keyed requests already in flight, refusing a new one for action {}",
             IN_FLIGHT.size(),
-            actionId);
-        return Flux.error(new UserFacingException(BUSY_TITLE, BUSY_MESSAGE));
+            pending.actionId);
+        throw new UserFacingException(BUSY_TITLE, BUSY_MESSAGE);
       }
-      var self = new Run[1];
-      // cache() makes every subscriber (the first one and any repeat) share ONE run; an answer
-      // that failed or carries an error message (the error boundary's, a refusal) is forgotten
-      var answer =
-          Flux.defer(run)
-              .collectList()
-              .doOnSuccess(increments -> settle(scoped, self[0], !refused(increments)))
-              .doOnError(failure -> settle(scoped, self[0], false))
-              .doOnCancel(() -> settle(scoped, self[0], false))
-              .cache()
-              .flatMapMany(Flux::fromIterable);
-      self[0] = new Run(answer, now);
-      IN_FLIGHT.put(scoped, self[0]);
-      return answer;
+      // a sink replays its one value (or error) to every joiner, late ones included
+      pending.sink = Sinks.one();
+      pending.mine = new Run(pending.sink.asMono(), now);
+      IN_FLIGHT.put(pending.scoped, pending.mine);
+    }
+  }
+
+  private static void forget(HttpRequest httpRequest, Pending pending) {
+    try {
+      if (httpRequest.getAttribute(PENDING) == pending) {
+        httpRequest.setAttribute(PENDING, null);
+      }
+    } catch (RuntimeException ignored) {
+      // a request with no attribute storage
     }
   }
 

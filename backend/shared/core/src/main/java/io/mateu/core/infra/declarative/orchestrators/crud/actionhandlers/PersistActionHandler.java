@@ -45,6 +45,8 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
     } else {
       io.mateu.core.infra.declarative.orchestrators.crud.CrudWriteGate.checkEdit(orchestrator);
     }
+    // the write gates passed: a repeated Idempotency-Key may now answer from memory
+    io.mateu.core.infra.idempotency.IdempotencyKeys.checkpoint(httpRequest);
     Object savedId;
     try {
       if (orchestrator.editInDrawer()) {

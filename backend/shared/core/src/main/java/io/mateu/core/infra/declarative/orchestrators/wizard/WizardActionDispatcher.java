@@ -271,12 +271,13 @@ final class WizardActionDispatcher {
       java.lang.reflect.Method method, Wizard wizard, HttpRequest httpRequest) throws Exception {
     hydrateCurrentStep(wizard, httpRequest);
     var step = wizard.getStep();
-    io.mateu.core.application.security.ActionMethods.checkAccess(
-        method, step.getClass(), httpRequest);
     if (!io.mateu.core.application.security.ActionMethods.isInvocable(method, step, httpRequest)) {
       throw io.mateu.core.application.security.ActionMethods.notAnAction(
           step.getClass(), method.getName());
     }
+    // last: checkAccess also claims the request's Idempotency-Key, which must follow every check
+    io.mateu.core.application.security.ActionMethods.checkAccess(
+        method, step.getClass(), httpRequest);
     method.setAccessible(true);
     var rq = httpRequest.runActionRq();
     var command =

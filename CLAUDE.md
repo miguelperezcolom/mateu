@@ -107,12 +107,15 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             the head until retried/cancelled); the FIRST attempt already carries the `Idempotency-Key` (a timed-out
                             save may have landed). Hosts: shell/OutboxHost.tsx (strip + list; drains on open/connectivity/foreground),
                             hub badge hub/outboxCounts.ts, removal drops it. Only the UI's own session queues (a derived session's
-                            `outbox` is null). Servers: `IdempotencyKeys` (Java infra/idempotency, called in RunActionUseCase AFTER the
-                            wire-type + YAML access checks; .NET Mateu.Core + MapMateu; Python core/idempotency_keys.py + the FastAPI sync —
-                            the ports run the handler with the key PENDING (`GuardedAsync`/`guarded`) and claim it at `Checkpoint()`/
-                            `checkpoint()`, called where the action is about to run: end of ActionGuard.EnsureMayInvoke/
-                            action_guard.ensure_may_invoke, after the crud write gates, editable-view save, capability writes; a
-                            known key unwinds to the endpoint with the remembered answer, so no refused request is replayed) —
+                            `outbox` is null). Servers: `IdempotencyKeys` (Java infra/idempotency via RunActionUseCase; .NET Mateu.Core +
+                            MapMateu; Python core/idempotency_keys.py + the FastAPI sync — all three run the handling with the key PENDING
+                            (Java `guarded` = request attribute, .NET `GuardedAsync` = AsyncLocal, Python `guarded` = ContextVar) and claim
+                            it at the checkpoint where the action is about to run: Java `ActionMethods.checkAccess`→`aboutToRun` (every
+                            reflective invocation; fluent button handlers call aboutToRun), after `CrudWriteGate` in Persist/DeleteEdit/
+                            RestoreDeleted/UpdateRow handlers, `EditableView` save; .NET end of ActionGuard.EnsureMayInvoke + crud write
+                            gates + editable-view save + capability writes; Python action_guard.ensure_may_invoke + the same. A known key
+                            unwinds to the endpoint (Java: `IdempotencyKeys.Replay`, let through by RunActionUseCase's error boundaries)
+                            with the remembered answer, so no refused request is replayed; `once` = claim at once (tests)) —
                             once per caller+action+key; caller = the SAME identity access checks read (Java IdentityResolver, .NET
                             MateuOptions.Identity + `Identity.Name`, Python identity_provider), canonical + COMPLETE (name, roles, groups,
                             scopes, permissions sorted). Two tables: IN-FLIGHT runs are never evicted (in-flight repeats join; full →

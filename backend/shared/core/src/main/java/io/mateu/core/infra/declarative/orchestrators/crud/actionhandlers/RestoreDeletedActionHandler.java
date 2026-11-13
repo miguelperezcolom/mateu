@@ -30,6 +30,8 @@ public class RestoreDeletedActionHandler implements CrudOrchestratorActionHandle
       throw new io.mateu.core.application.security.MateuForbiddenException(
           "restore is not offered by " + orchestrator.getClass().getSimpleName());
     }
+    // the gates passed: a repeated Idempotency-Key may now answer from memory
+    io.mateu.core.infra.idempotency.IdempotencyKeys.checkpoint(httpRequest);
     var raw =
         httpRequest.runActionRq().parameters() == null
             ? null

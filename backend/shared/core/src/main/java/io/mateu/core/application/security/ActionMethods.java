@@ -337,6 +337,20 @@ public final class ActionMethods {
         && !WireTypePolicy.classLevelAccessGranted(instanceClass, httpRequest)) {
       throw refused(instanceClass, member.getName(), "class-level @EyesOnly not satisfied");
     }
+    // every invocation path checks access right before running the member (after resolving it:
+    // the strict / advertised-action check): only NOW may a repeated Idempotency-Key be answered
+    // from memory — a refused request never is
+    aboutToRun(httpRequest);
+  }
+
+  /**
+   * The request passed every check its action is subject to and the action is about to run: claims
+   * the request's Idempotency-Key ({@code IdempotencyKeys.checkpoint}) — the one point a repeated
+   * key may be answered from memory. Called by {@link #checkAccess} and by the paths that run an
+   * action with no member to check (a fluent button's own handler).
+   */
+  public static void aboutToRun(HttpRequest httpRequest) {
+    io.mateu.core.infra.idempotency.IdempotencyKeys.checkpoint(httpRequest);
   }
 
   /**
