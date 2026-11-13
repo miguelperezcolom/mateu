@@ -23,7 +23,7 @@ import { uiSecretKeys, type HubEntry } from '../uiStore';
 import { hubBarSignsOut, uiSessionId, rotateUiSessionId } from '../uiSession';
 import { Notice, PrimaryButton, SecondaryButton, UiIcon, hubStyles, inkOn } from './common';
 import { UpdateAppButton } from './UpdateApp';
-import { OfflineQueue } from '../../core/offlineQueue';
+import { ANONYMOUS_OWNER, OfflineQueue } from '../../core/offlineQueue';
 
 type Phase =
   | { name: 'manifest' }
@@ -218,11 +218,36 @@ export function UiSession({
 
   const liveSession = useRef<MateuSession | null>(null);
 
+  // Who owns the offline send queue of this session (outboxOwner.ts): the signed-in identity
+  // (issuer + subject + tenant), the anonymous owner on a UI that does not sign in; null = a
+  // sign-in whose tokens do not say who it is → nothing is queued. undefined while it is read.
+  const [owner, setOwner] = useState<string | null | undefined>(undefined);
+  const ownerNow = useCallback(
+    async (): Promise<string | null> => (provider ? ((await provider.owner?.().catch(() => null)) ?? null) : ANONYMOUS_OWNER),
+    [provider],
+  );
+  useEffect(() => {
+    if (phase.name !== 'ready') return;
+    let alive = true;
+    void ownerNow().then((o) => {
+      if (!alive) return;
+      setOwner(o);
+      OfflineQueue.changed(entry.id); // the hub's badge now counts this owner's queue
+    });
+    return () => {
+      alive = false;
+    };
+  }, [phase.name, ownerNow, entry.id]);
+
   /** Signs out of the provider that signed in (its own end-session), then asks again. */
   const signOutHere = async () => {
     // the phone stops receiving this UI's pushes first (core/remotePush.ts)
     await liveSession.current?.pushUnregister?.().catch(() => undefined);
+    // the queue of who signed out is SUSPENDED, not deleted: kept on the device, not sent, shown or
+    // counted until the same person signs in again (offlineQueue.ts)
+    setOwner(undefined);
     await provider?.logout();
+    OfflineQueue.changed(entry.id);
     setSessionId(await rotateUiSessionId(secretStore, entry.id));
     if (manifest) setPlan(await planSignIn(manifest));
     setPhase({ name: 'signin' });
@@ -234,9 +259,10 @@ export function UiSession({
       liveSession.current = session;
       onLive?.(entry.id, session);
       if (provider) session.signOut = signOutHere;
+      session.outboxOwner = ownerNow;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [onHome, onSwitch, entry.name, provider, entry.id, onLive, manifest],
+    [onHome, onSwitch, entry.name, provider, entry.id, onLive, manifest, ownerNow],
   );
 
   // the last screens, shown at once on the next open — never for a UI that signs in: what a
@@ -247,15 +273,17 @@ export function UiSession({
   );
 
   // the offline send queue (@Action(offline = QUEUE)): kept in the keychain / keystore — a queued
-  // form may hold what a signed-in screen showed — and sent when the connection is back
-  const outbox = useMemo(() => new OfflineQueue(secretStore, entry.id), [entry.id]);
+  // form may hold what a signed-in screen showed — and sent when the connection is back. ONE PER
+  // OWNER: another person signing in to this UI gets their own (empty) queue and never sees, counts
+  // or sends this one
+  const outbox = useMemo(() => (owner ? new OfflineQueue(secretStore, entry.id, owner) : null), [entry.id, owner]);
 
   const name = manifest?.name ?? entry.name;
   const color = manifest?.themeColor ?? entry.themeColor;
   const ink = color ? inkOn(color) : theme.ink;
 
   let body: React.ReactNode;
-  if (phase.name === 'manifest' || (phase.name === 'ready' && !sessionId)) {
+  if (phase.name === 'manifest' || (phase.name === 'ready' && (!sessionId || owner === undefined))) {
     body = (
       <View style={hubStyles.centered}>
         <ActivityIndicator size="large" />
@@ -306,7 +334,7 @@ export function UiSession({
             </View>
           </View>
         )}
-        <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox }}>
+        <MateuAppProvider key={owner ?? 'nobody'} config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox }}>
           <SessionContent initialRoute={route} visible={visible} />
         </MateuAppProvider>
       </>

@@ -4,8 +4,9 @@ import {
   CHUNK_CHARS,
   MAX_QUEUED_ITEMS,
   OfflineQueue,
-  chunked,
+  generations,
   newIdempotencyKey,
+  outboxIndexKeyOf,
   outboxKeyOf,
   refusalOf,
   shouldQueue,
@@ -46,23 +47,27 @@ test('a key is a v4 uuid the servers accept (8-128 url-safe characters)', () => 
   assert.match(key, /^[A-Za-z0-9_\-:.]{8,128}$/);
 });
 
-test('the store key of a UI is secure-store safe', () => {
-  assert.equal(outboxKeyOf('https://x/y z'), 'mateu.ui.https___x_y_z.outbox');
+test('the store key of a UI is secure-store safe, and one per owner', () => {
+  assert.match(outboxKeyOf('https://x/y z'), /^mateu\.ui\.https___x_y_z\.outbox\.[0-9a-f]{16}$/);
+  assert.match(outboxKeyOf('https://x/y z', 'someone'), /^[A-Za-z0-9._-]+$/);
+  assert.notEqual(outboxKeyOf('ui', 'alice'), outboxKeyOf('ui', 'bob'));
 });
 
 test('a long value is split into chunks under the secure-store limit and read back whole', async () => {
   const store = memory();
   const value = 'x'.repeat(CHUNK_CHARS * 2 + 10);
-  await chunked.set(store, 'k', value);
-  assert.equal(store.data.get('k.n'), '3');
+  await generations.write(store, 'k', value);
   for (const [, v] of store.data) assert.ok(v.length <= CHUNK_CHARS);
-  assert.equal(await chunked.get(store, 'k'), value);
-  await chunked.set(store, 'k', 'short');
-  assert.equal(store.data.has('k.1'), false); // the leftover chunks go
-  assert.equal(await chunked.get(store, 'k'), 'short');
-  await chunked.remove(store, 'k');
+  assert.equal([...store.data.keys()].filter((k) => k !== 'k').length, 3);
+  assert.deepEqual(await generations.read(store, 'k'), { kind: 'ok', value, recovered: false });
+  await generations.write(store, 'k', 'short');
+  assert.deepEqual(await generations.read(store, 'k'), { kind: 'ok', value: 'short', recovered: false });
+  await generations.write(store, 'k', 'shorter');
+  // the current version and the one before it are kept, older ones go
+  assert.equal([...store.data.keys()].filter((k) => k !== 'k').length, 2);
+  await generations.remove(store, 'k');
   assert.equal(store.data.size, 0);
-  assert.equal(await chunked.get(store, 'k'), null);
+  assert.deepEqual(await generations.read(store, 'k'), { kind: 'empty' });
 });
 
 test('a queued item survives a restart and carries no credentials', async () => {
@@ -107,7 +112,8 @@ test('draining sends in order, one at a time, each with its own key, and empties
   assert.equal(result.sent.length, 2);
   assert.equal(result.stoppedBy, undefined);
   assert.deepEqual(await q.list(), []);
-  assert.equal(store.data.size, 0);
+  // nothing of the queue is left — only the UI's list of owners, which holds no data
+  assert.deepEqual([...store.data.keys()], [outboxIndexKeyOf('ui1')]);
 });
 
 test('still offline: the head stays pending and nothing after it is sent', async () => {
@@ -235,12 +241,22 @@ test('a full store: the request is not kept for later (false) but lives in memor
   assert.equal(store.data.size, 0);
 });
 
-test('an unreadable or corrupt outbox reads as empty, and clearing a broken store still notifies', async () => {
+test('a corrupt outbox is DAMAGED, never empty; a locked store is unavailable; clearing a broken store still notifies', async () => {
   const corrupt = memory();
-  await chunked.set(corrupt, outboxKeyOf('ui1'), '{not json');
-  assert.equal(await OfflineQueue.countOf(corrupt, 'ui1'), 0);
-  await chunked.set(corrupt, outboxKeyOf('ui1'), JSON.stringify([{ key: 'k', request: {} }, null]));
-  assert.equal(await OfflineQueue.countOf(corrupt, 'ui1'), 0); // items without an actionId are dropped
+  await generations.write(corrupt, outboxKeyOf('ui1'), '{not json');
+  const damaged = new OfflineQueue(corrupt, 'ui1');
+  assert.deepEqual(await damaged.list(), []);
+  assert.equal(damaged.status, 'damaged');
+  // nothing is written over it…
+  assert.equal(await damaged.enqueue(request(), 'key-0001-aaaa', 'x'), false);
+  assert.equal(damaged.status, 'damaged');
+  // …until the user discards it explicitly
+  await damaged.discardDamaged();
+  assert.equal(damaged.status, 'ok');
+  assert.equal(await damaged.enqueue(request(), 'key-0001-aaaa', 'x'), true);
+  const valid = memory();
+  await generations.write(valid, outboxKeyOf('ui1'), JSON.stringify({ v: 1, owner: 'anonymous', items: [{ key: 'k', request: {} }, null] }));
+  assert.equal(await OfflineQueue.countOf(valid, 'ui1'), 0); // items without an actionId are dropped
   const broken = memory();
   broken.get = async () => {
     throw new Error('locked');
@@ -248,7 +264,10 @@ test('an unreadable or corrupt outbox reads as empty, and clearing a broken stor
   broken.remove = async () => {
     throw new Error('locked');
   };
-  assert.deepEqual(await new OfflineQueue(broken, 'ui1').list(), []);
+  const locked = new OfflineQueue(broken, 'ui1');
+  assert.deepEqual(await locked.list(), []);
+  assert.equal(locked.status, 'unavailable');
+  assert.equal(await locked.enqueue(request(), 'key-0001-aaaa', 'x'), false);
   const heard: string[] = [];
   const off = OfflineQueue.onAnyChange((uiId) => heard.push(uiId));
   await OfflineQueue.clear(broken, 'ui1');

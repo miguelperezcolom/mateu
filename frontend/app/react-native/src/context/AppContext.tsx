@@ -8,13 +8,16 @@ setStreamingFetch(expoFetch as unknown as typeof fetch);
 import { setLocalNotifier } from '../core/osNotifications';
 import { platformNotifier, platformPushTokens } from '../ui/localNotifications';
 import { setPushTokenSource } from '../core/remotePush';
+import { remotePushEnabled } from '../core/pushConfig';
+import Constants from 'expo-constants';
 setLocalNotifier(platformNotifier());
 // saved listing views and column choices survive a restart: the device's app storage (per UI)
 import { setListingPrefsStorage } from '../renderer/persistedScopes';
 import { metaStore } from '../hub/storage';
 setListingPrefsStorage(metaStore);
-// …and REMOTE push, for a UI whose server sends pushes (core/remotePush.ts)
-setPushTokenSource(platformPushTokens());
+// …and REMOTE push, for a UI whose server sends pushes (core/remotePush.ts) — only in a build set
+// up for it, i.e. somebody's own fixed app (core/pushConfig.ts): the hub never asks for a token
+if (remotePushEnabled(Constants.expoConfig?.extra)) setPushTokenSource(platformPushTokens());
 import { MateuSession } from '../core/MateuSession';
 import { randomUuid } from '../core/sessionId';
 import type { TokenProvider } from '../core/auth';

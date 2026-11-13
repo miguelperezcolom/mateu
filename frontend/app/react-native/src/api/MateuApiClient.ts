@@ -45,6 +45,10 @@ export interface RunActionParams {
   /** The offline send queue's key (`Idempotency-Key` header): the server runs a request carrying
    *  it once per caller + action, so it is also safe to repeat after a timeout / 5xx. */
   idempotencyKey?: string;
+  /** A 401 may only refresh the CURRENT sign-in silently, never open the sign-in browser: the
+   *  offline send queue's sends — a sign-in there could be someone else's, and the queued request
+   *  would then be repeated as them. */
+  silentReauth?: boolean;
 }
 
 declare const __DEV__: boolean | undefined;
@@ -295,7 +299,7 @@ export class MateuApiClient {
     const idempotent = isIdempotentAction(params.actionId ?? '', params.idempotent) || !!params.idempotencyKey;
     for (let attempt = 1; ; attempt++) {
       try {
-        return await this.postOnce(url, payload, timeoutMillis, params.idempotencyKey);
+        return await this.postOnce(url, payload, timeoutMillis, params.idempotencyKey, !params.silentReauth);
       } catch (e) {
         if (e instanceof StaleScreenError) throw e;
         if (!shouldRetry(classifyFailure(e, connectivity.isOnline), attempt, idempotent)) throw e;
@@ -307,7 +311,7 @@ export class MateuApiClient {
 
   /** One POST, bounded by `timeoutMillis` (fetch has no timeout of its own: an answer that never
    *  came left the screen waiting forever). Reports reachability to `connectivity`. */
-  private async postOnce(url: string, payload: string, timeoutMillis: number, idempotencyKey?: string): Promise<unknown> {
+  private async postOnce(url: string, payload: string, timeoutMillis: number, idempotencyKey?: string, mayPrompt = true): Promise<unknown> {
     const abort = typeof AbortController !== 'undefined' ? new AbortController() : null;
     let timedOut = false;
     const timer = abort ? setTimeout(() => { timedOut = true; abort.abort(); }, timeoutMillis) : undefined;
@@ -317,11 +321,15 @@ export class MateuApiClient {
         fetch(url, { method: 'POST', headers: { ...(await this.headers()), [RENDERER_HEADER]: rendererHeaderValue(), ...(idempotencyKey ? { [IDEMPOTENCY_HEADER]: idempotencyKey } : {}) }, body: payload, ...(abort ? { signal: abort.signal } : {}) });
       let response: Response;
       try {
+        // a silent re-auth may join a sign-in another request opened: it is repeated only if the
+        // SAME person is signed in afterwards (the offline queue's sends, R1)
+        const ownerBefore = !mayPrompt ? await this.auth?.owner?.().catch(() => null) : undefined;
         response = await doFetch();
         // Session expiry: a 401 gives the app one chance to re-authenticate, then we retry once.
         // (only against a backend trusted with the credentials: an anonymous island's 401 is not ours to fix)
-        if (response.status === 401 && this.carriesCredentials() && (await handleSessionExpired(this.auth, this.mayPrompt()))) {
-          response = await doFetch();
+        if (response.status === 401 && this.carriesCredentials() && (await handleSessionExpired(this.auth, mayPrompt && this.mayPrompt()))) {
+          const sameOwner = mayPrompt || (await this.auth?.owner?.().catch(() => null)) === ownerBefore;
+          if (sameOwner) response = await doFetch();
         }
       } catch (e) {
         if (timedOut) throw new RequestTimeoutError(timeoutMillis);
