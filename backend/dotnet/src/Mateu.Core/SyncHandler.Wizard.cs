@@ -89,13 +89,8 @@ internal sealed partial class SyncHandler
                 if (!toggle.Enabled()) break;
                 var saved = draftable.SaveDraft();
                 if (rq.ActionId == "saveDraft") return MapResult(saved ?? new Message("Draft saved"), rq);
-                var close = draftable.CloseDraft();
-                return MapResult(new object[]
-                {
-                    saved as Message ?? new Message("Draft saved"),
-                    UICommandDto.MarkAsClean(),
-                    close as UICommandDto ?? UICommandDto.NavigateTo(close?.ToString() ?? "/"),
-                }, rq);
+                return MapResult(ClosingAnswer(saved as Message ?? new Message("Draft saved"),
+                    draftable.CloseDraft()), rq);
             // The drawer step pager's jump-to-step: `_stepId` = the bullet id "step-N"; jump only
             // BACKWARD (to an already-visited step) so we never skip a step's validation forward.
             case "goToStep" when GoToStepTarget(rq) is { } t && t >= 1 && t < step
@@ -105,6 +100,35 @@ internal sealed partial class SyncHandler
                 break;
         }
         return FragmentResponse(w.WizardTitle ?? Title(type), _mapper.MapWizard(type, wizard, route, step), rq);
+    }
+
+    /// <summary>The answer of "Save and close" (mirrors Java's WizardActionDispatcher.closingAnswer):
+    /// the page is marked clean, then what CloseDraft returned decides the rest. Only a route
+    /// (string / Uri) navigates; null lands on "/"; a Message is shown INSTEAD of the default toast
+    /// and the default landing applies; a UI command or anything else is applied as such — it is
+    /// never turned into a URL.</summary>
+    internal static List<object> ClosingAnswer(Message defaultToast, object? close)
+    {
+        var answer = new List<object> { close as Message ?? defaultToast, UICommandDto.MarkAsClean() };
+        switch (close)
+        {
+            case null or Message:
+                answer.Add(UICommandDto.NavigateTo("/"));
+                break;
+            case string route:
+                answer.Add(UICommandDto.NavigateTo(route));
+                break;
+            case Uri uri:
+                answer.Add(UICommandDto.NavigateTo(uri.OriginalString));
+                break;
+            case IEnumerable<object> many:
+                answer.AddRange(many);
+                break;
+            default:
+                answer.Add(close);
+                break;
+        }
+        return answer;
     }
 
     /// <summary>A streamed completion (Java's WizardActionDispatcher on a Flux): the task's progress

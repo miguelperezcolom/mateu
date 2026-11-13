@@ -238,7 +238,7 @@ public class Onboarding extends Wizard implements Draftable {
 | Piece | What it does |
 |---|---|
 | `Draftable.saveDraft(rq)` | "Save": the current step is hydrated but **not validated** (a draft may be incomplete); `null` answers "Draft saved" and the wizard stays put |
-| `Draftable.closeDraft(rq)` | where "Save and close" lands after saving (a `URI` or a `UICommand`; `null` = `/`); the page is marked clean first |
+| `Draftable.closeDraft(rq)` | where "Save and close" lands after saving: a route (`URI` / `String`) navigates there, `null` lands on `/`, a `Message` replaces the "Draft saved" toast (then `/`), a `UICommand` or any other answer is applied as such; the page is marked clean first |
 | `Draftable.resumeStep(rq)` | the step (field name) a fresh load opens on — the one the user left |
 | `stepSkippable(step)` | "Skip": moves on without requiring that step's fields. Unlike `stepApplies`, the step is still there — the user chose to leave it for later |
 | `@WizardCompletionAction(availableFromStep = "…")` | the completion is offered beside Next from that step on |
