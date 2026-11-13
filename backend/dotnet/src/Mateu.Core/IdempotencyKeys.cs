@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Mateu.Dtos;
+using Mateu.Uidl;
 
 namespace Mateu.Core;
 
@@ -9,27 +10,50 @@ namespace Mateu.Core;
 /// The server half of the offline send queue (Java's <c>io.mateu.core.infra.idempotency.IdempotencyKeys</c>):
 /// a sync request carrying an <c>Idempotency-Key</c> header runs ONCE per caller, action and key;
 /// a repeat gets the first answer back, and a repeat arriving while the first run is in flight
-/// joins it. Remembered in memory, per process: bounded (<see cref="MaxEntries"/>, least recently
-/// used first out) and for <see cref="Ttl"/> (24 h). A run that throws or answers an error message
-/// (a refusal, the error boundary's) is forgotten, so the key can be sent again.
+/// joins it.
+/// <para>Remembered in memory, per process — lost on a restart and never shared between instances
+/// (several of them need sticky routing for the guarantee to hold). Two separate tables: runs IN
+/// FLIGHT are never evicted (dropping one would let a retry of its key start a second run while the
+/// first is still working) — when there are <see cref="MaxEntries"/> of them a NEW key is refused
+/// with a <see cref="UserFacingException"/> (<see cref="BusyTitle"/>), an error answer the client
+/// keeps queued and sends again later; the answers of FINISHED runs are bounded
+/// (<see cref="MaxEntries"/>, least recently used first out) and kept for <see cref="Ttl"/> (24 h).
+/// A run that throws or answers an error message (a refusal, the error boundary's) is forgotten,
+/// so the key can be sent again. Entries are removed by identity, never by key alone.</para>
+/// <para>The caller is the complete effective identity (<see cref="CallerOf"/>) — the one the
+/// access checks read — so one user's key never answers for another's request and changed grants
+/// never replay an answer remembered for the old ones.</para>
 /// </summary>
 public static partial class IdempotencyKeys
 {
     /// <summary>The request header carrying the key (the IETF httpapi draft's name).</summary>
     public const string Header = "Idempotency-Key";
 
-    /// <summary>How many answers are remembered (env <c>MATEU_IDEMPOTENCY_MAX_ENTRIES</c>).</summary>
+    /// <summary>Title of the refusal when too many keyed requests are in flight (same in the 3 backends).</summary>
+    public const string BusyTitle = "Too many pending requests";
+
+    /// <summary>Text of the refusal when too many keyed requests are in flight.</summary>
+    public const string BusyMessage = "The server is still processing too many requests. Try again in a moment.";
+
+    /// <summary>How many runs may be in flight, and how many finished answers are remembered
+    /// (env <c>MATEU_IDEMPOTENCY_MAX_ENTRIES</c>).</summary>
     public static int MaxEntries { get; set; } = EnvNumber("MATEU_IDEMPOTENCY_MAX_ENTRIES", 2000);
 
     /// <summary>How long an answer is remembered (env <c>MATEU_IDEMPOTENCY_TTL_SECONDS</c>).</summary>
     public static TimeSpan Ttl { get; set; } = TimeSpan.FromSeconds(EnvNumber("MATEU_IDEMPOTENCY_TTL_SECONDS", 24 * 60 * 60));
 
-    private sealed record Entry(Task<UIIncrementDto> Answer, DateTime CreatedAt)
+    private sealed class Finished(Task<UIIncrementDto> answer, DateTime createdAt)
     {
-        public DateTime Touched { get; set; } = CreatedAt;
+        public Task<UIIncrementDto> Answer { get; } = answer;
+        public DateTime CreatedAt { get; } = createdAt;
+        public DateTime Touched { get; set; } = createdAt;
     }
 
-    private static readonly Dictionary<string, Entry> Answers = new();
+    private static readonly object Lock = new();
+    /// <summary>Runs not finished yet: never evicted, admission bounded.</summary>
+    private static readonly Dictionary<string, Task<UIIncrementDto>> InFlight = new();
+    /// <summary>Answers of finished runs: LRU + TTL.</summary>
+    private static readonly Dictionary<string, Finished> Answers = new();
 
     [GeneratedRegex("^[A-Za-z0-9_\\-:.]{8,128}$")]
     private static partial Regex Valid();
@@ -42,46 +66,71 @@ public static partial class IdempotencyKeys
         return Valid().IsMatch(trimmed) ? trimmed : null;
     }
 
+    /// <summary>The caller an idempotency key is scoped to, canonical and complete: the identity's
+    /// name (else <paramref name="principalName"/>, the authenticated principal's), roles, groups,
+    /// scopes and permissions, each list sorted — the same grants always give the same text and any
+    /// change of grants another.</summary>
+    public static string CallerOf(string? principalName, Identity? identity)
+    {
+        static string Joined(IReadOnlyList<string>? items) =>
+            string.Join("\u0003", (items ?? []).Where(i => i is not null).Distinct(StringComparer.Ordinal)
+                .Order(StringComparer.Ordinal));
+        var name = identity?.Name ?? principalName ?? "";
+        return string.Join("\u0001",
+            "name=" + name,
+            "roles=" + Joined(identity?.Roles),
+            "groups=" + Joined(identity?.Groups),
+            "scopes=" + Joined(identity?.Scopes),
+            "permissions=" + Joined(identity?.Permissions));
+    }
+
     /// <summary>Runs <paramref name="run"/> unless <paramref name="caller"/> already sent
-    /// <paramref name="key"/> for <paramref name="actionId"/>; then the first answer is replayed.
-    /// <paramref name="caller"/> is any stable text naming the authenticated caller (hashed here).</summary>
+    /// <paramref name="key"/> for <paramref name="actionId"/>; then the first answer is replayed
+    /// (joined while it is still in flight). <paramref name="caller"/> is any stable text naming the
+    /// caller (<see cref="CallerOf"/>; hashed here). A NEW key while <see cref="MaxEntries"/> runs
+    /// are in flight answers a faulted task (<see cref="UserFacingException"/>).</summary>
     public static Task<UIIncrementDto> OnceAsync(
         string? caller, string? actionId, string? key, Func<Task<UIIncrementDto>> run)
     {
         if (KeyOf(key) is not { } valid) return run();
         var scoped = Sha256((caller ?? "") + "\u0002" + (actionId ?? "") + "\u0002" + valid);
         TaskCompletionSource<UIIncrementDto> answer;
-        lock (Answers)
+        lock (Lock)
         {
             var now = DateTime.UtcNow;
-            if (Answers.TryGetValue(scoped, out var known) && now - known.CreatedAt <= Ttl)
+            if (Answers.TryGetValue(scoped, out var known))
             {
-                known.Touched = now;
-                return known.Answer;
+                if (now - known.CreatedAt <= Ttl)
+                {
+                    known.Touched = now;
+                    return known.Answer;
+                }
+                Answers.Remove(scoped);
             }
-            // remembered BEFORE the run starts: a run that fails synchronously must find its entry
+            if (InFlight.TryGetValue(scoped, out var running)) return running;
+            if (InFlight.Count >= Math.Max(1, MaxEntries))
+                return Task.FromException<UIIncrementDto>(new UserFacingException(BusyTitle, BusyMessage));
+            // registered BEFORE the run starts: a run that fails synchronously must find its entry
             // to forget it, and a repeat arriving meanwhile must find it to join it
             answer = new TaskCompletionSource<UIIncrementDto>(TaskCreationOptions.RunContinuationsAsynchronously);
-            Answers[scoped] = new Entry(answer.Task, now);
-            while (Answers.Count > Math.Max(1, MaxEntries))
-                Answers.Remove(Answers.MinBy(e => e.Value.Touched).Key);
+            InFlight[scoped] = answer.Task;
         }
-        _ = RunAndForgetOnFailure(scoped, run, answer);
+        _ = RunAndSettle(scoped, run, answer);
         return answer.Task;
     }
 
-    private static async Task RunAndForgetOnFailure(
+    private static async Task RunAndSettle(
         string scoped, Func<Task<UIIncrementDto>> run, TaskCompletionSource<UIIncrementDto> answer)
     {
         try
         {
             var increment = await run().ConfigureAwait(false);
-            if (Refused(increment)) Forget(scoped, answer.Task);
+            Settle(scoped, answer.Task, remember: !Refused(increment));
             answer.SetResult(increment);
         }
         catch (Exception e)
         {
-            Forget(scoped, answer.Task);
+            Settle(scoped, answer.Task, remember: false);
             answer.SetException(e);
         }
     }
@@ -90,20 +139,35 @@ public static partial class IdempotencyKeys
     public static bool Refused(UIIncrementDto? increment) =>
         increment?.Messages?.Any(m => m is not null && m.Variant == "error") == true;
 
-    /// <summary>Forgets the entry only while it is still this run's (a newer run keeps its own).</summary>
-    private static void Forget(string scoped, Task<UIIncrementDto> run)
+    /// <summary>A run ended: out of the in-flight table only while it is still this run's (a newer
+    /// run keeps its own), and its answer remembered when worth it.</summary>
+    private static void Settle(string scoped, Task<UIIncrementDto> run, bool remember)
     {
-        lock (Answers)
+        lock (Lock)
         {
-            if (Answers.TryGetValue(scoped, out var known) && ReferenceEquals(known.Answer, run))
-                Answers.Remove(scoped);
+            if (!InFlight.TryGetValue(scoped, out var current) || !ReferenceEquals(current, run)) return;
+            InFlight.Remove(scoped);
+            if (!remember) return;
+            Answers[scoped] = new Finished(run, DateTime.UtcNow);
+            while (Answers.Count > Math.Max(1, MaxEntries))
+                Answers.Remove(Answers.MinBy(e => e.Value.Touched).Key);
         }
+    }
+
+    /// <summary>How many keyed runs are in flight (tests).</summary>
+    public static int InFlightCount
+    {
+        get { lock (Lock) return InFlight.Count; }
     }
 
     /// <summary>Forgets every key (tests).</summary>
     public static void Clear()
     {
-        lock (Answers) Answers.Clear();
+        lock (Lock)
+        {
+            InFlight.Clear();
+            Answers.Clear();
+        }
     }
 
     private static string Sha256(string text) =>

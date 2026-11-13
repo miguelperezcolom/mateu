@@ -579,7 +579,14 @@ public sealed record Identity(
     IReadOnlyList<string>? Roles = null,
     IReadOnlyList<string>? Groups = null,
     IReadOnlyList<string>? Scopes = null,
-    IReadOnlyList<string>? Permissions = null);
+    IReadOnlyList<string>? Permissions = null)
+{
+    /// <summary>Who the caller is (the principal's name or subject; null when unknown). Never matched
+    /// by a gate: it tells callers with the same grants apart — e.g. the idempotency key scope of the
+    /// offline send queue. A custom <c>MateuOptions.Identity</c> that does not read
+    /// <c>HttpContext.User</c> should set it.</summary>
+    public string? Name { get; init; }
+}
 
 /// <summary>Base of the three permission attributes: matching is AND across declared dimensions,
 /// OR within each; nothing declared → unrestricted; no identity → unauthorized.</summary>

@@ -697,17 +697,16 @@ public static partial class MateuExtensions
         });
     }
 
-    /// <summary>The caller an idempotency key is scoped to: the authenticated name and roles —
-    /// stable across tokens, so signing in again keeps the same scope.</summary>
+    /// <summary>The caller an idempotency key is scoped to: the EFFECTIVE identity — the one
+    /// <see cref="MateuOptions.Identity"/> resolves, which every access check reads — complete and
+    /// canonical (name, roles, groups, scopes, permissions; <see cref="IdempotencyKeys.CallerOf"/>).
+    /// Stable across tokens, so signing in again keeps the same scope; any change of grants changes
+    /// it, so an answer remembered for the old grants is never replayed.</summary>
     internal static string CallerOf(HttpContext ctx)
     {
-        // HttpContext.User is never null: an anonymous request carries an unauthenticated principal
-        var user = ctx.User;
-        var roles = user.Claims
-            .Where(c => c.Type is System.Security.Claims.ClaimTypes.Role or "role" or "roles")
-            .Select(c => c.Value).Order(StringComparer.Ordinal);
-        var name = user.Identity is { IsAuthenticated: true } identity ? identity.Name ?? "" : "";
-        return name + "\u0001" + string.Join(",", roles);
+        var options = ctx.RequestServices?.GetService<MateuOptions>();
+        var identity = options is not null ? options.Identity(ctx) : ClaimsIdentityMapper.FromUser(ctx);
+        return IdempotencyKeys.CallerOf(PrincipalName(ctx), identity);
     }
 
     /// <summary>The error boundary of the sync endpoint. A denied request answers 403 with an error

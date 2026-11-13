@@ -256,7 +256,10 @@ public static class ClaimsIdentityMapper
             Roles: Values(user, roleTypes),
             Groups: Values(user, ["groups", "group"]),
             Scopes: Values(user, ["scope", "scp"], spaceSeparated: true),
-            Permissions: Values(user, ["permissions", "permission"]));
+            Permissions: Values(user, ["permissions", "permission"]))
+        {
+            Name = string.IsNullOrWhiteSpace(user.Identity?.Name) ? null : user.Identity!.Name,
+        };
     }
 
     private static IReadOnlyList<string> Values(ClaimsPrincipal user, IEnumerable<string> types, bool spaceSeparated = false)
