@@ -26,7 +26,7 @@ import { UpdateAppButton } from './UpdateApp';
 import { ANONYMOUS_OWNER, OfflineQueue } from '../../core/offlineQueue';
 import { useQueueOwner } from '../../context/useQueueOwner';
 import { RenderBoundary } from '../../ui/RenderBoundary';
-import { serverActivity } from '../../core/serverActivity';
+import { ServerActivity } from '../../core/serverActivity';
 import { ServerActivityBar } from '../../shell/ServerActivityBar';
 
 type Phase =
@@ -97,6 +97,15 @@ export function UiSession({
   const [screenBack, setScreenBack] = useState<ScreenBack | null>(null);
   /** A UI ahead of this app (compat.ts `recommended`): it opens, with this note above it. */
   const [compatNotice, setCompatNotice] = useState<string | null>(null);
+  // what THIS UI waits for (its manifest, then its session's requests): its own bar, never another
+  // open UI's wait (GA-5.7) — announced only while it is the one on screen
+  const visibleNow = useRef(visible);
+  visibleNow.current = visible;
+  const activity = useMemo(() => {
+    const own = new ServerActivity();
+    own.onScreen = () => visibleNow.current;
+    return own;
+  }, []);
 
   /**
    * Can THIS app render that manifest's UI? Stops at the update screen when it cannot (true). From
@@ -160,14 +169,14 @@ export function UiSession({
       } else {
         // the UI cannot open without it: the "waiting for the server" bar shows (core/serverActivity.ts);
         // the background refresh above does not count
-        fetched = await serverActivity.track(fetchFresh);
+        fetched = await activity.track(fetchFresh);
       }
       const m = await manifestOf(fetched, entry);
       if (!m.ok) {
         if (alive) setPhase({ name: 'error', reason: m.reason });
         return;
       }
-      const found = await serverActivity.track(() => staticBundleOf(fetched, m.manifest, entry.baseUrl));
+      const found = await activity.track(() => staticBundleOf(fetched, m.manifest, entry.baseUrl));
       if (!found.ok) {
         if (alive) setPhase({ name: 'error', reason: found.reason });
         return;
@@ -334,7 +343,7 @@ export function UiSession({
         )}
         {/* one UI that cannot be drawn fails alone: the hub and the other open UIs go on */}
         <RenderBoundary key={`${sessionId}#${generation}`} where={entry.name}>
-          <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox }}>
+          <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox, activity }}>
             <SessionContent initialRoute={route} visible={visible} />
           </MateuAppProvider>
         </RenderBoundary>
@@ -371,7 +380,7 @@ export function UiSession({
       </Appbar.Header>
       )}
       {/* "waiting for the server", right under the hub's bar (a UI that claims the bar draws its own) */}
-      {!(barClaimed && phase.name === 'ready' && !!sessionId) && <ServerActivityBar />}
+      {!(barClaimed && phase.name === 'ready' && !!sessionId) && <ServerActivityBar activity={activity} />}
       {body}
     </View>
   );

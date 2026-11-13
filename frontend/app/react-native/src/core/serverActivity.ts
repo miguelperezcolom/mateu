@@ -11,8 +11,10 @@
  * would never go away. Those are excluded by action id ([BACKGROUND_ACTIONS]) or by the request's
  * own `background` flag.
  *
- * Process-wide (one instance, [serverActivity]): only one UI is on screen and the hidden hub UIs send
- * nothing but excluded background traffic (their polling stands still while hidden).
+ * One counter PER UI SESSION (MateuSession.activity — its islands and other backends share it): a
+ * hub keeps several UIs open, and a hidden UI's LongTask (its stream stays open, counted) must not
+ * show on the visible one's bar (GA-5.7). [serverActivity] is the counter of a session on the
+ * process-wide sign-in, and the default of a bare client.
  *
  * Pure (no React / RN imports): unit-tested with a fake clock.
  */
@@ -50,6 +52,10 @@ type Listener = (busy: boolean) => void;
 export class ServerActivity {
   private pending = 0;
   private readonly listeners = new Set<Listener>();
+
+  /** Whether the UI this counter belongs to is the one on screen: only then is a wait announced to
+   *  the screen reader (a hidden hub UI's bar is not seen either). */
+  onScreen: () => boolean = () => true;
 
   /** Whether a request is still waiting for its answer. */
   get busy(): boolean {
@@ -112,8 +118,27 @@ export class ServerActivity {
   }
 }
 
-/** The app's one counter. */
+/** The counter of a session on the process-wide sign-in (and of a bare client). */
 export const serverActivity = new ServerActivity();
+
+const delayed = new WeakMap<ServerActivity, DelayedBusy>();
+
+/**
+ * The ONE delay decision of a counter, however many bars show it (a drawer shell's and the hub's):
+ * one announcement per wait. `announce` is called once per wait that became visible, while the
+ * counter's UI is on screen.
+ */
+export function delayedBusyOf(activity: ServerActivity, announce: () => void, timer?: BusyTimer): DelayedBusy {
+  let busy = delayed.get(activity);
+  if (!busy) {
+    busy = new DelayedBusy(activity, timer);
+    busy.onShown(() => {
+      if (activity.onScreen()) announce();
+    });
+    delayed.set(activity, busy);
+  }
+  return busy;
+}
 
 export interface BusyTimer {
   set(fn: () => void, ms: number): unknown;

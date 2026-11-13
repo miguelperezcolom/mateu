@@ -26,7 +26,6 @@ import { classifyFailure, describeFailure, HttpStatusError, isIdempotentAction }
 import { connectivity } from './connectivity.ts';
 import { actionShortcutsOf } from './keyShortcuts.ts';
 import { ANONYMOUS_OWNER, newIdempotencyKey, OUTBOX_TEXTS, outboxRecoveryTexts, shouldQueue, type QueuedRequest } from './offlineQueue.ts';
-import { serverActivity } from './serverActivity.ts';
 import type { ToastAction } from './componentContext.ts';
 
 /** The action whose answer an increment is (a streamed task's Retry runs it again). */
@@ -653,7 +652,7 @@ export class MateuViewController {
           json = await this.fetchViaProxy(kind, actionId ?? '', { _forEachSelectedRow: true });
         } else {
           // one call per row, counted as ONE wait (the indicator does not restart between rows)
-          const endWait = serverActivity.begin();
+          const endWait = this.session.activity.begin();
           try {
             for (const row of rows) {
               const rowCtx = { ...ctx, state: { ...ctx.state, ...row } };
@@ -687,7 +686,7 @@ export class MateuViewController {
         const init: RequestInit = { method, headers };
         if (method !== 'GET' && method !== 'HEAD' && target['body']) init.body = bodyOf(target, headers, ctx);
         // counted by the "waiting for the server" indicator until the body is read
-        json = await serverActivity.track(async () => {
+        json = await this.session.activity.track(async () => {
           const res = await fetch(url, init);
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           // a 204 (a DELETE) is a success with nothing to merge, never a parse error

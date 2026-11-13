@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { BACKGROUND_ACTIONS, DelayedBusy, HANDOVER_MS, SHOW_AFTER_MS, ServerActivity, isBackgroundRequest, type BusyTimer } from './serverActivity.ts';
+import { BACKGROUND_ACTIONS, DelayedBusy, delayedBusyOf, HANDOVER_MS, SHOW_AFTER_MS, ServerActivity, isBackgroundRequest, type BusyTimer } from './serverActivity.ts';
 
 /** A fake clock: timers fire only when advanced. */
 function fakeTimer() {
@@ -173,4 +173,25 @@ test('dispose stops listening and clears a pending show', () => {
   busy.dispose();
   timer.advance(SHOW_AFTER_MS * 2);
   assert.equal(busy.visible, false);
+});
+
+test('GA-5.7: one delay decision per UI counter, however many bars; a hidden UI\'s wait is not announced', () => {
+  const timer = fakeTimer();
+  const announced: string[] = [];
+  const shown = new ServerActivity();
+  const hidden = new ServerActivity();
+  hidden.onScreen = () => false;
+  const a = delayedBusyOf(shown, () => announced.push('shown'), timer);
+  assert.equal(delayedBusyOf(shown, () => announced.push('again'), timer), a, 'the same decision for a second bar');
+  const b = delayedBusyOf(hidden, () => announced.push('hidden'), timer);
+  const endHidden = hidden.begin();
+  timer.advance(SHOW_AFTER_MS + 1);
+  assert.equal(b.visible, true);
+  assert.equal(a.visible, false, "the hidden UI's long task is not the visible UI's wait");
+  const endShown = shown.begin();
+  timer.advance(SHOW_AFTER_MS + 1);
+  assert.equal(a.visible, true);
+  assert.deepEqual(announced, ['shown']);
+  endShown();
+  endHidden();
 });
