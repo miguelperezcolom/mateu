@@ -80,6 +80,12 @@ export function newIdempotencyKey(random?: (bytes: Uint8Array) => Uint8Array): s
 /** Store-key-safe form of a UI id (secure-store keys allow only [A-Za-z0-9._-]). */
 const safeUi = (uiId: string): string => uiId.replace(/[^A-Za-z0-9._-]/g, '_');
 
+/** The queue id of a build bound to ONE UI (a fixed / registry / direct build, no hub entry): its
+ *  base url names it, as it names the listing choices (core/listingPrefs.ts). */
+export function singleUiQueueId(baseUrl: string): string {
+  return `fixed.${baseUrl}`;
+}
+
 /** The store key of the queue of `owner` on a UI: its generation POINTER (the chunks hang below it).
  *  The owner is named by a digest — the full owner is stored inside and compared on every read. */
 export function outboxKeyOf(uiId: string, owner: string = ANONYMOUS_OWNER): string {
@@ -287,6 +293,16 @@ export interface DrainResult {
   stoppedBy?: SendOutcome & { item: QueuedItem };
 }
 
+/** How long until a drain that stopped is tried again on its own, in ms — or null when only an
+ *  event (the connection back, the UI opened, the foreground, the user) should try again: a server
+ *  that failed or was busy, or did not answer in time, is tried again after a while; no connection
+ *  waits for the connection, and a refusal / a sign-in / another owner wait for the user. */
+export function retryDelayAfter(result: DrainResult | null | undefined, attempt: number): number | null {
+  const stop = result?.stoppedBy;
+  if (stop?.kind !== 'waiting' || stop.reason === 'offline') return null;
+  return Math.min(30_000 * 2 ** Math.max(0, attempt), 10 * 60_000);
+}
+
 /** Sends one queued request with its key; throws like MateuApiClient.runAction. */
 export type Sender = (request: QueuedRequest, idempotencyKey: string) => Promise<unknown>;
 
@@ -303,10 +319,26 @@ export function refusalOf(increment: unknown): string | null {
   return [title, text].filter(Boolean).join(': ') || 'The server refused it.';
 }
 
+/**
+ * The title of the servers' ADMISSION refusal of a new key (too many keyed runs in flight): not a
+ * verdict on the change, only "not now" — the item waits and goes again. The same words in the three
+ * backends: Java `IdempotencyKeys.BUSY_TITLE`, .NET `IdempotencyKeys.BusyTitle`, Python
+ * `idempotency_keys.BUSY_TITLE`.
+ */
+export const SERVER_BUSY_TITLE = 'Too many pending requests';
+
+/** Whether an answer is the servers' transient "too many pending requests" refusal. */
+export function isServerBusy(increment: unknown): boolean {
+  const messages = asArray((increment as Json | null | undefined)?.['messages']);
+  return messages.some((m) => (m as Json)?.['variant'] === 'error' && (m as Json)?.['title'] === SERVER_BUSY_TITLE);
+}
+
 /** Sends one item and says what happened. */
 export async function sendOne(send: Sender, item: QueuedItem, online = true): Promise<SendOutcome> {
   try {
     const increment = await send(item.request, item.key);
+    // the server is busy (admission refused the key): it keeps waiting, like a 503 (GA-5.6)
+    if (isServerBusy(increment)) return { kind: 'waiting', reason: 'server' };
     const refusal = refusalOf(increment);
     return refusal ? { kind: 'refused', message: refusal } : { kind: 'sent', increment };
   } catch (e) {

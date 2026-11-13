@@ -4,7 +4,7 @@ import { Text } from '../ui/Text';
 import { MateuButton } from '../ui/controls';
 import { useAppContext } from '../context/AppContext';
 import { connectivity } from '../core/connectivity';
-import { OUTBOX_TEXTS, outboxRecoveryTexts, type QueuedItem, type QueueStatus } from '../core/offlineQueue';
+import { OUTBOX_TEXTS, outboxRecoveryTexts, retryDelayAfter, type QueuedItem, type QueueStatus } from '../core/offlineQueue';
 import { uiLocale } from '../core/money';
 import { askConfirm } from '../ui/ConfirmHost';
 import { headingA11y, modalA11y } from '../a11y/a11y';
@@ -33,11 +33,28 @@ export function OutboxHost({ visible = true }: { visible?: boolean }) {
       setItems(next);
       setStatus(queue.status);
     });
-    const send = () => void session.sendOutbox();
+    // a server that failed, was busy or did not answer is tried again after a while on its own (30 s,
+    // doubling up to 10 min); any event below sends at once and starts the wait over
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let attempt = 0;
+    let alive = true;
+    const send = (fromTimer = false) => {
+      if (timer) clearTimeout(timer);
+      timer = null;
+      if (!fromTimer) attempt = 0;
+      void session.sendOutbox().then((result) => {
+        const delay = retryDelayAfter(result, attempt);
+        if (!alive || delay === null) return;
+        attempt += 1;
+        timer = setTimeout(() => send(true), delay);
+      }, () => undefined);
+    };
     send();
     const offConnectivity = connectivity.subscribe((online) => online && send());
     const foreground = AppState.addEventListener?.('change', (state) => state === 'active' && send());
     return () => {
+      alive = false;
+      if (timer) clearTimeout(timer);
       off();
       offConnectivity();
       foreground?.remove?.();

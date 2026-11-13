@@ -253,6 +253,8 @@ eas build --profile production --platform all
 - `MATEU_APP_SCHEME` carries only the sign-in redirect (`acmecrm://auth`). It defaults to the bundle
   id and can never be `mateu`.
 - The camera permission stays, because photo fields use it. Its text is rewritten to say so.
+- [Offline forms](/native/offline-forms) (`@Action(offline = QUEUE)`) work as in the hub: the UI has
+  one send queue per signed-in person, kept in the device keychain under the UI's base URL.
 - A wrong combination fails the build: an unknown variant, a fixed build with no UI, a URL that is
   not http(s), an invalid bundle id or scheme.
 - EAS evaluates `app.config.ts` on your machine AND on its build server, so the variables must reach

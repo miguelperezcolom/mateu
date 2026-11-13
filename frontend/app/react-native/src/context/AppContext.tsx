@@ -71,6 +71,10 @@ export function MateuAppProvider({ config, children }: Props) {
     config.onSession?.(ref.current);
   }
   const session = ref.current;
+  // the queue follows who is signed in: somebody signing in where nobody was (a lazy sign-in a 401
+  // opened) gets their queue on the SAME session — the screen stays where it is
+  // (core/outboxOwner.ts `sameSessionFor`; a different PERSON gets a new session instead)
+  if (config.outbox !== undefined && session.outbox !== config.outbox) session.outbox = config.outbox;
 
   const value: AppContextValue = {
     session,

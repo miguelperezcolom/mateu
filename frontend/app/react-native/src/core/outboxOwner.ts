@@ -147,6 +147,16 @@ export function followSignIns(
   });
 }
 
+/**
+ * Whether a session opened for `before` may go on for `after`: yes unless both are PEOPLE and they
+ * differ. Somebody signing in where nobody was (a lazy sign-in a 401 opened) keeps the screen and
+ * only gets their own queue; a different person signing in gets a new session — what is on screen
+ * was loaded as the previous one.
+ */
+export function sameSessionFor(before: string | null | undefined, after: string | null | undefined): boolean {
+  return !before || !after || before === after;
+}
+
 /** A short, store-key-safe digest (two FNV-1a 32-bit lanes → 16 hex chars). Not cryptographic: it
  *  names keys and checks integrity; the owner itself is stored and compared in full. */
 export function digest(text: string): string {

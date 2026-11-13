@@ -24,7 +24,7 @@ import { hubBarSignsOut, uiSessionId, rotateUiSessionId } from '../uiSession';
 import { Notice, PrimaryButton, SecondaryButton, UiIcon, hubStyles, inkOn } from './common';
 import { UpdateAppButton } from './UpdateApp';
 import { ANONYMOUS_OWNER, OfflineQueue } from '../../core/offlineQueue';
-import { followSignIns } from '../../core/outboxOwner';
+import { useQueueOwner } from '../../context/useQueueOwner';
 import { serverActivity } from '../../core/serverActivity';
 import { ServerActivityBar } from '../../shell/ServerActivityBar';
 
@@ -226,31 +226,15 @@ export function UiSession({
   // Who owns the offline send queue of this session (outboxOwner.ts): the signed-in identity
   // (issuer + subject + tenant), the anonymous owner on a UI that does not sign in; null = a
   // sign-in whose tokens do not say who it is → nothing is queued. undefined while it is read.
-  const [owner, setOwner] = useState<string | null | undefined>(undefined);
+  // Read again after every sign-in a 401 opens mid-session: somebody ELSE may sign in on a shared
+  // phone, and then gets a new session with their own queue (GA-5.4, context/useQueueOwner.ts).
   const ownerNow = useCallback(
     async (): Promise<string | null> => (provider ? ((await provider.owner?.().catch(() => null)) ?? null) : ANONYMOUS_OWNER),
     [provider],
   );
-  useEffect(() => {
-    if (phase.name !== 'ready') return;
-    let alive = true;
-    void ownerNow().then((o) => {
-      if (!alive) return;
-      setOwner(o);
-      OfflineQueue.changed(entry.id); // the hub's badge now counts this owner's queue
-    });
-    // a 401 may open the sign-in browser mid-session and somebody ELSE may sign in (a shared phone):
-    // the owner is read again, so the session reopens with that person's queue (GA-5.4)
-    const stop = followSignIns(provider, ownerNow, (o) => {
-      if (!alive) return;
-      setOwner(o);
-      OfflineQueue.changed(entry.id);
-    });
-    return () => {
-      alive = false;
-      stop();
-    };
-  }, [phase.name, ownerNow, entry.id, provider]);
+  const { owner, generation, forget: forgetOwner } = useQueueOwner(phase.name === 'ready', provider, ownerNow, () =>
+    OfflineQueue.changed(entry.id), // the hub's badge now counts this owner's queue
+  );
 
   /** Signs out of the provider that signed in (its own end-session), then asks again. */
   const signOutHere = async () => {
@@ -258,7 +242,7 @@ export function UiSession({
     await liveSession.current?.pushUnregister?.().catch(() => undefined);
     // the queue of who signed out is SUSPENDED, not deleted: kept on the device, not sent, shown or
     // counted until the same person signs in again (offlineQueue.ts)
-    setOwner(undefined);
+    forgetOwner();
     await provider?.logout();
     OfflineQueue.changed(entry.id);
     setSessionId(await rotateUiSessionId(secretStore, entry.id));
@@ -347,7 +331,7 @@ export function UiSession({
             </View>
           </View>
         )}
-        <MateuAppProvider key={owner ?? 'nobody'} config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox }}>
+        <MateuAppProvider key={`${sessionId}#${generation}`} config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox }}>
           <SessionContent initialRoute={route} visible={visible} />
         </MateuAppProvider>
       </>

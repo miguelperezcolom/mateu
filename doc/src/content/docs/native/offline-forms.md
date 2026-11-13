@@ -13,7 +13,11 @@ signal. By default that save fails, as it does on the web — the change has not
 user is told so. For the writes that still make sense **later**, the [Mateu app](/native/react-native)
 can keep them in a **send queue** and send them when the connection is back.
 
-It is **opt-in, per action**: only an action that declares it is ever queued.
+It is **opt-in, per action**: only an action that declares it is ever queued. It works in both kinds
+of build of the app: the **hub** (the generic Mateu app, one queue per UI in its list) and a
+**fixed** build bound to one UI (your own branded app, `MATEU_VARIANT=fixed` — see
+[Mobile app stores](/deploy/mobile-app-stores#hub-or-fixed-mateu_variant)), whose single UI has its
+queue.
 
 ## Declare it
 
@@ -50,7 +54,9 @@ failing, so the user decides.
    pending, with **Send now** and **View**. *View* lists them; each one can be **cancelled**.
 3. The UI's row in the app's list (the hub) shows **"N changes pending"**.
 4. When the connection comes back — or the UI is opened, or the app returns to the foreground — the
-   app sends them **in order, one at a time**, and says how many were sent.
+   app sends them **in order, one at a time**, and says how many were sent. If the server is there
+   but fails, is busy or does not answer in time, the item stays pending and the app tries again on
+   its own after a while (30 seconds, doubling up to 10 minutes).
 5. If the server **refuses** one (a validation error, a 4xx, an error message), the queue **stops
    there** and shows why: what follows it may depend on it. The user can **Try again** (after fixing
    things elsewhere) or **Cancel** it.
@@ -87,6 +93,11 @@ person who filled it — its **owner** — and to nobody else:
   counted in the hub's badge. Someone else signing in to the same UI starts with an empty queue of
   their own and sees nothing of it. When the **same person** signs in again, their queue is back and
   is sent.
+- **Someone else signing in mid-session** — the sign-in expired, a request opened the sign-in browser
+  and a different person signed in (a shared phone) — gets a fresh session of the UI with their own
+  queue: the screen loaded as the previous person is not kept, and nothing they save is filed in the
+  previous person's queue. Signing in where nobody was signed in yet (a UI that signs in only when a
+  request needs it) keeps the screen and only opens that person's queue.
 - The hub's **"N changes pending"** counts only the queue of whoever is signed in to that UI now.
 
 ## When the stored queue cannot be read
@@ -152,8 +163,9 @@ The Java, .NET and Python servers honour it on the sync endpoint:
   - **runs in flight** are never evicted (dropping one would let a retry start a second run while the
     first is still working). When 2000 keyed runs are already in flight, a request with a NEW key is
     **refused** with the error *"Too many pending requests — The server is still processing too many
-    requests. Try again in a moment."* The app keeps the item queued and sends it again later; a
-    repeat of a key already in flight always joins its run.
+    requests. Try again in a moment."* The app does not take it as a refusal of the change: the item
+    stays pending and is sent again later, like after a server failure (see step 4 above); a repeat
+    of a key already in flight always joins its run.
   - **finished answers**: at most 2000 (least recently used first out), each for 24 hours. After that
     the key is forgotten and a repeat would run again.
 
