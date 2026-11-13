@@ -92,6 +92,12 @@ wire, and strips the keys: what reaches the client is what this caller may see. 
 browser enforced would be a suggestion — the same reason [pinned route
 parameters](/concepts/routes-and-mounts/#precedence) are re-applied on the server.
 
+The keys of a route are tied to the **view model it binds**, not only to the route the request
+names. A request that names a `viewModel` bound by `routes.yaml` while sending a route that is not
+one of its entries (nor the class's own `@ui` route) — or a route spelt with `.`/`..` segments —
+gets the **union** of every entry binding that view model: refused (403) when any of them refuses
+the caller, and every field any of their layouts locks dropped from the state.
+
 A **partial** is no exception: the keys inside a `type: Partial` (and its `${i18n.…}` texts) are
 applied exactly as if its content were written in the page that references it — the server expands
 the partials into the definition first, then applies access and translations to the whole tree.

@@ -153,7 +153,9 @@ The Java, .NET and Python servers honour it on the sync endpoint:
     first is still working). When 2000 keyed runs are already in flight, a request with a NEW key is
     **refused** with the error *"Too many pending requests — The server is still processing too many
     requests. Try again in a moment."* The app keeps the item queued and sends it again later; a
-    repeat of a key already in flight always joins its run.
+    repeat of a key already in flight always joins its run. In Python the join waits at most
+    `MATEU_IDEMPOTENCY_JOIN_SECONDS` (60) — the handler runs in a worker thread — and then answers
+    the same refusal.
   - **finished answers**: at most 2000 (least recently used first out), each for 24 hours. After that
     the key is forgotten and a repeat would run again.
 

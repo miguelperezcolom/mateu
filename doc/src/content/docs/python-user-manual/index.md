@@ -214,7 +214,8 @@ add_mateu(
   loop); per-request state lives in `ContextVar`s.
 - **Audience is a projection, not security.** `Audience()` / `@audience` read the client-controlled
   `appState["audience"]` — any caller can send any value. Tailor screens with it; hide data with
-  `EyesOnly`.
+  `EyesOnly`. Like Java and .NET, an `@audience` action is therefore never refused at invocation;
+  an `Audience()` row field is left out of listing columns AND row data, like an `EyesOnly` one.
 
 ### Server options
 
