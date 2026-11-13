@@ -89,17 +89,13 @@ public class RunActionUseCase {
   // ── Main entry point ──────────────────────────────────────────────────────
 
   public Flux<UIIncrementDto> handle(RunActionCommand incoming) {
-    // one span + metrics per request (OpenTelemetry, when the app has it) and the audit listeners;
-    // inside it, a request carrying an Idempotency-Key (the mobile app's offline send queue) runs
-    // once per caller, action and key: a repeat gets the first answer back (IdempotencyKeys)
+    // one span + metrics per request (OpenTelemetry, when the app has it) and the audit listeners
     return io.mateu.core.infra.observability.Observability.observe(
         incoming.route(),
         incoming.actionId(),
         incoming.serverSideType(),
         incoming.httpRequest(),
-        () ->
-            io.mateu.core.infra.idempotency.IdempotencyKeys.once(
-                incoming.httpRequest(), incoming.actionId(), () -> handleRequest(incoming)));
+        () -> handleRequest(incoming));
   }
 
   private Flux<UIIncrementDto> handleRequest(RunActionCommand incoming) {
@@ -121,6 +117,19 @@ public class RunActionUseCase {
     } catch (io.mateu.core.application.security.MateuForbiddenException e) {
       return Flux.error(e);
     }
+    // a request carrying an Idempotency-Key (the mobile app's offline send queue) runs once per
+    // caller, action and key: a repeat gets the first answer back (IdempotencyKeys). Consulted
+    // only once the request passed the checks above, so a refused request is never answered from
+    // memory; the caller's complete identity is part of the key, so changed grants never replay.
+    // Its own refusal (too many keyed runs in flight) answers through the error boundary.
+    return guarded(
+        command,
+        () ->
+            io.mateu.core.infra.idempotency.IdempotencyKeys.once(
+                command.httpRequest(), command.actionId(), () -> dispatch(command)));
+  }
+
+  private Flux<UIIncrementDto> dispatch(RunActionCommand command) {
     // The reserved actions answer through the same error boundary as every other action: an
     // exception in one of them is the generic message + reference, never a raw 500 (NM2).
     if (CONTRACT_ACTION.equals(command.actionId())) {

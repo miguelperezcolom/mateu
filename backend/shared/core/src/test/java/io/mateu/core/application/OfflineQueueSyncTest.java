@@ -9,10 +9,16 @@ import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.annotations.Action;
+import io.mateu.uidl.annotations.EyesOnly;
 import io.mateu.uidl.annotations.OfflinePolicy;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.security.CallerIdentity;
+import io.mateu.uidl.security.PrincipalResolver;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -49,13 +55,47 @@ class OfflineQueueSyncTest {
       COUNTS.incrementAndGet();
       throw new IllegalStateException("boom");
     }
+
+    @Action(offline = OfflinePolicy.QUEUE)
+    String mine(HttpRequest httpRequest) {
+      COUNTS.incrementAndGet();
+      return "Saved for " + httpRequest.getHeaderValue("X-App-User");
+    }
+
+    @Action(offline = OfflinePolicy.QUEUE)
+    @EyesOnly(permissions = "stock.write")
+    String guarded() {
+      return "Guarded " + COUNTS.incrementAndGet();
+    }
+  }
+
+  /**
+   * The app's own identity provider: the user and permissions its gateway put in headers. Mateu
+   * reads it through IdentityResolver, for access checks AND the idempotency scope alike.
+   */
+  public static class GatewayResolver implements PrincipalResolver {
+    @Override
+    public Optional<CallerIdentity> resolve(HttpRequest httpRequest) {
+      var user = httpRequest.getHeaderValue("X-App-User");
+      if (user == null) {
+        return Optional.empty();
+      }
+      var permissions = httpRequest.getHeaderValue("X-App-Permissions");
+      return Optional.of(
+          new CallerIdentity(
+              user,
+              List.of(),
+              List.of(),
+              List.of(),
+              permissions == null ? List.of() : List.of(permissions.split(","))));
+    }
   }
 
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(StockCount.class);
+    mateu = TestMateu.withUisAndBeans(List.of(new GatewayResolver()), StockCount.class);
   }
 
   @AfterAll
@@ -133,6 +173,41 @@ class OfflineQueueSyncTest {
     mateu.run(rq("save"), keyed("short"));
     mateu.run(rq("save"), keyed("short"));
     assertThat(COUNTS.get()).isEqualTo(2);
+  }
+
+  @Test
+  void twoUsersOfTheAppsOwnIdentityProviderNeverShareAKey() {
+    var alice = message(mateu.run(rq("mine"), user("alice", null, "key-0004-dddd")));
+    var bob = message(mateu.run(rq("mine"), user("bob", null, "key-0004-dddd")));
+    assertThat(alice).isEqualTo("Saved for alice");
+    assertThat(bob).isEqualTo("Saved for bob");
+    assertThat(COUNTS.get()).isEqualTo(2);
+  }
+
+  @Test
+  void aCallerWhosePermissionWasRevokedIsRefusedNotServedFromMemory() {
+    var first = message(mateu.run(rq("guarded"), user("alice", "stock.write", "key-0005-eeee")));
+    assertThat(first).isEqualTo("Guarded 1");
+    // same user, same key, the permission gone: the action's own check refuses it
+    var refused = false;
+    try {
+      var second = mateu.run(rq("guarded"), user("alice", null, "key-0005-eeee"));
+      refused = second.messages().stream().noneMatch(m -> "Guarded 1".equals(m.text()));
+    } catch (RuntimeException expected) {
+      refused = true;
+    }
+    assertThat(refused).isTrue();
+    assertThat(COUNTS.get()).isEqualTo(1);
+  }
+
+  private static Map<String, String> user(String name, String permissions, String key) {
+    var headers = new HashMap<String, String>();
+    headers.put("X-App-User", name);
+    if (permissions != null) {
+      headers.put("X-App-Permissions", permissions);
+    }
+    headers.put(IdempotencyKeys.HEADER, key);
+    return headers;
   }
 
   private static Map<String, String> keyed(String key) {
