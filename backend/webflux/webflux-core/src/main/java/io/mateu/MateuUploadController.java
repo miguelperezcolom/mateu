@@ -41,8 +41,9 @@ public class MateuUploadController {
                 Mono.fromCallable(
                         () -> {
                           principal.ifPresent(httpRequest::withPrincipal);
-                          try (var body =
-                              DataBufferUtils.subscriberInputStream(request.getBody(), DEMAND)) {
+                          var body =
+                              DataBufferUtils.subscriberInputStream(request.getBody(), DEMAND);
+                          try {
                             return json(
                                 endpoint.upload(
                                     headers.getFirst(UploadEndpoint.TICKET_HEADER),
@@ -51,6 +52,8 @@ public class MateuUploadController {
                                     headers.getContentLength(),
                                     body,
                                     httpRequest));
+                          } finally {
+                            close(body);
                           }
                         })
                     .subscribeOn(Schedulers.boundedElastic()));
@@ -85,6 +88,20 @@ public class MateuUploadController {
                       principalAndBody.getT2(),
                       httpRequest));
             });
+  }
+
+  /**
+   * The stream subscribes to the body asynchronously, on its first read. A request refused before
+   * reading anything (no ticket, a bad one) closes it while that subscription may still be pending,
+   * and Spring's close() then throws "Subscriber must be subscribed" — which turned the 403 into a
+   * 500 now and then. Nothing was read, so there is nothing to release: the refusal stands.
+   */
+  private static void close(java.io.InputStream body) {
+    try {
+      body.close();
+    } catch (IllegalStateException | java.io.IOException notSubscribedYet) {
+      // see above
+    }
   }
 
   private static ResponseEntity<String> json(UploadEndpoint.Answer answer) {
