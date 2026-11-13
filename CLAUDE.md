@@ -116,7 +116,8 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             gates + editable-view save + capability writes; Python action_guard.ensure_may_invoke + the same. A known key
                             unwinds to the endpoint (Java: `IdempotencyKeys.Replay`, let through by RunActionUseCase's error boundaries)
                             with the remembered answer, so no refused request is replayed; `once` = claim at once (tests)) —
-                            once per caller+action+key; caller = the SAME identity access checks read (Java IdentityResolver, .NET
+                            once per caller+view+action+key (view = serverSideType + route, trimmed, route without leading/trailing
+                            `/` — `view`/`view_of`/`ViewOf`, identical in the three); caller = the SAME identity access checks read (Java IdentityResolver, .NET
                             MateuOptions.Identity + `Identity.Name`, Python identity_provider), canonical + COMPLETE (name, roles, groups,
                             scopes, permissions sorted). Two tables: IN-FLIGHT runs are never evicted (in-flight repeats join; full →
                             NEW key refused, UserFacingException "Too many pending requests"), FINISHED answers LRU + TTL (2000 / 24 h);

@@ -292,7 +292,43 @@ public class OfflineQueueTests
             Route = "offline-toggle-parts/p1", ConsumedRoute = "offline-toggle-parts/p1", ActionId = "save",
             ServerSideType = typeof(OfflineToggleParts).FullName, InitiatorComponentId = "c1",
             ComponentState = new() { ["id"] = "p1", ["name"] = "Renamed" },
-        }));
+        }), view: typeof(OfflineToggleParts).FullName, route: "offline-toggle-parts/p1");
+
+    [Fact]
+    public async Task The_key_is_scoped_to_the_view()
+    {
+        IdempotencyKeys.Clear();
+        OfflineToggleParts.Reset();
+        OfflineStockCount.Runs = 0;
+        var handler = new SyncHandler(new MateuRegistry(typeof(OfflineToggleParts).Assembly));
+        Task<UIIncrementDto> SaveCount() => IdempotencyKeys.GuardedAsync("u", "save", "key-0015-same",
+            () => handler.HandleAsync(new RunActionRqDto
+            {
+                Route = "offline-count", ConsumedRoute = "offline-count", ActionId = "save",
+                ServerSideType = typeof(OfflineStockCount).FullName, InitiatorComponentId = "c1",
+                ComponentState = new() { ["counted"] = 3 },
+            }), view: typeof(OfflineStockCount).FullName, route: "/offline-count");
+        // same caller, same key, same action id — two views: two runs
+        await SaveCount();
+        await SaveToggle(handler, "key-0015-same");
+        Assert.Equal(1, OfflineStockCount.Runs);
+        Assert.Equal(1, OfflineToggleParts.Saves);
+        // each view replays its own
+        await SaveCount();
+        await SaveToggle(handler, "key-0015-same");
+        Assert.Equal(1, OfflineStockCount.Runs);
+        Assert.Equal(1, OfflineToggleParts.Saves);
+        OfflineToggleParts.Reset();
+        IdempotencyKeys.Clear();
+    }
+
+    [Fact]
+    public void The_view_is_normalised_like_in_the_other_backends()
+    {
+        Assert.Equal(IdempotencyKeys.ViewOf("a.B", "orders/7/edit"), IdempotencyKeys.ViewOf(" a.B ", "/orders/7/edit/"));
+        Assert.Equal("type=a.B\u0001route=orders/7/edit", IdempotencyKeys.ViewOf("a.B", "orders/7/edit"));
+        Assert.Equal("type=\u0001route=", IdempotencyKeys.ViewOf(null, null));
+    }
 
     [Fact]
     public async Task A_replay_refused_by_a_non_identity_rule_is_refused_not_served_from_memory()

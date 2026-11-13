@@ -543,6 +543,8 @@ def add_mateu(
                     rq.action_id,
                     request.headers.get(idempotency_keys.HEADER),
                     lambda: handler.handle(rq, mateu_request.base_url),
+                    view=rq.server_side_type,
+                    route=rq.route,
                 )
 
             increment = await run_in_threadpool(run_bound, mateu_request, keyed_run)

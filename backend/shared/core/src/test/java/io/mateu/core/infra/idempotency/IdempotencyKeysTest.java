@@ -59,6 +59,16 @@ class IdempotencyKeysTest {
   }
 
   @Test
+  void theViewIsNormalisedLikeInThePorts() {
+    assertThat(IdempotencyKeys.view(" a.B ", "/orders/7/edit/"))
+        .isEqualTo(IdempotencyKeys.view("a.B", "orders/7/edit"))
+        .isEqualTo("type=a.B\u0001route=orders/7/edit");
+    assertThat(IdempotencyKeys.view(null, null)).isEqualTo("type=\u0001route=");
+    assertThat(IdempotencyKeys.view("a.B", "orders"))
+        .isNotEqualTo(IdempotencyKeys.view("a.C", "orders"));
+  }
+
+  @Test
   void aFullInFlightTableRefusesANewKeyAndNeverEvictsTheRunningOne() {
     System.setProperty(MAX, "1");
     var runs = new AtomicInteger();

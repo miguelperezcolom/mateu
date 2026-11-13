@@ -120,22 +120,45 @@ def refused(increment: Any) -> bool:
     return any(getattr(m, "variant", None) == "error" for m in messages)
 
 
-def once(caller: str | None, action_id: str | None, key: str | None, run: Callable[[], T]) -> T:
+def once(
+    caller: str | None,
+    action_id: str | None,
+    key: str | None,
+    run: Callable[[], T],
+    view: str | None = None,
+    route: str | None = None,
+) -> T:
     """Runs ``run`` unless ``caller`` already sent ``key`` for ``action_id``; then the first answer
     is returned (waiting for it when that run is still in flight). Raises a ``UserFacingException``
     when the key is new and too many keyed runs are already in flight."""
     valid = key_of(key)
     if valid is None:
         return run()
-    scoped = _scoped(caller, action_id, valid)
+    scoped = _scoped(caller, action_id, valid, view, route)
     known, mine = _claim(scoped)
     if mine is None:
         return _replay(known)
     return _run_mine(scoped, mine, run)
 
 
-def _scoped(caller: str | None, action_id: str | None, valid: str) -> str:
-    return hashlib.sha256(f"{caller or ''}\u0002{action_id or ''}\u0002{valid}".encode("utf-8")).hexdigest()
+def view_of(server_side_type: str | None, route: str | None) -> str:
+    """The view a key belongs to, normalised the same way in the three backends: the request's
+    server side type (trimmed) and its route (trimmed, without leading or trailing slashes) — the
+    same caller, key and action id on another view is another entry."""
+    type_ = (server_side_type or "").strip()
+    path = (route or "").strip().strip("/")
+    return f"type={type_}\u0001route={path}"
+
+
+def _scoped(
+    caller: str | None,
+    action_id: str | None,
+    valid: str,
+    view: str | None = None,
+    route: str | None = None,
+) -> str:
+    text = f"{caller or ''}\u0002{view_of(view, route)}\u0002{action_id or ''}\u0002{valid}"
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 def _claim(scoped: str) -> tuple[_Entry | None, _Entry | None]:
@@ -215,7 +238,14 @@ class _Replay(BaseException):
 _pending: ContextVar[_Pending | None] = ContextVar("mateu_idempotency_pending", default=None)
 
 
-def guarded(caller: str | None, action_id: str | None, key: str | None, run: Callable[[], T]) -> T:
+def guarded(
+    caller: str | None,
+    action_id: str | None,
+    key: str | None,
+    run: Callable[[], T],
+    view: str | None = None,
+    route: str | None = None,
+) -> T:
     """Runs ``run`` (the sync handler) with the request's key PENDING: the key is looked up only
     when the handler calls :func:`checkpoint`, right after the request passed the checks its
     action would pass (class gates, advertised/strict action check, route and YAML access, write
@@ -226,7 +256,7 @@ def guarded(caller: str | None, action_id: str | None, key: str | None, run: Cal
     valid = key_of(key)
     if valid is None:
         return run()
-    pending = _Pending(_scoped(caller, action_id, valid))
+    pending = _Pending(_scoped(caller, action_id, valid, view, route))
     token = _pending.set(pending)
     try:
         try:
@@ -290,5 +320,5 @@ def clear() -> None:
 
 __all__ = [
     "BUSY_MESSAGE", "BUSY_TITLE", "HEADER", "caller_of", "checkpoint", "clear", "guarded", "in_flight", "key_of",
-    "once", "refused",
+    "once", "refused", "view_of",
 ]

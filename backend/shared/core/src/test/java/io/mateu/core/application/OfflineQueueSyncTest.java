@@ -186,8 +186,16 @@ class OfflineQueueSyncTest {
   static void boot() {
     mateu =
         TestMateu.withUisAndBeans(
-            List.of(new GatewayResolver()), StockCount.class, NoteView.class, PartsCrud.class);
+            List.of(new GatewayResolver()),
+            StockCount.class,
+            OtherStockCount.class,
+            NoteView.class,
+            PartsCrud.class);
   }
+
+  /** Another view with the same queued action id. */
+  @UI("/offline-count-2")
+  public static class OtherStockCount extends StockCount {}
 
   @AfterAll
   static void shutdown() {
@@ -231,6 +239,23 @@ class OfflineQueueSyncTest {
     mateu.run(rq("save"), keyed("key-0001-aaaa"));
     var other = message(mateu.run(rq("other"), keyed("key-0001-aaaa")));
     assertThat(other).isEqualTo("Other 2");
+  }
+
+  @Test
+  void theKeyIsScopedToTheView() {
+    var first = message(mateu.run(rq("save"), keyed("key-0010-jjjj")));
+    var otherView =
+        RunActionRqDto.builder()
+            .route("/offline-count-2")
+            .actionId("save")
+            .serverSideType(OtherStockCount.class.getName())
+            .initiatorComponentId("cmp-1")
+            .componentState(Map.of("counted", 3))
+            .build();
+    var second = message(mateu.run(otherView, keyed("key-0010-jjjj")));
+    assertThat(first).isEqualTo("Saved 1");
+    assertThat(second).isEqualTo("Saved 2");
+    assertThat(COUNTS.get()).isEqualTo(2);
   }
 
   @Test

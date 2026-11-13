@@ -358,8 +358,34 @@ public final class IdempotencyKeys {
   }
 
   private static String scope(HttpRequest httpRequest, String actionId, String key) {
+    var rq = runActionRq(httpRequest);
     return sha256(
-        caller(IdentityResolver.resolve(httpRequest)) + "\u0002" + actionId + "\u0002" + key);
+        caller(IdentityResolver.resolve(httpRequest))
+            + "\u0002"
+            + view(rq != null ? rq.serverSideType() : null, rq != null ? rq.route() : null)
+            + "\u0002"
+            + actionId
+            + "\u0002"
+            + key);
+  }
+
+  private static io.mateu.dtos.RunActionRqDto runActionRq(HttpRequest httpRequest) {
+    try {
+      return httpRequest.runActionRq();
+    } catch (RuntimeException none) {
+      return null;
+    }
+  }
+
+  /**
+   * The view a key belongs to, normalised the same way in the three backends: the request's server
+   * side type (trimmed) and its route (trimmed, without leading or trailing slashes) — the same
+   * caller, key and action id on another view is another entry.
+   */
+  static String view(String serverSideType, String route) {
+    var type = serverSideType == null ? "" : serverSideType.trim();
+    var path = route == null ? "" : route.trim().replaceAll("^/+|/+$", "");
+    return "type=" + type + "\u0001route=" + path;
   }
 
   /**

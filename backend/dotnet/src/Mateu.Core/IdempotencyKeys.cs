@@ -90,10 +90,11 @@ public static partial class IdempotencyKeys
     /// caller (<see cref="CallerOf"/>; hashed here). A NEW key while <see cref="MaxEntries"/> runs
     /// are in flight answers a faulted task (<see cref="UserFacingException"/>).</summary>
     public static Task<UIIncrementDto> OnceAsync(
-        string? caller, string? actionId, string? key, Func<Task<UIIncrementDto>> run)
+        string? caller, string? actionId, string? key, Func<Task<UIIncrementDto>> run,
+        string? view = null, string? route = null)
     {
         if (KeyOf(key) is not { } valid) return run();
-        var scoped = Sha256((caller ?? "") + "\u0002" + (actionId ?? "") + "\u0002" + valid);
+        var scoped = Scoped(caller, view, route, actionId, valid);
         TaskCompletionSource<UIIncrementDto> answer;
         lock (Lock)
         {
@@ -118,6 +119,15 @@ public static partial class IdempotencyKeys
         _ = RunAndSettle(scoped, run, answer);
         return answer.Task;
     }
+
+    /// <summary>The view a key belongs to, normalised the same way in the three backends: the
+    /// request's server side type (trimmed) and its route (trimmed, without leading or trailing
+    /// slashes) — the same caller, key and action id on another view is another entry.</summary>
+    public static string ViewOf(string? serverSideType, string? route) =>
+        "type=" + (serverSideType ?? "").Trim() + "\u0001route=" + (route ?? "").Trim().Trim('/');
+
+    private static string Scoped(string? caller, string? view, string? route, string? actionId, string valid) =>
+        Sha256((caller ?? "") + "\u0002" + ViewOf(view, route) + "\u0002" + (actionId ?? "") + "\u0002" + valid);
 
     // ── Deduplication AFTER the request checks (the sync endpoint) ─────────────────────────────
 
@@ -147,10 +157,11 @@ public static partial class IdempotencyKeys
     /// refused it; one that passed them and repeats a known key gets the first answer back (joining
     /// it while in flight). A request that never reaches a checkpoint (a load, a search) just runs.</summary>
     public static async Task<UIIncrementDto> GuardedAsync(
-        string? caller, string? actionId, string? key, Func<Task<UIIncrementDto>> run)
+        string? caller, string? actionId, string? key, Func<Task<UIIncrementDto>> run,
+        string? view = null, string? route = null)
     {
         if (KeyOf(key) is not { } valid) return await run().ConfigureAwait(false);
-        var pending = new Pending(Sha256((caller ?? "") + "\u0002" + (actionId ?? "") + "\u0002" + valid));
+        var pending = new Pending(Scoped(caller, view, route, actionId, valid));
         var previous = Current.Value;
         Current.Value = pending;
         try

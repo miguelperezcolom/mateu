@@ -214,7 +214,8 @@ public static partial class MateuExtensions
                 // its action would pass: a refused request is never answered from memory.
                 return await IdempotencyKeys.GuardedAsync(CallerOf(ctx), rq.ActionId,
                     ctx.Request.Headers[IdempotencyKeys.Header].FirstOrDefault(),
-                    () => handler.HandleAsync(rq, prefix, ctx.RequestAborted));
+                    () => handler.HandleAsync(rq, prefix, ctx.RequestAborted),
+                    view: rq.ServerSideType, route: rq.Route);
             });
             EndObservation(ctx, observation);
             ctx.Response.ContentType = "application/json";

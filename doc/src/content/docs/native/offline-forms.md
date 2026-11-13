@@ -80,7 +80,9 @@ The Java, .NET and Python servers honour it on the sync endpoint:
   `identity_provider` — taken whole: name, roles, groups, scopes and permissions, sorted and hashed.
   One user's key never answers another user's request, and a caller whose grants changed (a
   permission revoked) is not served the answer remembered for the old ones: the request runs again
-  and meets the action's checks. The **action id** is part of the scope too. On .NET, a custom
+  and meets the action's checks. The **view** and the **action id** are part of the scope too: the
+  request's server-side type and route (trimmed, route without leading or trailing slashes — the
+  same in the three servers), so the same key and action id on another screen is another entry. On .NET, a custom
   `MateuOptions.Identity` that does not read `HttpContext.User` should set `Identity.Name`, or two
   users with the same grants look alike.
 - The key is looked up only once the request has passed its checks, so a request refused by any

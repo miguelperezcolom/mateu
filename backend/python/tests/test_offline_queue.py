@@ -349,3 +349,47 @@ def test_a_request_refused_before_its_checkpoint_never_claims_the_key():
     allowed = _send_mine(client, "staffOnly", "alice", "key-0014-same", app_state={"audience": "staff"})
     assert "Staff 1" in allowed.text
     idempotency_keys.clear()
+
+
+@ui("offline-count-2")
+@title("Stock count 2")
+class OfflineStockCountTwo:
+    counted: int = 0
+
+    @button()
+    @action_options(offline=OfflinePolicy.QUEUE)
+    def save(self):
+        return _run("Saved")
+
+
+def test_the_key_is_scoped_to_the_view():
+    idempotency_keys.clear()
+    RUNS["n"] = 0
+    app = FastAPI()
+    add_mateu(app, OfflineStockCount, OfflineStockCountTwo)
+    client = TestClient(app)
+
+    def send(route: str, view) -> str:
+        response = client.post(
+            f"/mateu/v3/sync/{route}",
+            json={
+                "route": f"/{route}", "consumedRoute": "_empty", "actionId": "save",
+                "serverSideType": view.__module__ + "." + view.__qualname__,
+                "componentState": {"counted": 3},
+            },
+            headers={idempotency_keys.HEADER: "key-0015-same"},
+        )
+        assert response.status_code == 200, response.text
+        return response.text
+
+    assert "Saved 1" in send("offline-count", OfflineStockCount)
+    assert "Saved 2" in send("offline-count-2", OfflineStockCountTwo)
+    assert "Saved 1" in send("offline-count", OfflineStockCount)  # replayed on its own view
+    assert RUNS["n"] == 2
+    idempotency_keys.clear()
+
+
+def test_the_view_is_normalised_like_in_the_other_backends():
+    assert idempotency_keys.view_of(" a.B ", "/orders/7/edit/") == idempotency_keys.view_of("a.B", "orders/7/edit")
+    assert idempotency_keys.view_of("a.B", "orders/7/edit") == "type=a.B\u0001route=orders/7/edit"
+    assert idempotency_keys.view_of(None, None) == "type=\u0001route="
