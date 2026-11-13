@@ -417,9 +417,12 @@ export class OfflineQueue {
     return () => this.listeners.delete(listener);
   }
 
-  /** Keeps a request; false when it cannot be kept (the queue is full, the body too large, or the
-   *  stored queue is damaged / cannot be read — nothing is written over it). */
-  async enqueue(request: QueuedRequest, key: string, label: string, now = Date.now()): Promise<boolean> {
+  /** Keeps a request; false when it cannot be kept (the queue is full, the body too large, the
+   *  stored queue is damaged / cannot be read — nothing is written over it —, or `currentOwner`
+   *  says somebody else is signed in now: a change is only ever filed in its own author's queue,
+   *  never in the one of who was signed in when the session opened). */
+  async enqueue(request: QueuedRequest, key: string, label: string, now = Date.now(), currentOwner?: CurrentOwner): Promise<boolean> {
+    if (currentOwner && !(await this.isOwnedBy(currentOwner))) return false;
     await this.load();
     if (this.currentStatus === 'damaged' || this.currentStatus === 'unavailable') return false;
     if (this.items.some((i) => i.key === key)) return true;
@@ -428,6 +431,16 @@ export class OfflineQueue {
     if (JSON.stringify(item).length > MAX_ITEM_CHARS) return false;
     this.items.push(item);
     return this.save();
+  }
+
+  /** Whether who `currentOwner` says is signed in now is this queue's owner (nobody, or a failing
+   *  answer: no). */
+  async isOwnedBy(currentOwner: CurrentOwner): Promise<boolean> {
+    try {
+      return (await currentOwner()) === this.owner;
+    } catch {
+      return false;
+    }
   }
 
   /** Drops an item (the user cancelled it). */
@@ -622,6 +635,9 @@ export const OUTBOX_TEXTS = {
   refused: 'A pending change was not accepted',
   signIn: 'Sign in again to send your pending changes.',
   full: 'No connection, and too many changes are already waiting. This one was not kept.',
+  /** Somebody else signed in since this screen opened: the change is not filed in the previous
+   *  person's queue (it would be sent with their credentials). */
+  notYours: 'No connection. Your changes have not been sent: somebody else\'s session is still open here — reopen this UI to save offline.',
 };
 
 /** The words of a queue that could not be read back whole, in the app's chrome language. */

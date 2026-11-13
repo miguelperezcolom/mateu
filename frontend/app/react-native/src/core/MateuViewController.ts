@@ -25,7 +25,7 @@ import { inboxChangeOf } from './inbox.ts';
 import { classifyFailure, describeFailure, HttpStatusError, isIdempotentAction } from './requestPolicy.ts';
 import { connectivity } from './connectivity.ts';
 import { actionShortcutsOf } from './keyShortcuts.ts';
-import { newIdempotencyKey, OUTBOX_TEXTS, outboxRecoveryTexts, shouldQueue, type QueuedRequest } from './offlineQueue.ts';
+import { ANONYMOUS_OWNER, newIdempotencyKey, OUTBOX_TEXTS, outboxRecoveryTexts, shouldQueue, type QueuedRequest } from './offlineQueue.ts';
 import { serverActivity } from './serverActivity.ts';
 import type { ToastAction } from './componentContext.ts';
 
@@ -577,9 +577,15 @@ export class MateuViewController {
       else if (queueable && shouldQueue(true, classifyFailure(e, connectivity.isOnline))) {
         // no connection: kept in the UI's send queue, sent with the same key when it is back
         const label = [this.windowTitle, this.actionLabelOf(actionId)].filter(Boolean).join(' · ');
-        const kept = await this.session.outbox!.enqueue(queueable.request, queueable.key, label);
+        const outbox = this.session.outbox!;
+        // filed only in the queue of who is signed in NOW: after an in-session sign-in as somebody
+        // else the session's queue is still the previous person's
+        const currentOwner = () => (this.session.outboxOwner ? this.session.outboxOwner() : ANONYMOUS_OWNER);
+        const kept = await outbox.enqueue(queueable.request, queueable.key, label, undefined, currentOwner);
         devLog('[Mateu] action queued:', actionId, kept);
-        const notKept = this.session.outbox!.status === 'damaged' ? outboxRecoveryTexts(uiLocale()).notKeptDamaged : OUTBOX_TEXTS.full;
+        const notKept = outbox.status === 'damaged'
+          ? outboxRecoveryTexts(uiLocale()).notKeptDamaged
+          : (await outbox.isOwnedBy(currentOwner)) ? OUTBOX_TEXTS.full : OUTBOX_TEXTS.notYours;
         this.session.notify(null, kept ? OUTBOX_TEXTS.queued : notKept, kept ? 'warning' : 'error');
         if (kept) announce(OUTBOX_TEXTS.queued);
       } else {

@@ -24,6 +24,7 @@ import { hubBarSignsOut, uiSessionId, rotateUiSessionId } from '../uiSession';
 import { Notice, PrimaryButton, SecondaryButton, UiIcon, hubStyles, inkOn } from './common';
 import { UpdateAppButton } from './UpdateApp';
 import { ANONYMOUS_OWNER, OfflineQueue } from '../../core/offlineQueue';
+import { followSignIns } from '../../core/outboxOwner';
 import { serverActivity } from '../../core/serverActivity';
 import { ServerActivityBar } from '../../shell/ServerActivityBar';
 
@@ -238,10 +239,18 @@ export function UiSession({
       setOwner(o);
       OfflineQueue.changed(entry.id); // the hub's badge now counts this owner's queue
     });
+    // a 401 may open the sign-in browser mid-session and somebody ELSE may sign in (a shared phone):
+    // the owner is read again, so the session reopens with that person's queue (GA-5.4)
+    const stop = followSignIns(provider, ownerNow, (o) => {
+      if (!alive) return;
+      setOwner(o);
+      OfflineQueue.changed(entry.id);
+    });
     return () => {
       alive = false;
+      stop();
     };
-  }, [phase.name, ownerNow, entry.id]);
+  }, [phase.name, ownerNow, entry.id, provider]);
 
   /** Signs out of the provider that signed in (its own end-session), then asks again. */
   const signOutHere = async () => {
