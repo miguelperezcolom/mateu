@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 
 from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, idempotency_keys  # noqa: E402
 from mateu_ui.fastapi import add_mateu  # noqa: E402
-from mateu_ui.uidl import Identity, Message, OfflinePolicy, action_options, button, disabled_unless, title, ui  # noqa: E402
+from mateu_ui.uidl import Identity, Message, OfflinePolicy, action_options, audience, button, disabled_unless, title, ui  # noqa: E402
 
 RUNS = {"n": 0}
 
@@ -238,6 +238,12 @@ class OfflineMine:
     def guarded(self):
         return _run("Guarded")
 
+    @button()
+    @action_options(offline=OfflinePolicy.QUEUE)
+    @audience("staff")
+    def staff_only(self):
+        return _run("Staff")
+
 
 def _gateway_identity():
     """The app's own identity provider: user + permissions its gateway put in headers."""
@@ -257,7 +263,7 @@ def _mine_client() -> TestClient:
     return TestClient(app)
 
 
-def _send_mine(client, action_id, user, key, permissions=None):
+def _send_mine(client, action_id, user, key, permissions=None, app_state=None):
     headers = {idempotency_keys.HEADER: key, "X-App-User": user}
     if permissions:
         headers["X-App-Permissions"] = permissions
@@ -266,7 +272,7 @@ def _send_mine(client, action_id, user, key, permissions=None):
         json={
             "route": "/offline-mine", "consumedRoute": "_empty", "actionId": action_id,
             "serverSideType": OfflineMine.__module__ + "." + OfflineMine.__qualname__,
-            "componentState": {"counted": 0},
+            "componentState": {"counted": 0}, "appState": app_state or {},
         },
         headers=headers,
     )
@@ -294,4 +300,52 @@ def test_a_revoked_permission_is_refused_not_served_from_memory():
     assert "Guarded 1" not in second.text
     assert second.status_code == 403 or '"error"' in second.text
     assert RUNS["n"] == 1
+    idempotency_keys.clear()
+
+
+def test_a_replay_refused_by_a_non_identity_rule_is_refused_not_served_from_memory():
+    """The audience is app state, not identity: the caller scope is the same, so only checking
+    the key AFTER the request's checks keeps the remembered answer from being handed out."""
+    idempotency_keys.clear()
+    RUNS["n"] = 0
+    client = _mine_client()
+    first = _send_mine(client, "staffOnly", "alice", "key-0012-same", app_state={"audience": "staff"})
+    assert "Staff 1" in first.text
+    replay = _send_mine(client, "staffOnly", "alice", "key-0012-same", app_state={"audience": "guest"})
+    assert replay.status_code == 403, replay.text
+    assert "Staff 1" not in replay.text
+    # the rule still allowing it: the same key answers from memory, the action does not run again
+    again = _send_mine(client, "staffOnly", "alice", "key-0012-same", app_state={"audience": "staff"})
+    assert "Staff 1" in again.text
+    assert RUNS["n"] == 1
+    idempotency_keys.clear()
+
+
+def test_a_replay_of_an_action_that_is_no_longer_offered_is_refused():
+    idempotency_keys.clear()
+    RUNS["n"] = 0
+    client = _mine_client()
+    first = _send_mine(client, "staffOnly", "alice", "key-0013-same", app_state={"audience": "staff"})
+    assert "Staff 1" in first.text
+    removed = OfflineMine.__dict__["staff_only"]
+    delattr(OfflineMine, "staff_only")
+    try:
+        replay = _send_mine(client, "staffOnly", "alice", "key-0013-same", app_state={"audience": "staff"})
+        assert "Staff 1" not in replay.text
+        assert replay.status_code == 403 or '"error"' in replay.text, replay.text
+    finally:
+        OfflineMine.staff_only = removed
+    assert RUNS["n"] == 1
+    idempotency_keys.clear()
+
+
+def test_a_request_refused_before_its_checkpoint_never_claims_the_key():
+    idempotency_keys.clear()
+    RUNS["n"] = 0
+    client = _mine_client()
+    refused = _send_mine(client, "staffOnly", "alice", "key-0014-same", app_state={"audience": "guest"})
+    assert refused.status_code == 403
+    assert idempotency_keys.in_flight() == 0
+    allowed = _send_mine(client, "staffOnly", "alice", "key-0014-same", app_state={"audience": "staff"})
+    assert "Staff 1" in allowed.text
     idempotency_keys.clear()

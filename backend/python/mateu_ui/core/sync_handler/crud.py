@@ -135,6 +135,10 @@ class CrudHandlerMixin(MixinBase):
             from ..action_guard import MateuForbiddenException
 
             raise MateuForbiddenException(f"Forbidden: {aid or mode} on {crud_type.__name__}")
+        # the crud's write gates passed: a repeated Idempotency-Key may now be answered from memory
+        from .. import idempotency_keys
+
+        idempotency_keys.checkpoint()
         if aid in ("create", "save", SAVE_AND_NEXT):
             return self.crud_save(crud, element, id_, rq, base_route)
         if aid == "update-row":

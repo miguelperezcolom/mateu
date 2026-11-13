@@ -90,6 +90,10 @@ class EditableViewHandlerMixin(MixinBase):
             # actions (403 + one WARN), not only undraws its Edit button
             if view.read_only():
                 raise MateuForbiddenException(f"edit: {type_name(cls)} is read-only")
+            # editable: a repeated Idempotency-Key may now be answered from memory
+            from .. import idempotency_keys
+
+            idempotency_keys.checkpoint()
 
         if aid == "":
             if sub == "edit" or sub.endswith("/edit"):

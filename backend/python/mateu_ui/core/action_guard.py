@@ -153,6 +153,11 @@ def ensure_may_invoke(mapper, type_, fn, action_id: str | None) -> None:
         reason = "audience"
     if reason is not None:
         deny(f"action '{action_id}' on {type_.__module__}.{type_.__qualname__} denied by {reason}")
+    # the action passed every check it is subject to: only NOW may a repeated Idempotency-Key be
+    # answered from memory (a refused request never is)
+    from . import idempotency_keys
+
+    idempotency_keys.checkpoint()
 
 
 def class_gates(klass) -> list:

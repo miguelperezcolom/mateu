@@ -533,10 +533,12 @@ def add_mateu(
             # once per caller, action and key: a repeat gets the first answer back. The caller is
             # the identity the configured identity_provider resolves — the SAME one every access
             # check reads, complete — so two users never share a key and changed grants never
-            # replay an answer remembered for the old ones.
+            # replay an answer remembered for the old ones. The key is only looked up once the
+            # handler reached a checkpoint, i.e. once the request passed the checks its action
+            # would pass: a refused request is never answered from memory.
             def keyed_run():
                 identity = handler.mapper.identity_provider() if handler.mapper.identity_provider else None
-                return idempotency_keys.once(
+                return idempotency_keys.guarded(
                     idempotency_keys.caller_of(identity),
                     rq.action_id,
                     request.headers.get(idempotency_keys.HEADER),
