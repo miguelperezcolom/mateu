@@ -1,0 +1,133 @@
+2026-11-13 18:54:04,634 [     13]   INFO - #c.i.p.i.b.AppStarter - IDE: IntelliJ IDEA (build #IU-263.7307.200, Wed, 4 Nov 2026 13:09:00 GMT)
+2026-11-13 18:54:04,648 [     27]   INFO - #c.i.p.i.b.AppStarter - JVM options: [-Xbootclasspath/a:/Users/runner/Library/Application Support/Mateu/IJ.app/Contents/lib/nio-fs.jar, -Djava.system.class.loader=com.intellij.util.lang.PathClassLoader, -Didea.vendor.name=JetBrains, -Didea.paths.selector=IntelliJIdea2026.3, -Djna.boot.library.path=/Users/runner/Library/Application Support/Mateu/IJ.app/Contents/plugins/jna-plugin/lib/jna/aarch64, -Djna.nosys=true, -Djna.noclasspath=true, -Dpty4j.preferred.native.folder=/Users/runner/Library/Application Support/Mateu/IJ.app/Contents/plugins/pty4j-plugin/lib/pty4j, -Dio.netty.allocator.type=pooled, -Dskiko.library.path=/Users/runner/Library/Application Support/Mateu/IJ.app/Contents/plugins/platform-compose-plugin/lib/skiko-awt-runtime-all, -Dintellij.platform.runtime.repository.path=/Users/runner/Library/Application Support/Mateu/IJ.app/Contents/modules/module-descriptors.dat, -Dsplash=true, -Daether.connector.resumeDownloads=false, -Dcompose.swing.render.on.graphics=true, --enable-native-access=ALL-UNNAMED, --add-opens=java.base/java.io=ALL-UNNAMED, --add-opens=java.base/java.lang=ALL-UNNAMED, --add-opens=java.base/java.lang.ref=ALL-UNNAMED, --add-opens=java.base/java.lang.reflect=ALL-UNNAMED, --add-opens=java.base/java.net=ALL-UNNAMED, --add-opens=java.base/java.nio=ALL-UNNAMED, --add-opens=java.base/java.nio.charset=ALL-UNNAMED, --add-opens=java.base/java.text=ALL-UNNAMED, --add-opens=java.base/java.time=ALL-UNNAMED, --add-opens=java.base/java.util=ALL-UNNAMED, --add-opens=java.base/java.util.concurrent=ALL-UNNAMED, --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED, --add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED, --add-opens=java.base/jdk.internal.ref=ALL-UNNAMED, --add-opens=java.base/jdk.internal.vm=ALL-UNNAMED, --add-opens=java.base/sun.net.dns=ALL-UNNAMED, --add-opens=java.base/sun.nio=ALL-UNNAMED, --add-opens=java.base/sun.nio.ch=ALL-UNNAMED, --add-opens=java.base/sun.nio.fs=ALL-UNNAMED, --add-opens=java.base/sun.security.ssl=ALL-UNNAMED, --add-opens=java.base/sun.security.util=ALL-UNNAMED, --add-opens=java.desktop/com.apple.eawt=ALL-UNNAMED, --add-opens=java.desktop/com.apple.eawt.event=ALL-UNNAMED, --add-opens=java.desktop/com.apple.laf=ALL-UNNAMED, --add-opens=java.desktop/com.sun.java.swing=ALL-UNNAMED, --add-opens=java.desktop/java.awt=ALL-UNNAMED, --add-opens=java.desktop/java.awt.dnd.peer=ALL-UNNAMED, --add-opens=java.desktop/java.awt.event=ALL-UNNAMED, --add-opens=java.desktop/java.awt.font=ALL-UNNAMED, --add-opens=java.desktop/java.awt.image=ALL-UNNAMED, --add-opens=java.desktop/java.awt.peer=ALL-UNNAMED, --add-opens=java.desktop/javax.swing=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.plaf.basic=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.text=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.text.html=ALL-UNNAMED, --add-opens=java.desktop/javax.swing.text.html.parser=ALL-UNNAMED, --add-opens=java.desktop/sun.awt=ALL-UNNAMED, --add-opens=java.desktop/sun.awt.datatransfer=ALL-UNNAMED, --add-opens=java.desktop/sun.awt.image=ALL-UNNAMED, --add-opens=java.desktop/sun.font=ALL-UNNAMED, --add-opens=java.desktop/sun.java2d=ALL-UNNAMED, --add-opens=java.desktop/sun.lwawt=ALL-UNNAMED, --add-opens=java.desktop/sun.lwawt.macosx=ALL-UNNAMED, --add-opens=java.desktop/sun.swing=ALL-UNNAMED, --add-opens=java.desktop/sun.swing.text=ALL-UNNAMED, --add-opens=java.management/sun.management=ALL-UNNAMED, --add-opens=jdk.attach/sun.tools.attach=ALL-UNNAMED, --add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED, --add-opens=jdk.internal.jvmstat/sun.jvmstat.monitor=ALL-UNNAMED, --add-opens=jdk.jdi/com.sun.tools.jdi=ALL-UNNAMED, -Xms128m, -Xmx2048m, -XX:JbrShrinkingGcMaxHeapFreeRatio=40, -XX:ReservedCodeCacheSize=512m, -XX:+HeapDumpOnOutOfMemoryError, -XX:-OmitStackTraceInFastThrow, -XX:CICompilerCount=2, -XX:+IgnoreUnrecognizedVMOptions, -XX:+UnlockDiagnosticVMOptions, -XX:TieredOldPercentage=100000, -XX:+UseCompactObjectHeaders, --sun-misc-unsafe-memory-access=allow, -ea, -Dsun.io.useCanonCaches=false, -Dsun.java2d.metal=true, -Djbr.catch.SIGABRT=true, -Djdk.http.auth.tunneling.disabledSchemes="", -Djdk.attach.allowAttachSelf=true, -Djdk.module.illegalAccess.silent=true, -Djdk.nio.maxCachedBufferSize=2097152, -Djava.util.zip.use.nio.for.zip.file.access=true, -Dkotlinx.coroutines.debug=off, -Dskiko.rendering.useScreenMenuBar=false, -Djava.nio.file.spi.DefaultFileSystemProvider=com.intellij.platform.core.nio.fs.MultiRoutingFileSystemProvider, -Dapple.awt.application.appearance=system, -Didea.config.path=/Users/runner/Library/Application Support/Mateu/config, -Didea.system.path=/Users/runner/Library/Application Support/Mateu/system, -Didea.plugins.path=/Users/runner/Library/Application Support/Mateu/plugins, -Didea.log.path=/Users/runner/Library/Application Support/Mateu/log, -Didea.fatal.error.notification=disabled, -Didea.home.path=/Users/runner/Library/Application Support/Mateu/IJ.app/Contents, -Djb.consents.confirmation.enabled=false, -Didea.trust.all.projects=true, -Dmateu.productName=MateuTest, -Dmateu.focused=true, -Dmateu.variant=hub, -Dide.no.platform.update=MateuTest, -Dplatform.enable.plugin.update.source.feature=false, -Dmateu.updateUrl=, -Dsplash=false]
+2026-11-13 18:54:05,303 [    682]   INFO - #c.i.p.i.b.AppStarter - Loaded custom plugins: Mateu (io.mateu.ijp.plugin, 0.1.1)
+2026-11-13 18:54:06,507 [   1886]   INFO - #c.i.o.u.i.ExternalUpdateManager - update manager: MateuTest
+2026-11-13 18:54:06,519 [   1898]   INFO - #c.i.u.i.HttpRequests - Application is not initialized yet; Using default SSL configuration to connect to https://www.jetbrains.com/updates/updates.xml?build=IU-263.7307.200&os=Mac%20OS%20X%2015.6.1&uid=9656a08b-4a19-4a07-b35b-3ea03057938e&mid=610b0e6979358f99d020da3603aae90688a280f8c40ba419a1d407488d62384f&manager=MateuTest&userBucket=df2b07b81ee37cac&consent=4&license=NONE&metadata=NONE
+2026-11-13 18:54:06,990 [   2369] SEVERE - #c.i.o.a.i.ActionUpdater - MateuToolbarWidget#presentation@MainToolbar (io.mateu.ijp.plugin.MateuToolbarWidget) "io.mateu.AppToolbarWidget", actionId=io.mateu.AppToolbarWidget, text='Mateu'
+java.lang.NoClassDefFoundError: com/fasterxml/jackson/databind/ObjectMapper
+	at io.mateu.ijp.plugin.MateuConfigKt.parseConfig(MateuConfig.kt:95)
+	at io.mateu.ijp.plugin.MateuConfigKt.resolveMateuConfig(MateuConfig.kt:65)
+	at io.mateu.ijp.plugin.MateuConfigKt.loadMateuConfig(MateuConfig.kt:42)
+	at io.mateu.ijp.plugin.MateuConfigKt.loadMateuConfig$default(MateuConfig.kt:42)
+	at io.mateu.ijp.plugin.MateuToolbarWidget.FOCUSED_delegate$lambda$0(MateuToolbarWidget.kt:59)
+	at kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:86)
+	at io.mateu.ijp.plugin.MateuToolbarWidget$Companion.getFOCUSED(MateuToolbarWidget.kt:59)
+	at io.mateu.ijp.plugin.MateuToolbarWidget$Companion.access$getFOCUSED(MateuToolbarWidget.kt:55)
+	at io.mateu.ijp.plugin.MateuToolbarWidget.update(MateuToolbarWidget.kt:39)
+	at com.intellij.openapi.actionSystem.ex.ActionUtil.updateAction$lambda$0(ActionUtil.kt:344)
+	at com.intellij.openapi.actionSystem.ex.ActionUtil.updateAction(ActionUtil.kt:352)
+	at com.intellij.openapi.actionSystem.impl.ActionUpdater$updateAction$result$1$1$1.invoke(ActionUpdater.kt:619)
+	at com.intellij.openapi.actionSystem.impl.ActionUpdater$updateAction$result$1$1$1.invoke(ActionUpdater.kt:618)
+2026-11-13 18:54:06,994 [   2373] SEVERE - #c.i.o.a.i.ActionUpdater - IntelliJ IDEA 2026.3  Build #IU-263.7307.200
+2026-11-13 18:54:06,995 [   2374] SEVERE - #c.i.o.a.i.ActionUpdater - JDK: 25.0.4.1; VM: OpenJDK 64-Bit Server VM; Vendor: JetBrains s.r.o.
+2026-11-13 18:54:06,995 [   2374] SEVERE - #c.i.o.a.i.ActionUpdater - OS: Mac OS X
+2026-11-13 18:54:06,995 [   2374] SEVERE - #c.i.o.a.i.ActionUpdater - Plugin to blame: Mateu version: 0.1.1
+2026-11-13 18:54:06,995 [   2374] SEVERE - #c.i.o.a.i.ActionUpdater - Last Action: 
+2026-11-13 18:54:07,347 [   2726] SEVERE - #c.i.o.a.i.ActionUpdater - MateuToolbarWidget#presentation@MainToolbar (io.mateu.ijp.plugin.MateuToolbarWidget) "io.mateu.AppToolbarWidget", actionId=io.mateu.AppToolbarWidget, text='Mateu'
+java.lang.NoClassDefFoundError: com/fasterxml/jackson/databind/ObjectMapper
+	at io.mateu.ijp.plugin.MateuConfigKt.parseConfig(MateuConfig.kt:95)
+	at io.mateu.ijp.plugin.MateuConfigKt.resolveMateuConfig(MateuConfig.kt:65)
+	at io.mateu.ijp.plugin.MateuConfigKt.loadMateuConfig(MateuConfig.kt:42)
+	at io.mateu.ijp.plugin.MateuConfigKt.loadMateuConfig$default(MateuConfig.kt:42)
+	at io.mateu.ijp.plugin.MateuToolbarWidget.FOCUSED_delegate$lambda$0(MateuToolbarWidget.kt:59)
+	at kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:86)
+	at io.mateu.ijp.plugin.MateuToolbarWidget$Companion.getFOCUSED(MateuToolbarWidget.kt:59)
+	at io.mateu.ijp.plugin.MateuToolbarWidget$Companion.access$getFOCUSED(MateuToolbarWidget.kt:55)
+	at io.mateu.ijp.plugin.MateuToolbarWidget.update(MateuToolbarWidget.kt:39)
+	at com.intellij.openapi.actionSystem.ex.ActionUtil.updateAction$lambda$0(ActionUtil.kt:344)
+	at com.intellij.openapi.actionSystem.ex.ActionUtil.updateAction(ActionUtil.kt:352)
+	at com.intellij.openapi.actionSystem.impl.ActionUpdater$updateAction$result$1$1$1.invoke(ActionUpdater.kt:619)
+	at com.intellij.openapi.actionSystem.impl.ActionUpdater$updateAction$result$1$1$1.invoke(ActionUpdater.kt:618)
+2026-11-13 18:54:07,347 [   2726] SEVERE - #c.i.o.a.i.ActionUpdater - IntelliJ IDEA 2026.3  Build #IU-263.7307.200
+2026-11-13 18:54:07,347 [   2726] SEVERE - #c.i.o.a.i.ActionUpdater - JDK: 25.0.4.1; VM: OpenJDK 64-Bit Server VM; Vendor: JetBrains s.r.o.
+2026-11-13 18:54:07,347 [   2726] SEVERE - #c.i.o.a.i.ActionUpdater - OS: Mac OS X
+2026-11-13 18:54:07,349 [   2728] SEVERE - #c.i.o.a.i.ActionUpdater - Plugin to blame: Mateu version: 0.1.1
+2026-11-13 18:54:07,349 [   2728] SEVERE - #c.i.o.a.i.ActionUpdater - Last Action: 
+2026-11-13 18:54:07,388 [   2767]   INFO - #c.i.i.p.m.MarketplaceRequests - Looking for the last compatible plugin updates for:
+[com.intellij.microservices.ui, org.jetbrains.plugins.docker.gateway, com.intellij.beanValidation, org.jetbrains.security.package-checker, com.intellij.air, Git4Idea, tanvd.grazi, Docker, XPathView, com.intellij.platform.daemon, Karma, com.intellij.modules.jcef, com.intellij.lsp.ui, com.jetbrains.restClient, com.intellij.javaee.reverseEngineering, com.intellij.mcpServer, org.jetbrains.idea.maven, com.jetbrains.restWebServices, intellij.nextjs, intellij.ktor, org.jetbrains.kotlin, com.intellij.quarkus, intellij.prettierJS, com.intellij.plugins.webcomponents, com.deadlock.scsyntax, com.intellij.liquibase, com.intellij.properties, com.intellij.LineProfiler, com.intellij.spring.data, org.jetbrains.plugins.terminal, org.jetbrains.plugins.node-remote-interpreter, org.intellij.plugins.markdown, com.intellij.spring, org.intellij.groovy, com.intellij.spring.messaging, com.intellij.hibernate, com.intellij.kubernetes, com.intellij.copyright, org.jetbrains.plugins.textmate, tslint, org.jetbrains.plugins.github, org.jetbrains.plugins.vue, NodeJS, com.intellij.java.ide, org.jetbrains.plugins.gradle, com.intellij.javaee.el, com.intellij.javaee.extensions, com.intellij.jsonpath, com.intellij.ko, com.intellij.spring.boot, com.intellij.java-i18n, com.intellij.swagger, com.intellij.thymeleaf, com.jetbrains.performancePlugin, com.intellij.micronaut, intellij.webp, org.toml.lang, Refactor-X, com.intellij.javaee, com.intellij.cron, com.jetbrains.plugins.webDeployment, intellij.vitejs, com.intellij.spring.cloud, com.intellij.settingsSync, HtmlTools, com.intellij.javaee.jakarta.data, com.intellij.javaee.jpa, com.jetbrains.sh, Tomcat, com.intellij.react, com.intellij.spring.boot.initializr, com.intellij.java, com.intellij.spring.security, training, com.intellij.zh, com.intellij.flyway, org.jetbrains.plugins.remote-run, JavaScript, com.intellij.cdi, com.intellij.database, org.jetbrains.plugins.gitlab, org.jetbrains.java.decompiler, JavaScriptDebugger, org.jetbrains.plugins.yaml, intellij.webpack, org.editorconfig.editorconfigjetbrains, com.intellij.ja, com.intellij.spring.mvc, io.mateu.ijp.plugin, com.intellij.debugger.collections.visualizer, org.jetbrains.completion.full.line]
+send machine ID: true
+2026-11-13 18:54:07,655 [   3034] SEVERE - #c.i.o.w.i.ToolWindowManagerImpl - Cannot process toolwindow Mateu
+java.lang.NoClassDefFoundError: com/fasterxml/jackson/databind/ObjectMapper
+	at io.mateu.ijp.plugin.MateuConfigKt.parseConfig(MateuConfig.kt:95)
+	at io.mateu.ijp.plugin.MateuConfigKt.resolveMateuConfig(MateuConfig.kt:65)
+	at io.mateu.ijp.plugin.MateuConfigKt.loadMateuConfig(MateuConfig.kt:42)
+	at io.mateu.ijp.plugin.MateuToolWindowFactory.shouldBeAvailable(MateuToolWindowFactory.kt:24)
+	at com.intellij.toolWindow.ToolWindowSetInitializerKt.beanToTask(ToolWindowSetInitializer.kt:420)
+	at com.intellij.toolWindow.ToolWindowSetInitializerKt.beanToTask(ToolWindowSetInitializer.kt:404)
+	at com.intellij.toolWindow.ToolWindowSetInitializerKt.access$beanToTask(ToolWindowSetInitializer.kt:1)
+	at com.intellij.toolWindow.ToolWindowSetInitializerKt$computeToolWindowBeans$2$1$1.invokeSuspend(ToolWindowSetInitializer.kt:441)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:725)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runDefaultDispatcherTask(CoroutineScheduler.kt:1286)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:999)
+2026-11-13 18:54:07,656 [   3035] SEVERE - #c.i.o.w.i.ToolWindowManagerImpl - IntelliJ IDEA 2026.3  Build #IU-263.7307.200
+2026-11-13 18:54:07,656 [   3035] SEVERE - #c.i.o.w.i.ToolWindowManagerImpl - JDK: 25.0.4.1; VM: OpenJDK 64-Bit Server VM; Vendor: JetBrains s.r.o.
+2026-11-13 18:54:07,656 [   3035] SEVERE - #c.i.o.w.i.ToolWindowManagerImpl - OS: Mac OS X
+2026-11-13 18:54:07,656 [   3035] SEVERE - #c.i.o.w.i.ToolWindowManagerImpl - Plugin to blame: Mateu version: 0.1.1
+2026-11-13 18:54:07,656 [   3035] SEVERE - #c.i.o.w.i.ToolWindowManagerImpl - Last Action: 
+2026-11-13 18:54:07,998 [   3377] SEVERE - #c.i.o.a.i.ActionUpdater - HubSwitchAction#presentation@MainToolbar (io.mateu.ijp.hub.HubSwitchAction) "io.mateu.HubSwitch", actionId=io.mateu.HubSwitch, text='My UIs'
+java.lang.NoClassDefFoundError: com/fasterxml/jackson/databind/ObjectMapper
+	at io.mateu.ijp.plugin.MateuConfigKt.parseConfig(MateuConfig.kt:95)
+	at io.mateu.ijp.plugin.MateuConfigKt.resolveMateuConfig(MateuConfig.kt:65)
+	at io.mateu.ijp.plugin.MateuConfigKt.loadMateuConfig(MateuConfig.kt:42)
+	at io.mateu.ijp.hub.HubActionsKt.openHubEntry(HubActions.kt:12)
+	at io.mateu.ijp.hub.HubActionsKt.access$openHubEntry(HubActions.kt:1)
+	at io.mateu.ijp.hub.HubSwitchAction.update(HubActions.kt:22)
+	at com.intellij.openapi.actionSystem.ex.ActionUtil.updateAction$lambda$0(ActionUtil.kt:344)
+	at com.intellij.openapi.actionSystem.ex.ActionUtil.updateAction(ActionUtil.kt:352)
+	at com.intellij.openapi.actionSystem.impl.ActionUpdater$updateAction$result$1$1$1.invoke(ActionUpdater.kt:619)
+	at com.intellij.openapi.actionSystem.impl.ActionUpdater$updateAction$result$1$1$1.invoke(ActionUpdater.kt:618)
+	at com.intellij.openapi.actionSystem.impl.ActionUpdater$callAction$2$1.invoke(ActionUpdater.kt:198)
+	at com.intellij.openapi.application.rw.InternalReadAction.insideReadAction(InternalReadAction.kt:123)
+	at com.intellij.openapi.application.rw.InternalReadAction.tryReadCancellable$lambda$0(InternalReadAction.kt:113)
+2026-11-13 18:54:08,003 [   3382] SEVERE - #c.i.o.a.i.ActionUpdater - IntelliJ IDEA 2026.3  Build #IU-263.7307.200
+2026-11-13 18:54:08,005 [   3384] SEVERE - #c.i.o.a.i.ActionUpdater - JDK: 25.0.4.1; VM: OpenJDK 64-Bit Server VM; Vendor: JetBrains s.r.o.
+2026-11-13 18:54:08,008 [   3387] SEVERE - #c.i.o.a.i.ActionUpdater - OS: Mac OS X
+2026-11-13 18:54:08,008 [   3387] SEVERE - #c.i.o.a.i.ActionUpdater - Plugin to blame: Mateu version: 0.1.1
+2026-11-13 18:54:08,008 [   3387] SEVERE - #c.i.o.a.i.ActionUpdater - Last Action: 
+2026-11-13 18:54:08,307 [   3686]   INFO - #c.i.o.a.i.ActionUpdater - 302 ms to grab EDT for MateuContextSelectors#presentation@MainToolbar (io.mateu.ijp.plugin.MateuContextSelectors) "io.mateu.AppContextSelectors"
+2026-11-13 18:54:08,573 [   3952]   WARN - #io.mateu.ijp.plugin.MateuSelfCheck - Mateu self-check FAILED — not reachable from the plugin's classloader: com.fasterxml.jackson.databind.ObjectMapper, com.fasterxml.jackson.core.JsonFactory
+2026-11-13 18:54:08,573 [   3952] SEVERE - #c.i.i.s.i.StartupManagerImpl - com/fasterxml/jackson/databind/ObjectMapper [Plugin: io.mateu.ijp.plugin]
+com.intellij.diagnostic.PluginException: com/fasterxml/jackson/databind/ObjectMapper [Plugin: io.mateu.ijp.plugin]
+	at com.intellij.ide.startup.impl.StartupManagerImplKt$launchActivity$1.invokeSuspend(StartupManagerImpl.kt:568)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:725)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runDefaultDispatcherTask(CoroutineScheduler.kt:1286)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:999)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:890)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:877)
+Caused by: java.lang.NoClassDefFoundError: com/fasterxml/jackson/databind/ObjectMapper
+	at io.mateu.ijp.plugin.MateuConfigKt.parseConfig(MateuConfig.kt:95)
+	at io.mateu.ijp.plugin.MateuConfigKt.resolveMateuConfig(MateuConfig.kt:65)
+	at io.mateu.ijp.plugin.MateuConfigKt.loadMateuConfig(MateuConfig.kt:42)
+	at io.mateu.ijp.plugin.MateuFocusedModeActivity.execute(MateuFocusedModeActivity.kt:28)
+2026-11-13 18:54:08,574 [   3953] SEVERE - #c.i.i.s.i.StartupManagerImpl - IntelliJ IDEA 2026.3  Build #IU-263.7307.200
+2026-11-13 18:54:08,574 [   3953] SEVERE - #c.i.i.s.i.StartupManagerImpl - JDK: 25.0.4.1; VM: OpenJDK 64-Bit Server VM; Vendor: JetBrains s.r.o.
+2026-11-13 18:54:08,574 [   3953] SEVERE - #c.i.i.s.i.StartupManagerImpl - OS: Mac OS X
+2026-11-13 18:54:08,574 [   3953] SEVERE - #c.i.i.s.i.StartupManagerImpl - Plugin to blame: Mateu version: 0.1.1
+2026-11-13 18:54:08,574 [   3953] SEVERE - #c.i.i.s.i.StartupManagerImpl - Last Action: 
+2026-11-13 18:54:08,701 [   4080] SEVERE - #c.i.o.a.i.ActionUpdater - MateuToolbarWidget#presentation@MainToolbar (io.mateu.ijp.plugin.MateuToolbarWidget) "io.mateu.AppToolbarWidget", actionId=io.mateu.AppToolbarWidget, text='Mateu'
+java.lang.NoClassDefFoundError: com/fasterxml/jackson/databind/ObjectMapper
+	at io.mateu.ijp.plugin.MateuConfigKt.parseConfig(MateuConfig.kt:95)
+	at io.mateu.ijp.plugin.MateuConfigKt.resolveMateuConfig(MateuConfig.kt:65)
+	at io.mateu.ijp.plugin.MateuConfigKt.loadMateuConfig(MateuConfig.kt:42)
+	at io.mateu.ijp.plugin.MateuConfigKt.loadMateuConfig$default(MateuConfig.kt:42)
+	at io.mateu.ijp.plugin.MateuToolbarWidget.FOCUSED_delegate$lambda$0(MateuToolbarWidget.kt:59)
+	at kotlin.SynchronizedLazyImpl.getValue(LazyJVM.kt:86)
+	at io.mateu.ijp.plugin.MateuToolbarWidget$Companion.getFOCUSED(MateuToolbarWidget.kt:59)
+	at io.mateu.ijp.plugin.MateuToolbarWidget$Companion.access$getFOCUSED(MateuToolbarWidget.kt:55)
+	at io.mateu.ijp.plugin.MateuToolbarWidget.update(MateuToolbarWidget.kt:39)
+	at com.intellij.openapi.actionSystem.ex.ActionUtil.updateAction$lambda$0(ActionUtil.kt:344)
+	at com.intellij.openapi.actionSystem.ex.ActionUtil.updateAction(ActionUtil.kt:352)
+	at com.intellij.openapi.actionSystem.impl.ActionUpdater$updateAction$result$1$1$1.invoke(ActionUpdater.kt:619)
+	at com.intellij.openapi.actionSystem.impl.ActionUpdater$updateAction$result$1$1$1.invoke(ActionUpdater.kt:618)
+2026-11-13 18:54:08,703 [   4082] SEVERE - #c.i.o.a.i.ActionUpdater - IntelliJ IDEA 2026.3  Build #IU-263.7307.200
+2026-11-13 18:54:08,703 [   4082] SEVERE - #c.i.o.a.i.ActionUpdater - JDK: 25.0.4.1; VM: OpenJDK 64-Bit Server VM; Vendor: JetBrains s.r.o.
+2026-11-13 18:54:08,703 [   4082] SEVERE - #c.i.o.a.i.ActionUpdater - OS: Mac OS X
+2026-11-13 18:54:08,703 [   4082] SEVERE - #c.i.o.a.i.ActionUpdater - Plugin to blame: Mateu version: 0.1.1
+2026-11-13 18:54:08,703 [   4082] SEVERE - #c.i.o.a.i.ActionUpdater - Last Action: 
+2026-11-13 18:54:09,001 [   4380]   INFO - #c.i.i.p.m.MarketplaceRequests - Looking for the last compatible plugin updates for:
+[com.intellij.microservices.ui, org.jetbrains.plugins.docker.gateway, com.intellij.beanValidation, org.jetbrains.security.package-checker, com.intellij.air, Git4Idea, tanvd.grazi, Docker, XPathView, com.intellij.platform.daemon, Karma, com.intellij.modules.jcef, com.intellij.lsp.ui, com.jetbrains.restClient, com.intellij.javaee.reverseEngineering, com.intellij.mcpServer, org.jetbrains.idea.maven, com.jetbrains.restWebServices, intellij.nextjs, intellij.ktor, com.intellij.quarkus, intellij.prettierJS, com.intellij.plugins.webcomponents, com.deadlock.scsyntax, com.intellij.liquibase, com.intellij.properties, com.intellij.LineProfiler, com.intellij.spring.data, org.jetbrains.plugins.terminal, org.jetbrains.plugins.node-remote-interpreter, org.intellij.plugins.markdown, com.intellij.spring, org.intellij.groovy, com.intellij.spring.messaging, com.intellij.hibernate, com.intellij.kubernetes, com.intellij.copyright, org.jetbrains.plugins.textmate, tslint, org.jetbrains.plugins.github, org.jetbrains.plugins.vue, NodeJS, com.intellij.java.ide, org.jetbrains.plugins.gradle, com.intellij.javaee.el, com.intellij.javaee.extensions, com.intellij.jsonpath, com.intellij.ko, com.intellij.spring.boot, com.intellij.java-i18n, com.intellij.swagger, com.intellij.thymeleaf, com.jetbrains.performancePlugin, com.intellij.micronaut, intellij.webp, org.toml.lang, Refactor-X, com.intellij.javaee, com.intellij.cron, com.jetbrains.plugins.webDeployment, intellij.vitejs, com.intellij.spring.cloud, com.intellij.settingsSync, HtmlTools, com.intellij.javaee.jakarta.data, com.intellij.javaee.jpa, com.jetbrains.sh, Tomcat, com.intellij.react, com.intellij.spring.boot.initializr, com.intellij.java, com.intellij.spring.security, training, com.intellij.zh, com.intellij.flyway, org.jetbrains.plugins.remote-run, JavaScript, com.intellij.cdi, com.intellij.database, org.jetbrains.plugins.gitlab, org.jetbrains.java.decompiler, JavaScriptDebugger, org.jetbrains.plugins.yaml, intellij.webpack, org.editorconfig.editorconfigjetbrains, com.intellij.ja, com.intellij.spring.mvc, io.mateu.ijp.plugin, com.intellij.debugger.collections.visualizer, org.jetbrains.completion.full.line]
+send machine ID: true

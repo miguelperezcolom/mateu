@@ -1,0 +1,3 @@
+<!-- Loaded only where the JCEF plugin (com.intellij.modules.jcef, 2026.x) exists: nothing to register,
+     the dependency itself is the point (it makes JCEF's classes reachable from Mateu's classloader). -->
+<idea-plugin/>

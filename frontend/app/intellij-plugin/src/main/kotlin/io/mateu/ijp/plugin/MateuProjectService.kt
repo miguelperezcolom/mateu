@@ -108,6 +108,7 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         // The desktop hub: the user's list of UIs until they open one (io.mateu.ijp.hub).
         if (cfg.hub && hubEntryId == null) {
             showHub()
+            openLinkFromEnvironmentOnce()
             return
         }
         if (cfg.registryUrl == null || cfg.appId == null) {
@@ -343,6 +344,9 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         navigatorRoot.add(io.mateu.ijp.hub.HubPanel(project, store, ::openHubEntry), BorderLayout.CENTER)
         navigatorRoot.revalidate()
         navigatorRoot.repaint()
+        // read by the desktop smoke test (scripts/desktop-smoke.sh): the hub really came up
+        com.intellij.openapi.diagnostic.Logger.getInstance(MateuProjectService::class.java)
+            .info("$HUB_SHOWN (${store.list.entries.size} UIs)")
         // a shell-less UI folded the panel away: the list must be visible again
         if (loadMateuConfig(project).standalone) {
             com.intellij.openapi.wm.ToolWindowManager.getInstance(project).getToolWindow("Mateu")?.show()
@@ -545,5 +549,24 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         navigatorRoot.add(panel, BorderLayout.NORTH)
         navigatorRoot.revalidate()
         navigatorRoot.repaint()
+    }
+
+    /**
+     * `MATEU_OPEN_LINK=mateu://add?u=…` in the app's environment: the hub handles that link once it is
+     * up, exactly like one the OS handed over (it still ASKS before calling the address). What the
+     * desktop smoke test launches the app with, so the hub's link path runs on every OS — a link from
+     * the OS arrives through the platform's protocol handling, which a CI runner cannot trigger alike.
+     */
+    private fun openLinkFromEnvironmentOnce() {
+        val link = System.getenv(OPEN_LINK_ENV)?.trim()?.ifBlank { null } ?: return
+        if (!linkFromEnvironmentOpened.compareAndSet(false, true)) return
+        handleHubLink(io.mateu.ijp.hub.MateuProtocolHandler.asLink(link))
+    }
+
+    companion object {
+        /** The log line the desktop smoke test waits for once the hub ("My UIs") is on screen. */
+        const val HUB_SHOWN = "Mateu hub: showing My UIs"
+        const val OPEN_LINK_ENV = "MATEU_OPEN_LINK"
+        private val linkFromEnvironmentOpened = java.util.concurrent.atomic.AtomicBoolean()
     }
 }

@@ -5,7 +5,6 @@ import com.intellij.debugger.ui.HotSwapVetoableListener
 import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
@@ -233,7 +232,7 @@ class MateuLiveService(private val project: Project) {
                 SERVER_MODE = false
                 USE_SOCKET_TRANSPORT = true
             }
-            ProgramRunnerUtil.executeConfiguration(settings, DefaultDebugExecutor.getDebugExecutorInstance())
+            ProgramRunnerUtil.executeConfiguration(settings, debugExecutor())
         }.onFailure {
             notify("Could not attach the debugger on port $port: ${it.message}", NotificationType.WARNING)
         }
@@ -296,7 +295,7 @@ class RunMateuLiveAction : AnAction() {
                 runManager.addConfiguration(it)
             }
         runManager.selectedConfiguration = settings
-        ProgramRunnerUtil.executeConfiguration(settings, DefaultDebugExecutor.getDebugExecutorInstance())
+        ProgramRunnerUtil.executeConfiguration(settings, debugExecutor())
     }
 }
 

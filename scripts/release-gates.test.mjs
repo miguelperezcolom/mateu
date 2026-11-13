@@ -321,3 +321,61 @@ test('the over-the-air update goes to the store channel and to the GitHub APK ch
     const config = readFileSync(new URL('../frontend/app/react-native/app.config.ts', import.meta.url), 'utf8')
     assert.match(config, /'expo-channel-name': updateChannelFor\(process\.env\.MATEU_DISTRIBUTION\?\.trim\(\)\)/)
 })
+
+// macOS desktop app (3.0-beta.64 did not start on a Mac: "Failed to load libjli.dylib … different Team
+// IDs"). The checks run on what is PUBLISHED, and the re-sign never goes back to `codesign --deep`.
+const repoText = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8')
+const withoutShellComments = (text) => text.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n')
+
+test('desktop.yml checks and launches the published macOS app (zip and dmg), not the build folder', () => {
+    const macos = withoutComments(jobBlock('desktop.yml', 'macos'))
+    assert.match(macos, /ditto -x -k "\$zip"/, 'the published zip is unpacked')
+    assert.match(macos, /hdiutil attach "\$dmg" -nobrowse -readonly/, 'the published dmg is mounted')
+    for (const app of ['PUBLISHED_ZIP_APP', 'PUBLISHED_DMG_APP']) {
+        assert.match(macos, new RegExp(`scripts/desktop-smoke\\.sh macos "\\$${app}"`), `smoke on ${app}`)
+    }
+    assert.match(macos, /for app in "\$PUBLISHED_ZIP_APP" "\$PUBLISHED_DMG_APP"/)
+    assert.match(macos, /scripts\/macos-signature-check\.sh "\$app" \|\| rc=1/, 'the signature check fails the step')
+    assert.doesNotMatch(macos, /desktop-smoke\.sh macos [^\n]*build\/installer/, 'never the build folder')
+    assert.doesNotMatch(macos, /::warning::[^\n]*allow-jit/, 'a lost JVM entitlement is an error, not a warning')
+    assert.ok(macos.indexOf('macos-signature-check.sh') < macos.indexOf('actions/upload-artifact'), 'checked before it is handed on')
+})
+
+test('the macOS re-sign is inside-out with the entitlements kept, never --deep', () => {
+    const gradle = repoText('frontend/app/intellij-plugin/build.gradle.kts')
+    assert.doesNotMatch(gradle, /run\("codesign"/, 'buildInstaller signs only through installer/macos/sign-app.sh')
+    assert.match(gradle, /macos\/sign-app\.sh/)
+    const sign = withoutShellComments(repoText('frontend/app/intellij-plugin/installer/macos/sign-app.sh'))
+    assert.match(sign, /--preserve-metadata=entitlements/, 'JetBrains entitlements (allow-jit, disable-library-validation) survive')
+    assert.match(sign, /--options runtime --timestamp/)
+    assert.doesNotMatch(sign.replace(/codesign --verify --deep --strict/g, ''), /--deep/, 'no --deep signing')
+})
+
+// 3.0-beta.64's plugin LOADED on the 2026.3 base and the hub never came up (Jackson out of the core
+// classloader). "The plugin loaded" is no smoke test: every OS checks the hub, a link and Mateu's errors.
+test('every desktop smoke test checks the hub, a mateu:// link and Mateu\'s errors, not only "the plugin loaded"', () => {
+    const smoke = withoutShellComments(repoText('scripts/desktop-smoke.sh'))
+    assert.match(smoke, /export MATEU_OPEN_LINK='mateu:\/\/add\?u=/)
+    assert.match(smoke, /node "\$here\/desktop-log-check\.mjs" "\$log" --hub --link/)
+    const windows = withoutComments(jobBlock('desktop.yml', 'smoke-windows'))
+    assert.match(windows, /MATEU_OPEN_LINK: mateu:\/\/add\?u=/)
+    assert.match(windows, /node scripts\/desktop-log-check\.mjs \$log --hub --link/)
+    assert.match(windows, /sparse-checkout: scripts/)
+})
+
+test('desktop.yml checks the plugin\'s class visibility on the IDE base it ships with (macOS and Linux)', () => {
+    assert.match(withoutComments(jobBlock('desktop.yml', 'macos')), /node scripts\/intellij-class-visibility\.mjs "\$PUBLISHED_ZIP_APP\/Contents"/)
+    assert.match(withoutComments(jobBlock('desktop.yml', 'linux-windows')), /node scripts\/intellij-class-visibility\.mjs "\$root"/)
+    const gradle = repoText('frontend/app/intellij-plugin/build.gradle.kts')
+    assert.match(gradle, /implementation\("com\.fasterxml\.jackson\.core:jackson-databind:/, 'Jackson is bundled (not on the 2026.x core classloader)')
+    assert.match(gradle, /-Dplatform\.enable\.plugin\.update\.source\.feature=false/, 'no "Cannot update plugin" balloon in the app')
+    const pluginXml = repoText('frontend/app/intellij-plugin/src/main/resources/META-INF/plugin.xml')
+    assert.match(pluginXml, /<depends optional="true" config-file="mateu-jcef\.xml">com\.intellij\.modules\.jcef<\/depends>/)
+})
+
+test('the macOS signature check refuses mixed Team IDs and a hardened JVM without its entitlements', () => {
+    const check = withoutShellComments(repoText('scripts/macos-signature-check.sh'))
+    assert.match(check, /not signed with the app's Team ID/)
+    for (const e of ['com.apple.security.cs.allow-jit', 'com.apple.security.cs.disable-library-validation']) assert.ok(check.includes(e), e)
+    assert.match(check, /exit "\$fail"/)
+})
