@@ -58,7 +58,7 @@ const hasEntries = (state: Record<string, any> | undefined): boolean => {
 }
 import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validation.ts";
 import {evaluateExpression, interpolate, interpolateAndEvaluate, templateResolver} from "@infra/ui/interpolation.ts";
-import {navigateToRoute} from "@infra/ui/rowRoute.ts";
+import {leaveToRoute, navigateToRoute} from "@infra/ui/rowRoute.ts";
 import { restActionSettlesTheForm } from "./restActionSettles";
 import {fetchExternalJson, getByPath} from "@infra/http/externalOptions.ts";
 import RestActionDto from "@mateu/shared/apiClients/dtos/componentmetadata/RestActionDto.ts";
@@ -938,7 +938,7 @@ export class MateuComponent extends ComponentElement {
         if (command.type === 'NavigateTo') {
             const route = inAppRoute(command.data)
             if (route !== undefined) {
-                navigateToRoute(this, route)
+                leaveToRoute(this, route)
                 return
             }
         }

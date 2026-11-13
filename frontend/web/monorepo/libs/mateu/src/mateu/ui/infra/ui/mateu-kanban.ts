@@ -11,7 +11,7 @@ import { announce } from '@infra/a11y/announcer.ts';
 import { fetchExternalJson } from '@infra/http/externalOptions.ts';
 import { resolveRestSource, viaProxy } from '@infra/http/restSourceCatalogue.ts';
 import { templateResolver } from '@infra/ui/interpolation.ts';
-import { navigateToRoute } from '@infra/ui/rowRoute.ts';
+import { leaveToRoute } from '@infra/ui/rowRoute.ts';
 import { chromeTextf, chromeText } from '@infra/ui/chromeTexts.ts';
 import {
     BoardCard, BoardColumn, KanbanMove, cardRouteOf, cardsFromRows, dropIndexOf, isRealMove, itemsOf,
@@ -338,7 +338,7 @@ export class MateuKanban extends LitElement {
     private clickCard(card: BoardCard) {
         const route = cardRouteOf(this.cardRoute, card, this.state, this.data)
         if (route) {
-            navigateToRoute(this, route)
+            leaveToRoute(this, route)
             return
         }
         if (!card.actionId) {

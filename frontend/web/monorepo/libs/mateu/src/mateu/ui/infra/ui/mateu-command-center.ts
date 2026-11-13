@@ -8,6 +8,7 @@ import { listRecentRoutes, pushRecentRoute } from "@infra/recentRoutesStore.ts";
 import { fabPosition, fabStyles, onFabRail } from "@infra/ui/layout/fabRail.ts";
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { icon } from '@infra/ui/renderers/neutralIcon.ts'
+import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 
 // One hit of the app's GlobalSearchSupplier, mirrored from mateu-app's command palette.
 interface GlobalSearchHit { label: string, description?: string, route: string, category?: string }
@@ -165,6 +166,9 @@ export class MateuCommandCenter extends LitElement {
     // ---- navigation -------------------------------------------------------
 
     private navigateTo(route: string, label: string) {
+        // leaving the screen asks about unsaved changes like the menu, the palette and the
+        // breadcrumbs do (W-3) — «stay» keeps the palette where it was
+        if (!dirtyGuard.confirmLeave()) return
         pushRecentRoute(this.app?.serverSideType ?? '', { route, label })
         this.close()
         for (const type of ['route-changed', 'navigate-to-requested']) {
