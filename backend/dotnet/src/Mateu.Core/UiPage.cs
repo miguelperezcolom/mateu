@@ -297,11 +297,22 @@ internal static class UiPage
         return star == true;
     }
 
-    /// <summary>The gzip bytes of a renderer file, compressed once per content (cached by path and
-    /// a hash of the bytes, so a replaced file is compressed again).</summary>
+    /// <summary>At most this many compressed files are kept: the renderer ships a few dozen text
+    /// files, so the bound is only ever reached by files replaced over and over (a dev rebuild).</summary>
+    internal const int MaxGzipEntries = 256;
+
+    /// <summary>How many compressed files are cached (tests).</summary>
+    internal static int GzipCacheCount => Gzips.Count;
+
+    /// <summary>The gzip bytes of a renderer file, compressed once per CONTENT: the cache is keyed
+    /// by the bytes (their size and SHA-256), never by the request path — <c>/assets//x.js</c>,
+    /// <c>/assets///x.js</c>… name one file and must not each take an entry (an unauthenticated
+    /// request could grow the cache without bound) — and it is bounded: past
+    /// <see cref="MaxGzipEntries"/> it starts over. A replaced file is compressed again.</summary>
     public static byte[] Gzipped(string path, byte[] raw)
     {
-        var key = path + "|" + raw.Length + "|" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(raw));
+        var key = raw.Length + "|" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(raw));
+        if (!Gzips.ContainsKey(key) && Gzips.Count >= MaxGzipEntries) Gzips.Clear();
         return Gzips.GetOrAdd(key, _ =>
         {
             using var output = new MemoryStream(Math.Max(64, raw.Length / 3));

@@ -44,7 +44,8 @@ internal sealed partial class SyncHandler
     /// ExportActionRunner emits (export.csv / export.xlsx / export.pdf).</summary>
     private UIIncrementDto Export(ExportFormat kind, object crud, Type element, RunActionRqDto rq)
     {
-        var props = ReflectionMapper.EditableProperties(element).ToList();
+        rq = NarrowListingQuery(rq, element, element);
+        var props = RowProperties(element);
         var rows = FilteredRows(crud, rq, props);
         var columns = _mapper.ExportColumns(element)
             .Select(c => new ExportColumn(c.Property.Name, c.Label))

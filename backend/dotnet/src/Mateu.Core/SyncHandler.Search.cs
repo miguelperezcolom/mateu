@@ -94,6 +94,7 @@ internal sealed partial class SyncHandler
     /// paginates the returned rows when the listing didn't page them itself.</summary>
     private static UIIncrementDto ListingSearch(object view, Type filtersType, Type rowType, RunActionRqDto rq)
     {
+        rq = NarrowListingQuery(rq, rowType, filtersType);
         var request = new SearchRequest(
             SearchText(rq), AssembleFilters(filtersType, rq.ComponentState), null, PageableOf(rq)) with { FilterState = rq.ComponentState };
         var found = view.GetType().GetMethod("Search", [typeof(SearchRequest)])!.Invoke(view, [request]);
@@ -112,7 +113,7 @@ internal sealed partial class SyncHandler
     /// ran the count + page queries itself) goes to the wire as-is with its real total.</summary>
     private static UIIncrementDto EmitListingData(object? found, Type rowType, RunActionRqDto rq, object? listing = null)
     {
-        var props = ReflectionMapper.EditableProperties(rowType).ToList();
+        var props = RowProperties(rowType);
         if (found is null) return PageRows([], props, rq);
         var content = ((System.Collections.IEnumerable)found.GetType().GetProperty("Content")!.GetValue(found)!)
             .Cast<object>().ToList();
@@ -239,6 +240,63 @@ internal sealed partial class SyncHandler
         return rows;
     }
 
+    /// <summary>The most rows one listing page may ask for (env <c>MATEU_LISTING_MAX_PAGE_SIZE</c>,
+    /// Java's <c>mateu.listing.max-page-size</c>; default 500).</summary>
+    internal static int MaxPageSize { get; set; } =
+        int.TryParse(Environment.GetEnvironmentVariable("MATEU_LISTING_MAX_PAGE_SIZE"), out var max) && max > 0 ? max : 500;
+
+    /// <summary>What a client may ask a listing search (or export) for, applied before it runs
+    /// (Java's ListingQueryGuard): a page below zero is the first, a page size above
+    /// <see cref="MaxPageSize"/> — or none at all (0 or below, which here means "every row") — is
+    /// that maximum, and a sort or filter on a field the caller may not read ([EyesOnly] on the row
+    /// or the filters class) is dropped: the order or the matching rows of a hidden column tell its
+    /// values as well as the column would.</summary>
+    internal static RunActionRqDto NarrowListingQuery(RunActionRqDto rq, Type? rowType, Type? filtersType)
+    {
+        var state = rq.ComponentState;
+        if (state is null) return rq;
+        var narrowed = new Dictionary<string, object?>(state);
+        var changed = false;
+        if (state.ContainsKey("page") && ToInt(GetState(state, "page"), 0) < 0)
+        {
+            narrowed["page"] = 0;
+            changed = true;
+        }
+        if (state.ContainsKey("size") && ToInt(GetState(state, "size"), MaxPageSize) is var size
+            && (size <= 0 || size > MaxPageSize))
+        {
+            narrowed["size"] = MaxPageSize;
+            changed = true;
+        }
+        var hidden = new HashSet<string>();
+        foreach (var type in new[] { rowType, filtersType }.Where(t => t is not null).Distinct())
+            foreach (var p in ReflectionMapper.EditableProperties(type!))
+                if (!ActionGuard.Authorized(p.Find<EyesOnlyAttribute>())) hidden.Add(Naming.CamelCase(p.Name));
+        if (hidden.Count > 0)
+        {
+            var sorts = EnumerateSort(state).ToList();
+            if (sorts.Any(s => hidden.Contains(s.field)))
+            {
+                narrowed["sort"] = JsonSerializer.SerializeToElement(sorts.Where(s => !hidden.Contains(s.field))
+                    .Select(s => new { field = s.field, direction = s.descending ? "descending" : "ascending" }));
+                changed = true;
+            }
+            foreach (var name in hidden)
+                foreach (var key in new[] { name, name + "_from", name + "_to" })
+                    changed |= narrowed.Remove(key);
+        }
+        return changed ? rq with { ComponentState = narrowed } : rq;
+    }
+
+    /// <summary>The properties a listing row carries FOR THIS CALLER: an [EyesOnly] property the
+    /// caller may not see is neither a cell of the row (at any level of a tree) nor a sort, filter
+    /// or summary key — hiding only its column left the value in the row data (Java's listing
+    /// columns and DataMapper apply the same predicate).</summary>
+    internal static List<PropertyInfo> RowProperties(Type rowType) =>
+        ReflectionMapper.EditableProperties(rowType)
+            .Where(p => ActionGuard.Authorized(p.Find<EyesOnlyAttribute>()))
+            .ToList();
+
     /// <summary>A row as a camelCase dict; a self-referential children list (tree layouts)
     /// recurses so every level of the hierarchy rides in the same payload.</summary>
     private static Dictionary<string, object?> RowDict(object item, List<PropertyInfo> props) =>
@@ -247,7 +305,7 @@ internal sealed partial class SyncHandler
             if (ReflectionMapper.GridRowType(p) is { } childType
                 && p.GetValue(item) is System.Collections.IEnumerable children)
             {
-                var childProps = ReflectionMapper.EditableProperties(childType).ToList();
+                var childProps = RowProperties(childType);
                 return (object?)children.Cast<object>().Select(child => RowDict(child, childProps)).ToList();
             }
             return MappedCell(p, p.GetValue(item));
@@ -282,7 +340,8 @@ internal sealed partial class SyncHandler
 
     private static UIIncrementDto CrudSearch(object instance, Type element, RunActionRqDto rq)
     {
-        var props = ReflectionMapper.EditableProperties(element).ToList();
+        rq = NarrowListingQuery(rq, element, element);
+        var props = RowProperties(element);
         var summarySpec = SummarySpecOf(props);
         // The [GroupBy] column is the implicit primary sort, so rows of the same group stay
         // contiguous in the listing (the user's own sort applies within groups; mirrors Java's
