@@ -17,7 +17,11 @@ from typing import Any
 
 import yaml
 
-from mateu_ui.core.partial_registry import PartialRegistry
+from mateu_ui.core.partial_registry import (
+    PartialRegistry,
+    guarded_by_access_keys,
+    is_partial_document,
+)
 
 log = logging.getLogger("mateu.bundle")
 
@@ -100,17 +104,20 @@ class DefinitionInliner:
         chain.append(key)
         try:
             out: list[Any] = []
-            content = root.get("content") if isinstance(root, dict) and "type" not in root else None
-            if isinstance(content, list):
-                for child in content:
+            if is_partial_document(root):
+                for child in root["content"]:
                     nested = self._expand(child, chain)
                     if nested is None:
                         out.append(self._rewrite(child, chain))
                     else:
                         out.extend(nested)
+                # the document's own access keys stay on what it holds (cosmetic in a bundle, but
+                # the structure must match what the server composes)
+                out = guarded_by_access_keys(root, out)
             else:
+                # a typed root IS one component, kept whole with its access keys, id and style
                 out.append(self._rewrite(root, chain))
-            return out
+            return guarded_by_access_keys(node, out)
         finally:
             chain.pop()
 

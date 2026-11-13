@@ -228,6 +228,27 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
     return ref != null && (ref.endsWith(".yaml") || ref.endsWith(".yml"));
   }
 
+  /**
+   * Whether a partial file's root is the "several components" document (no {@code type}, or the
+   * {@code type: Partial} header, and a {@code content:} list) whose components are spliced where
+   * the partial is named. Any other root IS one component and must be kept whole, with its access
+   * keys, id and style. The one rule every reader of a partial file follows (server composition,
+   * the built path and the static-bundle inliner).
+   */
+  public static boolean isPartialDocument(JsonNode root) {
+    return YamlPartials.isPartialDocument(root);
+  }
+
+  /**
+   * {@code items} kept under the access keys ({@code eyesOnly}, {@code readOnlyUnless}, {@code
+   * disabledUnless}) that {@code holder} — a partial document's root or the {@code type: Partial}
+   * reference — declares, as a {@code VerticalLayout} carrying them; the same items when it
+   * declares none.
+   */
+  public static List<JsonNode> guardedByAccessKeys(JsonNode holder, List<JsonNode> items) {
+    return YamlPartials.guarded(holder, items);
+  }
+
   private List<Component> fromYaml(String ref) {
     var cl =
         io.mateu.core.infra.dev.DevSpecs.classLoader(
@@ -286,7 +307,9 @@ public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache
    */
   private List<Component> componentsOf(String ref, String path, String text, JsonNode root)
       throws Exception {
-    if (root.has("content")) {
+    // only a type-less (or `type: Partial`) `content:` document is a list of components; a typed
+    // root IS one component and keeps its access keys, id and style
+    if (YamlPartials.isPartialDocument(root)) {
       var content = new ArrayList<Component>();
       var children = root.get("content");
       for (int i = 0; i < children.size(); i++) {

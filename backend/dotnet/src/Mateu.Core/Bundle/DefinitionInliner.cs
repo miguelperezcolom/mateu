@@ -110,21 +110,23 @@ internal sealed class DefinitionInliner(string specsDir)
         try
         {
             var out_ = new List<object?>();
-            if (root is IDictionary<object, object> rootMap && !rootMap.ContainsKey("type")
-                && rootMap.TryGetValue("content", out var content) && content is IEnumerable<object> children
-                && content is not string)
+            if (PartialRegistry.IsPartialDocument(root, out var children))
             {
                 foreach (var child in children)
                 {
                     if (Expand(child, chain) is { } nested) out_.AddRange(nested);
                     else out_.Add(Rewrite(child, chain));
                 }
+                // the document's own access keys stay on what it holds (cosmetic in a bundle, but the
+                // structure must match what the server composes)
+                out_ = PartialRegistry.Guarded((IDictionary<object, object>)root, out_);
             }
             else
             {
+                // a typed root IS one component, kept whole with its access keys, id and style
                 out_.Add(Rewrite(root, chain));
             }
-            return out_;
+            return PartialRegistry.Guarded(map, out_);
         }
         finally { chain.RemoveAt(chain.Count - 1); }
     }

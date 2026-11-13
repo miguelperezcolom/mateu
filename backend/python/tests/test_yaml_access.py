@@ -288,3 +288,96 @@ def test_a_guarded_partial_drawn_inside_a_code_page_is_applied_for_the_caller(tm
     assert "Secret salary table" not in guest
     assert "eyesOnly" not in guest and "readOnlyUnless" not in guest
     assert "Secret salary table" in wire(handler(tmp_path, roles=("hr",)), "/staff-code")
+
+
+
+def _typed_root_partial_specs(tmp_path: Path, partial: str) -> Path:
+    (tmp_path / "routes.yaml").write_text("routes:\n  - route: vault\n    layout: vault.yaml\n")
+    (tmp_path / "vault.yaml").write_text(
+        "layout:\n  type: VerticalLayout\n  content:\n"
+        "    - {type: Text, text: Public text}\n"
+        "    - {type: Partial, ref: secret-card}\n"
+    )
+    (tmp_path / "partials").mkdir()
+    (tmp_path / "partials" / "secret-card.yaml").write_text(partial)
+    return tmp_path
+
+
+# The reported shape: a partial whose ROOT is a typed component with a `content:` list. The Card
+# and its access keys ARE the partial — only a type-less `content:` document is a list to splice.
+REPORTED_PARTIAL = (
+    "type: Card\ntitle: Secret\neyesOnly: ADMIN\ncontent:\n  - type: Text\n    text: confidential\n"
+)
+
+# The same defect on a container whose `content:` list is valid for its type.
+GUARDED_LAYOUT_PARTIAL = (
+    "type: VerticalLayout\nid: vault-box\nstyle: 'gap: 1rem'\neyesOnly: ADMIN\ncontent:\n"
+    "  - {type: Text, text: Secret}\n"
+    "  - {type: Text, text: confidential}\n"
+)
+
+
+def _types(payload: str) -> list[str]:
+    return [n.get("type") for n in _walk(json.loads(payload), lambda n: isinstance(n.get("type"), str))]
+
+
+def test_a_typed_partial_root_keeps_its_access_keys_reported_card(tmp_path):
+    directory = _typed_root_partial_specs(tmp_path, REPORTED_PARTIAL)
+    guest = wire(handler(directory, roles=()), "/vault")
+    assert "Public text" in guest
+    assert "confidential" not in guest
+    assert "Card" not in _types(guest)
+    admin = wire(handler(directory, roles=("ADMIN",)), "/vault")
+    # the Card survives composition (its list `content:` is not a valid Card slot, so the builder
+    # draws it empty — but it is never dissolved into unguarded children)
+    assert "Card" in _types(admin)
+
+
+def test_a_typed_partial_root_keeps_its_access_keys_and_metadata(tmp_path):
+    directory = _typed_root_partial_specs(tmp_path, GUARDED_LAYOUT_PARTIAL)
+    guest = wire(handler(directory, roles=()), "/vault")
+    assert "Public text" in guest
+    assert "confidential" not in guest and "vault-box" not in guest
+    admin = wire(handler(directory, roles=("ADMIN",)), "/vault")
+    assert "confidential" in admin
+    boxes = list(_walk(json.loads(admin), lambda n: n.get("id") == "vault-box"))
+    assert boxes and boxes[0].get("style") == "gap: 1rem"
+
+
+def _vault_with_ref(tmp_path: Path, partial: str, ref: str) -> Path:
+    directory = _typed_root_partial_specs(tmp_path, partial)
+    (directory / "vault.yaml").write_text(
+        "layout:\n  type: VerticalLayout\n  content:\n"
+        "    - {type: Text, text: Public text}\n"
+        f"    - {ref}\n"
+    )
+    return directory
+
+
+@pytest.mark.parametrize(
+    "partial",
+    [
+        "type: Partial\neyesOnly: ADMIN\ncontent:\n  - {type: Text, text: confidential}\n",
+        "eyesOnly: ADMIN\ncontent:\n  - {type: Text, text: confidential}\n",
+    ],
+    ids=["partial-header", "typeless"],
+)
+def test_a_partial_documents_own_access_keys_guard_what_it_holds(tmp_path, partial):
+    directory = _vault_with_ref(tmp_path, partial, "{type: Partial, ref: secret-card}")
+    guest = wire(handler(directory, roles=()), "/vault")
+    assert "Public text" in guest and "confidential" not in guest
+    assert "confidential" in wire(handler(directory, roles=("ADMIN",)), "/vault")
+
+
+@pytest.mark.parametrize(
+    "partial",
+    ["content:\n  - {type: Text, text: confidential}\n", "type: Text\ntext: confidential\n"],
+    ids=["document", "single"],
+)
+def test_the_access_keys_of_the_partial_reference_guard_what_it_stands_for(tmp_path, partial):
+    directory = _vault_with_ref(
+        tmp_path, partial, "{type: Partial, ref: secret-card, eyesOnly: ADMIN}"
+    )
+    guest = wire(handler(directory, roles=()), "/vault")
+    assert "Public text" in guest and "confidential" not in guest
+    assert "confidential" in wire(handler(directory, roles=("ADMIN",)), "/vault")

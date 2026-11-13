@@ -140,20 +140,25 @@ final class DefinitionInliner {
     }
     chain.push(key);
     try {
-      var out = JsonNodeFactory.instance.arrayNode();
-      var content = root.has("content") && !root.has("type") ? root.get("content") : null;
-      if (content != null && content.isArray()) {
-        for (var child : content) {
+      var items = new java.util.ArrayList<JsonNode>();
+      if (io.mateu.core.application.runaction.PartialRegistry.isPartialDocument(root)) {
+        for (var child : root.get("content")) {
           var nested = expand(child, chain);
           if (nested == null) {
-            out.add(rewrite(child, chain));
+            items.add(rewrite(child, chain));
           } else {
-            nested.forEach(out::add);
+            nested.forEach(items::add);
           }
         }
+        // the document's own access keys stay on what it holds (cosmetic in a bundle, but the
+        // structure must match what the server composes)
+        items = new java.util.ArrayList<>(guarded(root, items));
       } else {
-        out.add(rewrite(root, chain));
+        // a typed root IS one component, kept whole with its access keys, id and style
+        items.add(rewrite(root, chain));
       }
+      var out = JsonNodeFactory.instance.arrayNode();
+      guarded(object, items).forEach(out::add);
       return out;
     } finally {
       chain.pop();
@@ -205,6 +210,10 @@ final class DefinitionInliner {
       }
     }
     return components;
+  }
+
+  private static java.util.List<JsonNode> guarded(JsonNode holder, java.util.List<JsonNode> items) {
+    return io.mateu.core.application.runaction.PartialRegistry.guardedByAccessKeys(holder, items);
   }
 
   private static ObjectNode stack(ArrayNode children) {

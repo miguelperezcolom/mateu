@@ -101,11 +101,13 @@ public sealed class PartialRegistry : ISpecsCache
         {
             var root = YamlComponentBuilder.Deserialize(File.ReadAllText(path));
             if (root is null) return None;
-            // `content:` holds several; a file that is just a component IS the partial.
-            if (root is IDictionary<object, object> map
-                && map.TryGetValue("content", out var content)
-                && content is IEnumerable<object> seq)
-                return seq.ToList();
+            // Only the "several components" document (no `type`, or the `type: Partial` header, and a
+            // `content:` list) is spliced — its own access keys kept on a wrapper. A typed root IS
+            // one component and is kept whole, access keys, id and style included: unwrapping a
+            // `type: Card, eyesOnly: …, content: [...]` dropped the card and let its content reach
+            // every caller.
+            if (IsPartialDocument(root, out var seq))
+                return Guarded((IDictionary<object, object>)root, seq.ToList());
             return [root];
         }
         catch (Exception e)
@@ -119,6 +121,37 @@ public sealed class PartialRegistry : ISpecsCache
     }
 
     private const int MaxComposeDepth = 20;
+
+    /// <summary>The access keys a partial document or a <c>type: Partial</c> reference may carry.</summary>
+    private static readonly string[] AccessKeys = ["eyesOnly", "readOnlyUnless", "disabledUnless"];
+
+    /// <summary>Whether a partial file's root is the "several components" document — no <c>type</c>
+    /// (or the <c>type: Partial</c> header) and a <c>content:</c> list.</summary>
+    internal static bool IsPartialDocument(object? root, out IEnumerable<object> content)
+    {
+        content = [];
+        if (root is not IDictionary<object, object> map || map.ContainsKey("ref")) return false;
+        if (map.TryGetValue("type", out var type) && type is not null && !"Partial".Equals(type as string))
+            return false;
+        if (!map.TryGetValue("content", out var c) || c is not IEnumerable<object> seq || c is string) return false;
+        content = seq;
+        return true;
+    }
+
+    /// <summary><c>items</c> under the access keys <c>holder</c> declares (a partial document's root,
+    /// or the <c>type: Partial</c> reference itself): stacked in a <c>VerticalLayout</c> carrying
+    /// them, so the access pass applies them to all of it — splicing them bare dropped the keys. The
+    /// same items when the holder declares none.</summary>
+    internal static List<T> Guarded<T>(IDictionary<object, object> holder, List<T> items)
+    {
+        if (items.Count == 0) return items;
+        var keys = AccessKeys.Where(holder.ContainsKey).ToList();
+        if (keys.Count == 0) return items;
+        var stack = new Dictionary<object, object> { ["type"] = "VerticalLayout" };
+        foreach (var key in keys) stack[key] = holder[key];
+        stack["content"] = items.Cast<object>().ToList();
+        return [(T)(object)stack];
+    }
 
     /// <summary>The tree with its partials inlined as SOURCE — each <c>{type: Partial, ref: …}</c>
     /// node replaced by the partial's own nodes, recursively — the twin of Java's <c>YamlPartials</c>.
@@ -201,7 +234,8 @@ public sealed class PartialRegistry : ISpecsCache
                 if (items is null) outList.Add(ComposeNode(child, chain)!);
                 else outList.AddRange(items);
             }
-            return outList;
+            // the reference's own access keys guard everything the partial stands for
+            return Guarded(map, outList);
         }
         finally
         {

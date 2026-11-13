@@ -178,4 +178,48 @@ class DefinitionInlinerTest {
       assertThat(legal.path("content").get(0).path("text").asText()).isEqualTo("Legal");
     }
   }
+
+  /**
+   * A partial whose root is a TYPED component keeps that component whole — the Card and its access
+   * keys — while a type-less or {@code type: Partial} document is spliced with its own access keys
+   * (and those of the reference) kept on a wrapper: the bundle has the same structure the server
+   * composes (access itself is cosmetic in a static bundle).
+   */
+  @Test
+  void aTypedPartialRootIsKeptWholeAndDocumentAccessKeysAreKept(@TempDir Path dir)
+      throws Exception {
+    try (var cl =
+        project(
+            dir,
+            java.util.Map.of(
+                "specs/ui/partials/secret-card.yaml",
+                "type: Card\ntitle: Secret\neyesOnly: ADMIN\n"
+                    + "content:\n  - {type: Text, text: confidential}\n",
+                "specs/ui/partials/headed.yaml",
+                "type: Partial\neyesOnly: ADMIN\ncontent:\n  - {type: Text, text: headed}\n",
+                "specs/ui/partials/plain.yaml",
+                "content:\n  - {type: Text, text: plain}\n"))) {
+      var content =
+          new DefinitionInliner(cl)
+              .inline(
+                  yaml.readTree(
+                      "layout: {type: VerticalLayout, content: ["
+                          + "{type: Partial, ref: secret-card},"
+                          + " {type: Partial, ref: headed},"
+                          + " {type: Partial, ref: plain, eyesOnly: ADMIN}]}"))
+              .path("layout")
+              .path("content");
+      assertThat(content.size()).isEqualTo(3);
+      assertThat(content.get(0).path("type").asText()).isEqualTo("Card");
+      assertThat(content.get(0).path("eyesOnly").asText()).isEqualTo("ADMIN");
+      assertThat(content.get(0).path("content").get(0).path("text").asText())
+          .isEqualTo("confidential");
+      for (var i : java.util.List.of(1, 2)) {
+        assertThat(content.get(i).path("type").asText()).isEqualTo("VerticalLayout");
+        assertThat(content.get(i).path("eyesOnly").asText()).isEqualTo("ADMIN");
+      }
+      assertThat(content.get(1).path("content").get(0).path("text").asText()).isEqualTo("headed");
+      assertThat(content.get(2).path("content").get(0).path("text").asText()).isEqualTo("plain");
+    }
+  }
 }

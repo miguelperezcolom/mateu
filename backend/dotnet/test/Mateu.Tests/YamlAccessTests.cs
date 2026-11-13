@@ -356,4 +356,70 @@ public class YamlAccessTests
         Assert.DoesNotContain("readOnlyUnless", guest);
         Assert.Contains("Secret salary table", Json(For("hr").Handle(new RunActionRqDto { Route = "/staff-code" })));
     }
+
+    private static Func<string[], string> Vault(string partial, string reference = "{type: Partial, ref: secret-card}")
+    {
+        var dir = Directory.CreateTempSubdirectory("yaml-partial-root-").FullName;
+        File.WriteAllText(Path.Combine(dir, "routes.yaml"), "routes:\n  - route: vault\n    layout: vault.yaml\n");
+        File.WriteAllText(Path.Combine(dir, "vault.yaml"),
+            "layout:\n  type: VerticalLayout\n  content:\n    - {type: Text, text: Public text}\n    - " + reference + "\n");
+        Directory.CreateDirectory(Path.Combine(dir, "partials"));
+        File.WriteAllText(Path.Combine(dir, "partials", "secret-card.yaml"), partial);
+        return roles => Json(new SyncHandler(new MateuRegistry(typeof(Access).Assembly),
+                identity: () => roles.Length == 0 ? null : new Identity(Roles: roles),
+                specsDir: dir)
+            .Handle(new RunActionRqDto { Route = "/vault" }));
+    }
+
+    /// <summary>The reported shape: a partial whose ROOT is a typed component with a <c>content:</c>
+    /// list IS that component — only a type-less (or <c>type: Partial</c>) document is spliced.
+    /// Unwrapping it dropped the Card and its <c>eyesOnly</c>, so the content reached every caller.</summary>
+    [Fact]
+    public void A_typed_partial_root_keeps_its_access_keys_reported_card()
+    {
+        var load = Vault("type: Card\ntitle: Secret\neyesOnly: ADMIN\ncontent:\n  - type: Text\n    text: confidential\n");
+        var guest = load([]);
+        Assert.Contains("Public text", guest);
+        Assert.DoesNotContain("confidential", guest);
+        Assert.DoesNotContain("\"Card\"", guest);
+        Assert.Contains("\"Card\"", load(["ADMIN"]));
+    }
+
+    [Fact]
+    public void A_typed_partial_root_keeps_its_access_keys_and_metadata()
+    {
+        var load = Vault("type: VerticalLayout\nid: vault-box\nstyle: 'gap: 1rem'\neyesOnly: ADMIN\ncontent:\n"
+                         + "  - {type: Text, text: Secret}\n  - {type: Text, text: confidential}\n");
+        var guest = load([]);
+        Assert.Contains("Public text", guest);
+        Assert.DoesNotContain("confidential", guest);
+        Assert.DoesNotContain("vault-box", guest);
+        // (the .NET YAML builder does not carry a VerticalLayout's id/style to the wire at all — a
+        // builder gap of its own — so only the access decision is pinned here)
+        Assert.Contains("confidential", load(["ADMIN"]));
+    }
+
+    [Theory]
+    [InlineData("type: Partial\neyesOnly: ADMIN\ncontent:\n  - {type: Text, text: confidential}\n")]
+    [InlineData("eyesOnly: ADMIN\ncontent:\n  - {type: Text, text: confidential}\n")]
+    public void A_partial_documents_own_access_keys_guard_what_it_holds(string partial)
+    {
+        var load = Vault(partial);
+        var guest = load([]);
+        Assert.Contains("Public text", guest);
+        Assert.DoesNotContain("confidential", guest);
+        Assert.Contains("confidential", load(["ADMIN"]));
+    }
+
+    [Theory]
+    [InlineData("content:\n  - {type: Text, text: confidential}\n")]
+    [InlineData("type: Text\ntext: confidential\n")]
+    public void The_access_keys_of_the_partial_reference_guard_what_it_stands_for(string partial)
+    {
+        var load = Vault(partial, "{type: Partial, ref: secret-card, eyesOnly: ADMIN}");
+        var guest = load([]);
+        Assert.Contains("Public text", guest);
+        Assert.DoesNotContain("confidential", guest);
+        Assert.Contains("confidential", load(["ADMIN"]));
+    }
 }
