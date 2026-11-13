@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { askConfirm } from '../../ui/ConfirmHost';
 import { Image } from 'expo-image';
+import { LoadingImage } from '../../ui/LoadingImage';
 import { Appbar, Button, Icon, Surface } from 'react-native-paper';
 import { Text } from '../../ui/Text';
 import { theme, themed } from '../../theme';
@@ -44,8 +45,10 @@ export function UiIcon({ name, icon, color, size = 44 }: { name: string; icon?: 
   const box = { width: size, height: size, borderRadius: size / 2 };
   if (icon && !failed) {
     return (
-      // expo-image keeps it on disk: the list does not download every icon again on each launch
-      <Image
+      // expo-image keeps it on disk: the list does not download every icon again on each launch;
+      // LoadingImage draws the neutral circle + spinner until it is there (a failure → the initials)
+      <LoadingImage
+        component={Image}
         source={{ uri: icon }}
         style={[box, styles.iconImage]}
         cachePolicy="memory-disk"

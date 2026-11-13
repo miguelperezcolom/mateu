@@ -20,6 +20,7 @@ import { interpolate } from '../core/expressions';
 import { buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
 import { TaskHost } from '../renderer/TaskHost';
 import { ConnectivityStrip } from './ConnectivityStrip';
+import { ServerActivityBar } from './ServerActivityBar';
 import { KeyboardShortcutsHost } from './KeyboardShortcutsHost';
 import { OutboxHost } from './OutboxHost';
 
@@ -496,10 +497,19 @@ function MateuRoot({ initialRoute }: { initialRoute: string }) {
   }
 
   // No app shell: the root route IS a single view — host it directly.
-  return <MateuViewHost session={session} onController={(c) => { session.hasUnsavedChanges = () => (c.trackDirty && c.dirty) || session.anyUnsavedChanges(); }} target={{ label: '', route: initialRoute, consumedRoute: '_empty', serverSideType: '' }} />;
+  const view = <MateuViewHost session={session} onController={(c) => { session.hasUnsavedChanges = () => (c.trackDirty && c.dirty) || session.anyUnsavedChanges(); }} target={{ label: '', route: initialRoute, consumedRoute: '_empty', serverSideType: '' }} />;
+  // inside the hub, its bar carries the "waiting for the server" indicator; alone, the screen's top does
+  if (session.hub) return view;
+  return (
+    <View style={styles.singleView}>
+      <ServerActivityBar />
+      {view}
+    </View>
+  );
 }
 
 const styles = themed(() => StyleSheet.create({
+  singleView: { flex: 1 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: theme.background },
   errorTitle: { fontSize: 22, fontWeight: '600', color: theme.ink, textAlign: 'center', marginBottom: 8 },
   errorDetail: { fontSize: 16, color: theme.muted, textAlign: 'center', marginBottom: 24, maxWidth: 320 },

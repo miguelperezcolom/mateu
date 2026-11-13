@@ -18,6 +18,7 @@ import { uiLocale } from '../core/money.ts';
 import { classifyFailure, DEFAULT_TIMEOUT_MS, HttpStatusError, isIdempotentAction, RequestTimeoutError, retryDelayMs, shouldRetry } from '../core/requestPolicy.ts';
 import { connectivity } from '../core/connectivity.ts';
 import { IDEMPOTENCY_HEADER } from '../core/offlineQueue.ts';
+import { isBackgroundRequest, serverActivity } from '../core/serverActivity.ts';
 
 /** A fetch whose response body is a readable STREAM (React Native's global fetch buffers the whole
  *  body). Registered by the app (expo/fetch); without one a stream is read once it has ended. */
@@ -49,7 +50,14 @@ export interface RunActionParams {
    *  offline send queue's sends — a sign-in there could be someone else's, and the queued request
    *  would then be repeated as them. */
   silentReauth?: boolean;
+  /** Background traffic the user is not waiting for (a polling refresh, the offline queue's drain):
+   *  not counted by the "waiting for the server" indicator (core/serverActivity.ts). Never sent. */
+  background?: boolean;
 }
+
+/** Counts `call` as a request the UI on screen is waiting for — unless it is background traffic. */
+const counted = <T>(params: { actionId?: string; background?: boolean }, call: () => Promise<T>): Promise<T> =>
+  isBackgroundRequest(params.actionId, params.background) ? call() : serverActivity.track(call);
 
 declare const __DEV__: boolean | undefined;
 
@@ -134,6 +142,12 @@ export class MateuApiClient {
       onIncrement(this.local.answer(params));
       return;
     }
+    // a LongTask counts as long as its stream is open; the app's own long-lived streams
+    // (`_live-updates`, `_agent-channel`, `_progress-resume`) never do
+    return counted(params, () => this.openActionStream(params, onIncrement, signal));
+  }
+
+  private async openActionStream(params: RunActionParams, onIncrement: (increment: unknown) => void, signal?: AbortSignal): Promise<void> {
     const { urlSegment, payload } = this.requestOf(params);
     const url = `${this.baseUrl}/mateu/v3/sse/${urlSegment}`;
     devLog('[Mateu] --> POST (stream)', url);
@@ -206,6 +220,10 @@ export class MateuApiClient {
    * with them, but NO Content-Type — the runtime writes the multipart boundary. Answers the JSON.
    */
   async postForm(url: string, form: FormData): Promise<unknown> {
+    return serverActivity.track(() => this.sendForm(url, form));
+  }
+
+  private async sendForm(url: string, form: FormData): Promise<unknown> {
     const doFetch = async () => {
       const headers = await this.headers({}, url);
       delete headers['Content-Type'];
@@ -255,13 +273,14 @@ export class MateuApiClient {
     if (this.local) {
       if (!params.actionId) return this.local.answer(params);
       try {
-        return await this.postAction(params);
+        return await counted(params, () => this.postAction(params));
       } catch (e) {
         if (e instanceof StaleScreenError || !isNoServer(e)) throw e;
         return this.local.answer(params); // throws "This UI has no server: …"
       }
     }
-    return this.postAction(params);
+    // counted from the first attempt to the last retry: one wait, however many tries it takes
+    return counted(params, () => this.postAction(params));
   }
 
   private async postAction(params: RunActionParams): Promise<unknown> {

@@ -5,6 +5,7 @@
 
 import { againstBase } from './backendUrl.ts';
 import { interpolateBody } from './jsonTemplate.ts';
+import { serverActivity } from './serverActivity.ts';
 
 type Json = Record<string, any>;
 
@@ -329,9 +330,12 @@ export async function fetchExternalJson(
   if (method !== 'GET' && method !== 'HEAD' && source['body']) {
     init.body = interpolateBody(String(source['body']), (source['headers'] as Json) ?? undefined, (t) => resolve(t));
   }
-  const res = await fetch(url, init);
-  if (!res.ok) throw new Error(`External REST fetch failed: ${res.status}`);
-  return jsonBodyOf(res);
+  // a screen waits for it: counted by the "waiting for the server" indicator until its body is read
+  return serverActivity.track(async () => {
+    const res = await fetch(url, init);
+    if (!res.ok) throw new Error(`External REST fetch failed: ${res.status}`);
+    return jsonBodyOf(res);
+  });
 }
 
 /**

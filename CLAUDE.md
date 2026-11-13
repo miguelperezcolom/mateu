@@ -100,6 +100,8 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             white circle. Mateu's face: assets/icon.png (iOS), adaptive-icon.png + monochrome-icon.png
                             (Android 13 themed icons), splash.png; derived from doc/public/favicon.png (235px — no
                             vector exists; upscaled with blur+threshold for clean edges)
+                            LOADING FEEDBACK (2026-11-13): core/serverActivity.ts counts awaited server calls (background ones excluded by
+                            `BACKGROUND_ACTIONS`/`RunActionParams.background`) → shell/ServerActivityBar; server images go through ui/LoadingImage.tsx
                             OFFLINE SEND QUEUE (2026-11-11, @Experimental): `@Action(offline = QUEUE)` (fluent/YAML `offline`,
                             .NET `[ActionOptions(Offline)]`, Python `@action_options(offline=)`) → wire `ActionDto.offline: "queue"`.
                             core/offlineQueue.ts (pure, tested) = a queue per UI AND OWNER (core/outboxOwner.ts: iss+sub+tenant of the
