@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 
 from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, idempotency_keys  # noqa: E402
 from mateu_ui.fastapi import add_mateu  # noqa: E402
-from mateu_ui.uidl import Identity, Message, OfflinePolicy, action_options, button, title, ui  # noqa: E402
+from mateu_ui.uidl import Identity, Message, OfflinePolicy, action_options, button, disabled_unless, title, ui  # noqa: E402
 
 RUNS = {"n": 0}
 
@@ -142,7 +142,7 @@ def test_a_repeat_arriving_while_the_first_run_is_in_flight_waits_for_it():
     idempotency_keys.clear()
 
 
-def test_entries_are_bounded():
+def test_finished_answers_are_bounded():
     idempotency_keys.clear()
     previous = idempotency_keys.max_entries
     idempotency_keys.max_entries = 2
@@ -150,9 +150,148 @@ def test_entries_are_bounded():
         runs = []
         for key in ("key-a-000001", "key-b-000002", "key-c-000003"):
             idempotency_keys.once("u", "save", key, lambda: runs.append(1) or "ok")
-        # the least recently used one was dropped: it runs again
+        # the least recently used FINISHED answer was dropped: it runs again
         idempotency_keys.once("u", "save", "key-a-000001", lambda: runs.append(1) or "ok")
         assert len(runs) == 4
     finally:
         idempotency_keys.max_entries = previous
         idempotency_keys.clear()
+
+
+def test_a_run_in_flight_is_never_evicted_a_full_table_refuses_a_new_key():
+    from mateu_ui.uidl.messages import UserFacingException
+
+    idempotency_keys.clear()
+    previous = idempotency_keys.max_entries
+    idempotency_keys.max_entries = 1
+    gate = threading.Event()
+    started = threading.Event()
+    runs = []
+
+    def slow(label):
+        def run():
+            runs.append(label)
+            started.set()
+            gate.wait(5)
+            return label
+
+        return run
+
+    try:
+        results = []
+        a = threading.Thread(target=lambda: results.append(idempotency_keys.once("u", "save", "key-A-000001", slow("original"))))
+        a.start()
+        assert started.wait(5)
+        # B arrives while A is in flight and the table is full: refused, A untouched
+        try:
+            idempotency_keys.once("u", "save", "key-B-000002", slow("b"))
+            raise AssertionError("B should have been refused")
+        except UserFacingException as refusal:
+            assert refusal.title == idempotency_keys.BUSY_TITLE
+        assert idempotency_keys.in_flight() == 1
+        # a retry of A joins A: never a second execution
+        retry = threading.Thread(target=lambda: results.append(idempotency_keys.once("u", "save", "key-A-000001", slow("duplicate"))))
+        retry.start()
+        gate.set()
+        a.join(5)
+        retry.join(5)
+        assert runs == ["original"]
+        assert results == ["original", "original"]
+        assert idempotency_keys.in_flight() == 0
+        # once A finished, B is admitted
+        assert idempotency_keys.once("u", "save", "key-B-000002", lambda: "b") == "b"
+    finally:
+        idempotency_keys.max_entries = previous
+        idempotency_keys.clear()
+
+
+def test_the_caller_scope_is_complete_and_canonical():
+    base = idempotency_keys.caller_of(Identity(name="ana", roles=("clerk",)))
+    variants = {
+        base,
+        idempotency_keys.caller_of(Identity(name="ana", roles=("clerk",), groups=("g",))),
+        idempotency_keys.caller_of(Identity(name="ana", roles=("clerk",), scopes=("s",))),
+        idempotency_keys.caller_of(Identity(name="ana", roles=("clerk",), permissions=("p",))),
+    }
+    assert len(variants) == 4
+    assert idempotency_keys.caller_of(Identity(name="ana", roles=("b", "a"))) == idempotency_keys.caller_of(
+        Identity(name="ana", roles=("a", "b"))
+    )
+
+
+@ui("offline-mine")
+@title("Mine")
+class OfflineMine:
+    counted: int = 0
+
+    @button()
+    @action_options(offline=OfflinePolicy.QUEUE)
+    def save(self):
+        from mateu_ui.core import current_request
+
+        RUNS["n"] += 1
+        return Message(f"Saved for {current_request().headers.get('x-app-user')}")
+
+    @button()
+    @action_options(offline=OfflinePolicy.QUEUE)
+    @disabled_unless(permissions=("stock.write",))
+    def guarded(self):
+        return _run("Guarded")
+
+
+def _gateway_identity():
+    """The app's own identity provider: user + permissions its gateway put in headers."""
+    from mateu_ui.core import current_request
+
+    request = current_request()
+    user = request.headers.get("x-app-user") if request is not None else None
+    if user is None:
+        return None
+    permissions = request.headers.get("x-app-permissions")
+    return Identity(name=user, permissions=tuple(permissions.split(",")) if permissions else ())
+
+
+def _mine_client() -> TestClient:
+    app = FastAPI()
+    add_mateu(app, OfflineMine, identity_provider=_gateway_identity)
+    return TestClient(app)
+
+
+def _send_mine(client, action_id, user, key, permissions=None):
+    headers = {idempotency_keys.HEADER: key, "X-App-User": user}
+    if permissions:
+        headers["X-App-Permissions"] = permissions
+    return client.post(
+        "/mateu/v3/sync/offline-mine",
+        json={
+            "route": "/offline-mine", "consumedRoute": "_empty", "actionId": action_id,
+            "serverSideType": OfflineMine.__module__ + "." + OfflineMine.__qualname__,
+            "componentState": {"counted": 0},
+        },
+        headers=headers,
+    )
+
+
+def test_two_users_of_a_custom_identity_provider_never_share_a_key():
+    idempotency_keys.clear()
+    RUNS["n"] = 0
+    client = _mine_client()
+    alice = _send_mine(client, "save", "alice", "key-0010-same")
+    bob = _send_mine(client, "save", "bob", "key-0010-same")
+    assert "Saved for alice" in alice.text
+    assert "Saved for bob" in bob.text
+    assert RUNS["n"] == 2
+    idempotency_keys.clear()
+
+
+def test_a_revoked_permission_is_refused_not_served_from_memory():
+    idempotency_keys.clear()
+    RUNS["n"] = 0
+    client = _mine_client()
+    first = _send_mine(client, "guarded", "alice", "key-0011-same", permissions="stock.write")
+    assert "Guarded 1" in first.text
+    second = _send_mine(client, "guarded", "alice", "key-0011-same")
+    assert "Guarded 1" not in second.text
+    assert second.status_code == 403 or '"error"' in second.text
+    assert RUNS["n"] == 1
+    idempotency_keys.clear()

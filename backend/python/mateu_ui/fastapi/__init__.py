@@ -530,17 +530,20 @@ def add_mateu(
         observation, token = observe(mateu_request, rq)
         try:
             # a request carrying an Idempotency-Key (the mobile app's offline send queue) runs
-            # once per caller, action and key: a repeat gets the first answer back
-            increment = await run_in_threadpool(
-                run_bound,
-                mateu_request,
-                lambda: idempotency_keys.once(
-                    idempotency_keys.caller_of(mateu_request.principal),
+            # once per caller, action and key: a repeat gets the first answer back. The caller is
+            # the identity the configured identity_provider resolves — the SAME one every access
+            # check reads, complete — so two users never share a key and changed grants never
+            # replay an answer remembered for the old ones.
+            def keyed_run():
+                identity = handler.mapper.identity_provider() if handler.mapper.identity_provider else None
+                return idempotency_keys.once(
+                    idempotency_keys.caller_of(identity),
                     rq.action_id,
                     request.headers.get(idempotency_keys.HEADER),
                     lambda: handler.handle(rq, mateu_request.base_url),
-                ),
-            )
+                )
+
+            increment = await run_in_threadpool(run_bound, mateu_request, keyed_run)
         except MateuForbiddenException as refused:
             # A denied action (disabled_unless/audience not satisfied at invocation): 403 with a
             # generic error message; the reason was logged by the guard and the method never ran.
