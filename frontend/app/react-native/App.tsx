@@ -17,6 +17,7 @@ import {
 import { onSignedOut, setTokenProvider, signOut } from './src/core/auth';
 import { ANONYMOUS_OWNER, OfflineQueue, singleUiQueueId } from './src/core/offlineQueue';
 import { useQueueOwner } from './src/context/useQueueOwner';
+import { RenderBoundary } from './src/ui/RenderBoundary';
 import type { MateuSession } from './src/core/MateuSession';
 import { OIDC_TOKENS_KEY, OidcTokenProvider } from './src/core/oidc';
 import { oidcConfigFromEnv, type OidcConfig } from './src/core/oidcConfig';
@@ -403,12 +404,12 @@ function SignedInSession({ config, route, sessionId, bundle, provider }: {
     );
   }
   return (
-    <MateuAppProvider
-      key={generation}
-      config={{ baseUrl: config.baseUrl, sessionId, appState: config.appState, bundle, auth: provider, outbox, onSession }}
-    >
-      <SessionContent initialRoute={route} />
-    </MateuAppProvider>
+    // a UI that cannot be drawn shows "Try again" instead of taking the app down
+    <RenderBoundary key={generation} where="app">
+      <MateuAppProvider config={{ baseUrl: config.baseUrl, sessionId, appState: config.appState, bundle, auth: provider, outbox, onSession }}>
+        <SessionContent initialRoute={route} />
+      </MateuAppProvider>
+    </RenderBoundary>
   );
 }
 

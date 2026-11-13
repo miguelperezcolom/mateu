@@ -25,6 +25,7 @@ import { Notice, PrimaryButton, SecondaryButton, UiIcon, hubStyles, inkOn } from
 import { UpdateAppButton } from './UpdateApp';
 import { ANONYMOUS_OWNER, OfflineQueue } from '../../core/offlineQueue';
 import { useQueueOwner } from '../../context/useQueueOwner';
+import { RenderBoundary } from '../../ui/RenderBoundary';
 import { serverActivity } from '../../core/serverActivity';
 import { ServerActivityBar } from '../../shell/ServerActivityBar';
 
@@ -331,9 +332,12 @@ export function UiSession({
             </View>
           </View>
         )}
-        <MateuAppProvider key={`${sessionId}#${generation}`} config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox }}>
-          <SessionContent initialRoute={route} visible={visible} />
-        </MateuAppProvider>
+        {/* one UI that cannot be drawn fails alone: the hub and the other open UIs go on */}
+        <RenderBoundary key={`${sessionId}#${generation}`} where={entry.name}>
+          <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox }}>
+            <SessionContent initialRoute={route} visible={visible} />
+          </MateuAppProvider>
+        </RenderBoundary>
       </>
     );
   }

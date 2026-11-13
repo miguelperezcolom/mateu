@@ -23,6 +23,7 @@ import { ConnectivityStrip } from './ConnectivityStrip';
 import { ServerActivityBar } from './ServerActivityBar';
 import { KeyboardShortcutsHost } from './KeyboardShortcutsHost';
 import { OutboxHost } from './OutboxHost';
+import { RenderBoundary } from '../ui/RenderBoundary';
 
 /**
  * One running Mateu UI inside a MateuAppProvider: the root load (App shell or a single view) plus the
@@ -36,7 +37,10 @@ export function SessionContent({ initialRoute, visible = true }: { initialRoute:
   session.onScreen = visible;
   return (
     <>
-      <MateuRoot initialRoute={initialRoute} />
+      {/* the app shell itself (a screen's own content has its boundary in MateuViewHost) */}
+      <RenderBoundary where="app shell">
+        <MateuRoot initialRoute={initialRoute} />
+      </RenderBoundary>
       <OverlayHost visible={visible} />
       <TaskHost visible={visible} />
       <ToastHost visible={visible} />
@@ -199,7 +203,10 @@ function OverlayHost({ visible = true }: { visible?: boolean }) {
   // a drawer under a nested dialog keeps what was typed in it (only the top was drawn: closing the
   // dialog remounted the drawer from its initialData — its next request sent an empty state)
   const layers = overlays.map((entry, i) => (
-    <OverlayLayer key={`${overlayIdOf(entry.component) || i}#${entry.revision}`} entry={entry} top={i === overlays.length - 1} fallbackSession={session} />
+    // an overlay that cannot be drawn fails alone, and can still be closed
+    <RenderBoundary key={`${overlayIdOf(entry.component) || i}#${entry.revision}`} where="overlay" onClose={() => session.closeTopOverlay()}>
+      <OverlayLayer entry={entry} top={i === overlays.length - 1} fallbackSession={session} />
+    </RenderBoundary>
   ));
   // only modeless drawers open: no modal at all — the screen behind them stays usable
   const allModeless = overlays.every((o) => {
