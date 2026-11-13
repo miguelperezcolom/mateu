@@ -14,7 +14,7 @@ import lombok.Builder;
  * with its own older-shaped request) and fails by URL.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Builder(toBuilder = true)
+@Builder
 public record RunActionRqDto(
     Map<String, Object> componentState,
     Map<String, Object> appState,

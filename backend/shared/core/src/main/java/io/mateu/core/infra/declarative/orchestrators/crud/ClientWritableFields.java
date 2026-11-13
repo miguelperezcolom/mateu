@@ -166,16 +166,15 @@ public final class ClientWritableFields {
       merged.putAll(baseline);
     }
     merged.putAll(restricted);
-    var builder = rq.toBuilder();
+    io.mateu.dtos.RunActionRqDto copy;
     if (bubbled != null) {
-      var newParameters = new LinkedHashMap<>(parameters);
+      var newParameters = new LinkedHashMap<String, Object>(parameters);
       newParameters.put("initiatorState", merged);
-      builder.parameters(newParameters);
+      copy = io.mateu.core.domain.RequestOverride.copy(rq, null, newParameters);
     } else {
-      builder.componentState(merged);
+      copy = io.mateu.core.domain.RequestOverride.copy(rq, merged, null);
     }
-    var narrowed =
-        io.mateu.core.domain.RequestOverride.withRunActionRq(httpRequest, builder.build());
+    var narrowed = io.mateu.core.domain.RequestOverride.withRunActionRq(httpRequest, copy);
     return FieldAccess.asServer(() -> work.apply(narrowed));
   }
 

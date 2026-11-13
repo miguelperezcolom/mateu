@@ -52,7 +52,7 @@ public final class ListingQueryGuard {
     return narrowed == state
         ? httpRequest
         : io.mateu.core.domain.RequestOverride.withRunActionRq(
-            httpRequest, rq.toBuilder().componentState(narrowed).build());
+            httpRequest, io.mateu.core.domain.RequestOverride.copy(rq, narrowed, null));
   }
 
   static Map<String, Object> narrow(

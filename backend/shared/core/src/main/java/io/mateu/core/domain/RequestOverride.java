@@ -17,6 +17,25 @@ public final class RequestOverride {
 
   private RequestOverride() {}
 
+  /** {@code rq} with another component state and parameters (null keeps the request's own). */
+  public static RunActionRqDto copy(
+      RunActionRqDto rq,
+      java.util.Map<String, Object> componentState,
+      java.util.Map<String, Object> parameters) {
+    return new RunActionRqDto(
+        componentState != null ? componentState : rq.componentState(),
+        rq.appState(),
+        parameters != null ? parameters : rq.parameters(),
+        rq.initiatorComponentId(),
+        rq.consumedRoute(),
+        rq.actionId(),
+        rq.route(),
+        rq.serverSideType(),
+        rq.serverSideComponentRoute(),
+        rq.knownStructureHash(),
+        rq.embeddedChrome());
+  }
+
   public static HttpRequest withRunActionRq(HttpRequest httpRequest, RunActionRqDto rq) {
     if (httpRequest == null || rq == null) {
       return httpRequest;

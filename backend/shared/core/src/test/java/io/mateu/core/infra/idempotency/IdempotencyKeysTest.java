@@ -8,6 +8,7 @@ import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.UserFacingException;
 import io.mateu.uidl.security.CallerIdentity;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,7 @@ import reactor.core.publisher.Sinks;
 class IdempotencyKeysTest {
 
   private static final String MAX = "mateu.idempotency.max-entries";
+  private static final String PER_CALLER = "mateu.idempotency.max-entries-per-caller";
 
   @BeforeEach
   void reset() {
@@ -32,6 +34,7 @@ class IdempotencyKeysTest {
   @AfterEach
   void restore() {
     System.clearProperty(MAX);
+    System.clearProperty(PER_CALLER);
     IdempotencyKeys.clear();
   }
 
@@ -162,6 +165,100 @@ class IdempotencyKeysTest {
     assertThat(runs.get()).isEqualTo(3);
   }
 
+  /**
+   * GA review java-core #5: the client's timeout drops the connection (the request is cancelled)
+   * while the write is still running elsewhere; the retry of the key must JOIN that run, never
+   * start a second one.
+   */
+  @Test
+  void aClientThatLeavesNeitherStopsTheRunNorReleasesItsKey() throws Exception {
+    var started = new AtomicInteger();
+    var applied = new AtomicInteger();
+    Sinks.One<UIIncrementDto> gate = Sinks.one();
+    java.util.function.Supplier<Flux<UIIncrementDto>> write =
+        () -> {
+          started.incrementAndGet();
+          // work that does not stop on cancel (a statement already sent, another thread)
+          return gate.asMono().doOnNext(ignored -> applied.incrementAndGet()).flux();
+        };
+    var first = IdempotencyKeys.once(request("key-ffff-0006"), "save", write).subscribe();
+    first.dispose(); // the client left
+    assertThat(IdempotencyKeys.inFlight()).isEqualTo(1);
+    var retry =
+        IdempotencyKeys.once(request("key-ffff-0006"), "save", write).collectList().toFuture();
+    gate.tryEmitValue(UIIncrementDto.builder().build());
+    assertThat(retry.get(5, java.util.concurrent.TimeUnit.SECONDS)).hasSize(1);
+    assertThat(started.get()).isEqualTo(1);
+    assertThat(applied.get()).isEqualTo(1);
+    assertThat(IdempotencyKeys.inFlight()).isZero();
+  }
+
+  /** GA review S10: each caller has its own share of both tables. */
+  @Test
+  void oneCallerCanNeitherFillTheTableNorEvictAnothersAnswers() {
+    System.setProperty(PER_CALLER, "1");
+    var runs = new AtomicInteger();
+    Sinks.One<UIIncrementDto> gate = Sinks.one();
+    var ana =
+        IdempotencyKeys.once(request("key-ana1-0001", "ana"), "save", () -> blocked(runs, gate))
+            .collectList()
+            .toFuture();
+    // ana's second key while her first is in flight: refused; bea is admitted
+    Throwable refusal = null;
+    try {
+      IdempotencyKeys.once(request("key-ana2-0002", "ana"), "save", () -> answered(runs))
+          .collectList()
+          .block();
+    } catch (RuntimeException e) {
+      refusal = e;
+    }
+    assertThat(refusal).isInstanceOf(UserFacingException.class);
+    IdempotencyKeys.once(request("key-bea1-0001", "bea"), "save", () -> answered(runs))
+        .collectList()
+        .block();
+    gate.tryEmitValue(UIIncrementDto.builder().build());
+    ana.join();
+    assertThat(runs.get()).isEqualTo(2);
+    // ana finishes many more keys: only HER oldest answers go; bea's is still replayed
+    IdempotencyKeys.once(request("key-ana3-0003", "ana"), "save", () -> answered(runs))
+        .collectList()
+        .block();
+    IdempotencyKeys.once(request("key-ana4-0004", "ana"), "save", () -> answered(runs))
+        .collectList()
+        .block();
+    var before = runs.get();
+    IdempotencyKeys.once(request("key-bea1-0001", "bea"), "save", () -> answered(runs))
+        .collectList()
+        .block();
+    assertThat(runs.get()).isEqualTo(before);
+  }
+
+  @Test
+  void aKeySentAgainWithAnotherRequestIsRefused() {
+    var runs = new AtomicInteger();
+    IdempotencyKeys.once(
+            request("key-gggg-0007", null, Map.of("amount", 10)), "save", () -> answered(runs))
+        .collectList()
+        .block();
+    Throwable refusal = null;
+    try {
+      IdempotencyKeys.once(
+              request("key-gggg-0007", null, Map.of("amount", 1000)), "save", () -> answered(runs))
+          .collectList()
+          .block();
+    } catch (RuntimeException e) {
+      refusal = e;
+    }
+    assertThat(refusal).isInstanceOf(UserFacingException.class);
+    assertThat(((UserFacingException) refusal).title()).isEqualTo(IdempotencyKeys.REUSED_TITLE);
+    // the same request again is a retry: answered from memory
+    IdempotencyKeys.once(
+            request("key-gggg-0007", null, Map.of("amount", 10)), "save", () -> answered(runs))
+        .collectList()
+        .block();
+    assertThat(runs.get()).isEqualTo(1);
+  }
+
   private static Flux<UIIncrementDto> blocked(AtomicInteger runs, Sinks.One<UIIncrementDto> gate) {
     runs.incrementAndGet();
     return gate.asMono().flux();
@@ -173,7 +270,19 @@ class IdempotencyKeysTest {
   }
 
   private static FakeHttpRequest request(String key) {
-    return new FakeHttpRequest(RunActionRqDto.builder().actionId("save").build())
-        .withHeader(IdempotencyKeys.HEADER, key);
+    return request(key, null);
+  }
+
+  private static FakeHttpRequest request(String key, String role) {
+    return request(key, role, Map.of());
+  }
+
+  private static FakeHttpRequest request(String key, String role, Map<String, Object> state) {
+    var request =
+        new FakeHttpRequest(RunActionRqDto.builder().actionId("save").componentState(state).build())
+            .withHeader(IdempotencyKeys.HEADER, key);
+    return role == null
+        ? request
+        : request.withHeader(io.mateu.core.testutil.TestIdentities.ROLES_HEADER, role);
   }
 }
