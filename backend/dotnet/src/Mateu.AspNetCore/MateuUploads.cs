@@ -65,6 +65,11 @@ public static partial class MateuExtensions
             await NotAccepted(ctx);
             return;
         }
+        if (!FileUploads.Consume(ctx.Request.Headers[FileUploads.TicketHeader].FirstOrDefault(), ticket))
+        {
+            await TooMany(ctx);
+            return;
+        }
         var length = ctx.Request.ContentLength;
         if (length > ticket.MaxBytes)
         {
@@ -141,6 +146,12 @@ public static partial class MateuExtensions
             await NotAccepted(ctx);
             return;
         }
+        // a target the store issues counts as a file of the ticket, like an upload through us
+        if (store!.DirectUploads && !FileUploads.Consume(ctx.Request.Headers[FileUploads.TicketHeader].FirstOrDefault(), ticket))
+        {
+            await TooMany(ctx);
+            return;
+        }
         UploadTarget? target;
         try
         {
@@ -191,6 +202,10 @@ public static partial class MateuExtensions
         Logger(ctx, "Mateu.Security").LogWarning("Mateu upload refused ({Path}): no valid ticket", ctx.Request.Path.Value);
         return UploadError(ctx, StatusCodes.Status403Forbidden, "Forbidden", "This upload is not allowed.");
     }
+
+    /// <summary>The ticket sent its share of files (<see cref="FileUploads.Consume"/>) — Java's texts.</summary>
+    private static Task TooMany(HttpContext ctx) => UploadError(ctx, StatusCodes.Status429TooManyRequests,
+        "Too many uploads", "This form has sent too many files. Reload the page to upload more.");
 
     private static Task NotAccepted(HttpContext ctx) => UploadError(ctx,
         StatusCodes.Status415UnsupportedMediaType, "Not accepted", "This type of file is not accepted.");

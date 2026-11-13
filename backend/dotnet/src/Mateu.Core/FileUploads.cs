@@ -69,6 +69,38 @@ internal sealed class FileUploads
         return _storages.FirstOrDefault(s => s.Name == name);
     }
 
+    /// <summary>Files a ticket of a SINGLE-file field may send: the file and a few replacements of it.</summary>
+    public const int SingleFileUses = 10;
+
+    /// <summary>Files a ticket of a MULTIPLE field may send (env <c>MATEU_UPLOADS_MAX_FILES_PER_TICKET</c>,
+    /// Java's <c>mateu.uploads.max-files-per-ticket</c>; default 100).</summary>
+    public static int MaxFilesPerTicket { get; set; } =
+        int.TryParse(Environment.GetEnvironmentVariable("MATEU_UPLOADS_MAX_FILES_PER_TICKET"), out var n) && n > 0 ? n : 100;
+
+    /// <summary>Tickets seen (the SHA-256 of their text) and how many files each sent: bounded LRU.</summary>
+    private static readonly Dictionary<string, (int Count, long Touched)> Uses = new();
+    private static long _usesClock;
+    private const int MaxTicketsCounted = 10_000;
+
+    /// <summary>Counts one file against <paramref name="ticketText"/>: false once it sent its share —
+    /// <see cref="SingleFileUses"/> for a single-file field, <see cref="MaxFilesPerTicket"/> for a
+    /// multiple one. A ticket is valid for hours and an anonymous one is the same for every anonymous
+    /// caller: without a count it allowed unlimited storage use (GA review S11; Java's
+    /// UploadTickets.consume).</summary>
+    public static bool Consume(string? ticketText, Ticket granted)
+    {
+        var cap = granted.Multiple ? MaxFilesPerTicket : Math.Min(SingleFileUses, MaxFilesPerTicket);
+        var key = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes("uses|" + ticketText)));
+        lock (Uses)
+        {
+            var count = Uses.TryGetValue(key, out var seen) ? seen.Count : 0;
+            if (count >= cap) return false;
+            Uses[key] = (count + 1, ++_usesClock);
+            if (Uses.Count > MaxTicketsCounted) Uses.Remove(Uses.MinBy(e => e.Value.Touched).Key);
+            return true;
+        }
+    }
+
     /// <summary>What a ticket grants.</summary>
     public sealed record Ticket(string Storage, string FieldId, long MaxBytes, string Accept, bool Multiple,
         string CallerHash, long ExpiresEpochSeconds);
