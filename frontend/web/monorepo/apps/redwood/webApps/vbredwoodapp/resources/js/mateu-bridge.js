@@ -34953,6 +34953,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { componentState, parameters, transportCtx, transportExtra, listReq, overlay, host }
   }
 
+  /**
+   * The browser's refusal of an action of a SURFACE of its own — an inline island, a MicroFrontend,
+   * the page's embedded island (`ctxId`) — before it leaves: its validationRequired action with
+   * required fields empty, or a wire validation failing, on ITS form (its tree, its state + `draft`).
+   * `{ missing, messages }` to mark on the fields and focus the first, or null when it may leave.
+   * The page's and the overlay's actions had it (outboundActionOf); an island's went out unchecked,
+   * the server refused it and only a page band said so — no field marked, the focus left on the
+   * button (Explorer F2: the validation and focus-on-errors entries, both drawn as islands).
+   */
+  function surfaceRefusalOf(reg, ctxId, actionId, draft = {}) {
+    const ctx = reg && reg.contexts && reg.contexts[ctxId]
+    const validation = ctx && validationOf(ctx, actionId)
+    if (!validation) return null
+    const merged = Object.assign({}, ctx.state || {}, draft || {})
+    const refusal = formRefusalOf(formSectionsOf(ctx.tree, merged, ctx.data || {}), ctx.state, draft,
+      ctx.tree && ctx.tree.validations, validation.fields, ctx.tree && ctx.tree.rules)
+    return refusal.missing.length ? refusal : null
+  }
+
   /** The stop of an action refused in the browser: the fields to mark, the messages the wire
    *  validations gave (the required ones take their JET text), and whether they are in the overlay. */
   function fieldErrorsStop(refusal, inOverlay) {
@@ -38232,6 +38251,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     changedOnly,
     stagedVariables,
     outboundActionOf,
+    surfaceRefusalOf,
     // the fields the server refused in an answer (a data fragment with errors), to mark them
     refusedFieldsOf,
     blockClickOf,

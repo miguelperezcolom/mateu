@@ -721,6 +721,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     changedOnly,
     stagedVariables,
     outboundActionOf,
+    surfaceRefusalOf,
     // the fields the server refused in an answer (a data fragment with errors), to mark them
     refusedFieldsOf,
     blockClickOf,

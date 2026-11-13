@@ -466,6 +466,34 @@ test('onMateuNavigate: a failed load registers a retry of the whole navigation, 
   assert.equal(bridge.hasLastRetry(), false, 'a painted screen clears the retry')
 })
 
+test('F2: an island\'s validated action with an empty required field does not leave — the fields are marked, nothing is sent', async () => {
+  const surfaceChain = chain('flows/main/pages/main-start-page-chains/runMateuSurfaceAction.js')
+  const field = (fieldId, extra = {}) => ({ type: 'ClientSide', id: fieldId, metadata: { type: 'FormField', fieldId, label: fieldId, dataType: 'string', required: true, ...extra }, children: [] })
+  const islandTree = { type: 'ServerSide', id: 'signup', serverSideType: 'x.SignUp',
+    actions: [{ id: 'signUp', validationRequired: true }, { id: 'help' }],
+    validations: [{ fieldId: 'email', condition: "state.email == null || state.email == '' || /@/.test(state.email)", message: 'Not an email' }],
+    children: [{ type: 'ClientSide', metadata: { type: 'FormLayout' }, children: [field('name'), field('email', { required: false })] }] }
+  const ctx = newContext()
+  ctx.$application.variables.mateuRegistry = { contexts: {
+    [bridge.HOST_ID]: { id: bridge.HOST_ID, tree: { type: 'ServerSide', id: 'host', actions: [], children: [] }, state: {} },
+    signup: { id: 'signup', tree: islandTree, state: { email: 'nope' }, outbound: { baseUrl: 'http://api', route: '/x' } },
+  }, stack: [], shell: null }
+  const refusal = bridge.surfaceRefusalOf(ctx.$application.variables.mateuRegistry, 'signup', 'signUp')
+  assert.deepEqual([...refusal.missing].sort(), ['email', 'name'])
+  assert.deepEqual(refusal.messages, { email: 'Not an email' })
+  assert.equal(bridge.surfaceRefusalOf(ctx.$application.variables.mateuRegistry, 'signup', 'help'), null, 'an action that does not validate')
+  const input = doc.createElement('oj-input-text')
+  input.setAttribute('data-field-id', 'name')
+  doc.body.appendChild(input)
+  try {
+    await new surfaceChain().run(ctx, { surfaceId: 'signup', actionId: 'signUp' })
+    assert.deepEqual(sent, [], 'nothing reaches the server')
+  } finally { input.remove() }
+  // filled in: it leaves
+  ctx.$application.variables.mateuRegistry.contexts.signup.state = { name: 'Ana', email: 'ana@example.com' }
+  assert.equal(bridge.surfaceRefusalOf(ctx.$application.variables.mateuRegistry, 'signup', 'signUp'), null)
+})
+
 test('F3: a refusal (403) shows the band WITHOUT a Retry that could never succeed', async () => {
   const ctx = await bootShell()
   answer(byRoute('/refused'), { status: 403 })

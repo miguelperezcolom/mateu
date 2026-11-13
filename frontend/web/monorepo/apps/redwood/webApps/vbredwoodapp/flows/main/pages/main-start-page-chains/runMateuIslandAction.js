@@ -40,6 +40,12 @@ define([
       if (!bridge.confirmLeaveAction(actionId, $application.variables, undefined, parameters)) {
         return;
       }
+      // its validationRequired action does not leave with required fields empty (Explorer F2)
+      const refusal = bridge.surfaceRefusalOf(before, islandId, actionId, $page.variables.mateuIslandDraft);
+      if (refusal) {
+        await bridge.showFieldErrors(refusal.missing, null, { messages: refusal.messages });
+        return;
+      }
       // same as in runMateuAction: the island lives in its host's backend
       const base = bridge.baseOf($application.variables.mateuRegistry)
         || bridge.mateuBase($application.constants.mateuBaseUrl);
