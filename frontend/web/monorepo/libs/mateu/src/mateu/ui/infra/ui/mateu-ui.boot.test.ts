@@ -36,9 +36,8 @@ const mount = async (attrs: Record<string, string> = {}) => {
     return el
 }
 
-// the shell installs window.onpopstate; jsdom (under vitest) does not route a dispatched popstate
-// to that property, so the browser's back/forward is simulated by calling it as the browser would
-const backOrForward = () => (window.onpopstate as (e: unknown) => void)({ target: window })
+// the top shell LISTENS to popstate on window (W-6): the browser's back/forward is a dispatched event
+const backOrForward = () => { window.dispatchEvent(new PopStateEvent('popstate', { state: null })) }
 
 const ux = (el: MateuUi) => (el.renderRoot as ParentNode).querySelector('mateu-ux') as HTMLElement
 
@@ -160,6 +159,25 @@ describe('navigation', () => {
         backOrForward()
         expect(window.location.pathname).toBe('/orders/1/edit')
         expect(el.route).toBe('/orders/1/edit')
+    })
+
+    it('W-6: an embedded mateu-ui leaves the host page\'s history alone; the top one stops listening when removed', async () => {
+        const hostHandler = vi.fn()
+        window.onpopstate = hostHandler
+        at('/host/page')
+        const widget = await mount({ top: 'false' })
+        expect(window.onpopstate).toBe(hostHandler)
+        const route = widget.route
+        at('/host/other')
+        backOrForward()
+        await widget.updateComplete
+        expect(widget.route).toBe(route)
+
+        const top = await mount()
+        top.remove()
+        at('/elsewhere')
+        backOrForward()
+        expect(top.route).not.toBe('/elsewhere')
     })
 
     it('remount rebuilds the tree on the current URL', async () => {
