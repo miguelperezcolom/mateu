@@ -288,6 +288,35 @@ namespace Mateu.Tests
             Assert.Equal("\"2\"", tree["quoted"]!.ToJsonString());
         }
 
+        /// <summary>The structure the server composes (Java DefinitionInlinerTest): a typed partial root
+        /// IS one component and is kept whole; a type-less / <c>type: Partial</c> document is spliced
+        /// with its own access keys (and those of the reference) kept on a wrapper.</summary>
+        [Fact]
+        public void The_inliner_keeps_a_typed_partial_root_whole_and_keeps_document_access_keys()
+        {
+            var specs = Specs(new()
+            {
+                ["partials/secret-card.yaml"] = "type: Card\ntitle: Secret\neyesOnly: ADMIN\ncontent:\n  - {type: Text, text: confidential}\n",
+                ["partials/headed.yaml"] = "type: Partial\neyesOnly: ADMIN\ncontent:\n  - {type: Text, text: headed}\n",
+                ["partials/plain.yaml"] = "content:\n  - {type: Text, text: plain}\n",
+            });
+            object Yaml(string text) => new YamlDotNet.Serialization.DeserializerBuilder()
+                .WithAttemptingUnquotedStringTypeDeserialization().Build().Deserialize<object>(text)!;
+            var content = YamlTree.ToJson(new DefinitionInliner(specs).Inline(Yaml(
+                "type: VerticalLayout\ncontent:\n  - {type: Partial, ref: secret-card}\n  - {type: Partial, ref: headed}\n"
+                + "  - {type: Partial, ref: plain, eyesOnly: ADMIN}\n")))!["content"]!.AsArray();
+            Assert.Equal(3, content.Count);
+            Assert.Equal("Card", content[0]!["type"]!.GetValue<string>());
+            Assert.Equal("ADMIN", content[0]!["eyesOnly"]!.GetValue<string>());
+            Assert.Equal("confidential", content[0]!["content"]![0]!["text"]!.GetValue<string>());
+            foreach (var (i, text) in new[] { (1, "headed"), (2, "plain") })
+            {
+                Assert.Equal("VerticalLayout", content[i]!["type"]!.GetValue<string>());
+                Assert.Equal("ADMIN", content[i]!["eyesOnly"]!.GetValue<string>());
+                Assert.Equal(text, content[i]!["content"]![0]!["text"]!.GetValue<string>());
+            }
+        }
+
         [Fact]
         public void Access_restricted_routes_and_definitions_stay_backend_served_and_unshipped()
         {

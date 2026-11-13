@@ -129,3 +129,22 @@ def test_the_static_app_is_copied_from_a_folder(tmp_path):
     copy_static_app(ui_page.RendererFiles(source), out)
     assert (out / "assets" / "app.js").read_text() == "js" and (out / "favicon.png").read_bytes() == b"png"
     assert not (out / ui_page.INDEX).exists()
+
+
+def test_a_typed_partial_root_is_kept_whole_and_document_access_keys_are_kept(tmp_path):
+    # the same structure the server composes (Java DefinitionInlinerTest): a typed root IS one
+    # component; a type-less / `type: Partial` document is spliced with its own access keys (and
+    # those of the reference) kept on a wrapper — cosmetic in a bundle, but never lost
+    i = specs(tmp_path, {
+        "secret-card": "type: Card\ntitle: Secret\neyesOnly: ADMIN\ncontent:\n  - {type: Text, text: confidential}\n",
+        "headed": "type: Partial\neyesOnly: ADMIN\ncontent:\n  - {type: Text, text: headed}\n",
+        "plain": "content:\n  - {type: Text, text: plain}\n",
+    })
+    out = i.inline({"type": "VerticalLayout", "content": [
+        {"type": "Partial", "ref": "secret-card"},
+        {"type": "Partial", "ref": "headed"},
+        {"type": "Partial", "ref": "plain", "eyesOnly": "ADMIN"},
+    ]})["content"]
+    assert out[0] == {"type": "Card", "title": "Secret", "eyesOnly": "ADMIN", "content": [text("confidential")]}
+    assert out[1] == {"type": "VerticalLayout", "eyesOnly": "ADMIN", "content": [text("headed")]}
+    assert out[2] == {"type": "VerticalLayout", "eyesOnly": "ADMIN", "content": [text("plain")]}

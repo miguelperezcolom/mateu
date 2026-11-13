@@ -100,10 +100,7 @@ class PartialRegistry:
             return _NONE
         if root is None:
             return _NONE
-        # `content:` holds several; a file that is just a component IS the partial.
-        if isinstance(root, dict) and isinstance(root.get("content"), list):
-            return list(root["content"])
-        return [root]
+        return _nodes_of(root)
 
     def compose(self, tree: Any) -> Any:
         """The tree with its partials inlined as SOURCE — each ``{type: Partial, ref: …}`` node
@@ -160,12 +157,57 @@ class PartialRegistry:
             for child in nodes:
                 items = self._items_of(child, chain)
                 out.extend(items if items is not None else [self._compose_node(child, chain)])
-            return out
+            # the reference's own access keys guard everything the partial stands for
+            return _guarded(node, out)
         finally:
             chain.pop()
 
 
 _MAX_COMPOSE_DEPTH = 20
+
+#: The access keys a partial document or a ``type: Partial`` reference may carry.
+_ACCESS_KEYS = ("eyesOnly", "readOnlyUnless", "disabledUnless")
+
+
+def _is_partial_document(root: Any) -> bool:
+    """Whether a partial file's root is the "several components" document — no ``type`` (or the
+    ``type: Partial`` header) and a ``content:`` list — whose components are spliced where the
+    partial is named. Any other root IS one component and is kept whole."""
+    return (
+        isinstance(root, dict)
+        and "ref" not in root
+        and root.get("type") in (None, "Partial")
+        and isinstance(root.get("content"), list)
+    )
+
+
+def _guarded(holder: Any, items: list[Any]) -> list[Any]:
+    """``items`` under the access keys ``holder`` declares (a partial document's root, or the
+    ``type: Partial`` reference itself): stacked in a ``VerticalLayout`` carrying them, so the access
+    pass applies them to all of it — splicing them bare dropped the keys. The same items when the
+    holder declares none."""
+    if not items or not isinstance(holder, dict):
+        return items
+    keys = {k: holder[k] for k in _ACCESS_KEYS if k in holder}
+    if not keys:
+        return items
+    return [{"type": "VerticalLayout", **keys, "content": list(items)}]
+
+
+#: The one rule every reader of a partial file follows (server composition and the bundle inliner).
+is_partial_document = _is_partial_document
+guarded_by_access_keys = _guarded
+
+
+def _nodes_of(root: Any) -> list[Any]:
+    """The nodes a partial document stands for. Only the "several components" document is unwrapped
+    (its own access keys kept on a wrapper); a root with a ``type`` IS one component and is kept
+    whole — its ``eyesOnly``/``readOnlyUnless``/``disabledUnless``, id and style included.
+    Unwrapping a typed root dropped the container and its access keys, so a guarded Card in a
+    partial reached every caller."""
+    if _is_partial_document(root):
+        return _guarded(root, list(root["content"]))
+    return [root]
 
 
 def _mentions_partial(node: Any) -> bool:
