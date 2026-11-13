@@ -548,17 +548,20 @@ public class GaReviewSecurityTests
     [Fact]
     public void A_ticket_sends_its_share_of_files()
     {
+        var uploads = new FileUploads([], "test-secret");
         var single = new FileUploads.Ticket("", "photo", 1000, "", false, "c", 0);
         var text = "single-" + Guid.NewGuid();
-        for (var i = 0; i < FileUploads.SingleFileUses; i++) Assert.True(FileUploads.Consume(text, single));
-        Assert.False(FileUploads.Consume(text, single));
+        for (var i = 0; i < FileUploads.SingleFileUses; i++) Assert.True(uploads.Consume(text, single));
+        Assert.False(uploads.Consume(text, single));
         // another ticket has its own share
-        Assert.True(FileUploads.Consume("other-" + Guid.NewGuid(), single));
+        Assert.True(uploads.Consume("other-" + Guid.NewGuid(), single));
         var multiple = single with { Multiple = true };
         var many = "multiple-" + Guid.NewGuid();
-        for (var i = 0; i < FileUploads.MaxFilesPerTicket; i++) Assert.True(FileUploads.Consume(many, multiple));
-        Assert.False(FileUploads.Consume(many, multiple));
+        for (var i = 0; i < FileUploads.MaxFilesPerTicket; i++) Assert.True(uploads.Consume(many, multiple));
+        Assert.False(uploads.Consume(many, multiple));
         Assert.Equal(100, FileUploads.MaxFilesPerTicket);
+        // each app counts its own tickets: the same ticket text in another app has its full share
+        Assert.True(new FileUploads([], "test-secret").Consume(text, single));
     }
 
     // ── S6 ──
