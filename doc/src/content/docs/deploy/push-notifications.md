@@ -22,6 +22,14 @@ app soon after it leaves the screen. To reach a suspended or closed app, the ser
 Mateu ships UI only. It never talks to FCM or APNs itself: delivery and token storage are interfaces,
 and the Expo sender is a convenience you switch on.
 
+:::note[Your own app, not the Mateu app]
+Remote push needs **your own phone app**: a `fixed` build (`MATEU_VARIANT=fixed`) that you publish
+with your own Expo project and your own FCM and APNs credentials. The Mateu app in the stores (the
+hub, which opens anybody's UI) never registers a push token. If it did, every server its users added
+would send notifications as the Mateu app. In the hub, your users still get the inbox (the bell) and
+the notifications the app posts itself while it runs.
+:::
+
 ## Turn it on
 
 ```java
@@ -129,9 +137,10 @@ token is the phone's own secret and forgetting it only stops pushes to that phon
 
 ## Phone set-up (owner steps)
 
-The Mateu app gets its Expo push token through Google's FCM and Apple's APNs, which need credentials
+Your fixed app gets its Expo push token through Google's FCM and Apple's APNs, which need credentials
 that only the owner of the store accounts can create: a `google-services.json` and the FCM V1 key for
-Android, and an APNs key for iOS. A build without them still works, but gets no token. The steps are
+Android, and an APNs key for iOS. A build without them still works, but gets no token, and a `hub`
+build ignores them. The steps are
 in [Publishing to the App Store and Google Play › Push notifications](/deploy/mobile-app-stores/#push-notifications-fcm-and-apns-credentials).
 
 ## Related
