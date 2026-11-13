@@ -151,7 +151,7 @@ class AppHandlerMixin(MixinBase):
             return found
         match = self.routes.match(path)
         view_model = match.entry.view_model if match is not None else None
-        return self.registry.type_by_name(view_model) if view_model else None
+        return self.registry.authored_type(view_model) if view_model else None
 
     # ── Idle session & live header values (E2 patterns; mirror Java's runners) ──
     def keep_alive_action(self, cls, rq: RunActionRq) -> UIIncrement:

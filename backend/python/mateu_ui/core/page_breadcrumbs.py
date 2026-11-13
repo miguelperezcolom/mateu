@@ -80,7 +80,7 @@ def inside_back_link_app(routes, registry, route: str | None) -> bool:
         if not view_model or not str(view_model).strip():
             continue
         try:
-            cls = registry.type_by_name(view_model)
+            cls = registry.authored_type(view_model)
             if cls is not None and getattr(cls, "__mateu_app_back_link__", None) == "PARENT":
                 return True
         except Exception:  # noqa: BLE001 - not a class we can read: no say

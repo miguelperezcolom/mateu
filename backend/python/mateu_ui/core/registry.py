@@ -51,6 +51,9 @@ class MateuRegistry:
         #: like the mount-relative one ("probe"), as on Java, where the mount is stripped.
         self._mounts: list[str] = []
         self.app_type: type | None = None
+        #: view models named by authored files (routes.yaml, YAML pages), by full name — what
+        #: :meth:`authored_type` imported, so :meth:`known_type` can answer wire input without importing
+        self._authored: dict[str, type] = {}
         # Routes contributed IN CODE by RouteEntrySupplier subclasses found among the sources,
         # already flattened to absolute entries. Fed to the RouteRegistry as the code-authored half
         # (routes.yaml wins over them). Mirrors .NET's MateuRegistry.SuppliedRoutes.
@@ -330,13 +333,20 @@ class MateuRegistry:
                 return norm[len(mount) + 1:]
         return None
 
-    def type_by_name(self, full_name: str | None) -> type | None:
-        """Resolve any class by full name (``module.QualName``) — used to instantiate a YAML page's
-        declared ``viewModel:`` logic class, which need not be a registered @ui view."""
+    def authored_type(self, full_name: str | None) -> type | None:
+        """Resolve any class by full name (``module.QualName``), IMPORTING its module when it is not
+        known yet — for the ``viewModel:`` of an AUTHORED file (routes.yaml, a YAML page), which
+        need not be a registered @ui view.
+
+        NEVER call it with a name read from a request: importing runs the module's top-level code,
+        so a wire-chosen name would let any caller run any importable module. Wire input goes
+        through :meth:`known_type`, which never imports."""
         if not full_name:
             return None
         if full_name in self._by_name:
             return self._by_name[full_name]
+        if full_name in self._authored:
+            return self._authored[full_name]
         module_name, _, qual = full_name.rpartition(".")
         if not module_name:
             return None
@@ -350,7 +360,18 @@ class MateuRegistry:
             obj = getattr(obj, part, None)
             if obj is None:
                 return None
-        return obj if isinstance(obj, type) else None
+        if not isinstance(obj, type):
+            return None
+        self._authored[full_name] = obj
+        return obj
+
+    def known_type(self, full_name: str | None) -> type | None:
+        """The class a name from the WIRE (a ``serverSideType``) stands for: a registered view, or a
+        view model an authored file already bound — LOOKUP ONLY, nothing is ever imported (Java's
+        ``WireTypePolicy`` loads nothing that is not registered)."""
+        if not full_name:
+            return None
+        return self._by_name.get(full_name) or self._authored.get(full_name)
 
     def resolve_by_prefix(self, route: str | None) -> tuple[type, str] | None:
         """The registered view whose route is the longest prefix of ``route`` (for CRUD sub-routes)."""

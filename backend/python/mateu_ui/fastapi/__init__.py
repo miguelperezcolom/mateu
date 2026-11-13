@@ -715,7 +715,7 @@ def add_mateu(
             if scope == presence_scope and presence_core.is_on(presence_store, scope, record, caller):
                 enqueue(("presence", presence_core.snapshot(presence_store, scope, record, caller)))
 
-        app_type = handler.registry.type_by_name(rq.server_side_type) if rq.server_side_type else None
+        app_type = handler.registry.known_type(rq.server_side_type) if rq.server_side_type else None
         unsubscribe_presence = (
             presence_store.on_change(push_presence)
             if caller and presence_core.enabled_for(app_type)

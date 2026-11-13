@@ -240,7 +240,7 @@ class BundleExporter:
                 out.setdefault(normalized_route(route), cls)
         for entry in self.handler.routes.authored().routes:
             if entry.view_model:
-                t = self.handler.registry.type_by_name(entry.view_model)
+                t = self.handler.registry.authored_type(entry.view_model)
                 if t is not None:
                     out[normalized_route(entry.route)] = t
         return out

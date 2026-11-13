@@ -51,7 +51,8 @@ class ListingHandlerMixin(MixinBase):
 
             mount = routed_tabs.mount_of(self.routes, rq.route, rq.server_side_type)
             if mount is not None:
-                bound = self.registry.type_by_name(rq.server_side_type)
+                # safe to import: mount_of found an AUTHORED entry binding exactly this name
+                bound = self.registry.authored_type(rq.server_side_type)
                 if bound is not None and crud_element_type(bound) is not None:
                     return bound, crud_element_type(bound), mount
             # a sub-resource island (/_subresource/<Host>/<field>): addressed by its type
