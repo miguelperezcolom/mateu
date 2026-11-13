@@ -1,4 +1,4 @@
-import { parse } from 'yaml'
+import { parseSpec } from './specYaml'
 import { parseSources, parseTypes, withSampleFiles, type FieldTypeEntry, type ProjectFile } from './projectIndex'
 import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
 import { catalogueOf, environmentName, parseTranslationsFile, type TranslationsFile } from './translationsModel'
@@ -109,7 +109,7 @@ function toPlayRoute(r: ReturnType<typeof flattenRoutes>[number]): PlayRoute {
 
 function parseObject(text: string): Record<string, unknown> | undefined {
     try {
-        const parsed = parse(text)
+        const parsed = parseSpec(text)
         return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : undefined
     } catch {
         return undefined

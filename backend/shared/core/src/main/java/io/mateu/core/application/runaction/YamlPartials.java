@@ -84,7 +84,10 @@ final class YamlPartials {
     if (node instanceof ArrayNode array) {
       var out = array.arrayNode();
       for (var child : array) {
-        var items = isYamlPartial(child) ? itemsOf(child.path("ref").asText(), chain) : null;
+        var items =
+            isYamlPartial(child)
+                ? guarded(child, itemsOf(child.path("ref").asText(), chain))
+                : null;
         if (items != null) {
           items.forEach(out::add);
         } else {
@@ -98,7 +101,10 @@ final class YamlPartials {
       object.fieldNames().forEachRemaining(names::add);
       for (var name : names) {
         var value = object.get(name);
-        var items = isYamlPartial(value) ? itemsOf(value.path("ref").asText(), chain) : null;
+        var items =
+            isYamlPartial(value)
+                ? guarded(value, itemsOf(value.path("ref").asText(), chain))
+                : null;
         if (items == null) {
           object.set(name, composeNode(value, chain));
         } else if (items.isEmpty()) {
@@ -142,15 +148,58 @@ final class YamlPartials {
     try {
       var composed = composeNode(tree, chain);
       var items = new ArrayList<JsonNode>();
-      if (composed.has("content") && composed.get("content").isArray()) {
+      if (isPartialDocument(composed)) {
         composed.get("content").forEach(items::add);
-      } else {
-        items.add(composed);
+        // the document's own access keys guard everything it holds
+        return guarded(composed, items);
       }
+      // a typed root IS one component: kept whole, with its access keys, id and style
+      items.add(composed);
       return items;
     } finally {
       chain.pop();
     }
+  }
+
+  /** The access keys a partial document or a {@code type: Partial} reference may carry. */
+  static final List<String> ACCESS_KEYS = List.of("eyesOnly", "readOnlyUnless", "disabledUnless");
+
+  /**
+   * Whether a partial file's root is the "several components" document — no {@code type} (or the
+   * {@code type: Partial} header) and a {@code content:} list — whose components are spliced where
+   * the partial is named. Any other root IS one component and is kept whole: unwrapping a typed
+   * root ({@code type: Card, eyesOnly: …, content: [...]}) dropped the container and its access
+   * keys, so the guarded content reached every caller.
+   */
+  static boolean isPartialDocument(JsonNode root) {
+    if (root == null || !root.isObject() || root.has("ref")) {
+      return false;
+    }
+    var type = root.path("type");
+    return (type.isMissingNode() || type.isNull() || "Partial".equals(type.asText()))
+        && root.path("content").isArray();
+  }
+
+  /**
+   * {@code items} under the access keys {@code holder} declares (a partial document's root, or the
+   * {@code type: Partial} reference itself): stacked in a {@code VerticalLayout} carrying them, so
+   * the access pass applies them to all of it. Splicing them bare dropped the keys. The same items
+   * when the holder declares none (or there is nothing to guard).
+   */
+  static List<JsonNode> guarded(JsonNode holder, List<JsonNode> items) {
+    if (items == null || items.isEmpty() || holder == null || !holder.isObject()) {
+      return items;
+    }
+    var keys = ACCESS_KEYS.stream().filter(holder::has).toList();
+    if (keys.isEmpty()) {
+      return items;
+    }
+    var stack = MAPPER.createObjectNode();
+    stack.put("type", "VerticalLayout");
+    keys.forEach(key -> stack.set(key, holder.get(key).deepCopy()));
+    var content = stack.putArray("content");
+    items.forEach(content::add);
+    return List.of(stack);
   }
 
   /** The partial's file as a source tree, field types applied; null when there is none. */

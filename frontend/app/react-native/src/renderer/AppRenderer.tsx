@@ -6,7 +6,9 @@ import { Appbar, BottomNavigation, Divider, Drawer as PaperDrawer, FAB, Icon, Ic
 import { navigationTheme, useThemeControl } from '../ui/MateuTheme';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
-import { AppState, BackHandler, Image, Platform, StyleSheet, View } from 'react-native';
+import { AppState, BackHandler, Platform, StyleSheet, View } from 'react-native';
+import { LoadingImage } from '../ui/LoadingImage';
+import { ServerActivityBar } from '../shell/ServerActivityBar';
 import { TouchableOpacity } from '../ui/Touchable';
 import { Text, TextInput } from '../ui/Text';
 import { FAB_MARGIN, fabInset, isCurrentDestination, stackAfterGoTo } from '../core/uxRules';
@@ -820,7 +822,7 @@ function MenuCards({ group, onNavigate }: { group: MenuItem; onNavigate: (item: 
         const body = (
           <>
             {card.imageUri ? (
-              <Image source={{ uri: card.imageUri }} style={styles.menuCardImage} resizeMode="cover" accessibilityIgnoresInvertColors />
+              <LoadingImage source={{ uri: card.imageUri }} style={styles.menuCardImage} resizeMode="cover" accessibilityIgnoresInvertColors />
             ) : card.glyph ? (
               <Text style={styles.menuCardGlyph} importantForAccessibility="no">{card.glyph}</Text>
             ) : null}
@@ -1267,6 +1269,9 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   const bottomInset = fabInset((appMeta.fabs?.length ?? 0) + (appMeta.sseUrl ? 1 : 0) + (connectAiFab ? 1 : 0));
   const withOverlays = (screen: React.ReactNode) => (
     <View style={styles.stackHost}>
+      {/* "waiting for the server", right under the bar on view: this shell's own top bar (drawer), or
+          the top of the screen of an app outside the hub — the hub draws it under its bar otherwise */}
+      {(drawerShell || !session.hub) && <ServerActivityBar />}
       {preview ? <PreviewScreen preview={preview} onDismiss={() => setPreview(null)} bottomInset={bottomInset} /> : screen}
       <AppOverlays appMeta={appMeta} connectAiFab={connectAiFab} />
     </View>

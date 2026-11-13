@@ -1,4 +1,4 @@
-import { parse } from 'yaml'
+import { parseSpec } from './specYaml'
 import type { FieldTypeEntry } from './projectIndex'
 
 /**
@@ -25,7 +25,7 @@ export interface TypesCheck {
 export function checkTypes(yaml: string, dataTypes: string[], stereotypes: string[]): TypesCheck {
     let root: unknown
     try {
-        root = parse(yaml)
+        root = parseSpec(yaml)
     } catch (e) {
         return { types: [], problems: [`Not valid YAML: ${(e as Error).message}`] }
     }

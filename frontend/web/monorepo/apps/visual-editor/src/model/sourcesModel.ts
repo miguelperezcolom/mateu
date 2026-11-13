@@ -1,4 +1,5 @@
-import { parse, stringify } from 'yaml'
+import { stringify } from 'yaml'
+import { parseSpec } from './specYaml'
 
 /**
  * The REST source catalogue (`sources.yaml`, the "Services" of the plan's Phase 4): each external
@@ -35,7 +36,7 @@ const SOURCE_KNOWN = ['url', 'method', 'itemsPath']
 
 export function parseSourcesDoc(yaml: string): SourcesDoc {
     let root: any
-    try { root = parse(yaml) } catch { root = null }
+    try { root = parseSpec(yaml) } catch { root = null }
     if (!root || typeof root !== 'object' || Array.isArray(root)) return { rows: [], preamble: {} }
     const { sources, ...preamble } = root
     const rows: SourceRow[] = (Array.isArray(sources) ? sources : []).map((e: any) => {
@@ -90,7 +91,7 @@ export function sampleText(sample: unknown): string {
 export function parseSampleText(text: string): { sample?: unknown; error?: string } {
     if (!text.trim()) return { sample: undefined }
     try {
-        return { sample: parse(text) }
+        return { sample: parseSpec(text) }
     } catch (e) {
         return { error: (e as Error).message.split('\n')[0] }
     }

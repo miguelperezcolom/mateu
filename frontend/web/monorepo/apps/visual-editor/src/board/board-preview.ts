@@ -1,6 +1,6 @@
 import { LitElement, html, css, PropertyValues } from 'lit'
 import { customElement, property, state, query } from 'lit/decorators.js'
-import { parse } from 'yaml'
+import { parseSpec } from '../model/specYaml'
 import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
 import { expandDefinition, isClientExpandable, DefinitionSpec } from '@infra/expander/expandDefinition.ts'
 import { resolveForCanvas } from '../model/canvasReferences'
@@ -95,7 +95,7 @@ export class BoardPreview extends LitElement {
 
     private async fragment(): Promise<unknown | undefined> {
         let spec: DefinitionSpec
-        try { spec = parse(this.content) as DefinitionSpec } catch { this.msg = 'The YAML does not parse'; return undefined }
+        try { spec = parseSpec(this.content) as DefinitionSpec } catch { this.msg = 'The YAML does not parse'; return undefined }
         if (!this.clientRender) {
             try {
                 const increment: any = await mateuApiClient.runAction(

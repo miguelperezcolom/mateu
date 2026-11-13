@@ -1,4 +1,4 @@
-import { parse } from 'yaml'
+import { parseSpec } from './specYaml'
 
 /**
  * The two non-screen file kinds of a YAML app the editor has to recognise (and keep out of the page
@@ -113,7 +113,7 @@ function flatten(prefix: string, node: unknown, out: Record<string, string>) {
 
 function object(content: string): Record<string, unknown> | undefined {
     try {
-        const root = parse(content ?? '')
+        const root = parseSpec(content ?? '')
         return root && typeof root === 'object' && !Array.isArray(root) ? (root as Record<string, unknown>) : undefined
     } catch {
         return undefined

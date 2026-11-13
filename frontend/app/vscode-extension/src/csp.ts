@@ -1,4 +1,4 @@
-import { parse } from 'yaml'
+import { parseSpec } from './specYaml'
 
 /**
  * The webview's `connect-src`: who the visual editor may talk to. Deliberately NOT "any https host":
@@ -25,7 +25,7 @@ export function sourceOrigins(fileTexts: string[]): string[] {
     const out = new Set<string>()
     for (const text of fileTexts) {
         let root: any
-        try { root = parse(text) } catch { continue }
+        try { root = parseSpec(text) } catch { continue }
         const list = Array.isArray(root?.sources) ? root.sources : []
         for (const entry of list) {
             const url = entry?.source?.url

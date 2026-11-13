@@ -2,7 +2,7 @@ import { LitElement, html, css, PropertyValues } from 'lit'
 import { customElement, property, state, query } from 'lit/decorators.js'
 import { styleMap } from 'lit/directives/style-map.js'
 import { keyed } from 'lit/directives/keyed.js'
-import { parse } from 'yaml'
+import { parseSpec } from '../model/specYaml'
 import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
 import { expandDefinition, isClientExpandable, DefinitionSpec } from '@infra/expander/expandDefinition.ts'
 import { PageDoc, NodePath, PageNode, decorateForPreview, idToPath, pathToId, nodeAt, isContainer, presentSlots, scalarProps } from '../model/pageModel'
@@ -449,7 +449,7 @@ export class EditorCanvas extends LitElement {
         try {
             // partials, component refs and ${i18n.…} resolved from the project's files, as Play does —
             // the inlined roots keep the reference's ve- id, so a partial stays one selectable node
-            const tree = resolveForCanvas(parse(yaml), this.files) as Record<string, unknown>
+            const tree = resolveForCanvas(parseSpec(yaml), this.files) as Record<string, unknown>
             const spec: DefinitionSpec = this.doc?.modelView
                 ? { viewModel: this.doc.modelView, layout: tree as DefinitionSpec['layout'] }
                 : (tree as DefinitionSpec)

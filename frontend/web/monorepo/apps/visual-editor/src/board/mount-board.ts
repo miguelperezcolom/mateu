@@ -1,6 +1,6 @@
 import { LitElement, html, css, svg, PropertyValues, nothing } from 'lit'
 import { customElement, property, state, query } from 'lit/decorators.js'
-import { parse } from 'yaml'
+import { parseSpec } from '../model/specYaml'
 import type { ProjectFile } from '../model/projectIndex'
 import {
     buildMountGraph, layoutBoard, MountGraph, Screen, NavEdge, EdgeVia, BoardBox, CARD_W, CARD_H,
@@ -302,7 +302,7 @@ export class MountBoard extends LitElement {
     /** The app shell has no screen of its own to shrink — its title and menu say what it is. */
     private renderShell(content: string | undefined) {
         let shell: any = {}
-        try { shell = parse(content ?? '') ?? {} } catch { /* shown empty */ }
+        try { shell = parseSpec(content ?? '') ?? {} } catch { /* shown empty */ }
         const items: string[] = []
         const collect = (menu: unknown) => {
             for (const m of Array.isArray(menu) ? menu : []) {

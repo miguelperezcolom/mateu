@@ -1,6 +1,6 @@
 import { LitElement, html, css, TemplateResult } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
-import { parse } from 'yaml'
+import { parseSpec } from './model/specYaml'
 import {
     PageDoc, NodePath, PageNode, PageTrigger, TRIGGER_TYPES, SaveShape, parsePage, serializePage, saveShape, hydrate, nodeAt,
     insertAfter, insertChild, insertAt, isContainer, removeAt, reorder, moveNode, updateProp, childAt, splitSeg, withIndex,
@@ -853,7 +853,7 @@ export class MateuVisualEditor extends LitElement {
 
     private onSourceEdit(e: Event) {
         const text = (e.target as HTMLTextAreaElement).value
-        try { parse(text) } catch { this.notice = 'That YAML does not parse — not applied.'; return }
+        try { parseSpec(text) } catch { this.notice = 'That YAML does not parse — not applied.'; return }
         this.load(text)
         this.selectedPath = null
         this.emitText(text, true)
@@ -1168,7 +1168,7 @@ export class MateuVisualEditor extends LitElement {
     private notifyChanged() {
         const fresh = this.currentYaml()
         let text: string
-        try { text = writePreserving(this.lastText, parse(fresh)) } catch { text = fresh }
+        try { text = writePreserving(this.lastText, parseSpec(fresh)) } catch { text = fresh }
         this.emitText(text)
     }
 
@@ -1550,7 +1550,7 @@ export class MateuVisualEditor extends LitElement {
         const design = await decodeShared(input)
         this.shareOpen = false
         if (!design) { this.notice = 'That is not a Mateu share link.'; return }
-        try { parse(design.yaml) } catch { this.notice = 'The shared YAML does not parse — not applied.'; return }
+        try { parseSpec(design.yaml) } catch { this.notice = 'The shared YAML does not parse — not applied.'; return }
         this.load(design.yaml)
         this.selectedPath = null
         this.emitText(design.yaml, true)
@@ -1819,7 +1819,7 @@ export class MateuVisualEditor extends LitElement {
 }
 
 function parseSourcesFromText(text: string): unknown[] {
-    try { const v = parse(text); return Array.isArray(v?.sources) ? v.sources : [] } catch { return [] }
+    try { const v = parseSpec(text); return Array.isArray(v?.sources) ? v.sources : [] } catch { return [] }
 }
 
 function triggerLabel(type: string): string {

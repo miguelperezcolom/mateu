@@ -229,6 +229,20 @@ moments later:
 Each step logs its duration as `[Mateu timing] <step>: <n> ms (cache | snapshot | network)`. They are
 also kept in `globalThis.__mateuTimings`, to measure on a real phone.
 
+### While the server is slow
+
+When the app has been waiting for the server for half a second, a thin progress bar appears right
+under the top bar, and goes as soon as nothing is pending. A fast answer shows nothing. The bar
+counts what a person is waiting for: screen loads, actions, a `LongTask` while its stream is open,
+the REST sources a screen fetches (direct or through the proxy), and the manifest and bundle of a UI
+being opened. Background traffic never shows it: the live-update and agent streams, presence, push
+registration, polling refreshes and the offline queue. The bar lies over the content, so nothing
+moves. A screen reader hears "Loading…" once per wait, in the app's language. With *reduce motion*
+on, the bar does not move. Images from the server show their box in a neutral tone with a small
+spinner until they arrive. One that cannot be loaded shows a broken-image mark, named "Image could
+not be loaded", instead of an empty box. An avatar or a UI icon falls back to its initials. The
+spinner on a screen's first load and the busy state of a pressed button stay as they are.
+
 ## The desktop app
 
 The desktop Mateu app (IntelliJ IDEA Open Source with the Mateu plugin, built by `buildInstaller` —

@@ -4,7 +4,7 @@
 // routes file's entries with MINIMAL text edits (the user's formatting/comments are never rewritten).
 // No `vscode` import, so it is unit-tested with vitest.
 import { existsSync, readFileSync, readdirSync, type Dirent } from 'node:fs'
-import { parse } from 'yaml'
+import { parseSpec } from './specYaml'
 import { yamlScalar } from './newFiles'
 
 export type SpecKind = 'mount' | 'routes' | 'sources' | 'actions' | 'types' | 'appShell' | 'project' | 'page' | 'translations' | 'environment'
@@ -27,7 +27,7 @@ export const DOCS_URL = 'https://mateu.io/concepts/routes-and-mounts/'
 
 function tryParse(text: string): unknown {
     try {
-        return parse(text)
+        return parseSpec(text)
     } catch {
         return undefined
     }
@@ -159,7 +159,7 @@ export function appendRoute(routesText: string, route: NewRoute): string {
  * Returns the text unchanged when it is already listed. Throws when the mount is not valid YAML.
  */
 export function registerInMount(mountText: string, entry: string): string {
-    const root = parse(mountText)
+    const root = parseSpec(mountText)
     const listed = isMap(root) && Array.isArray(root.routes) ? root.routes.map((x) => String(x).replace(/^\.\//, '')) : []
     if (listed.includes(entry.replace(/^\.\//, ''))) return mountText
     return appendListItem(mountText, 'routes', { value: entry })

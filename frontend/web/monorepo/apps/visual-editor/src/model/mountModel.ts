@@ -1,4 +1,5 @@
-import { parse, stringify } from 'yaml'
+import { stringify } from 'yaml'
+import { parseSpec } from './specYaml'
 
 /**
  * The editor's model of a MOUNT descriptor — a `type: UI` file, the data-driven counterpart of an
@@ -15,13 +16,13 @@ export interface MountDoc {
 /** Whether this YAML is a mount descriptor (`type: UI`). */
 export function isMountYaml(yaml: string): boolean {
     let root: unknown
-    try { root = parse(yaml) } catch { return false }
+    try { root = parseSpec(yaml) } catch { return false }
     return !!root && typeof root === 'object' && (root as any).type === 'UI'
 }
 
 export function parseMount(yaml: string): MountDoc {
     let root: any
-    try { root = parse(yaml) } catch { root = null }
+    try { root = parseSpec(yaml) } catch { root = null }
     if (!root || typeof root !== 'object' || Array.isArray(root)) root = {}
     const basePath = typeof root.basePath === 'string' ? root.basePath : ''
     const routeFiles: string[] = Array.isArray(root.routes)

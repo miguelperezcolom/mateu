@@ -1,4 +1,4 @@
-import { parse } from 'yaml'
+import { parseSpec } from './specYaml'
 import type { ProjectFile } from './projectIndex'
 
 /**
@@ -42,7 +42,7 @@ export const DEFAULT_PROJECT_SETTINGS: ProjectSettings = { renderer: 'vaadin' }
 
 function parseObject(yaml: string): Record<string, unknown> | undefined {
     try {
-        const root = parse(yaml)
+        const root = parseSpec(yaml)
         return root && typeof root === 'object' && !Array.isArray(root) ? root as Record<string, unknown> : undefined
     } catch {
         return undefined

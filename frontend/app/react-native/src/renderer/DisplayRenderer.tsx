@@ -540,7 +540,15 @@ function OrgFocusCard({ node, variant, onFocus }: { node: OrgNode; variant: 'anc
   const body = (
     <View style={[styles.orgCard, big && styles.orgCardFocused, { borderLeftColor: accent }, big && { borderColor: accent }]}>
       {isImageAvatar(node.avatar) ? (
-        <Image source={{ uri: node.avatar }} style={{ width: size, height: size, borderRadius: size / 2 }} />
+        <Image
+          source={{ uri: node.avatar }}
+          style={{ width: size, height: size, borderRadius: size / 2 }}
+          fallback={
+            <View style={[styles.orgBadge, { width: size, height: size, borderRadius: size / 2, backgroundColor: accent }]}>
+              <Text style={[styles.orgBadgeText, big && { fontSize: 22 }]}>{orgInitials(node)}</Text>
+            </View>
+          }
+        />
       ) : (
         <View style={[styles.orgBadge, { width: size, height: size, borderRadius: size / 2, backgroundColor: accent }]}>
           <Text style={[styles.orgBadgeText, big && { fontSize: 22 }]}>{orgInitials(node)}</Text>

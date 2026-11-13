@@ -57,8 +57,11 @@ public class MicroFrontendServerResolverTests
     {
         var http = new Hanging();
         var resolved = await Resolver(http).ResolveAsync(PageWith(Base + "/orders"), new IncomingRequest());
-        var token = Assert.Single(http.Calls);
-        Assert.True(token.IsCancellationRequested);
+        // The deadline (80 ms) can fire before HttpClient hands the call to the transport on a busy
+        // machine — then it is never started at all. Either way nothing may be left running: at most
+        // one call, and whatever started was cancelled.
+        Assert.True(http.Calls.Count <= 1);
+        Assert.All(http.Calls, token => Assert.True(token.IsCancellationRequested));
         var microFrontend = (MicroFrontendMetadataDto)((ClientSideComponentDto)resolved.Fragments[0].Component!).Metadata;
         Assert.Null(microFrontend.Resolved);
         Assert.Null(microFrontend.Server);
