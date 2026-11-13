@@ -33028,12 +33028,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { yaml, target, ...(title ? { title } : {}) }
   }
 
-  /** The navigation a navigation-requested detail asks for — the menu-click fields it carries — or
-   *  null without a route. Only the fields that are set travel. */
+  /** The navigation a navigation-requested detail asks for — WHERE to go, from a whitelist — or null
+   *  without a route. Only the fields that are set travel. A menu leaf's `rules` and its `actionId`
+   *  never do: an agent's navigation must not run an app action as the user without a click (S7,
+   *  the `navigations` cases of conformance/client/agent-events.json; libs/mateu trustedNavigationOf). */
   function chatNavigationOf(detail) {
     if (!detail || typeof detail !== 'object' || typeof detail.route !== 'string') return null
     const out = { route: detail.route }
-    for (const k of ['consumedRoute', 'actionId', 'baseUrl', 'serverSideType', 'uriPrefix']) {
+    for (const k of ['consumedRoute', 'baseUrl', 'serverSideType', 'uriPrefix']) {
       if (typeof detail[k] === 'string' && detail[k] !== '') out[k] = detail[k]
     }
     return out
