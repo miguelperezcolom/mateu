@@ -3,7 +3,8 @@
 
 A sync request carrying an ``Idempotency-Key`` header runs ONCE per caller, action and key; a repeat
 gets the first answer back, and a repeat arriving while the first run is still in flight waits for
-it and gets its answer.
+it (at most ``MATEU_IDEMPOTENCY_JOIN_SECONDS``, 60 by default; then the "Too many pending requests"
+refusal, which the client keeps queued) and gets its answer.
 
 Remembered in memory, per process — lost on a restart and never shared between workers/instances
 (several of them need sticky routing for the guarantee to hold). Two separate tables:
@@ -66,6 +67,11 @@ def _env_number(name: str, fallback: int) -> int:
 
 max_entries: int = _env_number("MATEU_IDEMPOTENCY_MAX_ENTRIES", 2000)
 ttl_seconds: float = float(_env_number("MATEU_IDEMPOTENCY_TTL_SECONDS", 24 * 60 * 60))
+#: How long a repeat waits for the run of its key still in flight before it is answered with the
+#: "Too many pending requests" refusal (which the client keeps queued and sends again). The sync
+#: handler runs in a worker THREAD: an unbounded wait parked one thread per retry of a stuck key,
+#: and a few stuck keys with retrying clients exhausted the pool every request shares.
+join_timeout_seconds: float = float(_env_number("MATEU_IDEMPOTENCY_JOIN_SECONDS", 60))
 
 
 class _Entry:
@@ -187,7 +193,10 @@ def _claim(scoped: str) -> tuple[_Entry | None, _Entry | None]:
 
 def _replay(known: _Entry | None):
     assert known is not None
-    known.done.wait()
+    if not known.done.wait(join_timeout_seconds):
+        from mateu_ui.uidl.messages import UserFacingException
+
+        raise UserFacingException(BUSY_MESSAGE, BUSY_TITLE)
     if known.error is not None:
         raise known.error
     return known.answer

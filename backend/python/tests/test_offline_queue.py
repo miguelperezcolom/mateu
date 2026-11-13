@@ -4,6 +4,8 @@ and an ``Idempotency-Key`` runs once per caller, action and key over the real sy
 
 import sys
 import threading
+
+import pytest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -12,8 +14,9 @@ from fastapi import FastAPI  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, idempotency_keys  # noqa: E402
+from mateu_ui.core.action_guard import MateuForbiddenException  # noqa: E402
 from mateu_ui.fastapi import add_mateu  # noqa: E402
-from mateu_ui.uidl import Identity, Message, OfflinePolicy, action_options, audience, button, disabled_unless, title, ui  # noqa: E402
+from mateu_ui.uidl import Crud, Identity, Message, OfflinePolicy, action_options, audience, button, disabled_unless, title, ui  # noqa: E402
 
 RUNS = {"n": 0}
 
@@ -140,6 +143,40 @@ def test_a_repeat_arriving_while_the_first_run_is_in_flight_waits_for_it():
     assert results == ["first", "first"]
     assert len(runs) == 1
     idempotency_keys.clear()
+
+
+def test_a_repeat_waits_for_a_stuck_run_only_a_bounded_time(monkeypatch):
+    """A join holds a worker thread: it gives up after join_timeout_seconds with the busy refusal
+    (which the client keeps queued) instead of parking the thread until the stuck run ends."""
+    import time
+
+    from mateu_ui.uidl.messages import UserFacingException
+
+    idempotency_keys.clear()
+    monkeypatch.setattr(idempotency_keys, "join_timeout_seconds", 0.2)
+    gate = threading.Event()
+    started = threading.Event()
+
+    def stuck():
+        started.set()
+        gate.wait(10)
+        return "late"
+
+    first = threading.Thread(target=lambda: idempotency_keys.once("u", "save", "key-0010-stuck", stuck))
+    first.start()
+    try:
+        assert started.wait(5)
+        began = time.monotonic()
+        try:
+            idempotency_keys.once("u", "save", "key-0010-stuck", lambda: "duplicate")
+            raise AssertionError("the repeat should have been refused")
+        except UserFacingException as busy:
+            assert idempotency_keys.BUSY_TITLE in str(busy) or getattr(busy, "title", None) == idempotency_keys.BUSY_TITLE
+        assert time.monotonic() - began < 5
+    finally:
+        gate.set()
+        first.join(5)
+        idempotency_keys.clear()
 
 
 def test_finished_answers_are_bounded():
@@ -303,21 +340,72 @@ def test_a_revoked_permission_is_refused_not_served_from_memory():
     idempotency_keys.clear()
 
 
+class OfflineTogglePart:
+    id: str = ""
+    name: str = ""
+
+
+class OfflineToggleParts(Crud[OfflineTogglePart]):
+    """A crud whose write gate is APP LOGIC, not identity (.NET's OfflineToggleParts)."""
+
+    EDITABLE = {"on": True}
+    SAVES = {"n": 0}
+    ROWS: dict = {}
+
+    def fetch(self, search):
+        return list(self.ROWS.values())
+
+    def get(self, id_):
+        return self.ROWS.get(id_)
+
+    def save(self, entity):
+        OfflineToggleParts.SAVES["n"] += 1
+        self.ROWS[entity.id] = entity
+
+    def can_edit(self):
+        return OfflineToggleParts.EDITABLE["on"]
+
+
+OfflineToggleParts = ui("offline-toggle-parts")(OfflineToggleParts)
+
+
+def _reset_toggle():
+    part = OfflineTogglePart()
+    part.id, part.name = "p1", "Bolt"
+    OfflineToggleParts.ROWS.clear()
+    OfflineToggleParts.ROWS["p1"] = part
+    OfflineToggleParts.SAVES["n"] = 0
+    OfflineToggleParts.EDITABLE["on"] = True
+
+
+def _save_toggle(key):
+    handler = SyncHandler(MateuRegistry(OfflineToggleParts))
+    rq = RunActionRq(
+        route="offline-toggle-parts/p1/edit", consumed_route="/offline-toggle-parts",
+        server_side_type=f"{__name__}.OfflineToggleParts", action_id="save", initiator_component_id="c1",
+        component_state={"name": "Nut"},
+    )
+    return idempotency_keys.guarded(
+        "u", "save", key, lambda: handler.handle(rq), view=rq.server_side_type, route=rq.route
+    )
+
+
 def test_a_replay_refused_by_a_non_identity_rule_is_refused_not_served_from_memory():
-    """The audience is app state, not identity: the caller scope is the same, so only checking
-    the key AFTER the request's checks keeps the remembered answer from being handed out."""
+    """The crud's write gate is app logic, not identity: the caller scope is the same, so only
+    checking the key AFTER the request's checks keeps the remembered answer from being handed out
+    (.NET's twin)."""
     idempotency_keys.clear()
-    RUNS["n"] = 0
-    client = _mine_client()
-    first = _send_mine(client, "staffOnly", "alice", "key-0012-same", app_state={"audience": "staff"})
-    assert "Staff 1" in first.text
-    replay = _send_mine(client, "staffOnly", "alice", "key-0012-same", app_state={"audience": "guest"})
-    assert replay.status_code == 403, replay.text
-    assert "Staff 1" not in replay.text
-    # the rule still allowing it: the same key answers from memory, the action does not run again
-    again = _send_mine(client, "staffOnly", "alice", "key-0012-same", app_state={"audience": "staff"})
-    assert "Staff 1" in again.text
-    assert RUNS["n"] == 1
+    _reset_toggle()
+    _save_toggle("key-0012-same")
+    assert OfflineToggleParts.SAVES["n"] == 1
+    OfflineToggleParts.EDITABLE["on"] = False
+    with pytest.raises(MateuForbiddenException):
+        _save_toggle("key-0012-same")
+    assert idempotency_keys.in_flight() == 0
+    # the gate allowing it again: the same key answers from memory, the save does not run again
+    OfflineToggleParts.EDITABLE["on"] = True
+    _save_toggle("key-0012-same")
+    assert OfflineToggleParts.SAVES["n"] == 1
     idempotency_keys.clear()
 
 
@@ -341,13 +429,14 @@ def test_a_replay_of_an_action_that_is_no_longer_offered_is_refused():
 
 def test_a_request_refused_before_its_checkpoint_never_claims_the_key():
     idempotency_keys.clear()
-    RUNS["n"] = 0
-    client = _mine_client()
-    refused = _send_mine(client, "staffOnly", "alice", "key-0014-same", app_state={"audience": "guest"})
-    assert refused.status_code == 403
+    _reset_toggle()
+    OfflineToggleParts.EDITABLE["on"] = False
+    with pytest.raises(MateuForbiddenException):
+        _save_toggle("key-0014-same")
     assert idempotency_keys.in_flight() == 0
-    allowed = _send_mine(client, "staffOnly", "alice", "key-0014-same", app_state={"audience": "staff"})
-    assert "Staff 1" in allowed.text
+    OfflineToggleParts.EDITABLE["on"] = True
+    _save_toggle("key-0014-same")
+    assert OfflineToggleParts.SAVES["n"] == 1
     idempotency_keys.clear()
 
 
