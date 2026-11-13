@@ -35,25 +35,82 @@ public static partial class IdempotencyKeys
     /// <summary>Text of the refusal when too many keyed requests are in flight.</summary>
     public const string BusyMessage = "The server is still processing too many requests. Try again in a moment.";
 
+    /// <summary>Title of the refusal when a key is sent again with a DIFFERENT request (same in the 3 backends).</summary>
+    public const string ReusedTitle = "Idempotency key reused";
+
+    /// <summary>Text of the refusal when a key is sent again with a different request.</summary>
+    public const string ReusedMessage = "This key was already used for a different request. Send this one with a new key.";
+
     /// <summary>How many runs may be in flight, and how many finished answers are remembered
     /// (env <c>MATEU_IDEMPOTENCY_MAX_ENTRIES</c>).</summary>
     public static int MaxEntries { get; set; } = EnvNumber("MATEU_IDEMPOTENCY_MAX_ENTRIES", 2000);
 
+    /// <summary>Each caller's share of either table (env <c>MATEU_IDEMPOTENCY_MAX_ENTRIES_PER_CALLER</c>,
+    /// Java's <c>mateu.idempotency.max-entries-per-caller</c>): past it in flight a NEW key is refused
+    /// (<see cref="BusyTitle"/>); past it finished, the caller's own least recently used answer goes —
+    /// never another caller's (GA review S10).</summary>
+    public static int MaxEntriesPerCaller { get; set; } = EnvNumber("MATEU_IDEMPOTENCY_MAX_ENTRIES_PER_CALLER", 100);
+
     /// <summary>How long an answer is remembered (env <c>MATEU_IDEMPOTENCY_TTL_SECONDS</c>).</summary>
     public static TimeSpan Ttl { get; set; } = TimeSpan.FromSeconds(EnvNumber("MATEU_IDEMPOTENCY_TTL_SECONDS", 24 * 60 * 60));
 
-    private sealed class Finished(Task<UIIncrementDto> answer, DateTime createdAt)
+    private sealed class Finished(Task<UIIncrementDto> answer, DateTime createdAt, string caller, string? fingerprint)
     {
         public Task<UIIncrementDto> Answer { get; } = answer;
         public DateTime CreatedAt { get; } = createdAt;
         public DateTime Touched { get; set; } = createdAt;
+        public string Caller { get; } = caller;
+        public string? Fingerprint { get; } = fingerprint;
     }
 
+    private sealed record Running(Task<UIIncrementDto> Answer, string Caller, string? Fingerprint);
+
     private static readonly object Lock = new();
-    /// <summary>Runs not finished yet: never evicted, admission bounded.</summary>
-    private static readonly Dictionary<string, Task<UIIncrementDto>> InFlight = new();
-    /// <summary>Answers of finished runs: LRU + TTL.</summary>
+    /// <summary>Runs not finished yet: never evicted, admission bounded (in all, and per caller).</summary>
+    private static readonly Dictionary<string, Running> InFlight = new();
+    /// <summary>Answers of finished runs: LRU + TTL, each caller's share bounded on its own.</summary>
     private static readonly Dictionary<string, Finished> Answers = new();
+    /// <summary>How many entries each caller (its hash) holds in either table.</summary>
+    private static readonly Dictionary<string, int> InFlightByCaller = new();
+    private static readonly Dictionary<string, int> AnswersByCaller = new();
+
+    private static int CountOf(Dictionary<string, int> counts, string caller) => counts.GetValueOrDefault(caller);
+
+    private static void Count(Dictionary<string, int> counts, string caller) =>
+        counts[caller] = counts.GetValueOrDefault(caller) + 1;
+
+    private static void Uncount(Dictionary<string, int> counts, string caller)
+    {
+        if (!counts.TryGetValue(caller, out var n)) return;
+        if (n <= 1) counts.Remove(caller);
+        else counts[caller] = n - 1;
+    }
+
+    private static void RemoveAnswer(string scoped)
+    {
+        if (Answers.Remove(scoped, out var gone)) Uncount(AnswersByCaller, gone.Caller);
+    }
+
+    /// <summary>A new keyed run may start: not past the table's bound nor the caller's share.</summary>
+    private static void Admit(string caller)
+    {
+        if (InFlight.Count >= Math.Max(1, MaxEntries) || CountOf(InFlightByCaller, caller) >= Math.Max(1, MaxEntriesPerCaller))
+            throw new UserFacingException(BusyTitle, BusyMessage);
+    }
+
+    /// <summary>The same key sent with ANOTHER request is not a retry: answering it with the first
+    /// request's answer would hide that it never ran.</summary>
+    private static void RefuseAnotherRequest(string? known, string? sent)
+    {
+        if (known is not null && sent is not null && known != sent)
+            throw new UserFacingException(ReusedTitle, ReusedMessage);
+    }
+
+    private static void StartRun(string scoped, string caller, string? fingerprint, Task<UIIncrementDto> task)
+    {
+        InFlight[scoped] = new Running(task, caller, fingerprint);
+        Count(InFlightByCaller, caller);
+    }
 
     [GeneratedRegex("^[A-Za-z0-9_\\-:.]{8,128}$")]
     private static partial Regex Valid();
@@ -91,30 +148,42 @@ public static partial class IdempotencyKeys
     /// are in flight answers a faulted task (<see cref="UserFacingException"/>).</summary>
     public static Task<UIIncrementDto> OnceAsync(
         string? caller, string? actionId, string? key, Func<Task<UIIncrementDto>> run,
-        string? view = null, string? route = null)
+        string? view = null, string? route = null, string? fingerprint = null)
     {
         if (KeyOf(key) is not { } valid) return run();
         var scoped = Scoped(caller, view, route, actionId, valid);
+        var callerHash = Sha256(caller ?? "");
         TaskCompletionSource<UIIncrementDto> answer;
         lock (Lock)
         {
             var now = DateTime.UtcNow;
-            if (Answers.TryGetValue(scoped, out var known))
+            try
             {
-                if (now - known.CreatedAt <= Ttl)
+                if (Answers.TryGetValue(scoped, out var known))
                 {
-                    known.Touched = now;
-                    return known.Answer;
+                    if (now - known.CreatedAt <= Ttl)
+                    {
+                        RefuseAnotherRequest(known.Fingerprint, fingerprint);
+                        known.Touched = now;
+                        return known.Answer;
+                    }
+                    RemoveAnswer(scoped);
                 }
-                Answers.Remove(scoped);
+                if (InFlight.TryGetValue(scoped, out var running))
+                {
+                    RefuseAnotherRequest(running.Fingerprint, fingerprint);
+                    return running.Answer;
+                }
+                Admit(callerHash);
             }
-            if (InFlight.TryGetValue(scoped, out var running)) return running;
-            if (InFlight.Count >= Math.Max(1, MaxEntries))
-                return Task.FromException<UIIncrementDto>(new UserFacingException(BusyTitle, BusyMessage));
+            catch (UserFacingException refused)
+            {
+                return Task.FromException<UIIncrementDto>(refused);
+            }
             // registered BEFORE the run starts: a run that fails synchronously must find its entry
             // to forget it, and a repeat arriving meanwhile must find it to join it
             answer = new TaskCompletionSource<UIIncrementDto>(TaskCreationOptions.RunContinuationsAsynchronously);
-            InFlight[scoped] = answer.Task;
+            StartRun(scoped, callerHash, fingerprint, answer.Task);
         }
         _ = RunAndSettle(scoped, run, answer);
         return answer.Task;
@@ -133,9 +202,11 @@ public static partial class IdempotencyKeys
 
     /// <summary>A keyed request going through the handler: not claimed until the handler reaches a
     /// <see cref="Checkpoint"/>, i.e. until the request passed the checks its action would pass.</summary>
-    private sealed class Pending(string scoped)
+    private sealed class Pending(string scoped, string caller, string? fingerprint)
     {
         public string Scoped { get; } = scoped;
+        public string Caller { get; } = caller;
+        public string? Fingerprint { get; } = fingerprint;
         public bool Claimed { get; set; }
         public TaskCompletionSource<UIIncrementDto>? Mine { get; set; }
     }
@@ -156,12 +227,26 @@ public static partial class IdempotencyKeys
     /// YAML access keys). A request refused before that is never answered from memory, whatever rule
     /// refused it; one that passed them and repeats a known key gets the first answer back (joining
     /// it while in flight). A request that never reaches a checkpoint (a load, a search) just runs.</summary>
+    /// <para>A keyed run is DETACHED from the request: <paramref name="listen"/> (the request's
+    /// abort) only stops the waiting, never the run — a client that leaves neither cancels the work
+    /// nor frees the key while the write may still land, and a retry of the key joins the run (pass
+    /// the handler a token that does not end with the request). <paramref name="fingerprint"/>
+    /// (<see cref="FingerprintOf"/>) tells a retry from another request reusing the key.</para>
     public static async Task<UIIncrementDto> GuardedAsync(
         string? caller, string? actionId, string? key, Func<Task<UIIncrementDto>> run,
-        string? view = null, string? route = null)
+        string? view = null, string? route = null, string? fingerprint = null, CancellationToken listen = default)
     {
         if (KeyOf(key) is not { } valid) return await run().ConfigureAwait(false);
-        var pending = new Pending(Scoped(caller, view, route, actionId, valid));
+        var pending = new Pending(Scoped(caller, view, route, actionId, valid), Sha256(caller ?? ""), fingerprint);
+        var work = Detached(pending, run);
+        // observed even when nobody listens any more (the client left)
+        _ = work.ContinueWith(t => _ = t.Exception, CancellationToken.None,
+            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+        return await work.WaitAsync(listen).ConfigureAwait(false);
+    }
+
+    private static async Task<UIIncrementDto> Detached(Pending pending, Func<Task<UIIncrementDto>> run)
+    {
         var previous = Current.Value;
         Current.Value = pending;
         try
@@ -213,15 +298,20 @@ public static partial class IdempotencyKeys
             {
                 if (now - known.CreatedAt <= Ttl)
                 {
+                    RefuseAnotherRequest(known.Fingerprint, pending.Fingerprint);
                     known.Touched = now;
                     throw new Replay(known.Answer);
                 }
-                Answers.Remove(pending.Scoped);
+                RemoveAnswer(pending.Scoped);
             }
-            if (InFlight.TryGetValue(pending.Scoped, out var running)) throw new Replay(running);
-            if (InFlight.Count >= Math.Max(1, MaxEntries)) throw new UserFacingException(BusyTitle, BusyMessage);
+            if (InFlight.TryGetValue(pending.Scoped, out var running))
+            {
+                RefuseAnotherRequest(running.Fingerprint, pending.Fingerprint);
+                throw new Replay(running.Answer);
+            }
+            Admit(pending.Caller);
             var mine = new TaskCompletionSource<UIIncrementDto>(TaskCreationOptions.RunContinuationsAsynchronously);
-            InFlight[pending.Scoped] = mine.Task;
+            StartRun(pending.Scoped, pending.Caller, pending.Fingerprint, mine.Task);
             pending.Mine = mine;
         }
     }
@@ -259,12 +349,18 @@ public static partial class IdempotencyKeys
     {
         lock (Lock)
         {
-            if (!InFlight.TryGetValue(scoped, out var current) || !ReferenceEquals(current, run)) return;
+            if (!InFlight.TryGetValue(scoped, out var current) || !ReferenceEquals(current.Answer, run)) return;
             InFlight.Remove(scoped);
+            Uncount(InFlightByCaller, current.Caller);
             if (!remember) return;
-            Answers[scoped] = new Finished(run, DateTime.UtcNow);
+            RemoveAnswer(scoped);
+            // the caller's share full: its OWN least recently used answer goes, never another's
+            while (CountOf(AnswersByCaller, current.Caller) >= Math.Max(1, MaxEntriesPerCaller))
+                RemoveAnswer(Answers.Where(e => e.Value.Caller == current.Caller).MinBy(e => e.Value.Touched).Key);
+            Answers[scoped] = new Finished(run, DateTime.UtcNow, current.Caller, current.Fingerprint);
+            Count(AnswersByCaller, current.Caller);
             while (Answers.Count > Math.Max(1, MaxEntries))
-                Answers.Remove(Answers.MinBy(e => e.Value.Touched).Key);
+                RemoveAnswer(Answers.MinBy(e => e.Value.Touched).Key);
         }
     }
 
@@ -281,8 +377,34 @@ public static partial class IdempotencyKeys
         {
             InFlight.Clear();
             Answers.Clear();
+            InFlightByCaller.Clear();
+            AnswersByCaller.Clear();
         }
     }
+
+    /// <summary>What a request asks for — its component state and parameters as canonical JSON
+    /// (object keys sorted at every level) — hashed: the same key with another fingerprint is another
+    /// request (Java's IdempotencyKeys.fingerprint).</summary>
+    public static string FingerprintOf(IReadOnlyDictionary<string, object?>? componentState,
+        IReadOnlyDictionary<string, object?>? parameters)
+    {
+        var body = new System.Text.Json.Nodes.JsonObject
+        {
+            ["componentState"] = Canonical(System.Text.Json.JsonSerializer.SerializeToNode(componentState ?? new Dictionary<string, object?>())),
+            ["parameters"] = Canonical(System.Text.Json.JsonSerializer.SerializeToNode(parameters ?? new Dictionary<string, object?>())),
+        };
+        return Sha256(body.ToJsonString());
+    }
+
+    private static System.Text.Json.Nodes.JsonNode? Canonical(System.Text.Json.Nodes.JsonNode? node) => node switch
+    {
+        System.Text.Json.Nodes.JsonObject o => new System.Text.Json.Nodes.JsonObject(o
+            .OrderBy(p => p.Key, StringComparer.Ordinal)
+            .Select(p => KeyValuePair.Create(p.Key, Canonical(p.Value)))),
+        System.Text.Json.Nodes.JsonArray a => new System.Text.Json.Nodes.JsonArray(a.Select(Canonical).ToArray()),
+        null => null,
+        _ => node.DeepClone(),
+    };
 
     private static string Sha256(string text) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)));

@@ -212,10 +212,15 @@ public static partial class MateuExtensions
                 // runs once per caller, action and key: a repeat gets the first answer back. The key
                 // is looked up only at the handler's checkpoint, once the request passed the checks
                 // its action would pass: a refused request is never answered from memory.
-                return await IdempotencyKeys.GuardedAsync(CallerOf(ctx), rq.ActionId,
-                    ctx.Request.Headers[IdempotencyKeys.Header].FirstOrDefault(),
-                    () => handler.HandleAsync(rq, prefix, ctx.RequestAborted),
-                    view: rq.ServerSideType, route: rq.Route);
+                // A keyed run is DETACHED: the client leaving stops only the waiting, never the
+                // write (the key stays claimed until it ends; a retry joins it).
+                var key = ctx.Request.Headers[IdempotencyKeys.Header].FirstOrDefault();
+                var keyed = IdempotencyKeys.KeyOf(key) is not null;
+                return await IdempotencyKeys.GuardedAsync(CallerOf(ctx), rq.ActionId, key,
+                    () => handler.HandleAsync(rq, prefix, keyed ? CancellationToken.None : ctx.RequestAborted),
+                    view: rq.ServerSideType, route: rq.Route,
+                    fingerprint: keyed ? IdempotencyKeys.FingerprintOf(rq.ComponentState, rq.Parameters) : null,
+                    listen: ctx.RequestAborted);
             });
             EndObservation(ctx, observation);
             ctx.Response.ContentType = "application/json";
