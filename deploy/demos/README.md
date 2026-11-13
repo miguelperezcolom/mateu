@@ -132,3 +132,17 @@ cd remotes && EXPLORER_URL=https://explorer.mateu.io EXPLORER_JAVA_REMOTE_URL=ht
   EXPLORER_STATIC_REMOTE_URL=https://explorer-static.ec1.mateu.io SKIP_REMOTE_RESTART=true node probe.mjs  # 22/22
 ```
 (`SKIP_REMOTE_RESTART` skips the version-skew check, which restarts a LOCAL Java remote.)
+
+## The front-office demo
+`demo/demo-front-office` (check-in queue + wizard, check-out, En Casa 360, automations) runs at
+`frontoffice.ec1.mateu.io` (k8s/70-demo-front-office.yaml), public so Visual Builder apps can embed its
+screens with `<mateu-ui>` (CORS open, no credentials). H2 in memory, re-seeded at every start; the H2
+console is switched off in the image and the deployment. Its pom pins the in-repo `0.0.1-MATEU`, so
+build it against a release:
+```bash
+(cd demo/demo-front-office && mvn -B -ntp clean package -DskipTests -Dmateu.version=$V)
+docker buildx build --builder desktop-linux --platform linux/amd64 -f deploy/demos/demo-front-office.Dockerfile \
+  -t miguelperezcolom/demo-front-office:$V-$(date +%Y%m%d) --push .
+# bump the tag in k8s/70-demo-front-office.yaml, then: kubectl --context cloudfleet-hetzner apply -f deploy/demos/k8s/70-demo-front-office.yaml
+```
+
