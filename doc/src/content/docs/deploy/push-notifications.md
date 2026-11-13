@@ -22,6 +22,14 @@ app soon after it leaves the screen. To reach a suspended or closed app, the ser
 Mateu ships UI only. It never talks to FCM or APNs itself: delivery and token storage are interfaces,
 and the Expo sender is a convenience you switch on.
 
+:::note[Your own app, not the Mateu app]
+Remote push needs **your own phone app**: a `fixed` build (`MATEU_VARIANT=fixed`) that you publish
+with your own Expo project and your own FCM and APNs credentials. The Mateu app in the stores (the
+hub, which opens anybody's UI) never registers a push token. If it did, every server its users added
+would send notifications as the Mateu app. In the hub, your users still get the inbox (the bell) and
+the notifications the app posts itself while it runs.
+:::
+
 ## Turn it on
 
 ```java
@@ -127,11 +135,37 @@ token is the phone's own secret and forgetting it only stops pushes to that phon
 | Your token store | an `IPushTokenStore` service | `add_mateu(push_token_store=…)` (a `PushTokenStore`) |
 | Send from code | `PushNotifications.Send(user, entry)` | `PushNotifications.send(user, entry)` |
 
+## Why push needs your own app
+
+The code supports remote push everywhere. What turns it on is the **build**: a `fixed` app with push
+credentials. Here is why it is not a setting each UI brings:
+
+- **A push goes out under the app's store identity.** Apple accepts a push to an iPhone only when a
+  key of the team that signed the app sends it. Google delivers through the Firebase project built
+  into the app. A UI cannot bring its own keys at run time. They would belong to another team or
+  project, and Apple would refuse them.
+- **The Mateu app opens anybody's UI.** If it registered push tokens, every server its users added
+  would send notifications as the Mateu app, and the volume and any abuse would count against
+  Mateu's accounts with Expo, Apple and Google.
+- **Your own app keeps your notifications yours.** A fixed build has its own Expo project, Firebase
+  project and APNs key. Your notifications go out under your name and only your servers send them.
+  Turn on Expo's *enhanced push security* and pass `mateu.push.expo.access-token`, so no one else can
+  send to your users.
+
+How to switch it on, in short: build with `MATEU_VARIANT=fixed` (see
+[Hub or fixed](/deploy/mobile-app-stores/#hub-or-fixed-mateu_variant)), add the FCM and APNs
+credentials below, publish the app, and set `mateu.push.expo.enabled=true` on your server.
+
+A build records whether it was set up for push in `extra.remotePush`, and the app asks for a token
+only when that is `true`. A `hub` build, or a binary built before this rule that receives newer
+JavaScript over the air, never asks for one.
+
 ## Phone set-up (owner steps)
 
-The Mateu app gets its Expo push token through Google's FCM and Apple's APNs, which need credentials
+Your fixed app gets its Expo push token through Google's FCM and Apple's APNs, which need credentials
 that only the owner of the store accounts can create: a `google-services.json` and the FCM V1 key for
-Android, and an APNs key for iOS. A build without them still works, but gets no token. The steps are
+Android, and an APNs key for iOS. A build without them still works, but gets no token, and a `hub`
+build ignores them. The steps are
 in [Publishing to the App Store and Google Play › Push notifications](/deploy/mobile-app-stores/#push-notifications-fcm-and-apns-credentials).
 
 ## Related

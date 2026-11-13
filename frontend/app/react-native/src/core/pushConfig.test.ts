@@ -2,9 +2,32 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { ExpoConfig } from 'expo/config';
 import { readFileSync } from 'node:fs';
-import { applyPushConfig } from './pushConfig.ts';
+import { applyPushConfig, remotePushEnabled } from './pushConfig.ts';
 
-const appJson = JSON.parse(readFileSync(new URL('../../app.json', import.meta.url), 'utf8')).expo as ExpoConfig;
+const hubJson = JSON.parse(readFileSync(new URL('../../app.json', import.meta.url), 'utf8')).expo as ExpoConfig;
+// what applyVariant hands over for a fixed build (app.config.ts applies the variant first)
+const appJson = { ...hubJson, extra: { ...(hubJson.extra ?? {}), mateuVariant: 'fixed' } } as ExpoConfig;
+const allCredentials = { GOOGLE_SERVICES_JSON: '/tmp/google-services.json', MATEU_IOS_PUSH: 'true' };
+
+test('the hub never has remote push, even with the credentials in its environment', () => {
+  for (const hub of [hubJson, { ...hubJson, extra: { ...(hubJson.extra ?? {}), mateuVariant: 'hub' } } as ExpoConfig]) {
+    const out = applyPushConfig(hub, allCredentials);
+    assert.equal(out, hub);
+    assert.ok((out.plugins ?? []).includes('./plugins/with-local-notifications-only'));
+    assert.equal(out.android?.googleServicesFile, undefined);
+    assert.equal(remotePushEnabled(out.extra), false);
+  }
+});
+
+test('a fixed build with credentials says so in extra.remotePush; one without them does not', () => {
+  assert.equal(remotePushEnabled(applyPushConfig(appJson, allCredentials).extra), true);
+  assert.equal(remotePushEnabled(applyPushConfig(appJson, { GOOGLE_SERVICES_JSON: '/x.json' }).extra), true);
+  assert.equal(remotePushEnabled(applyPushConfig(appJson, { MATEU_IOS_PUSH: 'true' }).extra), true);
+  assert.equal(remotePushEnabled(applyPushConfig(appJson, {}).extra), false);
+  // a binary built before the flag existed (the store's 1.0.1) carries none
+  assert.equal(remotePushEnabled(hubJson.extra), false);
+  assert.equal(remotePushEnabled(undefined), false);
+});
 
 test('without push credentials the build is as app.json says: local notifications only', () => {
   const out = applyPushConfig(appJson, {});
