@@ -491,8 +491,10 @@ export class MateuApiClient {
   }
 }
 
-/** A host with no Mateu server behind it: nothing listens at /mateu (404/405), or nothing answers. */
+/** A host with no Mateu server behind it: it ANSWERS, and nothing listens at /mateu (404/405/501).
+ *  A request that got no answer at all (a network failure: offline, the server down) is NOT that —
+ *  a hybrid deployment has a server, and the user is told about the connection (GA-5.9). */
 function isNoServer(e: unknown): boolean {
   const text = e instanceof Error ? e.message : String(e);
-  return /^HTTP (404|405|501)\b/.test(text) || e instanceof TypeError;
+  return /^HTTP (404|405|501)\b/.test(text);
 }
