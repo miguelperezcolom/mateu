@@ -4,7 +4,7 @@ import io.mateu.uidl.fluent.Component;
 import java.util.List;
 import lombok.Builder;
 
-/** A read-only chat-style list of {@link MessageListItem}s (Vaadin/PatternFly message list). */
+/** A read-only chat-style list of {@link MessageListItem}s (the Vaadin message list). */
 @Builder
 public record MessageList(String id, List<MessageListItem> items, String style, String cssClasses)
     implements Component {
