@@ -123,6 +123,7 @@ class SearchHandlerMixin(MixinBase):
         returned rows (unless the ListingData carries its own total: database pushdown, the
         rows are the already-paged window)."""
         filters_type, row_type = listing_types(type(view)) or (None, None)
+        rq = self.guarded_query(rq, row_type)
         request = self.build_search_request(view, filters_type, rq)
         found = self._invoke(view.search, request, rq)
         props = self.row_props(row_type) if row_type is not None else []
@@ -261,6 +262,43 @@ class SearchHandlerMixin(MixinBase):
                 row[camel_case(p.name)] = self.cell_value(_mapped_value(p, value))
         return row
 
+    def guarded_query(self, rq: RunActionRq, row_type) -> RunActionRq:
+        """The listing query of ``rq`` held to what the caller may ask (Java's ListingQueryGuard):
+        a sort or filter key naming a row field the caller may not read is dropped (sorting or
+        filtering by a hidden value leaks it), a page below zero is the first page, and a page
+        size is capped at ``listing_max_page_size`` (``MATEU_LISTING_MAX_PAGE_SIZE``, 500)."""
+        state = dict(rq.component_state or {})
+        if row_type is not None:
+            hidden = {
+                key for p in view_fields(row_type) if not self.mapper._permitted(p)
+                for key in (p.name, camel_case(p.name))
+            }
+        else:
+            hidden = set()
+        changed = False
+        if hidden:
+            sort = state.get("sort")
+            if isinstance(sort, list):
+                kept = [
+                    s for s in sort
+                    if not (isinstance(s, dict) and (s.get("fieldId") or s.get("field") or "") in hidden)
+                ]
+                if len(kept) != len(sort):
+                    state["sort"], changed = kept, True
+            for key in list(state):
+                base = key[:-5] if key.endswith(("_from")) else key[:-3] if key.endswith("_to") else key
+                if key in hidden or base in hidden:
+                    del state[key]
+                    changed = True
+        page = _as_int(state.get("page"))
+        if page is not None and page < 0:
+            state["page"], changed = 0, True
+        size = _as_int(state.get("size"))
+        cap = listing_max_page_size(self)
+        if size is not None and size > cap:
+            state["size"], changed = cap, True
+        return rq.model_copy(update={"component_state": state}) if changed else rq
+
     def row_props(self, row_type) -> list:
         """The fields of a listing row the CALLER may see — ONE filter for the row cells (tree
         children too), the sort and filter keys, the summaries and the exports: an ``EyesOnly``
@@ -269,6 +307,7 @@ class SearchHandlerMixin(MixinBase):
         return [p for p in view_fields(row_type) if self.mapper._permitted(p)]
 
     def crud_search(self, crud, element, rq: RunActionRq) -> UIIncrement:
+        rq = self.guarded_query(rq, element)
         props = self.row_props(element)
         state = rq.component_state or {}
         spec = self._summary_spec(props)
@@ -648,3 +687,32 @@ def _mapped_value(p, value):
         raw = value.value if hasattr(value, "value") and not isinstance(value, str) else value
         return mapped.mappings.get(str(raw), mapped.default)
     return value
+
+
+#: The rows one page of a listing may ask for, unless the handler says otherwise.
+DEFAULT_MAX_PAGE_SIZE = 500
+
+
+def listing_max_page_size(handler=None) -> int:
+    """``add_mateu(listing_max_page_size=…)``, else ``MATEU_LISTING_MAX_PAGE_SIZE``, else 500."""
+    import os
+
+    configured = getattr(handler, "listing_max_page_size", None)
+    if isinstance(configured, int) and configured > 0:
+        return configured
+    try:
+        value = int(os.environ.get("MATEU_LISTING_MAX_PAGE_SIZE", ""))
+        return value if value > 0 else DEFAULT_MAX_PAGE_SIZE
+    except ValueError:
+        return DEFAULT_MAX_PAGE_SIZE
+
+
+def _as_int(value):
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return int(value)
+    try:
+        return int(str(value))
+    except (TypeError, ValueError):
+        return None

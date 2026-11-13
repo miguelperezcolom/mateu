@@ -225,6 +225,8 @@ def add_mateu(
     presence_store: Any | None = None,
     file_storages: Sequence[Any] | None = None,
     uploads_secret: str | None = None,
+    listing_max_page_size: int | None = None,
+    uploads_max_files_per_ticket: int | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -322,6 +324,10 @@ def add_mateu(
       sender when no ``push_sender`` is given; ``expo_push_access_token`` (or
       ``MATEU_PUSH_EXPO_ACCESS_TOKEN``) is its bearer token. With a sender, an ``inbox`` message to a
       signed-in user reaches their phones while the app is suspended or closed.
+    - ``listing_max_page_size`` — the rows one page of a listing may ask for (default: the
+      ``MATEU_LISTING_MAX_PAGE_SIZE`` env var, else 500); a page below zero is always the first.
+    - ``uploads_max_files_per_ticket`` — the files one upload ticket of a MULTIPLE field may send
+      (default: ``MATEU_UPLOADS_MAX_FILES_PER_TICKET``, else 100; a single-file field's: 10).
     - ``presence_store`` (EXPERIMENTAL) — a ``PresenceStore`` keeping record presence
       (``@app(presence=True)``; default: Mateu's bounded in-memory store, per process).
     - ``file_storages`` (EXPERIMENTAL) — ``FileStorage`` instances (or classes, instantiated with no
@@ -391,6 +397,10 @@ def add_mateu(
         handler.inbox_store = inbox_store
     if presence_store is not None:
         handler.presence_store = presence_store
+    if listing_max_page_size is not None:
+        handler.listing_max_page_size = int(listing_max_page_size)
+    if uploads_max_files_per_ticket is not None:
+        handler.mapper.uploads.max_files_per_ticket = int(uploads_max_files_per_ticket)
     show_details = dev_mode_from_env() if dev is None else dev
     mcp_on = mcp_enabled_from_env() if mcp is None else mcp
     # the sidecar's authoring tools call __validate__ over the sync endpoint of an MCP-enabled app

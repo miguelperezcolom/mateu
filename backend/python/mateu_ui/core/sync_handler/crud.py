@@ -316,6 +316,7 @@ class CrudHandlerMixin(MixinBase):
             raise UserFacingException(
                 "This application has no exporter for that format.", title="Export not available"
             )
+        rq = self.guarded_query(rq, element)
         rows = self._filtered_rows(crud, self.row_props(element), rq)
         file = exporter.export(
             ListingExport(

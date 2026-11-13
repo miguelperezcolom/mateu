@@ -162,6 +162,31 @@ def test_a_hidden_field_is_no_sort_key_for_the_caller():
     assert _names(_search(_handler(("hr",)), EmpSorted, "emp-sorted", by_salary)) == ["Ana", "Max", "Zoe"]
 
 
+def test_a_hidden_field_is_no_filter_key_for_the_caller():
+    # filtering by a value the caller cannot read would reveal it, one guess at a time
+    assert _names(_search(_handler(), EmpCrud, "emp-crud", {"salary": "nope"})) == ["Ana"]
+    assert _names(_search(_handler(("hr",)), EmpCrud, "emp-crud", {"salary": "nope"})) == []
+
+
+def test_a_page_below_zero_is_the_first_and_a_page_size_is_capped(monkeypatch):
+    many = [Emp(f"e{i}", f"N{i:04d}") for i in range(700)]
+    monkeypatch.setattr(EmpSorted, "search", lambda self, request, http=None: list(many))
+
+    def page(state, handler=None):
+        data = json.loads(_search(handler or _handler(), EmpSorted, "emp-sorted", state))
+        return data["fragments"][0]["data"]["crud"]["page"]
+
+    first = page({"page": -3, "size": 10})
+    assert first["pageNumber"] == 0 and first["content"][0]["name"] == "N0000"
+    big = page({"size": 100000})
+    assert big["pageSize"] == 500 and len(big["content"]) == 500
+    monkeypatch.setenv("MATEU_LISTING_MAX_PAGE_SIZE", "50")
+    assert len(page({"size": 100000})["content"]) == 50
+    h = _handler()
+    h.listing_max_page_size = 20
+    assert len(page({"size": 100000}, h)["content"]) == 20
+
+
 def test_child_rows_of_a_tree_follow_the_same_filter():
     assert SECRET not in _search(_handler(), TeamTree, "team-tree", {})
     assert SECRET in _search(_handler(("hr",)), TeamTree, "team-tree", {})
