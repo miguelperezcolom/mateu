@@ -76,7 +76,11 @@ public class ${simpleClassName}MateuController implements MateuController {
 
     // consumes ALL + the body as text (io.mateu.MicronautBodies): an application/*+json body is as
     // JSON as application/json (JsonBodyGuard has refused anything else already)
+    // the action runs on the blocking executor (virtual threads where available): CrudStore,
+    // load() and action methods are synchronous app code — on the Netty event loop one slow store
+    // stalled every request (GA review java-core #6)
     @Post(value = "v3/sync{/ignored:.*}", consumes = MediaType.ALL)
+    @ExecuteOn(TaskExecutors.BLOCKING)
     public Mono<UIIncrementDto> runStepSync(
         @PathVariable("ignored") @Nullable String ignored,
         @Body @Nullable String body,
@@ -91,6 +95,7 @@ public class ${simpleClassName}MateuController implements MateuController {
     // Streamed actions (LongTask, Action.sse): one text/event-stream "data:" event per increment.
     @Produces(MediaType.TEXT_EVENT_STREAM)
     @Post(value = "v3/sse/{/ignored:.*}", consumes = MediaType.ALL)
+    @ExecuteOn(TaskExecutors.BLOCKING)
     public Mono<HttpResponse<?>> runStepSse(
         @PathVariable("ignored") @Nullable String ignored,
         @Body @Nullable String body,

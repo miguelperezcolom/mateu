@@ -36,6 +36,10 @@ public class SpringHttpRequest implements HttpRequest {
         .getPrincipal()
         .map(Optional::<java.security.Principal>of)
         .defaultIfEmpty(Optional.empty())
+        // the action runs OFF the event loop: a CrudStore, a view's load(), an action method are
+        // synchronous app code (JDBC, files…) — on reactor-http-nio one slow store stalled every
+        // request the loop serves, static assets included (GA review java-core #6)
+        .publishOn(reactor.core.scheduler.Schedulers.boundedElastic())
         .flatMapMany(
             principal -> {
               request.principal = principal.orElse(null);
