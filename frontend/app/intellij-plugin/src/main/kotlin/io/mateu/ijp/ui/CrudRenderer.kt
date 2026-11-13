@@ -1203,13 +1203,9 @@ internal class ImageCellRenderer(private val baseUrl: String?) : DefaultTableCel
         }
     }
 
-    private fun readRemote(url: String): java.awt.image.BufferedImage? {
-        val conn = java.net.URI.create(url).toURL().openConnection()
-        conn.connectTimeout = 10_000
-        conn.readTimeout = 30_000
-        conn.setRequestProperty("Accept", "image/*")
-        return conn.getInputStream().use { javax.imageio.ImageIO.read(it) }
-    }
+    // the one guarded way to read an image from a url: http(s) only, timeouts, a size cap
+    private fun readRemote(url: String): java.awt.image.BufferedImage? =
+        SvgImages.fetchBytes(url)?.let { decodeImage(it) }
 
     companion object {
         const val THUMB = 40
