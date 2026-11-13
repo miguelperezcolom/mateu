@@ -92,7 +92,44 @@ public class CapabilityCrud extends Crud<Object, Object, Object, Object, Object,
   @Override
   public Object save(HttpRequest httpRequest) {
     if (!canEdit()) throw new UnsupportedOperationException("not editable");
-    return ((Editable<Object, Object>) target).save(httpRequest);
+    // the listing's save starts from the record edit(id) answers: what the editor did not let the
+    // user write (its id, read-only, hidden or locked fields) keeps that record's values
+    var editorClass = editorClass();
+    var idField = ClientWritableFields.declaredIdOf(editorClass);
+    var id = editedId(idField, httpRequest);
+    var baseline = id == null ? null : ((Editable<Object, Object>) target).edit(id, httpRequest);
+    return ClientWritableFields.runWithWritableState(
+        httpRequest,
+        editorClass,
+        baseline,
+        idField,
+        baseline == null,
+        rq -> ((Editable<Object, Object>) target).save(rq));
+  }
+
+  /** The id of the record a save edits: the route's, else the posted form's own id. */
+  @SuppressWarnings("unchecked")
+  private Object editedId(String idField, HttpRequest httpRequest) {
+    var fromRoute =
+        io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.CrudIdExtractor
+            .idFromRoute(this, httpRequest);
+    Object raw = fromRoute;
+    if (raw == null && idField != null && httpRequest.runActionRq() != null) {
+      var parameters = httpRequest.runActionRq().parameters();
+      var posted =
+          parameters != null && parameters.get("initiatorState") instanceof java.util.Map<?, ?> m
+              ? (java.util.Map<String, Object>) m
+              : httpRequest.runActionRq().componentState();
+      raw = posted != null ? posted.get(idField) : null;
+    }
+    if (raw == null) {
+      return null;
+    }
+    try {
+      return toId(String.valueOf(raw));
+    } catch (RuntimeException e) {
+      return raw;
+    }
   }
 
   @Override
@@ -104,7 +141,17 @@ public class CapabilityCrud extends Crud<Object, Object, Object, Object, Object,
   @Override
   public Object create(HttpRequest httpRequest) {
     if (!canCreate()) throw new UnsupportedOperationException("not creatable");
-    return ((Creatable<Object, Object>) target).create(httpRequest);
+    // a create starts from the creation form: what it does not let the user write keeps the
+    // form's own values
+    var formClass = creationFormClass();
+    var fresh = ((Creatable<Object, Object>) target).creationForm(httpRequest);
+    return ClientWritableFields.runWithWritableState(
+        httpRequest,
+        formClass,
+        fresh,
+        ClientWritableFields.declaredIdOf(formClass),
+        true,
+        rq -> ((Creatable<Object, Object>) target).create(rq));
   }
 
   @Override

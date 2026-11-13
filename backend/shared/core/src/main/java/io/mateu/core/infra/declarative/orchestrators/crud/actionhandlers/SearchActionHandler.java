@@ -36,12 +36,16 @@ public class SearchActionHandler implements CrudOrchestratorActionHandler {
     var extracted =
         io.mateu.core.infra.declarative.orchestrators.crud.FilterCriteriaBuilder.extract(
             orchestrator.filtersClass(), httpRequest.runActionRq().componentState());
+    // a filter is a READ: what the caller may not read was taken out before the search ran
+    // (ListingQueryGuard); a field they may read but not write still filters
     Object filters =
-        MateuInstanceFactory.newInstance(
-            orchestrator.filtersClass(),
-            io.mateu.uidl.interfaces.FilterStateAssembler.assemble(
-                orchestrator.filtersClass(), extracted.exampleState()),
-            httpRequest);
+        io.mateu.core.domain.FieldAccess.asServer(
+            () ->
+                MateuInstanceFactory.newInstance(
+                    orchestrator.filtersClass(),
+                    io.mateu.uidl.interfaces.FilterStateAssembler.assemble(
+                        orchestrator.filtersClass(), extracted.exampleState()),
+                    httpRequest));
     // ?ids=… — the framework's id-set filter, on every listing without declaring it
     var ids = IdSetFilter.from(httpRequest.runActionRq().componentState());
     var request =

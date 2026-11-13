@@ -208,6 +208,7 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
   public void invalidateSpecs() {
     byRoute.clear();
     bySpecPath.clear();
+    bindings = null;
     specProblems.reset();
   }
 
@@ -392,36 +393,182 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
           "route not allowed for caller: " + refusing.route());
     }
     var path = normalize(authoredRouteIn(route, mount));
-    var spec = loadSpec(path);
-    if (spec == null) {
-      return command;
+    // The view model that runs is the one the request NAMES (serverSideType), not the one the route
+    // binds. When the named type is bound by authored routes and this route is not one of them, the
+    // route's own access:/locks say nothing about it: the type's routes decide instead — at least
+    // one of them must be reachable for the caller, and the locks and refused actions of every one
+    // of them apply. Without it, sending another route (or none) with the same serverSideType
+    // walked past the access: and the field locks of the routes that bind it.
+    var specs = new java.util.ArrayList<String>();
+    var foreign = foreignBindingsOf(command.serverSideType(), path);
+    if (foreign != null) {
+      if (foreign.stream().noneMatch(bound -> routeRegistry.isReachable(bound, httpRequest))) {
+        log.warn(
+            "Refused request: '{}' is bound by routes that declare access: the caller does not"
+                + " satisfy, and was named at route '{}', which does not bind it",
+            command.serverSideType(),
+            route);
+        throw new io.mateu.core.application.security.MateuForbiddenException(
+            "route not allowed for caller: " + route);
+      }
+      specs.addAll(foreign);
+    } else {
+      // a sub-path of a bound route (a crud's /payroll/7, /payroll/7/edit) is still that route's
+      // screen: its locks hold there too
+      specs.add(loadSpec(path) != null ? path : deepestSpecPrefixOf(path));
     }
     // the business components (components.yaml) and partials lock fields too: they are resolved
     // while the tree is mapped, after the view model is hydrated. STRICT, like a code view: every
     // piece of the app is checked, not only the ones this layout names
     var lockedByPieces =
         io.mateu.core.infra.security.ClientLockedFields.appWideLockedFor(httpRequest);
-    if (!spec.dependsOnRequest()) {
-      return withoutLockedByPieces(command, path, lockedByPieces);
-    }
-    var personal = loadSpec(path, httpRequest);
-    if (personal == null) {
-      return command;
-    }
     var actionId = command.actionId();
-    if (actionId != null && personal.refusedActions().contains(actionId)) {
-      throw refusedAction(actionId);
+    var narrowed = command;
+    var anySpec = false;
+    var hidden = new java.util.HashSet<String>();
+    for (var specRoute : specs) {
+      var spec = loadSpec(specRoute);
+      anySpec |= spec != null;
+      if (spec == null || !spec.dependsOnRequest()) {
+        continue;
+      }
+      var personal = loadSpec(specRoute, httpRequest);
+      if (personal == null) {
+        continue;
+      }
+      if (actionId != null && personal.refusedActions().contains(actionId)) {
+        throw refusedAction(actionId);
+      }
+      if ("__restfetch__".equals(actionId) && httpRequest != null) {
+        var rq = httpRequest.runActionRq();
+        var sourceId =
+            rq != null && rq.parameters() != null ? rq.parameters().get("_sourceId") : null;
+        if (sourceId != null && personal.refusedActions().contains(String.valueOf(sourceId))) {
+          throw refusedAction(String.valueOf(sourceId));
+        }
+      }
+      narrowed = withoutLocked(narrowed, personal.lockedFields());
+      hidden.addAll(personal.hiddenFields());
     }
-    if ("__restfetch__".equals(actionId) && httpRequest != null) {
-      var rq = httpRequest.runActionRq();
-      var sourceId =
-          rq != null && rq.parameters() != null ? rq.parameters().get("_sourceId") : null;
-      if (sourceId != null && personal.refusedActions().contains(String.valueOf(sourceId))) {
-        throw refusedAction(String.valueOf(sourceId));
+    if (!hidden.isEmpty() && httpRequest != null) {
+      // ...and what they hide from the caller is not SENT in the view model's state either: the
+      // layout leaves the field out, its value travelled in the state all the same
+      var type =
+          command.serverSideType() != null && !command.serverSideType().isBlank()
+              ? command.serverSideType().trim()
+              : loadSpec(path) != null ? loadSpec(path).modelView() : null;
+      if (type != null) {
+        httpRequest.setAttribute(
+            io.mateu.core.domain.ComponentState.YAML_HIDDEN_ATTRIBUTE,
+            java.util.Map.of(type, java.util.Set.copyOf(hidden)));
       }
     }
-    return withoutLockedByPieces(
-        withoutLocked(command, personal.lockedFields()), path, lockedByPieces);
+    return anySpec ? withoutLockedByPieces(narrowed, path, lockedByPieces) : narrowed;
+  }
+
+  /**
+   * The authored routes binding {@code serverSideType} when the request names it at {@code path}, a
+   * route that does NOT bind it (another route, an unknown one, none); {@code null} when the type
+   * is bound by no authored route (code views, definition-only pages) or {@code path} is one of its
+   * own routes — those are guarded by the route as before.
+   */
+  java.util.List<String> foreignBindingsOf(String serverSideType, String path) {
+    if (serverSideType == null || serverSideType.isBlank()) {
+      return null;
+    }
+    var bindings = bindings().get(serverSideType.trim());
+    if (bindings == null || bindings.isEmpty()) {
+      return null;
+    }
+    var spec = loadSpec(path);
+    if (spec != null && serverSideType.trim().equals(spec.modelView())) {
+      return null;
+    }
+    var exact = routeRegistry.table().match(path);
+    if (exact.isPresent() && serverSideType.trim().equals(exact.get().entry().viewModel())) {
+      return null;
+    }
+    return bindings;
+  }
+
+  /**
+   * The longest proper prefix of {@code path} an authored entry answers with a definition (the
+   * route a sub-path belongs to), else {@code path} itself.
+   */
+  private String deepestSpecPrefixOf(String path) {
+    var segments = path.isEmpty() ? new String[0] : path.split("/");
+    for (int n = segments.length - 1; n >= 1; n--) {
+      var prefix = String.join("/", java.util.Arrays.copyOf(segments, n));
+      if (routeRegistry.authored().match(prefix).isPresent() && loadSpec(prefix) != null) {
+        return prefix;
+      }
+    }
+    return path;
+  }
+
+  /** view model class name → the routes whose definition binds it (authored or inline). */
+  private volatile java.util.Map<String, java.util.List<String>> bindings;
+
+  private java.util.Map<String, java.util.List<String>> bindings() {
+    var loaded = bindings;
+    if (loaded == null) {
+      loaded = computeBindings();
+      bindings = loaded;
+    }
+    return loaded;
+  }
+
+  private java.util.Map<String, java.util.List<String>> computeBindings() {
+    var candidates = new java.util.LinkedHashSet<String>();
+    try {
+      for (var entry : routeRegistry.authored().routes()) {
+        if (entry.route() != null) {
+          candidates.add(normalize(entry.route()));
+        }
+      }
+    } catch (RuntimeException e) {
+      log.debug("no authored routes: {}", e.toString());
+    }
+    // a definition at the conventional path may name its view model inline (viewModel:)
+    try {
+      var cl = Thread.currentThread().getContextClassLoader();
+      var index = SpecsIndex.of(cl != null ? cl : YamlUidlLoader.class.getClassLoader());
+      for (var file : index.paths()) {
+        if (!file.startsWith(SpecsIndex.ROOT + "/") || !file.endsWith(".yaml")) {
+          continue;
+        }
+        try {
+          var tree = index.tree(file);
+          if (tree != null && tree.isObject() && tree.hasNonNull("viewModel")) {
+            candidates.add(
+                file.substring(SpecsIndex.ROOT.length() + 1, file.length() - ".yaml".length()));
+          }
+        } catch (java.io.IOException | RuntimeException e) {
+          // an unreadable file binds nothing; parseSpec reports it where it is used
+        }
+      }
+    } catch (RuntimeException e) {
+      log.debug("no specs index: {}", e.toString());
+    }
+    var out = new java.util.HashMap<String, java.util.List<String>>();
+    for (var candidate : candidates) {
+      var spec = loadSpec(candidate);
+      var viewModel = spec != null ? spec.modelView() : null;
+      if (viewModel == null) {
+        viewModel =
+            routeRegistry
+                .authored()
+                .match(candidate)
+                .map(match -> match.entry().viewModel())
+                .orElse(null);
+      }
+      if (viewModel != null && !viewModel.isBlank()) {
+        out.computeIfAbsent(viewModel.trim(), k -> new java.util.ArrayList<>()).add(candidate);
+      }
+    }
+    var frozen = new java.util.HashMap<String, java.util.List<String>>();
+    out.forEach((k, v) -> frozen.put(k, java.util.List.copyOf(v)));
+    return java.util.Map.copyOf(frozen);
   }
 
   /** {@code command} without the posted state the YAML pieces of the app lock for the caller. */

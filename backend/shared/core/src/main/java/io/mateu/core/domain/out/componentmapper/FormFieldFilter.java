@@ -1,7 +1,5 @@
 package io.mateu.core.domain.out.componentmapper;
 
-import io.mateu.core.domain.AudienceGate;
-import io.mateu.core.domain.Authorizer;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.*;
@@ -22,12 +20,10 @@ final class FormFieldFilter {
         && visibilitySupplier.isHidden(field.getName(), httpRequest)) {
       return false;
     }
-    if (MetaAnnotations.isPresent(field, EyesOnly.class)
-        && !Authorizer.isAuthorized(MetaAnnotations.find(field, EyesOnly.class), httpRequest)) {
-      return false; // not authorized to see this field
-    }
-    if (!AudienceGate.visible(MetaAnnotations.find(field, Audience.class), httpRequest)) {
-      return false; // not part of the current audience's projection (UX aid, not security)
+    // not authorized to see this field (@EyesOnly), or not part of the current audience's
+    // projection (@Audience, a UX aid) — the one rule every path shares (FieldAccess)
+    if (!io.mateu.core.domain.FieldAccess.isShown(field, httpRequest)) {
+      return false;
     }
     if (ComponentDto.class.isAssignableFrom(field.getType())) {
       return false;

@@ -95,6 +95,13 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     // The fields the YAML partials/components this view draws hide or lock for the caller are
     // dropped BEFORE any of the state is written — by a setter, a constructor or a builder alike.
     data = io.mateu.core.infra.security.ClientLockedFields.withoutLocked(c, data, httpRequest);
+    // ...and so are the fields the caller may not write (@EyesOnly, @ReadOnlyUnless,
+    // @DisabledUnless, at any depth): the setter path checked them, a record's constructor or a
+    // builder did not (GA review). A map the SERVER assembled (a crud save over the stored record)
+    // is built as it is.
+    if (!io.mateu.core.domain.FieldAccess.inServerScope()) {
+      data = io.mateu.core.domain.FieldAccess.writable(c, data, httpRequest);
+    }
     try {
       return newInstanceInner(c, data, httpRequest);
     } catch (InvocationTargetException e) {
@@ -398,8 +405,12 @@ public class ReflectionInstanceFactory implements InstanceFactory {
         if (existing != null && !(existing instanceof Map)) {
           continue;
         }
+        // a copy: the full value may be the client's own (immutable) map
         Map<String, Object> nested =
-            (Map<String, Object>) result.computeIfAbsent(prefix, k -> new LinkedHashMap<>());
+            existing == null
+                ? new LinkedHashMap<>()
+                : new LinkedHashMap<>((Map<String, Object>) existing);
+        result.put(prefix, nested);
         nested.put(rest, entry.getValue());
       }
     }

@@ -32,7 +32,8 @@ public class GridColumnBuilder {
             columnField ->
                 (!MetaAnnotations.isPresent(columnField, Hidden.class)
                         || !MetaAnnotations.find(columnField, Hidden.class).value().isEmpty())
-                    && !MetaAnnotations.isPresent(columnField, HiddenInList.class))
+                    && !MetaAnnotations.isPresent(columnField, HiddenInList.class)
+                    && io.mateu.core.domain.FieldAccess.isShown(columnField, httpRequest))
         .forEach(
             columnField -> {
               var rawWidth = getColumnWidth(columnField);
