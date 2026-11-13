@@ -53,9 +53,10 @@ public static partial class MateuExtensions
             await RefuseUpload(ctx, ticket);
             return;
         }
-        var name = ctx.Request.Headers[FileUploads.FileNameHeader].FirstOrDefault() is { Length: > 0 } header
+        // the store gets a bare name, never the path a client sent (../x, C:\x)
+        var name = FileUploads.BareFileName(ctx.Request.Headers[FileUploads.FileNameHeader].FirstOrDefault() is { Length: > 0 } header
             ? StoredFile.Decode(header)
-            : "file";
+            : null);
         var contentType = string.IsNullOrWhiteSpace(ctx.Request.ContentType)
             ? "application/octet-stream"
             : ctx.Request.ContentType!;
@@ -124,7 +125,7 @@ public static partial class MateuExtensions
             isObject && body.TryGetProperty(property, out var v) && v.ValueKind == JsonValueKind.String
                 ? v.GetString()
                 : null;
-        var name = Text("name") is { Length: > 0 } declaredName ? declaredName : "file";
+        var name = FileUploads.BareFileName(Text("name"));
         var contentType = Text("contentType") is { Length: > 0 } declaredType ? declaredType : "application/octet-stream";
         var size = isObject && body.TryGetProperty("size", out var s) && s.ValueKind == JsonValueKind.Number
                    && s.TryGetInt64(out var n)

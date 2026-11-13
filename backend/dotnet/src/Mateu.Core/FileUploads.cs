@@ -142,6 +142,17 @@ internal sealed class FileUploads
         return text + " " + units[unit];
     }
 
+    /// <summary>A bare file name, what the store is handed (Java's UploadEndpoint.fileName): no path
+    /// (a client may send <c>../x</c> or <c>C:\x</c>), no control characters, never blank, never
+    /// <c>.</c> or <c>..</c> — else <c>file</c>.</summary>
+    public static string BareFileName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "file";
+        var bare = name.Replace('\\', '/');
+        bare = new string(bare[(bare.LastIndexOf('/') + 1)..].Where(c => !char.IsControl(c)).ToArray()).Trim();
+        return bare.Length == 0 || bare is "." or ".." ? "file" : bare;
+    }
+
     /// <summary>Whether a file of <paramref name="name"/> / <paramref name="contentType"/> passes
     /// <paramref name="accept"/>: <c>.ext</c> matches the extension (case-insensitive), <c>type/*</c> the
     /// content type's prefix, anything else the exact content type (parameters dropped); empty = anything.</summary>
