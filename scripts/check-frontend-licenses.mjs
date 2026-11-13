@@ -34,8 +34,10 @@ const TARGETS = {
     entries: ['apps/vaadin', 'libs/mateu', 'apps/visual-editor'],
     notBundled: {
       // @vaadin-component-factory/vcf-date-range-picker lists its dev server as a dependency; the
-      // picker never imports it, and Vite only bundles what is imported.
-      '@web/dev-server': 'dev server listed as a runtime dependency of vcf-date-range-picker',
+      // picker never imports it, and Vite only bundles what is imported. Skipped ONLY under that
+      // package: the same name required by anything else is walked like any dependency.
+      '@web/dev-server': { via: '@vaadin-component-factory/vcf-date-range-picker',
+        why: 'dev server listed as a runtime dependency of vcf-date-range-picker' },
     },
   },
   'react-native': {
@@ -57,11 +59,24 @@ const ALLOWED = new Set([
 ])
 
 // Reviewed one by one: licences that are not plain SPDX but are fine to ship, and the condition
-// that keeps them fine. Adding an entry here is a reviewed change.
+// that keeps them fine. Adding an entry here is a reviewed change. The review is of the licence the
+// package DECLARES (`licence`): a release that declares another one fails again until reviewed.
 const REVIEWED = {
   // MIT plus one condition: the bpmn.io watermark on rendered diagrams must stay visible and not be
   // overlapped. mateu-bpmn does not hide or restyle it — keep it that way.
-  'bpmn-js': 'bpmn.io License (MIT + keep the bpmn.io watermark visible)',
+  'bpmn-js': { licence: 'SEE LICENSE IN LICENSE', why: 'bpmn.io License (MIT + keep the bpmn.io watermark visible)' },
+}
+
+/** Whether `pkg` is reviewed for the licence it declares now. */
+const reviewedFor = (pkg, licence, reviewed = REVIEWED) => {
+  const entry = reviewed[pkg.name]
+  return !!entry && entry.licence === licence
+}
+
+/** Whether `pkg`, required by `parentName`, is outside what ships (its `notBundled` entry names that parent). */
+const notBundledUnder = (pkgName, parentName, notBundled) => {
+  const entry = notBundled[pkgName]
+  return !!entry && entry.via === parentName
 }
 
 const licenceOf = (pkg) => {
@@ -94,19 +109,21 @@ const check = (name, { dir, entries, notBundled }) => {
   const seen = new Map()
   const problems = []
   const unresolved = []
-  const visit = (pkgJsonPath, via) => {
+  const visit = (pkgJsonPath, via, parentName) => {
     if (seen.has(pkgJsonPath)) return
     const pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf8'))
+    // not bundled UNDER the parent its entry names — checked before it counts as seen, so the
+    // same package reached through another parent is still walked
+    if (notBundledUnder(pkg.name, parentName, notBundled)) return
     seen.set(pkgJsonPath, pkg.name)
     const isEntry = entryPaths.includes(pkgJsonPath)
-    if (notBundled[pkg.name]) return
     if (!isEntry) {
       const licence = licenceOf(pkg)
-      if (!allowed(licence) && !REVIEWED[pkg.name]) problems.push(`${pkg.name}@${pkg.version}  ${licence}  (via ${via})`)
+      if (!allowed(licence) && !reviewedFor(pkg, licence)) problems.push(`${pkg.name}@${pkg.version}  ${licence}  (via ${via})`)
     }
     for (const dep of Object.keys({ ...(pkg.dependencies ?? {}), ...(pkg.optionalDependencies ?? {}) })) {
       const target = resolve(dep, dirname(pkgJsonPath))
-      if (target) visit(target, isEntry ? pkg.name : `${via} > ${pkg.name}`)
+      if (target) visit(target, isEntry ? pkg.name : `${via} > ${pkg.name}`, pkg.name)
       // a missing install would make the check pass by seeing less; optional deps may legitimately
       // be absent (platform-specific binaries)
       else if (!(pkg.optionalDependencies ?? {})[dep]) unresolved.push(`${dep}  (required by ${pkg.name})`)
