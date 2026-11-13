@@ -7,7 +7,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { FigmaToYaml } from '../../to-yaml/src/convert.mjs'
 import { loadContract, loadSchema } from '../../to-yaml/src/load.mjs'
-import { buildManifest, defaultConfig, proposedRows, routePattern, siteFiles, stampIndex } from '../src/site.mjs'
+import { buildManifest, dataPaths, defaultConfig, proposedRows, routePattern, siteFiles, stampIndex } from '../src/site.mjs'
+import { CONFIG, onlyTarget, onlyTokens, readChunked, splitSecrets, writeChunked } from '../plugin/store.js'
+import { targetDescription } from '../plugin/target.js'
 import { crc32, zip } from '../src/zip.mjs'
 import { pagesHash, publishCloudflare, publishNetlify } from '../src/hosts.mjs'
 import { checkRendererFile, rendererPin } from '../src/rendererPin.mjs'
@@ -163,10 +165,12 @@ test('Cloudflare: project, token, only the missing files, then the manifest', as
     if (url.endsWith('/projects/p')) return [404, {}]
     if (url.endsWith('/upload-token')) return [200, { result: { jwt: 'J' } }]
     if (url.endsWith('check-missing')) return [200, { result: [pagesHash(btoa('b'), 'js')] }]
+    // the name was taken on pages.dev: Cloudflare gave the project another subdomain
+    if (url.endsWith('/projects')) return [200, { result: { name: 'p', subdomain: 'p-7xk.pages.dev' } }]
     return [200, { result: { url: 'https://abc.p.pages.dev' } }]
   })
   const out = await publishCloudflare({ relayUrl: 'https://r.workers.dev/', token: 'T', accountId: 'a', project: 'p', files: site, fetch: f })
-  assert.equal(out.url, 'https://p.pages.dev')
+  assert.equal(out.url, 'https://p-7xk.pages.dev')
   assert.deepEqual(calls.map((c) => c.url.replace('https://r.workers.dev/client/v4', '')), ['/accounts/a/pages/projects/p', '/accounts/a/pages/projects', '/accounts/a/pages/projects/p/upload-token', '/pages/assets/check-missing', '/pages/assets/upload', '/pages/assets/upsert-hashes', '/accounts/a/pages/projects/p/deployments'])
   assert.equal(JSON.parse(calls[4].body).length, 1, 'a file already there, or a duplicate, is not uploaded twice')
   assert.equal(calls[4].headers.Authorization, 'Bearer J')
@@ -192,6 +196,138 @@ test('the relay forwards only the Pages API and answers CORS', async (t) => {
   assert.equal(ok.headers.get('access-control-allow-origin'), '*')
   assert.equal(seen[0].url, 'https://api.cloudflare.com/client/v4/accounts/a/pages/projects/p')
   assert.deepEqual(seen[0].init.headers, { authorization: 'Bearer T' })
+  // a plugin iframe calls with the opaque origin `null`; a web page's origin is refused
+  const fromPlugin = await relay.fetch(new Request('https://r.dev/client/v4/accounts/a/pages/projects/p', { headers: { origin: 'null' } }))
+  assert.equal(fromPlugin.status, 200)
+  const fromSite = await relay.fetch(new Request('https://r.dev/client/v4/accounts/a/pages/projects/p', { headers: { origin: 'https://evil.example' } }))
+  assert.equal(fromSite.status, 403)
+  assert.equal(seen.length, 2)
+})
+
+test('Cloudflare: the token never goes to a plain http relay', async () => {
+  const { calls, f } = recorder(() => [200, {}])
+  await assert.rejects(publishCloudflare({ relayUrl: 'http://r.workers.dev', token: 'T', accountId: 'a', project: 'p', files: new Map(), fetch: f }), /https/)
+  assert.equal(calls.length, 0)
+})
+
+test('Netlify: a stored site that no longer answers is told apart, so the panel offers a new one', async () => {
+  const { f } = recorder((url) => (url.endsWith('/deploys') ? [404, { message: 'Not Found' }] : [200, {}]))
+  await assert.rejects(publishNetlify({ token: 'T', siteId: 'gone', files: new Map([['index.html', 'y']]), fetch: f }), (e) => e.code === 'SITE_NOT_FOUND')
+})
+
+test('a source name with spaces, slashes or accents is a data file the host serves at the url the page asks', () => {
+  const page = { path: 'f.yaml', frame: 'f', value: { type: 'Form', content: [{ type: 'Listing', rowsSource: { ref: 'my list/ñ' }, columns: [{ id: 'a' }] }, { type: 'Listing', rowsSource: { ref: 'My List N' }, columns: [{ id: 'a' }] }] } }
+  const config = defaultConfig([page], 'T')
+  const manifest = buildManifest([page], config)
+  const urls = manifest.sources.sources.filter((s) => s.name !== '__mateu_local__').map((s) => s.source.url)
+  assert.deepEqual(urls, ['/data/my-list-n.json', '/data/my-list-n-2.json'])
+  const site = siteFiles(manifest, config, '<!-- AQUIUI --><!-- HASTAAQUIUI -->', new Map())
+  for (const u of urls) assert.ok(site.has(u.substring(1)), u)
+  assert.deepEqual([...dataPaths(['a b', 'a-b', 'é'])].map(([, p]) => p), ['data/a-b.json', 'data/a-b-2.json', 'data/e.json'])
+})
+
+test('a field id that would break the JSON a form sends is refused with its name', () => {
+  const page = { path: 'f.yaml', frame: 'Contact', value: { type: 'Form', content: [{ type: 'FormField', id: 'na"me\'x' }, { type: 'Button', label: 'Send', buttonStyle: 'primary', actionId: 'send' }] } }
+  const config = defaultConfig([page], 'T')
+  config.actions.send = { kind: 'url', url: 'https://forms.example.com/x' }
+  assert.throws(() => buildManifest([page], config), /field id "na"me'x" \(screen "Contact"\)/)
+})
+
+test('settings over one plugin-data entry are split, read back whole, and stale parts cleared', () => {
+  const node = { data: new Map(), getPluginData(k) { return this.data.get(k) ?? '' }, setPluginData(k, v) { if (v === '') this.data.delete(k); else this.data.set(k, v) } }
+  const big = JSON.stringify({ rows: Array.from({ length: 3000 }, (_, i) => ({ id: i, name: `row ñ ${i}` })) })
+  writeChunked(node, CONFIG, big, 10_000)
+  assert.ok(node.data.size > 2)
+  for (const [, v] of node.data) assert.ok(v.length <= 10_000)
+  assert.equal(readChunked(node, CONFIG), big)
+  writeChunked(node, CONFIG, '{"small":true}', 10_000)
+  assert.deepEqual([...node.data.keys()], [CONFIG])
+  assert.equal(readChunked(node, CONFIG), '{"small":true}')
+  node.data.set(CONFIG, '{"title":"older version, one entry"}')
+  assert.equal(readChunked(node, CONFIG), '{"title":"older version, one entry"}')
+})
+
+test('tokens are kept for the user, the site for the file; an old shared site id is only offered', () => {
+  const { secrets, legacyTarget } = splitSecrets({ host: 'netlify', netlifyToken: 'T', netlifySiteId: 's1', netlifySite: 'museo', cfProject: 'p', cfToken: 'C' })
+  assert.deepEqual(secrets, { netlifyToken: 'T', cfToken: 'C', legacyNetlifySiteId: 's1' })
+  assert.deepEqual(legacyTarget, { host: 'netlify' })
+  assert.deepEqual(onlyTokens({ netlifyToken: 'T', netlifySiteId: 's1', host: 'x' }), { netlifyToken: 'T' })
+  assert.deepEqual(onlyTarget({ netlifyToken: 'T', netlifySiteId: 's1', host: 'netlify' }), { host: 'netlify', netlifySiteId: 's1' })
+  assert.match(targetDescription({ host: 'netlify', netlifySiteId: 's1', netlifyUrl: 'https://a.netlify.app' }), /replaces this file's Netlify site: https:\/\/a\.netlify\.app/)
+  assert.match(targetDescription({ host: 'netlify' }), /creates a new Netlify site/)
+})
+
+/** A Figma double for the plugin's sandbox half: one file, this user's clientStorage. */
+function figmaDouble({ fileKey, storage, readOnly = false, throwOn }) {
+  const data = new Map()
+  const sent = []
+  const double = {
+    fileKey,
+    root: {
+      name: fileKey,
+      children: [],
+      getPluginData: (k) => data.get(k) ?? '',
+      setPluginData: (k, v) => {
+        if (readOnly) throw new Error('Cannot write to a file you can only view')
+        data.set(k, v)
+      },
+    },
+    clientStorage: { getAsync: async (k) => storage.get(k), setAsync: async (k, v) => { if (throwOn === k) throw new Error('quota'); storage.set(k, structuredClone(v)) } },
+    ui: { postMessage: (m) => sent.push(m) },
+    showUI() {},
+    loadAllPagesAsync: async () => {},
+    openExternal() {},
+  }
+  return { double, sent, data }
+}
+
+let imports = 0
+async function runPlugin(double) {
+  globalThis.figma = double
+  globalThis.__html__ = '<html></html>'
+  await import(`../plugin/code.js?run=${++imports}`)
+  const handler = double.ui.onmessage
+  await handler({ type: 'ready' })
+  return handler
+}
+
+test('the plugin keeps one site per file: publishing file B never targets file A\'s site', async () => {
+  const storage = new Map([['mateu-publish-secrets', { netlifyToken: 'T', netlifySiteId: 'legacy-site', host: 'netlify' }]])
+  const a = figmaDouble({ fileKey: 'A', storage })
+  const onA = await runPlugin(a.double)
+  const docA = a.sent.find((m) => m.type === 'document')
+  assert.deepEqual(docA.target, { host: 'netlify' }, 'the old shared id is not applied to a file')
+  assert.equal(docA.secrets.legacyNetlifySiteId, 'legacy-site')
+  await onA({ type: 'save-target', target: { host: 'netlify', netlifySiteId: 'site-a', netlifyUrl: 'https://a.netlify.app', netlifyToken: 'leak?' } })
+  await onA({ type: 'save-secrets', secrets: { netlifyToken: 'T', netlifySiteId: 'site-a' } })
+
+  const b = figmaDouble({ fileKey: 'B', storage })
+  await runPlugin(b.double)
+  const docB = b.sent.find((m) => m.type === 'document')
+  assert.ok(!docB.target.netlifySiteId, JSON.stringify(docB.target))
+  assert.deepEqual(storage.get('mateu-publish-target:A'), { host: 'netlify', netlifySiteId: 'site-a', netlifyUrl: 'https://a.netlify.app' })
+  assert.deepEqual(storage.get('mateu-publish-secrets'), { netlifyToken: 'T' })
+  delete globalThis.figma
+})
+
+test('a save that fails is told to the panel, and the other parts are still saved', async () => {
+  const storage = new Map()
+  const { double, sent } = figmaDouble({ fileKey: 'V', storage, readOnly: true })
+  const on = await runPlugin(double)
+  await on({ type: 'save-config', config: { title: 'x' } })
+  await on({ type: 'save-secrets', secrets: { netlifyToken: 'T' } })
+  assert.deepEqual(sent.filter((m) => m.type === 'save-failed').map((m) => m.what), ['settings'])
+  assert.match(sent.find((m) => m.type === 'save-failed').message, /only view/)
+  assert.deepEqual(storage.get('mateu-publish-secrets'), { netlifyToken: 'T' })
+  delete globalThis.figma
+})
+
+test('a design that cannot be read says so instead of waiting forever', async () => {
+  const { double, sent } = figmaDouble({ fileKey: 'E', storage: new Map() })
+  double.loadAllPagesAsync = async () => { throw new Error('boom') }
+  await runPlugin(double)
+  assert.deepEqual(sent, [{ type: 'error', message: 'Could not read the design: boom' }])
+  delete globalThis.figma
 })
 
 test('what the plugin reads off the document converts like the REST payload', async () => {
