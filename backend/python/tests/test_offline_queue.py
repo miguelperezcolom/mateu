@@ -478,6 +478,137 @@ def test_the_key_is_scoped_to_the_view():
     idempotency_keys.clear()
 
 
+def test_each_caller_has_its_own_in_flight_share(monkeypatch):
+    """GA review S10: past ITS share a caller's NEW key is refused; another caller is unaffected."""
+    from mateu_ui.uidl.messages import UserFacingException
+
+    idempotency_keys.clear()
+    monkeypatch.setattr(idempotency_keys, "max_entries_per_caller", 2)
+    gate = threading.Event()
+    threads = []
+    try:
+        for i in range(2):
+            started = threading.Event()
+
+            def slow(started=started):
+                started.set()
+                gate.wait(5)
+                return "done"
+
+            t = threading.Thread(target=lambda i=i, slow=slow: idempotency_keys.once("ana", "save", f"key-share-{i:04d}", slow))
+            t.start()
+            threads.append(t)
+            assert started.wait(5)
+        try:
+            idempotency_keys.once("ana", "save", "key-share-9999", lambda: "third")
+            raise AssertionError("over her share: refused")
+        except UserFacingException as busy:
+            assert getattr(busy, "title", idempotency_keys.BUSY_TITLE) == idempotency_keys.BUSY_TITLE
+        assert idempotency_keys.once("bob", "save", "key-share-9999", lambda: "bob's") == "bob's"
+    finally:
+        gate.set()
+        for t in threads:
+            t.join(5)
+        idempotency_keys.clear()
+
+
+def test_a_full_finished_share_evicts_the_callers_own_oldest_answer_only(monkeypatch):
+    idempotency_keys.clear()
+    monkeypatch.setattr(idempotency_keys, "max_entries_per_caller", 2)
+    runs = []
+
+    def run(name):
+        runs.append(name)
+        return name
+
+    idempotency_keys.once("bob", "save", "key-bob-0001", lambda: run("bob"))
+    for i in range(3):
+        idempotency_keys.once("ana", "save", f"key-ana-{i:04d}", lambda i=i: run(f"ana{i}"))
+    # ana's oldest answer went; bob's stayed
+    assert idempotency_keys.once("bob", "save", "key-bob-0001", lambda: run("bob again")) == "bob"
+    assert idempotency_keys.once("ana", "save", "key-ana-0002", lambda: run("x")) == "ana2"
+    assert idempotency_keys.once("ana", "save", "key-ana-0000", lambda: run("ana0 again")) == "ana0 again"
+    idempotency_keys.clear()
+
+
+def test_a_key_resent_with_another_request_is_refused_and_not_remembered():
+    from mateu_ui.uidl.messages import UserFacingException
+
+    idempotency_keys.clear()
+    first = idempotency_keys.fingerprint_of({"counted": 1}, {})
+    same = idempotency_keys.fingerprint_of({"counted": 1}, None)
+    other = idempotency_keys.fingerprint_of({"counted": 2}, {})
+    assert first == same and first != other
+    assert idempotency_keys.once("u", "save", "key-reuse-0001", lambda: "one", fingerprint=first) == "one"
+    try:
+        idempotency_keys.once("u", "save", "key-reuse-0001", lambda: "two", fingerprint=other)
+        raise AssertionError("another request with the same key: refused")
+    except UserFacingException as reused:
+        assert str(reused) == idempotency_keys.REUSED_MESSAGE
+        assert getattr(reused, "title", None) == idempotency_keys.REUSED_TITLE
+    assert idempotency_keys.once("u", "save", "key-reuse-0001", lambda: "three", fingerprint=same) == "one"
+    idempotency_keys.clear()
+
+
+def test_a_key_resent_with_another_body_over_http_is_refused():
+    idempotency_keys.clear()
+    RUNS["n"] = 0
+    app = FastAPI()
+    add_mateu(app, OfflineStockCount)
+    client = TestClient(app)
+
+    def send(counted):
+        return client.post("/mateu/v3/sync/offline-count", json={
+            "route": "/offline-count", "consumedRoute": "_empty", "actionId": "save",
+            "serverSideType": OfflineStockCount.__module__ + "." + OfflineStockCount.__qualname__,
+            "componentState": {"counted": counted},
+        }, headers={idempotency_keys.HEADER: "key-body-0001"})
+
+    assert "Saved 1" in send(1).text
+    reused = send(2)
+    assert idempotency_keys.REUSED_TITLE in reused.text and "Saved" not in reused.text
+    assert "Saved 1" in send(1).text
+    assert RUNS["n"] == 1
+    idempotency_keys.clear()
+
+
+def test_a_keyed_run_outlives_a_client_that_left():
+    """Detached: cancelling the awaiting request (a client disconnect) neither stops the run nor
+    frees the key; the retry joins it and the action runs once."""
+    import asyncio
+
+    from starlette.concurrency import run_in_threadpool
+
+    idempotency_keys.clear()
+    gate = threading.Event()
+    started = threading.Event()
+    runs = []
+
+    def slow():
+        runs.append(1)
+        started.set()
+        gate.wait(5)
+        return "landed"
+
+    def keyed():
+        return idempotency_keys.guarded("u", "save", "key-left-0001", lambda: (idempotency_keys.checkpoint(), slow())[1])
+
+    async def scenario():
+        first = asyncio.create_task(run_in_threadpool(keyed))
+        while not started.is_set():
+            await asyncio.sleep(0.01)
+        first.cancel()  # the client left
+        assert idempotency_keys.in_flight() == 1  # the key is still held by the running work
+        retry = asyncio.create_task(run_in_threadpool(keyed))
+        await asyncio.sleep(0.05)
+        gate.set()
+        return await retry
+
+    assert asyncio.run(scenario()) == "landed"
+    assert runs == [1]
+    idempotency_keys.clear()
+
+
 def test_the_view_is_normalised_like_in_the_other_backends():
     assert idempotency_keys.view_of(" a.B ", "/orders/7/edit/") == idempotency_keys.view_of("a.B", "orders/7/edit")
     assert idempotency_keys.view_of("a.B", "orders/7/edit") == "type=a.B\u0001route=orders/7/edit"

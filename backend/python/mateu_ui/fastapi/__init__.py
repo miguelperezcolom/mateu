@@ -555,8 +555,12 @@ def add_mateu(
                     lambda: handler.handle(rq, mateu_request.base_url),
                     view=rq.server_side_type,
                     route=rq.route,
+                    fingerprint=idempotency_keys.fingerprint_of(rq.component_state, rq.parameters),
                 )
 
+            # A keyed run is DETACHED from the caller: it runs in a worker thread that a client
+            # leaving (its timeout drops the connection; Starlette cancels this await) does not
+            # stop, and it settles its key on its real outcome — a retry joins it.
             increment = await run_in_threadpool(run_bound, mateu_request, keyed_run)
         except MateuForbiddenException as refused:
             # A denied action (disabled_unless/audience not satisfied at invocation): 403 with a
