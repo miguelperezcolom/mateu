@@ -222,8 +222,7 @@ class ProgressReportingSyncTest {
     var last = progressOf(increments).get(progressOf(increments).size() - 1);
     assertThat(last.state()).isEqualTo(ProgressStateDto.cancelled);
     assertThat(last.cancellable()).isFalse();
-    assertThat(CANCELLED).isTrue();
-    assertThat(ProgressTasks.isRunning(taskId)).isFalse();
+    awaitCancelledAndGone(taskId);
   }
 
   @Test
@@ -302,8 +301,7 @@ class ProgressReportingSyncTest {
       var subscription = mateu.stream(rq("endless")).doOnNext(seen::add).subscribe();
       var taskId = waitForTask(seen);
       subscription.dispose();
-      assertThat(CANCELLED).isTrue();
-      assertThat(ProgressTasks.isRunning(taskId)).isFalse();
+      awaitCancelledAndGone(taskId);
     } finally {
       System.clearProperty(ProgressTasks.GRACE_PROPERTY);
     }
@@ -315,11 +313,7 @@ class ProgressReportingSyncTest {
     CANCELLED.set(false);
     var first = mateu.run(rq("endless"));
     var taskId = progressOf(List.of(first)).get(0).taskId();
-    for (int i = 0; i < 100 && !CANCELLED.get(); i++) {
-      Thread.sleep(20);
-    }
-    assertThat(CANCELLED).isTrue();
-    assertThat(ProgressTasks.isRunning(taskId)).isFalse();
+    awaitCancelledAndGone(taskId);
   }
 
   @Test
@@ -373,11 +367,7 @@ class ProgressReportingSyncTest {
       subscription.dispose();
       Thread.sleep(50);
       assertThat(CANCELLED).isFalse();
-      for (int i = 0; i < 100 && !CANCELLED.get(); i++) {
-        Thread.sleep(20);
-      }
-      assertThat(CANCELLED).isTrue();
-      assertThat(ProgressTasks.isRunning(taskId)).isFalse();
+      awaitCancelledAndGone(taskId);
     } finally {
       System.clearProperty(ProgressTasks.GRACE_PROPERTY);
     }
@@ -480,6 +470,20 @@ class ProgressReportingSyncTest {
 
   private static RunActionRqDto cancelRq(List<UIIncrementDto> seen) {
     return cancelRq(progressOf(List.copyOf(seen)).get(0).taskId());
+  }
+
+  /**
+   * Cancelling is asynchronous: the work's dispose callback and the registry's removal run on the
+   * task's own scheduler, after the stream (or the cancel answer) is already back. Waits for the
+   * observable end state — the work disposed AND the task out of the registry — up to 5 s, never a
+   * fixed sleep; asserting right after dispose() failed the beta.61/62 release runs now and then.
+   */
+  private static void awaitCancelledAndGone(String taskId) throws InterruptedException {
+    for (int i = 0; i < 250 && !(CANCELLED.get() && !ProgressTasks.isRunning(taskId)); i++) {
+      Thread.sleep(20);
+    }
+    assertThat(CANCELLED).as("the work was disposed").isTrue();
+    assertThat(ProgressTasks.isRunning(taskId)).as("the task left the registry").isFalse();
   }
 
   private static String waitForTask(List<UIIncrementDto> seen) throws InterruptedException {
