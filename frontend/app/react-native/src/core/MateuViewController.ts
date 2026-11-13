@@ -8,7 +8,7 @@ import { actionFlagsOf, actionTargetOf, appHomeOf, floatingIntentOf, notificatio
 import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, isErrorAnswer, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
-import { setAppLocale } from './money.ts';
+import { setAppLocale, uiLocale } from './money.ts';
 import { externalAuthHeaders, jsonBodyOf } from './restFetch.ts';
 import { declaresJson, jsonSafeContext } from './jsonTemplate.ts';
 import { resolvedPageTitle } from './windowTitle.ts';
@@ -25,7 +25,7 @@ import { inboxChangeOf } from './inbox.ts';
 import { classifyFailure, describeFailure, HttpStatusError, isIdempotentAction } from './requestPolicy.ts';
 import { connectivity } from './connectivity.ts';
 import { actionShortcutsOf } from './keyShortcuts.ts';
-import { newIdempotencyKey, OUTBOX_TEXTS, shouldQueue, type QueuedRequest } from './offlineQueue.ts';
+import { newIdempotencyKey, OUTBOX_TEXTS, outboxRecoveryTexts, shouldQueue, type QueuedRequest } from './offlineQueue.ts';
 import type { ToastAction } from './componentContext.ts';
 
 /** The action whose answer an increment is (a streamed task's Retry runs it again). */
@@ -577,7 +577,8 @@ export class MateuViewController {
         const label = [this.windowTitle, this.actionLabelOf(actionId)].filter(Boolean).join(' · ');
         const kept = await this.session.outbox!.enqueue(queueable.request, queueable.key, label);
         devLog('[Mateu] action queued:', actionId, kept);
-        this.session.notify(null, kept ? OUTBOX_TEXTS.queued : OUTBOX_TEXTS.full, kept ? 'warning' : 'error');
+        const notKept = this.session.outbox!.status === 'damaged' ? outboxRecoveryTexts(uiLocale()).notKeptDamaged : OUTBOX_TEXTS.full;
+        this.session.notify(null, kept ? OUTBOX_TEXTS.queued : notKept, kept ? 'warning' : 'error');
         if (kept) announce(OUTBOX_TEXTS.queued);
       } else {
         // in plain words, with a Retry when sending it again could work (the web's mateu-api-caller)

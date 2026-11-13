@@ -54,10 +54,61 @@ failing, so the user decides.
 5. If the server **refuses** one (a validation error, a 4xx, an error message), the queue **stops
    there** and shows why: what follows it may depend on it. The user can **Try again** (after fixing
    things elsewhere) or **Cancel** it.
-6. If the sign-in **expired**, the app asks to sign in again and then sends it. If that cannot
-   happen right now, the item keeps waiting and the user is told to sign in.
+6. If the sign-in **expired**, the app refreshes it silently and sends it. If that cannot happen,
+   the item keeps waiting and the user is told to sign in again; it goes once they have.
+7. If the stored queue **could not be read back** whole, it is never shown as an empty list — see
+   [below](#when-the-stored-queue-cannot-be-read).
 
 A queued item belongs to its UI: removing the UI from the list drops what it had waiting.
+
+## Whose queue it is — one per signed-in person
+
+A queued request is sent later with the sign-in that is current **then**, so a queue belongs to the
+person who filled it — its **owner** — and to nobody else:
+
+- On a UI that signs in, the owner is the signed-in identity: the **issuer** and **subject** (`iss`,
+  `sub`) of the id token — or of a JWT access token when there is no id token — plus the **tenant**
+  when the token names one (`tid`, `tenant_id`, `tenant`). A renewed or refreshed token of the same
+  person is the same owner. On a UI with no sign-in, everything goes to one anonymous queue, as
+  before.
+- When the tokens do not say who signed in (**opaque** tokens, no JWT at all), the app asks the
+  provider at sign-in and at each token refresh — while online — through its OpenID Connect
+  **`userinfo_endpoint`** (from the discovery document, HTTPS only), and keeps the answer's `sub`
+  (plus tenant) with the stored tokens, at the configured issuer, so the owner is known later offline.
+  A refresh that answers another `sub` is another owner; a refresh whose userinfo call fails keeps
+  the owner of the sign-in it refreshed. Claims in the tokens always win over userinfo. If the
+  provider offers no userinfo endpoint, or it fails at sign-in, nothing is guessed: that sign-in
+  queues nothing, and those writes fail as an ordinary write does.
+- Each owner has **their own queue** on the device. Before **each** send the app checks that the one
+  signed in now is the queue's owner; otherwise nothing is sent. A send that has to refresh an
+  expired token does it **silently** and is repeated only if the same person is still signed in —
+  it never opens the sign-in browser on its own.
+- **Signing out suspends** the queue: it stays on the device, untouched — not sent, not shown and not
+  counted in the hub's badge. Someone else signing in to the same UI starts with an empty queue of
+  their own and sees nothing of it. When the **same person** signs in again, their queue is back and
+  is sent.
+- The hub's **"N changes pending"** counts only the queue of whoever is signed in to that UI now.
+
+## When the stored queue cannot be read
+
+The queue is written so that an interrupted write (the app killed half-way, a full keychain) never
+mixes two versions: each new version is written in full under a new **generation**, one pointer is
+then switched to it, and only after that is an older version deleted. Every version carries its
+length and a checksum, checked when it is read back.
+
+- If the **latest version** does not read back whole, the app falls back to the **previous one**
+  and says so: *"The list of pending changes was restored from its previous copy. Check that it is
+  complete."* (a change made just before may be missing, or one already sent may be back — the
+  server's `Idempotency-Key` handling keeps a repeat from being applied twice).
+- If **no version** can be read, the queue is shown as **damaged** — never as an empty list: *"Your
+  pending changes saved on this device could not be read. They cannot be sent."*, with **Discard
+  them** (asked for confirmation). Until the user discards it, nothing new is written over it — a
+  write made offline in the meantime is not kept, and the user is told why.
+- A keychain that cannot be read right now (a locked device) is not damage: nothing is shown or
+  written, and the next use reads it again.
+
+These messages are in the app's chrome language (English, Spanish, French, German, Portuguese,
+Italian).
 
 ## The contract with the server — `Idempotency-Key`
 
@@ -99,8 +150,9 @@ after a timeout or a 5xx (the server deduplicates), which it never does for an o
 ## Storage and security
 
 - The queue lives on the device in the platform **keychain / keystore** (`expo-secure-store`,
-  encrypted at rest), split in chunks because a secure-store value is small. On the web build of the
-  app it is the browser's `localStorage`, like the sign-in tokens there.
+  encrypted at rest), one per UI and owner, split in chunks because a secure-store value is small,
+  written generationally (see above). On the web build of the app it is the browser's
+  `localStorage`, like the sign-in tokens there.
 - Only the **request body** is stored — the form's state, the action, the route, the parameters.
   **Never** a token or a header: the request is signed with the token current when it is sent.
 - A queue holds at most 50 items and 64 KB per item (a form with a large photo is not kept: it fails
