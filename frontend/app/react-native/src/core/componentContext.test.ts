@@ -3,8 +3,22 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   actionFlagsOf, actionTargetOf, appHomeOf, fieldErrorsOf, routeQueryOf, seedSearchFromRoute, namedEventOf, orchestratorOf,
-  ownsAction, seedSearchDefaults, subscriptionParameters, toastOf, triggerPlanOf,
+  buttonActionClaimed, ownsAction, seedSearchDefaults, subscriptionParameters, toastOf, triggerPlanOf,
 } from './componentContext.ts';
+
+test('a button whose action nobody claims is inert, like the web (it answered 403 "not allowed")', () => {
+  const base = { owned: ['save'], currentServerSideType: 'Page', target: 'Page', clientRunnable: false };
+  // a YAML `{type: Button, label: Primary}` carries the label's echo "primary": nobody owns it
+  assert.equal(buttonActionClaimed({ ...base, actionId: 'primary' }), false);
+  assert.equal(buttonActionClaimed({ ...base, actionId: '' }), false);
+  // the view advertises it
+  assert.equal(buttonActionClaimed({ ...base, actionId: 'save' }), true);
+  assert.equal(buttonActionClaimed({ ...base, owned: ['nested-form-action-*'], actionId: 'nested-form-action-x' }), true);
+  // it bubbles to another owner (the crud orchestrator / the overlay's opener)
+  assert.equal(buttonActionClaimed({ ...base, actionId: 'edit', target: 'Crud' }), true);
+  // the page's flows / the app's action catalogue run it in the client
+  assert.equal(buttonActionClaimed({ ...base, actionId: 'goHome', clientRunnable: true }), true);
+});
 
 test('action flags by id; id-less entries skipped; a non-array is no actions', () => {
   const f = actionFlagsOf([

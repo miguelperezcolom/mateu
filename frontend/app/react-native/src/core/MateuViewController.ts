@@ -4,7 +4,7 @@ import { evaluateExpression, interpolate, interpolateUrl } from './expressions.t
 import { applyClientRules, ruleRequiredErrorsOf } from './clientRules.ts';
 import { isStaleScreenError } from './buildSkew.ts';
 import { isLeaveAction } from './leaveActions.ts';
-import { actionFlagsOf, actionTargetOf, appHomeOf, floatingIntentOf, notificationToastOf, valueChangeActionsOf, type ValueChangeTrigger, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
+import { actionFlagsOf, actionTargetOf, appHomeOf, buttonActionClaimed, floatingIntentOf, notificationToastOf, valueChangeActionsOf, type ValueChangeTrigger, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
 import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, isErrorAnswer, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
@@ -872,6 +872,18 @@ export class MateuViewController {
   /** Whether the view on show advertises `actionId` (what the web's mateu-component claims). */
   advertises(actionId: string): boolean {
     return this.ownsAction(actionId);
+  }
+
+  /** Whether a pressed button's action goes anywhere (see buttonActionClaimed): an id nobody
+   *  claims is inert, as on the web, instead of a request the server refuses with 403. */
+  claimsButtonAction(actionId: string): boolean {
+    return buttonActionClaimed({
+      actionId,
+      owned: this.currentComponentActions,
+      currentServerSideType: this.currentServerSideType,
+      target: this.resolveActionTarget(actionId),
+      clientRunnable: isClientRunnable(resolveAction(actionId, this.currentActionDefs, this.session.actionCatalogue.get())),
+    });
   }
 
   private resolveActionTarget(actionId: string): string {
