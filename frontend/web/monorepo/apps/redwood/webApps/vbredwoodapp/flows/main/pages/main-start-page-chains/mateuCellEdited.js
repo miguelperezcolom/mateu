@@ -8,9 +8,11 @@
 define([
   'vb/action/actionChain',
   'vb/action/actions',
+  'resources/js/mateu-bridge',
 ], (
   ActionChain,
   Actions,
+  bridge,
 ) => {
   'use strict';
 
@@ -45,15 +47,21 @@ define([
         return;
       }
       const value = detail.value;
-      if (rowData[col.field] === value) {
-        return; // no-op: same value
+      if (bridge.committedCellValueOf(rowData, col.field) === value) {
+        return; // no-op: same value as committed
       }
-      const edited = Object.assign({}, rowData);
-      edited[col.field] = value;
-      await Actions.callChain(context, {
-        chain: 'runMateuAction',
-        params: { actionId: 'update-row', parameters: { _editedRow: edited } },
-      });
+      // the listing's row keeps the server's first values (one-way editors, no fragments back):
+      // the row sent carries every cell committed on it so far, or the second edit reverts the first (R-3)
+      const edited = bridge.editedRowOf(rowData, col.field, value);
+      try {
+        await Actions.callChain(context, {
+          chain: 'runMateuAction',
+          params: { actionId: 'update-row', parameters: { _editedRow: edited } },
+        });
+      } catch (e) {
+        bridge.forgetEditedRows(); // not saved: the server's row is the truth again
+        throw e;
+      }
     }
   }
 

@@ -345,6 +345,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // clic de fila entera: qué celdas tienen clic propio (decisión U1)
     isDisplayColumn,
     rowActionIsRows,
+    // inline editing: the row a committed cell sends, with the earlier commits on it (R-3)
+    editedRowOf,
+    committedCellValueOf,
+    forgetEditedRows,
     // paginación y orden del listing (pie de la tabla, cabecera → server)
     listingPagingOf,
     targetPageOf,

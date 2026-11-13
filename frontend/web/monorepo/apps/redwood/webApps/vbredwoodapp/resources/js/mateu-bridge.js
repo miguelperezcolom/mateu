@@ -11237,6 +11237,39 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     + 'oj-selector, oj-c-selector, oj-checkboxset, [role="checkbox"], [role="button"], [role="link"], [role="menuitem"], '
     + 'oj-input-text, oj-input-number, oj-switch, oj-select-single, oj-c-select-single, oj-menu-button, oj-c-menu-button'
 
+  // ── inline editing: the row a committed cell sends (R-3) ──────────────────────────────────────
+  // The cell editors are one-way bound and update-row answers no fragments, so the listing's rows
+  // keep the values the server first sent: built from them, the SECOND edit of a row sent the first
+  // edited cell's OLD value and the store reverted it. What was committed is kept here per row key,
+  // with the row it was committed over: while the listing still shows that row, the commits ride
+  // along; once it shows another (a search brought the saved values, or another row) they are
+  // dropped — the server's row is then the truth.
+  const committedEdits = new Map()
+  const committedRowKeyOf = (row) => (row && row._rowNumber !== undefined ? String(row._rowNumber) : null)
+  const sameCommittedRow = (a, b) => { try { return JSON.stringify(a) === JSON.stringify(b) } catch { return false } }
+
+  /** The whole row an inline edit of `field` to `value` sends as `_editedRow`: the listing's row,
+   *  plus every cell committed earlier on it, plus this one. Records this commit. */
+  function editedRowOf(rowData, field, value) {
+    const key = committedRowKeyOf(rowData)
+    const kept = key != null ? committedEdits.get(key) : undefined
+    const earlier = kept && sameCommittedRow(kept.base, rowData) ? kept.patch : {}
+    const patch = { ...earlier, [field]: value }
+    if (key != null) committedEdits.set(key, { base: { ...rowData }, patch })
+    return { ...rowData, ...patch }
+  }
+
+  /** The value a cell shows as committed (the listing's own, or a commit riding along). */
+  function committedCellValueOf(rowData, field) {
+    const key = committedRowKeyOf(rowData)
+    const kept = key != null ? committedEdits.get(key) : undefined
+    if (kept && sameCommittedRow(kept.base, rowData) && field in kept.patch) return kept.patch[field]
+    return rowData ? rowData[field] : undefined
+  }
+
+  /** A listing (re)loaded or a commit failed: what was kept is no longer known to be the server's. */
+  function forgetEditedRows() { committedEdits.clear() }
+
   /** Whether a row action that started on `origin` (the original event target) is the ROW's — a
    *  click on a plain cell — rather than a control's or a display column's. `row` is the element
    *  that IS the row when it is itself a control (a listing card is an oj-action-card, role=button):
@@ -37630,6 +37663,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // clic de fila entera: qué celdas tienen clic propio (decisión U1)
     isDisplayColumn,
     rowActionIsRows,
+    // inline editing: the row a committed cell sends, with the earlier commits on it (R-3)
+    editedRowOf,
+    committedCellValueOf,
+    forgetEditedRows,
     // paginación y orden del listing (pie de la tabla, cabecera → server)
     listingPagingOf,
     targetPageOf,

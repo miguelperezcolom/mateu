@@ -1280,6 +1280,38 @@ test('embedded: boots the route the host names, tells it ready/title, and the po
   }
 })
 
+test('R-3: inline editing — the second edit of a row carries the first, a search forgets them', async () => {
+  const cellEdited = chain('flows/main/pages/main-start-page-chains/mateuCellEdited.js')
+  const sentRows = []
+  const real = chains.runMateuAction
+  chains.runMateuAction = class { async run(_ctx, params) { sentRows.push(params.parameters._editedRow) } }
+  try {
+    const ctx = newContext()
+    ctx.$application.variables.mateuListing = { editable: true, columns: [{ field: 'price', template: 'number' }, { field: 'stock', template: 'number' }] }
+    const row = { _rowNumber: 0, id: 'P1', price: 10, stock: 5 } // one-way editors: the listing row stays as served
+    const edit = (columnIndex, value) => new cellEdited().run(ctx, { event: { detail: { value, updatedFrom: 'internal' } }, row: { data: row }, columnIndex })
+    await edit(0, 12)
+    await edit(1, 7)
+    assert.deepEqual(sentRows, [
+      { _rowNumber: 0, id: 'P1', price: 12, stock: 5 },
+      { _rowNumber: 0, id: 'P1', price: 12, stock: 7 },
+    ])
+    // back to the served value is a real change now (the committed one is 12)
+    await edit(0, 10)
+    assert.deepEqual(sentRows[2], { _rowNumber: 0, id: 'P1', price: 10, stock: 7 })
+    // the same value again is no edit
+    await edit(0, 10)
+    assert.equal(sentRows.length, 3)
+    // a listing that shows other values for the row (the saved ones, after a search) is the truth
+    bridge.forgetEditedRows()
+    await edit(1, 9)
+    assert.deepEqual(sentRows[3], { _rowNumber: 0, id: 'P1', price: 10, stock: 9 })
+  } finally {
+    chains.runMateuAction = real
+    bridge.forgetEditedRows()
+  }
+})
+
 const failed = []
 for (const { name, fn } of queue) {
   reset()
