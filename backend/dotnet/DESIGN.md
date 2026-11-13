@@ -153,7 +153,7 @@ Each milestone ends green and demoable; we don't move on until a renderer shows 
 
 ## 9. First concrete step (M1)
 
-1. Install the **.NET 8 SDK**.
+1. Install the **.NET 10 SDK** (the packages target `net10.0` only; `net8.0` was dropped on 2026-11-10).
 2. `Mateu.sln` + the four `src/` projects + `samples/Mateu.Demo`.
 3. Implement just enough DTOs + mapper for `SimpleForm`; wire `MapMateu()`.
 4. Run on `:8593`, point the Compose app at it, verify the form + Greet toast.

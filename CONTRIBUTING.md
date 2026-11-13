@@ -179,4 +179,8 @@ later line (`v3.1-rc.1`) does the same. PyPI, NuGet and npm publish only after t
 deploy succeeded, so a port never gets a number Java does not have.
 
 After a release reaches Central, the workflow's `bump-examples` job opens a PR that moves the
-starters and the start-here demos to it (`scripts/bump-example-version.sh <version>` by hand).
+starters and the start-here demos to it (`scripts/bump-example-version.sh <version>` by hand). On
+the first final release of a line (the GA) the same script also moves the Python package's
+`Development Status` classifier to Production/Stable and the supported-versions row of
+`SECURITY.md` to `3.0.x` — check the PR. Before tagging the GA, read `CHANGELOG.md`'s
+`[Unreleased]` section: it becomes the release's section.

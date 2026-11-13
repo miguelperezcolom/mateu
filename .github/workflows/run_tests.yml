@@ -203,7 +203,7 @@ jobs:
         run: cd frontend/web/monorepo/apps/redwood/poc && node parity-check.mjs
 
       - name: The IDE plugins' versions follow the framework's release tag; pre-releases of a later line stay out of production
-        run: node --test scripts/plugin-versions.test.mjs scripts/npm-version.test.mjs scripts/release-gates.test.mjs scripts/release-line.test.mjs scripts/archetype-post-generate.test.mjs doc/src/plugins/mateu-version.test.mjs
+        run: node --test scripts/plugin-versions.test.mjs scripts/npm-version.test.mjs scripts/release-gates.test.mjs scripts/release-line.test.mjs scripts/archetype-post-generate.test.mjs doc/src/plugins/mateu-version.test.mjs scripts/bump-example-version.test.mjs
 
       - name: The docs' component list is the component catalogue (uidl-catalog.json)
         run: node scripts/gen-supported-components.mjs --check
@@ -243,6 +243,12 @@ jobs:
 
       - name: React Native renderer type check
         run: cd frontend/app/react-native && npm ci --ignore-scripts && npx --no -- tsc --noEmit
+
+      # Every release pushes this JavaScript over the air to installed apps of the same app version;
+      # a native change (module, permission, config plugin, icon…) without a new expo.version would
+      # crash them. The surface is recorded in native-surface.json with its app version.
+      - name: React Native native changes come with a new app version
+        run: cd frontend/app/react-native && node scripts/native-surface.mjs --check
 
       # Typecheck, unit tests (manifest contract + New File skeletons) and a real non-interactive
       # `vsce package` — packaging stages LICENSE, the specs schema, the New File templates and the
