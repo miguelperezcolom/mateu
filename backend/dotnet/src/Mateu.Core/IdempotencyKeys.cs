@@ -119,6 +119,109 @@ public static partial class IdempotencyKeys
         return answer.Task;
     }
 
+    // ── Deduplication AFTER the request checks (the sync endpoint) ─────────────────────────────
+
+    /// <summary>A keyed request going through the handler: not claimed until the handler reaches a
+    /// <see cref="Checkpoint"/>, i.e. until the request passed the checks its action would pass.</summary>
+    private sealed class Pending(string scoped)
+    {
+        public string Scoped { get; } = scoped;
+        public bool Claimed { get; set; }
+        public TaskCompletionSource<UIIncrementDto>? Mine { get; set; }
+    }
+
+    /// <summary>Unwinds the handler to <see cref="GuardedAsync"/>, which answers with the remembered
+    /// run (never an error: no catch on the way may turn it into an answer of its own).</summary>
+    internal sealed class Replay(Task<UIIncrementDto> answer) : Exception("idempotency replay")
+    {
+        public Task<UIIncrementDto> Answer { get; } = answer;
+    }
+
+    private static readonly AsyncLocal<Pending?> Current = new();
+
+    /// <summary>Runs <paramref name="run"/> (the sync handler) with the request's key PENDING: it is
+    /// looked up only when the handler calls <see cref="Checkpoint"/>, right after the request passed
+    /// the checks its action would pass (class gates, the action's resolution and access attributes,
+    /// the crud write gates, an editable view's read-only check, a capability's declared writes, the
+    /// YAML access keys). A request refused before that is never answered from memory, whatever rule
+    /// refused it; one that passed them and repeats a known key gets the first answer back (joining
+    /// it while in flight). A request that never reaches a checkpoint (a load, a search) just runs.</summary>
+    public static async Task<UIIncrementDto> GuardedAsync(
+        string? caller, string? actionId, string? key, Func<Task<UIIncrementDto>> run)
+    {
+        if (KeyOf(key) is not { } valid) return await run().ConfigureAwait(false);
+        var pending = new Pending(Sha256((caller ?? "") + "\u0002" + (actionId ?? "") + "\u0002" + valid));
+        var previous = Current.Value;
+        Current.Value = pending;
+        try
+        {
+            UIIncrementDto increment;
+            try
+            {
+                increment = await run().ConfigureAwait(false);
+            }
+            catch (Exception e) when (Unwrap(e) is Replay replay)
+            {
+                return await replay.Answer.ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                if (pending.Mine is { } failed)
+                {
+                    Settle(pending.Scoped, failed.Task, remember: false);
+                    failed.SetException(e);
+                }
+                throw;
+            }
+            if (pending.Mine is { } mine)
+            {
+                Settle(pending.Scoped, mine.Task, remember: !Refused(increment));
+                mine.SetResult(increment);
+            }
+            return increment;
+        }
+        finally
+        {
+            Current.Value = previous;
+        }
+    }
+
+    /// <summary>The request passed its checks and its action is about to run: claims the pending key.
+    /// Returns when the key is new (the action runs, its answer is remembered); unwinds to
+    /// <see cref="GuardedAsync"/> with the remembered answer when the key is known; throws the
+    /// admission refusal when too many keyed runs are in flight. A no-op without a pending key, or
+    /// once claimed.</summary>
+    public static void Checkpoint()
+    {
+        if (Current.Value is not { Claimed: false } pending) return;
+        pending.Claimed = true;
+        lock (Lock)
+        {
+            var now = DateTime.UtcNow;
+            if (Answers.TryGetValue(pending.Scoped, out var known))
+            {
+                if (now - known.CreatedAt <= Ttl)
+                {
+                    known.Touched = now;
+                    throw new Replay(known.Answer);
+                }
+                Answers.Remove(pending.Scoped);
+            }
+            if (InFlight.TryGetValue(pending.Scoped, out var running)) throw new Replay(running);
+            if (InFlight.Count >= Math.Max(1, MaxEntries)) throw new UserFacingException(BusyTitle, BusyMessage);
+            var mine = new TaskCompletionSource<UIIncrementDto>(TaskCreationOptions.RunContinuationsAsynchronously);
+            InFlight[pending.Scoped] = mine.Task;
+            pending.Mine = mine;
+        }
+    }
+
+    private static Exception Unwrap(Exception e)
+    {
+        while (e is System.Reflection.TargetInvocationException or AggregateException && e.InnerException is not null)
+            e = e.InnerException!;
+        return e;
+    }
+
     private static async Task RunAndSettle(
         string scoped, Func<Task<UIIncrementDto>> run, TaskCompletionSource<UIIncrementDto> answer)
     {

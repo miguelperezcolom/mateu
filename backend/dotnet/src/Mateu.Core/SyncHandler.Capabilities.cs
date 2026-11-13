@@ -61,11 +61,12 @@ internal sealed partial class SyncHandler
                 UIIncrementDto.Of(commands: [new UICommandDto(Target(rq), "NavigateTo", $"{baseRoute}/{editId}/edit")]),
             "new" when profile.CanCreate =>
                 UIIncrementDto.Of(commands: [new UICommandDto(Target(rq), "NavigateTo", $"{baseRoute}/new")]),
-            "save" when profile.CanEdit => CapabilitySave(profile, listing, baseRoute, rq),
-            "create" when profile.CanCreate => CapabilityCreate(profile, listing, baseRoute, rq),
-            "delete" when profile.CanDelete => CapabilityDelete(profile, listing, rq),
-            IRestorable<string>.RestoreAction when profile.CanDelete => UIIncrementDto.Of(
-                fragments: CapabilitySearch(profile, listing, rq).Fragments, messages: [Restore(listing, rq)]),
+            // a declared write: a repeated Idempotency-Key may answer from memory only from here on
+            "save" when profile.CanEdit => AfterCheckpoint(() => CapabilitySave(profile, listing, baseRoute, rq)),
+            "create" when profile.CanCreate => AfterCheckpoint(() => CapabilityCreate(profile, listing, baseRoute, rq)),
+            "delete" when profile.CanDelete => AfterCheckpoint(() => CapabilityDelete(profile, listing, rq)),
+            IRestorable<string>.RestoreAction when profile.CanDelete => AfterCheckpoint(() => UIIncrementDto.Of(
+                fragments: CapabilitySearch(profile, listing, rq).Fragments, messages: [Restore(listing, rq)])),
             "cancel-new" or "cancel-edit" or "cancel-view" when profile.EditInDrawer =>
                 UIIncrementDto.Of(commands: [UICommandDto.CloseModal() with { TargetComponentId = Target(rq) },
                     new UICommandDto(Target(rq), "MarkAsClean", null)]),
@@ -91,6 +92,14 @@ internal sealed partial class SyncHandler
                 CapabilityActionOnRows(profile, listing, rq, aid),
             _ => throw ActionGuard.NoSuchAction($"{rq.ActionId}"),
         };
+    }
+
+    /// <summary>Claims the request's Idempotency-Key (<see cref="IdempotencyKeys.Checkpoint"/>) — the
+    /// write is declared, so it passed its checks — then runs it.</summary>
+    private static UIIncrementDto AfterCheckpoint(Func<UIIncrementDto> write)
+    {
+        IdempotencyKeys.Checkpoint();
+        return write();
     }
 
     private static UIIncrementDto CapabilitySearch(CapabilityProfile profile, object listing, RunActionRqDto rq)

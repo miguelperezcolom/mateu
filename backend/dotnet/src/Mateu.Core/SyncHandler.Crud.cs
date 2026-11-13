@@ -109,17 +109,26 @@ internal sealed partial class SyncHandler
         // the crud does not allow used to open its form and only refuse the save)
         // Create or update is decided by the ROUTE (CrudSave: no id = insert), so that is what is
         // gated, whatever the action calls itself.
+        // once a built-in write passed its gate, a repeated Idempotency-Key may be answered from
+        // memory (IdempotencyKeys.Checkpoint) — never before: a refused write is never replayed
         if (rq.ActionId is "create" or "save")
+        {
             EnsureWriteAllowed(crud, crudType, id is null ? "create" : "save");
+            IdempotencyKeys.Checkpoint();
+        }
         else if (rq.ActionId is "save-and-next" or "update-row" or "delete" or "new" or "edit")
         {
             EnsureWriteAllowed(crud, crudType, rq.ActionId);
             if (rq.ActionId == "save-and-next" && (id ?? RowId(rq, element)) is null)
                 EnsureWriteAllowed(crud, crudType, "create");
+            IdempotencyKeys.Checkpoint();
         }
         // the Undo of a delete is gated like the delete it reverses
         else if (rq.ActionId == IRestorable<string>.RestoreAction)
+        {
             EnsureWriteAllowed(crud, crudType, "delete");
+            IdempotencyKeys.Checkpoint();
+        }
         else if (string.IsNullOrEmpty(rq.ActionId) && mode is "new" or "edit")
             EnsureWriteAllowed(crud, crudType, mode);
 

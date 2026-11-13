@@ -83,8 +83,14 @@ The Java, .NET and Python servers honour it on the sync endpoint:
   and meets the action's checks. The **action id** is part of the scope too. On .NET, a custom
   `MateuOptions.Identity` that does not read `HttpContext.User` should set `Identity.Name`, or two
   users with the same grants look alike.
-- Java consults the keys only after the request-level checks (exposed type, YAML route/action
-  access), so a refused request is never answered from memory.
+- The key is looked up only once the request has passed its checks, so a request refused by any
+  rule — identity or not — is never answered from memory. In .NET and Python the handler claims the
+  key at the point the action is about to run: after the view's class gates, the action's
+  resolution and its access attributes (advertised / strict action, `[EyesOnly]`/`[DisabledUnless]`,
+  Python's `@audience`), the CRUD write gates (`CanEdit`/`can_edit()`, `Display`…), an editable
+  view's read-only check and a capability listing's declared writes. A request that never reaches
+  that point (a load, a search) simply runs. Java consults the keys after the request-level checks
+  (exposed type, YAML route/action access); the action-level checks run after it there.
 - A run that **fails** — an exception, or an answer carrying an error message (a refusal, the error
   boundary's) — is **forgotten**, so the same key can be sent again once the problem is fixed.
 - A key is 8–128 url-safe characters (`[A-Za-z0-9_\-:.]`); anything else is ignored (the request runs

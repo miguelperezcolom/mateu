@@ -285,5 +285,82 @@ public class OfflineQueueTests
         Assert.Equal(3, OfflineStockCount.Runs);
         IdempotencyKeys.Clear();
     }
+
+    private static Task<UIIncrementDto> SaveToggle(SyncHandler handler, string key) =>
+        IdempotencyKeys.GuardedAsync("u", "save", key, () => handler.HandleAsync(new RunActionRqDto
+        {
+            Route = "offline-toggle-parts/p1", ConsumedRoute = "offline-toggle-parts/p1", ActionId = "save",
+            ServerSideType = typeof(OfflineToggleParts).FullName, InitiatorComponentId = "c1",
+            ComponentState = new() { ["id"] = "p1", ["name"] = "Renamed" },
+        }));
+
+    [Fact]
+    public async Task A_replay_refused_by_a_non_identity_rule_is_refused_not_served_from_memory()
+    {
+        // the crud's write gate is app logic, not identity: the caller scope is the same, so only
+        // looking the key up AFTER the gate keeps the remembered answer from being handed out
+        IdempotencyKeys.Clear();
+        OfflineToggleParts.Reset();
+        var handler = new SyncHandler(new MateuRegistry(typeof(OfflineToggleParts).Assembly));
+        await SaveToggle(handler, "key-0012-same");
+        Assert.Equal(1, OfflineToggleParts.Saves);
+        OfflineToggleParts.Editable = false;
+        await Assert.ThrowsAnyAsync<MateuForbiddenException>(() => SaveToggle(handler, "key-0012-same"));
+        Assert.Equal(0, IdempotencyKeys.InFlightCount);
+        // the gate allowing it again: the same key answers from memory, the save does not run again
+        OfflineToggleParts.Editable = true;
+        await SaveToggle(handler, "key-0012-same");
+        Assert.Equal(1, OfflineToggleParts.Saves);
+        IdempotencyKeys.Clear();
+    }
+
+    [Fact]
+    public async Task A_request_refused_before_its_checkpoint_never_claims_the_key()
+    {
+        IdempotencyKeys.Clear();
+        OfflineToggleParts.Reset();
+        OfflineToggleParts.Editable = false;
+        var handler = new SyncHandler(new MateuRegistry(typeof(OfflineToggleParts).Assembly));
+        await Assert.ThrowsAnyAsync<MateuForbiddenException>(() => SaveToggle(handler, "key-0013-same"));
+        Assert.Equal(0, IdempotencyKeys.InFlightCount);
+        OfflineToggleParts.Editable = true;
+        await SaveToggle(handler, "key-0013-same");
+        Assert.Equal(1, OfflineToggleParts.Saves);
+        OfflineToggleParts.Reset();
+        IdempotencyKeys.Clear();
+    }
+}
+
+public class OfflineTogglePart
+{
+    [Id] public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+}
+
+/// <summary>A crud whose edit gate is app logic (a static switch), not the caller's identity.</summary>
+[UI("offline-toggle-parts"), Title("Parts")]
+public class OfflineToggleParts : Crud<OfflineTogglePart>
+{
+    public static bool Editable = true;
+    public static int Saves;
+    private static readonly Dictionary<string, OfflineTogglePart> Store = new();
+
+    public static void Reset()
+    {
+        Editable = true;
+        Saves = 0;
+        Store.Clear();
+        Store["p1"] = new OfflineTogglePart { Id = "p1", Name = "Bolt" };
+    }
+
+    public override bool CanEdit => Editable;
+    public override IEnumerable<OfflineTogglePart> Fetch(string? search) => Store.Values;
+    public override OfflineTogglePart? Get(string id) => Store.GetValueOrDefault(id);
+
+    public override void Save(OfflineTogglePart entity)
+    {
+        Interlocked.Increment(ref Saves);
+        Store[entity.Id] = entity;
+    }
 }
 

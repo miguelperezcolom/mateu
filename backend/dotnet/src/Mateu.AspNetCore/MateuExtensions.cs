@@ -209,8 +209,10 @@ public static partial class MateuExtensions
                 rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json, ctx.RequestAborted)
                      ?? new RunActionRqDto();
                 // a request carrying an Idempotency-Key (the mobile app's offline send queue)
-                // runs once per caller, action and key: a repeat gets the first answer back
-                return await IdempotencyKeys.OnceAsync(CallerOf(ctx), rq.ActionId,
+                // runs once per caller, action and key: a repeat gets the first answer back. The key
+                // is looked up only at the handler's checkpoint, once the request passed the checks
+                // its action would pass: a refused request is never answered from memory.
+                return await IdempotencyKeys.GuardedAsync(CallerOf(ctx), rq.ActionId,
                     ctx.Request.Headers[IdempotencyKeys.Header].FirstOrDefault(),
                     () => handler.HandleAsync(rq, prefix, ctx.RequestAborted));
             });
