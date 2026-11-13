@@ -46,6 +46,9 @@ object MateuVisualEditorServer {
     /** The query parameter (of the editor's own URL only) and the cookie that carry [secret]. */
     private const val KEY_NAME = "mateu-editor-key"
 
+    /** The standalone editor's CSP `<meta>` in the bundle's index.html (see apps/visual-editor/index.html). */
+    private val STANDALONE_CSP = Regex("<meta[^>]*data-mateu-standalone-csp[^>]*>")
+
     /** What JCEF loads: the only way to get the cookie, handed straight to the browser by the IDE. */
     fun editorUrl(port: Int): String = "http://127.0.0.1:$port/index.html?$KEY_NAME=$secret"
 
@@ -167,7 +170,7 @@ object MateuVisualEditorServer {
      * host (not the browser localStorage fallback) on its very first render. Messages the app posts
      * before the JCEF query pipe is wired are queued in `__mateuOutbox` and drained on load end.
      */
-    private fun injectHostBootstrap(indexHtml: ByteArray): ByteArray {
+    internal fun injectHostBootstrap(indexHtml: ByteArray): ByteArray {
         // The IDE's theme, so the editor (chrome + Lumo canvas) follows a dark IDE. Read per page load.
         val theme = try { if (com.intellij.ui.JBColor.isBright()) "light" else "dark" } catch (_: Throwable) { "light" }
         val bootstrap = """
@@ -178,7 +181,9 @@ object MateuVisualEditorServer {
               window.__mateuHost = { postMessage: function (m) { window.__mateuOutbox.push(m); }, addEventListener: function () {} };
             </script>
         """.trimIndent()
-        val html = String(indexHtml, Charsets.UTF_8)
+        // The bundle carries the standalone (browser-hosted) editor's CSP, which allows no inline
+        // script — this bootstrap is one. JCEF keeps its previous, host-controlled page (no policy).
+        val html = String(indexHtml, Charsets.UTF_8).replace(STANDALONE_CSP, "")
         val marker = "<script type=\"module\""
         val patched = if (html.contains(marker)) html.replaceFirst(marker, "$bootstrap\n    $marker") else bootstrap + html
         return patched.toByteArray(Charsets.UTF_8)

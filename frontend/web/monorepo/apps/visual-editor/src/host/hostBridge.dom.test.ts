@@ -212,4 +212,24 @@ describe('the standalone browser host', () => {
         expect(localStorage.getItem('mateu-visual-editor-yaml.previous')).toBe('type: Form\ntitle: Mine\n')
         expect(location.hash).toBe('') // a reload shows the edits, not the original again
     })
+
+    it('a design that arrived by link stays UNTRUSTED (across reloads) until the author trusts it (V-4)', async () => {
+        const link = await encodeShareLink({ v: 1, yaml: 'type: Form\ntitle: Shared\n' } as any, 'http://x/')
+        history.replaceState(null, '', location.pathname + link.slice(link.indexOf('#')))
+        const host = resolveHost()
+        await host.initialYaml()
+        expect(host.untrustedDesign!()).toBe(true)
+        expect(resolveHost().untrustedDesign!()).toBe(true) // a reload does not launder it
+        host.trustDesign!()
+        expect(resolveHost().untrustedDesign!()).toBe(false)
+        // a pasted link (Open…) is a link too
+        host.adoptShared!({ v: 1, yaml: 'type: Form\n' } as any)
+        expect(host.untrustedDesign!()).toBe(true)
+    })
+
+    it('the author\'s own draft is trusted', async () => {
+        const host = resolveHost()
+        await host.initialYaml()
+        expect(host.untrustedDesign!()).toBe(false)
+    })
 })

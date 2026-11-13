@@ -3,6 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- The standalone (browser-hosted) editor's policy: no inline script, no inline event handler, no
+         javascript: url — whatever a definition carries. The IDE hosts replace it with their own
+         (VS Code: a nonce policy; IntelliJ: its bootstrap) and find it by data-mateu-standalone-csp. -->
+    <meta http-equiv="Content-Security-Policy" data-mateu-standalone-csp
+          content="script-src 'self' 'unsafe-eval'; object-src 'none'; base-uri 'self'" />
     <title>Mateu Visual Editor</title>
     <style>
       html, body { margin: 0; height: 100%; }
