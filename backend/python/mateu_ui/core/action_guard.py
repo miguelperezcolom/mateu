@@ -16,7 +16,8 @@ An ``actionId`` arrives from the wire, so it must only ever reach a method DECLA
 
 Bulk row actions (``action-on-row-*``) only reach ``@list_toolbar_button`` methods
 (:func:`resolve_row_action`). Once resolved, :func:`ensure_may_invoke` enforces the access
-decorators at invocation (``eyes_only``, ``disabled_unless``, ``audience``); a denied invocation
+decorators at invocation (``eyes_only``, ``disabled_unless`` — never ``audience``, which the client
+chooses); a denied invocation
 raises :class:`MateuForbiddenException` (HTTP 403 at the FastAPI edge) and the method never runs.
 A class-level ``@eyes_only`` refuses the whole type (:func:`ensure_class_access`). The field marker
 ``EyesOnly`` is enforced on render and — see :func:`may_write` — on binding.
@@ -53,7 +54,7 @@ _PLATFORM_MODULES = {"builtins", "typing", "abc", "collections.abc", "enum"}
 
 
 class MateuForbiddenException(Exception):
-    """A request the caller may not perform: an action gated by ``disabled_unless``/``audience``
+    """A request the caller may not perform: an action gated by ``eyes_only``/``disabled_unless``
     the caller does not satisfy. The FastAPI adapter answers it with HTTP 403
     and a generic body; the reason is only logged server-side."""
 
@@ -139,9 +140,12 @@ def resolve_view_action(type_, name: str | None):
 
 def ensure_may_invoke(mapper, type_, fn, action_id: str | None) -> None:
     """Enforces the access decorators of a resolved action at invocation: the render path only
-    disables/hides the button, the wire can still name the action."""
-    from .mapper import for_current_audience
+    disables/hides the button, the wire can still name the action.
 
+    ``@audience`` is deliberately NOT enforced here (Java's AudienceGate, .NET's EnsureMayInvoke):
+    the audience is client-controlled app state, so a check on it would only stop a client that
+    chose to be stopped. It is a projection of what is rendered; access control is ``eyes_only`` /
+    ``disabled_unless``, matched against the server-resolved identity."""
     reason = None
     if not mapper.authorized(getattr(fn, "__mateu_eyes_only__", None)):
         reason = "eyes_only"
@@ -149,15 +153,26 @@ def ensure_may_invoke(mapper, type_, fn, action_id: str | None) -> None:
         reason = "class-level eyes_only"
     elif not mapper.authorized(getattr(fn, "__mateu_disabled_unless__", None)):
         reason = "disabled_unless"
-    elif not for_current_audience(getattr(fn, "__mateu_audience__", None)):
-        reason = "audience"
     if reason is not None:
-        deny(f"action '{action_id}' on {type_.__module__}.{type_.__qualname__} denied by {reason}")
+        deny(f"action '{_for_log(action_id)}' on {type_.__module__}.{type_.__qualname__} denied by {reason}")
     # the action passed every check it is subject to: only NOW may a repeated Idempotency-Key be
     # answered from memory (a refused request never is)
     from . import idempotency_keys
 
     idempotency_keys.checkpoint()
+
+
+def ensure_field_visible(mapper, type_, f) -> None:
+    """Refuses (403) a request reaching a field the caller may not see — its ``EyesOnly``
+    (Java's ``ActionMethods.checkFieldVisible``)."""
+    if f is not None and not mapper.authorized(f.marker(EyesOnly)):
+        deny(f"field '{f.name}' on {type_.__module__}.{type_.__qualname__}: EyesOnly not satisfied")
+
+
+def _for_log(text: str | None, limit: int = 120) -> str:
+    """Wire text fit for a log line: control characters (CR/LF…) replaced, so a request cannot
+    forge a line of the security log, and clipped."""
+    return "".join(c if c.isprintable() else "?" for c in (text or "")[:limit])
 
 
 def class_gates(klass) -> list:
@@ -190,7 +205,7 @@ def no_such_action(type_, action_id: str | None) -> NoReturn:
     """Refuses an action id no handler of the view claims: wire input naming nothing — a WARN and
     a 403, never an error toast (the same answer Java and .NET give)."""
     name = f"{type_.__module__}.{type_.__qualname__}" if isinstance(type_, type) else str(type_)
-    deny(f"action '{(action_id or '')[:120]}' on {name}: no such action")
+    deny(f"action '{_for_log(action_id)}' on {name}: no such action")
 
 
 def deny(what: str) -> NoReturn:

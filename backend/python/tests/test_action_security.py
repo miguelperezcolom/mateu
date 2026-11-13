@@ -318,12 +318,11 @@ def test_a_disabled_unless_action_is_forbidden_without_the_role():
     assert "approved" in render(handler(Identity(roles=("manager",))).handle(rq("sec-probe", "approve")))
 
 
-def test_an_audience_action_is_forbidden_for_another_audience():
-    before = CALLS.get("audit", 0)
-    assert_forbidden(handler(), rq("sec-probe", "audit", app_state={"audience": "cliente"}))
-    assert CALLS.get("audit", 0) == before
-    assert "audited" in render(handler().handle(rq("sec-probe", "audit")))
-    assert "audited" in render(handler().handle(rq("sec-probe", "audit", app_state={"audience": "staff"})))
+def test_an_audience_action_is_not_refused_at_invocation():
+    """The audience is client-chosen app state: a projection of what is rendered, never a gate
+    (Java's AudienceGate, .NET's EnsureMayInvoke) — the three backends answer alike."""
+    for state in ({"audience": "cliente"}, {"audience": "staff"}, None):
+        assert "audited" in render(handler().handle(rq("sec-probe", "audit", app_state=state)))
 
 
 # ── 3. mass assignment ──────────────────────────────────────────────────────────
