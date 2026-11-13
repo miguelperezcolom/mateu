@@ -264,6 +264,9 @@ class SyncHandler(
         from mateu_ui.core.presence import DEFAULT_STORE
 
         self.presence_store = DEFAULT_STORE
+        #: The rows one page of a listing may ask for: ``add_mateu(listing_max_page_size=…)``;
+        #: None = ``MATEU_LISTING_MAX_PAGE_SIZE``, else 500 (``search.listing_max_page_size``).
+        self.listing_max_page_size: int | None = None
         #: Whether the app exposes its authoring plane (the MCP endpoint is on): the reserved
         #: __validate__ action is then served on the plain sync endpoint too (the sidecar calls it
         #: there); otherwise only to an MCP tool call or in dev mode (mateu_ui.core.authoring_gate).
