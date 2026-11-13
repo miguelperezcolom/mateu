@@ -368,6 +368,12 @@ internal sealed partial class SyncHandler
         // a field the form did not render ([HiddenInEditor] / [HiddenInCreate]) keeps its value
         BindState(entity, ReflectionMapper.WritableOnSave(element, rq.ComponentState, creating: id is null));
         if (id is not null) EntityIds.SetId(entity, id);
+        // the id is the user's to choose on a creation form: one that names a STORED record would
+        // overwrite it, which is an edit — gated as one (Java's FilteredAutoCrud.create →
+        // CrudWriteGate.checkEdit): a crud that does not edit refuses it (403)
+        else if (EntityIds.Of(entity) is { Length: > 0 } chosen
+                 && crudType.GetMethod("Get")!.Invoke(crud, [chosen]) is not null)
+            EnsureWriteAllowed(crud, crudType, "save");
 
         var missing = RequiredMissing(entity, element, creating: id is null);
         if (missing.Count > 0)
@@ -490,15 +496,15 @@ internal sealed partial class SyncHandler
         if (stored is null)
             return Error("This row no longer exists. Reload the list to see the current rows.");
         var entity = CopyOf(stored, element);
-        // a [ReadOnly] column is display-only in the grid: its posted value never reaches the entity
-        var readOnly = element.Find<ReadOnlyAttribute>() is not null;
-        bool Writable(string key)
-        {
-            if (readOnly) return false;
-            var property = element.GetProperties().FirstOrDefault(p => Naming.CamelCase(p.Name) == key);
-            return property is null || property.Find<ReadOnlyAttribute>() is null;
-        }
-        BindState(entity, row.Where(e => Writable(e.Key)).ToDictionary(e => e.Key, e => e.Value));
+        // the row is written by the grid's EDIT form: only what that form lets the user write
+        // (WritableOnSave, the editor save's rule — a [ReadOnly] column, an [EditableOnlyWhenCreating]
+        // or [GeneratedValue] field, a [HiddenInEditor] one keep the stored value) and only what
+        // the grid shows (a [HiddenInList] field is no cell of it); the [Version] stays (compared)
+        var hiddenInGrid = ReflectionMapper.EditableProperties(element)
+            .Where(ReflectionMapper.HiddenInList).Select(p => Naming.CamelCase(p.Name)).ToHashSet();
+        BindState(entity, ReflectionMapper.WritableOnSave(element, row, creating: false)
+            .Where(e => !hiddenInGrid.Contains(e.Key.Split('-', 2)[0]))
+            .ToDictionary(e => e.Key, e => e.Value));
         EntityIds.SetId(entity, id!);
         // the row is the EDIT form's record: a [HiddenInEditor] field is not the user's to fill, and
         // the constraints the editor checks are checked here too (Java's FilteredAutoCrud.updateRow

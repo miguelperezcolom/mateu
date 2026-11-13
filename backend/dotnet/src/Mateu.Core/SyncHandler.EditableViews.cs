@@ -73,7 +73,9 @@ internal sealed partial class SyncHandler
                 EnsureEditable(type, view);
                 IdempotencyKeys.Checkpoint(); // editable: a repeated key may now answer from memory
                 var editor = view.LoadEditor();
-                BindState(editor, rq.ComponentState);
+                // only what the editor form let the user write: a [ReadOnly] (or hidden-in-editor,
+                // create-only, generated) property keeps the loaded value — the crud editor's rule
+                BindState(editor, ReflectionMapper.WritableOnSave(editor.GetType(), rq.ComponentState, creating: false));
                 // save is advertised validationRequired: re-check on the server what the client was
                 // told to check (Java's AutoEditableView.save → ServerConstraintCheck)
                 if (_mapper.Violations(editor.GetType(), editor) is { Count: > 0 } broken)
