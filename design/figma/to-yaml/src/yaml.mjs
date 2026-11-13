@@ -34,7 +34,7 @@ function scalar(v) {
   if (isPlain(s)) return s
   // a JSON string is a YAML double-quoted scalar, but JSON leaves NEL, the C1 controls, U+2028/2029
   // and U+FFFE/FFFF raw: escape them the way YAML reads them back (`\uXXXX`)
-  return JSON.stringify(s).replace(ESCAPED, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`)
+  return JSON.stringify(s).replace(ESCAPED, (c) => `\\u${c.codePointAt(0).toString(16).padStart(4, '0')}`)
 }
 
 function key(k) {

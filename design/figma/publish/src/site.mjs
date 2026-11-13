@@ -19,12 +19,13 @@ export function dataPaths(refs) {
   const used = new Set()
   for (const ref of refs) {
     const base =
-      String(ref)
-        .normalize('NFKD')
-        .replace(/[̀-ͯ]/g, '')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '') || 'data'
+      trimDashes(
+        String(ref)
+          .normalize('NFKD')
+          .replace(/[̀-ͯ]/g, '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-'),
+      ) || 'data'
     let slug = base
     for (let i = 2; used.has(slug); i++) slug = `${base}-${i}`
     used.add(slug)
@@ -252,4 +253,13 @@ export function siteFiles(manifest, config, indexTemplate, assets) {
   }
   out.set('_redirects', '/*    /index.html    200\n')
   return out
+}
+
+// '-'s off both ends, in linear time (a /^-+|-+$/g regex backtracks on a long run of dashes)
+function trimDashes(s) {
+  let start = 0
+  let end = s.length
+  while (start < end && s[start] === '-') start++
+  while (end > start && s[end - 1] === '-') end--
+  return s.slice(start, end)
 }

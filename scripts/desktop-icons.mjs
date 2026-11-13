@@ -28,7 +28,8 @@ await page.setContent(`<html><body style="margin:0;background:transparent">${svg
 await page.locator('svg').screenshot({ path: png1024, omitBackground: true });
 await browser.close();
 
-const sips = (size, out) => execFileSync('sips', ['-z', String(size), String(size), png1024, '--out', out], { stdio: 'ignore' });
+// macOS's own tools by their absolute path, never whatever an inherited PATH names first
+const sips = (size, out) => execFileSync('/usr/bin/sips', ['-z', String(size), String(size), png1024, '--out', out], { stdio: 'ignore' });
 
 // 2. macOS: an .iconset → iconutil
 const iconset = join(work, 'mateu.iconset');
@@ -37,7 +38,7 @@ for (const s of [16, 32, 128, 256, 512]) {
   sips(s, join(iconset, `icon_${s}x${s}.png`));
   sips(s * 2, join(iconset, `icon_${s}x${s}@2x.png`));
 }
-execFileSync('iconutil', ['-c', 'icns', iconset, '-o', join(branding, 'mateu.icns')]);
+execFileSync('/usr/bin/iconutil', ['-c', 'icns', iconset, '-o', join(branding, 'mateu.icns')]);
 
 // 3. Windows: an .ico whose entries are PNGs (valid since Windows Vista)
 const sizes = [16, 24, 32, 48, 64, 128, 256];

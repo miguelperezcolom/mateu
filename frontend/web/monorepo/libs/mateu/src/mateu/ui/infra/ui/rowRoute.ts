@@ -55,7 +55,7 @@ export function navigateToRoute(from: HTMLElement, route: string): void {
     // another app's page: loaded by the browser, like Redwood's leftMountFor.
     const mount = embeddingMountOf(from)
     if (mount !== undefined) {
-        safeNavigate(mount.replace(/\/+$/, '') + '/' + route.replace(/^\/+/, ''))
+        safeNavigate(trimSlashesAtEnd(mount) + '/' + route.replace(/^\/+/, ''))
         return
     }
     for (const type of ['route-changed', 'navigate-to-requested']) {
@@ -91,8 +91,15 @@ export function appRouteHref(from: Element, route: string): string {
     }
 }
 
+/** Trailing '/'s off, in linear time (a /\/+$/ regex backtracks on a long run of slashes). */
+const trimSlashesAtEnd = (s: string): string => {
+    let end = s.length
+    while (end > 0 && s.charCodeAt(end - 1) === 47) end--
+    return s.slice(0, end)
+}
+
 const samePath = (a: string | undefined | null, b: string | undefined | null): boolean =>
-    (a ?? '').replace(/\/+$/, '') === (b ?? '').replace(/\/+$/, '')
+    trimSlashesAtEnd(a ?? '') === trimSlashesAtEnd(b ?? '')
 
 /**
  * The base path of ANOTHER mount of this app that `from` is embedded from — the nearest micro

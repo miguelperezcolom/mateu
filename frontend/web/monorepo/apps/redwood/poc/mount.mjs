@@ -25,6 +25,13 @@ import { isEmbedded } from './embedded.mjs'
 import { isExternalRoute } from './core/content.mjs'
 import { safeHref } from './core/display.mjs'
 import { HOST_ID } from './core/tree.mjs'
+// trailing '/'s off, in linear time (a /\/+$/ regex backtracks on a long run of slashes)
+const trimSlashesAtEnd = (s) => {
+  let end = s.length
+  while (end > 0 && s.charCodeAt(end - 1) === 47) end--
+  return s.slice(0, end)
+}
+
 export function normalizeMount(value) {
   let v = String(value == null ? '' : value).trim()
   if (!v || v === '/') return ''
@@ -218,10 +225,10 @@ export function pathLeavingMountOf(route, menuRoutes = []) {
 const mountPathOfBase = (base) => {
   if (typeof base !== 'string' || base === '') return ''
   if (/^https?:\/\//i.test(base)) {
-    try { return new URL(base).pathname.replace(/\/+$/, '') } catch { return null }
+    try { return trimSlashesAtEnd(new URL(base).pathname) } catch { return null }
   }
   if (!base.startsWith('/') || base.startsWith('//') || base.startsWith('/\\')) return null
-  return base.replace(/\/+$/, '')
+  return trimSlashesAtEnd(base)
 }
 
 /**

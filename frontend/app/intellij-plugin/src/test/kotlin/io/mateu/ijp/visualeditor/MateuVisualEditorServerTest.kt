@@ -40,7 +40,7 @@ class MateuVisualEditorServerTest {
         val bundle = """
             <html><head>
             <meta http-equiv="Content-Security-Policy" data-mateu-standalone-csp
-                  content="script-src 'self' 'unsafe-eval'; object-src 'none'; base-uri 'self'" />
+                  content="script-src 'self'; object-src 'none'; base-uri 'self'" />
             <script type="module" src="./assets/index-abc.js"></script></head><body></body></html>
         """.trimIndent()
         val html = String(MateuVisualEditorServer.injectHostBootstrap(bundle.toByteArray()), Charsets.UTF_8)

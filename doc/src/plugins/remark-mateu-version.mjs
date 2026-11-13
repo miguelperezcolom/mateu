@@ -56,6 +56,8 @@ function fromGitTags() {
 		const out = execFileSync('git', ['tag', '--list', 'v[0-9]*'], {
 			encoding: 'utf8',
 			stdio: ['ignore', 'pipe', 'ignore'],
+			// the system's own directories, never a writable folder an inherited PATH names first
+			env: { ...process.env, PATH: '/usr/bin:/bin:/usr/local/bin' },
 		});
 		const versions = out.split('\n').map((t) => t.trim().replace(/^v/, '')).filter(Boolean);
 		return chooseVersion(versions, pinOr(versions));

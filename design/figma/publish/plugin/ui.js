@@ -173,7 +173,7 @@ async function publish(button, status) {
     status.replaceChildren('Published: ', el('a', { textContent: result.url, onclick: () => post({ type: 'open', url: result.url }) }))
   } catch (e) {
     status.replaceChildren(String(e.message ?? e))
-    if (e.code === 'SITE_NOT_FOUND') status.append(el('div', {}, el('button', { className: 'secondary', textContent: 'Publish as a new site', onclick: () => { newSite(); publish(button, status) } })))
+    if (e.code === 'SITE_NOT_FOUND') status.append(el('div', {}, el('button', { className: 'secondary', textContent: 'Publish as a new site', onclick: () => { newSite(); void publish(button, status) } })))
   } finally {
     button.disabled = false
   }

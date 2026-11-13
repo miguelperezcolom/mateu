@@ -38,7 +38,7 @@ export function slugify(name) {
     .normalize('NFC')
     .toLowerCase()
     .split('/')
-    .map((s) => s.replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, ''))
+    .map((s) => trimDashes(s.replace(/[^\p{L}\p{N}]+/gu, '-')))
     .filter(Boolean)
   return segments.join('/') || 'page'
 }
@@ -808,4 +808,13 @@ export class FigmaToYaml {
     for (const [k, v] of Object.entries(page)) if (!(k in out)) out[k] = this.tidy(v)
     return out
   }
+}
+
+// '-'s off both ends, in linear time (a /^-+|-+$/g regex backtracks on a long run of dashes)
+function trimDashes(s) {
+  let start = 0
+  let end = s.length
+  while (start < end && s[start] === '-') start++
+  while (end > start && s[end - 1] === '-') end--
+  return s.slice(start, end)
 }

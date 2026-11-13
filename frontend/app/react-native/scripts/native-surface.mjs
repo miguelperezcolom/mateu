@@ -28,10 +28,13 @@ const app = join(dirname(fileURLToPath(import.meta.url)), '..');
 const recordFile = join(app, 'native-surface.json');
 const require = createRequire(join(app, 'package.json'));
 
+// code-unit order (what a bare sort() gives), stated: the recorded file must not move with a locale
+const byCodeUnits = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
 const sorted = (value) => {
   if (Array.isArray(value)) return value.map(sorted);
   if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.keys(value).sort().map((k) => [k, sorted(value[k])]));
+    return Object.fromEntries(Object.keys(value).sort(byCodeUnits).map((k) => [k, sorted(value[k])]));
   }
   return value;
 };

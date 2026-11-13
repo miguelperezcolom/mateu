@@ -16,6 +16,8 @@ spec:
     metadata:
       labels: { app: demo-front-office }
     spec:
+      # the app never talks to the Kubernetes API: no service account token in the pod
+      automountServiceAccountToken: false
       nodeSelector:
         kubernetes.io/arch: amd64
       securityContext:
@@ -44,10 +46,10 @@ spec:
           volumeMounts:
             - { name: tmp, mountPath: /tmp }
           resources:
-            requests: { memory: "224Mi", cpu: "50m" }
-            limits:   { memory: "448Mi" }
+            requests: { memory: "224Mi", cpu: "50m", ephemeral-storage: "64Mi" }
+            limits:   { memory: "448Mi", ephemeral-storage: "256Mi" }
       volumes:
-        - { name: tmp, emptyDir: {} }
+        - { name: tmp, emptyDir: { sizeLimit: 128Mi } }
 ---
 apiVersion: v1
 kind: Service

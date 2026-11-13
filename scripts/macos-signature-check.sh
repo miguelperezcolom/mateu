@@ -18,7 +18,7 @@ export LC_ALL=C # `file` describes fonts etc. with bytes that are not UTF-8: a U
 
 app="${1:?path to the .app}"
 app="${app%/}"
-[ -d "$app/Contents" ] || { echo "::error::not an app bundle: $app"; exit 2; }
+[[ -d "$app/Contents" ]] || { echo "::error::not an app bundle: $app"; exit 2; }
 fail=0
 err() { echo "::error::$*"; fail=1; }
 
@@ -39,17 +39,17 @@ while IFS= read -r f; do files+=("$f"); done < <(
     | awk '{ i = index($0, " :::: "); n = substr($0, 1, i - 1); d = substr($0, i + 6) }
            i > 0 && n !~ / \(for architecture [^)]*\)$/ && d ~ /Mach-O/ && d !~ /object|dSYM|core/ { print n }')
 echo "Mach-O files: ${#files[@]}"
-[ "${#files[@]}" -gt 0 ] || err "no Mach-O file found in $app"
+[[ "${#files[@]}" -gt 0 ]] || err "no Mach-O file found in $app"
 
 foreign=0
 for f in ${files[@]+"${files[@]}"}; do
   t=$(team_of "$f")
-  if [ "$t" != "$app_team" ]; then
+  if [[ "$t" != "$app_team" ]]; then
     foreign=$((foreign + 1))
-    [ "$foreign" -le 20 ] && echo "  other Team ID (${t:-unsigned}): ${f#"$app"/}"
+    [[ "$foreign" -le 20 ]] && echo "  other Team ID (${t:-unsigned}): ${f#"$app"/}"
   fi
 done
-[ "$foreign" -eq 0 ] || err "$foreign Mach-O file(s) are not signed with the app's Team ID ($app_team) — a hardened launcher refuses to load them (3.0-beta.64: 'Failed to load libjli.dylib … different Team IDs'). Sign inside-out (installer/macos/sign-app.sh), never with --deep."
+[[ "$foreign" -eq 0 ]] || err "$foreign Mach-O file(s) are not signed with the app's Team ID ($app_team) — a hardened launcher refuses to load them (3.0-beta.64: 'Failed to load libjli.dylib … different Team IDs'). Sign inside-out (installer/macos/sign-app.sh), never with --deep."
 
 # The processes that start a JVM: the Mach-O launchers in Contents/MacOS and the JBR's java.
 launchers=()
@@ -58,7 +58,7 @@ for f in ${files[@]+"${files[@]}"}; do
     "$app/Contents/MacOS/"* | */Contents/Home/bin/java) launchers+=("$f") ;;
   esac
 done
-[ "${#launchers[@]}" -gt 0 ] || err "no Mach-O launcher in Contents/MacOS"
+[[ "${#launchers[@]}" -gt 0 ]] || err "no Mach-O launcher in Contents/MacOS"
 for f in ${launchers[@]+"${launchers[@]}"}; do
   flags=$(flags_of "$f")
   ents=$(entitlements_of "$f")
@@ -74,5 +74,5 @@ for f in ${launchers[@]+"${launchers[@]}"}; do
   esac
 done
 
-if [ "$fail" -eq 0 ]; then echo "✅ signature check: $app"; else echo "❌ signature check: $app"; fi
+if [[ "$fail" -eq 0 ]]; then echo "✅ signature check: $app"; else echo "❌ signature check: $app"; fi
 exit "$fail"

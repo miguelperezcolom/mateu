@@ -1114,8 +1114,8 @@ test('R-6: a double press of a direct REST write sends ONE request, shows the bu
   const net = heldFetch()
   try {
     const ctx = actionCtx({ source: { ref: 'saveOrder' }, successMessage: 'Saved' }, { id: 1, note: 'n' })
-    const first = runMateuAction('http://x', ctx, '/orders', 'save', ctx.state, {})
-    const second = await runMateuAction('http://x', ctx, '/orders', 'save', ctx.state, {})
+    const first = runMateuAction('https://x', ctx, '/orders', 'save', ctx.state, {})
+    const second = await runMateuAction('https://x', ctx, '/orders', 'save', ctx.state, {})
     assert.ok(isDuplicateAnswer(second), 'the second press is a duplicate')
     assert.deepEqual([second.fragments, second.commands, second.messages], [[], [], []])
     assert.doesNotThrow(() => reduceContexts({ contexts: { [HOST_ID]: ctx }, stack: [] }, second))
@@ -1128,7 +1128,7 @@ test('R-6: a double press of a direct REST write sends ONE request, shows the bu
     assert.deepEqual(inc.messages, [{ variant: 'success', text: 'Saved' }])
     assert.deepEqual(hooks, ['start', 'settle'], 'a write shows the busy state')
     // the slot is free again: a later press goes out
-    const third = runMateuAction('http://x', ctx, '/orders', 'save', ctx.state, {})
+    const third = runMateuAction('https://x', ctx, '/orders', 'save', ctx.state, {})
     await tick(); net.release(); await third
     assert.equal(net.calls.length, 2)
   } finally {
@@ -1154,9 +1154,9 @@ test('R-4: the guard is per parameter set — two rows\' edits both go, the same
   try {
     const ctx = { id: HOST_ID, tree: { type: 'ServerSide', id: 'crud', serverSideType: 'x.Crud', children: [] }, state: {}, data: {} }
     const row = (n) => ({ parameters: { _editedRow: { _rowNumber: n, price: 1 } } })
-    const a = runMateuAction('http://x', ctx, '/p', 'update-row', {}, row(0))
-    const b = runMateuAction('http://x', ctx, '/p', 'update-row', {}, row(1))
-    const again = await runMateuAction('http://x', ctx, '/p', 'update-row', {}, row(0))
+    const a = runMateuAction('https://x', ctx, '/p', 'update-row', {}, row(0))
+    const b = runMateuAction('https://x', ctx, '/p', 'update-row', {}, row(1))
+    const again = await runMateuAction('https://x', ctx, '/p', 'update-row', {}, row(0))
     assert.ok(isDuplicateAnswer(again))
     await tick()
     assert.equal(net.calls.length, 2, 'row 0 and row 1, once each')
@@ -1164,8 +1164,8 @@ test('R-4: the guard is per parameter set — two rows\' edits both go, the same
 
     const sse = heldFetch(() => ({ ok: true, status: 200, text: async () => 'data: {"fragments":[]}\n\n' }))
     try {
-      const s1 = runMateuActionSse('http://x', ctx, '/p', 'scan', {}, {})
-      const s2 = await runMateuActionSse('http://x', ctx, '/p', 'scan', {}, {})
+      const s1 = runMateuActionSse('https://x', ctx, '/p', 'scan', {}, {})
+      const s2 = await runMateuActionSse('https://x', ctx, '/p', 'scan', {}, {})
       assert.ok(isDuplicateAnswer(s2) && s2.length === 0, 'a second LongTask press starts nothing')
       await tick()
       assert.equal(sse.calls.length, 1)
@@ -1192,15 +1192,15 @@ test('R-6/R-8: the ceiling covers a REST source that never answers and a body th
     await assert.rejects(fetchDirect('https://api.example/x', { method: 'POST' }, { timeoutMillis: 20 }), (e) => e.__mateuTimedOut === true)
     // Mateu's headers arrive, the body never does: the read is cut, as a timeout
     globalThis.fetch = (_url, init) => abortable(init, { ok: true, status: 200, headers: {}, json: () => abortable(init), text: () => abortable(init) })
-    const res = await fetchWithPolicy('http://x/mateu/v3/sync/p', { method: 'POST' }, { actionId: 'save', timeoutMillis: 20 })
+    const res = await fetchWithPolicy('https://x/mateu/v3/sync/p', { method: 'POST' }, { actionId: 'save', timeoutMillis: 20 })
     await assert.rejects(res.json(), (e) => e.__mateuTimedOut === true)
     // …and the action's double-submit slot is given back
     const ctx = { id: HOST_ID, tree: { type: 'ServerSide', id: 'form', serverSideType: 'x.F', children: [] }, state: {}, data: {} }
-    await assert.rejects(runMateuAction('http://x', ctx, '/p', 'save', {}, { timeoutMillis: 20 }))
+    await assert.rejects(runMateuAction('https://x', ctx, '/p', 'save', {}, { timeoutMillis: 20 }))
     assert.equal(pendingActions.isPending(pendingActions.key('form', 'save')), false)
     // a body read in time stops the clock
     globalThis.fetch = async () => ({ ok: true, status: 200, headers: {}, json: async () => ({ fragments: [] }) })
-    assert.deepEqual(await (await fetchWithPolicy('http://x/', {}, { actionId: 'save', timeoutMillis: 20 })).json(), { fragments: [] })
+    assert.deepEqual(await (await fetchWithPolicy('https://x/', {}, { actionId: 'save', timeoutMillis: 20 })).json(), { fragments: [] })
   } finally {
     globalThis.fetch = original; connectivity.reset(); pendingActions.reset()
     clearInterval(keepAlive)

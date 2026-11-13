@@ -26,8 +26,8 @@ export const SINGLE_MARKER_ZOOM = 15
 
 export const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 
-const mapEscapeText = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+const mapEscapeText = (t) => String(t).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+  .replaceAll('"', '&quot;').replaceAll("'", '&#39;')
 
 /** A map's tile layer: the wire's (tileUrl + attribution) or, without tileUrl, OSM. The
  *  wire's template is already Leaflet's ({s}, {z}, {x}, {y}), so it passes through as is.

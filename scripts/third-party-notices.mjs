@@ -63,7 +63,7 @@ export const notices = (bundle) => {
       out.push('', `(The package ships no licence file; its package.json declares ${licenceOf(pkg)}${pkg.author ? `, author ${typeof pkg.author === 'string' ? pkg.author : pkg.author.name}` : ''}.)`)
     }
     for (const file of files) {
-      const text = readFileSync(join(dir, file), 'utf8').replace(/\r\n/g, '\n').trimEnd()
+      const text = readFileSync(join(dir, file), 'utf8').replaceAll("\r\n", "\n").trimEnd()
       const first = firstWith.get(text)
       if (first) {
         out.push('', `--- ${file}: the same text as ${first} above`)

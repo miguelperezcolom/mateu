@@ -25382,8 +25382,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 
-  const mapEscapeText = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+  const mapEscapeText = (t) => String(t).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;').replaceAll("'", '&#39;')
 
   /** A map's tile layer: the wire's (tileUrl + attribution) or, without tileUrl, OSM. The
    *  wire's template is already Leaflet's ({s}, {z}, {x}, {y}), so it passes through as is.
@@ -29991,6 +29991,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+  // trailing '/'s off, in linear time (a /\/+$/ regex backtracks on a long run of slashes)
+  const trimSlashesAtEnd = (s) => {
+    let end = s.length
+    while (end > 0 && s.charCodeAt(end - 1) === 47) end--
+    return s.slice(0, end)
+  }
+
   function normalizeMount(value) {
     let v = String(value == null ? '' : value).trim()
     if (!v || v === '/') return ''
@@ -30184,10 +30191,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const mountPathOfBase = (base) => {
     if (typeof base !== 'string' || base === '') return ''
     if (/^https?:\/\//i.test(base)) {
-      try { return new URL(base).pathname.replace(/\/+$/, '') } catch { return null }
+      try { return trimSlashesAtEnd(new URL(base).pathname) } catch { return null }
     }
     if (!base.startsWith('/') || base.startsWith('//') || base.startsWith('/\\')) return null
-    return base.replace(/\/+$/, '')
+    return trimSlashesAtEnd(base)
   }
 
   /**

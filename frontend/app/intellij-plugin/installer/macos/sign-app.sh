@@ -24,12 +24,12 @@ export LC_ALL=C # `file` describes fonts etc. with bytes that are not UTF-8: a U
 app="${1:?path to the .app}"
 identity="${2:?signing identity, or - for ad-hoc}"
 app="${app%/}"
-[ -d "$app/Contents" ] || { echo "not an app bundle: $app" >&2; exit 2; }
+[[ -d "$app/Contents" ]] || { echo "not an app bundle: $app" >&2; exit 2; }
 
 opts=(--force --preserve-metadata=entitlements --sign "$identity")
 # A Developer ID needs the hardened runtime + a secure timestamp (notarization requires both).
 # Ad-hoc keeps the old local behaviour: no runtime, no timestamp (no network).
-if [ "$identity" != "-" ]; then opts+=(--options runtime --timestamp); fi
+if [[ "$identity" != "-" ]]; then opts+=(--options runtime --timestamp); fi
 
 # Every regular (non-symlink) Mach-O that is code: executables, dylibs, loadable bundles. Object files
 # and dSYM companions are not signed.
@@ -49,7 +49,7 @@ nested_bundles() {
 
 files=()
 while IFS= read -r f; do files+=("$f"); done < <(macho_files "$app")
-[ "${#files[@]}" -gt 0 ] || { echo "no Mach-O file in $app" >&2; exit 1; }
+[[ "${#files[@]}" -gt 0 ]] || { echo "no Mach-O file in $app" >&2; exit 1; }
 echo "Signing ${#files[@]} Mach-O files…"
 # Deepest first, so a file inside a nested bundle is signed before that bundle is.
 sorted=()
@@ -57,16 +57,16 @@ while IFS= read -r f; do sorted+=("$f"); done < <(printf '%s\n' "${files[@]}" | 
 batch=()
 for f in "${sorted[@]}"; do
   batch+=("$f")
-  if [ "${#batch[@]}" -ge 50 ]; then codesign "${opts[@]}" "${batch[@]}"; batch=(); fi
+  if [[ "${#batch[@]}" -ge 50 ]]; then codesign "${opts[@]}" "${batch[@]}"; batch=(); fi
 done
-if [ "${#batch[@]}" -gt 0 ]; then codesign "${opts[@]}" "${batch[@]}"; fi
+if [[ "${#batch[@]}" -gt 0 ]]; then codesign "${opts[@]}" "${batch[@]}"; fi
 
 bundles=()
 while IFS= read -r b; do bundles+=("$b"); done < <(nested_bundles "$app")
 echo "Signing ${#bundles[@]} nested bundles…"
 for b in ${bundles[@]+"${bundles[@]}"}; do
   # only a real code bundle (a folder merely NAMED *.bundle with no Info.plist is a resource folder)
-  if [ -f "$b/Contents/Info.plist" ] || [ -f "$b/Resources/Info.plist" ] || [ -e "$b/Versions/Current" ]; then
+  if [[ -f "$b/Contents/Info.plist" ]] || [[ -f "$b/Resources/Info.plist" ]] || [[ -e "$b/Versions/Current" ]]; then
     codesign "${opts[@]}" "$b"
   fi
 done

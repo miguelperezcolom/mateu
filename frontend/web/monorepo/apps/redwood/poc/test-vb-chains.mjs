@@ -476,10 +476,10 @@ test('F2: an island\'s validated action with an empty required field does not le
   const ctx = newContext()
   ctx.$application.variables.mateuRegistry = { contexts: {
     [bridge.HOST_ID]: { id: bridge.HOST_ID, tree: { type: 'ServerSide', id: 'host', actions: [], children: [] }, state: {} },
-    signup: { id: 'signup', tree: islandTree, state: { email: 'nope' }, outbound: { baseUrl: 'http://api', route: '/x' } },
+    signup: { id: 'signup', tree: islandTree, state: { email: 'nope' }, outbound: { baseUrl: 'https://api', route: '/x' } },
   }, stack: [], shell: null }
   const refusal = bridge.surfaceRefusalOf(ctx.$application.variables.mateuRegistry, 'signup', 'signUp')
-  assert.deepEqual([...refusal.missing].sort(), ['email', 'name'])
+  assert.deepEqual([...refusal.missing].sort((a, b) => a.localeCompare(b)), ['email', 'name'])
   assert.deepEqual(refusal.messages, { email: 'Not an email' })
   assert.equal(bridge.surfaceRefusalOf(ctx.$application.variables.mateuRegistry, 'signup', 'help'), null, 'an action that does not validate')
   const input = doc.createElement('oj-input-text')
@@ -529,7 +529,7 @@ test('F3: a refusal (403) shows the band WITHOUT a Retry that could never succee
   assert.equal(bridge.offersRetry({ kind: 'forbidden', retryable: false }), false)
   assert.equal(bridge.offersRetry({ kind: 'timeout', retryable: true }), true)
   const shell = readFileSync(join(webApp, 'pages', 'shell-page.html'), 'utf8')
-  assert.match(shell, /<oj-bind-if test="\[\[ \$application\.variables\.mateuReloadOffered \|\| \$application\.variables\.mateuRetryOffered \]\]">\s*<oj-button chroming="callToAction"[^>]*\s*on-oj-action="\[\[ \$listeners\.retryMateuAction \]\]"/)
+  assert.match(shell, /<oj-bind-if test="\[\[ \$application\.variables\.mateuReloadOffered \|\| \$application\.variables\.mateuRetryOffered \]\]">\s*<oj-button chroming="callToAction"[^>]*on-oj-action="\[\[ \$listeners\.retryMateuAction \]\]"/)
 })
 
 test('onMateuNavigate: the not-found page is all the content, without the page header', async () => {

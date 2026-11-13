@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from contextvars import ContextVar
 from dataclasses import dataclass as _dataclass
-from typing import Any
+from typing import Any, ClassVar
 
 import yaml
 
@@ -448,7 +448,7 @@ class InertButton(fluent.Button):
     meant — renderers dispatched the label's echo and the server answered 403 for a button that
     does nothing (Java's ``YamlUidlMapperFactory.InertButton``)."""
 
-    inert = True  # a class attribute, not a field: read by the toolbar mapper
+    inert: ClassVar[bool] = True  # a class attribute, not a field: read by the toolbar mapper
 
 
 def _button(node: dict) -> fluent.Button:
