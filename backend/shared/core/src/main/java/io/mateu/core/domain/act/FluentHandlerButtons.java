@@ -55,7 +55,8 @@ public final class FluentHandlerButtons {
         && !button.id().isBlank()) {
       return button.id();
     }
-    return resolved;
+    // a blank id is an INERT button (a YAML Button that declares no action): it carries none
+    return resolved == null || resolved.isBlank() ? null : resolved;
   }
 
   /** The first handler button whose action id is {@code actionId}, or null. */

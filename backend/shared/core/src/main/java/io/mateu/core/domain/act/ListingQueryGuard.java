@@ -14,9 +14,10 @@ import java.util.Map;
  * for a crud, a capability listing and a plain {@link Listing} alike:
  *
  * <ul>
- *   <li>a page number below zero is the first page, a page size above {@value #DEFAULT_MAX_SIZE}
- *       (setting {@value #MAX_SIZE_PROPERTY}) is that maximum — the client chose both unbounded, so
- *       a database store got {@code size=10000000} as it came (GA review);
+ *   <li>a page number below zero is the first page, a page size of 0 or less (which a store's
+ *       default {@code find} read as "every row") or above {@value #DEFAULT_MAX_SIZE} (setting
+ *       {@value #MAX_SIZE_PROPERTY}) is that maximum — the client chose both unbounded, so a
+ *       database store got {@code size=10000000} as it came (GA review);
  *   <li>a sort or a filter on a field the caller may not read ({@code @EyesOnly}) is dropped: the
  *       order or the matching rows of a hidden column tell its values as well as the column would.
  * </ul>
@@ -65,8 +66,9 @@ public final class ListingQueryGuard {
       changed = true;
     }
     var size = toInt(out.get("size"));
-    if (size != null && (size < 0 || size > maxSize())) {
-      out.put("size", size < 0 ? 0 : maxSize());
+    if (size != null && (size <= 0 || size > maxSize())) {
+      // 0 or less meant "every row" to a store's default find: a client could ask for them all
+      out.put("size", maxSize());
       changed = true;
     }
     var hiddenInRows = rowClass != null ? FieldAccess.unreadable(rowClass, rq) : List.<String>of();

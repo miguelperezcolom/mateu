@@ -44,7 +44,8 @@ import org.junit.jupiter.api.Test;
 class ServerWriteGatesSyncTest {
 
   public static class Item implements Identifiable {
-    String id;
+    // the user types the id on create (else it is technical, assigned by the store)
+    @io.mateu.uidl.annotations.EditableOnlyWhenCreating String id;
     String name;
     @Version int version;
 

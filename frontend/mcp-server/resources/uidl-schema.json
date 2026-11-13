@@ -8992,6 +8992,9 @@
         },
         "initials" : {
           "type" : "string"
+        },
+        "alt" : {
+          "type" : "string"
         }
       }
     },

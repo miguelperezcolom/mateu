@@ -226,5 +226,11 @@ class ListingFieldAccessSyncTest {
         run(EmpsCrud.class, "/acl-emps-crud", "search", Map.of("size", 10_000_000, "page", -3));
     var page = json(huge);
     assertThat(page).contains("\"pageSize\":500").contains("\"pageNumber\":0").contains("Ana");
+    // 0 or less is no "every row": the maximum too (the ports' rule)
+    for (var size : List.of(0, -1)) {
+      assertThat(json(run(EmpsCrud.class, "/acl-emps-crud", "search", Map.of("size", size))))
+          .as("size " + size)
+          .contains("\"pageSize\":500");
+    }
   }
 }

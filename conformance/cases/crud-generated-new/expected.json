@@ -18,24 +18,6 @@
                       "metadata" : {
                         "colspan" : 1,
                         "dataType" : "string",
-                        "fieldId" : "id",
-                        "label" : "Id",
-                        "optionsColumns" : 1,
-                        "sliderMax" : 100,
-                        "stereotype" : "regular",
-                        "type" : "FormField"
-                      },
-                      "type" : "ClientSide"
-                    } ],
-                    "metadata" : {
-                      "type" : "FormRow"
-                    },
-                    "type" : "ClientSide"
-                  }, {
-                    "children" : [ {
-                      "metadata" : {
-                        "colspan" : 1,
-                        "dataType" : "string",
                         "fieldId" : "reference",
                         "label" : "Reference",
                         "optionsColumns" : 1,

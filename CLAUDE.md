@@ -1413,7 +1413,15 @@ Response is `UIIncrementDto` (see `backend/shared/dtos`).
   `IssuedActions` walks an app row only through fields DECLARED to hold row actions; Micronaut
   action endpoints `@ExecuteOn(BLOCKING)`, WebFlux actions on `boundedElastic`
   (`SpringHttpRequest.withPrincipalOf`), parity echo asserts `eventLoop=false`; MVC SSE via
-  `MateuSseEmitter` (disposed when the client leaves).
+  `MateuSseEmitter` (disposed when the client leaves). Follow-ups: a YAML `Button` with no
+  `actionId`/`actionable` is INERT (`YamlUidlMapperFactory.InertButton` → blank id →
+  `FluentHandlerButtons.actionIdOf` sends none; the Java fluent label→id convention is unchanged);
+  `TemplateImage.alt` (wire `TemplateImageDto.alt`, default the page title, also on the drawn
+  `Image`); a crud entity's TECHNICAL id (`TechnicalId`: `@PrimaryKey`/`id` without
+  `@EditableOnlyWhenCreating`/`@GeneratedValue`) has no input on the creation form and a create
+  never takes it (store assigns) — conformance `crud-*-new` regenerated; listing size ≤ 0 → max
+  (500); an Element's `on:` handler is in the server's advertised set when the view has a handler
+  method for it (`AdvertisedActions`).
 - `AutoCrud<T>` / `AutoCrudOrchestrator<T>` give full CRUD with minimal code.
 - **Remote push (2026-11-11, `@Experimental`)**: `@App(osNotifications)` + a `PushSender` (app bean, or `mateu.push.expo.enabled=true` → core `application/push/ExpoPushSender`) → `AppDto.pushNotifications`; RN registers its Expo token via app-level `_push-register`/`_push-unregister` (`PushActionRunner`; RN `core/remotePush.ts`), `Inbox.storeMessages` + `PushNotifications.send` deliver off-thread. A new core bean package must also be listed in Micronaut's `MateuMicronautConfig` `@Import`. **Only a `fixed` RN build has remote push (owner decision 2026-11-13)**: an app's pushes go out under ITS store identity, so the hub (Mateu's store app, which opens anybody's UI) never asks for a token — `pushConfig.ts applyPushConfig` ignores the credentials unless `extra.mateuVariant === 'fixed'` and sets `extra.remotePush`; `AppContext` binds the token source only when it is true (so older binaries running newer JS over the air never register either). Whoever wants push: configure it and distribute your own fixed app. Guide `deploy/push-notifications.md`.
 - **Mateu ships UI only (2026-10-10)**: a non-UI concern is at most an interface the app implements. Listing exports: Mateu owns the Export buttons (`csvExportable()`/`excelExportable()`/`pdfExportable()`), the columns/rows/filters and the `DownloadFile`; the FILE is written by the app's `ListingExporter` bean (uidl: `format()` + `export(ListingExport, HttpRequest)` → `ExportedFile`; `ListingExporters` in core picks it, app's over core's built-in `DefaultCsvExporter`). Excel/PDF buttons only show while an exporter for the format is registered; a request for an unwritten format answers `UserFacingException("Export not available")`. The `mateu-export-excel`/`-pdf` modules and `agent-cli`/`agent-cli-companion` were REMOVED. Ports: .NET `IListingExporter` services (`MateuExporters`), Python `ListingExporter` subclasses discovered by `MateuRegistry` (`mateu_ui.core.export.Exporters`). Demo implementation: `demo-vb-pms` `ExcelListingExporter` (Apache POI).

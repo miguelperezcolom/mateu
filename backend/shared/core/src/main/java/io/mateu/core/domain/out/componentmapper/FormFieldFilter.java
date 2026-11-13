@@ -25,6 +25,18 @@ final class FormFieldFilter {
     if (!io.mateu.core.domain.FieldAccess.isShown(field, httpRequest)) {
       return false;
     }
+    // a crud's creation form draws no input for a technical id: the store assigns it
+    if (forCreationForm
+        && !readOnly
+        && field
+            .getName()
+            .equals(
+                TechnicalId.of(
+                    instance == null
+                        ? field.getDeclaringClass()
+                        : instance instanceof Class<?> type ? type : instance.getClass()))) {
+      return false;
+    }
     if (ComponentDto.class.isAssignableFrom(field.getType())) {
       return false;
     }
