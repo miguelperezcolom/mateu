@@ -7,7 +7,7 @@
 # filters, the page. `itemsPath` says where the rows are in the answer and `totalPath` where the
 # total is — declaring the total tells the renderer the SERVER did the paging.
 # See https://mateu.io/concepts/data-sources/
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.58/backend/shared/uidl/sources-schema.json
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.63/backend/shared/uidl/sources-schema.json
 sources:
   - name: people
     description: Characters of the Star Wars saga

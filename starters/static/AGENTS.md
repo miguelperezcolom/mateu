@@ -76,6 +76,6 @@ phones add it to the home screen. Its name, colour and icon come from `app.yaml`
 - Static UIs: https://mateu.io/deploy/static-ui/
 - REST sources and sample data: https://mateu.io/concepts/data-sources/
 - The authoring schema (every component and its keys):
-  https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.58/backend/shared/uidl/specs-schema.json
+  https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.63/backend/shared/uidl/specs-schema.json
 - For AI tools: https://mateu.io/llms.txt, https://mateu.io/mateu-ai-compact.md.
 - A static example with a real API: `demo/demo-static-vcn` in https://github.com/miguelperezcolom/mateu
