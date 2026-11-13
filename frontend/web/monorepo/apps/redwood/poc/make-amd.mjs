@@ -439,6 +439,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     overlaysHoldUnsavedChanges,
     hasUnsavedChanges,
     pageDirtyAfterAction,
+    // a content button whose action nobody on screen claims is inert, as on Vaadin (Explorer F3)
+    contentActionIsClaimed,
     confirmNavigationAway,
     // a refused back/forward is undone, not papered over with a push (historyIndex.mjs)
     installHistoryIndex,
@@ -562,6 +564,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pendingActions,
     // a dropped double press answers this: the chain that asked stops (R-4)
     isDuplicateAnswer,
+    offersRetry,
     setTransportHooks,
     authHeadersOf,
     // errores del cliente → log del servidor (POST <base>/mateu/v3/client-log)

@@ -782,8 +782,10 @@
             <!-- What the client could retry on its own, it has already done silently. The one
                  offered here is the case where repeating was OUR decision and we decided not
                  to make it: the user makes it, who knows whether they can afford a duplicate. -->
+            <oj-bind-if test="[[ $application.variables.mateuReloadOffered || $application.variables.mateuRetryOffered ]]">
             <oj-button chroming="callToAction" display="all"
               on-oj-action="[[ $listeners.retryMateuAction ]]"><oj-bind-text value="[[ $application.variables.mateuReloadOffered ? $application.translations.appBundle.reload : $application.translations.appBundle.retry ]]"></oj-bind-text></oj-button>
+            </oj-bind-if>
             <oj-button chroming="borderless" display="all"
               on-oj-action="[[ $listeners.dismissMateuError ]]"><oj-bind-text value="[[ $application.translations.appBundle.close ]]"></oj-bind-text></oj-button>
           </div>

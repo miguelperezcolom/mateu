@@ -31,6 +31,8 @@ define([
         await Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: click.navigate, force: true } });
         return;
       }
+      // nobody on screen claims it (a YAML Button with a label and no action): inert, as on Vaadin
+      if (!bridge.contentActionIsClaimed(context.$application.variables.mateuRegistry, actionId)) return;
       // an atom of a surface of its own goes back to that surface
       if (surfaceId && (context.$application.variables.mateuRegistry.contexts || {})[surfaceId]) {
         await Actions.callChain(context, { chain: 'runMateuSurfaceAction', params: { surfaceId, actionId, parameters } });

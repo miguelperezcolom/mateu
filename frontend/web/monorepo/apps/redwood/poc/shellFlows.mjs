@@ -1,4 +1,4 @@
-import { reduceContexts, HOST_ID, MENU_RULE_PREFIX, menuNodeIdOf, autoSaveOf, rangeEditOf } from './reduceContexts.mjs'
+import { reduceContexts, HOST_ID, MENU_RULE_PREFIX, menuNodeIdOf, autoSaveOf, rangeEditOf, declaredActionOf } from './reduceContexts.mjs'
 import { valueChangeActionOf } from './rules.mjs'
 import { chromeText } from './i18n.mjs'
 import { urlOfRoute } from './mount.mjs'
@@ -69,6 +69,23 @@ export function resolveFlowCommands(commands, scope) {
  * action goes to the server as before. With a `scope` the commands' placeholders are resolved
  * ({@link resolveFlowCommands}) — the page's state with the action's parameters on top of it.
  */
+/**
+ * Whether a content button's action is CLAIMED by something on screen — a context (page, overlay,
+ * island, micro frontend) that advertises it (its actions, a `prefix*` wildcard included, or its
+ * declared flows) or the app's action catalogue. Vaadin's rule (mateu-component sends only what it
+ * advertises): a button with no action behind it — a YAML `Button` with a label and a style, whose
+ * id the server derives from the label — is inert. Redwood used to send it and answer the user
+ * «You're not allowed to do this» (403) with a Retry that could never succeed (Explorer F3).
+ */
+export function contentActionIsClaimed(reg, actionId) {
+  if (!actionId) return false
+  for (const ctx of Object.values((reg && reg.contexts) || {})) {
+    if (declaredActionOf(ctx, actionId)) return true
+    if (((ctx && ctx.declaredActions) || []).some((a) => a && a.id === actionId)) return true
+  }
+  return !!catalogueActionOf(reg && reg.shell, actionId)
+}
+
 export function pageFlowOf(reg, actionId, scope, contextId = HOST_ID) {
   // `contextId`: a SURFACE of its own (an inline island, a MicroFrontend) owns ITS actions the same way
   const host = reg && reg.contexts ? reg.contexts[contextId || HOST_ID] : null

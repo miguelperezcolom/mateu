@@ -44,6 +44,8 @@ define([
           bridge.baseOf(reg) || bridge.mateuBase(context.$application.constants.mateuBaseUrl), reg,
           { appState: context.$application.variables.mateuAppState || {} });
       }
+      // nobody on screen claims it (a YAML Button with a label and no action): inert, as on Vaadin
+      if (!bridge.contentActionIsClaimed(context.$application.variables.mateuRegistry, actionId)) return;
       if (surfaceId && (context.$application.variables.mateuRegistry.contexts || {})[surfaceId]) {
         await Actions.callChain(context, { chain: 'runMateuSurfaceAction', params: { surfaceId, actionId, parameters } });
         return;

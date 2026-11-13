@@ -18433,6 +18433,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     reset() { this._started.clear() },
   }
 
+  /** Whether the error band offers Retry for a failure: what can succeed on a second try (offline,
+   *  a timeout, a 5xx — `retryable`). A refusal (403, another 4xx) never: a Retry on «You're not
+   *  allowed to do this» can never succeed (Explorer F3). */
+  function offersRetry(failure) {
+    return !!(failure && failure.retryable)
+  }
+
   /**
    * What a DUPLICATE action answers (a second press while the first is in flight): an increment
    * that changes nothing — never null, which the chains passed to the reducer and threw on, leaving a
@@ -23339,6 +23346,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * action goes to the server as before. With a `scope` the commands' placeholders are resolved
    * ({@link resolveFlowCommands}) — the page's state with the action's parameters on top of it.
    */
+  /**
+   * Whether a content button's action is CLAIMED by something on screen — a context (page, overlay,
+   * island, micro frontend) that advertises it (its actions, a `prefix*` wildcard included, or its
+   * declared flows) or the app's action catalogue. Vaadin's rule (mateu-component sends only what it
+   * advertises): a button with no action behind it — a YAML `Button` with a label and a style, whose
+   * id the server derives from the label — is inert. Redwood used to send it and answer the user
+   * «You're not allowed to do this» (403) with a Retry that could never succeed (Explorer F3).
+   */
+  function contentActionIsClaimed(reg, actionId) {
+    if (!actionId) return false
+    for (const ctx of Object.values((reg && reg.contexts) || {})) {
+      if (declaredActionOf(ctx, actionId)) return true
+      if (((ctx && ctx.declaredActions) || []).some((a) => a && a.id === actionId)) return true
+    }
+    return !!catalogueActionOf(reg && reg.shell, actionId)
+  }
+
   function pageFlowOf(reg, actionId, scope, contextId = HOST_ID) {
     // `contextId`: a SURFACE of its own (an inline island, a MicroFrontend) owns ITS actions the same way
     const host = reg && reg.contexts ? reg.contexts[contextId || HOST_ID] : null
@@ -37926,6 +37950,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     overlaysHoldUnsavedChanges,
     hasUnsavedChanges,
     pageDirtyAfterAction,
+    // a content button whose action nobody on screen claims is inert, as on Vaadin (Explorer F3)
+    contentActionIsClaimed,
     confirmNavigationAway,
     // a refused back/forward is undone, not papered over with a push (historyIndex.mjs)
     installHistoryIndex,
@@ -38049,6 +38075,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     pendingActions,
     // a dropped double press answers this: the chain that asked stops (R-4)
     isDuplicateAnswer,
+    offersRetry,
     setTransportHooks,
     authHeadersOf,
     // errores del cliente → log del servidor (POST <base>/mateu/v3/client-log)

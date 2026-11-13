@@ -241,6 +241,13 @@ export const pendingActions = {
   reset() { this._started.clear() },
 }
 
+/** Whether the error band offers Retry for a failure: what can succeed on a second try (offline,
+ *  a timeout, a 5xx — `retryable`). A refusal (403, another 4xx) never: a Retry on «You're not
+ *  allowed to do this» can never succeed (Explorer F3). */
+export function offersRetry(failure) {
+  return !!(failure && failure.retryable)
+}
+
 /**
  * What a DUPLICATE action answers (a second press while the first is in flight): an increment
  * that changes nothing — never null, which the chains passed to the reducer and threw on, leaving a

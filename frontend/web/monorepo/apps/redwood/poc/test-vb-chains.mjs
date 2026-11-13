@@ -456,6 +456,7 @@ test('onMateuNavigate: a failed load registers a retry of the whole navigation, 
   await navigate(ctx, '/flaky')
   assert.equal(ctx.$application.variables.mateuNavigating, false, 'never an old screen hidden forever')
   assert.ok(ctx.$application.variables.mateuLastError, 'the error band says it')
+  assert.equal(ctx.$application.variables.mateuRetryOffered, true, 'a 5xx may succeed again: Retry is offered')
   assert.ok(bridge.hasLastRetry())
   assert.deepEqual(bridge.takeLastRetry(), { kind: 'navigate', route: '/flaky' })
   routes = []
@@ -463,6 +464,18 @@ test('onMateuNavigate: a failed load registers a retry of the whole navigation, 
   await navigate(ctx, '/flaky')
   assert.equal(ctx.$application.variables.mateuHostTitle, 'Back again')
   assert.equal(bridge.hasLastRetry(), false, 'a painted screen clears the retry')
+})
+
+test('F3: a refusal (403) shows the band WITHOUT a Retry that could never succeed', async () => {
+  const ctx = await bootShell()
+  answer(byRoute('/refused'), { status: 403 })
+  await navigate(ctx, '/refused')
+  assert.ok(ctx.$application.variables.mateuLastError)
+  assert.equal(ctx.$application.variables.mateuRetryOffered, false)
+  assert.equal(bridge.offersRetry({ kind: 'forbidden', retryable: false }), false)
+  assert.equal(bridge.offersRetry({ kind: 'timeout', retryable: true }), true)
+  const shell = readFileSync(join(webApp, 'pages', 'shell-page.html'), 'utf8')
+  assert.match(shell, /<oj-bind-if test="\[\[ \$application\.variables\.mateuReloadOffered \|\| \$application\.variables\.mateuRetryOffered \]\]">\s*<oj-button chroming="callToAction"[^>]*\s*on-oj-action="\[\[ \$listeners\.retryMateuAction \]\]"/)
 })
 
 test('onMateuNavigate: the not-found page is all the content, without the page header', async () => {
@@ -597,6 +610,7 @@ test('dispatchHostBlockAction: a welcome secondary CTA (oj-sp-welcome-page says 
   const dispatch = chain('flows/main/pages/main-start-page-chains/dispatchHostBlockAction.js')
   const ctas = { cta1: { actionId: 'openDashboard', route: '' }, cta2: { actionId: '', route: 'products' } }
   const ctx = newContext()
+  ctx.$application.variables.mateuRegistry = { contexts: { [bridge.HOST_ID]: { id: bridge.HOST_ID, tree: { type: 'ServerSide', id: 'w', actions: [{ id: 'openDashboard' }], children: [] } } }, stack: [], shell: null }
   const real = chains.runMateuAction
   delete chains.runMateuAction // recorded, not run: only WHICH action matters here
   calls.length = 0
@@ -605,6 +619,29 @@ test('dispatchHostBlockAction: a welcome secondary CTA (oj-sp-welcome-page says 
   calls.length = 0
   await new dispatch().run(ctx, { ctaId: 'cta2', ctas })
   assert.deepEqual(calls.filter((c) => c[0] === 'event').map((c) => c[1]), ['application:mateuNavigate'])
+})
+
+test('F3: a content button whose action nobody on screen claims is inert, as on Vaadin — no 403, no band', async () => {
+  const dispatchHost = chain('flows/main/pages/main-start-page-chains/dispatchHostBlockAction.js')
+  const dispatchIsland = chain('flows/main/pages/main-start-page-chains/dispatchIslandAction.js')
+  const ctx = newContext()
+  ctx.$application.variables.mateuRegistry = { contexts: {
+    [bridge.HOST_ID]: { id: bridge.HOST_ID, tree: { type: 'ServerSide', id: 'p', actions: [{ id: 'save' }, { id: 'row-*' }], children: [] } },
+  }, stack: [], shell: null }
+  const real = chains.runMateuAction
+  delete chains.runMateuAction
+  calls.length = 0
+  try {
+    await new dispatchHost().run(ctx, { actionId: 'primary' }) // the label's echo of a YAML Button with no action
+    await new dispatchIsland().run(ctx, { actionId: 'primary' })
+    assert.deepEqual(calls.filter((c) => c[0] === 'callChain'), [], 'nothing sent')
+    await new dispatchHost().run(ctx, { actionId: 'save' })
+    await new dispatchHost().run(ctx, { actionId: 'row-delete' }) // a wildcard claims it
+    assert.deepEqual(calls.filter((c) => c[0] === 'callChain').map((c) => c[2].actionId), ['save', 'row-delete'])
+  } finally { chains.runMateuAction = real }
+  // the app's action catalogue claims its ids too
+  assert.equal(bridge.contentActionIsClaimed({ contexts: {}, shell: { actionCatalogue: [{ id: 'cat' }] } }, 'cat'), true)
+  assert.equal(bridge.contentActionIsClaimed({ contexts: {}, shell: null }, 'cat'), false)
 })
 
 // ═══ runMateuAction ═══════════════════════════════════════════════════════════════════════════
