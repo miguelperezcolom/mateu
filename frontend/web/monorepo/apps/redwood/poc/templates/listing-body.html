@@ -1611,7 +1611,7 @@
                     </ul>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                    <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
+                    <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" role="status" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                       <oj-bind-for-each data="[[ $current.data.shapes ]]">
                         <template><div :class="[[ $current.data.cls ]]"></div></template>
                       </oj-bind-for-each>

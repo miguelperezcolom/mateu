@@ -2859,7 +2859,7 @@ export function withSubresources(blocks, contexts, opts = {}) {
       // its shell (menu, pickers, header actions, shortcuts) is its own, as on its own page
       if (ctx.embeddedApp) {
         const href = safeHref(ctx.embeddedApp.src)
-        return href ? [{ isAppFrame: true, src: href, title: ctx.embeddedApp.title || '', frameStyle: { height: ctx.embeddedApp.height || '36rem' }, fromSurface: true }] : []
+        return href ? [{ isAppFrame: true, src: href, title: ctx.embeddedApp.title || href, frameStyle: { height: ctx.embeddedApp.height || '36rem' }, fromSurface: true }] : []
       }
       const crud = findByType(ctx.tree, 'Crud')
       // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page

@@ -169,7 +169,8 @@ export function drawMap(L, el, spec) {
       if (!pinEl || decorated) return
       decorated = true
       if (hover) pinEl.setAttribute('aria-label', hover)
-      if (!run) return
+      // a name needs a role (axe aria-prohibited-attr on a bare <path>): an image, or a button below
+      if (!run) { if (hover) pinEl.setAttribute('role', 'img'); return }
       pinEl.style.cursor = 'pointer'
       // a marker that runs something is a BUTTON, reachable with the keyboard (like <mateu-map>'s):
       // Leaflet draws it as a bare SVG path with no role and no tab stop

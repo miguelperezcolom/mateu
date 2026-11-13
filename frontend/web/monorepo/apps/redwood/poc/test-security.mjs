@@ -340,6 +340,7 @@ test('R-1: a map marker label is TEXT — Leaflet gets a node, never markup', ()
   const made = []
   const fakeDoc = { createElement: (tag) => { const el = { tag, textContent: '' }; made.push(el); return el } }
   const tooltips = []
+  const pathAttrs = {}
   const layer = { addTo() { return this } }
   const L = {
     map: () => ({ remove() {}, fitBounds() {}, setView() {}, invalidateSize() {} }),
@@ -348,7 +349,7 @@ test('R-1: a map marker label is TEXT — Leaflet gets a node, never markup', ()
       addTo() { return this },
       bindTooltip(content) { tooltips.push(content); return this },
       on() { return this },
-      getElement: () => null,
+      getElement: () => ({ style: {}, setAttribute: (k, v) => { pathAttrs[k] = v } }),
     }),
   }
   const el = { ownerDocument: fakeDoc }
@@ -357,6 +358,8 @@ test('R-1: a map marker label is TEXT — Leaflet gets a node, never markup', ()
   assert.equal(tooltips.length, 1)
   assert.notEqual(typeof tooltips[0], 'string', 'a string tooltip is assigned with innerHTML')
   assert.equal(tooltips[0].textContent, evil, 'the label shows as written')
+  // F5: the named pin (no action) is an image — a name on a bare <path> is aria-prohibited-attr
+  assert.deepEqual(pathAttrs, { 'aria-label': evil, role: 'img' })
   assert.equal(markerTooltipOf(fakeDoc, 'Hotel <b>Sol</b>').textContent, 'Hotel <b>Sol</b>')
 })
 

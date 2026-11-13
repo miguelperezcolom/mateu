@@ -9984,7 +9984,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // its shell (menu, pickers, header actions, shortcuts) is its own, as on its own page
         if (ctx.embeddedApp) {
           const href = safeHref(ctx.embeddedApp.src)
-          return href ? [{ isAppFrame: true, src: href, title: ctx.embeddedApp.title || '', frameStyle: { height: ctx.embeddedApp.height || '36rem' }, fromSurface: true }] : []
+          return href ? [{ isAppFrame: true, src: href, title: ctx.embeddedApp.title || href, frameStyle: { height: ctx.embeddedApp.height || '36rem' }, fromSurface: true }] : []
         }
         const crud = findByType(ctx.tree, 'Crud')
         // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
@@ -25525,7 +25525,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (!pinEl || decorated) return
         decorated = true
         if (hover) pinEl.setAttribute('aria-label', hover)
-        if (!run) return
+        // a name needs a role (axe aria-prohibited-attr on a bare <path>): an image, or a button below
+        if (!run) { if (hover) pinEl.setAttribute('role', 'img'); return }
         pinEl.style.cursor = 'pointer'
         // a marker that runs something is a BUTTON, reachable with the keyboard (like <mateu-map>'s):
         // Leaflet draws it as a bare SVG path with no role and no tab stop
@@ -31168,7 +31169,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const route = String((sub && sub.route) || '')
     const raw = app ? (base || route || app.metadata.route || '/') : base + (route.startsWith('/') || !route ? route : '/' + route)
     const src = /^(https?:)?\/\//i.test(raw) || raw.startsWith('/') ? raw : '/' + raw
-    return { src: src || '/', title: (app && app.metadata.title) || '', height: app ? '36rem' : '40rem' }
+    // the frame's accessible name (axe frame-title, Explorer F5): the app's title, the page's (its
+    // form's, a crud listing's), else the page it frames — never an unnamed «frame»
+    const listing = page && pageListingNodeOf(page)
+    const title = (app && app.metadata.title)
+      || (form && form.metadata && form.metadata.title)
+      || (listing && listing.metadata && listing.metadata.title)
+      || src || '/'
+    return { src: src || '/', title: String(title), height: app ? '36rem' : '40rem' }
   }
 
   /** The window effects of the registry an embedded island was loaded into: what the HOST's answer
