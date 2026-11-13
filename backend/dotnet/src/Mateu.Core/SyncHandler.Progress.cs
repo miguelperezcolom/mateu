@@ -173,9 +173,12 @@ internal sealed partial class SyncHandler
     {
         var principal = Principal?.Invoke();
         if (string.IsNullOrWhiteSpace(principal) || !PresenceEnabledFor(type)) return UIIncrementDto.Of();
-        var record = Presence.RecordOf(StateString(GetState(rq.Parameters, "route")),
-            StateString(GetState(rq.Parameters, "view")));
-        if (record is null) return UIIncrementDto.Of();
+        var route = StateString(GetState(rq.Parameters, "route"));
+        var view = StateString(GetState(rq.Parameters, "view"));
+        var record = Presence.RecordOf(route, view);
+        // a record the caller may not open: they learn nothing about it and are not shown there
+        // (GA review S9) — answered exactly like a page that is no record
+        if (record is null || !MayOpenRecord(route, view)) return UIIncrementDto.Of();
         var scope = Presence.ScopeOf(RequestBaseUrl.Value, rq.ServerSideType ?? type.FullName);
         var tab = StateString(GetState(rq.Parameters, "tab"));
         var state = StateString(GetState(rq.Parameters, "state"));
@@ -187,6 +190,25 @@ internal sealed partial class SyncHandler
         }
         Presence.Touch(PresenceStore, scope, record, principal, tab, state == "editing");
         return UIIncrementDto.Of(commands: [Presence.Command(Presence.Snapshot(PresenceStore, scope, record, principal))]);
+    }
+
+    /// <summary>Whether the caller may open the record presence is asked about: its route is
+    /// reachable (the <c>access:</c> of the authored entries answering it and their ancestors, also
+    /// under the request's mount) and its view is a type the app exposes that they may see (unknown
+    /// or class-level [EyesOnly] → no). Java's PresenceActionRunner.mayOpen.</summary>
+    internal bool MayOpenRecord(string? route, string? view)
+    {
+        if (!_routes.IsReachable(route, ActionGuard.Authorized)) return false;
+        var mount = (RequestBaseUrl.Value ?? "").Trim('/');
+        var relative = (route ?? "").Trim('/');
+        if (mount.Length > 0 && relative != mount && !relative.StartsWith(mount + "/", StringComparison.Ordinal)
+            && !_routes.IsReachable(mount + "/" + relative, ActionGuard.Authorized))
+            return false;
+        if (string.IsNullOrWhiteSpace(view)) return true;
+        var name = view.Trim();
+        var type = registry.Registered(name)
+                   ?? (_routes.Authored().Routes.Any(e => e.ViewModel == name) ? registry.TypeByName(name) : null);
+        return type is not null && ActionGuard.ViewGatesSatisfied(type, ActionGuard.CurrentIdentity(), out _);
     }
 
     private static async IAsyncEnumerable<UIIncrementDto> Empty()

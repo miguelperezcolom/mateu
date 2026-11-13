@@ -28,10 +28,17 @@ public class PresenceOtherApp;
 [App("Plain desk")]
 public class PresenceOffApp;
 
+[UI("presence-orders")]
+public class PresenceOrderView
+{
+    public string Id { get; set; } = "";
+}
+
 [Collection(ProcessWideStateCollection.Name)]
 public class PresenceTests
 {
-    private const string View = "io.example.OrderView";
+    // a type the app exposes: an unknown view is no record (GA review S9)
+    private static readonly string View = typeof(PresenceOrderView).FullName!;
 
     // each test its own store: the default one is process-wide
     private readonly InMemoryPresenceStore _store = new();

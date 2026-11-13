@@ -39,6 +39,9 @@ internal static class ActionGuard
 
     internal static void SetIdentity(Func<Identity?>? source) => IdentitySource.Value = source;
 
+    /// <summary>The identity of the request being handled (null when anonymous).</summary>
+    internal static Identity? CurrentIdentity() => IdentitySource.Value?.Invoke();
+
     /// <summary>Whether the caller passes <paramref name="gate"/> — the same rule as the mapper
     /// (Java's Authorizer): AND across declared dimensions, OR within each; nothing declared →
     /// unrestricted; no identity → unauthorized.</summary>

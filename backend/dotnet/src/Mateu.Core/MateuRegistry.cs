@@ -153,6 +153,11 @@ internal sealed class MateuRegistry
         return null;
     }
 
+    /// <summary>The type registered under <paramref name="fullName"/> ([UI], [App] or an adapted
+    /// type) — by name only, never falling back to the root app the way <see cref="Resolve"/> does.</summary>
+    internal Type? Registered(string? fullName) =>
+        !string.IsNullOrEmpty(fullName) && _byName.TryGetValue(fullName, out var t) ? t : null;
+
     /// <summary>Resolves any type by full name across the scanned assemblies — used to instantiate a
     /// YAML page's declared <c>viewModel:</c> logic class, which need not carry [UI]/[App].</summary>
     public Type? TypeByName(string? fullName)
