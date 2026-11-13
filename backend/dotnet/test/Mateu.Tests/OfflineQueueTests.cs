@@ -322,6 +322,161 @@ public class OfflineQueueTests
         IdempotencyKeys.Clear();
     }
 
+    private static Func<Task<UIIncrementDto>> Counting(Action count, UIIncrementDto? answer = null) => () =>
+    {
+        count();
+        return Task.FromResult(answer ?? UIIncrementDto.Of());
+    };
+
+    [Fact]
+    public async Task A_finished_answer_is_replayed_until_its_ttl_expires()
+    {
+        IdempotencyKeys.Clear();
+        var previous = IdempotencyKeys.Ttl;
+        var runs = 0;
+        try
+        {
+            var first = await IdempotencyKeys.OnceAsync("u", "save", "key-0020-ttl0", Counting(() => runs++));
+            var replayed = await IdempotencyKeys.OnceAsync("u", "save", "key-0020-ttl0", Counting(() => runs++));
+            Assert.Same(first, replayed);
+            Assert.Equal(1, runs);
+            // past its TTL the answer is forgotten: the key runs again
+            IdempotencyKeys.Ttl = TimeSpan.Zero;
+            await Task.Delay(5);
+            await IdempotencyKeys.OnceAsync("u", "save", "key-0020-ttl0", Counting(() => runs++));
+            Assert.Equal(2, runs);
+        }
+        finally
+        {
+            IdempotencyKeys.Ttl = previous;
+            IdempotencyKeys.Clear();
+        }
+    }
+
+    [Fact]
+    public async Task A_checkpoint_past_the_ttl_runs_the_action_again()
+    {
+        IdempotencyKeys.Clear();
+        var previous = IdempotencyKeys.Ttl;
+        var runs = 0;
+        Task<UIIncrementDto> Guarded() => IdempotencyKeys.GuardedAsync("u", "save", "key-0021-ttl0", () =>
+        {
+            IdempotencyKeys.Checkpoint();
+            runs++;
+            return Task.FromResult(UIIncrementDto.Of());
+        });
+        try
+        {
+            await Guarded();
+            await Guarded();
+            Assert.Equal(1, runs);
+            IdempotencyKeys.Ttl = TimeSpan.Zero;
+            await Task.Delay(5);
+            await Guarded();
+            Assert.Equal(2, runs);
+        }
+        finally
+        {
+            IdempotencyKeys.Ttl = previous;
+            IdempotencyKeys.Clear();
+        }
+    }
+
+    [Fact]
+    public async Task A_failed_run_and_an_error_answer_are_forgotten()
+    {
+        IdempotencyKeys.Clear();
+        var runs = 0;
+        async Task<UIIncrementDto> Failing()
+        {
+            await Task.Yield();
+            runs++;
+            throw new InvalidOperationException("boom");
+        }
+        await Assert.ThrowsAsync<InvalidOperationException>(() => IdempotencyKeys.OnceAsync("u", "save", "key-0022-fail", Failing));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => IdempotencyKeys.OnceAsync("u", "save", "key-0022-fail", Failing));
+        Assert.Equal(2, runs);
+        Assert.Equal(0, IdempotencyKeys.InFlightCount);
+        // an answer carrying an error message (a refusal) is not remembered either
+        var refusal = UIIncrementDto.Of(messages: [new MessageDto("error", null, "Error", "Refused", 0)]);
+        await IdempotencyKeys.OnceAsync("u", "save", "key-0023-refd", Counting(() => runs++, refusal));
+        await IdempotencyKeys.OnceAsync("u", "save", "key-0023-refd", Counting(() => runs++, refusal));
+        Assert.Equal(4, runs);
+        IdempotencyKeys.Clear();
+    }
+
+    [Fact]
+    public async Task A_failed_guarded_run_fails_its_joiners_and_is_forgotten()
+    {
+        IdempotencyKeys.Clear();
+        var gate = new TaskCompletionSource();
+        var runs = 0;
+        Task<UIIncrementDto> Failing() => IdempotencyKeys.GuardedAsync("u", "save", "key-0024-join", async () =>
+        {
+            IdempotencyKeys.Checkpoint();
+            runs++;
+            await gate.Task;
+            throw new InvalidOperationException("boom");
+        });
+        var first = Failing();
+        // a repeat while the first is in flight joins it — and gets its failure
+        var joiner = IdempotencyKeys.GuardedAsync("u", "save", "key-0024-join", () =>
+        {
+            IdempotencyKeys.Checkpoint();
+            runs++;
+            return Task.FromResult(UIIncrementDto.Of());
+        });
+        gate.SetResult();
+        await Assert.ThrowsAsync<InvalidOperationException>(() => first);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => joiner);
+        Assert.Equal(1, runs);
+        Assert.Equal(0, IdempotencyKeys.InFlightCount);
+        IdempotencyKeys.Clear();
+    }
+
+    [Fact]
+    public async Task A_capability_listings_keyed_delete_and_restore_run_once()
+    {
+        // the capability writes claim the key at their checkpoint (AfterCheckpoint): a repeat of
+        // a keyed delete / restore answers from memory instead of deleting / restoring twice
+        IdempotencyKeys.Clear();
+        OfflineRestorableBooks.Deletes = 0;
+        OfflineRestorableBooks.Restores = 0;
+        var handler = new SyncHandler(new MateuRegistry(typeof(OfflineRestorableBooks).Assembly));
+        Task<UIIncrementDto> Send(string actionId, string key, Dictionary<string, object?> state,
+            Dictionary<string, object?>? parameters = null) =>
+            IdempotencyKeys.GuardedAsync("u", actionId, key, () => handler.HandleAsync(new RunActionRqDto
+            {
+                Route = "offline-restorable-books", ConsumedRoute = "offline-restorable-books", ActionId = actionId,
+                ServerSideType = typeof(OfflineRestorableBooks).FullName, InitiatorComponentId = "c1",
+                ComponentState = state, Parameters = parameters ?? new(),
+            }), view: typeof(OfflineRestorableBooks).FullName, route: "offline-restorable-books");
+        var selected = new Dictionary<string, object?>
+        {
+            ["crud_selected_items"] = JsonSerializer.SerializeToElement(new[] { new { id = "b1" } }),
+        };
+        var first = await Send("delete", "key-0025-dele", selected);
+        var again = await Send("delete", "key-0025-dele", selected);
+        Assert.Equal(1, OfflineRestorableBooks.Deletes);
+        Assert.Equal(first.Messages.Single().Text, again.Messages.Single().Text);
+        var restoreIds = new Dictionary<string, object?>
+        {
+            [IRestorable<string>.RestoreIds] = JsonSerializer.SerializeToElement(new[] { "b1" }),
+        };
+        await Send(IRestorable<string>.RestoreAction, "key-0026-rest", new(), restoreIds);
+        await Send(IRestorable<string>.RestoreAction, "key-0026-rest", new(), restoreIds);
+        Assert.Equal(1, OfflineRestorableBooks.Restores);
+        IdempotencyKeys.Clear();
+    }
+
+    [Fact]
+    public void The_view_normalisation_keeps_inner_slashes_and_case()
+    {
+        Assert.Equal("type=A.b\u0001route=Orders//7", IdempotencyKeys.ViewOf("\tA.b\n", "///Orders//7///"));
+        Assert.NotEqual(IdempotencyKeys.ViewOf("a.B", "orders"), IdempotencyKeys.ViewOf("a.b", "orders"));
+        Assert.Equal("type=\u0001route=", IdempotencyKeys.ViewOf("  ", " / "));
+    }
+
     [Fact]
     public void The_view_is_normalised_like_in_the_other_backends()
     {
@@ -371,6 +526,20 @@ public class OfflineTogglePart
 {
     [Id] public string Id { get; set; } = "";
     public string Name { get; set; } = "";
+}
+
+/// <summary>A capability listing that deletes and restores (counted), for the keyed-write tests.</summary>
+[UI("offline-restorable-books"), Title("Restorable Books")]
+public class OfflineRestorableBooks : IListing<CapBook>, IDeletable<string>, IRestorable<string>
+{
+    public static int Deletes;
+    public static int Restores;
+
+    public ListingData<CapBook> Search(SearchRequest request) => ListingData.From(CapBooks.All());
+
+    public void DeleteAllById(IReadOnlyList<string> selectedIds) => Interlocked.Increment(ref Deletes);
+
+    public void RestoreAllById(IReadOnlyList<string> deletedIds) => Interlocked.Increment(ref Restores);
 }
 
 /// <summary>A crud whose edit gate is app logic (a static switch), not the caller's identity.</summary>
