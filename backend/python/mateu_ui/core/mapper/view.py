@@ -359,6 +359,10 @@ class ViewMapperMixin(MixinBase):
                     actions = list(actions) + [Action(id=refresh, validation_required=False)]
         else:
             initial_data = self.form_initial_data(cls, instance)
+        # a field the YAML layout guarding this request hides from the caller: not sent
+        from ..yaml_access import without_yaml_hidden
+
+        initial_data = without_yaml_hidden(initial_data)
         # Proxy mode (RestOptions/rest_listing/rest_action/rest_data with proxy=True): advertise the
         # reserved __restfetch__ action so the renderer can route the fetch through the server (which
         # resolves the DECLARED source, injects ${secret.X} and fetches server-side).
