@@ -198,6 +198,9 @@ export class MateuKanban extends LitElement {
             color: var(--lumo-secondary-text-color, #666);
             border-radius: var(--lumo-border-radius-s, 4px);
             padding: .15rem .35rem;
+            /* WCAG 2.5.8: a 24px target at least (axe target-size, Explorer F5) */
+            min-width: 24px;
+            min-height: 24px;
             cursor: pointer;
         }
         .move:hover {

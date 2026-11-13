@@ -21,6 +21,7 @@ export function renderListBoxField(host: MateuField, value: FieldValue, label: F
             >
         <vaadin-list-box
                 id="${host.field.fieldId}"
+                aria-label="${host.field.label || host.field.fieldId}"
                 selected="${ifDefined(host.selectedIndex(value))}"
                 @selected-changed="${host.listItemSelected}"
                 ?autofocus="${host.field.wantsFocus}"
@@ -57,6 +58,7 @@ export function renderListBoxField(host: MateuField, value: FieldValue, label: F
         >
         <vaadin-list-box
                 id="${host.field.fieldId}"
+                aria-label="${host.field.label || host.field.fieldId}"
                 selected="${ifDefined(host.selectedIndex(value))}"
                 @selected-changed="${host.listItemSelected}"
                 ?autofocus="${host.field.wantsFocus}"
