@@ -323,3 +323,31 @@ def test_an_invalid_target_body_is_400():
         "X-Mateu-Upload-Ticket": ticket, "Content-Type": "application/json"})
     assert res.status_code == 400
     assert res.json() == {"error": "Bad request", "message": "The upload request is not valid JSON."}
+
+
+# ── GA review: Python minors ─────────────────────────────────────────────────────────────────
+
+
+def test_a_ticket_with_non_ascii_bytes_is_403_not_500():
+    assert Uploads([MemoryStorage()], secret="s").verify("abc.d\u00e9f", None) is None
+    client, _ = _app(MemoryStorage())
+    res = client.post("/mateu/v3/upload", content=b"x", headers={
+        "Content-Type": "application/pdf", "X-Mateu-File-Name": "a.pdf",
+        "X-Mateu-Upload-Ticket": "abc.d\u00e9f".encode("latin-1"),
+    })
+    assert res.status_code == 403
+
+
+def test_the_store_gets_a_bare_file_name():
+    from mateu_ui.core.uploads import file_name
+
+    assert file_name("../../etc/passwd") == "passwd"
+    assert file_name("C:\\Users\\ana\\x.pdf") == "x.pdf"
+    assert file_name("..") == "file" and file_name("") == "file" and file_name(None) == "file"
+    assert file_name("a\nb\u0007.pdf") == "ab.pdf"
+    store = MemoryStorage()
+    client, _ = _app(store)
+    ticket = _attributes(_form(client), "contract")["uploadTicket"]
+    assert _post(client, ticket, name="..%2F..%2Fcontract.pdf").status_code == 200
+    incoming, _ = store.files["f1"]
+    assert incoming.name == "contract.pdf"

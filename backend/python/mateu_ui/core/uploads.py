@@ -107,6 +107,18 @@ class Ticket:
     expires: int
 
 
+def file_name(name: str | None) -> str:
+    """The BARE name a store is handed: no directory part (``/`` or ``\\``), no control
+    characters, never ``.``/``..``/empty (``file`` then) — a store that writes by name must not be
+    steered out of its folder by a crafted header (Java's ``UploadEndpoint.fileName``)."""
+    if name is None or not name.strip():
+        return "file"
+    bare = name.replace("\\", "/")
+    bare = bare[bare.rfind("/") + 1:]
+    bare = "".join(c for c in bare if not (ord(c) < 0x20 or ord(c) == 0x7F)).strip()
+    return "file" if bare in ("", ".", "..") else bare
+
+
 class Uploads:
     """The registered stores + the ticket secret (one per SyncHandler)."""
 
@@ -159,7 +171,8 @@ class Uploads:
 
     def verify(self, ticket: str | None, identity, now: float | None = None) -> Ticket | None:
         """The ticket's claims when it is ours, intact, unexpired and the caller's; else None."""
-        if not ticket or ticket.count(".") != 1:
+        if not ticket or ticket.count(".") != 1 or not ticket.isascii():
+            # a header may carry any byte: a non-ASCII one is no ticket of ours (a 403, never a 500)
             return None
         payload_b64, signature = ticket.split(".")
         if not hmac.compare_digest(self._sign(payload_b64), signature):
