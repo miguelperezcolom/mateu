@@ -2,7 +2,8 @@
 // YAML-authored static UI runs with NO pre-rendering. Shapes taken from the server wire of the same
 // definitions (demo/demo-static-vcn/yaml served live): a `type: Form` lifts its content to children
 // and keeps title/subtitle/toolbar in metadata; a FormField's authored `id` is the wire `fieldId`; a
-// Button whose actionable is a RouteLink carries the route; a button with no id gets one from its label.
+// Button whose actionable is a RouteLink carries the route (and, with no id, gets one from its label);
+// a button with neither is inert.
 import { describe, expect, it } from 'vitest'
 import { expandComponent, expandButton, type FluentNode } from '@infra/expander/expandComponent'
 import { expandAppShell, expandDefinition } from '@infra/expander/expandDefinition'
@@ -36,7 +37,11 @@ describe('client-side expander — the record page', () => {
         expect(subnets).toMatchObject({ actionId: 'subnets', route: 'vcns/${state.id}/subnets' })
         expect(del).toMatchObject({ actionId: 'delete', color: 'error' })
         expect(del.route).toBeUndefined()
-        expect(expandButton({ type: 'Button', label: 'Virtual cloud networks' }).actionId).toBe('virtualCloudNetworks')
+        // a button with no actionId and no actionable is INERT: no action id (Java's
+        // YamlUidlMapperFactory.InertButton); a route button takes one from its label
+        expect(expandButton({ type: 'Button', label: 'Virtual cloud networks' })).not.toHaveProperty('actionId')
+        expect(expandButton({ type: 'Button', label: 'Virtual cloud networks', actionable: { type: 'RouteLink', route: 'vcns' } } as unknown as FluentNode).actionId)
+            .toBe('virtualCloudNetworks')
     })
 
     it('a screen with no behaviour is not wrapped', () => {

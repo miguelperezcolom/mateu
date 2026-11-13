@@ -14,17 +14,27 @@ const nodes = (value: unknown): FluentNode[] =>
 
 const filled = (value: unknown): value is string => typeof value === 'string' && value.trim() !== ''
 
-const image = (value: unknown): Node | null => {
-    if (!value || typeof value !== 'object') return null
-    const v = value as Node
-    return { src: v.src ?? null, initials: v.initials ?? null }
+/** The text a screen reader reads for a template's image: the declared `alt`, else the page's
+ *  title (the image is the record the page is about) — Java's `PageTemplates.altOf`. */
+export function altOf(image: Node, pageTitle: unknown): string | null {
+    if (filled(image.alt)) return image.alt
+    return filled(pageTitle) ? pageTitle : null
 }
 
-/** The template's own values, for the Form metadata; undefined for a free page or an unknown template. */
-export function templateMetadataOf(template: unknown): Node | undefined {
+const image = (value: unknown, pageTitle: unknown): Node | null => {
+    if (!value || typeof value !== 'object') return null
+    const v = value as Node
+    return { src: v.src ?? null, initials: v.initials ?? null, alt: altOf(v, pageTitle) }
+}
+
+/** The template's own values, for the Form metadata; undefined for a free page or an unknown
+ *  template. `pageTitle` is the form's title, the alt of a template image that declares none. */
+export function templateMetadataOf(template: unknown, pageTitle?: unknown): Node | undefined {
     const t = template as Node | undefined
     if (!t) return undefined
-    if (t.type === 'ItemOverviewPage') return { type: 'ItemOverviewPage', avatar: image(t.avatar), photo: image(t.photo) }
+    if (t.type === 'ItemOverviewPage') {
+        return { type: 'ItemOverviewPage', avatar: image(t.avatar, pageTitle), photo: image(t.photo, pageTitle) }
+    }
     if (t.type === 'WelcomePage') return { type: 'WelcomePage', avatar: null, photo: null }
     if (t.type === 'DashboardLandingPage') return { type: 'DashboardLandingPage', avatar: null, photo: null }
     if (t.type === 'GeneralOverviewPage') return { type: 'GeneralOverviewPage', avatar: null, photo: null }
@@ -52,7 +62,7 @@ export function ownsHeader(template: unknown): boolean {
 export function contentOf(template: unknown, content: unknown, form: Node = {}): unknown {
     const t = template as Node | undefined
     if (!t) return content
-    if (t.type === 'ItemOverviewPage') return [itemOverview(t, nodes(content))]
+    if (t.type === 'ItemOverviewPage') return [itemOverview(t, nodes(content), form.title)]
     if (t.type === 'WelcomePage') return banner('welcome', t, nodes(content), form)
     if (t.type === 'MultimediaContentPage') return banner('multimedia-banner', t, nodes(content), form)
     if (t.type === 'HeroSearchPage') return banner('hero-search', t, nodes(content), form)
@@ -97,24 +107,30 @@ function banner(id: string, t: Node, tiles: FluentNode[], form: Node): FluentNod
 const slot = (id: string, content: FluentNode[], style?: string): FluentNode =>
     ({ type: 'VerticalLayout', id, content, spacing: false, ...(style ? { style } : {}) }) as unknown as FluentNode
 
-function media(t: Node): FluentNode | null {
+function media(t: Node, pageTitle: unknown): FluentNode | null {
     const avatar = t.avatar as Node | undefined
     if (avatar && filled(avatar.src)) {
-        return { type: 'Image', src: avatar.src, style: 'width: 8rem; height: 8rem; border-radius: 50%; object-fit: cover' } as FluentNode
+        return {
+            type: 'Image', src: avatar.src, alt: altOf(avatar, pageTitle),
+            style: 'width: 8rem; height: 8rem; border-radius: 50%; object-fit: cover',
+        } as FluentNode
     }
     if (avatar && filled(avatar.initials)) {
         return { type: 'Avatar', abbreviation: avatar.initials, style: 'width: 8rem; height: 8rem' } as FluentNode
     }
     const photo = t.photo as Node | undefined
     if (photo && filled(photo.src)) {
-        return { type: 'Image', src: photo.src, style: 'width: 100%; aspect-ratio: 4 / 3; object-fit: cover' } as FluentNode
+        return {
+            type: 'Image', src: photo.src, alt: altOf(photo, pageTitle),
+            style: 'width: 100%; aspect-ratio: 4 / 3; object-fit: cover',
+        } as FluentNode
     }
     return null
 }
 
-function itemOverview(t: Node, main: FluentNode[]): FluentNode {
+function itemOverview(t: Node, main: FluentNode[], pageTitle: unknown): FluentNode {
     const panel: FluentNode[] = []
-    const m = media(t)
+    const m = media(t, pageTitle)
     if (m) panel.push(slot('item-overview-media', [m], 'width: 100%; align-items: center'))
     panel.push(slot('item-overview-body', nodes(t.body), 'width: 100%'))
     const footer = nodes(t.footer)
