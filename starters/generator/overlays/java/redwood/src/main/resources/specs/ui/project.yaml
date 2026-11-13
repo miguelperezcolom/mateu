@@ -1,5 +1,5 @@
 # Project settings: the renderer the visual editor's canvas and Play open in (and a static bundle
 # ships). A served app's renderer is still its Maven dependency; the server warns when they differ.
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.58/backend/shared/uidl/specs-schema.json
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.63/backend/shared/uidl/specs-schema.json
 type: Project
 renderer: redwood
