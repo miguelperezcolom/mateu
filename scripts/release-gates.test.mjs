@@ -181,7 +181,7 @@ for (const [workflow, idToken, attestations] of [
 }
 
 test('buid-and-publish.yml: only the upload jobs (and bump-examples) hold contents: write', () => {
-    const writers = ['bump-examples', 'redwood-embedded-attach', 'sbom-attach', 'checksums-attach', 'latest-hold', 'latest-mark']
+    const writers = ['bump-examples', 'redwood-embedded-attach', 'sbom-attach', 'checksums-attach', 'nuget-attach', 'latest-hold', 'latest-mark']
     for (const job of jobsOf('buid-and-publish.yml')) {
         const block = withoutComments(jobBlock('buid-and-publish.yml', job))
         // the reusable-workflow callers (desktop, mobile) pass contents: write down to their own
@@ -288,4 +288,24 @@ test('every pull request checks the committed bundles carry current third-party 
         ['visual-editor', 'frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/THIRD-PARTY-LICENSES.txt'],
     ]) assert.ok(lib.includes(`node scripts/third-party-notices.mjs ${bundle} --check ${file}`), file)
     assert.match(workflowText('run_tests.yml'), /node --test .*scripts\/release-gates\.test\.mjs scripts\/release-line\.test\.mjs/)
+})
+
+// GA review S6: the archetype's integration test (generate + package its sample projects) runs on
+// every pull request that touches the backend or the starters, not first after a release.
+test('the Examples workflow runs the archetype integration test against the reactor', () => {
+    const job = jobBlock('examples.yml', 'java-starters-and-demos')
+    const install = job.indexOf('Install the backend reactor')
+    const archetype = job.indexOf('mvn -B verify -Dgpg.skip=true -Darchetype.test.skip=false --file backend/mateu-archetype/pom.xml')
+    assert.ok(install >= 0 && archetype > install, 'the archetype IT runs after the reactor is installed')
+    assert.doesNotMatch(job.slice(archetype, job.indexOf('\n', archetype)), /maven\.test\.skip|skipTests/)
+})
+
+// GA review S4: nuget.org signs every package it accepts INSIDE the package, so its copy never has the
+// attested digest. The packages as built go onto the release, where the documented check works.
+test('the .nupkg files as built are attached to the release', () => {
+    assert.deepEqual(needsOf('buid-and-publish.yml', 'nuget-attach'), ['nuget-pack'])
+    assert.match(jobBlock('buid-and-publish.yml', 'nuget-attach'), /gh release upload "\$TAG" nupkgs\/\*\.nupkg/)
+    const doc = readFileSync(new URL('../doc/src/content/docs/reference/verify-downloads.md', import.meta.url), 'utf8')
+    assert.doesNotMatch(doc, /download the package\s+from nuget\.org first/)
+    assert.match(doc, /gh release download v3\.0\.0 --repo miguelperezcolom\/mateu --pattern 'Mateu\.\*\.nupkg'/)
 })

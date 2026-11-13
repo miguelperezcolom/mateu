@@ -64,6 +64,14 @@ jobs:
       - name: Install the backend reactor (0.0.1-MATEU)
         run: mvn -B -q install -Dmaven.test.skip -Dgpg.skip=true --file backend/pom.xml
 
+      # The Maven archetype is the third front door (the quickstart's `mvn archetype:generate`), and
+      # the reactor install above skips its integration test. Run it here, against this commit: it
+      # generates the sample projects (src/test/resources/projects — code, yaml, static, templates)
+      # with the plugin's own Groovy and packages each one. Without it the archetype was first
+      # exercised by release-smoke.yml, AFTER it was on Maven Central (GA review S6).
+      - name: Generate and package the archetype's sample projects
+        run: mvn -B verify -Dgpg.skip=true -Darchetype.test.skip=false --file backend/mateu-archetype/pom.xml
+
       # The starters and the "start here" demos pin the last release in <mateu.version>. A -D on
       # the command line is NOT enough: Quarkus' bootstrap resolver reads the pom's own property and
       # resolved the PUBLISHED release (silently testing yesterday's Mateu, and failing outright

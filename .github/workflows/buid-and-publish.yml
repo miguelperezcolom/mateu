@@ -572,6 +572,26 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  # The packed .nupkg files, exactly as built, onto the GitHub release: nuget.org adds its repository
+  # signature INSIDE every package it accepts (.signature.p7s), so the copy on nuget.org never has the
+  # attested SHA-256 — the release copy is the one `gh attestation verify` checks
+  # (doc reference/verify-downloads.md). No checkout, no build: only the upload.
+  nuget-attach:
+    needs: nuget-pack
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # gh release upload
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: nupkgs
+          path: nupkgs
+      - name: Attach the packages to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" nupkgs/*.nupkg --clobber --repo "$GITHUB_REPOSITORY"
+
   # After Maven Central too, like pypi.
   nuget:
     needs: [nuget-pack, all]

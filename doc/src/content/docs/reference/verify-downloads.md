@@ -13,7 +13,7 @@ one that workflow produced — what a security team usually asks before approvin
 |---|---|---|---|
 | Java jars, poms (`io.mateu:*`) | Maven Central | OpenPGP (`.asc` beside every file) | ✅ every jar |
 | Python package `mateu-ui` | PyPI | PEP 740 attestation (trusted publishing only) | ✅ sdist + wheel |
-| .NET packages `Mateu.*` | nuget.org | nuget.org repository signature | ✅ every `.nupkg` |
+| .NET packages `Mateu.*` | nuget.org (+ the packages as built, on the GitHub release) | nuget.org repository signature | ✅ every `.nupkg` as built (the GitHub release copy) |
 | IntelliJ plugin | JetBrains Marketplace, GitHub release | JetBrains Marketplace signature (+ author signature when configured) | ✅ |
 | VS Code extension | VS Code Marketplace, Open VSX | Marketplace signature | ✅ the `.vsix` |
 | Desktop app (macOS, Linux, Windows) | GitHub release | macOS: Developer ID + notarization (when configured, else ad-hoc); Windows: Authenticode (when configured) | ✅ |
@@ -114,9 +114,24 @@ dotnet nuget verify --all Mateu.Core.3.0.0.nupkg
 
 The packages carry no *author* signature: that needs a code-signing certificate from a public CA
 (NuGet accepts no self-signed one), which the project does not hold. The build provenance
-attestation covers the gap — it ties the `.nupkg` to this repository's release workflow:
-`gh attestation verify Mateu.Core.3.0.0.nupkg --repo miguelperezcolom/mateu` (download the package
-from nuget.org first: `https://www.nuget.org/api/v2/package/Mateu.Core/3.0.0`).
+attestation covers the gap — it ties the `.nupkg` to this repository's release workflow.
+
+The attestation is of the package **as built**, and nuget.org's repository signature is a file it
+adds *inside* the package (`.signature.p7s`), so the copy you download from nuget.org never has the
+attested SHA-256. Every release therefore carries the packages as built, as release assets: verify
+those, then check that nuget.org's copy has the same content apart from its signature.
+
+```bash
+gh release download v3.0.0 --repo miguelperezcolom/mateu --pattern 'Mateu.*.nupkg' --dir built
+gh attestation verify built/Mateu.Core.3.0.0.nupkg --repo miguelperezcolom/mateu
+
+curl -fsSL https://www.nuget.org/api/v2/package/Mateu.Core/3.0.0 -o Mateu.Core.3.0.0.nupkg
+mkdir a b && unzip -q built/Mateu.Core.3.0.0.nupkg -d a && unzip -q Mateu.Core.3.0.0.nupkg -d b
+diff -r -x .signature.p7s a b && echo "same content"
+```
+
+(The release assets exist from the first release built after November 2026; earlier releases have
+only nuget.org's signature.)
 
 ## The desktop app
 
