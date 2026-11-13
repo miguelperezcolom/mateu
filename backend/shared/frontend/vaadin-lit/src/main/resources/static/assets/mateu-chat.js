@@ -50,7 +50,7 @@ import{S as e,T as t,a as n,i as r,k as i,o as a,r as o,x as s}from"./vendor-lit
                                         <span class="message-name">${n.userName}</span>
                                         <span class="message-time">${n.time}</span>
                                     </div>
-                                    <mateu-markdown class="message-text" .content="${n.text??``}"></mateu-markdown>
+                                    <mateu-markdown class="message-text" no-remote-images .content="${n.text??``}"></mateu-markdown>
                                     ${n.deferred?.length?t`
                                         <div class="chat-deferred">
                                             ${n.deferred.map(e=>t`
