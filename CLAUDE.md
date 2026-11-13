@@ -102,11 +102,18 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             vector exists; upscaled with blur+threshold for clean edges)
                             OFFLINE SEND QUEUE (2026-11-11, @Experimental): `@Action(offline = QUEUE)` (fluent/YAML `offline`,
                             .NET `[ActionOptions(Offline)]`, Python `@action_options(offline=)`) → wire `ActionDto.offline: "queue"`.
-                            core/offlineQueue.ts (pure, tested) = per-UI queue in secretStore (keychain; CHUNKED — a SecureStore
+                            core/offlineQueue.ts (pure, tested) = a queue per UI AND OWNER (core/outboxOwner.ts: iss+sub+tenant of the
+                            id token / JWT access token, `anonymous` without sign-in; no identity → no queue) — owner re-checked before
+                            EACH send (`notOwner`), sends use `silentReauth` (never a sign-in browser; not repeated if the owner changed);
+                            sign-out SUSPENDS it (kept, hidden, uncounted) until the same iss+sub signs in. Stored GENERATIONALLY
+                            (`generations`: chunks under a new gen id → one pointer switch → older gen deleted; len+digest checked;
+                            bad current → previous = status `recovered`; none readable → `damaged`, NEVER empty, kept until the user
+                            discards it, nothing enqueued over it; writes serialized per key) in secretStore (keychain; CHUNKED — a SecureStore
                             value is ~2 KB; body only, never tokens), drained in order one at a time, stops at a refusal (stays at
                             the head until retried/cancelled); the FIRST attempt already carries the `Idempotency-Key` (a timed-out
                             save may have landed). Hosts: shell/OutboxHost.tsx (strip + list; drains on open/connectivity/foreground),
-                            hub badge hub/outboxCounts.ts, removal drops it. Only the UI's own session queues (a derived session's
+                            damaged/recovered strips in six languages (`outboxRecoveryTexts`), hub badge hub/outboxCounts.ts (the
+                            stored sign-in's owner only), removal drops every owner's queue. Only the UI's own session queues (a derived session's
                             `outbox` is null). Servers: `IdempotencyKeys` (Java infra/idempotency, wraps RunActionUseCase.handle;
                             .NET Mateu.Core + MapMateu; Python core/idempotency_keys.py + the FastAPI sync) — once per caller+action+key,
                             in-flight repeats join, failures/error answers forgotten, in memory (2000 / 24 h). Doc native/offline-forms.md
