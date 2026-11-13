@@ -132,6 +132,14 @@ dependencies {
     // the plugin rather than reaching into the platform's own SVG code, which is internal API the
     // plugin verifier refuses (and whose jsvg copy is a JetBrains fork, `-jb.N`).
     implementation("com.github.weisj:jsvg:2.0.0")
+    // Jackson (JsonNode/ObjectMapper: the whole wire model) — BUNDLED. 2025.2 exposed the platform's
+    // copy to every plugin (lib-client.jar); from 2026.x it is the content module
+    // intellij.libraries.jackson.databind, NOT embedded in the core classloader, so a plugin that does
+    // not declare it gets NoClassDefFoundError: com/fasterxml/jackson/databind/ObjectMapper (the
+    // 3.0-beta.64 desktop app on its 2026.3 base). Declaring that module would break the 2025.2 floor
+    // (no such module there), so the plugin carries its own: databind + core + annotations, nothing
+    // else, all from our jar — the platform never sees our Jackson objects.
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.22.2")
     testImplementation("junit:junit:4.13.2")
 }
 
@@ -501,6 +509,12 @@ fun desktopVmOptions(o: DesktopOptions, installerKey: String): List<String> = li
     // (any value = "updates managed by <value>") and switches its own platform update off. The value is
     // the name the Settings page shows.
     "-Dide.no.platform.update=${o.product}",
+    // 2026.x tracks where each plugin was installed from and, for one it cannot tell (ours: the
+    // launcher copies it into the plugins dir), shows a sticky "Cannot update plugin — Unable to identify
+    // where Mateu was installed from" on EVERY installed copy. The app updates Mateu itself
+    // (io.mateu.ijp.update) and IntelliJ's plugin updates are off (updates.xml), so the feature has
+    // nothing to do here: its registry switch, overridden as a system property (unknown key on 2025.2).
+    "-Dplatform.enable.plugin.update.source.feature=false",
 )
 
 /** Release asset names, shared by the installers and the update feed (keys = installerKey). */

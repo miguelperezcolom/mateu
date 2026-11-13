@@ -163,7 +163,16 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             deleteRecursively() returns). macOS RE-SIGN (2026-11-13): inside-out, entitlements kept
                             (installer/macos/sign-app.sh), NEVER `codesign --deep` — it skipped Contents/jbr and dropped the
                             launcher's entitlements, so 3.0-beta.64 died on "libjli.dylib … different Team IDs"; desktop.yml
-                            checks (scripts/macos-signature-check.sh) and launches the PUBLISHED zip + dmg. It is also the DESKTOP APP: `./gradlew buildInstaller` packages IntelliJ IDEA Open Source 2026.3 (JetBrains/intellij-community GitHub Release
+                            checks (scripts/macos-signature-check.sh) and launches the PUBLISHED zip + dmg.
+                            CLASSLOADER (2026-11-13): the plugin compiles against 2025.2 but the app runs 2026.3, where
+                            Jackson is a NON-embedded core content module (beta.64: NoClassDefFoundError ObjectMapper, no hub),
+                            JCEF a plugin (com.intellij.modules.jcef, optional <depends>) and DefaultDebugExecutor in
+                            intellij.platform.debugger (use debugExecutor() by id). Jackson is BUNDLED. A `<depends>` reaches a
+                            dependency plugin's content modules, NOT the core's non-embedded ones; the Plugin Verifier does not
+                            model this — scripts/intellij-class-visibility.mjs does (desktop.yml), MateuSelfCheck logs it at
+                            startup, and the smokes (desktop-log-check.mjs) require self-check OK + hub + MATEU_OPEN_LINK
+                            link + no "Plugin to blame: Mateu". -Dplatform.enable.plugin.update.source.feature=false stops
+                            2026.x's "Cannot update plugin — Unable to identify where Mateu was installed from". It is also the DESKTOP APP: `./gradlew buildInstaller` packages IntelliJ IDEA Open Source 2026.3 (JetBrains/intellij-community GitHub Release
                             assets, pinned sha256 = `desktopIdeVersion`; the plugin still compiles against IC 2025.2) +
                             the plugin as an installable, self-updating app (hub | fixed variants, mateu://
                             links) — doc native/desktop-app.md, CI .github/workflows/desktop.yml

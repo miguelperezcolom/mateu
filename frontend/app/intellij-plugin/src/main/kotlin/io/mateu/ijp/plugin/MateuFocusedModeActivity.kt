@@ -23,6 +23,8 @@ import kotlinx.coroutines.withContext
 class MateuFocusedModeActivity : ProjectActivity {
 
     override suspend fun execute(project: Project) {
+        // First, before anything that needs a library: can the plugin reach them all? (one log line)
+        MateuSelfCheck.runOnce()
         val cfg = loadMateuConfig(project)
         val focused = cfg.focused
         // Not a Mateu project (no backend configured, not the standalone distribution): stay out of

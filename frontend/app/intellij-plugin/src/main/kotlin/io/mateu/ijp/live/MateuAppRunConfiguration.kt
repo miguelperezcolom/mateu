@@ -13,7 +13,6 @@ import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
 import com.intellij.execution.configurations.RuntimeConfigurationError
-import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.process.KillableColoredProcessHandler
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessTerminatedListener
@@ -111,7 +110,7 @@ class MateuAppRunConfiguration(project: Project, factory: ConfigurationFactory, 
     override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
         val plan = plan() ?: throw ExecutionException("No pom.xml or build.gradle found under ${project.basePath}: nothing to run.")
         target.unsupportedReason(plan.framework)?.let { throw ExecutionException(it) }
-        return MateuAppState(environment, plan, target, debug = executor.id == DefaultDebugExecutor.EXECUTOR_ID)
+        return MateuAppState(environment, plan, target, debug = executor.id == DEBUG_EXECUTOR_ID)
     }
 }
 
@@ -143,7 +142,7 @@ class MateuAppDebugRunner : GenericProgramRunner<RunnerSettings>() {
     override fun getRunnerId(): String = "MateuAppDebugRunner"
 
     override fun canRun(executorId: String, profile: RunProfile): Boolean =
-        executorId == DefaultDebugExecutor.EXECUTOR_ID && profile is MateuAppRunConfiguration
+        executorId == DEBUG_EXECUTOR_ID && profile is MateuAppRunConfiguration
 
     override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
         FileDocumentManager.getInstance().saveAllDocuments()
@@ -178,3 +177,14 @@ class MateuAppSettingsEditor : SettingsEditor<MateuAppRunConfiguration>() {
         .addLabeledComponent("Module directory:", moduleField)
         .panel
 }
+
+/**
+ * The platform's Debug executor, by its id (DefaultDebugExecutor.EXECUTOR_ID). Never the class: 2026.x
+ * moved DefaultDebugExecutor into the core module intellij.platform.debugger, which is NOT embedded in
+ * the core classloader, so a `<depends>` plugin naming it gets NoClassDefFoundError there (the way
+ * Jackson broke 3.0-beta.64) — and declaring that module would not load on the 2025.2 floor.
+ */
+const val DEBUG_EXECUTOR_ID = "Debug"
+
+fun debugExecutor(): com.intellij.execution.Executor =
+    checkNotNull(com.intellij.execution.ExecutorRegistry.getInstance().getExecutorById(DEBUG_EXECUTOR_ID)) { "no Debug executor in this IDE" }

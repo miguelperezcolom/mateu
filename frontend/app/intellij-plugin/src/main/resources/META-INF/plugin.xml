@@ -37,6 +37,10 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
     <depends>com.intellij.modules.java</depends>
     <depends>org.jetbrains.plugins.yaml</depends>
     <depends>com.intellij.modules.json</depends>
+    <!-- JCEF (the visual editor) is a plugin of its own from 2026.x (Web Browser (JCEF),
+         id com.intellij.modules.jcef); before, it was core. OPTIONAL so 2025.2, which has no such
+         plugin, still loads; where it exists it joins this plugin's classloader. -->
+    <depends optional="true" config-file="mateu-jcef.xml">com.intellij.modules.jcef</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Visual-builder binding validation: squiggles when a YAML page's FormField id / Button

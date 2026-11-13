@@ -209,6 +209,28 @@ test('the macOS re-sign is inside-out with the entitlements kept, never --deep',
     assert.doesNotMatch(sign.replace(/codesign --verify --deep --strict/g, ''), /--deep/, 'no --deep signing')
 })
 
+// 3.0-beta.64's plugin LOADED on the 2026.3 base and the hub never came up (Jackson out of the core
+// classloader). "The plugin loaded" is no smoke test: every OS checks the hub, a link and Mateu's errors.
+test('every desktop smoke test checks the hub, a mateu:// link and Mateu\'s errors, not only "the plugin loaded"', () => {
+    const smoke = withoutShellComments(repoText('scripts/desktop-smoke.sh'))
+    assert.match(smoke, /export MATEU_OPEN_LINK='mateu:\/\/add\?u=/)
+    assert.match(smoke, /node "\$here\/desktop-log-check\.mjs" "\$log" --hub --link/)
+    const windows = withoutComments(jobBlock('desktop.yml', 'smoke-windows'))
+    assert.match(windows, /MATEU_OPEN_LINK: mateu:\/\/add\?u=/)
+    assert.match(windows, /node scripts\/desktop-log-check\.mjs \$log --hub --link/)
+    assert.match(windows, /sparse-checkout: scripts/)
+})
+
+test('desktop.yml checks the plugin\'s class visibility on the IDE base it ships with (macOS and Linux)', () => {
+    assert.match(withoutComments(jobBlock('desktop.yml', 'macos')), /node scripts\/intellij-class-visibility\.mjs "\$PUBLISHED_ZIP_APP\/Contents"/)
+    assert.match(withoutComments(jobBlock('desktop.yml', 'linux-windows')), /node scripts\/intellij-class-visibility\.mjs "\$root"/)
+    const gradle = repoText('frontend/app/intellij-plugin/build.gradle.kts')
+    assert.match(gradle, /implementation\("com\.fasterxml\.jackson\.core:jackson-databind:/, 'Jackson is bundled (not on the 2026.x core classloader)')
+    assert.match(gradle, /-Dplatform\.enable\.plugin\.update\.source\.feature=false/, 'no "Cannot update plugin" balloon in the app')
+    const pluginXml = repoText('frontend/app/intellij-plugin/src/main/resources/META-INF/plugin.xml')
+    assert.match(pluginXml, /<depends optional="true" config-file="mateu-jcef\.xml">com\.intellij\.modules\.jcef<\/depends>/)
+})
+
 test('the macOS signature check refuses mixed Team IDs and a hardened JVM without its entitlements', () => {
     const check = withoutShellComments(repoText('scripts/macos-signature-check.sh'))
     assert.match(check, /not signed with the app's Team ID/)
