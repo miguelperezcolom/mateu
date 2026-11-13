@@ -75,19 +75,37 @@ The Java, .NET and Python servers honour it on the sync endpoint:
 - A request with a key runs **once per caller, action and key**. A repeat of the same key gets the
   **first answer back** and the action does **not** run again; a repeat arriving while the first run
   is still in flight waits for it and gets its answer.
-- The **caller** is the identity your app authenticated (name and every grant, hashed) — one user's
-  key never answers another user's request. The **action id** is part of the scope too.
+- The **caller** is the SAME identity your access checks read — Java's `IdentityResolver` (a
+  `PrincipalResolver` bean or the framework's principal), .NET's `MateuOptions.Identity`, Python's
+  `identity_provider` — taken whole: name, roles, groups, scopes and permissions, sorted and hashed.
+  One user's key never answers another user's request, and a caller whose grants changed (a
+  permission revoked) is not served the answer remembered for the old ones: the request runs again
+  and meets the action's checks. The **action id** is part of the scope too. On .NET, a custom
+  `MateuOptions.Identity` that does not read `HttpContext.User` should set `Identity.Name`, or two
+  users with the same grants look alike.
+- Java consults the keys only after the request-level checks (exposed type, YAML route/action
+  access), so a refused request is never answered from memory.
 - A run that **fails** — an exception, or an answer carrying an error message (a refusal, the error
   boundary's) — is **forgotten**, so the same key can be sent again once the problem is fixed.
 - A key is 8–128 url-safe characters (`[A-Za-z0-9_\-:.]`); anything else is ignored (the request runs
   as if it had none). The app sends a v4 UUID.
-- Keys are remembered **in memory, per process**: at most 2000 answers (least recently used first
-  out) for 24 hours. Tune with `mateu.idempotency.max-entries` / `mateu.idempotency.ttl-seconds`
-  (Java), `MATEU_IDEMPOTENCY_MAX_ENTRIES` / `MATEU_IDEMPOTENCY_TTL_SECONDS` (.NET, Python).
+- Keys are remembered **in memory, per process** — lost on a restart — in two tables:
+  - **runs in flight** are never evicted (dropping one would let a retry start a second run while the
+    first is still working). When 2000 keyed runs are already in flight, a request with a NEW key is
+    **refused** with the error *"Too many pending requests — The server is still processing too many
+    requests. Try again in a moment."* The app keeps the item queued and sends it again later; a
+    repeat of a key already in flight always joins its run.
+  - **finished answers**: at most 2000 (least recently used first out), each for 24 hours. After that
+    the key is forgotten and a repeat would run again.
+
+  Tune both with `mateu.idempotency.max-entries` / `mateu.idempotency.ttl-seconds` (Java),
+  `MATEU_IDEMPOTENCY_MAX_ENTRIES` / `MATEU_IDEMPOTENCY_TTL_SECONDS` (.NET, Python).
 
 :::note[Several instances]
-The memory is per process. Behind a load balancer, the retries of one device must reach the same
-instance (sticky sessions) for the guarantee to hold across instances. If your write is naturally
+The memory is per process: it does not survive a restart and is not shared. Behind a load balancer,
+the retries of one device must reach the same instance (sticky sessions) for the guarantee to hold
+across instances; a retry that lands after a restart, on another instance or after the 24 hours runs
+the action again. This is a best-effort guard, not a persistent exactly-once guarantee. If your write is naturally
 idempotent (an upsert by a client-generated id), you can also read the header yourself
 (`HttpRequest.getHeaderValue("Idempotency-Key")`) and deduplicate in your own store.
 :::

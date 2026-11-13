@@ -107,9 +107,14 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             the head until retried/cancelled); the FIRST attempt already carries the `Idempotency-Key` (a timed-out
                             save may have landed). Hosts: shell/OutboxHost.tsx (strip + list; drains on open/connectivity/foreground),
                             hub badge hub/outboxCounts.ts, removal drops it. Only the UI's own session queues (a derived session's
-                            `outbox` is null). Servers: `IdempotencyKeys` (Java infra/idempotency, wraps RunActionUseCase.handle;
-                            .NET Mateu.Core + MapMateu; Python core/idempotency_keys.py + the FastAPI sync) — once per caller+action+key,
-                            in-flight repeats join, failures/error answers forgotten, in memory (2000 / 24 h). Doc native/offline-forms.md
+                            `outbox` is null). Servers: `IdempotencyKeys` (Java infra/idempotency, called in RunActionUseCase AFTER the
+                            wire-type + YAML access checks; .NET Mateu.Core + MapMateu; Python core/idempotency_keys.py + the FastAPI sync) —
+                            once per caller+action+key; caller = the SAME identity access checks read (Java IdentityResolver, .NET
+                            MateuOptions.Identity + `Identity.Name`, Python identity_provider), canonical + COMPLETE (name, roles, groups,
+                            scopes, permissions sorted). Two tables: IN-FLIGHT runs are never evicted (in-flight repeats join; full →
+                            NEW key refused, UserFacingException "Too many pending requests"), FINISHED answers LRU + TTL (2000 / 24 h);
+                            settled by entry identity (compare-and-remove); failures/error answers forgotten; in memory, per process.
+                            Tests OfflineQueueSyncTest/IdempotencyKeysTest, OfflineQueueTests.cs, test_offline_queue.py. Doc native/offline-forms.md
                             BOARDS DRAG (2026-11-05, src/renderer/KanbanRenderer.tsx): long press lifts a card, edge
                             auto-scroll, geometry pure in core/kanban.ts; each column scrolls on its own and the board
                             fills the rest of the screen. Press feedback: src/ui/Touchable.tsx (ripple on Android) is
