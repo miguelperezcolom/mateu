@@ -7,8 +7,12 @@ import { withoutResolvedMicroFrontends } from './resolvedMicroFrontends'
 // always come fresh from the server, so no stale business data is ever shown, and a structure
 // that has drifted (permissions, a new deploy) self-corrects within one navigation.
 //
-// Mirrors the localStorage shape of recentRoutesStore.ts / columnPrefsStore.ts: one JSON
-// object per origin under a single key, best-effort (any storage failure degrades to no cache).
+// One JSON object under a single key in SESSION storage (W-2), best-effort (any storage failure
+// degrades to no cache). Not localStorage: a composed page (a Dashboard's MetricCards, an
+// EntityHeader, the shell's per-caller menu) carries its values in the STRUCTURE, which therefore
+// cannot be told apart from them — kept in localStorage they stayed on the machine after sign-out
+// and were painted first for the next user of the browser. Session storage dies with the tab, and
+// the cache is also wiped on a 401 (sessionGuard), an idle sign-out and an auth-token change.
 
 import type Component from "@mateu/shared/apiClients/dtos/Component";
 
@@ -54,9 +58,12 @@ let enabled = (() => {
 export const setStructureCacheEnabled = (on: boolean): void => { enabled = on }
 export const isStructureCacheEnabled = (): boolean => enabled
 
+// what older releases left in localStorage (values of composed pages included) goes
+try { localStorage.removeItem(KEY) } catch { /* unavailable */ }
+
 const readAll = (): Store => {
     try {
-        return JSON.parse(localStorage.getItem(KEY) ?? '{}') as Store
+        return JSON.parse(sessionStorage.getItem(KEY) ?? '{}') as Store
     } catch {
         return {}
     }
@@ -64,7 +71,7 @@ const readAll = (): Store => {
 
 const writeAll = (store: Store): void => {
     try {
-        localStorage.setItem(KEY, JSON.stringify(store))
+        sessionStorage.setItem(KEY, JSON.stringify(store))
     } catch {
         // Quota exceeded / unavailable: drop the older half and try once more, else give up —
         // the cache is a best-effort accelerator, never load-bearing.
@@ -72,7 +79,7 @@ const writeAll = (store: Store): void => {
             const trimmed = Object.entries(store)
                 .sort((a, b) => b[1].t - a[1].t)
                 .slice(0, Math.floor(MAX_ENTRIES / 2))
-            localStorage.setItem(KEY, JSON.stringify(Object.fromEntries(trimmed)))
+            sessionStorage.setItem(KEY, JSON.stringify(Object.fromEntries(trimmed)))
         } catch {
             // no cache this time
         }
@@ -171,6 +178,7 @@ export const putCachedStructure = (key: string, component: Component, hash?: str
 export const clearStructureCache = (): void => {
     inMemory.clear()
     try {
+        sessionStorage.removeItem(KEY)
         localStorage.removeItem(KEY)
     } catch {
         // ignore

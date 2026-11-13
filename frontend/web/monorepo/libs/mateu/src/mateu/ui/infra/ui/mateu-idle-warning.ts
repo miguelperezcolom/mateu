@@ -6,6 +6,7 @@ import { announce } from '@infra/a11y/announcer.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
 import { safeLocalStorage } from '@infra/safeStorage.ts'
+import { clearStructureCache } from '@infra/routeStructureCache.ts'
 import { resolveSafeUrl } from '@infra/ui/safeNavigate.ts'
 import {
     ACTIVITY_EVENTS, ACTIVITY_KEY, idlePhase, latestActivity, recordActivity, SIGN_OUT_KEY,
@@ -111,6 +112,8 @@ export class MateuIdleWarning extends LitElement {
         // is another origin's (an identity provider's logout); anything else signs out to '/'
         const declared = this.app?.idleSession?.signOutUrl || '/'
         const url = resolveSafeUrl(declared) ? declared : '/'
+        // what this session's screens showed does not outlive it (W-2)
+        clearStructureCache()
         const event = new CustomEvent('mateu-idle-sign-out', { detail: { url }, cancelable: true })
         if (!document.dispatchEvent(event)) return
         window.location.assign(url)
