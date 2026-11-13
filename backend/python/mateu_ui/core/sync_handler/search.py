@@ -125,7 +125,7 @@ class SearchHandlerMixin(MixinBase):
         filters_type, row_type = listing_types(type(view)) or (None, None)
         request = self.build_search_request(view, filters_type, rq)
         found = self._invoke(view.search, request, rq)
-        props = view_fields(row_type) if row_type is not None else []
+        props = self.row_props(row_type) if row_type is not None else []
         supplied_groups = None
         if isinstance(found, ListingData):
             if found.groups is not None:
@@ -226,10 +226,11 @@ class SearchHandlerMixin(MixinBase):
         """Sorts (Pageable.sort), paginates and serializes rows into the standard listing data
         fragment — shared by crud and declarative-listing searches."""
         state = rq.component_state or {}
-        prop_by_camel = {camel_case(p.name): p.name for p in props}
+        prop_by_camel = {**{p.name: p.name for p in props}, **{camel_case(p.name): p.name for p in props}}
         for spec in reversed(state.get("sort") or []):
             key = spec.get("fieldId") or spec.get("field") or ""
-            field = prop_by_camel.get(key, key)
+            # only a row field the caller may see: sorting by a hidden one leaks its order
+            field = prop_by_camel.get(key)
             if not field:
                 continue
             reverse = spec.get("direction", "ascending") == "descending"
@@ -254,14 +255,21 @@ class SearchHandlerMixin(MixinBase):
             child_type = ReflectionMapper.grid_row_type(p)
             value = getattr(item, p.name, None)
             if child_type is not None:
-                child_props = view_fields(child_type)
+                child_props = self.row_props(child_type)
                 row[camel_case(p.name)] = [self._row_dict(c, child_props) for c in (value or [])]
             else:
                 row[camel_case(p.name)] = self.cell_value(_mapped_value(p, value))
         return row
 
+    def row_props(self, row_type) -> list:
+        """The fields of a listing row the CALLER may see — ONE filter for the row cells (tree
+        children too), the sort and filter keys, the summaries and the exports: an ``EyesOnly``
+        field the caller does not satisfy, or one the ``Audience`` projects out, is never a value
+        of the row data (the column was already dropped; the value still travelled)."""
+        return [p for p in view_fields(row_type) if self.mapper._permitted(p)]
+
     def crud_search(self, crud, element, rq: RunActionRq) -> UIIncrement:
-        props = view_fields(element)
+        props = self.row_props(element)
         state = rq.component_state or {}
         spec = self._summary_spec(props)
         # The GroupBy() column is the implicit primary sort, so rows of the same group stay
@@ -315,9 +323,10 @@ class SearchHandlerMixin(MixinBase):
         items = self._filtered_rows(crud, props, rq)
         # sort — Pageable.sort is a list of {field, direction:'ascending'|'descending'}; the field
         # is the camelCased column, mapped back to the item attribute.
-        prop_by_camel = {camel_case(p.name): p.name for p in props}
+        prop_by_camel = {**{p.name: p.name for p in props}, **{camel_case(p.name): p.name for p in props}}
         for sort_spec in reversed(sort):
-            field = prop_by_camel.get(sort_spec.get("field", ""), sort_spec.get("field", ""))
+            # only a row field the caller may see: sorting by a hidden one leaks its order
+            field = prop_by_camel.get(sort_spec.get("field", ""))
             if not field:
                 continue
             reverse = sort_spec.get("direction", "ascending") == "descending"
