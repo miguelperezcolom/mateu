@@ -130,10 +130,30 @@ export class MateuApiClient {
    * ARRIVES — the progress dialog moves while the task runs, as on the web. Same body as a sync call.
    */
   async runActionStream(params: RunActionParams, onIncrement: (increment: unknown) => void, signal?: AbortSignal): Promise<void> {
+    // the same hybrid rule as runAction: a static bundle answers the LOADS; an ACTION goes on to the
+    // server behind it (a hybrid deployment proxies /mateu/** to a backend), and only a host with
+    // nothing at /mateu (404/405, no answer) ends in "This UI has no server"
     if (this.local) {
-      onIncrement(this.local.answer(params));
+      if (!params.actionId) {
+        onIncrement(this.local.answer(params));
+        return;
+      }
+      let delivered = false;
+      try {
+        await this.streamAction(params, (increment) => {
+          delivered = true;
+          onIncrement(increment);
+        }, signal);
+      } catch (e) {
+        if (delivered || e instanceof StaleScreenError || signal?.aborted || !isNoServer(e)) throw e;
+        onIncrement(this.local.answer(params)); // throws "This UI has no server: …"
+      }
       return;
     }
+    await this.streamAction(params, onIncrement, signal);
+  }
+
+  private async streamAction(params: RunActionParams, onIncrement: (increment: unknown) => void, signal?: AbortSignal): Promise<void> {
     const { urlSegment, payload } = this.requestOf(params);
     const url = `${this.baseUrl}/mateu/v3/sse/${urlSegment}`;
     devLog('[Mateu] --> POST (stream)', url);
