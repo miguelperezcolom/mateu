@@ -20,11 +20,10 @@ description: |
   the Java remote). Reload — you are still on `/fed/inventory/stock`. Open `/fed/orders/order/o-2`
   directly.
 
-  > **Known issue (3.0-beta.51):** A fresh deep link or a reload of a remote screen is loaded from the SHELL with the remote app's
-  > type and answers 403 (reaching it from the menu works); a leaf of a YAML-only remote is sent
-  > with the shell's type, and the remote answers 403. Reported.
+  > **Known issue (3.0-beta.64):** a leaf of the YAML-only remote (*Orders*) is sent with the
+  > shell's type, and the remote answers 403 — the page stays on "Loading…". Reported.
 knownIssue: >-
-  3.0-beta.51: a fresh deep link / reload of a remote screen (/fed/stock) is loaded from the shell with the remote app's serverSideType (403; clicking the menu works), and a leaf of a YAML-only remote is sent with the shell's serverSideType (the remote answers 403).
+  3.0-beta.64: a leaf of a YAML-only remote (no serverSideType) is sent with the shell's serverSideType and the remote answers 403.
 examples:
   - title: The console and three deep links
     java: io.mateu.explorer.examples.distributed.remotemenu.RemoteMenuLinks

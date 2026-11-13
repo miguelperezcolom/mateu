@@ -124,6 +124,7 @@ def texts(inc) -> list[str]:
 # ── Wizard: drafts, skip, early completion, before-step hook, display ──────────────────────
 DRAFTS: list[str] = []
 RESUME_ON: list[int | None] = [None]
+CLOSE_WITH: list = ["/home"]
 
 
 @ui("/draft-wizard")
@@ -139,7 +140,7 @@ class DraftWizard(Wizard, Draftable):
         return None
 
     def close_draft(self):
-        return "/home"
+        return CLOSE_WITH[0]
 
     def resume_step(self):
         return RESUME_ON[0]
@@ -171,6 +172,7 @@ class LockedWizard(DraftWizard):
 def _wizard_reset():
     DRAFTS.clear()
     RESUME_ON[0] = None
+    CLOSE_WITH[0] = "/home"
 
 
 def test_a_draftable_wizard_offers_save_and_save_and_close():
@@ -196,6 +198,30 @@ def test_save_and_close_saves_then_leaves_the_flow():
     assert "MarkAsClean" in types
     nav = next(c for c in inc.commands if c.type == "NavigateTo")
     assert nav.data == "/home"
+
+
+def test_a_message_returned_by_close_draft_is_shown_not_turned_into_a_url():
+    _wizard_reset()
+    CLOSE_WITH[0] = Message("Saved, see you later")
+    inc = run(DraftWizard, "/draft-wizard", "saveAndClose", {"__step": 1, "email": "ada@x.test"})
+    assert [m.text for m in inc.messages] == ["Saved, see you later"]
+    assert [c.data for c in inc.commands if c.type == "NavigateTo"] == ["/"]
+
+
+def test_none_from_close_draft_lands_on_the_root():
+    _wizard_reset()
+    CLOSE_WITH[0] = None
+    inc = run(DraftWizard, "/draft-wizard", "saveAndClose", {"__step": 1, "email": "ada@x.test"})
+    assert [c.data for c in inc.commands if c.type == "NavigateTo"] == ["/"]
+
+
+def test_a_command_returned_by_close_draft_is_applied_as_is():
+    _wizard_reset()
+    CLOSE_WITH[0] = UICommand(target_component_id="ux_main", type="CloseModal", data=None)
+    inc = run(DraftWizard, "/draft-wizard", "saveAndClose", {"__step": 1, "email": "ada@x.test"})
+    types = [c.type for c in inc.commands]
+    assert "CloseModal" in types
+    assert "NavigateTo" not in types
 
 
 def test_a_draftable_wizard_resumes_on_the_step_the_user_left():

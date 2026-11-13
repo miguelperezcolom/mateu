@@ -9,13 +9,8 @@ description: |
   painted from the fetched row, the record is a real URL: addressable, shareable, it survives a
   reload and Back returns to the list.
 
-  Known gap (3.0-beta.51): `@RowRoute` is read only on a listing served as a CRUD — a `Crud` or a
-  capability listing (`Navigable`, as here); on a bare `Listing` it is ignored.
-
   Try it: open the listing on its own, click the *Suite* row — the URL becomes
   `…/rooms/305` and the record shows *Cleaning*; press the browser's Back.
-knownIssue: >-
-  3.0-beta.51: @RowRoute is read only on a listing served as a CRUD; on a bare Listing it is ignored.
 examples:
   - title: Rooms
     route: x/behaviour/row-route/rooms

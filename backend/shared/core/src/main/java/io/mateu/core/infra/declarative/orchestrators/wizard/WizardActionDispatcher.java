@@ -108,15 +108,11 @@ final class WizardActionDispatcher {
             ? saved
             : Message.success(Wizard.translate("Draft saved", httpRequest));
       }
-      var close = draftable.closeDraft(httpRequest);
-      return java.util.List.of(
+      return closingAnswer(
           saved instanceof Message message
               ? message
               : Message.success(Wizard.translate("Draft saved", httpRequest)),
-          io.mateu.uidl.data.UICommand.markAsClean(),
-          close instanceof io.mateu.uidl.data.UICommand command
-              ? command
-              : io.mateu.uidl.data.UICommand.navigateTo(close != null ? close.toString() : "/"));
+          draftable.closeDraft(httpRequest));
     }
     if ("back".equals(actionId)) {
       var previous = wizard.previousApplicable(wizard.position);
@@ -331,4 +327,27 @@ final class WizardActionDispatcher {
   }
 
   private WizardActionDispatcher() {}
+
+  /**
+   * The answer of "Save and close": the page is marked clean, then {@code close} (what {@link
+   * Draftable#closeDraft} returned) decides the rest. Only a route ({@code URI} / {@code String})
+   * navigates; null lands on {@code "/"}; a {@code Message} is shown INSTEAD of the default toast
+   * and the default landing applies; a {@code UICommand} or anything else (a fragment, a component,
+   * a list of them) is applied as such — it is never turned into a URL.
+   */
+  static Object closingAnswer(Message defaultToast, Object close) {
+    var answer = new java.util.ArrayList<Object>();
+    answer.add(close instanceof Message message ? message : defaultToast);
+    answer.add(io.mateu.uidl.data.UICommand.markAsClean());
+    if (close == null || close instanceof Message) {
+      answer.add(io.mateu.uidl.data.UICommand.navigateTo("/"));
+    } else if (close instanceof java.net.URI || close instanceof CharSequence) {
+      answer.add(io.mateu.uidl.data.UICommand.navigateTo(close.toString()));
+    } else if (close instanceof java.util.Collection<?> items) {
+      answer.addAll(items);
+    } else {
+      answer.add(close);
+    }
+    return answer;
+  }
 }

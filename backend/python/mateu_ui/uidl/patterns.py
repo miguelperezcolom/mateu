@@ -113,8 +113,9 @@ class Draftable:
 
     - :meth:`save_draft` persists what has been captured so far — the state is bound but NEVER
       validated. Its return value is the response (None → a "Draft saved" toast).
-    - :meth:`close_draft` is where "Save and close" lands after saving (a route string or a
-      ``UICommand``; None → ``"/"``).
+    - :meth:`close_draft` is where "Save and close" lands after saving: a route string navigates
+      there; None lands on ``"/"``; a ``Message`` replaces the "Draft saved" toast (then ``"/"``);
+      a ``UICommand`` or any other answer is applied as such.
     - :meth:`resume_step` names the step NUMBER (1-based) a freshly opened wizard resumes on, or
       None to start at the beginning."""
 

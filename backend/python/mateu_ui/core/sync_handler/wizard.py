@@ -163,21 +163,31 @@ class WizardHandlerMixin(MixinBase):
             return self.map_result(
                 saved if saved is not None else Message(self.mapper.T("Draft saved")), rq
             )
-        close = wizard.close_draft()
-        target = self.target(rq)
+        default_toast = saved if isinstance(saved, Message) else Message(self.mapper.T("Draft saved"))
         return self.map_result(
-            [
-                saved if isinstance(saved, Message) else Message(self.mapper.T("Draft saved")),
-                UICommand(target_component_id=target, type="MarkAsClean", data=None),
-                close
-                if isinstance(close, UICommand)
-                else UICommand(
-                    target_component_id=target, type="NavigateTo",
-                    data=str(close) if close is not None else "/",
-                ),
-            ],
-            rq,
+            self._closing_answer(default_toast, wizard.close_draft(), self.target(rq)), rq
         )
+
+    @staticmethod
+    def _closing_answer(default_toast: Message, close, target: str) -> list:
+        """The answer of "Save and close" (mirrors Java's WizardActionDispatcher.closingAnswer):
+        the page is marked clean, then what close_draft returned decides the rest. Only a route
+        (a str) navigates; None lands on "/"; a Message is shown INSTEAD of the default toast and
+        the default landing applies; a UICommand or anything else is applied as such — it is
+        never turned into a URL."""
+        answer: list = [
+            close if isinstance(close, Message) else default_toast,
+            UICommand(target_component_id=target, type="MarkAsClean", data=None),
+        ]
+        if close is None or isinstance(close, Message):
+            answer.append(UICommand(target_component_id=target, type="NavigateTo", data="/"))
+        elif isinstance(close, str):
+            answer.append(UICommand(target_component_id=target, type="NavigateTo", data=close))
+        elif isinstance(close, (list, tuple)):
+            answer.extend(close)
+        else:
+            answer.append(close)
+        return answer
 
     @staticmethod
     def _go_to_step_target(rq: RunActionRq) -> int | None:

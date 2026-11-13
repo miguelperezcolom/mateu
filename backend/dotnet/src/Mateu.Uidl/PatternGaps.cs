@@ -60,8 +60,9 @@ public interface IDraftable
     /// "Draft saved" notification and the wizard stays on the step.</summary>
     object? SaveDraft();
 
-    /// <summary>Where "Save and close" lands after saving: a route string or a UI command; null
-    /// (default) → "/".</summary>
+    /// <summary>Where "Save and close" lands after saving: a route (string / Uri) navigates there;
+    /// null (default) lands on "/"; a Message replaces the "Draft saved" notification (then "/"); a
+    /// UI command or any other answer is applied as such.</summary>
     object? CloseDraft() => null;
 
     /// <summary>The step (1-based, the [Step(n)] number) to resume on when the wizard opens

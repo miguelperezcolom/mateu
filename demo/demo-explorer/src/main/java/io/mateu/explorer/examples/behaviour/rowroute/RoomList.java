@@ -6,20 +6,17 @@ import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Listing;
-import io.mateu.uidl.interfaces.Navigable;
 import java.util.List;
 
 /**
  * {@code @RowRoute}: clicking a row (anywhere on it, or Enter on a focused row) NAVIGATES to a
  * route built from the row — a real URL, so the record is addressable, shareable and survives a
- * reload. In YAML it is {@code rowRoute:} on a Listing.
- *
- * <p>In 3.0-beta.51 the annotation is read only on a listing served as a CRUD (a {@code Crud}, or a
- * capability listing such as this {@link Navigable} one); a bare {@code Listing} ignores it.
+ * reload. In YAML it is {@code rowRoute:} on a Listing. It works on any listing — this one is a
+ * bare {@link Listing}, with no CRUD behind it.
  */
 @Title("Rooms")
 @RowRoute("/x/behaviour/row-route/rooms/${row.id}")
-public class RoomList implements Listing<RoomList.Room>, Navigable<RoomRecord, String> {
+public class RoomList implements Listing<RoomList.Room> {
 
   public record Room(String id, String type, String status) {}
 
@@ -32,14 +29,5 @@ public class RoomList implements Listing<RoomList.Room>, Navigable<RoomRecord, S
   @Override
   public ListingData<Room> search(SearchRequest request, HttpRequest httpRequest) {
     return ListingData.of(ROOMS);
-  }
-
-  /** The crud's own record view — bypassed: the row route wins. */
-  @Override
-  public RoomRecord view(String id, HttpRequest httpRequest) {
-    var record = new RoomRecord();
-    record.id = id;
-    record.onHydrated(httpRequest);
-    return record;
   }
 }

@@ -11,12 +11,6 @@ description: |
   (`artworks/${row.id}`) makes each row open its record.
 
   Try: search "gogh", filter by artist, sort by year.
-
-  > **Known issue (3.0-beta.51):** two listings on one page share their search chips (searching one
-  > shows the chip on the other too, which does not filter).
-knownIssue: >-
-  3.0-beta.51 (Vaadin): with two Listings on the same page, a search in one adds its "Text: …" chip
-  to the other as well (URL/state sync is page-wide), while only the first actually filters.
 examples:
   - title: In YAML — no view model at all
     yaml: specs/ui/explorer/components/listing/artworks.yaml

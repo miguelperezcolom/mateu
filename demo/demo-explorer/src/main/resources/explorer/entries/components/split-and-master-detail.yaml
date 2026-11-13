@@ -3,12 +3,8 @@ area: components
 group: layout
 title: Split & master-detail
 covers: [component:SplitLayout, component:MasterDetailLayout]
-# KNOWN ISSUES (beta.51) are shown on the page, in the YAML example's description.
-knownIssue: >-
-  Vaadin, 3.0-beta.51: `orientation: vertical` on a MasterDetailLayout is ignored (detail drawn beside the master).
 examples:
   - title: In YAML
-    description: "Known issues (3.0-beta.51, Vaadin): `orientation: vertical` on the MasterDetailLayout is ignored: the detail is drawn beside the master. `StatusList` row icons do not show (see the status-lists entry)."
     yaml: specs/ui/explorer/components/split-and-master-detail/split.yaml
   - title: "In Java"
     java: io.mateu.explorer.examples.components.split.FluentSplit

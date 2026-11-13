@@ -61,6 +61,25 @@ export function ownsAction(owned: string[], actionId: string): boolean {
   return false;
 }
 
+/**
+ * Whether pressing a button with `actionId` goes anywhere: the view advertises it, it bubbles to
+ * ANOTHER owner (`target` = actionTargetOf: the crud orchestrator, an overlay's opener), or the
+ * client runs it (a declared flow / the app's action catalogue). Otherwise nobody claims it and the
+ * button is inert — the web's rule (an unclaimed id bubbles out of every mateu-component, unsent).
+ * A YAML `{type: Button, label: Primary}` carries only the label's echo `primary`: sent anyway, the
+ * server answered 403 and the user read "You're not allowed to do this" for a button that does nothing.
+ */
+export function buttonActionClaimed(ctx: {
+  actionId: string;
+  owned: string[];
+  currentServerSideType: string;
+  target: string;
+  clientRunnable: boolean;
+}): boolean {
+  if (!ctx.actionId) return false;
+  return ownsAction(ctx.owned, ctx.actionId) || ctx.target !== ctx.currentServerSideType || ctx.clientRunnable;
+}
+
 /** Where an action is dispatched: the view's own type, or — when it bubbles (unowned, or
  *  declared `bubble`) — the crud orchestrator it lives in, else the type it was navigated with. */
 export function actionTargetOf(ctx: {

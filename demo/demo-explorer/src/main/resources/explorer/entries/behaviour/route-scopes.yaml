@@ -12,11 +12,6 @@ description: |
 
   **Try it:** the page shows planet #1 fetched by the route's `data:` (its `:id` is in the state), plus
   a line seeded by `state:`; press **Next planet ›** — the same route with another id.
-
-  > **Known issue (3.0-beta.51):** the response carries the route's `appState:` value, but in this
-  > embedded view the `${appState.…}` line renders empty. Reported.
-knownIssue: >-
-  3.0-beta.51: in an embedded view the route's appState reaches the response but ${appState.…} renders empty.
 examples:
   - title: "A route that seeds its page"
     java: io.mateu.explorer.examples.behaviour.routescopes.RouteScopesIsland

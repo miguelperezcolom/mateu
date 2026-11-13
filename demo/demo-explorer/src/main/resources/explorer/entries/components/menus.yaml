@@ -12,15 +12,6 @@ description: |
   - **ContextMenu** — wraps any component and opens on right click (`activateOnLeftClick` for a
     left click too).
   - **Directory** — sections of plain links, for a landing page.
-
-  > **Known issue (3.0-beta.51, Vaadin renderer):** picking a MenuBar or ContextMenu item does
-  > nothing — the items carry their route but nothing listens for the selection; and a Directory
-  > draws every link as an empty collapsible group instead of a link.
-knownIssue: >-
-  Vaadin renderer, 3.0-beta.51: MenuBar/ContextMenu items in content do not navigate on select
-  (renderMenu.ts mapItems sets `route` but no item-selected handler); a leaf RouteLink arrives with
-  `submenus: []`, which the menu and directory renderers treat as a group (Directory renders every
-  link as an empty <details>).
 examples:
   - title: In YAML
     yaml: specs/ui/explorer/components/menus/menus.yaml
