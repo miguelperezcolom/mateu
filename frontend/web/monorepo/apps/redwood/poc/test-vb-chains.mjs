@@ -494,6 +494,32 @@ test('F2: an island\'s validated action with an empty required field does not le
   assert.equal(bridge.surfaceRefusalOf(ctx.$application.variables.mateuRegistry, 'signup', 'signUp'), null)
 })
 
+test('F4: a RouteLink inside a page embedded from ANOTHER mount goes to that mount\'s page, not the host\'s', async () => {
+  const dispatchHost = chain('flows/main/pages/main-start-page-chains/dispatchHostBlockAction.js')
+  const ctx = newContext()
+  const reg = { contexts: {
+    [bridge.HOST_ID]: { id: bridge.HOST_ID, tree: { type: 'ServerSide', id: 'host', actions: [], children: [] }, outbound: { baseUrl: '' } },
+    mfe: { id: 'mfe', tree: { type: 'ServerSide', id: 'w', actions: [], children: [] }, outbound: { baseUrl: '/yaml-mount', route: '/welcome' } },
+    remote: { id: 'remote', tree: { type: 'ServerSide', id: 'r', actions: [], children: [] }, outbound: { baseUrl: 'https://other.example', route: '/x' } },
+    own: { id: 'own', tree: { type: 'ServerSide', id: 'o', actions: [], children: [] }, outbound: { baseUrl: '', route: '/x' } },
+  }, stack: [], shell: null }
+  ctx.$application.variables.mateuRegistry = reg
+  assert.equal(bridge.surfaceMountPathOf(reg, 'mfe', '/second'), '/yaml-mount/second')
+  assert.equal(bridge.surfaceMountPathOf(reg, 'mfe', 'second'), '/yaml-mount/second')
+  assert.equal(bridge.surfaceMountPathOf(reg, 'remote', '/second'), null, 'a remote of another origin is not this app')
+  assert.equal(bridge.surfaceMountPathOf(reg, 'own', '/second'), null, 'the page\'s own mount')
+  assert.equal(bridge.surfaceMountPathOf(reg, undefined, '/second'), null)
+  assert.equal(bridge.surfaceMountPathOf(reg, 'mfe', 'https://x.example'), null)
+  const assigned = []
+  win.location.assign = (u) => assigned.push(u)
+  calls.length = 0
+  try {
+    await new dispatchHost().run(ctx, { route: '/second', surfaceId: 'mfe' })
+  } finally { delete win.location.assign }
+  assert.deepEqual(assigned, ['/yaml-mount/second'])
+  assert.deepEqual(calls.filter((c) => c[0] === 'event'), [], 'the host does not navigate to its own /second')
+})
+
 test('F3: a refusal (403) shows the band WITHOUT a Retry that could never succeed', async () => {
   const ctx = await bootShell()
   answer(byRoute('/refused'), { status: 403 })

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { appRouteHref, isExternalRoute, navigateToRoute, rowRouteOf } from './rowRoute'
+import { appRouteHref, embeddingMountOf, isExternalRoute, navigateToRoute, rowRouteOf } from './rowRoute'
 
 describe('isExternalRoute', () => {
     it('a whole URL leaves the app; a route of the app does not', () => {
@@ -66,6 +66,40 @@ describe('a rowRoute that is a whole URL', () => {
         for (const t of ['route-changed', 'navigate-to-requested']) from.addEventListener(t, () => events.push(t))
         navigateToRoute(from, 'missions/6')
         expect(events).toEqual(['route-changed', 'navigate-to-requested'])
+    })
+})
+
+describe('F4: a route inside a page embedded from ANOTHER mount is that mount\'s', () => {
+    afterEach(() => { document.body.innerHTML = '' })
+
+    const embedded = (uiBase: string, uxBase: string, microFrontend = true) => {
+        const ui = document.createElement('mateu-ui') as HTMLElement & { baseUrl?: string }
+        ui.baseUrl = uiBase
+        const ux = document.createElement('mateu-ux') as HTMLElement & { baseUrl?: string }
+        ux.baseUrl = uxBase
+        if (microFrontend) ux.setAttribute('micro-frontend', '')
+        const shadow = ux.attachShadow({ mode: 'open' })
+        const button = document.createElement('button')
+        shadow.appendChild(button)
+        ui.appendChild(ux)
+        document.body.appendChild(ui)
+        return button
+    }
+
+    it('is resolved under the embedded mount (a browser load), not by the host\'s router', () => {
+        const button = embedded('', '/yaml-mount')
+        expect(embeddingMountOf(button)).toBe('/yaml-mount')
+        const events: string[] = []
+        for (const t of ['route-changed', 'navigate-to-requested']) document.addEventListener(t, () => events.push(t), { once: true })
+        navigateToRoute(button, '/second')
+        expect(events).toEqual([])
+    })
+
+    it('the page\'s own mount, a remote of another origin, or a content ux are not another mount', () => {
+        expect(embeddingMountOf(embedded('/app', '/app/'))).toBeUndefined()
+        expect(embeddingMountOf(embedded('', 'https://remote.example'))).toBeUndefined()
+        expect(embeddingMountOf(embedded('', '//evil.example'))).toBeUndefined()
+        expect(embeddingMountOf(embedded('', '/yaml-mount', false))).toBeUndefined()
     })
 })
 

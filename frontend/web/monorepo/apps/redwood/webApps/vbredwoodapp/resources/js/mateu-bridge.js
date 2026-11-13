@@ -29967,6 +29967,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   function normalizeMount(value) {
     let v = String(value == null ? '' : value).trim()
     if (!v || v === '/') return ''
@@ -30155,6 +30156,36 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if ((menuRoutes || []).some(own)) return null
     // another mount of the same app: under the public base too (the server names it without it)
     return publicBasePath && !(r === publicBasePath || r.startsWith(publicBasePath + '/')) ? publicBasePath + r : r
+  }
+
+  const mountPathOfBase = (base) => {
+    if (typeof base !== 'string' || base === '') return ''
+    if (/^https?:\/\//i.test(base)) {
+      try { return new URL(base).pathname.replace(/\/+$/, '') } catch { return null }
+    }
+    if (!base.startsWith('/') || base.startsWith('//') || base.startsWith('/\\')) return null
+    return base.replace(/\/+$/, '')
+  }
+
+  /**
+   * The browser path of a route clicked inside a SURFACE embedded from ANOTHER mount of this app (a
+   * MicroFrontend of `/yaml-mount` on a page of `/`): a route is relative to its own mount, so it
+   * names `/yaml-mount/second` — the host navigated to its own `/second`, «Page not found»
+   * (Explorer F4). Null when the surface is the page's own mount, a remote of another origin, not a
+   * surface, or the route is a whole URL. The caller loads it in the browser (another app's page).
+   */
+  function surfaceMountPathOf(reg, surfaceId, route) {
+    const contexts = (reg && reg.contexts) || {}
+    const ctx = surfaceId ? contexts[surfaceId] : null
+    if (!ctx || typeof route !== 'string' || !route.trim() || isExternalRoute(route)) return null
+    const raw = ctx.outbound && ctx.outbound.baseUrl
+    if (typeof raw !== 'string' || /^https?:\/\//i.test(raw) && typeof location !== 'undefined'
+      && (() => { try { return new URL(raw).origin !== location.origin } catch { return true } })()) return null
+    const base = mountPathOfBase(raw)
+    const hostCtx = contexts[HOST_ID]
+    const own = mountPathOfBase(hostCtx && hostCtx.outbound ? hostCtx.outbound.baseUrl : '')
+    if (!base || base === own) return null
+    return underPublicBase(base + '/' + route.trim().replace(/^\/+/, ''))
   }
 
   /** pathLeavingMountOf for a reducer's `navigate` effect, against the registry's shell menu. */
@@ -38050,6 +38081,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     pathLeavingMountOf,
     navigationLeavingMountOf,
     leftMountFor,
+    surfaceMountPathOf,
     requestPeerNavigation,
     openExternalRoute,
     isExternalRoute,
