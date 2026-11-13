@@ -13,6 +13,7 @@ import './redwood-frame'
 import type { RedwoodFrame } from './redwood-frame'
 import { setNodeIdStamping } from '@infra/ui/renderers/nodeIdStamp.ts'
 import { nodeIdOf, nodePathOfEventPath } from './canvasSelection'
+import { neutralizeUntrusted } from '@infra/ui/untrustedDefinition.ts'
 import type { ProjectImage } from '../model/projectImages'
 
 // Every component the canvas paints carries its node id (data-node-id), so a click on ANY painted
@@ -123,6 +124,12 @@ export class EditorCanvas extends LitElement {
     @property() baseUrl = ''
     /** True when the preview source is `client` (no render backend yet — Phase 7). Show a placeholder. */
     @property({ type: Boolean }) clientRender = false
+    /**
+     * The design came from a share link the author has not trusted yet: whatever it would paint is
+     * passed through the untrusted strip first (no `on…` attributes, raw HTML, triggers or code), on
+     * both legs — the server's `__preview__` is asked with `_untrusted` too.
+     */
+    @property({ type: Boolean }) untrusted = false
     @property({ attribute: false }) selectedPath: NodePath | null = null
     /** The design system the canvas paints with; a change re-renders the current page. */
     @property() renderer: CanvasRendererId = 'neutral'
@@ -362,8 +369,8 @@ export class EditorCanvas extends LitElement {
 
     updated(changed: PropertyValues) {
         // Re-render against the new backend when the preview source changes, even if the YAML is unchanged.
-        if (changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer') || changed.has('files')) this.lastYaml = ''
-        if (changed.has('doc') || changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer') || changed.has('images') || changed.has('files')) this.schedulePreview()
+        if (changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer') || changed.has('files') || changed.has('untrusted')) this.lastYaml = ''
+        if (changed.has('doc') || changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer') || changed.has('images') || changed.has('files') || changed.has('untrusted')) this.schedulePreview()
         if (changed.has('selectedPath')) {
             this.applyHighlight()
             // Selected from Layers (or by undo, or by adding a node): bring it into view. A node
@@ -395,7 +402,7 @@ export class EditorCanvas extends LitElement {
         try {
             const increment: any = await mateuApiClient.runAction(
                 this.baseUrl, '', '', '__preview__', 've-canvas',
-                undefined, undefined, {}, { _yaml: yaml },
+                undefined, undefined, {}, { _yaml: yaml, ...(this.untrusted ? { _untrusted: true } : {}) },
                 this.ux ?? this, false,
             )
             const fragment = increment?.fragments?.[0]
@@ -419,6 +426,7 @@ export class EditorCanvas extends LitElement {
     }
 
     private async paint(fragment: unknown) {
+        if (this.untrusted) fragment = neutralizeUntrusted(fragment)
         if (this.renderer === 'redwood') {
             await this.updateComplete
             this.redwood?.show(fragment as never)

@@ -193,6 +193,32 @@ describe('<mateu-visual-editor> against an IDE host', () => {
         expect(posted.filter((m) => m.type === 'contentChanged').at(-1).yaml).toBe(PAGE)
     })
 
+    it('a design opened from a share link is untrusted until the author trusts it: stripped canvas, no Play/board (V-4)', async () => {
+        const { encodeShareLink } = await import('./model/shareLink')
+        const el = await mount()
+        const root = el.shadowRoot
+        const tabs = () => [...root.querySelectorAll('.views button')] as HTMLButtonElement[]
+        expect(root.querySelector('editor-canvas').untrusted).toBe(false)
+        expect(tabs().every((b) => !b.disabled)).toBe(true)
+        // Open… a pasted link
+        ;[...root.querySelectorAll('button')].find((b: any) => b.textContent.includes('Open…'))!.click()
+        await el.updateComplete
+        const link = await encodeShareLink({ v: 1, yaml: 'type: VerticalLayout\ncontent:\n  - type: Element\n    name: img\n    attributes: {src: x, onerror: "alert(1)"}\n' } as any, 'http://x/')
+        ;(root.querySelector('#share-in') as HTMLInputElement).value = link
+        ;[...root.querySelectorAll('button')].find((b: any) => b.textContent.trim() === 'Open')!.click()
+        await settle()
+        await el.updateComplete
+        expect(root.querySelector('.untrusted')?.textContent).toMatch(/came from a link/i)
+        expect(root.querySelector('editor-canvas').untrusted).toBe(true)
+        expect(tabs().filter((b) => b.disabled).map((b) => b.textContent!.trim())).toEqual(['Board', '▶ Play'])
+        // trusting it renders it as written
+        ;(root.querySelector('.untrusted button') as HTMLButtonElement).click()
+        await el.updateComplete
+        expect(root.querySelector('.untrusted')).toBeNull()
+        expect(root.querySelector('editor-canvas').untrusted).toBe(false)
+        expect(tabs().every((b) => !b.disabled)).toBe(true)
+    })
+
     it('Ctrl+D duplicates the selected node and selects the copy; arrows walk the tree', async () => {
         const el = await mount()
         el.selectedPath = [0]

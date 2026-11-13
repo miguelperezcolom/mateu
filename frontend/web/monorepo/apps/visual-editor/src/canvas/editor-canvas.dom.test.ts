@@ -181,3 +181,32 @@ describe('withContainerBoxes', () => {
         expect(boxes.some((b) => b.id === 've-root')).toBe(false) // the page itself is the canvas
     })
 })
+
+describe('<editor-canvas untrusted> — a design that arrived by a share link (V-4)', () => {
+    const SCRIPTED = 'type: VerticalLayout\ncontent:\n  - type: Element\n    name: img\n    attributes: {src: x, onerror: "alert(1)"}\n'
+
+    async function painted(untrusted: boolean) {
+        const canvas = document.createElement('editor-canvas') as any
+        canvas.renderer = 'redwood'
+        canvas.clientRender = true
+        canvas.untrusted = untrusted
+        canvas.doc = parsePage(SCRIPTED)
+        document.body.appendChild(canvas)
+        await canvas.updateComplete
+        const shown: any[] = []
+        canvas.shadowRoot.querySelector('redwood-frame').show = (f: unknown) => shown.push(f)
+        await new Promise((r) => setTimeout(r, 300))
+        await canvas.updateComplete
+        return JSON.stringify(shown.at(-1))
+    }
+
+    it('renders it through the untrusted strip: no on… handler reaches the page', async () => {
+        const out = await painted(true)
+        expect(out).toContain('"name":"img"')
+        expect(out).not.toContain('onerror')
+    })
+
+    it('the author\'s own design renders as written', async () => {
+        expect(await painted(false)).toContain('onerror')
+    })
+})

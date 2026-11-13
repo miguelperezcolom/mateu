@@ -322,6 +322,13 @@ export class MateuVisualEditor extends LitElement {
      */
     @state() private parseError?: string
     /**
+     * The design came from a share link (`#mateuz=…` on boot, or Open…) and the author has not
+     * trusted it: a link is anyone's, and a definition may carry an Element's `on…` attributes or raw
+     * HTML. Until trusted, the canvas paints it through the untrusted strip and Play and the board —
+     * which render the mount as written — stay closed.
+     */
+    @state() private untrusted = false
+    /**
      * The editor kind, auto-detected by the file's discriminator: `page` = the WYSIWYG canvas
      * (page/partial); `mount` = a `type: UI` descriptor; `app` = a `type: AppShell` definition;
      * `routes` = a pure route file. Each is its OWN file — no mixing.
@@ -374,6 +381,7 @@ export class MateuVisualEditor extends LitElement {
         this.syncRowMock()
         this.host.initialYaml().then((yaml) => {
             this.currentPath = this.host.currentPath?.()
+            this.untrusted = !!this.host.untrustedDesign?.()
             this.history.reset(yaml)
             this.load(yaml)
         })
@@ -579,6 +587,8 @@ export class MateuVisualEditor extends LitElement {
                  @board-play=${(e: CustomEvent) => this.play(e.detail.route)}
                  @play-close=${() => (this.view = this.playReturn)}>
                 ${this.renderToolbar()}
+                ${this.untrusted ? html`<div class="notice untrusted" role="status">This design came from a link: its scripts (event handlers, raw HTML, triggers) are switched off, and Play and the board stay closed, until you trust it.
+                    <button @click=${this.trustDesign}>Trust this design</button></div>` : ''}
                 ${this.shareOpen ? this.renderOpenLink()
                     : this.notice ? html`<div class="notice">${this.notice}<button class="ghost" @click=${() => (this.notice = undefined)}>✕</button></div>` : html`<div></div>`}
                 ${this.view === 'board'
@@ -623,7 +633,7 @@ export class MateuVisualEditor extends LitElement {
                                         : html`<editor-palette .renderer=${this.renderer}></editor-palette>`}
                                 </div>
                             </div>
-                            <editor-canvas .doc=${this.doc} .baseUrl=${renderBaseUrl(this.previewSource)}
+                            <editor-canvas .doc=${this.doc} .baseUrl=${renderBaseUrl(this.previewSource)} .untrusted=${this.untrusted}
                                            .clientRender=${rendersClientSide(this.previewSource)} .renderer=${this.renderer} .theme=${this.theme}
                                            .selectedPath=${this.selectedPath} .frameWidth=${viewportWidth(this.viewport)} .images=${this.images}
                                            .files=${this.mountFiles()}></editor-canvas>
@@ -667,10 +677,10 @@ export class MateuVisualEditor extends LitElement {
                 <span class="sep"></span>
                 <span class="group views" role="tablist" title="The open file, or the whole mount">
                     <button role="tab" class=${this.view === 'edit' ? 'on' : ''} @click=${() => (this.view = 'edit')}>Edit</button>
-                    <button role="tab" class=${this.view === 'board' ? 'on' : ''} @click=${() => (this.view = 'board')}
-                            title="Every screen of the mount, with the arrows between them">Board</button>
-                    <button role="tab" class=${this.view === 'play' ? 'on' : ''} @click=${() => this.play()}
-                            title="Run the mount from this screen, as edited — click through it like the app">▶ Play</button>
+                    <button role="tab" class=${this.view === 'board' ? 'on' : ''} ?disabled=${this.untrusted} @click=${() => (this.view = 'board')}
+                            title=${this.untrusted ? 'Trust this design first (it came from a link)' : 'Every screen of the mount, with the arrows between them'}>Board</button>
+                    <button role="tab" class=${this.view === 'play' ? 'on' : ''} ?disabled=${this.untrusted} @click=${() => this.play()}
+                            title=${this.untrusted ? 'Trust this design first (it came from a link)' : 'Run the mount from this screen, as edited — click through it like the app'}>▶ Play</button>
                 </span>
                 <span class="spacer"></span>
                 ${page ? html`
@@ -1526,6 +1536,7 @@ export class MateuVisualEditor extends LitElement {
 
     /** Run the mount from `route`, or from the screen this file is (the first route serving it), else the root. */
     private play(route?: string) {
+        if (this.untrusted) return
         this.playReturn = this.view === 'board' ? 'board' : 'edit'
         const files = this.mountFiles()
         const graph = buildMountGraph(files)
@@ -1601,6 +1612,12 @@ export class MateuVisualEditor extends LitElement {
         </div>`
     }
 
+    /** The author trusts the design that came from a link: render it as written from now on. */
+    private trustDesign = () => {
+        this.host.trustDesign?.()
+        this.untrusted = false
+    }
+
     /** Load a pasted share link as an ordinary (undoable) edit of the open file. */
     private openShareLink = async () => {
         const input = (this.renderRoot.querySelector('#share-in') as HTMLInputElement | null)?.value ?? ''
@@ -1610,6 +1627,8 @@ export class MateuVisualEditor extends LitElement {
         try { parseSpec(design.yaml) } catch { this.notice = 'The shared YAML does not parse — not applied.'; return }
         this.load(design.yaml)
         this.selectedPath = null
+        this.untrusted = true
+        this.view = 'edit'
         this.emitText(design.yaml, true)
         if (this.host.adoptShared) {
             this.host.adoptShared(design)
