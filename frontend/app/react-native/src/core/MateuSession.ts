@@ -3,6 +3,7 @@ import { MateuApiClient } from '../api/MateuApiClient.ts';
 import type { TokenProvider } from './auth.ts';
 import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
 import { RestSourceCatalogue, sharedRestSources } from './restFetch.ts';
+import { ServerActivity, serverActivity } from './serverActivity.ts';
 import { againstBase } from './backendUrl.ts';
 import { ActionCatalogue, sharedActionCatalogue } from './shellFlows.ts';
 import { headerValues as sharedHeaderValues, HeaderValuesStore } from './appShellExtras.ts';
@@ -97,6 +98,8 @@ export class MateuSession {
   // to the session that hosts it and shares ITS stores (see `islandSession`).
   /** The app's REST source catalogue + references + sample mode. */
   readonly sources: RestSourceCatalogue;
+  /** The requests THIS UI is waiting for — its "waiting for the server" bar (core/serverActivity.ts). */
+  activity: ServerActivity;
   /** The app's action catalogue (AppDto.actionCatalogue). */
   readonly actionCatalogue: ActionCatalogue;
   /** The app shell's live header values. */
@@ -181,6 +184,15 @@ export class MateuSession {
   /** A hub keeps every opened UI mounted: only the one on screen answers Android's Back, polls, or opens a browser. */
   private ownOnScreen = true;
   private readonly storesFromSession?: MateuSession;
+
+  /** Counts on `activity` from now on: the host's counter of this UI, which already waited for its
+   *  manifest before the session existed (hub/ui/UiSession.tsx). */
+  adoptActivity(activity: ServerActivity): void {
+    this.activity = activity;
+    this.api.activity = activity;
+    if (this.sources !== sharedRestSources) this.sources.activity = activity;
+    activity.onScreen = () => this.onScreen;
+  }
   get onScreen(): boolean {
     return this.storesFromSession ? this.storesFromSession.onScreen : this.ownOnScreen;
   }
@@ -296,9 +308,16 @@ export class MateuSession {
     this.appContextKeys = storesFrom?.appContextKeys ?? new Set<string>();
     this.api = new MateuApiClient(baseUrl, sessionId, auth, (url) => this.credentials.mayCarryCredentials(url));
     this.api.mayPrompt = () => this.onScreen;
+    // what THIS UI waits for (its bar): its own counter, shared by its islands and other backends —
+    // a hub keeps several UIs open, and one's long task is not the visible one's wait. A session on
+    // the process-wide provider (no own auth) keeps the app's one counter.
+    this.activity = storesFrom?.activity ?? (auth !== undefined ? new ServerActivity() : serverActivity);
+    this.api.activity = this.activity;
+    if (!storesFrom && this.activity !== serverActivity) this.activity.onScreen = () => this.onScreen;
     this.appState = appState;
     const own = auth !== undefined;
     this.sources = storesFrom?.sources ?? (own ? new RestSourceCatalogue() : sharedRestSources);
+    if (own && !storesFrom) this.sources.activity = this.activity;
     this.actionCatalogue = storesFrom?.actionCatalogue ?? (own ? new ActionCatalogue() : sharedActionCatalogue);
     this.headerValues = storesFrom?.headerValues ?? (own ? new HeaderValuesStore() : sharedHeaderValues);
     this.columnPrefs = storesFrom?.columnPrefs ?? (own ? new ColumnPrefsStore() : sharedColumnPrefs);
@@ -487,5 +506,9 @@ export function declareMenuRemotes(session: MateuSession, menu: unknown): void {
 
 function sessionOver(host: MateuSession, baseUrl: string): MateuSession {
   const trusted = host.credentials.mayCarryCredentials(baseUrl);
-  return new MateuSession(baseUrl, host.api.sessionId, appStateFor(host.appState, host.appContextKeys, trusted), undefined, host);
+  // a trusted remote gets the HOST's token provider: a hub UI's own (the hub registers no global
+  // one, so `undefined` here sent no Bearer at all), or the global one of a single-backend build
+  // (`undefined` = that one). Anyone else: none — never the process-wide provider either.
+  const auth = trusted ? host.api.auth : null;
+  return new MateuSession(baseUrl, host.api.sessionId, appStateFor(host.appState, host.appContextKeys, trusted), auth, host);
 }

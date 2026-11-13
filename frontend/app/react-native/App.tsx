@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
 import * as ExpoCrypto from 'expo-crypto';
 import * as Updates from 'expo-updates';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Linking, Platform, StyleSheet, View } from 'react-native';
 import { TouchableOpacity } from './src/ui/Touchable';
 import { Text } from './src/ui/Text';
@@ -14,7 +14,11 @@ import {
   RegistryEntry,
   updateRequired,
 } from './src/core/AppRegistry';
-import { onSignedOut, setTokenProvider } from './src/core/auth';
+import { onSignedOut, setTokenProvider, signOut } from './src/core/auth';
+import { ANONYMOUS_OWNER, OfflineQueue, singleUiQueueId } from './src/core/offlineQueue';
+import { useQueueOwner } from './src/context/useQueueOwner';
+import { RenderBoundary } from './src/ui/RenderBoundary';
+import type { MateuSession } from './src/core/MateuSession';
 import { OIDC_TOKENS_KEY, OidcTokenProvider } from './src/core/oidc';
 import { oidcConfigFromEnv, type OidcConfig } from './src/core/oidcConfig';
 import { rememberProvider, signInPlanFrom, signInProvidersFrom, signInTexts, SIGN_IN_PROVIDER_KEY, type SignInPlan } from './src/core/signInProviders';
@@ -357,10 +361,55 @@ function AuthGate({ config, route = MATEU_ROUTE }: { config: BootConfig; route?:
       </View>
     );
   }
+  return <SignedInSession config={config} route={route} sessionId={sessionId} bundle={bundle} provider={provider} />;
+}
+
+/**
+ * The UI of a fixed / registry / direct build once the gate let it through. Its session carries the
+ * gate's provider EXPLICITLY (as a hub UI does), so it can own an offline send queue
+ * (`@Action(offline = QUEUE)`): one per person who signs in, sent only as them, and a silent re-auth
+ * of the queue never opens the browser (GA-5.5). The process-wide provider stays registered for the
+ * rest of the app (sign-out, the idle warning).
+ */
+function SignedInSession({ config, route, sessionId, bundle, provider }: {
+  config: BootConfig;
+  route: string;
+  sessionId: string;
+  bundle: StaticBundle | null;
+  provider: OidcTokenProvider | null;
+}) {
+  const ownerNow = useCallback(
+    async (): Promise<string | null> => (provider ? ((await provider.owner().catch(() => null)) ?? null) : ANONYMOUS_OWNER),
+    [provider],
+  );
+  // somebody else may sign in through a 401 (a shared phone): their own session and queue
+  const { owner, generation } = useQueueOwner(true, provider, ownerNow);
+  const outbox = useMemo(
+    () => (owner ? new OfflineQueue(platformStore, singleUiQueueId(config.baseUrl), owner) : null),
+    [config.baseUrl, owner],
+  );
+  const onSession = useCallback(
+    (session: MateuSession) => {
+      session.outboxOwner = ownerNow;
+      // the shell's "Sign out" entry: the gate's provider is the process-wide one
+      if (provider) session.signOut = signOut;
+    },
+    [ownerNow, provider],
+  );
+  if (owner === undefined) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={theme.primary} />
+      </View>
+    );
+  }
   return (
-    <MateuAppProvider config={{ baseUrl: config.baseUrl, sessionId, appState: config.appState, bundle }}>
-      <SessionContent initialRoute={route} />
-    </MateuAppProvider>
+    // a UI that cannot be drawn shows "Try again" instead of taking the app down
+    <RenderBoundary key={generation} where="app">
+      <MateuAppProvider config={{ baseUrl: config.baseUrl, sessionId, appState: config.appState, bundle, auth: provider, outbox, onSession }}>
+        <SessionContent initialRoute={route} />
+      </MateuAppProvider>
+    </RenderBoundary>
   );
 }
 

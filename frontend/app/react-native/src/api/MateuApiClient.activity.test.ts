@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { MateuApiClient } from './MateuApiClient.ts';
 import { serverActivity } from '../core/serverActivity.ts';
 import { fetchExternalJson } from '../core/restFetch.ts';
+import { MateuSession, islandSession } from '../core/MateuSession.ts';
 
 const rq = (actionId: string, extra: Record<string, unknown> = {}) => ({
   route: '/r', consumedRoute: '', actionId, serverSideType: 'T', initiatorComponentId: 'c', componentState: {}, appState: {}, parameters: {}, ...extra,
@@ -69,6 +70,37 @@ test('a LongTask stream counts while open; the app event stream does not', async
     await api.runActionStream(rq('_live-updates'), () => {});
     assert.deepEqual(seen, [true, false]);
     assert.equal(serverActivity.inFlight, 0);
+  } finally {
+    restore();
+  }
+});
+
+test('GA-5.7: each hub UI waits on its OWN server: a hidden UI\'s long task never shows on the visible one', async () => {
+  serverActivity.reset();
+  let release: () => void = () => {};
+  const restore = withFetch(async (url) => {
+    if (url.includes('/sse/')) {
+      await new Promise<void>((r) => (release = r));
+      return new Response('data: {"fragments":[]}\n\n', { status: 200 });
+    }
+    return new Response('{"items":[]}', { status: 200 });
+  });
+  try {
+    const a = new MateuSession('https://a.example', 'sa', {}, null);
+    const b = new MateuSession('https://b.example', 'sb', {}, null);
+    assert.notEqual(a.activity, b.activity);
+    const task = a.api.runActionStream(rq('longTask'), () => {});
+    await new Promise((r) => setTimeout(r, 0));
+    assert.equal(a.activity.busy, true, "A's bar waits for its long task");
+    assert.equal(b.activity.busy, false, "B's bar does not");
+    assert.equal(serverActivity.busy, false, 'nothing process-wide');
+    // an island of A (another backend) waits on A's bar, and A's REST sources too
+    const island = islandSession(a, 'https://inbox.example');
+    assert.equal(island.activity, a.activity);
+    assert.equal(a.sources.activity, a.activity);
+    release();
+    await task;
+    assert.equal(a.activity.busy, false);
   } finally {
     restore();
   }

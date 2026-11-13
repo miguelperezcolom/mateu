@@ -19,20 +19,9 @@ import { ProgressBar } from 'react-native-paper';
 import { announceLive } from '../a11y/a11y';
 import { loadingTexts } from '../core/loadingTexts';
 import { uiLocale } from '../core/money';
-import { DelayedBusy, serverActivity } from '../core/serverActivity';
+import { delayedBusyOf, serverActivity, type ServerActivity } from '../core/serverActivity';
+import { useOptionalAppContext } from '../context/AppContext';
 import { theme } from '../theme';
-
-let shared: DelayedBusy | null = null;
-
-/** The app's one delay decision — and its one announcement per wait, however many bars are mounted
- *  (a hub keeps the UIs it is not showing mounted). */
-function delayedBusy(): DelayedBusy {
-  if (!shared) {
-    shared = new DelayedBusy(serverActivity);
-    shared.onShown(() => announceLive(loadingTexts(uiLocale()).loading, false));
-  }
-  return shared;
-}
 
 function useReduceMotion(): boolean {
   const [reduce, setReduce] = useState(false);
@@ -50,8 +39,13 @@ function useReduceMotion(): boolean {
   return reduce;
 }
 
-export function ServerActivityBar() {
-  const busy = delayedBusy();
+const announceWait = () => announceLive(loadingTexts(uiLocale()).loading, false);
+
+/** `activity`: whose wait it shows — by default the session it is drawn in (each hub UI has its own,
+ *  GA-5.7), else the app's one counter. */
+export function ServerActivityBar({ activity }: { activity?: ServerActivity } = {}) {
+  const ctx = useOptionalAppContext();
+  const busy = delayedBusyOf(activity ?? ctx?.session.activity ?? serverActivity, announceWait);
   const [visible, setVisible] = useState(busy.visible);
   const reduceMotion = useReduceMotion();
   useEffect(() => {

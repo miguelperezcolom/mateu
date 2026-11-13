@@ -49,6 +49,20 @@ test('with no server behind the host, an action is told so', async () => {
   });
 });
 
+test('GA-5.9: offline, a hybrid UI\'s action fails as a network error — never "This UI has no server"', async () => {
+  const api = new MateuApiClient('https://ui.example', 's');
+  api.local = local;
+  const real = globalThis.fetch;
+  globalThis.fetch = (async () => {
+    throw new TypeError('Network request failed');
+  }) as any;
+  try {
+    await assert.rejects(api.runAction({ route: '/people', actionId: 'save' } as any), (e: unknown) => !/no server/.test(String((e as Error)?.message)));
+  } finally {
+    globalThis.fetch = real;
+  }
+});
+
 test('a server error is reported as such, not as "no server"', async () => {
   const api = new MateuApiClient('https://ui.example', 's');
   api.local = local;

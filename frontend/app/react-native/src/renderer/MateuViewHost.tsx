@@ -18,6 +18,7 @@ import { SkeletonRenderer } from './DisplayRenderer';
 import { EmbeddedAppBar } from './EmbeddedAppBar';
 import type { EmbeddedAppExtras } from '../core/embeddedAppExtras';
 import { PresenceChip } from './PresenceChip';
+import { RenderBoundary } from '../ui/RenderBoundary';
 
 /** The controller of the view a component belongs to — field editors write state through it,
  *  buttons dispatch actions, cruds register data handlers. */
@@ -199,7 +200,10 @@ export function MateuViewHost({ session, target, serverSideNode, overlaid, overl
       {!windowlessView && !overlaid && session.presence.enabled && (
         <PresenceChip controller={controller} route={controller.currentRoute} view={controller.currentServerSideType} />
       )}
-      <ComponentRenderer component={view.component} state={view.state} data={view.data} />
+      {/* a component this renderer cannot draw fails alone: the shell and the rest of the app go on */}
+      <RenderBoundary resetKey={view.version} compact={!!serverSideNode || !!embedded} where={controller.currentRoute || 'view'}>
+        <ComponentRenderer component={view.component} state={view.state} data={view.data} />
+      </RenderBoundary>
     </>
   );
 

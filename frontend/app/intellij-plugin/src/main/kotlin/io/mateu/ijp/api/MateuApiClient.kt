@@ -103,6 +103,9 @@ class MateuApiClient(
 
     private class NoServerException(message: String) : RuntimeException(message)
 
+    /** What a host with nothing at /mateu answers (the same rule as the phone's `isNoServer`). */
+    private val NO_SERVER_STATUSES = setOf(404, 405, 501)
+
     private fun post(
         route: String?,
         consumedRoute: String?,
@@ -153,13 +156,12 @@ class MateuApiClient(
 
         val trusted = carriesCredentials(url)
         val token = if (trusted) tokenProvider.accessToken() else null
-        var response = try {
-            ServerActivity.track(ServerActivity.labelOf(url)) { http.send(request(token), HttpResponse.BodyHandlers.ofString()) }
-        } catch (e: java.io.IOException) {
-            if (bundle != null) throw NoServerException(e.message ?: "unreachable") else throw e
-        }
+        // no answer at all (offline, the server down) is a connection failure as it is — a hybrid
+        // site (bundle + /mateu proxied to a backend) HAS a server; only a host that answers with
+        // nothing at /mateu is "no server" (GA-5.9)
+        var response = ServerActivity.track(ServerActivity.labelOf(url)) { http.send(request(token), HttpResponse.BodyHandlers.ofString()) }
         // a host serving only the bundle's files: no `/mateu/v3/sync` behind it
-        if (bundle != null && response.statusCode() in setOf(404, 405)) throw NoServerException("HTTP ${response.statusCode()}")
+        if (bundle != null && response.statusCode() in NO_SERVER_STATUSES) throw NoServerException("HTTP ${response.statusCode()}")
         // Session expiry / missing credentials: one chance to re-authenticate, then retry once
         // (only against a backend trusted with them: an anonymous island's 401 is not ours to fix).
         if (response.statusCode() == 401 && trusted &&

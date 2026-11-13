@@ -1,8 +1,9 @@
 // R1 (pre-GA review): a queue is only ever loaded, counted and sent for the person who filled it.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ANONYMOUS_OWNER, OfflineQueue, outboxKeyOf, type QueuedRequest } from './offlineQueue.ts';
-import { jwtClaims, ownerOf, ownerOfTokens, storedOwnerOf } from './outboxOwner.ts';
+import { ANONYMOUS_OWNER, OfflineQueue, outboxKeyOf, singleUiQueueId, type QueuedRequest } from './offlineQueue.ts';
+import { followSignIns, sameSessionFor, jwtClaims, ownerOf, ownerOfTokens, storedOwnerOf } from './outboxOwner.ts';
+import { reauthenticate, type TokenProvider } from './auth.ts';
 import type { StoredTokens } from './oidcConfig.ts';
 import type { KeyValueStore } from './sessionId.ts';
 
@@ -185,4 +186,71 @@ test('the pre-owner layout is never read as anyone\'s queue and is dropped', asy
   assert.equal(q.status, 'ok');
   await new Promise((r) => setTimeout(r, 0));
   assert.equal(store.data.size, 0);
+});
+
+test('GA-5.4: a different PERSON gets a new session; somebody signing in where nobody was keeps it', () => {
+  assert.equal(sameSessionFor('alice', 'bob'), false);
+  assert.equal(sameSessionFor('alice', 'alice'), true);
+  assert.equal(sameSessionFor(null, 'alice'), true, 'a lazy sign-in keeps the screen, only the queue is new');
+  assert.equal(sameSessionFor(undefined, 'alice'), true);
+  assert.equal(sameSessionFor('alice', null), true);
+});
+
+test('GA-5.5: a build bound to one UI has its own queue, named by its base url and secure-store safe', () => {
+  const id = singleUiQueueId('https://stock.example/app');
+  assert.notEqual(id, singleUiQueueId('https://other.example/app'));
+  assert.match(outboxKeyOf(id, 'alice'), /^[A-Za-z0-9._-]+$/);
+});
+
+// GA-5.4: after an in-session sign-in as somebody else, B's change is never filed in A's queue
+test("GA-5.4: enqueue refuses when who is signed in now is not the queue's owner", async () => {
+  const store = memory();
+  const aliceQueue = new OfflineQueue(store, 'ui1', 'alice');
+  // Bob signed in through a 401 while Alice's session stayed mounted
+  assert.equal(await aliceQueue.enqueue(request({ n: 1 }), 'key-b-000001', 'B', undefined, () => 'bob'), false);
+  assert.equal(await aliceQueue.enqueue(request({ n: 1 }), 'key-b-000002', 'B', undefined, async () => null), false);
+  assert.equal(await aliceQueue.enqueue(request({ n: 1 }), 'key-b-000003', 'B', undefined, () => Promise.reject(new Error('x'))), false);
+  assert.deepEqual(await aliceQueue.list(), []);
+  assert.equal(store.data.size, 0, 'nothing written under Alice');
+  // Alice herself still queues
+  assert.equal(await aliceQueue.enqueue(request({ n: 2 }), 'key-a-000001', 'A', undefined, () => 'alice'), true);
+  assert.equal(await aliceQueue.isOwnedBy(() => 'alice'), true);
+  assert.equal(await aliceQueue.isOwnedBy(() => 'bob'), false);
+});
+
+test('GA-5.4: an interactive sign-in a 401 opened makes the host read the owner again; a refresh does not', async () => {
+  let who = 'alice';
+  let signIns = 0;
+  const provider: TokenProvider = {
+    getToken: async () => 't',
+    refresh: async () => false,
+    login: async () => {
+      signIns++;
+      who = 'bob';
+      return true;
+    },
+    owner: async () => who,
+  };
+  const other: TokenProvider = { getToken: async () => 't', refresh: async () => false, login: async () => true };
+  const seen: (string | null)[] = [];
+  const stop = followSignIns(provider, () => provider.owner!(), (o) => seen.push(o));
+  try {
+    assert.equal(await reauthenticate(other, true), true);
+    await new Promise((r) => setTimeout(r, 0));
+    assert.deepEqual(seen, [], "another UI's sign-in is not this session's");
+    // a silent refresh is the same person: nothing to re-read
+    const refreshing: TokenProvider = { ...provider, refresh: async () => true };
+    const stop2 = followSignIns(refreshing, async () => 'x', (o) => seen.push(o));
+    assert.equal(await reauthenticate(refreshing, true), true);
+    stop2();
+    assert.equal(await reauthenticate(provider, true), true);
+    await new Promise((r) => setTimeout(r, 0));
+    assert.equal(signIns, 1);
+    assert.deepEqual(seen, ['bob']);
+  } finally {
+    stop();
+  }
+  assert.equal(await reauthenticate(provider, true), true);
+  await new Promise((r) => setTimeout(r, 0));
+  assert.deepEqual(seen, ['bob'], 'unsubscribed');
 });

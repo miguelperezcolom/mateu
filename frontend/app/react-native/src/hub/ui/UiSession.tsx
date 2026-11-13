@@ -24,7 +24,9 @@ import { hubBarSignsOut, uiSessionId, rotateUiSessionId } from '../uiSession';
 import { Notice, PrimaryButton, SecondaryButton, UiIcon, hubStyles, inkOn } from './common';
 import { UpdateAppButton } from './UpdateApp';
 import { ANONYMOUS_OWNER, OfflineQueue } from '../../core/offlineQueue';
-import { serverActivity } from '../../core/serverActivity';
+import { useQueueOwner } from '../../context/useQueueOwner';
+import { RenderBoundary } from '../../ui/RenderBoundary';
+import { ServerActivity } from '../../core/serverActivity';
 import { ServerActivityBar } from '../../shell/ServerActivityBar';
 
 type Phase =
@@ -95,6 +97,15 @@ export function UiSession({
   const [screenBack, setScreenBack] = useState<ScreenBack | null>(null);
   /** A UI ahead of this app (compat.ts `recommended`): it opens, with this note above it. */
   const [compatNotice, setCompatNotice] = useState<string | null>(null);
+  // what THIS UI waits for (its manifest, then its session's requests): its own bar, never another
+  // open UI's wait (GA-5.7) — announced only while it is the one on screen
+  const visibleNow = useRef(visible);
+  visibleNow.current = visible;
+  const activity = useMemo(() => {
+    const own = new ServerActivity();
+    own.onScreen = () => visibleNow.current;
+    return own;
+  }, []);
 
   /**
    * Can THIS app render that manifest's UI? Stops at the update screen when it cannot (true). From
@@ -158,14 +169,14 @@ export function UiSession({
       } else {
         // the UI cannot open without it: the "waiting for the server" bar shows (core/serverActivity.ts);
         // the background refresh above does not count
-        fetched = await serverActivity.track(fetchFresh);
+        fetched = await activity.track(fetchFresh);
       }
       const m = await manifestOf(fetched, entry);
       if (!m.ok) {
         if (alive) setPhase({ name: 'error', reason: m.reason });
         return;
       }
-      const found = await serverActivity.track(() => staticBundleOf(fetched, m.manifest, entry.baseUrl));
+      const found = await activity.track(() => staticBundleOf(fetched, m.manifest, entry.baseUrl));
       if (!found.ok) {
         if (alive) setPhase({ name: 'error', reason: found.reason });
         return;
@@ -225,23 +236,15 @@ export function UiSession({
   // Who owns the offline send queue of this session (outboxOwner.ts): the signed-in identity
   // (issuer + subject + tenant), the anonymous owner on a UI that does not sign in; null = a
   // sign-in whose tokens do not say who it is → nothing is queued. undefined while it is read.
-  const [owner, setOwner] = useState<string | null | undefined>(undefined);
+  // Read again after every sign-in a 401 opens mid-session: somebody ELSE may sign in on a shared
+  // phone, and then gets a new session with their own queue (GA-5.4, context/useQueueOwner.ts).
   const ownerNow = useCallback(
     async (): Promise<string | null> => (provider ? ((await provider.owner?.().catch(() => null)) ?? null) : ANONYMOUS_OWNER),
     [provider],
   );
-  useEffect(() => {
-    if (phase.name !== 'ready') return;
-    let alive = true;
-    void ownerNow().then((o) => {
-      if (!alive) return;
-      setOwner(o);
-      OfflineQueue.changed(entry.id); // the hub's badge now counts this owner's queue
-    });
-    return () => {
-      alive = false;
-    };
-  }, [phase.name, ownerNow, entry.id]);
+  const { owner, generation, forget: forgetOwner } = useQueueOwner(phase.name === 'ready', provider, ownerNow, () =>
+    OfflineQueue.changed(entry.id), // the hub's badge now counts this owner's queue
+  );
 
   /** Signs out of the provider that signed in (its own end-session), then asks again. */
   const signOutHere = async () => {
@@ -249,7 +252,7 @@ export function UiSession({
     await liveSession.current?.pushUnregister?.().catch(() => undefined);
     // the queue of who signed out is SUSPENDED, not deleted: kept on the device, not sent, shown or
     // counted until the same person signs in again (offlineQueue.ts)
-    setOwner(undefined);
+    forgetOwner();
     await provider?.logout();
     OfflineQueue.changed(entry.id);
     setSessionId(await rotateUiSessionId(secretStore, entry.id));
@@ -338,9 +341,12 @@ export function UiSession({
             </View>
           </View>
         )}
-        <MateuAppProvider key={owner ?? 'nobody'} config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox }}>
-          <SessionContent initialRoute={route} visible={visible} />
-        </MateuAppProvider>
+        {/* one UI that cannot be drawn fails alone: the hub and the other open UIs go on */}
+        <RenderBoundary key={`${sessionId}#${generation}`} where={entry.name}>
+          <MateuAppProvider config={{ baseUrl: entry.baseUrl, sessionId: sessionId!, appState: {}, auth: provider, onSession, bundle, snapshots, outbox, activity }}>
+            <SessionContent initialRoute={route} visible={visible} />
+          </MateuAppProvider>
+        </RenderBoundary>
       </>
     );
   }
@@ -374,7 +380,7 @@ export function UiSession({
       </Appbar.Header>
       )}
       {/* "waiting for the server", right under the hub's bar (a UI that claims the bar draws its own) */}
-      {!(barClaimed && phase.name === 'ready' && !!sessionId) && <ServerActivityBar />}
+      {!(barClaimed && phase.name === 'ready' && !!sessionId) && <ServerActivityBar activity={activity} />}
       {body}
     </View>
   );
