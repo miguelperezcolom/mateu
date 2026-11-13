@@ -225,6 +225,8 @@ def add_mateu(
     presence_store: Any | None = None,
     file_storages: Sequence[Any] | None = None,
     uploads_secret: str | None = None,
+    listing_max_page_size: int | None = None,
+    uploads_max_files_per_ticket: int | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -322,6 +324,10 @@ def add_mateu(
       sender when no ``push_sender`` is given; ``expo_push_access_token`` (or
       ``MATEU_PUSH_EXPO_ACCESS_TOKEN``) is its bearer token. With a sender, an ``inbox`` message to a
       signed-in user reaches their phones while the app is suspended or closed.
+    - ``listing_max_page_size`` — the rows one page of a listing may ask for (default: the
+      ``MATEU_LISTING_MAX_PAGE_SIZE`` env var, else 500); a page below zero is always the first.
+    - ``uploads_max_files_per_ticket`` — the files one upload ticket of a MULTIPLE field may send
+      (default: ``MATEU_UPLOADS_MAX_FILES_PER_TICKET``, else 100; a single-file field's: 10).
     - ``presence_store`` (EXPERIMENTAL) — a ``PresenceStore`` keeping record presence
       (``@app(presence=True)``; default: Mateu's bounded in-memory store, per process).
     - ``file_storages`` (EXPERIMENTAL) — ``FileStorage`` instances (or classes, instantiated with no
@@ -391,6 +397,10 @@ def add_mateu(
         handler.inbox_store = inbox_store
     if presence_store is not None:
         handler.presence_store = presence_store
+    if listing_max_page_size is not None:
+        handler.listing_max_page_size = int(listing_max_page_size)
+    if uploads_max_files_per_ticket is not None:
+        handler.mapper.uploads.max_files_per_ticket = int(uploads_max_files_per_ticket)
     show_details = dev_mode_from_env() if dev is None else dev
     mcp_on = mcp_enabled_from_env() if mcp is None else mcp
     # the sidecar's authoring tools call __validate__ over the sync endpoint of an MCP-enabled app
@@ -545,8 +555,12 @@ def add_mateu(
                     lambda: handler.handle(rq, mateu_request.base_url),
                     view=rq.server_side_type,
                     route=rq.route,
+                    fingerprint=idempotency_keys.fingerprint_of(rq.component_state, rq.parameters),
                 )
 
+            # A keyed run is DETACHED from the caller: it runs in a worker thread that a client
+            # leaving (its timeout drops the connection; Starlette cancels this await) does not
+            # stop, and it settles its key on its real outcome — a retry joins it.
             increment = await run_in_threadpool(run_bound, mateu_request, keyed_run)
         except MateuForbiddenException as refused:
             # A denied action (disabled_unless/audience not satisfied at invocation): 403 with a
@@ -715,10 +729,10 @@ def add_mateu(
             if scope == presence_scope and presence_core.is_on(presence_store, scope, record, caller):
                 enqueue(("presence", presence_core.snapshot(presence_store, scope, record, caller)))
 
-        app_type = handler.registry.type_by_name(rq.server_side_type) if rq.server_side_type else None
+        app_type = handler.registry.known_type(rq.server_side_type) if rq.server_side_type else None
         unsubscribe_presence = (
             presence_store.on_change(push_presence)
-            if caller and presence_core.enabled_for(app_type)
+            if caller and presence_core.enabled_for(app_type, handler.registry)
             else (lambda: None)
         )
 
@@ -1133,8 +1147,11 @@ class MateuUiMiddleware:
             forwarded = next(
                 (v.decode("latin-1") for k, v in scope.get("headers", []) if k == b"x-forwarded-prefix"), None
             )
-        answer = self.answer(path, accept, root_path, forwarded)
-        if answer is None:
+        # Everything that touches the disk (a stat, a jar's directory, the page template) runs in a
+        # worker thread, never on the event loop; an asset's BYTES are read only once the app has
+        # answered 404 and the validators did not already answer 304.
+        planned = await run_in_threadpool(self.plan, path, accept, root_path, forwarded)
+        if planned is None:
             await self.app(scope, receive, send)
             return
         state = {"started": False, "swallow": False}
@@ -1152,23 +1169,21 @@ class MateuUiMiddleware:
         await self.app(scope, receive, send_wrapper)
         if not state["swallow"]:
             return
-        content_type, body, cache_control = answer
+        kind, content_type, payload, cache_control = planned
         extra = []
 
         def header(name: bytes) -> str | None:
             return next((v.decode("latin-1") for k, v in scope.get("headers", []) if k == name), None)
 
-        is_asset = path != "/" and ui_page.is_asset(path)
-        gzip = False
-        # the renderer's text files gzipped to a browser that accepts it (2.6 MB → 0.65 MB on a
-        # Vaadin first load); Java's AssetCompression
-        if is_asset and ui_page.compressible(path):
-            extra.append((b"vary", b"Accept-Encoding"))
-            gzip = len(body) >= ui_page.GZIP_MIN_BYTES and ui_page.accepts_gzip(header(b"accept-encoding"))
-        # validators, so a repeat visit (no-cache) costs a 304 and no body — Java's StaticAssetCaching
-        renderer = getattr(self, "renderer", None)
-        stamp = renderer.stamp(path) if is_asset and renderer is not None else None
-        if stamp is not None:
+        if kind == "asset":
+            stamp = payload
+            gzip = False
+            # the renderer's text files gzipped to a browser that accepts it (2.6 MB → 0.65 MB on a
+            # Vaadin first load); Java's AssetCompression
+            if ui_page.compressible(path):
+                extra.append((b"vary", b"Accept-Encoding"))
+                gzip = stamp[0] >= ui_page.GZIP_MIN_BYTES and ui_page.accepts_gzip(header(b"accept-encoding"))
+            # validators, so a repeat visit (no-cache) costs a 304 and no body — Java's StaticAssetCaching
             etag = ui_page.weak_etag(*stamp)
             if gzip:
                 etag = ui_page.gzip_etag(etag)
@@ -1182,15 +1197,51 @@ class MateuUiMiddleware:
                 await send({"type": "http.response.start", "status": 304, "headers": headers})
                 await send({"type": "http.response.body", "body": b""})
                 return
-        if gzip:
-            body = ui_page.gzipped(path, body)
-            extra.append((b"content-encoding", b"gzip"))
+            body = await run_in_threadpool(self._asset_body, path, stamp, gzip)
+            if body is None:  # gone between the stat and the read
+                await send({"type": "http.response.start", "status": 404, "headers": []})
+                await send({"type": "http.response.body", "body": b""})
+                return
+            if gzip:
+                extra.append((b"content-encoding", b"gzip"))
+        else:
+            body = payload
         headers = [(b"content-type", content_type.encode("latin-1")), (b"content-length", str(len(body)).encode())]
         headers.extend(extra)
         if cache_control:
             headers.append((b"cache-control", cache_control.encode("latin-1")))
         await send({"type": "http.response.start", "status": self.status, "headers": headers})
         await send({"type": "http.response.body", "body": b"" if scope["method"] == "HEAD" else body})
+
+    def plan(
+        self, path: str, accept: str | None, root_path: str | None = None, forwarded_prefix: str | None = None
+    ) -> tuple[str, str, object, str | None] | None:
+        """What this middleware would serve at ``path`` — ``("asset", content type, (size, mtime ms),
+        cache control)`` for a renderer file (only its stamp: the bytes are read later, and only
+        when needed), ``("page", content type, body, cache control)`` for a page — or None when the
+        request is not ours. Blocking: called in a worker thread."""
+        renderer = getattr(self, "renderer", None)
+        if path != "/" and ui_page.is_asset(path) and renderer is not None:
+            stamp = renderer.stamp(path)
+            if stamp is None:
+                return None
+            return "asset", ui_page.content_type_of(path), stamp, ui_page.cache_control_for(path)
+        answered = self.answer(path, accept, root_path, forwarded_prefix)
+        if answered is None:
+            return None
+        content_type, body, cache_control = answered
+        return "page", content_type, body, cache_control
+
+    def _asset_body(self, path: str, stamp: tuple[int, int], gzip: bool) -> bytes | None:
+        """The asset's bytes (gzipped when asked; compressed once per file version). Blocking."""
+        if gzip:
+            cached = ui_page.cached_gzip(path, stamp)
+            if cached is not None:
+                return cached
+        raw = self.renderer.read(path)
+        if raw is None:
+            return None
+        return ui_page.gzipped(path, raw, stamp) if gzip else raw
 
 
 class MateuApiHintMiddleware(MateuUiMiddleware):

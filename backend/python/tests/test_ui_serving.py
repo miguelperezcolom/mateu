@@ -188,6 +188,48 @@ def test_the_renderers_assets_carry_validators_and_a_repeat_visit_costs_a_304(va
     assert "etag" not in c.get("/").headers
 
 
+def test_assets_are_read_off_the_event_loop_and_a_304_reads_nothing(vaadin_static, monkeypatch):
+    """GA review (ports 8): the stat, the read and the gzip run in a worker thread — the event loop
+    serving sync calls and SSE heartbeats is never blocked on a 2.6 MB inflate — and a revalidation
+    that ends in a 304 reads no bytes at all."""
+    import threading
+
+    loop_threads: set[int] = set()
+    reads: list[tuple[str, int]] = []
+    original_read = ui_page.RendererFiles.read
+
+    def counting_read(self, relative):
+        reads.append((relative, threading.get_ident()))
+        return original_read(self, relative)
+
+    monkeypatch.setattr(ui_page.RendererFiles, "read", counting_read)
+    monkeypatch.setattr(ui_page, "_GZIPS", {})  # nothing compressed yet: the first answer reads
+    c = client(vaadin_static)
+
+    @c.app.middleware("http")
+    async def remember_the_loop(request, call_next):  # runs ON the event loop
+        loop_threads.add(threading.get_ident())
+        return await call_next(request)
+
+    first = c.get("/assets/mateu-vaadin.js", headers={"accept-encoding": "gzip"})
+    assert first.status_code == 200
+    asset_reads = [t for r, t in reads if r.endswith("mateu-vaadin.js")]
+    assert asset_reads and loop_threads and not (set(asset_reads) & loop_threads)
+    reads.clear()
+    again = c.get("/assets/mateu-vaadin.js", headers={"accept-encoding": "gzip", "if-none-match": first.headers["etag"]})
+    assert again.status_code == 304
+    assert [r for r, _ in reads if r.endswith("mateu-vaadin.js")] == []
+
+
+def test_another_spelling_of_an_asset_path_is_not_a_file(vaadin_static):
+    """``/assets//x.js`` named the same file under another key: one cache entry per spelling, an
+    unauthenticated way to grow the gzip cache (the .NET S8 twin)."""
+    files = ui_page.RendererFiles.at(vaadin_static)
+    assert files.read("assets//index.css") is None and files.stamp("assets/./index.css") is None
+    c = client(vaadin_static)
+    assert c.get("/assets//mateu-vaadin.js", headers={"accept-encoding": "gzip"}).status_code == 404
+
+
 def test_the_api_and_the_apps_own_routes_are_never_answered_with_the_page(vaadin_static):
     c = client(vaadin_static)
     # an API miss stays a miss (a data fetch to a missing endpoint must never get the index)

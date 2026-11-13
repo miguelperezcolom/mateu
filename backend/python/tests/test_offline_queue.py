@@ -4,6 +4,8 @@ and an ``Idempotency-Key`` runs once per caller, action and key over the real sy
 
 import sys
 import threading
+
+import pytest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -12,8 +14,9 @@ from fastapi import FastAPI  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, idempotency_keys  # noqa: E402
+from mateu_ui.core.action_guard import MateuForbiddenException  # noqa: E402
 from mateu_ui.fastapi import add_mateu  # noqa: E402
-from mateu_ui.uidl import Identity, Message, OfflinePolicy, action_options, audience, button, disabled_unless, title, ui  # noqa: E402
+from mateu_ui.uidl import Crud, Identity, Message, OfflinePolicy, action_options, audience, button, disabled_unless, title, ui  # noqa: E402
 
 RUNS = {"n": 0}
 
@@ -140,6 +143,40 @@ def test_a_repeat_arriving_while_the_first_run_is_in_flight_waits_for_it():
     assert results == ["first", "first"]
     assert len(runs) == 1
     idempotency_keys.clear()
+
+
+def test_a_repeat_waits_for_a_stuck_run_only_a_bounded_time(monkeypatch):
+    """A join holds a worker thread: it gives up after join_timeout_seconds with the busy refusal
+    (which the client keeps queued) instead of parking the thread until the stuck run ends."""
+    import time
+
+    from mateu_ui.uidl.messages import UserFacingException
+
+    idempotency_keys.clear()
+    monkeypatch.setattr(idempotency_keys, "join_timeout_seconds", 0.2)
+    gate = threading.Event()
+    started = threading.Event()
+
+    def stuck():
+        started.set()
+        gate.wait(10)
+        return "late"
+
+    first = threading.Thread(target=lambda: idempotency_keys.once("u", "save", "key-0010-stuck", stuck))
+    first.start()
+    try:
+        assert started.wait(5)
+        began = time.monotonic()
+        try:
+            idempotency_keys.once("u", "save", "key-0010-stuck", lambda: "duplicate")
+            raise AssertionError("the repeat should have been refused")
+        except UserFacingException as busy:
+            assert idempotency_keys.BUSY_TITLE in str(busy) or getattr(busy, "title", None) == idempotency_keys.BUSY_TITLE
+        assert time.monotonic() - began < 5
+    finally:
+        gate.set()
+        first.join(5)
+        idempotency_keys.clear()
 
 
 def test_finished_answers_are_bounded():
@@ -303,21 +340,72 @@ def test_a_revoked_permission_is_refused_not_served_from_memory():
     idempotency_keys.clear()
 
 
+class OfflineTogglePart:
+    id: str = ""
+    name: str = ""
+
+
+class OfflineToggleParts(Crud[OfflineTogglePart]):
+    """A crud whose write gate is APP LOGIC, not identity (.NET's OfflineToggleParts)."""
+
+    EDITABLE = {"on": True}
+    SAVES = {"n": 0}
+    ROWS: dict = {}
+
+    def fetch(self, search):
+        return list(self.ROWS.values())
+
+    def get(self, id_):
+        return self.ROWS.get(id_)
+
+    def save(self, entity):
+        OfflineToggleParts.SAVES["n"] += 1
+        self.ROWS[entity.id] = entity
+
+    def can_edit(self):
+        return OfflineToggleParts.EDITABLE["on"]
+
+
+OfflineToggleParts = ui("offline-toggle-parts")(OfflineToggleParts)
+
+
+def _reset_toggle():
+    part = OfflineTogglePart()
+    part.id, part.name = "p1", "Bolt"
+    OfflineToggleParts.ROWS.clear()
+    OfflineToggleParts.ROWS["p1"] = part
+    OfflineToggleParts.SAVES["n"] = 0
+    OfflineToggleParts.EDITABLE["on"] = True
+
+
+def _save_toggle(key):
+    handler = SyncHandler(MateuRegistry(OfflineToggleParts))
+    rq = RunActionRq(
+        route="offline-toggle-parts/p1/edit", consumed_route="/offline-toggle-parts",
+        server_side_type=f"{__name__}.OfflineToggleParts", action_id="save", initiator_component_id="c1",
+        component_state={"name": "Nut"},
+    )
+    return idempotency_keys.guarded(
+        "u", "save", key, lambda: handler.handle(rq), view=rq.server_side_type, route=rq.route
+    )
+
+
 def test_a_replay_refused_by_a_non_identity_rule_is_refused_not_served_from_memory():
-    """The audience is app state, not identity: the caller scope is the same, so only checking
-    the key AFTER the request's checks keeps the remembered answer from being handed out."""
+    """The crud's write gate is app logic, not identity: the caller scope is the same, so only
+    checking the key AFTER the request's checks keeps the remembered answer from being handed out
+    (.NET's twin)."""
     idempotency_keys.clear()
-    RUNS["n"] = 0
-    client = _mine_client()
-    first = _send_mine(client, "staffOnly", "alice", "key-0012-same", app_state={"audience": "staff"})
-    assert "Staff 1" in first.text
-    replay = _send_mine(client, "staffOnly", "alice", "key-0012-same", app_state={"audience": "guest"})
-    assert replay.status_code == 403, replay.text
-    assert "Staff 1" not in replay.text
-    # the rule still allowing it: the same key answers from memory, the action does not run again
-    again = _send_mine(client, "staffOnly", "alice", "key-0012-same", app_state={"audience": "staff"})
-    assert "Staff 1" in again.text
-    assert RUNS["n"] == 1
+    _reset_toggle()
+    _save_toggle("key-0012-same")
+    assert OfflineToggleParts.SAVES["n"] == 1
+    OfflineToggleParts.EDITABLE["on"] = False
+    with pytest.raises(MateuForbiddenException):
+        _save_toggle("key-0012-same")
+    assert idempotency_keys.in_flight() == 0
+    # the gate allowing it again: the same key answers from memory, the save does not run again
+    OfflineToggleParts.EDITABLE["on"] = True
+    _save_toggle("key-0012-same")
+    assert OfflineToggleParts.SAVES["n"] == 1
     idempotency_keys.clear()
 
 
@@ -341,13 +429,14 @@ def test_a_replay_of_an_action_that_is_no_longer_offered_is_refused():
 
 def test_a_request_refused_before_its_checkpoint_never_claims_the_key():
     idempotency_keys.clear()
-    RUNS["n"] = 0
-    client = _mine_client()
-    refused = _send_mine(client, "staffOnly", "alice", "key-0014-same", app_state={"audience": "guest"})
-    assert refused.status_code == 403
+    _reset_toggle()
+    OfflineToggleParts.EDITABLE["on"] = False
+    with pytest.raises(MateuForbiddenException):
+        _save_toggle("key-0014-same")
     assert idempotency_keys.in_flight() == 0
-    allowed = _send_mine(client, "staffOnly", "alice", "key-0014-same", app_state={"audience": "staff"})
-    assert "Staff 1" in allowed.text
+    OfflineToggleParts.EDITABLE["on"] = True
+    _save_toggle("key-0014-same")
+    assert OfflineToggleParts.SAVES["n"] == 1
     idempotency_keys.clear()
 
 
@@ -386,6 +475,137 @@ def test_the_key_is_scoped_to_the_view():
     assert "Saved 2" in send("offline-count-2", OfflineStockCountTwo)
     assert "Saved 1" in send("offline-count", OfflineStockCount)  # replayed on its own view
     assert RUNS["n"] == 2
+    idempotency_keys.clear()
+
+
+def test_each_caller_has_its_own_in_flight_share(monkeypatch):
+    """GA review S10: past ITS share a caller's NEW key is refused; another caller is unaffected."""
+    from mateu_ui.uidl.messages import UserFacingException
+
+    idempotency_keys.clear()
+    monkeypatch.setattr(idempotency_keys, "max_entries_per_caller", 2)
+    gate = threading.Event()
+    threads = []
+    try:
+        for i in range(2):
+            started = threading.Event()
+
+            def slow(started=started):
+                started.set()
+                gate.wait(5)
+                return "done"
+
+            t = threading.Thread(target=lambda i=i, slow=slow: idempotency_keys.once("ana", "save", f"key-share-{i:04d}", slow))
+            t.start()
+            threads.append(t)
+            assert started.wait(5)
+        try:
+            idempotency_keys.once("ana", "save", "key-share-9999", lambda: "third")
+            raise AssertionError("over her share: refused")
+        except UserFacingException as busy:
+            assert getattr(busy, "title", idempotency_keys.BUSY_TITLE) == idempotency_keys.BUSY_TITLE
+        assert idempotency_keys.once("bob", "save", "key-share-9999", lambda: "bob's") == "bob's"
+    finally:
+        gate.set()
+        for t in threads:
+            t.join(5)
+        idempotency_keys.clear()
+
+
+def test_a_full_finished_share_evicts_the_callers_own_oldest_answer_only(monkeypatch):
+    idempotency_keys.clear()
+    monkeypatch.setattr(idempotency_keys, "max_entries_per_caller", 2)
+    runs = []
+
+    def run(name):
+        runs.append(name)
+        return name
+
+    idempotency_keys.once("bob", "save", "key-bob-0001", lambda: run("bob"))
+    for i in range(3):
+        idempotency_keys.once("ana", "save", f"key-ana-{i:04d}", lambda i=i: run(f"ana{i}"))
+    # ana's oldest answer went; bob's stayed
+    assert idempotency_keys.once("bob", "save", "key-bob-0001", lambda: run("bob again")) == "bob"
+    assert idempotency_keys.once("ana", "save", "key-ana-0002", lambda: run("x")) == "ana2"
+    assert idempotency_keys.once("ana", "save", "key-ana-0000", lambda: run("ana0 again")) == "ana0 again"
+    idempotency_keys.clear()
+
+
+def test_a_key_resent_with_another_request_is_refused_and_not_remembered():
+    from mateu_ui.uidl.messages import UserFacingException
+
+    idempotency_keys.clear()
+    first = idempotency_keys.fingerprint_of({"counted": 1}, {})
+    same = idempotency_keys.fingerprint_of({"counted": 1}, None)
+    other = idempotency_keys.fingerprint_of({"counted": 2}, {})
+    assert first == same and first != other
+    assert idempotency_keys.once("u", "save", "key-reuse-0001", lambda: "one", fingerprint=first) == "one"
+    try:
+        idempotency_keys.once("u", "save", "key-reuse-0001", lambda: "two", fingerprint=other)
+        raise AssertionError("another request with the same key: refused")
+    except UserFacingException as reused:
+        assert str(reused) == idempotency_keys.REUSED_MESSAGE
+        assert getattr(reused, "title", None) == idempotency_keys.REUSED_TITLE
+    assert idempotency_keys.once("u", "save", "key-reuse-0001", lambda: "three", fingerprint=same) == "one"
+    idempotency_keys.clear()
+
+
+def test_a_key_resent_with_another_body_over_http_is_refused():
+    idempotency_keys.clear()
+    RUNS["n"] = 0
+    app = FastAPI()
+    add_mateu(app, OfflineStockCount)
+    client = TestClient(app)
+
+    def send(counted):
+        return client.post("/mateu/v3/sync/offline-count", json={
+            "route": "/offline-count", "consumedRoute": "_empty", "actionId": "save",
+            "serverSideType": OfflineStockCount.__module__ + "." + OfflineStockCount.__qualname__,
+            "componentState": {"counted": counted},
+        }, headers={idempotency_keys.HEADER: "key-body-0001"})
+
+    assert "Saved 1" in send(1).text
+    reused = send(2)
+    assert idempotency_keys.REUSED_TITLE in reused.text and "Saved" not in reused.text
+    assert "Saved 1" in send(1).text
+    assert RUNS["n"] == 1
+    idempotency_keys.clear()
+
+
+def test_a_keyed_run_outlives_a_client_that_left():
+    """Detached: cancelling the awaiting request (a client disconnect) neither stops the run nor
+    frees the key; the retry joins it and the action runs once."""
+    import asyncio
+
+    from starlette.concurrency import run_in_threadpool
+
+    idempotency_keys.clear()
+    gate = threading.Event()
+    started = threading.Event()
+    runs = []
+
+    def slow():
+        runs.append(1)
+        started.set()
+        gate.wait(5)
+        return "landed"
+
+    def keyed():
+        return idempotency_keys.guarded("u", "save", "key-left-0001", lambda: (idempotency_keys.checkpoint(), slow())[1])
+
+    async def scenario():
+        first = asyncio.create_task(run_in_threadpool(keyed))
+        while not started.is_set():
+            await asyncio.sleep(0.01)
+        first.cancel()  # the client left
+        assert idempotency_keys.in_flight() == 1  # the key is still held by the running work
+        retry = asyncio.create_task(run_in_threadpool(keyed))
+        await asyncio.sleep(0.05)
+        gate.set()
+        return await retry
+
+    assert asyncio.run(scenario()) == "landed"
+    assert runs == [1]
     idempotency_keys.clear()
 
 

@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import threading
+from collections import OrderedDict
 import hmac
 import logging
 import os
@@ -107,6 +109,27 @@ class Ticket:
     expires: int
 
 
+#: Files a ticket of a MULTIPLE field may send by default (``MATEU_UPLOADS_MAX_FILES_PER_TICKET``).
+DEFAULT_MAX_FILES = 100
+MAX_FILES_ENV = "MATEU_UPLOADS_MAX_FILES_PER_TICKET"
+#: Files a ticket of a SINGLE-file field may send: the file and a few replacements of it.
+SINGLE_FILE_USES = 10
+#: How many tickets' counts are kept (least recently used first out).
+MAX_TRACKED_TICKETS = 10_000
+
+
+def file_name(name: str | None) -> str:
+    """The BARE name a store is handed: no directory part (``/`` or ``\\``), no control
+    characters, never ``.``/``..``/empty (``file`` then) — a store that writes by name must not be
+    steered out of its folder by a crafted header (Java's ``UploadEndpoint.fileName``)."""
+    if name is None or not name.strip():
+        return "file"
+    bare = name.replace("\\", "/")
+    bare = bare[bare.rfind("/") + 1:]
+    bare = "".join(c for c in bare if not (ord(c) < 0x20 or ord(c) == 0x7F)).strip()
+    return "file" if bare in ("", ".", "..") else bare
+
+
 class Uploads:
     """The registered stores + the ticket secret (one per SyncHandler)."""
 
@@ -129,6 +152,33 @@ class Uploads:
             except ValueError:
                 default_max_bytes = DEFAULT_MAX_BYTES
         self.default_max_bytes = default_max_bytes if default_max_bytes > 0 else DEFAULT_MAX_BYTES
+        try:
+            configured_files = int(os.environ.get(MAX_FILES_ENV, "") or DEFAULT_MAX_FILES)
+        except ValueError:
+            configured_files = DEFAULT_MAX_FILES
+        #: the files one ticket of a MULTIPLE field may send (``add_mateu(uploads_max_files_per_ticket=)``)
+        self.max_files_per_ticket = configured_files if configured_files > 0 else DEFAULT_MAX_FILES
+        #: tickets seen, by the hash of the ticket: how many files each has sent (bounded LRU)
+        self._uses: "OrderedDict[str, int]" = OrderedDict()
+        self._uses_lock = threading.Lock()
+
+    def consume(self, ticket: str, claims: "Ticket") -> bool:
+        """Counts one file against ``ticket``: False once it sent its share — a single-file
+        field's :data:`SINGLE_FILE_USES` (the file and a few replacements of it), a multiple
+        field's ``max_files_per_ticket`` (100). Without a count one ticket allowed unlimited
+        storage use for its 8 hours (GA review S11; Java's ``UploadTickets.consume``)."""
+        cap = self.max_files_per_ticket if claims.multiple else min(SINGLE_FILE_USES, self.max_files_per_ticket)
+        key = hashlib.sha256(ticket.encode("ascii", "replace")).hexdigest()
+        with self._uses_lock:
+            count = self._uses.get(key, 0)
+            if count >= cap:
+                self._uses.move_to_end(key)
+                return False
+            self._uses[key] = count + 1
+            self._uses.move_to_end(key)
+            while len(self._uses) > MAX_TRACKED_TICKETS:
+                self._uses.popitem(last=False)
+        return True
 
     def store_for(self, name: str | None) -> FileStorage | None:
         """The store a field names; blank = the default one (named ``""``, or the only one)."""
@@ -159,7 +209,8 @@ class Uploads:
 
     def verify(self, ticket: str | None, identity, now: float | None = None) -> Ticket | None:
         """The ticket's claims when it is ours, intact, unexpired and the caller's; else None."""
-        if not ticket or ticket.count(".") != 1:
+        if not ticket or ticket.count(".") != 1 or not ticket.isascii():
+            # a header may carry any byte: a non-ASCII one is no ticket of ours (a 403, never a 500)
             return None
         payload_b64, signature = ticket.split(".")
         if not hmac.compare_digest(self._sign(payload_b64), signature):

@@ -364,3 +364,75 @@ def test_a_redirect_is_a_failed_call_and_the_secret_stays_home(tmp_path, monkeyp
     assert inc.app_data["_restfetchError"]["status"] == 302
     assert first.seen[0]["X-Api-Key"] == "s3cret"  # type: ignore[attr-defined]
     assert attacker.seen == []  # type: ignore[attr-defined]
+
+
+# ── __restfetch__ applies the gates of the DECLARING member (GA review P2) ─────────────────────
+
+from mateu_ui.uidl import EyesOnly, RestOptions, button, disabled_unless, rest_action  # noqa: E402
+
+
+@ui("proxy-gates")
+class ProxyGates:
+    payroll: Annotated[
+        str | None,
+        EyesOnly(roles=["hr"]),
+        RestOptions(url="https://hr.internal/payroll?k=${secret.K}", proxy=True),
+    ] = None
+    id: str = "7"
+
+    @button
+    @disabled_unless(roles=["admin"])
+    @rest_action(url="https://api.internal/people/${state.id}", method="DELETE", proxy=True)
+    def purge(self): ...
+
+    @eyes_only(roles=["manager"])
+    @rest_action(url="https://api.internal/records", method="DELETE", proxy=True)
+    def wipe(self): ...
+
+    @rest_action(url="https://api.internal/ping", proxy=True)
+    def ping(self): ...
+
+
+@pytest.fixture
+def upstream(monkeypatch):
+    calls: list[str] = []
+
+    def fake_open(req, timeout=None):
+        calls.append(f"{req.get_method()} {req.full_url}")
+        return _Answer()
+
+    monkeypatch.setattr("mateu_ui.core.sync_handler.proxy._open", fake_open)
+    return calls
+
+
+def _gates(roles):
+    return SyncHandler(
+        MateuRegistry(MODULE),
+        identity_provider=(lambda: Identity(roles=tuple(roles))) if roles is not None else None,
+    )
+
+
+def _fetch(h, kind, source_id):
+    return h.handle(RunActionRq(
+        route="/proxy-gates", server_side_type=f"{MODULE.__name__}.ProxyGates",
+        action_id="__restfetch__", component_state={"id": "7"},
+        parameters={"_sourceKind": kind, "_sourceId": source_id},
+    ))
+
+
+@pytest.mark.parametrize("roles", [("viewer",), None])
+@pytest.mark.parametrize("kind,source_id", [("action", "purge"), ("action", "wipe"), ("options", "payroll")])
+def test_a_proxied_source_whose_member_the_caller_may_not_use_is_refused(upstream, roles, kind, source_id):
+    with pytest.raises(MateuForbiddenException):
+        _fetch(_gates(roles), kind, source_id)
+    assert upstream == []
+
+
+@pytest.mark.parametrize(
+    "roles,kind,source_id",
+    [(("admin",), "action", "purge"), (("manager",), "action", "wipe"), (("hr",), "options", "payroll"),
+     (("viewer",), "action", "ping")],
+)
+def test_a_proxied_source_runs_for_a_caller_the_member_admits(upstream, roles, kind, source_id):
+    _fetch(_gates(roles), kind, source_id)
+    assert len(upstream) == 1

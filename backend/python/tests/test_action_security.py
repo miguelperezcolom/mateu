@@ -318,12 +318,11 @@ def test_a_disabled_unless_action_is_forbidden_without_the_role():
     assert "approved" in render(handler(Identity(roles=("manager",))).handle(rq("sec-probe", "approve")))
 
 
-def test_an_audience_action_is_forbidden_for_another_audience():
-    before = CALLS.get("audit", 0)
-    assert_forbidden(handler(), rq("sec-probe", "audit", app_state={"audience": "cliente"}))
-    assert CALLS.get("audit", 0) == before
-    assert "audited" in render(handler().handle(rq("sec-probe", "audit")))
-    assert "audited" in render(handler().handle(rq("sec-probe", "audit", app_state={"audience": "staff"})))
+def test_an_audience_action_is_not_refused_at_invocation():
+    """The audience is client-chosen app state: a projection of what is rendered, never a gate
+    (Java's AudienceGate, .NET's EnsureMayInvoke) — the three backends answer alike."""
+    for state in ({"audience": "cliente"}, {"audience": "staff"}, None):
+        assert "audited" in render(handler().handle(rq("sec-probe", "audit", app_state=state)))
 
 
 # ── 3. mass assignment ──────────────────────────────────────────────────────────
@@ -365,3 +364,11 @@ def test_the_fastapi_endpoint_answers_a_denied_action_with_403():
     assert CALLS.get("approve", 0) == before
     ok = TestClient(app).post("/mateu/v3/sync/sec-probe", json={"route": "sec-probe", "actionId": "go"})
     assert ok.status_code == 200 and "went" in ok.text
+
+
+def test_a_refusal_log_line_cannot_be_forged_by_the_wire_action_id(caplog):
+    """GA review (ports 7): control characters of a wire id never reach the security log."""
+    with caplog.at_level("WARNING", logger="mateu.security"):
+        assert_forbidden(handler(), rq("sec-probe", "x\n[mateu] security: admin signed in"))
+    lines = [r.getMessage() for r in caplog.records if r.name == "mateu.security"]
+    assert lines and all("\n" not in line and "\r" not in line for line in lines)

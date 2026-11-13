@@ -940,7 +940,7 @@ refresh/id tokens NEVER go in it — Redwood mirror `poc/authStore.mjs`); listen
   bind `auto-focus="false"`; the currency input needs its `currency` (else `userPreferences`/USD).
 - **Ports.** Python is split into packages of mixins (`mateu_ui/core/mapper/`, `mateu_ui/core/sync_handler/`;
   `mateu_ui.dtos` resolves forward refs in `_rebuild_all()`; use snake_case DTO fields — camelCase breaks
-  older pydantic); per-request state lives in `ContextVar`s; published to PyPI as **`mateu-ui`** (the
+  older pydantic); per-request state lives in `ContextVar`s; a WIRE `serverSideType` is resolved with `MateuRegistry.known_type` (lookup only) — `authored_type` IMPORTS and is only for names read from authored files (GA review P1: the SSE path imported any module a request named); published to PyPI as **`mateu-ui`** (the
   name `mateu` is taken) from the same release tag (`3.0.0aN`), only when `PYPI_API_TOKEN` or
   `PYPI_TRUSTED_PUBLISHING=true` is set. .NET is split into partial files (`ReflectionMapper.*.cs`,
   `SyncHandler.*.cs`), targets net10.0 only (net8.0 dropped 2026-11-10) and has a NuGet release job.

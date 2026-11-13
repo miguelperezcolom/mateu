@@ -323,3 +323,57 @@ def test_an_invalid_target_body_is_400():
         "X-Mateu-Upload-Ticket": ticket, "Content-Type": "application/json"})
     assert res.status_code == 400
     assert res.json() == {"error": "Bad request", "message": "The upload request is not valid JSON."}
+
+
+# ── GA review: Python minors ─────────────────────────────────────────────────────────────────
+
+
+def test_a_ticket_with_non_ascii_bytes_is_403_not_500():
+    assert Uploads([MemoryStorage()], secret="s").verify("abc.d\u00e9f", None) is None
+    client, _ = _app(MemoryStorage())
+    res = client.post("/mateu/v3/upload", content=b"x", headers={
+        "Content-Type": "application/pdf", "X-Mateu-File-Name": "a.pdf",
+        "X-Mateu-Upload-Ticket": "abc.d\u00e9f".encode("latin-1"),
+    })
+    assert res.status_code == 403
+
+
+def test_a_ticket_sends_its_share_of_files_then_429():
+    """GA review S11 (Java's UploadTickets.consume): 10 files for a single-file field, the setting
+    (100 by default) for a multiple one; both endpoints answer 429 past it."""
+    store = MemoryStorage()
+    client, _ = _app(store)
+    single = _attributes(_form(client), "contract")["uploadTicket"]
+    assert all(_post(client, single).status_code == 200 for _ in range(10))
+    refused = _post(client, single)
+    assert refused.status_code == 429
+    assert refused.json() == {"error": "Too many uploads",
+                              "message": "This form has sent too many files. Reload the page to upload more."}
+    app = FastAPI()
+    add_mateu(app, UploadsForm, file_storages=[MemoryStorage()], uploads_secret="test-secret",
+              uploads_max_files_per_ticket=3)
+    capped = TestClient(app)
+    many = _attributes(_form(capped), "photos")["uploadTicket"]
+    assert [_post(capped, many, content_type="image/png").status_code for _ in range(4)] == [200, 200, 200, 429]
+    direct = TestClient(FastAPI())
+    add_mateu(direct.app, UploadsForm, file_storages=[DirectStorage()], uploads_secret="test-secret")
+    ticket = _attributes(_form(direct), "contract")["uploadTicket"]
+    asks = [direct.post("/mateu/v3/upload/target", json={"name": "a.pdf", "contentType": "application/pdf",
+                                                         "size": 1}, headers={"X-Mateu-Upload-Ticket": ticket})
+            for _ in range(11)]
+    assert [a.status_code for a in asks] == [200] * 10 + [429]
+
+
+def test_the_store_gets_a_bare_file_name():
+    from mateu_ui.core.uploads import file_name
+
+    assert file_name("../../etc/passwd") == "passwd"
+    assert file_name("C:\\Users\\ana\\x.pdf") == "x.pdf"
+    assert file_name("..") == "file" and file_name("") == "file" and file_name(None) == "file"
+    assert file_name("a\nb\u0007.pdf") == "ab.pdf"
+    store = MemoryStorage()
+    client, _ = _app(store)
+    ticket = _attributes(_form(client), "contract")["uploadTicket"]
+    assert _post(client, ticket, name="..%2F..%2Fcontract.pdf").status_code == 200
+    incoming, _ = store.files["f1"]
+    assert incoming.name == "contract.pdf"

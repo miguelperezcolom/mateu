@@ -39,12 +39,14 @@ def scope_of(base_url: str | None, app_type: str | None) -> str:
     return (base_url or "") + "|" + (app_type or "")
 
 
-def enabled_for(cls) -> bool:
+def enabled_for(cls, registry=None) -> bool:
     """A class decorated with ``@app`` must say ``presence=True``; a data-authored shell (no
-    class) decides on the client."""
-    if cls is None or getattr(cls, "__mateu_app__", None) is None:
-        return True
-    return bool(getattr(cls, "__mateu_app_presence__", False))
+    class) decides on the client. A request naming anything else (a plain view) in an app whose
+    shell IS a class is off — naming a view must not switch presence on in an app that never
+    opted in."""
+    if cls is not None and getattr(cls, "__mateu_app__", None) is not None:
+        return bool(getattr(cls, "__mateu_app_presence__", False))
+    return getattr(registry, "app_type", None) is None
 
 
 def record_of(route: str | None, view: str | None) -> str | None:

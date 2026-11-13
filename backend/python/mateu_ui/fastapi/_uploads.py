@@ -25,6 +25,7 @@ from mateu_ui.core.uploads import (
     UPLOAD_PATH,
     Uploads,
     accepts,
+    file_name,
     format_size,
 )
 from mateu_ui.uidl.uploads import IncomingFile, StoredFile, UploadRequest, UploadTarget, decode_component
@@ -51,6 +52,10 @@ def _not_found() -> JSONResponse:
 
 def _too_large(max_bytes: int) -> JSONResponse:
     return _error(413, "Too large", f"This file is too large (max {format_size(max_bytes)}).")
+
+
+def _too_many() -> JSONResponse:
+    return _error(429, "Too many uploads", "This form has sent too many files. Reload the page to upload more.")
 
 
 def _not_accepted() -> JSONResponse:
@@ -115,10 +120,12 @@ def add_upload_endpoints(
         if refusal is not None:
             return refusal
         claims, store = ok
-        name = decode_component(request.headers.get(FILE_NAME_HEADER) or "")
+        name = file_name(decode_component(request.headers.get(FILE_NAME_HEADER) or ""))
         content_type = (request.headers.get("content-type") or "").strip() or "application/octet-stream"
         if not accepts(claims.accept, name, content_type):
             return _not_accepted()
+        if not uploads_of().consume(request.headers.get(TICKET_HEADER) or "", claims):
+            return _too_many()
         declared = _content_length(request)
         if declared > claims.max_bytes:
             return _too_large(claims.max_bytes)
@@ -161,7 +168,7 @@ def add_upload_endpoints(
                 raise ValueError("not an object")
         except ValueError:
             return _error(400, "Bad request", "The upload request is not valid JSON.")
-        name = str(body.get("name") or "")
+        name = file_name(str(body.get("name") or ""))
         content_type = str(body.get("contentType") or "").strip() or "application/octet-stream"
         raw_size = body.get("size")
         try:
@@ -174,6 +181,8 @@ def add_upload_endpoints(
             return _too_large(claims.max_bytes)
         if not getattr(store, "direct_uploads", False):
             return _not_found()
+        if not uploads_of().consume(request.headers.get(TICKET_HEADER) or "", claims):
+            return _too_many()
         try:
             with bound_request(mateu_request):
                 issued = await _awaited(

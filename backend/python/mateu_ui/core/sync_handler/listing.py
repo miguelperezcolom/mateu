@@ -51,7 +51,8 @@ class ListingHandlerMixin(MixinBase):
 
             mount = routed_tabs.mount_of(self.routes, rq.route, rq.server_side_type)
             if mount is not None:
-                bound = self.registry.type_by_name(rq.server_side_type)
+                # safe to import: mount_of found an AUTHORED entry binding exactly this name
+                bound = self.registry.authored_type(rq.server_side_type)
                 if bound is not None and crud_element_type(bound) is not None:
                     return bound, crud_element_type(bound), mount
             # a sub-resource island (/_subresource/<Host>/<field>): addressed by its type
@@ -188,8 +189,18 @@ class ListingHandlerMixin(MixinBase):
                 back = f"{base}/{id_}" if navigable and id_ is not None else base_route
                 return self.navigate(back, None, rq)
         if editable and aid == "save":
-            editor = editor_type()
-            self.bind_state(editor, rq.component_state or {})
+            # the save starts from the STORED record (edit(id)) and takes from the client only
+            # what the edit form lets the user write — never a blank object filled from the wire,
+            # which wrote read-only / hidden / server-owned fields (.NET's and Java's rule)
+            from ..mapper.crud_modes import without_hidden_inputs
+
+            _, routed_id = self.parse_crud_route(base_route, rq.route)
+            row_id = routed_id if routed_id is not None else self._row_id(rq)
+            editor = self._invoke(view.edit, row_id, rq) if row_id is not None else None
+            if editor is None:
+                return self.error("This record no longer exists. Reload the list to see the current rows.")
+            state = {k: v for k, v in (rq.component_state or {}).items() if k != "id"}
+            self.bind_state(editor, without_hidden_inputs(editor_type or type(editor), state, False))
             idempotency_keys.checkpoint()  # the capability is declared: the write may replay
             saved_id = self._invoke(view.save, editor, rq)
             if drawer_editor:
@@ -197,8 +208,12 @@ class ListingHandlerMixin(MixinBase):
             back = f"{base_route}/{saved_id}" if saved_id is not None else base_route
             return self.navigate(back, "Saved", rq)
         if creatable and aid == "create":
-            form = form_type()
-            self.bind_state(form, rq.component_state or {})
+            # the create starts from creation_form() (its server-side defaults survive) and takes
+            # only what the creation form lets the user write
+            from ..mapper.crud_modes import without_hidden_inputs
+
+            form = self._invoke(view.creation_form, rq)
+            self.bind_state(form, without_hidden_inputs(form_type or type(form), rq.component_state or {}, True))
             idempotency_keys.checkpoint()  # the capability is declared: the write may replay
             self._invoke(view.create, form, rq)
             if drawer_editor:
