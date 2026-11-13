@@ -316,6 +316,9 @@ def cache_control_for(path: str) -> str | None:
 GZIP_MIN_BYTES = 1024
 _COMPRESSIBLE = {".js", ".mjs", ".css", ".html", ".htm", ".json", ".map", ".svg", ".txt", ".md", ".xml", ".wasm"}
 _GZIPS: dict[tuple[str, int, int], bytes] = {}
+_GZIPS_LOCK = __import__("threading").Lock()
+#: how many compressed files are kept (a renderer ships a few hundred)
+_GZIPS_MAX = 512
 
 
 def compressible(path: str) -> bool:
@@ -348,17 +351,32 @@ def accepts_gzip(accept_encoding: str | None) -> bool:
     return star is True
 
 
-def gzipped(path: str, raw: bytes) -> bytes:
-    """The gzip bytes of a renderer file, compressed once per content (keyed by path, size and
-    CRC, so a replaced file is compressed again)."""
+def _canonical(path: str) -> str:
+    return "/".join(segment for segment in path.split("/") if segment)
+
+
+def cached_gzip(path: str, stamp: tuple[int, int]) -> bytes | None:
+    """The gzip bytes already made for this VERSION of the file (path + size + mtime), or None."""
+    with _GZIPS_LOCK:
+        return _GZIPS.get((_canonical(path), stamp[0], stamp[1]))
+
+
+def gzipped(path: str, raw: bytes, stamp: tuple[int, int] | None = None) -> bytes:
+    """The gzip bytes of a renderer file, compressed once per version of it: keyed by its canonical
+    path and its stamp (size + mtime) — no hashing of the bytes per request; without a stamp, by
+    size and CRC. Bounded: the oldest entries go first."""
     import gzip
     import zlib
 
-    key = (path, len(raw), zlib.crc32(raw))
-    out = _GZIPS.get(key)
+    key = (_canonical(path), *(stamp if stamp is not None else (len(raw), zlib.crc32(raw))))
+    with _GZIPS_LOCK:
+        out = _GZIPS.get(key)
     if out is None:
         out = gzip.compress(raw, compresslevel=9, mtime=0)
-        _GZIPS[key] = out
+        with _GZIPS_LOCK:
+            _GZIPS[key] = out
+            while len(_GZIPS) > _GZIPS_MAX:
+                _GZIPS.pop(next(iter(_GZIPS)))
     return out
 
 
@@ -477,7 +495,8 @@ class RendererFiles:
         """The bytes of ``relative`` (``assets/mateu-vaadin.js``), or None when it is not a file
         of this renderer. Never escapes the renderer's root."""
         relative = relative.lstrip("/")
-        if not relative or ".." in relative.split("/"):
+        if not relative or any(segment in ("", ".", "..") for segment in relative.split("/")):
+            # "assets//x.js" or "assets/./x.js" name the same file under another spelling
             return None
         if self.is_archive:
             # only the renderer's own files (the jar's static/ folder): never META-INF, never classes
@@ -501,7 +520,8 @@ class RendererFiles:
         """``(size, modification time in ms)`` of ``relative``, or None when it is not a file of this
         renderer — what the asset's validators (``ETag``, ``Last-Modified``) are made of."""
         relative = relative.lstrip("/")
-        if not relative or ".." in relative.split("/"):
+        if not relative or any(segment in ("", ".", "..") for segment in relative.split("/")):
+            # "assets//x.js" or "assets/./x.js" name the same file under another spelling
             return None
         if self.is_archive:
             try:
