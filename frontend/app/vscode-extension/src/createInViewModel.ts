@@ -7,7 +7,7 @@
 // the dataType→Java-type map, the class/record checks and the insertion computation. The thin
 // CreateInViewModelProvider wires it to the workspace (resolve the file, apply a WorkspaceEdit).
 
-import { parse } from 'yaml'
+import { parseSpec } from './specYaml'
 
 /** A `FormField` binding found in a page: the id and its declared wire dataType (when present). */
 export interface FieldBinding {
@@ -48,7 +48,7 @@ export function isValidJavaIdentifier(s: string): boolean {
  */
 export function extractBindings(yaml: string): PageBindings {
     let root: unknown
-    try { root = parse(yaml) } catch { return { fields: [] } }
+    try { root = parseSpec(yaml) } catch { return { fields: [] } }
     if (!root || typeof root !== 'object') return { fields: [] }
     const obj = root as Record<string, unknown>
     const modelView = typeof obj.viewModel === 'string' ? obj.viewModel : undefined

@@ -4,7 +4,7 @@
 // Maven artifact asks here. Absent file or key = vaadin. A port of the IntelliJ plugin's
 // ProjectDescriptor.kt; mirrors io.mateu.uidl.data.ProjectSettings / ProjectRenderer.
 // No `vscode` import here, so it is unit-tested with vitest.
-import { parse } from 'yaml'
+import { parseSpec } from './specYaml'
 
 export const PROJECT_TYPE = 'Project'
 export const PROJECT_FILE_NAME = 'project.yaml'
@@ -45,7 +45,7 @@ export function parseRenderer(value: unknown): RendererId | undefined {
 function rootOf(text: string | undefined | null): Record<string, unknown> | undefined {
     if (!text || text.trim() === '') return undefined
     try {
-        const doc = parse(text)
+        const doc = parseSpec(text)
         return doc && typeof doc === 'object' && !Array.isArray(doc) ? (doc as Record<string, unknown>) : undefined
     } catch {
         return undefined

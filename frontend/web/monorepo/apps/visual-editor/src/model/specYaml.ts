@@ -1,8 +1,11 @@
 import { parse } from 'yaml'
 
 /**
- * The editor's reader of spec YAML (`specs/ui/**`) as DATA — the twin of the backend's `SpecsYaml`,
- * so a file means the same thing in the editor (canvas, Play, indexes) as on the server:
+ * The reader of spec YAML (`specs/ui/**`) as DATA in the visual editor and the VS Code extension —
+ * the twin of the backend's `SpecsYaml`, so a file means the same thing there (canvas, Play,
+ * indexes, wizards) as on the server. TWO IDENTICAL COPIES: apps/visual-editor/src/model/specYaml.ts
+ * and frontend/app/vscode-extension/src/specYaml.ts (the extension compiles only its own src/);
+ * the extension's specYaml.test.ts fails when they differ — edit both.
  *
  * - **Merge keys are applied** (`<<: *base`, `<<: [*a, *b]`), with YAML 1.1's rules, which are
  *   SnakeYAML's: a key the mapping writes itself wins over a merged one, and among several bases the
