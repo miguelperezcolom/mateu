@@ -171,7 +171,9 @@ test.describe('capability listing — search, filters, sort, paging and the URL'
 
 test.describe('editable listing — create, edit in a drawer, delete', () => {
     const drawer = (page: Page) => page.locator('mateu-drawer')
-    const textInput = (page: Page) => drawer(page).locator('vaadin-text-field').nth(1).locator('input')
+    // by its label: the creation drawer has no input for the note's id (a technical id — create()
+    // assigns it — has none since the GA follow-ups, F6), while the edit drawer still shows it
+    const textInput = (page: Page) => drawer(page).getByRole('textbox', { name: 'Text', exact: true })
 
     test('create refuses an empty required field, then creates, edits and deletes', async ({ page }) => {
         const tag = `note-${Date.now()}-${Math.floor(Math.random() * 1000)}`

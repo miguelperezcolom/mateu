@@ -25,7 +25,8 @@ test('the create drawer refuses an empty required field, a bound and a pattern i
   const create = page.getByRole('button', { name: 'New' }).first();
   await expect(create).toBeVisible({ timeout: 15000 });
   await create.click();
-  const save = page.getByRole('button', { name: 'Save' }).last();
+  // exact: the listing's «Saved views» button matches 'Save' too, and may come later in the DOM
+  const save = page.getByRole('button', { name: 'Save', exact: true }).last();
   await expect(save).toBeVisible();
 
   // the required name left empty

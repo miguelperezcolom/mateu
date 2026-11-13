@@ -28,6 +28,8 @@ public class CatalogWithHiddenColumns extends AutoCrud<CatalogWithHiddenColumns.
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Order implements Identifiable {
+        // the user types the order code on the creation form (else it is a technical id, store-assigned)
+        @EditableOnlyWhenCreating
         @NotEmpty
         String id;
 
