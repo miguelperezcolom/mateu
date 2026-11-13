@@ -36,6 +36,7 @@ internal sealed partial class SyncHandler
         // A listing that opted into an export answers it with the whole filtered result set.
         if (ExportKind(listing, rq.ActionId) is { } export)
         {
+            rq = NarrowListingQuery(rq, profile.RowType, profile.FiltersType);
             var all = new SearchRequest(
                 profile.Searchable ? SearchText(rq) : null,
                 profile.FiltersType is { } filtersType ? AssembleFilters(filtersType, rq.ComponentState) : null,
@@ -104,6 +105,7 @@ internal sealed partial class SyncHandler
 
     private static UIIncrementDto CapabilitySearch(CapabilityProfile profile, object listing, RunActionRqDto rq)
     {
+        rq = NarrowListingQuery(rq, profile.RowType, profile.FiltersType);
         // Free text only when the listing declared ISearchable; typed filters only when it
         // declared IFilterable (mirrors Java's SearchRequestBuilder).
         var request = new SearchRequest(

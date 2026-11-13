@@ -309,7 +309,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             if (!string.IsNullOrWhiteSpace(routeMatch.Entry.ViewModel))
                 type = registry.TypeByName(routeMatch.Entry.ViewModel);
         }
-        return SeedRouteScopes(ResolveRoute(rq, type, routeEntry, clientState, routeSeeds), rq, routeEntry);
+        return WithoutHiddenState(SeedRouteScopes(ResolveRoute(rq, type, routeEntry, clientState, routeSeeds), rq, routeEntry));
     }
 
     /// <summary>The per-request context every step reads: the caller's identity (the gates
@@ -340,6 +340,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     /// fields hidden or made read-only for the caller are dropped from the incoming state.</summary>
     private RunActionRqDto GuardYamlAccess(RunActionRqDto rq)
     {
+        HiddenForRequest.Value = null;
         rq = GuardBoundType(rq);
         if (_routes.RefusingEntry(rq.Route, ActionGuard.Authorized) is { } refusing)
             ActionGuard.Deny($"route '{refusing.Route}' denied by access:");
@@ -366,6 +367,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             foreach (var (key, component) in byPieces) merged.TryAdd(key, component);
             byPieces = merged;
         }
+        HideInAnswer(personal.HiddenFields);
         return WithoutLockedByPieces(WithoutLocked(rq, personal.LockedFields.ToHashSet()), byPieces);
     }
 
@@ -393,16 +395,15 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             var under = _routes.Match(mount)!.Entry;
             return WithEntryKeys(rq, under);
         }
-        if (plain && registry.Resolve(rq.ServerSideType, null) is { } declared
+        if (plain && registry.Registered(rq.ServerSideType) is { } declared
             && (registry.ResolveByPrefix(rq.Route)?.Type == declared
                 || (MateuRegistry.Normalize(rq.Route) == "" && registry.AppType == declared)))
             return rq;
-        foreach (var entry in binding)
-        {
-            if (_routes.RefusingEntry(entry.Route, ActionGuard.Authorized) is { } refusing)
-                ActionGuard.Deny($"view {rq.ServerSideType} denied by access: of route '{refusing.Route}'");
-            rq = WithEntryKeys(rq, entry);
-        }
+        // allowed only when one of the type's OWN routes is reachable for the caller (Java's rule);
+        // then the union of every binding entry's keys applies
+        if (!binding.Any(entry => _routes.IsReachable(entry.Route, ActionGuard.Authorized)))
+            ActionGuard.Deny($"view {rq.ServerSideType} denied by access: of its routes");
+        foreach (var entry in binding) rq = WithEntryKeys(rq, entry);
         return rq;
     }
 
@@ -414,7 +415,39 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         if (_yaml.LoadSpec(entry.Route, ActionGuard.Authorized, _i18n.Locale) is not { } personal) return rq;
         if (rq.ActionId is { Length: > 0 } actionId && personal.RefusedActions.Contains(actionId))
             ActionGuard.Deny($"action '{actionId}' denied by access: of route '{entry.Route}'");
+        HideInAnswer(personal.HiddenFields);
         return WithoutLocked(rq, personal.LockedFields.ToHashSet());
+    }
+
+    /// <summary>The fields a YAML layout bound to the request REMOVES for the caller (eyesOnly:,
+    /// access:): the view model's outgoing state must not carry them either — the layout hides the
+    /// field, the class still has the property (GA review S1, Java's FieldAccess).</summary>
+    private static readonly AsyncLocal<HashSet<string>?> HiddenForRequest = new();
+
+    private static void HideInAnswer(IEnumerable<string> fields)
+    {
+        foreach (var field in fields) (HiddenForRequest.Value ??= []).Add(field);
+    }
+
+    /// <summary><paramref name="increment"/> without the state of the fields hidden for the request.</summary>
+    private static UIIncrementDto WithoutHiddenState(UIIncrementDto increment)
+    {
+        if (HiddenForRequest.Value is not { Count: > 0 } hidden) return increment;
+        return increment with
+        {
+            Fragments = increment.Fragments.Select(f => f with
+            {
+                State = Without(f.State, hidden),
+                Component = f.Component is ServerSideComponentDto server
+                    ? server with { InitialData = Without(server.InitialData, hidden)! }
+                    : f.Component,
+            }).ToList(),
+        };
+
+        static object? Without(object? state, HashSet<string> keys) =>
+            state is IDictionary<string, object?> map && keys.Any(map.ContainsKey)
+                ? map.Where(e => !keys.Contains(e.Key)).ToDictionary(e => e.Key, e => e.Value)
+                : state;
     }
 
     /// <summary>A route with a <c>.</c> or <c>..</c> segment names no authored place.</summary>
@@ -507,6 +540,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             var view = Activator.CreateInstance(type)!;
             if (ExportKind(view, rq.ActionId) is { } listingExport)
             {
+                rq = NarrowListingQuery(rq, listing.Row, listing.Filters);
                 var all = new SearchRequest(SearchText(rq), AssembleFilters(listing.Filters, rq.ComponentState),
                     null, new Pageable(0, int.MaxValue, PageableOf(rq).Sort)) with { FilterState = rq.ComponentState };
                 return ExportRows(listingExport,
