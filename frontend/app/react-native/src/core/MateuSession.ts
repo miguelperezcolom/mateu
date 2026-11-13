@@ -487,5 +487,9 @@ export function declareMenuRemotes(session: MateuSession, menu: unknown): void {
 
 function sessionOver(host: MateuSession, baseUrl: string): MateuSession {
   const trusted = host.credentials.mayCarryCredentials(baseUrl);
-  return new MateuSession(baseUrl, host.api.sessionId, appStateFor(host.appState, host.appContextKeys, trusted), undefined, host);
+  // a trusted remote gets the HOST's token provider: a hub UI's own (the hub registers no global
+  // one, so `undefined` here sent no Bearer at all), or the global one of a single-backend build
+  // (`undefined` = that one). Anyone else: none — never the process-wide provider either.
+  const auth = trusted ? host.api.auth : null;
+  return new MateuSession(baseUrl, host.api.sessionId, appStateFor(host.appState, host.appContextKeys, trusted), auth, host);
 }
