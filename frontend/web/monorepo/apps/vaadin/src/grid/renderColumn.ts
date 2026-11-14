@@ -122,17 +122,17 @@ const renderEditableCell = (
     const name = column.label ?? column.id
     switch (column.editorType) {
         case 'boolean':
-            return html`<vaadin-checkbox accessible-name="${name}" ?checked=${!!v} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: any) => commit(e, !!(e.currentTarget as any).checked)}></vaadin-checkbox>`
+            return html`<vaadin-checkbox accessible-name="${name}" ?checked=${!!v} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: Event) => commit(e, !!(e.currentTarget as HTMLInputElement).checked)}></vaadin-checkbox>`
         case 'integer':
-            return html`<vaadin-integer-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: any) => commit(e, toNumber(valueOf(e), true))}></vaadin-integer-field>`
+            return html`<vaadin-integer-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: Event) => commit(e, toNumber(valueOf(e), true))}></vaadin-integer-field>`
         case 'number':
-            return html`<vaadin-number-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: any) => commit(e, toNumber(valueOf(e)))}></vaadin-number-field>`
+            return html`<vaadin-number-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: Event) => commit(e, toNumber(valueOf(e)))}></vaadin-number-field>`
         case 'date':
-            return html`<vaadin-date-picker accessible-name="${name}" theme="small" style="width:100%;" .i18n=${datePickerI18n()} .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: any) => commit(e, valueOf(e))}></vaadin-date-picker>`
+            return html`<vaadin-date-picker accessible-name="${name}" theme="small" style="width:100%;" .i18n=${datePickerI18n()} .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: Event) => commit(e, valueOf(e))}></vaadin-date-picker>`
         case 'time':
-            return html`<vaadin-time-picker accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: any) => commit(e, valueOf(e))}></vaadin-time-picker>`
+            return html`<vaadin-time-picker accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: Event) => commit(e, valueOf(e))}></vaadin-time-picker>`
         case 'datetime':
-            return html`<vaadin-date-time-picker accessible-name="${name}" theme="small" style="width:100%;" .i18n=${datePickerI18n()} .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: any) => commit(e, valueOf(e))}></vaadin-date-time-picker>`
+            return html`<vaadin-date-time-picker accessible-name="${name}" theme="small" style="width:100%;" .i18n=${datePickerI18n()} .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: Event) => commit(e, valueOf(e))}></vaadin-date-time-picker>`
         case 'select':
             return html`<vaadin-combo-box accessible-name="${name}"
                 theme="small" style="width:100%;"
@@ -140,7 +140,7 @@ const renderEditableCell = (
                 item-label-path="label" item-value-path="value"
                 .value=${s}
                 @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit}
-                @change=${(e: any) => commit(e, valueOf(e))}></vaadin-combo-box>`
+                @change=${(e: Event) => commit(e, valueOf(e))}></vaadin-combo-box>`
         case 'lookup': {
             // Remote search-as-you-type: the combo box's dataProvider dispatches the per-column
             // search action (search-<gridField>-<column>, handled by SearchFieldActionRunner) and
@@ -172,7 +172,7 @@ const renderEditableCell = (
                 .dataProvider=${dataProvider}
                 .selectedItem=${selected}
                 @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit}
-                @change=${(e: any) => {
+                @change=${(e: Event) => {
                     // `change` is the user's pick; selected-item-changed also fires when the grid
                     // binds another row's item into a recycled combo
                     const it = (e.currentTarget as any).selectedItem
@@ -182,7 +182,7 @@ const renderEditableCell = (
                 }}></vaadin-combo-box>`
         }
         default:
-            return html`<vaadin-text-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: any) => commit(e, valueOf(e))}></vaadin-text-field>`
+            return html`<vaadin-text-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: Event) => commit(e, valueOf(e))}></vaadin-text-field>`
     }
 }
 
