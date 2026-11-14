@@ -351,11 +351,15 @@ public class GaReviewSecurityTests
     [InlineData("/ga-hello")]
     [InlineData("/nowhere")]
     [InlineData("")]
-    [InlineData("/ga-payroll-locked/../ga-hello")]
     public void A_bound_view_model_named_under_another_route_gets_the_union_of_its_entries_locks(string route)
     {
         Assert.Equal("paid 100", Assert.Single(Pay(route).Messages).Text);
     }
+
+    [Fact]
+    public void A_dot_segment_route_is_refused_outright() =>
+        // a dot segment names another file than the route says (GA round 2, J1)
+        Assert.Throws<MateuForbiddenException>(() => Pay("/ga-payroll-locked/../ga-hello"));
 
     [Fact]
     public void A_bound_view_model_answers_where_it_is_bound_and_at_its_own_route()

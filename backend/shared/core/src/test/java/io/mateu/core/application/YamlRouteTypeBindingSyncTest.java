@@ -185,6 +185,11 @@ class YamlRouteTypeBindingSyncTest {
     assertThat(outcome(root, VIEW, "/payroll-locked", "pay")).contains("paid 100.0");
     // anywhere else, the lock of payroll-locked holds (the caller may reach that route)
     for (var route : FOREIGN_ROUTES) {
+      if (route.contains("..")) {
+        // a dot segment is refused outright (GA round 2, J1)
+        assertThat(outcome(root, VIEW, route, "pay")).as(route).contains("Forbidden");
+        continue;
+      }
       assertThat(outcome(root, VIEW, route, "pay")).as(route).contains("paid 100.0");
     }
   }

@@ -120,6 +120,7 @@ from ..agent_push import (
 )
 from .. import action_guard, islands, progress
 from ..action_guard import _for_log
+from ..route_registry import has_unsafe_segments
 from ..yaml_access import yaml_hidden
 from ._base import MixinBase
 from .dispatch import DispatchMixin
@@ -587,7 +588,15 @@ class SyncHandler(
         rules."""
         route = rq.route if rq.route is not None else ""
         if rq.route is not None:
+            # a dot segment or a backslash names another file than the route says: refused before
+            # any lookup, or /hello/../admin served admin.yaml without admin's access: (J1)
+            if has_unsafe_segments(rq.route):
+                action_guard.deny(f"route '{_for_log(rq.route)}' carries a dot segment or a backslash")
             refusing = self.routes.refusing_entry(rq.route, self.mapper.authorized)
+            if refusing is None:
+                # a route's access: holds for its DEFINITION FILE, whatever spelling reaches it (the
+                # layout file's own path, a case variant)
+                refusing = self.routes.refusing_by_definition(rq.route, self.mapper.authorized)
             if refusing is not None:
                 action_guard.deny(f"route '{refusing.route}' declares access: not satisfied")
         foreign = self._foreign_bindings_of(rq.server_side_type, route)

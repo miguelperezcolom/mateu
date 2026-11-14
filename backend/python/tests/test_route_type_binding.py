@@ -84,12 +84,19 @@ def test_the_bound_routes_keep_their_own_rules(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "route", ["/hello", "/nowhere", "", "/payroll-locked/../hello", "/payroll-code", "/payroll-code/../payroll"]
+    "route", ["/hello", "/nowhere", "", "/payroll-code"]
 )
 def test_another_route_gets_the_union_of_the_routes_binding_the_type(tmp_path, route):
     """Named at a route that does not bind it: allowed because one of its own routes
     (payroll-locked) is reachable, and the locks of EVERY binding entry hold (Java/.NET rule)."""
     assert pay(handler(specs(tmp_path)), route) == "paid 100.0"
+
+
+@pytest.mark.parametrize("route", ["/payroll-locked/../hello", "/payroll-code/../payroll"])
+def test_a_dot_segment_route_is_refused(tmp_path, route):
+    """A dot segment names another file than the route says: refused outright (GA round 2, J1)."""
+    with pytest.raises(MateuForbiddenException):
+        pay(handler(specs(tmp_path)), route)
 
 
 @pytest.mark.parametrize("route", ["/hello", "/nowhere", "", "/payroll-code"])
