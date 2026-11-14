@@ -3,21 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- The standalone (browser-hosted) editor's policy: no inline script, no inline event handler, no
+         javascript: url, no eval (expressions go through libs/mateu's sandboxed evaluator; RunJS is
+         off) — whatever a definition carries. The IDE hosts replace it with their own
+         (VS Code: a nonce policy; IntelliJ: its bootstrap) and find it by data-mateu-standalone-csp. -->
+    <meta http-equiv="Content-Security-Policy" data-mateu-standalone-csp
+          content="script-src 'self'; object-src 'none'; base-uri 'self'" />
     <title>Mateu Visual Editor</title>
     <style>html,body{height:100%;margin:0}body{font-family:system-ui,-apple-system,sans-serif}</style>
-    <script type="module" crossorigin src="./assets/index-D2EJW55F.js"></script>
+    <script type="module" crossorigin src="./assets/index-HCmqRbX1.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-DK3Fl9T5.js">
     <link rel="modulepreload" crossorigin href="./assets/redwoodPlay-CudzW9DG.js">
     <link rel="modulepreload" crossorigin href="./assets/lit-DSH4rRgP.js">
     <link rel="modulepreload" crossorigin href="./assets/decorate-D1ynBJn5.js">
-    <link rel="modulepreload" crossorigin href="./assets/authToken-CuhjhV4m.js">
+    <link rel="modulepreload" crossorigin href="./assets/authToken-BJ3gIi_h.js">
     <link rel="modulepreload" crossorigin href="./assets/chromeTexts-H3kF_lzN.js">
-    <link rel="modulepreload" crossorigin href="./assets/safeNavigate-DFIihfsD.js">
-    <link rel="modulepreload" crossorigin href="./assets/rowRoute-D0vXkyYy.js">
+    <link rel="modulepreload" crossorigin href="./assets/safeNavigate-BrCfFPYB.js">
+    <link rel="modulepreload" crossorigin href="./assets/rowRoute-C92bQlc3.js">
     <link rel="modulepreload" crossorigin href="./assets/preload-helper-CRzLMJPS.js">
     <link rel="modulepreload" crossorigin href="./assets/announcer-VIHrbQlQ.js">
-    <link rel="modulepreload" crossorigin href="./assets/agentEvents-zfQfIVIr.js">
-    <link rel="modulepreload" crossorigin href="./assets/globalCommands--cFmE2zp.js">
+    <link rel="modulepreload" crossorigin href="./assets/agentEvents-DK9KN5OT.js">
+    <link rel="modulepreload" crossorigin href="./assets/globalCommands-CnV4eHHV.js">
   </head>
   <body>
     <!-- baseUrl "" → same-origin; vite proxies /mateu to the backend. -->

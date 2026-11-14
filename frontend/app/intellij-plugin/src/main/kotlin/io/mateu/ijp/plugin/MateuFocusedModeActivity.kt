@@ -204,27 +204,52 @@ class MateuFocusedModeActivity : ProjectActivity {
         }
     }
 
-    /** The IDE's build/run actions go away (their shortcuts with them): nothing to compile here. */
+    /**
+     * The IDE's build/run actions do nothing (their shortcuts with them): nothing to compile here.
+     * REPLACED by a disabled action, never unregistered: the platform's run widget looks "Run" and
+     * "Debug" up by id and asserts non-null (RunToolbarTopLevelExecutorActionGroup — an unregistered
+     * id made it throw "getAction(...) must not be null" on every toolbar update).
+     */
     private fun disableBuildActions() {
         runCatching {
             val am = ActionManager.getInstance()
-            for (id in BUILD_ACTIONS) if (am.getAction(id) != null) runCatching { am.unregisterAction(id) }
+            for (id in BUILD_ACTIONS) if (am.getAction(id) != null) runCatching { am.replaceAction(id, DisabledAction()) }
         }
     }
 
-    /** Reduce the native menu bar to the essentials — drop the dev-oriented top menus. */
-    private fun stripMainMenu() {
-        val remove = { id: String ->
-            id in setOf("GoToMenu", "CodeMenu", "RefactoringMenu", "BuildMenu", "RunMenu", "AnalyzeMenu") ||
-                id.contains("Vcs", ignoreCase = true)
+    /** What a build/run action becomes in the desktop app: present for whoever looks it up, never enabled. */
+    internal class DisabledAction : com.intellij.openapi.actionSystem.AnAction() {
+        override fun getActionUpdateThread() = com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
+        override fun update(e: com.intellij.openapi.actionSystem.AnActionEvent) {
+            e.presentation.isEnabledAndVisible = false
         }
+        override fun actionPerformed(e: com.intellij.openapi.actionSystem.AnActionEvent) = Unit
+    }
+
+    /**
+     * The menu bar of an APP, not of an IDE: File (Settings, Exit), Edit (undo, clipboard, select
+     * all, find) and Help (About) — a WHITELIST, rebuilt from the registered actions. On Windows
+     * and Linux the bar is drawn inside the window, and the IDE's own File/Edit/View/Tools/Window
+     * menus (Project Structure, Invalidate Caches, Find Usages, Repair IDE…) showed there; on macOS
+     * the same menus fill the system bar. Removing the dev menus one by one kept the rest of the IDE.
+     */
+    private fun stripMainMenu() {
         runCatching {
             val am = ActionManager.getInstance()
             val menu = am.getAction("MainMenu") as? DefaultActionGroup ?: return
-            for (child in menu.getChildActionsOrStubs()) {
-                val id = am.getId(child) ?: continue
-                if (remove(id)) menu.remove(child)
+            val sections = appMenuSections().mapNotNull { (title, groups) ->
+                val section = DefaultActionGroup(title, true)
+                groups.forEachIndexed { i, ids ->
+                    val actions = ids.mapNotNull { am.getAction(it) }
+                    if (actions.isEmpty()) return@forEachIndexed
+                    if (i > 0 && section.childrenCount > 0) section.addSeparator()
+                    actions.forEach(section::add)
+                }
+                section.takeIf { it.childrenCount > 0 }
             }
+            if (sections.isEmpty()) return // nothing to show: keep the platform's bar rather than none
+            menu.removeAll()
+            sections.forEach(menu::add)
         }
     }
 
@@ -330,5 +355,15 @@ class MateuFocusedModeActivity : ProjectActivity {
 
         @Volatile
         private var quitHooked = false
+
+        /**
+         * The app's whole menu bar ([stripMainMenu]): each menu's title and its groups of action ids
+         * (a separator between groups). Ids the platform does not register are skipped.
+         */
+        internal fun appMenuSections(): List<Pair<String, List<List<String>>>> = listOf(
+            "File" to listOf(listOf("ShowSettings"), listOf("Exit")),
+            "Edit" to listOf(listOf("\$Undo", "\$Redo"), listOf("\$Cut", "\$Copy", "\$Paste"), listOf("\$SelectAll", "Find")),
+            "Help" to listOf(listOf("About")),
+        )
     }
 }

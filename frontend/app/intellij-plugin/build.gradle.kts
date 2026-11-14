@@ -520,6 +520,10 @@ fun desktopVmOptions(o: DesktopOptions, installerKey: String): List<String> = li
     // (io.mateu.ijp.update) and IntelliJ's plugin updates are off (updates.xml), so the feature has
     // nothing to do here: its registry switch, overridden as a system property (unknown key on 2025.2).
     "-Dplatform.enable.plugin.update.source.feature=false",
+    // On Windows the platform checks Microsoft Defender at start and shows a sticky "may affect IDE
+    // performance — exclude the IDE and the project folders" balloon: advice for a developer's build
+    // folders, alarming in an app (it names the install folder). Its registry key, as a property.
+    "-Dide.check.windows.defender.rules=false",
 )
 
 /** Release asset names, shared by the installers and the update feed (keys = installerKey). */
