@@ -11358,6 +11358,28 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return false
   }
 
+  /**
+   * Row actions stay on screen (mirror of libs/mateu rowActionColumns.ts): a column whose cells are
+   * the row's own actions — action / action group / menu columns, a button column, a column with its
+   * own action other than the row-open `view` — and the number of them, counted from the end, that
+   * are frozen to the table's end edge. Only the trailing run; a column frozen to the start stops it;
+   * a listing made only of actions pins nothing.
+   */
+  function isRowActionColumn(c) {
+    if (!c || c.type === 'GridGroupColumn' || c.editable) return false
+    if (c.dataType === 'action' || c.dataType === 'actionGroup' || c.dataType === 'menu') return true
+    if (c.stereotype === 'button') return c.actionId !== 'view'
+    return !!c.actionId && c.actionId !== 'view'
+  }
+  function trailingRowActionColumnCount(columns) {
+    let count = 0
+    for (let i = columns.length - 1; i >= 0; i--) {
+      if (!isRowActionColumn(columns[i]) || columns[i].frozen) break
+      count++
+    }
+    return count === columns.length ? 0 : count
+  }
+
   /** What a click inside the table must never turn into a row open: a control (button, link,
    *  input, the selection checkbox, an editor) or a cell of a display column. */
   const ROW_CLICK_EXCLUDED = '.' + NO_OPEN_CELL_CLASS + ', [data-method], oj-button, oj-c-button, button, a, input, select, textarea, label, '
@@ -11564,8 +11586,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // WHOLE-ROW CLICK: a cell with its own click (editor, buttons, link, menu, component,
       // column with its own action) carries the class mateuRowClicked respects — see isDisplayColumn
       if (isDisplayColumn(c)) def.className = (def.className ? def.className + ' ' : '') + NO_OPEN_CELL_CLASS
+      // a column the wire freezes keeps its edge (GridColumn.frozen / frozenToEnd)
+      if (c.frozen) def.frozenEdge = 'start'
+      else if (c.frozenToEnd) def.frozenEdge = 'end'
       return def
-    }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : [])
+    })
+    // ROW ACTIONS STAY ON SCREEN: the trailing row-action columns are frozen to the end edge, so on
+    // a wide listing they are not past the horizontal scroll (libs/mateu rowActionColumns.ts, same
+    // rule). Not with extra lines: their column is the last one.
+    const pinnedActions = lines.extra.length ? 0 : trailingRowActionColumnCount(tableColumns.map((col) => col.metadata || col))
+    pinnedActions && columns.forEach((def, i) => { if (i >= columns.length - pinnedActions) def.frozenEdge = 'end' })
+    if (lines.extra.length) columns.push(ROW_LINES_COLUMN)
     const navigable = (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view')
     // a click on a row DOES something (mateuRowClicked): it opens its route, its record or its detail.
     // Only then does the row invite the click (the hand cursor, ROWS_OPEN_CLASS); a plain list does not
