@@ -144,3 +144,124 @@ test('waitIdle: resolves when the activity goes idle, or after its bound', async
   await waitIdle(() => true, () => () => {}, 80);
   assert.ok(Date.now() - started >= 70);
 });
+
+test('the registry keeps the last messages, says when the notice ends, and survives a failing listener', () => {
+  const now = 5000;
+  const r = new AgentScreenRegistry(() => now);
+  for (let i = 0; i < 12; i++) r.noteMessage({ variant: 'info', text: `m${i}` });
+  assert.equal(r.messages.length, 10);
+  assert.equal(r.messages[0].text, 'm2');
+  assert.equal(r.operatingUntil(), 0);
+  let heard = 0;
+  r.subscribe(() => {
+    throw new Error('broken listener');
+  });
+  const off = r.subscribe(() => heard++);
+  r.stopOperating(); // nothing to stop: nothing announced
+  assert.equal(heard, 0);
+  r.noteQuery();
+  assert.equal(heard, 1);
+  assert.equal(r.operatingUntil(), 5000 + OPERATING_WINDOW_MS);
+  off();
+  r.stopOperating();
+  assert.equal(heard, 1);
+  assert.equal(r.operatingUntil(), 0);
+});
+
+test('describe carries the messages, the shown title and a listing whose search box is gone', () => {
+  const r = new AgentScreenRegistry();
+  const crud = { type: 'ClientSide', id: 'orders', metadata: { type: 'Crud', searchable: true, columns: [{ metadata: { id: 'name', label: 'Name' } }] } };
+  const { view } = fakeView([crud], {
+    rows: [{ name: 'a' }],
+    driver: {
+      searchText: () => {
+        throw new Error('gone');
+      },
+    },
+  });
+  (view as { shownTitle?: string }).shownTitle = 'Orders';
+  r.page = view;
+  r.noteMessage({ variant: 'success', title: 'Saved', text: 'Order saved' });
+  const s = r.describe()!;
+  assert.equal(s['windowTitle'], 'Orders');
+  assert.deepEqual(s['messages'], [{ variant: 'success', title: 'Saved', text: 'Order saved' }]);
+  assert.equal((s['listings'] as Json[])[0]['searchText'], '');
+});
+
+test('without a repaint hook the answer waits a short default repaint, then reads the screen again', async () => {
+  const r = new AgentScreenRegistry();
+  const { view } = fakeView([field('name')]);
+  r.page = view;
+  const started = Date.now();
+  const ok = await answerQuery(query('set-fields', { values: { name: 'Ada' } }), { registry: r, appState: {}, idle: async () => {} });
+  assert.ok(Date.now() - started >= 100);
+  assert.ok('screen' in ok && ((ok.screen['fields'] as Json[])[0])['value'] === 'Ada');
+});
+
+test('an overlay without a view of its own is described; a press on it has no view to run on', async () => {
+  const r = new AgentScreenRegistry();
+  r.overlays = () => [{ component: { metadata: { type: 'Dialog', title: 'Confirm', content: button('ok') } }, view: null }];
+  const s = r.describe()!;
+  assert.equal(s['focus'], 'overlay');
+  assert.equal((s['overlay'] as Json)['kind'], 'dialog');
+  assert.deepEqual(await answerQuery(query('run-action', { actionId: 'ok' }), deps(r)), { error: { code: 'unsupported' } });
+});
+
+test('a failure while answering is "failed", never a throw', async () => {
+  const r = new AgentScreenRegistry();
+  const { view } = fakeView([field('name')]);
+  view.putState = () => {
+    throw new Error('boom');
+  };
+  r.page = view;
+  assert.deepEqual(await answerQuery(query('set-fields', { values: { name: 'x' } }), deps(r)), { error: { code: 'failed' } });
+});
+
+test('app header actions run through the shell (children included); without a runner, unsupported', async () => {
+  const r = new AgentScreenRegistry();
+  const { view, calls } = fakeView([field('name')]);
+  r.page = view;
+  r.app = { contextActions: [{ actionId: 'tools', label: 'Tools', children: [{ actionId: 'export', label: 'Export' }] }] };
+  assert.deepEqual(await answerQuery(query('run-action', { actionId: 'export' }), deps(r)), { error: { code: 'unsupported' } });
+  const ran: string[] = [];
+  r.runAppAction = async (id) => {
+    ran.push(id);
+  };
+  const ok = await answerQuery(query('run-action', { actionId: 'export' }), deps(r));
+  assert.ok('screen' in ok);
+  assert.deepEqual(ran, ['export']);
+  assert.equal(calls.length, 0);
+});
+
+test('a button with a route navigates as its press does; without a navigator, unsupported', async () => {
+  const r = new AgentScreenRegistry();
+  const routeButton = { type: 'ClientSide', metadata: { type: 'Button', route: '/customers', label: 'Customers' } };
+  const { view, calls } = fakeView([routeButton]);
+  r.page = view;
+  assert.deepEqual(await answerQuery(query('run-action', { actionId: '/customers' }), deps(r)), { error: { code: 'unsupported' } });
+  const went: string[] = [];
+  r.navigate = (route) => went.push(route);
+  assert.ok('screen' in (await answerQuery(query('run-action', { actionId: '/customers' }), deps(r))));
+  assert.deepEqual(went, ['/customers']);
+  assert.equal(calls.length, 0);
+});
+
+test('listing presses without a driver, or rows that do not open, are unsupported; plain row actions get the row itself', async () => {
+  const r = new AgentScreenRegistry();
+  const rows = [{ id: 7, name: 'a' }];
+  const crud = {
+    type: 'ClientSide', id: 'orders',
+    metadata: { type: 'Crud', searchable: true, rowRoute: 'orders/${row.id}', columns: [{ metadata: { id: 'name', label: 'Name' } }, { metadata: { id: 'pay', label: 'Pay', actionId: 'pay' } }] },
+  };
+  const { view, calls } = fakeView([crud], { rows, driver: { openRow: () => false } });
+  r.page = view;
+  assert.deepEqual(await answerQuery(query('run-action', { actionId: 'open-row', row: 0 }), deps(r)), { error: { code: 'unsupported' } });
+  await answerQuery(query('run-action', { actionId: 'pay', row: 0, parameters: { now: true } }), deps(r));
+  assert.deepEqual(calls.at(-1), { kind: 'run', args: ['pay', { id: 7, name: 'a', now: true }] });
+  await answerQuery(query('run-action', { actionId: 'prevPage' }), deps(r));
+  assert.deepEqual(calls.at(-1), { kind: 'page', args: [-1] });
+
+  view.listingDrivers = {};
+  assert.deepEqual(await answerQuery(query('run-action', { actionId: 'search' }), deps(r)), { error: { code: 'unsupported' } });
+  assert.deepEqual(await answerQuery(query('set-fields', { values: { searchText: 'x' } }), deps(r)), { error: { code: 'unsupported' } });
+});

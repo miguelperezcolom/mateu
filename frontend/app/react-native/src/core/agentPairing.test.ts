@@ -146,6 +146,85 @@ test('detached, the model no longer follows the channel', async () => {
   assert.equal(t.m.phase.name, 'code');
 });
 
+test('after Stop, connecting again reopens the channel and waits for it before asking for a code', async () => {
+  const t = model({ '_agent-pair': async () => codeAnswer() });
+  t.state.stopByUser();
+  assert.equal(t.state.stoppedByUser, true);
+  const pending = t.m.pair();
+  assert.equal(t.state.stoppedByUser, false);
+  await new Promise((r) => setTimeout(r, 10));
+  assert.deepEqual(t.calls, []); // the channel is not open yet
+  t.state.setStatus({ paired: false, agents: [], }, false); // still not connected: keeps waiting
+  t.state.setStatus({ paired: false, agents: [] });
+  assert.match(await pending, /^Pairing code K 7 Q F/);
+  assert.deepEqual(t.calls, ['_agent-pair']);
+
+  // already connected again by the time the user asks: no wait
+  t.state.stopByUser();
+  t.state.resume();
+  t.state.stopByUser();
+  t.state.setStatus({ paired: false, agents: [] });
+  assert.match(await t.m.pair(), /^Pairing code/);
+});
+
+test('Close while waiting for the channel drops the request', async () => {
+  const t = model({ '_agent-pair': async () => codeAnswer() });
+  t.state.stopByUser();
+  const pending = t.m.pair();
+  t.m.reset();
+  t.state.setStatus({ paired: false, agents: [] });
+  assert.equal(await pending, '');
+  assert.deepEqual(t.calls, []);
+  assert.equal(t.m.phase.name, 'idle');
+});
+
+test('pair and unpair failures: a thrown request, a refused disconnect, late answers dropped', async () => {
+  let releaseUnpair!: (v: unknown) => void;
+  let unpairs = 0;
+  const t = model({
+    '_agent-pair': async () => {
+      throw 'offline';
+    },
+    '_agent-unpair': () => {
+      unpairs++;
+      if (unpairs === 1) return Promise.resolve({ messages: [{ variant: 'error', text: 'Not yours.' }] });
+      return new Promise((r) => (releaseUnpair = r));
+    },
+  });
+  assert.equal(await t.m.pair(), `${PAIRING_TEXTS.failed} offline`);
+  assert.equal(t.m.view().message, `${PAIRING_TEXTS.failed} offline`);
+  assert.equal(await t.m.unpair(), 'Not yours.');
+  assert.equal(t.m.view().message, 'Not yours.');
+  const pending = t.m.unpair();
+  t.m.reset();
+  releaseUnpair({});
+  assert.equal(await pending, '');
+  assert.equal(t.m.phase.name, 'idle');
+});
+
+test('a late failure after Close is dropped too; a broken listener does not stop the others', async () => {
+  let reject!: (e: unknown) => void;
+  const t = model({ '_agent-pair': () => new Promise((_, r) => (reject = r)), '_agent-unpair': () => new Promise((_, r) => (reject = r)) });
+  let heard = 0;
+  t.m.subscribe(() => {
+    throw new Error('broken');
+  });
+  const off = t.m.subscribe(() => heard++);
+  const pending = t.m.pair();
+  assert.equal(heard, 1);
+  t.m.reset();
+  reject(new Error('late'));
+  assert.equal(await pending, '');
+  const unpairing = t.m.unpair();
+  t.m.reset();
+  reject(new Error('late'));
+  assert.equal(await unpairing, '');
+  off();
+  const before = heard;
+  t.state.setStatus({ paired: true, agents: ['x'] }); // a repaint nobody listens to any more
+  assert.equal(heard, before);
+});
+
 test('pairingView is a pure function of phase + status + now', () => {
   const view = pairingView({ name: 'code', code: 'XY-12', expiresAt: 61_000 }, { paired: true, agents: ['alice'] }, 0);
   assert.equal(view.countdown, '1:01');
