@@ -341,9 +341,17 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     private RunActionRqDto GuardYamlAccess(RunActionRqDto rq)
     {
         HiddenForRequest.Value = null;
+        // a dot segment or a backslash names another file than the route says: refused before any
+        // lookup, or /hello/../admin served admin.yaml without admin's access: (GA round 2, J1)
+        if (RouteRegistry.HasUnsafeSegments(rq.Route))
+            ActionGuard.Deny($"route '{rq.Route}' carries a dot segment or a backslash");
         rq = GuardBoundType(rq);
         if (_routes.RefusingEntry(rq.Route, ActionGuard.Authorized) is { } refusing)
             ActionGuard.Deny($"route '{refusing.Route}' denied by access:");
+        // ...and a route's access: holds for its DEFINITION FILE, whatever spelling reaches it (the
+        // layout file's own path, a case variant)
+        if (_routes.RefusingByDefinition(rq.Route, ActionGuard.Authorized) is { } byDefinition)
+            ActionGuard.Deny($"route '{byDefinition.Route}' denied by access:");
         if (_yaml.LoadSpec(rq.Route) is not { } spec) return rq;
         // the business components (components.yaml) lock fields too: they are resolved while the
         // tree is mapped, after the view model is bound. STRICT, like a code view: every restricted

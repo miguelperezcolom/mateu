@@ -24,7 +24,7 @@ import yaml
 
 from mateu_ui.core import yaml_access
 from mateu_ui.core.partial_registry import PartialRegistry
-from mateu_ui.core.route_registry import RouteRegistry
+from mateu_ui.core.route_registry import RouteRegistry, has_unsafe_segments
 from mateu_ui.core.translations import TranslationRegistry, mentions_i18n
 from mateu_ui.core.yaml_preview import parse_spec_tree
 
@@ -222,7 +222,11 @@ class YamlSpecLoader:
         match = self._registry.match(normalized_route)
         entry = match.entry if match is not None else None
         declared = (entry.definition if entry is not None else None) or None
+        if has_unsafe_segments(normalized_route):
+            return None
         path = self._dir / (declared if declared else f"{normalized_route}.yaml")
+        if not declared and not _is_under(self._dir, path):
+            return None  # by convention, never a file outside the specs directory (J1)
         if not path.is_file():
             if declared:
                 # routes.yaml names a layout file that is not there: say so, or the route answers
@@ -655,3 +659,11 @@ def _normalize(route: str | None) -> str:
         r = r[:q]
     r = r.strip("/")
     return "" if r in ("_empty", "_no_route", "_no_home_route") else r
+
+
+def _is_under(directory, path) -> bool:
+    try:
+        path.resolve().relative_to(directory.resolve())
+        return True
+    except (ValueError, OSError):
+        return False
