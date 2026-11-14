@@ -61,6 +61,15 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
     private var booting = false
     private var homeOpened = false
 
+    /**
+     * The context of the UI's ROOT (the navigator's). When the root is no navigator — a crud mounted
+     * alone (`@UI("/customers") … extends AutoCrud`) answers a MEDIATOR shell — and it is not moved
+     * to an editor tab (outside the desktop app), the screen paints right here. The MCP server reads
+     * it when no other view is in front.
+     */
+    @Volatile var rootView: AppContext? = null
+        private set
+
     /** (Re)loads the app root of the current session (set by [boot]). */
     private var loadRoot: () -> Unit = {}
 
@@ -76,11 +85,6 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
 
     fun hasHome(): Boolean = session != null && reopenHome != null
 
-    /** Whether a root answer carries an app shell (an `App` component anywhere in it). */
-    private fun hasAppShell(node: JsonNode): Boolean {
-        if (node.path("metadata").text("type") == "App") return true
-        return node.any { it.isContainerNode && hasAppShell(it) }
-    }
 
     /**
      * Drops the current session and boots again from the settings (call on the EDT) — what a Mateu App
@@ -203,6 +207,7 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         MateuPlatformNotices.install(project, s)
 
         val ctx = AppContext(s)
+        rootView = ctx
         // Version skew (io.mateu.ijp.api.BuildSkew): the backend was redeployed, or a refusal came
         // from a stale screen → a STICKY notification (the errors group) with a Reload action that
         // reloads the shell and every open Mateu view.
@@ -234,7 +239,7 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         reopenHome = { if (shellLess) openRootView() else openHomeView(s) }
         loadRoot = {
             ctx.initialLoad(route) { increment ->
-                if (!standalone || hasAppShell(increment)) return@initialLoad false
+                if (!standalone || io.mateu.ijp.state.ScreenShapes.hasAppShell(increment)) return@initialLoad false
                 shellLess = true
                 if (!homeOpened) {
                     homeOpened = true

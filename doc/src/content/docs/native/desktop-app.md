@@ -312,6 +312,83 @@ for the rest (`_appcontext-search-<field>`, like the web). A `@PhotoCapture` fie
 picture from a file: there is no pure-Java webcam library to use
 ([known issue](/reference/known-issues/#keyboard-shortcuts-on-phones-and-tablets-and-a-camera-on-the-desktop)).
 
+## Let an AI agent operate the app (MCP)
+
+The desktop app has a Model Context Protocol server of its own, so an AI agent on the same computer
+(Claude Code, or any MCP client) can work in the Mateu UIs the user has open: read the screen they are
+on, fill in fields, press buttons, open the menu entries and records, and show screens it composes.
+It works **as the user and on screen**: everything it does goes through the user's own session and
+shows in the window, as if the user did it. This is not JetBrains' IDE MCP server, which drives the
+IDE itself (files, terminal) and has nothing to do with it.
+
+### Turning it on
+
+It is **off** by default. Open **Settings › Tools › Mateu**, section **AI agents (MCP)**, and tick
+**Let AI agents operate this app (MCP)**. With it on, the section shows:
+
+- the **address**, `http://127.0.0.1:47821/mcp` (another port can be set; when the port is taken the
+  server listens on a free one and says which);
+- the **token**, shown as dots, with **Copy** and **Regenerate token** (a new token disconnects any
+  agent using the old one);
+- ready-to-paste configurations, each with **Copy** (the copied text carries the real token):
+
+```bash
+claude mcp add --transport http mateu-desktop http://127.0.0.1:47821/mcp \
+  --header "Authorization: Bearer <token>"
+```
+
+```json
+{
+  "mcpServers": {
+    "mateu-desktop": {
+      "type": "http",
+      "url": "http://127.0.0.1:47821/mcp",
+      "headers": { "Authorization": "Bearer <token>" }
+    }
+  }
+}
+```
+
+The setting is kept for the whole app: the server starts again with the app until it is turned off.
+
+### What the agent can do
+
+| Tool | What it does |
+| --- | --- |
+| `mateu_list_uis` | The UIs the app offers (the hub's "My UIs", or the one UI a fixed build is bound to) and which one is open. |
+| `mateu_open_ui {id}` | Opens one of them, as clicking it in "My UIs" (hub only). |
+| `mateu_get_menu` | The open UI's menu: labels and the routes they open. |
+| `mateu_navigate {route}` | Opens a route like a menu click and answers the new screen. |
+| `mateu_get_screen` | What the user sees: the UI and its server, the route and breadcrumbs, the page header (title, subtitle, badges, KPIs), the app context selectors with their values, the signed-in user when the app sends one, the fields with their values, options, errors and whether they are required or read only, every action the user can press (page toolbar, buttons, listing toolbar, row actions, the app header's actions) with its id and whether it is enabled, the listing rows with search, filters, sort, page and total, the last messages, and an open dialog or drawer, which is in front of the page. Long text and lists are capped and the answer says which were. |
+| `mateu_set_fields {values}` | Types values into the screen's fields (the open dialog's or drawer's first), exactly as the user editing them: client rules and the unsaved-changes guard follow. Only fields that are shown and editable. |
+| `mateu_run_action {actionId, parameters?, row?}` | Presses an action the screen offers, and only those. A confirmation it asks for appears to the user, who answers it. |
+| `mateu_open_row {row}` | Opens a listing row's record, as clicking the row. |
+| `mateu_show_screen {yaml, title?, target?}` | Shows a screen the agent composes as a YAML page definition (the `specs/ui` format), in the Preview tab, a side panel or a dialog. The open UI's server validates it first and the agent gets the findings back instead of a broken screen; then the server renders it with the user's identity. Its buttons that name a server action run through the user's session; its flows and rules run in the app. A server without the authoring actions (`__validate__` / `__preview__`) answers a clear error. |
+| `mateu_get_guide`, `mateu_list_components`, `mateu_get_component_schema` | The authoring guide and the component catalogue, to compose those screens. They are bundled in the app and work offline. |
+
+The same context is readable as **resources**: `mateu://desktop/uis`, `mateu://desktop/screen`,
+`mateu://desktop/menu`, and the authoring vocabulary `mateu://guide`, `mateu://catalog` and
+`mateu://schema/specs` (the files the backends serve under the same names).
+
+Each tool waits for the server round trips it starts (a navigation is several loads) before it
+answers, up to a timeout; an answer that came first says `timedOut`.
+
+### Security model
+
+- **Off by default**, turned on by the user, and stopped by them at any time.
+- **This computer only**: the server listens on `127.0.0.1`, never on the network. It also refuses a
+  request whose `Host` is not `127.0.0.1:<port>` or `localhost:<port>`, and any request from a web page
+  (an `Origin` header), so a site cannot reach it through the browser, not even by re-pointing its own
+  domain at `127.0.0.1`.
+- **A token** on every request (`Authorization: Bearer` and the token): 32 random bytes generated when it is turned
+  on, kept in the system credential store (Keychain, KWallet…), never in a settings file or the log.
+- **Visible**: while an agent is calling it (a call in the last two minutes) the app window shows
+  *"An AI agent is operating"* and the app's name, with **Stop**, which turns the server off. Each call is written
+  to the app's log with the tool and the route or action ids, never the values or the token.
+- **The server still decides**: the agent works through the user's session, so it can only see and
+  do what the user can. It never gets a field the server did not send (a password field shows dots),
+  and it can only press the actions the screen offers.
+
 ## Trying the UI you are developing
 
 The hub app is also where a developer looks at the UI they are building, in a window of its own and

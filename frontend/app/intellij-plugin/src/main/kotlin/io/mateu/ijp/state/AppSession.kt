@@ -120,6 +120,25 @@ class AppSession(
     /** The view the user last navigated in — the screen the assistant is told about. */
     @Volatile var activeView: AppContext? = null
 
+    // ── what the desktop MCP server (io.mateu.ijp.mcp) reads of what the user sees ──
+    /** The app shell's metadata (`App`), as the navigator last rendered it. */
+    @Volatile var appMetadata: com.fasterxml.jackson.databind.JsonNode? = null
+
+    /** The last messages the screens showed (toasts, notices), newest last, bounded. */
+    val recentMessages: java.util.concurrent.ConcurrentLinkedDeque<io.mateu.ijp.mcp.ScreenSummary.Message> =
+        java.util.concurrent.ConcurrentLinkedDeque()
+
+    fun rememberMessage(message: io.mateu.ijp.mcp.ScreenSummary.Message) {
+        recentMessages.addLast(message)
+        while (recentMessages.size > 10) recentMessages.pollFirst()
+    }
+
+    /** An open Drawer/Dialog window: the context its body renders in and the component it shows. */
+    class OverlayView(@Volatile var context: AppContext, @Volatile var component: com.fasterxml.jackson.databind.JsonNode)
+
+    /** The open overlays, oldest first (the last one is in front). */
+    val overlayViews: java.util.concurrent.CopyOnWriteArrayList<OverlayView> = java.util.concurrent.CopyOnWriteArrayList()
+
     /** The app's MCP endpoint (`App.mcpUrl`), forwarded (absolute) with every chat message. */
     var appMcpUrl: String? = null
 

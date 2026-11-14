@@ -10,7 +10,10 @@ import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.layout.selected
 import com.intellij.ui.layout.selectedValueIs
+import io.mateu.ijp.ui.accessibleName
+import io.mateu.ijp.ui.plain
 import io.mateu.ijp.auth.MateuAuthService
 import io.mateu.ijp.newfile.ProjectDescriptor
 import io.mateu.ijp.newfile.ProjectRenderer
@@ -119,6 +122,91 @@ class MateuConfigurable(private val project: Project) :
                 }
             }.visibleIf(authCombo.selectedValueIs(AuthMode.OIDC))
         }
+        agentGroup()
+    }
+
+    // ── AI agents (the desktop app's own MCP server, io.mateu.ijp.mcp) — app-wide, OFF by default ──
+
+    private val mcp get() = io.mateu.ijp.mcp.DesktopMcpService.getInstance()
+    private val mcpTexts = io.mateu.ijp.mcp.McpTexts.of(io.mateu.ijp.ui.MoneyValues.uiLocale())
+    private val mcpEnabled = com.intellij.ui.components.JBCheckBox(plain(mcpTexts.enable))
+    private val mcpPort = com.intellij.ui.components.JBTextField(6)
+    private val mcpAddress = com.intellij.ui.components.JBTextField().apply { isEditable = false }
+    private val mcpTokenShown = com.intellij.ui.components.JBTextField().apply { isEditable = false }
+    private val mcpClaude = com.intellij.ui.components.JBTextArea(2, 60).apply { isEditable = false; lineWrap = true }
+    private val mcpJson = com.intellij.ui.components.JBTextArea(9, 60).apply { isEditable = false }
+    private val mcpNote = javax.swing.JLabel("")
+
+    private fun com.intellij.ui.dsl.builder.Panel.agentGroup() {
+        val t = mcpTexts
+        mcpEnabled.accessibleName(t.enable)
+        mcpPort.accessibleName(t.port.removeSuffix(":").trim())
+        mcpAddress.accessibleName(t.address.removeSuffix(":").trim())
+        mcpTokenShown.accessibleName(t.token.removeSuffix(":").trim())
+        mcpClaude.accessibleName(t.claudeCode.removeSuffix(":").trim())
+        mcpJson.accessibleName(t.anyClient.removeSuffix(":").trim())
+        group(t.group) {
+            row { cell(mcpEnabled).comment(t.enableHelp) }
+            rowsRange {
+                row(t.port) { cell(mcpPort) }
+                row(t.address) { cell(mcpAddress).align(AlignX.FILL) }
+                row(t.token) {
+                    cell(mcpTokenShown).align(AlignX.FILL)
+                    button(t.copy) { copy(mcp.token()) }.applyToComponent { accessibleName("${t.copy} ${t.token.removeSuffix(":").trim()}") }
+                    button(t.regenerate) {
+                        mcp.regenerateToken()
+                        refreshMcp()
+                        mcpNote.text = t.regenerated
+                    }
+                }
+                row(t.claudeCode) {
+                    cell(mcpClaude).align(AlignX.FILL)
+                    button(t.copy) { copy(io.mateu.ijp.mcp.McpHttpServer.claudeCodeSnippet(mcp.port, mcp.token())) }
+                        .applyToComponent { accessibleName("${t.copy} ${t.claudeCode.removeSuffix(":").trim()}") }
+                }
+                row(t.anyClient) {
+                    cell(mcpJson).align(AlignX.FILL)
+                    button(t.copy) { copy(io.mateu.ijp.mcp.McpHttpServer.jsonSnippet(mcp.port, mcp.token())) }
+                        .applyToComponent { accessibleName("${t.copy} ${t.anyClient.removeSuffix(":").trim()}") }
+                }
+                row { cell(mcpNote) }
+            }.visibleIf(mcpEnabled.selected)
+        }
+    }
+
+    private fun copy(text: String) {
+        com.intellij.openapi.ide.CopyPasteManager.getInstance().setContents(java.awt.datatransfer.StringSelection(text))
+        mcpNote.text = mcpTexts.copied
+    }
+
+    /** What the agent fields show. The token itself only ever goes to the clipboard: on screen, dots. */
+    private fun refreshMcp() {
+        val masked = "••••••••••••"
+        val port = mcp.port
+        mcpAddress.text = io.mateu.ijp.mcp.McpHttpServer.urlOf(port)
+        mcpTokenShown.text = masked
+        mcpClaude.text = io.mateu.ijp.mcp.McpHttpServer.claudeCodeSnippet(port, masked)
+        mcpJson.text = io.mateu.ijp.mcp.McpHttpServer.jsonSnippet(port, masked)
+    }
+
+    private fun mcpPortTyped(): Int =
+        mcpPort.text.trim().toIntOrNull()?.takeIf { it in 1024..65535 } ?: mcp.state.port
+
+    private fun resetMcp() {
+        mcpEnabled.isSelected = mcp.enabled
+        mcpPort.text = mcp.state.port.toString()
+        mcpNote.text = ""
+        refreshMcp()
+    }
+
+    private fun mcpModified(): Boolean = mcpEnabled.isSelected != mcp.enabled || mcpPortTyped() != mcp.state.port
+
+    private fun applyMcp() {
+        if (!mcpModified()) return
+        val note = runCatching { mcp.setEnabled(mcpEnabled.isSelected, mcpPortTyped()) }
+            .getOrElse { throw com.intellij.openapi.options.ConfigurationException(it.message ?: "The MCP server did not start") }
+        refreshMcp()
+        mcpNote.text = note.orEmpty()
     }
 
     override fun reset() {
@@ -129,15 +217,17 @@ class MateuConfigurable(private val project: Project) :
         tokenField.text = if (auth.isSignedIn() && settings.authMode == AuthMode.TOKEN) TOKEN_MASK else ""
         resetting = false
         tokenDirty = false
+        resetMcp()
     }
 
-    override fun isModified(): Boolean = super.isModified() || tokenDirty || selectedRenderer() != rendererOnDisk
+    override fun isModified(): Boolean = super.isModified() || tokenDirty || selectedRenderer() != rendererOnDisk || mcpModified()
 
     private fun selectedRenderer() = rendererCombo.selectedItem as? ProjectDescriptor.Renderer ?: ProjectDescriptor.Renderer.VAADIN
 
     override fun apply() {
         val wasConfigured = loadMateuConfig(project).configured
         super.apply()
+        applyMcp()
         val renderer = selectedRenderer()
         if (renderer != rendererOnDisk) {
             ProjectRenderer.setRenderer(project, renderer)?.let { throw com.intellij.openapi.options.ConfigurationException(it) }
