@@ -28,6 +28,17 @@ public class Hydrater {
           .forEach(
               entry -> {
                 try {
+                  // A dotted key (pay.salary) is not a spelling the client ever sends — nested
+                  // forms travel as nested maps or flattened a-b keys — but the writer follows it
+                  // through the parent's getter, so it reached fields past every access rule of
+                  // the parent and past beans the view only holds (GA round 2, J2/J3). Never.
+                  if (entry.getKey() == null || entry.getKey().indexOf('.') >= 0) {
+                    log.debug(
+                        "Dropped dotted state key '{}' for {}",
+                        entry.getKey(),
+                        object.getClass().getSimpleName());
+                    return;
+                  }
                   // Callable/Supplier/Component holder fields never round-trip as data —
                   // writing their state entry back (always null) would destroy the initializer.
                   var field = getFieldByName(object.getClass(), entry.getKey());
@@ -37,6 +48,36 @@ public class Hydrater {
                   if (field != null && !isClientWritable(field, httpRequest)) {
                     log.debug(
                         "Dropped client state for permission-protected field '{}' of {}",
+                        entry.getKey(),
+                        object.getClass().getSimpleName());
+                    return;
+                  }
+                  // a final or injected field holds what the server gave the view (a service, a
+                  // store, a configuration bean, possibly shared by every request): never a value
+                  // to take from the client, nor an object to pour the client's map into (J3).
+                  // The one exception is a DECLARED nested form — a final @Inline field of an
+                  // application type, the form owning its sub-form instance — updated in place
+                  // with the keys the client sent, under the same field rules.
+                  if (field != null && isHeldReference(field)) {
+                    if (isDeclaredNestedForm(field) && entry.getValue() instanceof Map<?, ?> map) {
+                      var held =
+                          io.mateu.core.infra.reflection.read.ValueProvider.getValue(field, object);
+                      if (held != null) {
+                        @SuppressWarnings("unchecked")
+                        var incoming = (Map<String, Object>) map;
+                        hydrate(
+                            held,
+                            io.mateu.core.domain.FieldAccess.inServerScope()
+                                ? incoming
+                                : io.mateu.core.domain.FieldAccess.writable(
+                                    held.getClass(), incoming, httpRequest),
+                            instanceFactory,
+                            httpRequest);
+                      }
+                      return;
+                    }
+                    log.debug(
+                        "Dropped client state for held (final/injected) field '{}' of {}",
                         entry.getKey(),
                         object.getClass().getSimpleName());
                     return;
@@ -101,6 +142,23 @@ public class Hydrater {
   private static boolean isClientWritable(Field field, HttpRequest httpRequest) {
     return io.mateu.core.domain.FieldAccess.inServerScope()
         || io.mateu.core.domain.FieldAccess.mayWrite(field, httpRequest);
+  }
+
+  /** A field the view HOLDS rather than one carrying its state: final, or container-injected. */
+  static boolean isHeldReference(Field field) {
+    return java.lang.reflect.Modifier.isFinal(field.getModifiers())
+        || io.mateu.core.application.security.WireTypes.isInjected(field)
+        || io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
+            field, jakarta.inject.Inject.class);
+  }
+
+  /** A final, non-injected {@code @Inline} field of an application type: a declared sub-form. */
+  static boolean isDeclaredNestedForm(Field field) {
+    return java.lang.reflect.Modifier.isFinal(field.getModifiers())
+        && !io.mateu.core.application.security.WireTypes.isInjected(field)
+        && io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
+            field, io.mateu.uidl.annotations.Inline.class)
+        && io.mateu.core.domain.FieldAccess.isApplicationType(field.getType());
   }
 
   public static void setValue(String fn, Object o, Object v) throws Exception {

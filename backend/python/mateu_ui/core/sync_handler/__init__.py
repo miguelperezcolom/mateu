@@ -120,6 +120,7 @@ from ..agent_push import (
 )
 from .. import action_guard, islands, progress
 from ..action_guard import _for_log
+from ..route_registry import has_unsafe_segments
 from ..yaml_access import yaml_hidden
 from ._base import MixinBase
 from .dispatch import DispatchMixin
@@ -587,10 +588,21 @@ class SyncHandler(
         rules."""
         route = rq.route if rq.route is not None else ""
         if rq.route is not None:
+            # a dot segment or a backslash names another file than the route says: refused before
+            # any lookup, or /hello/../admin served admin.yaml without admin's access: (J1)
+            if has_unsafe_segments(rq.route):
+                action_guard.deny(f"route '{_for_log(rq.route)}' carries a dot segment or a backslash")
             refusing = self.routes.refusing_entry(rq.route, self.mapper.authorized)
+            if refusing is None:
+                # a route's access: holds for its DEFINITION FILE, whatever spelling reaches it (the
+                # layout file's own path, a case variant)
+                refusing = self.routes.refusing_by_definition(rq.route, self.mapper.authorized)
             if refusing is not None:
                 action_guard.deny(f"route '{refusing.route}' declares access: not satisfied")
-        foreign = self._foreign_bindings_of(rq.server_side_type, route)
+        # the type that RUNS: the one the request names, else the one its route resolves to —
+        # deciding from the wire name alone let a request naming none (or a garbage name) skip the
+        # union of locks at the bound class's own @ui route (GA round 2, J4 / Y3a)
+        foreign = self._foreign_bindings_of(self._type_that_runs(rq), route)
         if foreign is not None:
             if not any(self.routes.is_reachable(b, self.mapper.authorized) for b in foreign):
                 action_guard.deny(
@@ -644,6 +656,15 @@ class SyncHandler(
             yaml_hidden.set(frozenset(hidden_fields))
         narrowed = self._without_locked(rq, locked)
         return self._without_locked_by_pieces(narrowed, by_pieces) if any_spec else narrowed
+
+    def _type_that_runs(self, rq: RunActionRq) -> str | None:
+        """The view model the request will run: the registered type it names, else the one its
+        route resolves to (Java's ``YamlUidlLoader.typeThatRuns``)."""
+        try:
+            cls = self.registry.resolve(rq.server_side_type, rq.route)
+        except Exception:  # noqa: BLE001 - a lookup failure decides nothing
+            cls = None
+        return type_name(cls) if cls is not None else rq.server_side_type
 
     def _foreign_bindings_of(self, name: str | None, route: str) -> list[str] | None:
         """The authored routes binding view model ``name`` when the request names it at ``route``,

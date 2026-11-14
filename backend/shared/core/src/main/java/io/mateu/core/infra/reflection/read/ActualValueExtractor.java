@@ -1,14 +1,12 @@
 package io.mateu.core.infra.reflection.read;
 
 import static io.mateu.core.infra.JsonSerializer.fromMap;
-import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 import static io.mateu.core.infra.reflection.read.CollectionValueConverter.convertArrayValue;
 import static io.mateu.core.infra.reflection.read.CollectionValueConverter.convertListValue;
 import static io.mateu.core.infra.reflection.read.CollectionValueConverter.extractFirstMap;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.FileChecker.isFile;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
-import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
 import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.core.infra.reflection.MetaAnnotations;
@@ -46,14 +44,10 @@ public class ActualValueExtractor {
       return targetValue;
     }
     if (checkInjected(object, f.getName())) {
-      Object injectedValue = getValue(f, object);
-      if (injectedValue != null && entry.getValue() != null && entry.getValue() instanceof Map) {
-        Map<String, Object> incomingValues = (Map<String, Object>) entry.getValue();
-        for (Field crudField : getAllEditableFields(injectedValue.getClass())) {
-          setValue(crudField, injectedValue, incomingValues.get(crudField.getName()));
-        }
-      }
-      return injectedValue;
+      // a final/injected field keeps what the server put there: the client's map is never poured
+      // into the held object (it used to set every editable field of it — of a bean possibly
+      // shared by every request — and null the ones the map lacked; GA round 2, J3)
+      return getValue(f, object);
     }
     if (targetValue == null) {
       return absentCollectionAsEmpty(f);

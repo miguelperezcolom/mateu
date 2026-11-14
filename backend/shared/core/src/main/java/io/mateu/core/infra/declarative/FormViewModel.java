@@ -101,4 +101,13 @@ public class FormViewModel
   public static Map<String, Object> toMap(Object instance) {
     return FormViewSerializer.toMap(instance);
   }
+
+  /**
+   * Whether instances of {@code type} hold a dependency (an injected field, or a final one typed by
+   * an interface or abstract class) that their state map leaves out — so the raw instance must
+   * never be handed to the wire as state.
+   */
+  public static boolean holdsDependencies(Class<?> type) {
+    return type != null && FormViewSerializer.holdsDependencies(type);
+  }
 }

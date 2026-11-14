@@ -373,6 +373,14 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
       return command;
     }
     var httpRequest = command.httpRequest();
+    if (hasUnsafeSegments(route)) {
+      // /hello/../admin, /./admin: a spelling the authored table never matches, which a directory
+      // class path (dev mode, exploded images) resolves to admin.yaml all the same — the page then
+      // answered with none of its route's access: (GA round 2, J1). No real route has one.
+      log.warn("Refused request: route '{}' carries a dot segment or a backslash", route);
+      throw new io.mateu.core.application.security.MateuForbiddenException(
+          "route not allowed for caller: " + route);
+    }
     var refusing = routeRegistry.refusingEntry(route, httpRequest);
     var mount = io.mateu.core.application.MountPaths.mountOf(command);
     if (refusing == null
@@ -383,6 +391,19 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
       refusing =
           routeRegistry.refusingEntry(
               io.mateu.core.application.MountPaths.withMount(mount, route), httpRequest);
+    }
+    if (refusing == null) {
+      // the access: of a route holds for its DEFINITION FILE, whatever spelling reaches it: a path
+      // no authored entry answers is served by convention from specs/ui/<path>.yaml — the layout
+      // file of a parameterised or sub-folder route (/pages/user for backoffice/users/:id), or a
+      // case variant on a case-insensitive file system (/Admin)
+      refusing = refusingByDefinition(normalize(route), httpRequest);
+      if (refusing == null) {
+        var relativeToMount = normalize(authoredRouteIn(route, mount));
+        if (!relativeToMount.equals(normalize(route))) {
+          refusing = refusingByDefinition(relativeToMount, httpRequest);
+        }
+      }
     }
     if (refusing != null) {
       log.warn(
@@ -400,7 +421,11 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
     // of them apply. Without it, sending another route (or none) with the same serverSideType
     // walked past the access: and the field locks of the routes that bind it.
     var specs = new java.util.ArrayList<String>();
-    var foreign = foreignBindingsOf(command.serverSideType(), path);
+    // the type that RUNS: the one the request names, else the one its route resolves to — deciding
+    // from the wire name alone let a request that names none skip the union of locks at the bound
+    // class's own @UI route (GA round 2, J4)
+    var runningType = typeThatRuns(command);
+    var foreign = foreignBindingsOf(runningType, path);
     if (foreign != null) {
       if (foreign.stream().noneMatch(bound -> routeRegistry.isReachable(bound, httpRequest))) {
         log.warn(
@@ -454,8 +479,8 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
       // ...and what they hide from the caller is not SENT in the view model's state either: the
       // layout leaves the field out, its value travelled in the state all the same
       var type =
-          command.serverSideType() != null && !command.serverSideType().isBlank()
-              ? command.serverSideType().trim()
+          runningType != null && !runningType.isBlank()
+              ? runningType.trim()
               : loadSpec(path) != null ? loadSpec(path).modelView() : null;
       if (type != null) {
         httpRequest.setAttribute(
@@ -464,6 +489,123 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
       }
     }
     return anySpec ? withoutLockedByPieces(narrowed, path, lockedByPieces) : narrowed;
+  }
+
+  /**
+   * The view model the request will run: the {@code serverSideType} it names, else — only when
+   * authored routes bind any view model, the only case the answer matters — the class its route
+   * resolves to. Null when neither names one.
+   */
+  private String typeThatRuns(RunActionCommand command) {
+    var named = command.serverSideType();
+    if (named != null && !named.isBlank()) {
+      return named;
+    }
+    if (bindings().isEmpty() || command.route() == null) {
+      return named;
+    }
+    try {
+      var resolver =
+          io.mateu.uidl.di.MateuBeanProvider.getSingletonBean(
+              io.mateu.core.application.RoutedClassResolver.class);
+      if (resolver == null) {
+        return named;
+      }
+      return resolver
+          .resolve(command.route(), command)
+          .map(io.mateu.core.application.ResolvedRoute::resolvedClass)
+          .map(Class::getName)
+          .orElse(named);
+    } catch (RuntimeException | LinkageError e) {
+      log.debug("Could not resolve the type of route {}: {}", command.route(), e.toString());
+      return named;
+    }
+  }
+
+  /**
+   * Whether {@code route} (its path, before any query) has a {@code .} or {@code ..} segment — also
+   * percent-encoded — or a backslash: spellings that name another file than the route says.
+   */
+  static boolean hasUnsafeSegments(String route) {
+    if (route == null || route.isEmpty()) {
+      return false;
+    }
+    var q = route.indexOf('?');
+    var path = q >= 0 ? route.substring(0, q) : route;
+    var decoded =
+        path.replaceAll("(?i)%2e", ".").replaceAll("(?i)%2f", "/").replaceAll("(?i)%5c", "\\\\");
+    if (decoded.indexOf('\\') >= 0 || decoded.indexOf('\0') >= 0) {
+      return true;
+    }
+    for (var segment : decoded.split("/", -1)) {
+      if (segment.equals(".") || segment.equals("..")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * The authored entry whose {@code access:} refuses the caller {@code path} when {@code path} is
+   * served BY CONVENTION ({@code specs/ui/<path>.yaml}, no authored entry answers it) and that file
+   * is the definition of an authored entry — its {@code layout:}, or the convention file of its own
+   * route. Compared without regard to case: a case-insensitive file system serves {@code
+   * Admin.yaml} for {@code admin.yaml}. Null when nothing refuses.
+   */
+  io.mateu.uidl.data.RouteEntry refusingByDefinition(
+      String path, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    var table = routeRegistry.authored();
+    if (path == null
+        || path.isEmpty()
+        || table.routes().stream().noneMatch(io.mateu.uidl.data.RouteEntry::restrictsAccess)
+        || table.match(path).isPresent()) {
+      return null;
+    }
+    var served = canonicalFile("specs/ui/" + path + ".yaml");
+    for (var entry : table.routes()) {
+      var file = definitionFileOf(entry);
+      if (file == null || !canonicalFile(file).equals(served)) {
+        continue;
+      }
+      if (!io.mateu.core.domain.Authorizer.isAuthorized(entry.access(), httpRequest)) {
+        return entry;
+      }
+      if (entry.hasParent()) {
+        var parent = routeRegistry.refusingEntry(entry.parent(), httpRequest);
+        if (parent != null) {
+          return parent;
+        }
+      }
+    }
+    return null;
+  }
+
+  /** The definition file an authored entry renders (classpath name), or null when it has none. */
+  private static String definitionFileOf(io.mateu.uidl.data.RouteEntry entry) {
+    if (entry.definition() != null && !entry.definition().isBlank()) {
+      return definitionPath(entry.definition().trim());
+    }
+    var route = entry.route() == null ? "" : entry.route().replaceAll("^/+", "");
+    if (route.isEmpty() || route.contains(":")) {
+      return null;
+    }
+    return "specs/ui/" + route + ".yaml";
+  }
+
+  /** {@code file} with dot segments and repeated slashes resolved, in lower case. */
+  private static String canonicalFile(String file) {
+    var out = new java.util.ArrayDeque<String>();
+    for (var segment : file.replace('\\', '/').split("/")) {
+      if (segment.isEmpty() || segment.equals(".")) {
+        continue;
+      }
+      if (segment.equals("..")) {
+        out.pollLast();
+      } else {
+        out.addLast(segment);
+      }
+    }
+    return String.join("/", out).toLowerCase(java.util.Locale.ROOT);
   }
 
   /**
@@ -788,6 +930,9 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
   }
 
   private YamlPageSpec parseSpec(String normalizedRoute) {
+    if (hasUnsafeSegments(normalizedRoute)) {
+      return NONE; // never a file outside the route's own (see guard)
+    }
     var entry = routeRegistry.authored().match(normalizedRoute).map(match -> match.entry());
     var declaredDefinition =
         entry.map(io.mateu.uidl.data.RouteEntry::definition).filter(d -> !d.isBlank()).orElse(null);
