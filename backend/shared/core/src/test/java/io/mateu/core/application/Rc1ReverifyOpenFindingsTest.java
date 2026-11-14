@@ -11,15 +11,13 @@ import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.RunActionRqDto;
 import java.nio.file.Path;
 import java.util.Map;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * GA round-2 Java findings that are still OPEN on rc.1 (5bbce1a3f3): each test reproduces the
- * review's scenario (or the nearest shape the fix missed) and FAILS today. Disabled so the build
- * stays green; remove the {@code @Disabled} when the fix lands. Every test boots its own harness
- * (MateuBeanProvider is a static holder: one harness per JVM at a time).
+ * GA round-2 Java findings that were still OPEN on rc.1 (5bbce1a3f3): each test reproduces the
+ * review's scenario (or the nearest shape the fix missed); fixed for rc.2. Every test boots its own
+ * harness (MateuBeanProvider is a static holder: one harness per JVM at a time).
  */
 class Rc1ReverifyOpenFindingsTest {
 
@@ -61,8 +59,6 @@ class Rc1ReverifyOpenFindingsTest {
    * restricted {@code backoffice/users/:id}. Anonymous load renders USER-PAGE.
    */
   @Test
-  @Disabled(
-      "rc.2: J1 — a matched entry with no layout still serves a restricted layout by convention")
   void j1_anUnrestrictedParameterisedRouteWithNoLayoutDoesNotServeARestrictedLayoutFile() {
     var root =
         SpecsDir.write(
@@ -98,6 +94,56 @@ class Rc1ReverifyOpenFindingsTest {
   }
 
   /**
+   * J1 control: the same layout-less {@code pages/:name} route still serves, by convention, a page
+   * no restricted route names ({@code pages/other.yaml}), and a route that NAMES its layout is
+   * served from it whatever its path.
+   */
+  @Test
+  void j1_aLayoutLessRouteStillServesUnrestrictedPagesByConvention() {
+    var root =
+        SpecsDir.write(
+            dir,
+            Map.of(
+                "routes.yaml",
+                """
+                type: Routes
+                routes:
+                  - route: backoffice/users/:id
+                    layout: pages/user.yaml
+                    access: admin
+                  - route: pages/:name
+                    viewModel: %s
+                  - route: open/:id
+                    layout: pages/open.yaml
+                """
+                    .formatted(PageVm.class.getName()),
+                "pages/user.yaml",
+                Rc1ReverifyYamlRoutesSyncTest.page("USER-PAGE"),
+                "pages/other.yaml",
+                Rc1ReverifyYamlRoutesSyncTest.page("OTHER-PAGE"),
+                "pages/open.yaml",
+                Rc1ReverifyYamlRoutesSyncTest.page("OPEN-PAGE")));
+    var out =
+        SpecsDir.over(
+            root,
+            cl -> {
+              try (var m = TestMateu.withUis(PageVm.class)) {
+                return JSON.valueToTree(
+                            m.run(
+                                RunActionRqDto.builder().route("/pages/other").actionId("").build(),
+                                Map.of()))
+                        .toString()
+                    + JSON.valueToTree(
+                            m.run(
+                                RunActionRqDto.builder().route("/open/7").actionId("").build(),
+                                Map.of()))
+                        .toString();
+              }
+            });
+    assertThat(out).contains("OTHER-PAGE").contains("OPEN-PAGE").doesNotContain("USER-PAGE");
+  }
+
+  /**
    * J3 (PARTIAL): writes into held beans are closed, but a {@code final} field of a CONCRETE type
    * (a {@code @Service} class held by constructor injection — the documented idiom) exposed by a
    * view getter (Lombok {@code @Getter}/{@code @Data}) still travels in the state: {@code
@@ -105,7 +151,6 @@ class Rc1ReverifyOpenFindingsTest {
    * FormViewSerializer.isHeldDependency} only drops interface/abstract-typed final fields.
    */
   @Test
-  @Disabled("rc.2: J3 — a final concrete bean behind a view getter is sent in the state")
   void j3_aFinalConcreteBeanExposedByAGetterIsNotSentInTheState() {
     var out =
         load(Rc1ReverifyJavaSyncTest.ConcreteHoldingView.class, "/rc1-held-concrete", "", Map.of());
@@ -119,8 +164,6 @@ class Rc1ReverifyOpenFindingsTest {
    * Pay} ({@code record-pay}, {@code anything-secretNote}).
    */
   @Test
-  @Disabled(
-      "rc.2: J5 — nested collections, Object fields and flattened keys carry @EyesOnly values")
   void j5_moreShapesDoNotCarryTheHiddenValue() {
     var out = load(Rc1ReverifyJavaSyncTest.MoreShapes.class, "/rc1-shapes", "", Map.of());
     assertThat(out).contains("\"note\":\"n\"").doesNotContain("\"top\"");
@@ -132,7 +175,6 @@ class Rc1ReverifyOpenFindingsTest {
    * gets the row back — an oracle over a column they may not read.
    */
   @Test
-  @Disabled("rc.2: J6 — free-text search matches values of columns the caller may not read")
   void j6_freeTextSearchDoesNotMatchAColumnTheCallerMayNotRead() {
     Rc1ReverifyJavaSyncTest.SECRETIVE.clear();
     Rc1ReverifyJavaSyncTest.SECRETIVE.add(new Rc1ReverifyJavaSyncTest.Secretive("s1", "Ana"));

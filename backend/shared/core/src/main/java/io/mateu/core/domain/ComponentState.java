@@ -159,12 +159,33 @@ public final class ComponentState {
     var readable =
         io.mateu.core.domain.FieldAccess.readable(source, (Map<String, Object>) map, httpRequest);
     var hidden = yamlHidden(source, httpRequest);
-    if (hidden.isEmpty() || hidden.stream().noneMatch(readable::containsKey)) {
+    if (hidden.isEmpty()) {
       return readable;
     }
-    var out = new LinkedHashMap<>(readable);
-    hidden.forEach(out::remove);
-    return out;
+    var out = new LinkedHashMap<String, Object>((Map<String, Object>) readable);
+    hidden.forEach(id -> withoutHidden(out, id));
+    return out.equals(readable) ? readable : out;
+  }
+
+  /**
+   * {@code state} without the field {@code id} a YAML layout hides, in every spelling the state
+   * carries it: the key itself, its flattened {@code id-x} keys, and — for a flattened id ({@code
+   * pay-salary}) — the entry inside the nested map ({@code pay: {salary}}) and its own flattened
+   * keys. Removing only the exact key left the nested value travelling (GA round 2, J5).
+   */
+  @SuppressWarnings("unchecked")
+  private static void withoutHidden(Map<String, Object> state, String id) {
+    if (id == null || id.isEmpty()) {
+      return;
+    }
+    state.remove(id);
+    state.keySet().removeIf(key -> key != null && key.startsWith(id + "-"));
+    var dash = id.indexOf('-');
+    if (dash > 0 && state.get(id.substring(0, dash)) instanceof Map<?, ?> nested) {
+      var copy = new LinkedHashMap<String, Object>((Map<String, Object>) nested);
+      withoutHidden(copy, id.substring(dash + 1));
+      state.put(id.substring(0, dash), copy);
+    }
   }
 
   /**

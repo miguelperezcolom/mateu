@@ -60,10 +60,18 @@ public class ActionOnRowActionHandler implements CrudOrchestratorActionHandler {
         if (result != null) {
           return result;
         }
-        break;
+        return CrudActionResult.listingChanged(actionId, orchestrator);
       }
     }
-    return CrudActionResult.listingChanged(actionId, orchestrator);
+    // no method of that name: the listing's own row glue (a lookup's select), else an id no
+    // handler claims — refused like any other unknown action. It used to re-render the listing
+    // (losing the search) with a 200 and no WARN, so a tab opened on an older release pressing a
+    // renamed button saw nothing happen.
+    var glue = orchestrator.handleActionOnRow(methodName, httpRequest);
+    if (glue != null) {
+      return glue;
+    }
+    throw ActionMethods.noSuchAction(behaviour.getClass(), actionId);
   }
 
   /** The messages when the result is nothing but messages; null otherwise. */
