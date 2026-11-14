@@ -21,7 +21,7 @@
     <properties>
         <java.version>21</java.version>
         <!-- Latest Mateu release on Maven Central. -->
-        <mateu.version>3.0-beta.66</mateu.version>
+        <mateu.version>3.0-beta.68</mateu.version>
     </properties>
 
     <dependencies>
