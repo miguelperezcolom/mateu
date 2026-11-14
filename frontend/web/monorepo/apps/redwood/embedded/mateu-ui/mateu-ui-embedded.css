@@ -25,3 +25,15 @@ mateu-ui .mateu-ui-root {
   background-color: var(--oj-core-neutral-30, #f1efed);
   min-height: 12rem;
 }
+
+/* shell="true": the App shell the component draws on top of its content — Spectra's global header
+ * (the app's logo) and the shell's menu band under it, at the top of the component, not of the viewport */
+mateu-ui .mateu-embedded-shell {
+  display: block;
+  position: relative;
+}
+
+mateu-ui .mateu-embedded-shell .mateu-embedded-logo {
+  height: 22px;
+  display: block;
+}

@@ -97,7 +97,9 @@ export function answeredBy(base, increment) {
  *  so in hybrid mode (bundle + backend) the menu comes from the backend as always; but if the
  *  backend is NOT there (pure static deployment) and the bundle carries the root route, it falls
  *  back to it so the app boots anyway. Only on failure — the happy path does not change. */
-export async function bootstrapShell(base, initiator = 'shell') {
+/** The shell's first load. `appState`: the app state it is sent with — the embedded <mateu-ui>'s
+ *  app-context (the backend may build the App, its menu, per company / hotel); none by default. */
+export async function bootstrapShell(base, initiator = 'shell', appState = null) {
   // the shell's own backend is trusted with the user's token (hostHeaders.storedTokenMayGoTo)
   trustShellBase(base)
   await awaitBundle()
@@ -108,7 +110,10 @@ export async function bootstrapShell(base, initiator = 'shell') {
     const res = await fetchWithPolicy(`${base}/mateu/v3/sync/_no_route`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
+      body: JSON.stringify({
+        route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator,
+        ...(appState && typeof appState === 'object' && Object.keys(appState).length ? { appState } : {}),
+      }),
     }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
     const increment = await res.json()
     observeWireVersion(increment)

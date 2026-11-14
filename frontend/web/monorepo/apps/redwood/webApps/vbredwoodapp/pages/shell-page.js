@@ -103,52 +103,17 @@ define(['resources/js/mateu-bridge'], (bridge) => {
       schedule();
     }
 
-    /**
-     * The class of a top-level subheader option (MENU_ON_TOP): marked if its section is the one
-     * on screen (bridge.activeSectionOf). It receives the selected route so the binding is
-     * re-evaluated on every navigation.
-     */
-    /**
-     * The subheader options: the top level (MENU_ON_TOP) or, with HAMBURGER_SECTIONS, the second
-     * level of the section on screen —the hamburger carries the sections—. With no section on
-     * screen (the home) the band stays empty.
-     */
-    subheaderItemsOf(tree, selectedRoute, sectionsMode) {
-      if (!sectionsMode) return tree || [];
-      const section = bridge.sectionOf(tree, selectedRoute);
-      return section ? (section.children || []) : [];
-    }
+    // The subheader band (MENU_ON_TOP / HAMBURGER_SECTIONS): the logic is the bridge's (navTree.mjs),
+    // shared with the embedded <mateu-ui shell>. No `this`: VB may call page functions unbound.
+    subheaderItemsOf(tree, selectedRoute, sectionsMode) { return bridge.subheaderItemsOf(tree, selectedRoute, sectionsMode); }
 
-    /** The subheader title: the console's, or with HAMBURGER_SECTIONS the section's. */
-    subheaderTitleOf(title, tree, selectedRoute, sectionsMode) {
-      if (!sectionsMode) return title || '';
-      const section = bridge.sectionOf(tree, selectedRoute);
-      return section ? section.label : '';
-    }
+    subheaderTitleOf(title, tree, selectedRoute, sectionsMode) { return bridge.subheaderTitleOf(title, tree, selectedRoute, sectionsMode); }
 
-    /**
-     * The subheader class: collapsed (mateu-subheader-empty) when it has nothing to show
-     * —HAMBURGER_SECTIONS on the home, no section on screen—, so no empty strip is left.
-     */
-    subheaderClassOf(title, tree, selectedRoute, sectionsMode) {
-      // no `this`: VB may call the page functions unbound
-      const section = sectionsMode ? bridge.sectionOf(tree, selectedRoute) : null;
-      const empty = sectionsMode
-        ? !section || (!section.label && !(section.children || []).length)
-        : !title && !(tree || []).length;
-      return empty ? 'mateu-subheader mateu-subheader-empty' : 'mateu-subheader';
-    }
+    subheaderClassOf(title, tree, selectedRoute, sectionsMode) { return bridge.subheaderClassOf(title, tree, selectedRoute, sectionsMode); }
 
-    /** HAMBURGER_SECTIONS: the selected entry in the section list (its id is the home). */
-    sectionListSelection(tree, selectedRoute) {
-      const section = bridge.sectionOf(tree, selectedRoute);
-      return section ? (section.home || section.id) : '';
-    }
+    sectionListSelection(tree, selectedRoute) { return bridge.sectionListSelection(tree, selectedRoute); }
 
-    subheaderItemClass(node, tree, selectedRoute) {
-      const active = bridge.activeSectionOf(tree, selectedRoute) === node.id;
-      return active ? 'mateu-subheader-item mateu-nav-active' : 'mateu-subheader-item';
-    }
+    subheaderItemClass(node, tree, selectedRoute) { return bridge.subheaderItemClass(node, tree, selectedRoute); }
 
     /**
      * The `messages` of a conversation entry's Spectra block (oj-sp-chat-message-block): the

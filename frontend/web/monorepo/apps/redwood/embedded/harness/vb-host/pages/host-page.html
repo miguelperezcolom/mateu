@@ -1,0 +1,6 @@
+<div class="oj-flex oj-sm-flex-direction-column" style="padding: 16px 24px; gap: 12px">
+  <h1 id="hostHeader" class="oj-typography-heading-sm"><oj-bind-text value="[[ $functions.hostLabel($application.variables.hostNote) ]]"></oj-bind-text></h1>
+  <div class="oj-flex">
+    <mateu-ui id="mateu" class="oj-flex-item" base-url="[[ $variables.baseUrl ]]" route="{{ $variables.route }}" shell="[[ $variables.shell ]]"></mateu-ui>
+  </div>
+</div>
