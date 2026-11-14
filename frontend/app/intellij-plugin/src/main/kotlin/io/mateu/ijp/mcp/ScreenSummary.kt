@@ -145,6 +145,8 @@ object ScreenSummary {
         val crudNodes = ArrayList<Pair<JsonNode, JsonNode>>() // (node, metadata)
         val declared = LinkedHashSet<String>()
         val initialData = HashMap<String, JsonNode>()
+        /** Every value the views' `initialData` seed (what a `${state.x}` reads before any edit). */
+        val seeded = LinkedHashMap<String, Any?>()
     }
 
     private fun describeView(
@@ -158,14 +160,16 @@ object ScreenSummary {
     ) {
         val acc = Acc()
         if (tree != null) walk(tree, acc, null)
-        val ctx = exprCtx(view.state, appState)
+        // the texts read the state the renderer interpolates them with: what initialData seeded,
+        // under what the view holds now
+        val ctx = exprCtx(acc.seeded + view.state, appState)
 
         acc.header?.let { h ->
             val header = into.putObject("header")
             h.text("title").takeIf { it.isNotBlank() }?.let { header.put("title", interpolate(it, ctx)) }
             h.text("subtitle").takeIf { it.isNotBlank() }?.let { header.put("subtitle", interpolate(it, ctx)) }
             h.text("overline").takeIf { it.isNotBlank() }?.let { header.put("overline", interpolate(it, ctx)) }
-            h.text("timestamp").takeIf { it.isNotBlank() }?.let { header.put("timestamp", it) }
+            h.text("timestamp").takeIf { it.isNotBlank() }?.let { header.put("timestamp", interpolate(it, ctx)) }
             h.path("badges").takeIf { it.isArray && !it.isEmpty }?.let { b ->
                 header.putArray("badges").apply { b.forEach { add(interpolate(it.text("text", it.text("label")), ctx)) } }
             }
@@ -222,7 +226,10 @@ object ScreenSummary {
                 var initial = inherited
                 val type = n.text("type")
                 if (type == "ServerSide") {
-                    n.path("initialData").takeIf { it.isObject }?.let { initial = it }
+                    n.path("initialData").takeIf { it.isObject }?.let { d ->
+                        initial = d
+                        d.properties().forEach { (k, v) -> acc.seeded.putIfAbsent(k, v) }
+                    }
                     n.path("actions").forEach { a -> a.text("id").takeIf { it.isNotBlank() }?.let(acc.declared::add) }
                 }
                 when (type) {

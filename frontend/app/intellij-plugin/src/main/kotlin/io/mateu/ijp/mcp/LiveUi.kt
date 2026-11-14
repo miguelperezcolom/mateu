@@ -104,9 +104,14 @@ class LiveUi(private val mapper: ObjectMapper = ObjectMapper()) : McpHost {
             FileEditorManager.getInstance(project).selectedFiles.filterIsInstance<MateuVirtualFile>()
                 .mapNotNull { it.ctx }.firstOrNull { !it.isDisposed && it.session === s }
                 ?: s.activeView?.takeIf { !it.isDisposed }
+                // a UI with no navigator (a crud mounted alone) shows its screen in the root's context
+                ?: service.rootView?.takeIf { showsAScreen(it, s) }
         }
         Front(project, service, session, view)
     }
+
+    private fun showsAScreen(root: AppContext, s: AppSession): Boolean =
+        !root.isDisposed && root.session === s && rootShowsAScreen(root.lastContent)
 
     private fun session(front: Front): AppSession =
         front.session ?: throw McpToolError("No UI is open." + if (loadMateuConfig(front.project).hub) " Open one with mateu_open_ui." else "")
@@ -484,6 +489,16 @@ class LiveUi(private val mapper: ObjectMapper = ObjectMapper()) : McpHost {
 
     companion object {
         private val LOG = Logger.getInstance(LiveUi::class.java)
+
+        /**
+         * Whether what the root context last painted is a SCREEN the user works on — not a navigator
+         * (an app shell's menu, whose entries open views of their own) and not a bare mediator still
+         * waiting for its inner route.
+         */
+        internal fun rootShowsAScreen(content: JsonNode?): Boolean =
+            content != null && !content.isMissingNode && !content.isNull &&
+                !io.mateu.ijp.state.ScreenShapes.hasAppShell(content) &&
+                !io.mateu.ijp.state.ScreenShapes.isMediatorShell(content)
         const val UIS_URI = "mateu://desktop/uis"
         const val SCREEN_URI = "mateu://desktop/screen"
         const val MENU_URI = "mateu://desktop/menu"

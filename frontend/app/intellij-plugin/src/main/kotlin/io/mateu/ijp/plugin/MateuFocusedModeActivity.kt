@@ -204,12 +204,30 @@ class MateuFocusedModeActivity : ProjectActivity {
         }
     }
 
-    /** The IDE's build/run actions go away (their shortcuts with them): nothing to compile here. */
-    private fun disableBuildActions() {
+    /**
+     * The IDE's build/run actions go away (their shortcuts with them): nothing to compile here.
+     *
+     * The run executors' ids (`Run`, `Debug`) are NEVER unregistered: platform code fetches them by
+     * id and asserts they exist — the new UI's run widget (`RunToolbarTopLevelExecutorActionGroup`)
+     * does `getAction("Run")!!` on every toolbar update, so an unregistered one threw "getAction(...)
+     * must not be null" in a coroutine of the action updater: the IDE's internal-errors dialog
+     * ("Exception in IDEA core") on every start, which surfaced later, e.g. after an agent's call.
+     * They are REPLACED by an inert action instead: the id stays, the key press does nothing.
+     */
+    internal fun disableBuildActions(am: ActionManager = ActionManager.getInstance()) {
         runCatching {
-            val am = ActionManager.getInstance()
-            for (id in BUILD_ACTIONS) if (am.getAction(id) != null) runCatching { am.unregisterAction(id) }
+            for (id in BUILD_ACTIONS) {
+                if (am.getAction(id) == null) continue
+                runCatching { if (id in EXECUTOR_ACTIONS) am.replaceAction(id, InertAction()) else am.unregisterAction(id) }
+            }
         }
+    }
+
+    /** Stands in for an action whose id platform code still looks up: never shown, never enabled. */
+    internal class InertAction : com.intellij.openapi.actionSystem.AnAction() {
+        override fun getActionUpdateThread() = com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
+        override fun update(e: com.intellij.openapi.actionSystem.AnActionEvent) { e.presentation.isEnabledAndVisible = false }
+        override fun actionPerformed(e: com.intellij.openapi.actionSystem.AnActionEvent) = Unit
     }
 
     /** Reduce the native menu bar to the essentials — drop the dev-oriented top menus. */
@@ -319,7 +337,10 @@ class MateuFocusedModeActivity : ProjectActivity {
         )
 
         /** Build and run actions a desktop app has no use for — a key press must not start a compile. */
-        private val BUILD_ACTIONS = listOf("CompileDirty", "CompileProject", "Compile", "MakeModule", "BuildArtifact", "Run", "Debug", "RunClass", "DebugClass")
+        internal val BUILD_ACTIONS = listOf("CompileDirty", "CompileProject", "Compile", "MakeModule", "BuildArtifact", "Run", "Debug", "RunClass", "DebugClass")
+
+        /** The run executors' action ids: looked up by id (and asserted) by the platform, so replaced, never unregistered. */
+        internal val EXECUTOR_ACTIONS = setOf("Run", "Debug")
 
         /** The new-UI header toolbar's groups ([pruneMainToolbar]). */
         private val MAIN_TOOLBAR_GROUPS = listOf("MainToolbarLeft", "MainToolbarCenter", "MainToolbarRight")

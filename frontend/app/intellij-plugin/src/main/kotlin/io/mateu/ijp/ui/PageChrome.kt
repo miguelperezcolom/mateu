@@ -128,8 +128,9 @@ object PageChrome {
         if (subtitle.isNotBlank()) {
             header.addStacked(JBLabel(plain(subtitle)).apply { foreground = ToneColors.secondaryText() }, 8)
         }
-        // "Last updated …" under the subtitle (PageDto.timestamp).
-        val timestamp = shown(metadata.text("timestamp"))
+        // "Last updated …" under the subtitle (PageDto.timestamp) — a template like the title
+        // (`Image ${state.imageCredit}` showed as written); the web's factText does the same.
+        val timestamp = shown(Expressions.interpolate(metadata.text("timestamp"), exprCtx))
         if (timestamp.isNotBlank()) {
             header.addStacked(JBLabel(plain(timestamp)).apply { foreground = ToneColors.secondaryText() }, 6)
         }

@@ -50,6 +50,31 @@ class LiveUiPlatformTest : BasePlatformTestCase() {
         assertEquals(3, listing.path("totalElements").asInt())
     }
 
+    /**
+     * A crud mounted alone (no app shell): its root answers a MEDIATOR, then the listing lands in
+     * the SAME context — the one the MCP server reads when no other view is in front.
+     */
+    fun testACrudMountedAloneIsTheScreenOfTheRootContext() {
+        fun increment(name: String) = mapper.readTree(javaClass.getResource("/increments/$name.json")!!)
+        val ctx = AppContext(AppSession("http://127.0.0.1:9"))
+        ctx.silentErrors = true
+        ctx.appShell = true
+        ctx.contentPane = ctx.newSlot()
+        ctx.titleConsumer = {}
+        ctx.applyIncrement(increment("autocrud-alone-root"))
+        assertFalse(LiveUi.rootShowsAScreen(ctx.lastContent))
+        ctx.applyIncrement(increment("autocrud-alone-listing"))
+        PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+        assertTrue(LiveUi.rootShowsAScreen(ctx.lastContent))
+        val summary = ScreenSummary.build(
+            ScreenSummary.Input(view = ScreenSummary.View(ctx.lastContent, HashMap(ctx.currentComponentState))),
+            mapper,
+        )
+        val listing = summary.path("listings").path(0)
+        assertTrue(summary.toString(), listing.isObject)
+        assertEquals(listOf("name", "email", "country", "vip"), listing.path("columns").map { it.path("id").asText() })
+    }
+
     fun testAMessageShownIsRemembered() {
         val ctx = rendered(case("action-effects"))
         val texts = ctx.session.recentMessages.map { it.text }

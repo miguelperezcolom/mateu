@@ -60,6 +60,21 @@ class ScreenSummaryTest : TestCase() {
         assertEquals(1, h.path("kpis").size())
     }
 
+    /** The museum dashboard's `timestamp: ${state.lastVisitDate}` came back as written. */
+    fun testTheTimestampIsATemplateLikeTheTitle() {
+        val tree = mapper.readTree(
+            """{"type":"ServerSide","initialData":{"lastVisitDate":"2026-11-13"},"children":[
+                 {"type":"ClientSide","metadata":{"type":"Form","title":"Operations at a glance",
+                  "timestamp":"Last visit ${'$'}{state.lastVisitDate}","content":[]}}]}""",
+        )
+        // seeded by initialData only…
+        val seeded = build(ScreenSummary.Input(view = ScreenSummary.View(tree))).path("header")
+        assertEquals("Last visit 2026-11-13", seeded.path("timestamp").asText())
+        // …and what the view holds now wins over the seed
+        val live = build(ScreenSummary.Input(view = ScreenSummary.View(tree, mapOf("lastVisitDate" to "2026-11-14")))).path("header")
+        assertEquals("Last visit 2026-11-14", live.path("timestamp").asText())
+    }
+
     fun testTheToolbarIsAnOptionWithItsId() {
         val s = build(ScreenSummary.Input(view = view("page-toolbar")))
         val publish = s.path("actions").firstOrNull { it.path("id").asText() == "publish" }
