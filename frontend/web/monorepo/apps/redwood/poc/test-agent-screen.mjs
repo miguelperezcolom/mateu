@@ -447,6 +447,126 @@ test('texts: the band and Stop in the six chrome languages (and in the VB bundle
   }
 })
 
+test('the summary, the rest of what a screen can show: header extras, groups, links, filters, cells, row actions', () => {
+  const f = (fieldId, over = {}) => ({ type: 'ClientSide', metadata: { type: 'FormField', fieldId, label: fieldId, dataType: 'string', ...over } })
+  const b = (actionId, label, over = {}) => ({ type: 'Button', actionId, label, ...over })
+  const s = buildScreenSummary({
+    uiName: 'ops', baseUrl: '/ops', route: '/r',
+    app: { user: 'ana', contextSelectors: [{ fieldName: 'hotel', options: Array.from({ length: 55 }, (_, i) => ({ value: 'h' + i, label: 'H' + i })) }] },
+    appState: { hotel: 'h1' },
+    messages: [{ text: 'm' }, { variant: 'error', title: 'Oops', text: 'Broken' }],
+    view: {
+      state: { n: 3, blob: { a: { b: { c: { d: { e: 1 } } } }, k: 7n, list: Array.from({ length: 60 }, (_, i) => i) }, pw: '', who: 'Ana',
+        q: 'x', date_from: '2026-01-01', date_to: '2026-02-01', sort: [{ field: 'status' }] },
+      fieldErrors: { name: 'Too short' },
+      hiddenFields: new Set(['secret']),
+      disabledFields: new Set(['name']),
+      listings: { orders: { crud: { page: { content: [
+        { status: { message: 'Paid' }, kind: 'A', link: 'p', acts: { actions: [{ methodNameInCrud: 'refund', label: 'Refund' }, { methodNameInCrud: 'refund' }] }, one: { methodNameInCrud: 'cancel' } },
+        { status: { nothing: {} }, kind: 'B', one: 'not an action', acts: 1 },
+        null,
+      ] } } } },
+      content: {
+        type: 'ServerSide', initialData: { name: 'from server' }, actions: [{ id: 'other' }, { id: 'search' }, null], children: [
+          { type: 'Form', pageTitle: 'T ${state.n}', overline: 'Over', timestamp: 'today', badges: [{ text: 'Open' }, { label: 'VIP' }],
+            kpis: [{ title: 'Total', text: '${state.n} €' }], breadcrumbs: [{ text: 'Home', link: '/' }, { text: 'Here' }], actions: [{ id: 'more' }] },
+          b('', 'More', { children: [b('a', 'A'), b('', 'Nothing')] }),
+          b('', 'Go', { route: '/elsewhere' }),
+          b('approve', 'Approve', { rowsSelectedRequired: true }),
+          b('approve', 'Approve'),
+          f('name'), f('secret'), f('country', { optionsSource: { ref: 'c' }, stereotype: 'regular', description: 'Pick', required: true }),
+          f('blob'), f('pw', { dataType: 'password' }),
+          f('pick', { options: Array.from({ length: 55 }, (_, i) => ({ value: 'v' + i })) }),
+          { type: 'ClientSide', id: 'orders', metadata: {
+            type: 'Crud', title: 'Orders of ${state.who}', rowsSelectionEnabled: true, rowRoute: 'orders/${row.id}', searchable: true,
+            columns: [{ metadata: { id: 'status', label: 'Status' } }, { id: 'kind', label: 'Kind', valueLabels: { A: 'Alpha' } },
+              { id: 'link', label: 'Print', actionId: 'print' }, { id: 'acts', dataType: 'actionGroup' }, { id: 'one', dataType: 'action' }, null],
+            filters: [{ metadata: { fieldId: 'q', dataType: 'string' } }, { fieldId: 'date', label: 'Date' }, { fieldId: 'kind', options: [{ value: 'A', label: 'Alpha' }] }, null],
+            toolbar: [b('new', 'New')],
+          } },
+          { type: 'ClientSide', id: 'rest', metadata: { type: 'Crud', rowsSource: { ref: 'people' } } },
+        ],
+      },
+    },
+  })
+  assert.deepEqual(s.ui, { name: 'ops', baseUrl: '/ops' })
+  assert.equal(s.user, 'ana')
+  assert.equal(s.appContext[0].valueLabel, 'H1')
+  assert.equal(s.appContext[0].options.length, 50)
+  assert.deepEqual(s.header, { title: 'T 3', overline: 'Over', timestamp: 'today', badges: ['Open', 'VIP'], kpis: [{ title: 'Total', value: '3 €' }] })
+  assert.deepEqual(s.breadcrumbs, [{ label: 'Home', route: '/' }, { label: 'Here' }])
+  assert.deepEqual(s.actions, [
+    { id: 'More', label: 'More', enabled: true, children: [{ id: 'a', label: 'A', enabled: true }] },
+    { id: '/elsewhere', label: 'Go', enabled: true, navigatesTo: '/elsewhere' },
+    { id: 'approve', label: 'Approve', enabled: true, needsSelectedRows: true },
+  ])
+  assert.deepEqual(s.otherActionIds.sort(), ['more', 'other'])
+  assert.deepEqual(s.fields.map((x) => x.id), ['name', 'country', 'blob', 'pw', 'pick'])
+  assert.equal(s.fields[0].readOnly, true)
+  assert.equal(s.fields[0].value, 'from server')
+  assert.deepEqual(s.fields[1], { id: 'country', label: 'country', type: 'string', required: true, help: 'Pick', value: null, optionsFrom: 'a source the renderer fetches' })
+  assert.deepEqual(s.fields[2].value.a.b.c, { d: '{…}' })
+  assert.equal(s.fields[2].value.k, '7')
+  assert.equal(s.fields[2].value.list.length, 50)
+  assert.equal(s.fields[3].value, '')
+  assert.deepEqual(s.fields[4].options[0], { value: 'v0', label: 'v0' })
+  assert.deepEqual(s.errors, { name: 'Too short' })
+  const [l, rest] = s.listings
+  assert.equal(l.title, 'Orders of Ana')
+  assert.equal(l.searchText, '')
+  assert.deepEqual(l.filters, [
+    { id: 'q', label: 'q', type: 'string', value: 'x' },
+    { id: 'date', label: 'Date', type: '', from: '2026-01-01', to: '2026-02-01' },
+    { id: 'kind', label: 'kind', type: '', options: [{ value: 'A', label: 'Alpha' }] },
+    { id: '', label: '', type: '' },
+  ])
+  assert.deepEqual(l.sort, [{ field: 'status' }])
+  assert.equal(l.pageSize, 3)
+  assert.deepEqual(l.rows[0].status, 'Paid')
+  assert.equal(l.rows[0].kind, 'Alpha')
+  assert.deepEqual(l.rows[1].status, { nothing: {} })
+  assert.deepEqual(l.rows[2], {})
+  assert.deepEqual(l.rowActions, [
+    { id: 'open-row', label: 'Open' }, { id: 'print', label: 'Print' },
+    { id: 'action-on-row-refund', label: 'Refund' }, { id: 'action-on-row-cancel', label: 'cancel' },
+  ])
+  assert.equal(l.rowsSelectable, true)
+  assert.deepEqual(l.builtInActions, ['search', 'nextPage', 'prevPage'])
+  assert.match(rest.rowsFrom, /REST source/)
+  assert.deepEqual(s.messages, [{ variant: 'info', text: 'm' }, { variant: 'error', title: 'Oops', text: 'Broken' }])
+  assert.deepEqual(s.truncated, ['appContext.hotel.options', 'fields.blob', 'fields.pick.options'])
+  // a filter edit and a row action of the listing are planned as such
+  assert.deepEqual(planScreenEdits(s, { q: 'y', searchText: 'z' }).edits.map((e) => e.kind), ['filter', 'search'])
+  assert.equal(planScreenAction(s, { actionId: 'action-on-row-refund', row: 0, listing: 'orders' }).kind, 'row-action')
+  assert.equal(planScreenAction(s, { actionId: 'print', row: 0 }).kind, 'action')
+  assert.equal(planScreenAction(s, { actionId: 'nextPage', listing: 'nope' }).listingId, undefined)
+})
+
+test('the summary caps how many fields and actions it lists; an overlay with its own message and actions', () => {
+  const many = Array.from({ length: 205 }, (_, i) => ({ type: 'FormField', fieldId: 'f' + i }))
+  const buttons = Array.from({ length: 205 }, (_, i) => ({ type: 'Button', actionId: 'b' + i, label: 'B' + i }))
+  const s = buildScreenSummary({ route: '/', app: { user: 42 }, view: { content: { type: 'ServerSide', children: [...many, ...buttons] } } })
+  assert.equal(s.fields.length, 200)
+  assert.equal(s.actions.length, 200)
+  assert.deepEqual(s.truncated, ['actions', 'fields'])
+  assert.equal(s.user, undefined)
+  const o = buildScreenSummary({
+    route: '/',
+    overlay: { kind: 'ConfirmDialog', title: 'Sure ${state.who}?', subtitle: 'For ${state.who}', message: 'x'.repeat(600),
+      component: { metadata: { footer: { type: 'Button', actionId: 'ok', label: 'OK' } }, children: [{ type: 'FormField', fieldId: 'why' }] },
+      view: { state: { who: 'Ana' } }, actions: [{ id: 'cancel', label: 'Cancel', enabled: true }] },
+  })
+  assert.equal(o.overlay.kind, 'confirmdialog')
+  assert.equal(o.overlay.title, 'Sure Ana?')
+  assert.equal(o.overlay.subtitle, 'For Ana')
+  assert.equal(o.overlay.message.length, 501)
+  assert.deepEqual(o.overlay.actions.map((a) => a.id), ['ok', 'cancel'])
+  assert.deepEqual(o.overlay.fields.map((x) => x.id), ['why'])
+  assert.equal(o.page, undefined)
+  assert.deepEqual(buildScreenSummary(undefined), { ui: {}, route: '', focus: 'page' })
+  assert.equal(buildScreenSummary({ overlay: {} }).overlay.kind, 'overlay')
+})
+
 for (const { name, fn } of queue) {
   await fn()
   passed++

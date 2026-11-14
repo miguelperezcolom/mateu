@@ -14,6 +14,7 @@ import { styledTextOf } from './core/content.mjs'
 import { styleObjectOf } from './richtext.mjs'
 import { drawerOverlayOf, listingCardsOf, toggleSelectionKey, rowActionIsRows, isCardLayout } from './reduceContexts.mjs'
 import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat, overlayIsOpen } from './a11y.mjs'
+import { subheaderItemsOf, subheaderTitleOf, subheaderClassOf, sectionListSelection, subheaderItemClass, localMenuOptionOf, isSentinelHome } from './navTree.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf, routeCollisionsOf, routeCollisionMessage, plainLabelOf, remoteSourceName } from './navTree.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { checkWireVersion, observeWireVersion, setWireMismatchListener, resetWireVersionCheck, wireMismatchMessage } from './wireVersion.mjs'
@@ -91,6 +92,51 @@ const atest = (name, fn) => {
 }
 
 // 1) Bootstrap: the App configures the shell (menu→navigator) and creates no content context.
+test('the subheader band: items, title, class, the section list selection, an item’s class; a section’s home', () => {
+  const tree = [
+    { id: 's1', label: 'Booking', routes: ['/booking'], children: [{ id: '/booking/list', label: 'List' }] },
+    { id: 's2', label: '', routes: ['/empty'], children: [] },
+    { id: 's3', label: 'Ops', home: '/ops/home', routes: ['/ops'] },
+  ]
+  // MENU_ON_TOP: the top level, the console's title
+  assert.equal(subheaderItemsOf(tree, '/booking/list', false), tree)
+  assert.deepEqual(subheaderItemsOf(null, '/x', false), [])
+  assert.equal(subheaderTitleOf('Console', tree, '/booking', false), 'Console')
+  assert.equal(subheaderTitleOf(undefined, tree, '/booking', false), '')
+  assert.equal(subheaderClassOf('Console', tree, '/', false), 'mateu-subheader')
+  assert.equal(subheaderClassOf('', [], '/', false), 'mateu-subheader mateu-subheader-empty')
+  // HAMBURGER_SECTIONS: the section on screen's
+  assert.deepEqual(subheaderItemsOf(tree, '/booking/list', true), tree[0].children)
+  assert.deepEqual(subheaderItemsOf(tree, '/ops/x', true), [])
+  assert.deepEqual(subheaderItemsOf(tree, '/', true), [])
+  assert.equal(subheaderTitleOf('Console', tree, '/booking/list', true), 'Booking')
+  assert.equal(subheaderTitleOf('Console', tree, '/', true), '')
+  assert.equal(subheaderClassOf('Console', tree, '/booking/list', true), 'mateu-subheader')
+  assert.equal(subheaderClassOf('Console', tree, '/empty', true), 'mateu-subheader mateu-subheader-empty')
+  assert.equal(subheaderClassOf('Console', tree, '/', true), 'mateu-subheader mateu-subheader-empty')
+  assert.equal(sectionListSelection(tree, '/booking/list'), 's1')
+  assert.equal(sectionListSelection(tree, '/ops/x'), '/ops/home')
+  assert.equal(sectionListSelection(tree, '/'), '')
+  assert.equal(subheaderItemClass(tree[0], tree, '/booking/list'), 'mateu-subheader-item mateu-nav-active')
+  assert.equal(subheaderItemClass(tree[1], tree, '/booking/list'), 'mateu-subheader-item')
+  assert.equal(sectionOf(tree, '/nobody'), null)
+  // a section's home: its first enabled leaf, depth first; a disabled one has none
+  assert.equal(sectionHomeOf({ id: 'g', children: [{ id: 'x', disabled: true }, { id: 'g2', children: [] }, { id: 'y' }] }), 'g2')
+  assert.equal(sectionHomeOf({ id: 'g', children: [{ id: 'x', disabled: true }] }), null)
+  assert.equal(sectionHomeOf(null), null)
+  // the local menu option covering a route: the longest, never a remote one
+  const menu = [
+    { route: '/inventory', submenus: [{ route: '/inventory/floorPlan' }] },
+    { route: '/inventory/floorPlan/x', remote: true },
+    { path: '/other', baseUrl: '/_other' },
+  ]
+  assert.equal(localMenuOptionOf(menu, '/inventory/floorPlan/7?x=1').route, '/inventory/floorPlan')
+  assert.equal(localMenuOptionOf(menu, '/nothing'), null)
+  assert.equal(localMenuOptionOf(menu, ''), null)
+  assert.equal(isSentinelHome('/app/_no_home_route'), true)
+  assert.equal(isSentinelHome('/orders'), false)
+})
+
 test('Oracle CDN mirror: derived from the page runtime configuration, Oracle by default', () => {
   const mirror = { JET_CDN_PATH: 'https://cdn.example.com/oracle/cdn/jet/18.1.0-2510.3' }
   assert.equal(oracleCdnBase(undefined), ORACLE_CDN)

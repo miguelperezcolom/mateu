@@ -330,6 +330,62 @@ test('listeners run their chains with $event/$current; Actions reach the runtime
   assert.deepEqual(rt.$page.variables.bannerADP.rows, [])
 })
 
+test('the Actions outside the runtime, a missing chain or element, a failing chain, notifications, refresh', async () => {
+  assert.throws(() => embeddedActions.fireEvent({}, { name: 'x' }), /outside the embedded runtime/)
+  const warnings = []
+  const errors = []
+  const was = { warn: console.warn, error: console.error }
+  console.warn = (...a) => warnings.push(a[0])
+  console.error = (...a) => errors.push(a[0])
+  try {
+    class Boom extends EmbeddedActionChain { async run() { throw new Error('boom') } }
+    class Stale extends EmbeddedActionChain { async run() { throw Object.assign(new Error('old'), { stale: true }) } }
+    const emitted = []
+    const before = globalThis.document
+    globalThis.document = { querySelector: (sel) => (sel === '#popup' ? { open: () => 'opened in the popup layer' } : null) }
+    try {
+      const rt = createVbRuntime({
+        app: { variables: {} },
+        pages: [{
+          variables: { bannerADP: { type: 'vb/ArrayDataProvider2', defaultValue: { keyAttributes: 'id' } } },
+          eventListeners: {
+            fails: { chains: [{ chain: 'boom' }, { chain: 'stale' }, { chain: 'missing' }] },
+            vbNotification: { chains: [{ chain: 'missing' }] },
+          },
+        }],
+        chains: { boom: Boom, stale: Stale },
+        observable, adpFactory, root: { querySelector: () => null },
+        emit: (name, detail) => { emitted.push([name, detail]); return true },
+      })
+      await rt.runListener('fails', {}, undefined)
+      await rt.runListener('nobody', {}, undefined)
+      assert.deepEqual(emitted.filter(([n]) => n === EMBEDDED_EVENTS.error), [[EMBEDDED_EVENTS.error, { chain: 'boom', message: 'boom' }]], 'a stale chain is no error')
+      assert.match(errors[0], /chain boom failed/)
+      assert.ok(warnings.some((w) => /no chain missing/.test(w)))
+      // an element found in the popup layer, outside the component; a missing one refuses
+      assert.equal(await embeddedActions.callComponentMethod(rt.context(), { selector: '#popup', method: 'open' }), 'opened in the popup layer')
+      await assert.rejects(embeddedActions.callComponentMethod(rt.context(), { selector: '#none', method: 'open' }), /no #none\.open\(\)/)
+      // a notification reaches the host's message sink, then the page's listeners
+      const messages = []
+      rt.emitMessage = (n) => messages.push(n)
+      await embeddedActions.fireNotificationEvent(rt.context(), { summary: 'Saved' })
+      assert.deepEqual(messages, [{ summary: 'Saved' }])
+      await embeddedActions.fireNotificationEvent(rt.context())
+      // an unknown data provider is ignored; a refresh refreshes
+      await embeddedActions.fireDataProviderEvent(rt.context(), { target: {}, refresh: null })
+      await embeddedActions.fireDataProviderEvent(rt.context(), { target: rt.$page.variables.bannerADP, refresh: null })
+      assert.equal(rt.adps.find((a) => a.provider === rt.$page.variables.bannerADP).refreshed, true)
+    } finally {
+      if (before === undefined) delete globalThis.document; else globalThis.document = before
+    }
+  } finally {
+    console.warn = was.warn
+    console.error = was.error
+  }
+  // a base url that is no url resolves no link
+  assert.equal(embeddedRouteOfLink({ getAttribute: () => '/x' }, {}, 'http://[bad', undefined), null)
+})
+
 test('navigation the SCREEN asks for: mateuNavigate first; internal goes on, cancelled/host does not', async () => {
   const runs = []
   class Nav extends EmbeddedActionChain { async run(context, params) { runs.push(params) } }
