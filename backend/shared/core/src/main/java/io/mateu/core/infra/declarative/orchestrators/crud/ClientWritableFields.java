@@ -53,7 +53,9 @@ public final class ClientWritableFields {
     if (state == null) {
       return null;
     }
-    var restricted = new LinkedHashMap<>(state);
+    // a dotted key (pay.salary) names no field here, so the loop below never looked at it, and the
+    // save then wrote it — as the SERVER — through pay's getter, past every nested guard (J2)
+    var restricted = new LinkedHashMap<>(FieldAccess.withoutDottedKeys(state));
     for (Field field : getAllFields(entityClass)) {
       if (Modifier.isStatic(field.getModifiers())) {
         continue;

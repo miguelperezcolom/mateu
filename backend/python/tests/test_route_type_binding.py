@@ -84,12 +84,19 @@ def test_the_bound_routes_keep_their_own_rules(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "route", ["/hello", "/nowhere", "", "/payroll-locked/../hello", "/payroll-code", "/payroll-code/../payroll"]
+    "route", ["/hello", "/nowhere", "", "/payroll-code"]
 )
 def test_another_route_gets_the_union_of_the_routes_binding_the_type(tmp_path, route):
     """Named at a route that does not bind it: allowed because one of its own routes
     (payroll-locked) is reachable, and the locks of EVERY binding entry hold (Java/.NET rule)."""
     assert pay(handler(specs(tmp_path)), route) == "paid 100.0"
+
+
+@pytest.mark.parametrize("route", ["/payroll-locked/../hello", "/payroll-code/../payroll"])
+def test_a_dot_segment_route_is_refused(tmp_path, route):
+    """A dot segment names another file than the route says: refused outright (GA round 2, J1)."""
+    with pytest.raises(MateuForbiddenException):
+        pay(handler(specs(tmp_path)), route)
 
 
 @pytest.mark.parametrize("route", ["/hello", "/nowhere", "", "/payroll-code"])
@@ -164,3 +171,15 @@ def test_a_field_the_layout_hides_is_not_sent_in_the_view_models_state(tmp_path)
 
     assert '"salary"' not in load(())
     assert '"salary"' in load(("admin",))
+
+
+@pytest.mark.parametrize("server_side_type", [None, "", "no.such.Type"])
+def test_the_locks_hold_at_the_types_own_route_whatever_type_the_request_names(tmp_path, server_side_type):
+    """GA round 2, J4 / Y3a: the bindings are decided from the type that RUNS (resolved from the
+    route when the request names none, or a name nobody registered), not from the wire name."""
+    h = handler(specs(tmp_path))
+    increment = h.handle(RunActionRq(
+        route="/payroll-code", server_side_type=server_side_type, action_id="pay",
+        component_state={"salary": 999},
+    ))
+    assert " ".join(m.text for m in increment.messages) == "paid 100.0"
