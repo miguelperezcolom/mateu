@@ -224,13 +224,13 @@ internal sealed class BundleExporter(SyncHandler handler, string? specsDir = nul
                 ? m[0].Text
                 : "no fragments");
         var wire = JsonSerializer.SerializeToNode(increment, BundleJson.Wire)!.AsObject();
-        // A load renders for no initiator: the port aims what it answers at its "ux_main"
-        // placeholder, which no browser component carries — the bundle leaves it untargeted (as
-        // Java's export does) and the browser re-targets it at whoever asked.
+        // A load renders for no initiator: the answer echoes it (an empty target) — the bundle
+        // leaves it untargeted (as Java's export does) and the browser re-targets it at whoever
+        // asked. ("ux_main" too: what the port answered up to 3.0-beta.67.)
         foreach (var key in new[] { "fragments", "commands" })
             if (wire[key] is JsonArray items)
                 foreach (var item in items.OfType<JsonObject>())
-                    if (item["targetComponentId"]?.GetValue<string>() == "ux_main")
+                    if (item["targetComponentId"]?.GetValue<string>() is "" or "ux_main")
                         item["targetComponentId"] = null;
         return wire.ToJsonString(BundleJson.Wire);
     }

@@ -3060,3 +3060,20 @@ test('WCAG 3.2.2: the @AppContext drawer says beforehand that a change reloads; 
     assert.equal(chromeText('appContextChanging', { label: 'Hotel', value: 'Palma' }), 'Hotel: Palma. Recargando…')
   } finally { setChromeLanguage('') }
 })
+
+test('an answer aimed at the page content slot "ux_main" (the .NET/Python servers) lands on the page', () => {
+  // what starters/python answered to /products before 3.0 GA: fragment + SetWindowTitle at "ux_main"
+  const listing = { commands: [{ targetComponentId: 'ux_main', type: 'SetWindowTitle', data: 'Products' }], messages: [],
+    fragments: [{ targetComponentId: 'ux_main', action: 'Replace', state: { q: 1 }, component: { type: 'ServerSide', id: 'c1',
+      serverSideType: 'views.Products', children: [{ type: 'ClientSide', metadata: { type: 'Page', title: 'Products' }, children: [] }] } }] }
+  const reg = reduceContexts(empty(), listing)
+  assert.equal(reg.contexts[HOST_ID].tree.serverSideType, 'views.Products', 'painted as the page')
+  assert.equal(reg.contexts.ux_main, undefined, 'never an island context nothing paints')
+  // a state-only answer to the same slot merges into the page
+  const after = reduceContexts(reg, { fragments: [{ targetComponentId: 'ux_main', state: { r: 2 } }] })
+  assert.deepEqual(after.contexts[HOST_ID].state, { q: 1, r: 2 })
+  // a context that really answers to that id keeps it
+  const own = reduceContexts(empty(), { fragments: [{ targetComponentId: 'isl', action: 'Replace',
+    component: { type: 'ServerSide', id: 'ux_main', serverSideType: 'x.Y', children: [] } }] })
+  assert.equal(reduceContexts(own, { fragments: [{ targetComponentId: 'ux_main', state: { z: 3 } }] }).contexts.isl.state.z, 3)
+})

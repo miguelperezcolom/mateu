@@ -96,6 +96,11 @@ So both sides normalise before comparing:
 - **drop** generated identifiers (`id` values the server invents) — but NOT an action's `id`
   (inside `actions[]`): that is the name the client sends, so a missing or renamed action is a
   contract break;
+- **keep** `targetComponentId`: it is the request's `initiatorComponentId` ECHOED, so a request
+  with no initiator (a renderer's page load — every case here) answers an empty target in the
+  three servers. The ports used to answer `"ux_main"`, a slot only the web client knows, and the
+  Redwood renderer painted the shell with no content (fixed for 3.0 GA). Java's mediated cases,
+  loaded from the CRUD mediator's `c1_app`, drop only that echo;
 - **drop** members at their default — `null`, `[]`, `{}`, `false`, `0`, `""` — because the wire's
   rule is **"absent == default"**: a producer may omit a member at its type's zero value or send it,
   and a reader must treat both alike (Java sends them, the ports mostly omit them);

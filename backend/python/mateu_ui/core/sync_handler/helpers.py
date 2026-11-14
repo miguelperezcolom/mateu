@@ -59,9 +59,12 @@ class ResponseHelpersMixin(MixinBase):
 
     @staticmethod
     def target(rq: RunActionRq | None) -> str:
-        """Fragments and commands address the component that initiated the request (the web
-        frontend's top ux id is "_ux" — Java echoes the initiator the same way)."""
-        return (rq.initiator_component_id if rq else None) or "ux_main"
+        """Fragments and commands address the component that initiated the request: its id ECHOED,
+        exactly as Java does — an empty initiator (a renderer's page load) gets an empty target,
+        which every renderer reads as the page. (Up to 3.0-beta.67 it answered "ux_main", a slot
+        only the web client knows: the Redwood renderer painted the shell and left the content
+        blank.)"""
+        return (rq.initiator_component_id if rq else None) or ""
 
     def fragment_response(
         self, title: str, component, rq: RunActionRq | None = None, data=None, with_title_command: bool = True
