@@ -36,5 +36,10 @@ and the probe with `SHELLS=http://localhost:8623 CONSOLE=http://localhost:8611 I
 Everything passes except the process diagram, whose module that console does not serve with CORS
 (see `ConsoleAssetsCors` in `inprocess` for the fix it needs).
 
+The demo has no login, so `inprocess` sets `workflow.message-api.allow-anonymous=true` (without it
+the console's message API answers 403 to every anonymous call). A real deployment authenticates and
+leaves it off; to compose EventConductor's own console as above, start that console with the same
+flag (or sign in).
+
 `inprocess` starts `hello-world` at boot and `slow-saga` every two minutes (it rolls back on
 purpose), so the lists are never empty.

@@ -41,6 +41,16 @@ test('the manifest is one a bundle reads: a shell, every page, no detail in the 
   assert.deepEqual(Object.keys(m.definitions).sort(), ['__shell.yaml', 'artwork.yaml', 'artworks.yaml', 'contact.yaml', 'dashboard.yaml', 'onboarding.yaml', 'welcome.yaml'])
 })
 
+test('a menu label is never a template: a page titled ${state.x} is named by its frame', () => {
+  const starwars = JSON.parse(readFileSync(join(here, '../../to-yaml/test/fixtures/starwars.figma.json'), 'utf8'))
+  const sw = convert(starwars).files
+  const menu = buildManifest(sw, defaultConfig(sw, 'Star Wars')).definitions['__shell.yaml'].menu
+  assert.ok(menu.length > 1)
+  for (const e of menu) assert.ok(!e.label.includes('${'), `menu label ${e.label}`)
+  assert.equal(menu.find((e) => e.route === 'person').label, 'Person')
+  assert.equal(menu.find((e) => e.route === 'dashboard').label, 'The galaxy at a glance')
+})
+
 test('what the design draws is the data: a drawn value seeds its route', () => {
   const entry = buildManifest(files, proposed()).routes.routes.find((r) => r.route === 'artworks/:id')
   assert.deepEqual(entry.state, { technique: 'Óleo sobre lienzo', museum: 'MoMA' })

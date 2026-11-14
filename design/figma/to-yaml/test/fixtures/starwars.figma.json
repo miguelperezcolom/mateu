@@ -1376,6 +1376,10 @@
                    "chartType": {
                     "type": "VARIANT",
                     "value": "bar"
+                   },
+                   "data#408:22": {
+                    "type": "TEXT",
+                    "value": "Characters: A New Hope=18; The Empire Strikes Back=16; Return of the Jedi=20; The Phantom Menace=34; Attack of the Clones=40; Revenge of the Sith=34"
                    }
                   }
                  }

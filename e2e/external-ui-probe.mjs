@@ -24,6 +24,9 @@
  *            `import` (default "eventconductor-workflow-graph", the process diagram); "" skips it.
  * SHOTS      directory for screenshots (default: none).
  *
+ * The console must accept the probe's anonymous calls: demo/demo-eventconductor/inprocess sets
+ * workflow.message-api.allow-anonymous=true; another console needs the same (else it answers 403).
+ *
  * Exits non-zero when any check fails. Checks per federated shell:
  *   1. the shell boots and its menu shows the remote section (descriptor fetched server to server);
  *   2. opening the remote screen from the menu loads it FROM THE CONSOLE (cross-origin, CORS ok)

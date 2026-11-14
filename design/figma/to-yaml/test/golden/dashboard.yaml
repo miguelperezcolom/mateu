@@ -25,3 +25,20 @@ content:
       content:
         - type: Chart
           chartType: bar
+          chartData:
+            labels:
+              - A New Hope
+              - The Empire Strikes Back
+              - Return of the Jedi
+              - The Phantom Menace
+              - Attack of the Clones
+              - Revenge of the Sith
+            datasets:
+              - label: Characters
+                data:
+                  - 18
+                  - 16
+                  - 20
+                  - 34
+                  - 40
+                  - 34
