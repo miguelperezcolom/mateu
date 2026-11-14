@@ -379,12 +379,12 @@ class BundleExporter:
             messages = increment.messages or []
             raise _SkipError(messages[0].text if messages and messages[0].text else "no fragments")
         wire = increment.model_dump(by_alias=True, mode="json")
-        # A load renders for no initiator: the port aims what it answers at its "ux_main"
-        # placeholder, which no browser component carries — the bundle leaves it untargeted (as
-        # Java's export does) and the browser re-targets it at whoever asked.
+        # A load renders for no initiator: the answer echoes it (an empty target) — the bundle
+        # leaves it untargeted (as Java's export does) and the browser re-targets it at whoever
+        # asked. ("ux_main" too: what the port answered up to 3.0-beta.67.)
         for key in ("fragments", "commands"):
             for item in wire.get(key) or []:
-                if isinstance(item, dict) and item.get("targetComponentId") == "ux_main":
+                if isinstance(item, dict) and item.get("targetComponentId") in ("", "ux_main"):
                     item["targetComponentId"] = None
         return json.dumps(wire, separators=(",", ":"), ensure_ascii=False)
 

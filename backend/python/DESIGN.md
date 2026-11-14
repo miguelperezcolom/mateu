@@ -80,7 +80,7 @@ backend/python/
 HTTP sync ─▶ MateuRegistry.resolve(serverSideType|route) ─▶ instantiate the view type
           ─▶ (action?) bind componentState → set attributes → invoke the action method
           ─▶ ReflectionMapper.map_view(instance) ─▶ Component tree
-          ─▶ wrap in UIFragment(targetComponentId="ux_main"/"crud") ─▶ UIIncrement
+          ─▶ wrap in UIFragment(targetComponentId=the initiator, echoed — "" for a page load) ─▶ UIIncrement
 ```
 
 - **MateuRegistry** scans the given modules/classes once for `@app`/`@ui` and resolves a request by
@@ -108,7 +108,7 @@ second renderer: it sends each route the two loads a browser would (fresh, consu
 the shell aimed at the route; then the shell's content load) and stores the answers, so a bundle
 cannot drift from what the server serves. Two server rules exist for it: `${i18n.…}` stays raw
 inside `translations.raw_expressions()` (the browser resolves it per visitor from the shipped
-catalogue), and the `ux_main` placeholder target is cleared (the browser re-targets an untargeted
+catalogue), and the empty (echoed) target is cleared (the browser re-targets an untargeted
 fragment at whoever asked). `static_safety.py` ports Java's `StaticSafetyCheck` rule for rule;
 `inliner.py` its `DefinitionInliner`; `writer.py` the Maven plugin's `BundleWriter` (reusing
 `ui_page`, `pwa`, `mobile_manifest`). Held to Java's manifest by `conformance/bundle`.

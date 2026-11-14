@@ -54,7 +54,7 @@ internal sealed partial class SyncHandler
             ["_notifications"] = inbox.All().Select(NotificationDto).ToList(),
         };
         var list = UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
+            [new UIFragmentDto(rq.InitiatorComponentId ?? "", null, null, data, "Replace", null)]);
         return result is null ? list : Merge([MapResult(result, rq), list]);
     }
 
@@ -145,7 +145,7 @@ internal sealed partial class SyncHandler
             },
         };
         return UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
+            [new UIFragmentDto(rq.InitiatorComponentId ?? "", null, null, data, "Replace", null)]);
     }
 
     /// <summary>The command palette's entity search (mirrors Java's GlobalSearchActionRunner):
@@ -161,7 +161,7 @@ internal sealed partial class SyncHandler
             ["_globalsearch"] = supplier.GlobalSearch(searchText) ?? [],
         };
         return UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
+            [new UIFragmentDto(rq.InitiatorComponentId ?? "", null, null, data, "Replace", null)]);
     }
 
     /// <summary>The idle warning's "Stay signed in" (the _keep-alive app-level action): reaching the

@@ -2863,15 +2863,13 @@ class WireConformanceTest {
    * Values that legitimately differ between servers or between runs. Comparing them would make the
    * corpus report noise, and a check that reports noise gets ignored — so they are dropped on both
    * sides rather than argued about.
+   *
+   * <p>{@code targetComponentId} is NOT one of them: it is the request's initiator ECHOED, the same
+   * in every server — dropping it let the ports answer a page load at "ux_main" (a slot only the
+   * web client knows) and the Redwood renderer painted the shell with no content.
    */
   private static final Set<String> VOLATILE =
-      Set.of(
-          "id",
-          "structureHash",
-          "generatedAt",
-          "serverSideType",
-          "homeServerSideType",
-          "targetComponentId");
+      Set.of("id", "structureHash", "generatedAt", "serverSideType", "homeServerSideType");
 
   /** Drops volatile members and empty ones, and sorts keys, so two servers can be compared. */
   static JsonNode normalise(JsonNode node) {
@@ -3139,9 +3137,28 @@ class WireConformanceTest {
                     .componentState(java.util.Map.of())
                     .build());
     if (mediated != null || MEDIATOR_PROTOCOL_ONLY.contains(route)) {
-      return withoutMediatorProtocol(roundTrip(increment));
+      return withoutMediatorProtocol(
+          mediated != null ? withoutEchoOf("c1_app", roundTrip(increment)) : roundTrip(increment));
     }
     return roundTrip(increment);
+  }
+
+  /**
+   * The answer without the targets that echo {@code initiator}: the mediated cases are loaded the
+   * way the CRUD mediator loads them (from its {@code c1_app} App), which the ports — no mediator —
+   * never do, so that echo is mediator protocol. Every other target is pinned: an answer to a
+   * request with no initiator echoes an EMPTY one in the three servers.
+   */
+  private static JsonNode withoutEchoOf(String initiator, JsonNode increment) {
+    for (var key : List.of("fragments", "commands")) {
+      for (var item : increment.path(key)) {
+        if (item instanceof com.fasterxml.jackson.databind.node.ObjectNode o
+            && initiator.equals(o.path("targetComponentId").asText(null))) {
+          o.remove("targetComponentId");
+        }
+      }
+    }
+    return increment;
   }
 
   /**
