@@ -73,6 +73,8 @@ object MountLinks {
                 is Target.Navigate -> ctx.navigate(target.route, "", null, "")
                 is Target.App -> {
                     val opener = ctx.session.openRemoteViewHandler
+                    // a link of a page the app's backend answered: that backend names the app
+                    if (opener != null && !ctx.agentAuthored) declareRemotes(ctx.session, listOf(target.baseUrl))
                     if (opener != null) opener(label, target.route.ifBlank { "/" }, "", null, null, target.baseUrl)
                     else SafeHtml.browse(Urls.resolve(ctx.session.baseUrl, url))
                 }

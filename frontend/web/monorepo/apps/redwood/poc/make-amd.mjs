@@ -442,6 +442,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     overlaysHoldUnsavedChanges,
     hasUnsavedChanges,
     pageDirtyAfterAction,
+    pageDraftAfterAction,
     // a content button whose action nobody on screen claims is inert, as on Vaadin (Explorer F3)
     contentActionIsClaimed,
     confirmNavigationAway,
