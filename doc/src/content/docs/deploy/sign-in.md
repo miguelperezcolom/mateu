@@ -123,6 +123,9 @@ For the whole UI:
 The icon tokens are drawn as a neutral glyph or initial with the label beside it — no trademark
 artwork is shipped.
 
+**Sign out** is a button in the app shell's header. A UI with no header to carry it — no app shell,
+or a `chromeless` one — gets the button in the bottom-left corner of the page instead (web renderer).
+
 ### Presets
 
 | Id | Kind | What it fills in |
@@ -390,9 +393,12 @@ spring.security.oauth2.client.registration.github.client-id=Iv1.…
 spring.security.oauth2.client.registration.github.client-secret=${GITHUB_SECRET}
 ```
 
-It serves `/oauth2/authorization/<registration>` — exactly the presets' url — and comes back to the
-app's root after the login (`defaultSuccessUrl` changes it; Spring does not read the `continue=`
-the client adds, so the user lands on the root).
+It serves `/oauth2/authorization/<registration>` — exactly the presets' url. After the login Spring
+sends the browser to the last request it REFUSED, and with Mateu that is never a page (the page is
+open) but one of its calls — a sync POST, the PWA manifest: without the request cache below the user
+ends up looking at `/mateu/v3/pwa/manifest.webmanifest?continue` instead of the app. With it the user
+lands on the root (`defaultSuccessUrl` changes it; Spring does not read the `continue=` the client
+adds).
 
 **Both together**, the API answering 401 instead of redirecting:
 
@@ -400,8 +406,12 @@ the client adds, so the user lands on the root).
 @Bean
 SecurityFilterChain security(HttpSecurity http) throws Exception {
   RequestMatcher api = request -> request.getRequestURI().contains("/mateu/v3/");
+  // after the login, back to a page — never to the Mateu call that was refused
+  HttpSessionRequestCache pagesOnly = new HttpSessionRequestCache();
+  pagesOnly.setRequestMatcher(request -> !api.matches(request));
   return http
       .authorizeHttpRequests(a -> a.requestMatchers(api).authenticated().anyRequest().permitAll())
+      .requestCache(c -> c.requestCache(pagesOnly))
       .oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()))   // oidc providers
       .oauth2Login(Customizer.withDefaults())                         // redirect providers
       .exceptionHandling(e -> e.defaultAuthenticationEntryPointFor(
@@ -552,8 +562,12 @@ server.servlet.session.cookie.same-site=lax
 @Bean
 SecurityFilterChain security(HttpSecurity http) throws Exception {
   RequestMatcher api = request -> request.getRequestURI().contains("/mateu/v3/");
+  // after the login, back to a page — never to the Mateu call that was refused
+  HttpSessionRequestCache pagesOnly = new HttpSessionRequestCache();
+  pagesOnly.setRequestMatcher(request -> !api.matches(request));
   return http
       .authorizeHttpRequests(a -> a.requestMatchers(api).authenticated().anyRequest().permitAll())
+      .requestCache(c -> c.requestCache(pagesOnly))
       .oauth2Login(Customizer.withDefaults())          // serves /oauth2/authorization/sso
       .exceptionHandling(e -> e.defaultAuthenticationEntryPointFor(
           new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), api))
@@ -710,7 +724,9 @@ and `MATEU_AUTH_PROVIDERS_SSO_URL=/login`.
   (`mateu.auth.providers.<id>.platforms`), and have your framework accept bearer tokens on the
   API besides its session.
 - **Spring's `oauth2Login` ignores `continue=`**, so after signing in the user lands on the root
-  (or your `defaultSuccessUrl`), not on the deep link they opened.
+  (or your `defaultSuccessUrl`), not on the deep link they opened — provided its request cache
+  remembers pages only (the `pagesOnly` cache above); left as it is, it sends the user back to a
+  refused Mateu call.
 - Signing out has to end the framework's session (`mateu.auth.logout-url`); ending the identity
   provider's own session is the framework's RP-initiated logout, if you configure it.
 

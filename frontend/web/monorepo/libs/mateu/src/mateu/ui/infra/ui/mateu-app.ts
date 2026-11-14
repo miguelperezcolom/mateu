@@ -43,6 +43,7 @@ import { onActivate } from '@infra/a11y/activate.ts'
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts'
 import { inAppRoute, shellActionFor, shellActionTarget } from '@infra/ui/shellFlows.ts'
 import { setActionCatalogue } from '@infra/ui/actionCatalogue.ts'
+import { drawsHeader, forgetShell, noteShell } from '@infra/auth/signOutPlacement.ts'
 import type UICommand from '@mateu/shared/apiClients/dtos/UICommand.ts'
 import { applyUiLanguage, chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
@@ -235,6 +236,7 @@ export class MateuApp extends ComponentElement {
         }
         this.removeEventListener('compact-changed', this._compactHandler)
         this.removeEventListener('mateu-open-ai', this._openAiHandler)
+        forgetShell(this)
     }
 
     private _openAiHandler = () => {
@@ -960,6 +962,8 @@ export class MateuApp extends ComponentElement {
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         syncCommandCenter(this);
+        // whether this shell's header carries "Sign out" (else the page offers its own button)
+        noteShell(this, drawsHeader((this.component as ClientSideComponent | undefined)?.metadata as App | undefined));
         // app shortcuts + "?", live header values, the idle-session warning (E2 patterns)
         syncAppExtras(this);
         if (this.component) {
