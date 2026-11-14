@@ -4,7 +4,7 @@
 //    through the REAL rowRoute/dirtyGuard (agentEvents.test.ts mocks rowRoute away).
 //  - N-14: a same-mount micro frontend under a public base is taken for another mount
 //    (embeddingMountOf compares the server-named base `/admin` with the page's `/crm/admin`).
-//    NOT FIXED at rc.1: pinned with it.fails.
+//    it.fails at rc.1; fixed for rc.2 (both spelled under the base before they are compared).
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { applyAgentEvent } from './agentEvents'
 import { dirtyGuard } from './dirtyGuard'
@@ -51,8 +51,14 @@ describe('rc.1 re-verify N-14: a same-mount island under a public base', () => {
     it('(control) without a public base the same mount is recognised', () => {
         expect(embeddingMountOf(island('/admin', '/admin'))).toBeUndefined()
     })
-    it.fails('under /crm the island of the page\'s own mount is not another mount', () => {
+    it('under /crm the island of the page\'s own mount is not another mount', () => {
         setPublicBase('/crm')
         expect(embeddingMountOf(island('/crm/admin', '/admin'))).toBeUndefined()
+    })
+    it('under /crm an island of another mount is still another mount', () => {
+        setPublicBase('/crm')
+        expect(embeddingMountOf(island('/crm/admin', '/sales'))).toBe('/sales')
+        document.body.innerHTML = ''
+        expect(embeddingMountOf(island('/crm/admin', '/crm/sales'))).toBe('/crm/sales')
     })
 })
