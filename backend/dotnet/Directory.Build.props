@@ -39,6 +39,14 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <!-- Every package carries the repository's LICENSE.txt and NOTICE at its root, like the jars,
+       the npm package and the Python wheel (GA review 2, B-2); nuget.org still reads the SPDX
+       expression above. Inert in the projects that do not pack. -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)../../LICENSE.txt" Pack="true" PackagePath="" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)../../NOTICE" Pack="true" PackagePath="" Visible="false" />
+  </ItemGroup>
+
   <!-- SourceLink (built into the .NET 8+ SDK for GitHub): step into Mateu's sources from a NuGet
        reference. Deterministic CI builds so the PDB paths are the repository's, not the runner's. -->
   <PropertyGroup>

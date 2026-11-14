@@ -560,6 +560,10 @@ jobs:
           for n in "$RUNNER_TEMP"/nupkgs/*.nupkg; do
             # (a library ships lib/<tfm>/, the mateu-bundle dotnet tool tools/<tfm>/)
             unzip -l "$n" | grep -qE "(lib|tools)/net10.0/" || { echo "::error::$n has no net10.0 build"; exit 1; }
+            # the licence notices at the package root, like every jar and the Python wheel
+            for f in LICENSE.txt NOTICE; do
+              unzip -Z1 "$n" | grep -qx "$f" || { echo "::error::$n does not carry $f"; exit 1; }
+            done
           done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

@@ -168,6 +168,18 @@ def caller_of(identity: Any) -> str:
     )
 
 
+def share_of(caller: str, identity: Any, address: str | None) -> str:
+    """Whose SHARE of the tables a request counts against (``share`` of :func:`guarded`): its
+    caller, and for an ANONYMOUS caller (no name) also the client address — all anonymous callers
+    were one caller, so one of them could fill the share every other anonymous user's keyed retries
+    needed (GA review 2, J7; Java's ``IdempotencyKeys.shareOf``). The answers stay scoped by the
+    caller alone, so a retry from a new address still replays."""
+    name = getattr(identity, "name", None) if identity is not None else None
+    if (name is not None and str(name).strip()) or not (address or "").strip():
+        return caller
+    return f"{caller}\u0004address={address}"
+
+
 def refused(increment: Any) -> bool:
     """Whether an answer refused the request: nothing to remember."""
     messages = getattr(increment, "messages", None) or []
@@ -182,6 +194,7 @@ def once(
     view: str | None = None,
     route: str | None = None,
     fingerprint: str | None = None,
+    share: str | None = None,
 ) -> T:
     """Runs ``run`` unless ``caller`` already sent ``key`` for ``action_id``; then the first answer
     is returned (waiting for it when that run is still in flight). Raises a ``UserFacingException``
@@ -191,7 +204,7 @@ def once(
     if valid is None:
         return run()
     scoped = _scoped(caller, action_id, valid, view, route)
-    known, mine = _claim(scoped, _sha256(caller or ""), fingerprint)
+    known, mine = _claim(scoped, _sha256(share or caller or ""), fingerprint)
     if mine is None:
         return _replay(known)
     return _run_mine(scoped, mine, run)
@@ -329,6 +342,7 @@ def guarded(
     view: str | None = None,
     route: str | None = None,
     fingerprint: str | None = None,
+    share: str | None = None,
 ) -> T:
     """Runs ``run`` (the sync handler) with the request's key PENDING: the key is looked up only
     when the handler calls :func:`checkpoint`, right after the request passed the checks its
@@ -340,7 +354,7 @@ def guarded(
     valid = key_of(key)
     if valid is None:
         return run()
-    pending = _Pending(_scoped(caller, action_id, valid, view, route), _sha256(caller or ""), fingerprint)
+    pending = _Pending(_scoped(caller, action_id, valid, view, route), _sha256(share or caller or ""), fingerprint)
     token = _pending.set(pending)
     try:
         try:

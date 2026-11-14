@@ -9,7 +9,7 @@ import sys
 import textwrap
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, ClassVar, Final
 
 import pytest
 from fastapi import FastAPI
@@ -22,7 +22,8 @@ from mateu_ui.core.route_registry import RouteRegistry  # noqa: E402
 from mateu_ui.core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
 from mateu_ui.fastapi import add_mateu  # noqa: E402
 from mateu_ui.uidl import (  # noqa: E402
-    Crud, EyesOnly, Identity, InMemoryPresenceStore, Message, ReadOnlyUnless, Required, app, button, ui,
+    Crud, EyesOnly, GroupBy, Identity, InMemoryPresenceStore, Listing, Message, ReadOnlyUnless, Required, Step,
+    Wizard, app, button, ui,
 )
 
 MODULE = sys.modules[__name__]
@@ -230,9 +231,47 @@ def test_y6_a_private_object_attribute_is_neither_sent_nor_written(tmp_path, mon
     assert said(r) == "priv https://real" and SHARED_SVC.base_url == "https://real"
 
 
-@pytest.mark.xfail(strict=True, reason="rc.2: Y6 (public part) — a public annotated object attribute is still a nested form: its values are sent")
-def test_y6_a_public_object_attribute_is_not_sent(tmp_path, monkeypatch):
-    assert "API-KEY-SECRET" not in post(http(tmp_path, monkeypatch), "/rv-svc-public").text
+# Y6, public part — a DESIGN decision (rc.2), the same in the three backends: a public, settable
+# object attribute IS a nested form (Java: a non-final, non-injected POJO field; .NET: a settable
+# class-typed property) — drawn on screen, so its values are in the state and the client edits
+# them. What the view HOLDS (a service, a client) is spelled as held: ``_name``, ``ClassVar[...]``
+# or ``Final[...]`` — never sent, never written. And a nested form is bound into a copy the view
+# owns, so a shared class-level default is never written by one caller for every other.
+
+
+@dataclass
+class RvSvcHeld:
+    api_key: str = "HELD-KEY-SECRET"
+
+
+SHARED_HELD = RvSvcHeld()
+
+
+@ui("rv-svc-held")
+class RvSvcHeldView:
+    name: str = "x"
+    svc: ClassVar[RvSvcHeld] = SHARED_HELD
+    client: Final[RvSvcHeld] = SHARED_HELD  # type: ignore[misc]
+
+    @button
+    def go(self):
+        return Message(f"held {self.svc.api_key} {self.client.api_key}")
+
+
+def test_y6_a_public_object_attribute_is_bound_into_its_own_copy_never_the_shared_default(tmp_path, monkeypatch):
+    c = http(tmp_path, monkeypatch)
+    r = post(c, "/rv-svc-public", "go", {"svc": {"base_url": "http://evil"}, "svc-baseUrl": "http://edited"})
+    assert said(r) == "svc http://edited"  # a nested form: this request's view takes the edit
+    assert SHARED_SVC.base_url == "https://real"  # the shared class-level default is untouched
+    assert said(post(c, "/rv-svc-public", "go")) == "svc https://real"
+
+
+def test_y6_class_var_and_final_attributes_are_neither_sent_nor_written(tmp_path, monkeypatch):
+    c = http(tmp_path, monkeypatch)
+    assert "HELD-KEY-SECRET" not in post(c, "/rv-svc-held").text
+    r = post(c, "/rv-svc-held", "go", {"svc": {"api_key": "EVIL"}, "client": {"api_key": "EVIL"},
+                                        "svc-apiKey": "EVIL", "client-api_key": "EVIL"})
+    assert said(r) == "held HELD-KEY-SECRET HELD-KEY-SECRET"
 
 
 # ── Y2: __preview__ partials ─────────────────────────────────────────────────────────────────────
@@ -334,7 +373,6 @@ def test_b3_control_presence_answers_for_a_view_the_process_knows():
     assert [c for c in inc.commands if c.type == "PresenceChanged"]
 
 
-@pytest.mark.xfail(strict=True, reason="rc.2: B-3 — presence uses known_type, blind to a routes.yaml-bound view model not yet imported in this process")
 def test_b3_presence_for_a_routes_yaml_view_model_never_loaded_here(tmp_path):
     mod = tmp_path / "rv_unloaded_vm.py"
     mod.write_text("class RecordView:\n    name: str = ''\n")
@@ -359,7 +397,6 @@ def test_b3_presence_for_a_routes_yaml_view_model_never_loaded_here(tmp_path):
 # ── Minors ───────────────────────────────────────────────────────────────────────────────────────
 
 
-@pytest.mark.xfail(strict=True, reason="rc.2 (minor): load_spec caches every request route, misses included, without a bound")
 def test_minor_load_spec_cache_is_bounded(tmp_path):
     loader = YamlSpecLoader(str(tmp_path), RouteRegistry(str(tmp_path)))
     for i in range(5000):
@@ -368,14 +405,60 @@ def test_minor_load_spec_cache_is_bounded(tmp_path):
 
 
 def _uploads():
-    import test_file_uploads as fu
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("_rv_file_uploads", Path(__file__).with_name("test_file_uploads.py"))
+    assert spec is not None and spec.loader is not None
+    fu = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fu)
 
     client, _ = fu._app(fu.MemoryStorage())
     return fu, client, fu._attributes(fu._form(client), "contract")["uploadTicket"]
 
 
-@pytest.mark.xfail(strict=True, reason="rc.2 (minor): an upload refused 413 by its declared Content-Length still burns one of the ticket's uses")
 def test_minor_an_oversized_upload_does_not_use_up_the_ticket():
     fu, client, ticket = _uploads()
     assert fu._post(client, ticket, data=b"x" * 21).status_code == 413  # declared too large
     assert all(fu._post(client, ticket).status_code == 200 for _ in range(10))  # the 10 a single field gets
+
+
+# ── Parity of the .NET D3/D4/D5 fixes: the same shapes in Python ─────────────────────────────────
+
+
+@ui("rv-grid-form")
+class RvGridForm:
+    note: str = "n"
+    lines: list[RvLine] = [RvLine("A", 10.0, "GRID-COST-SECRET")]  # noqa: RUF012 - the screen's rows
+
+
+@ui("rv-signup")
+class RvSignup(Wizard):
+    name: Annotated[str, Step(1)] = "Ana"
+    secret: Annotated[str, Step(1), EyesOnly(roles=["admin"])] = "WIZARD-SECRET"
+
+
+@dataclass
+class RvSale:
+    id: str = "s1"
+    region: Annotated[str, GroupBy(), EyesOnly(roles=["finance"])] = "REGION-SECRET"
+    amount: float = 10.0
+
+
+@ui("rv-sales")
+class RvSales(Listing[RvSale]):
+    def search(self, request, http=None):
+        return [RvSale()]
+
+
+def test_parity_d3_an_eyes_only_cell_of_a_grid_field_is_not_sent(tmp_path, monkeypatch):
+    assert "GRID-COST-SECRET" not in post(http(tmp_path, monkeypatch), "/rv-grid-form").text
+
+
+def test_parity_d4_an_eyes_only_wizard_field_is_not_in_the_state(tmp_path, monkeypatch):
+    assert "WIZARD-SECRET" not in post(http(tmp_path, monkeypatch), "/rv-signup").text
+
+
+def test_parity_d5_a_hidden_group_by_column_is_not_in_the_groups(tmp_path, monkeypatch):
+    r = post(http(tmp_path, monkeypatch), "/rv-sales", "search", sst=type_name(RvSales))
+    assert r.status_code == 200 and "s1" in r.text
+    assert "REGION-SECRET" not in r.text

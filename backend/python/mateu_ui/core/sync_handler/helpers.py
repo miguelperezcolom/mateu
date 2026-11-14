@@ -242,8 +242,9 @@ class ResponseHelpersMixin(MixinBase):
 
         state = without_locked(type(instance).__qualname__, state, self._locked_by_pieces(instance))
         for f in view_fields(type(instance)):
-            if f.name.startswith("_") and nested_forms.is_nested_form_type(f.type):
-                # a _private object (a service, a client) is never written from the wire (Y6)
+            if (f.name.startswith("_") and nested_forms.is_nested_form_type(f.type)) or nested_forms.is_held(f):
+                # a _private object (a service, a client) or a ClassVar/Final one the view holds is
+                # never written from the wire (Y6)
                 continue
             # Mass-assignment guard: a field hidden (EyesOnly) or locked (ReadOnlyUnless) for this
             # caller is never written from the wire — it keeps its server-side value.
@@ -258,6 +259,17 @@ class ResponseHelpersMixin(MixinBase):
                 if incoming is not None:
                     target = nested_forms.nested_value(instance, f)
                     if target is not None:
+                        # bound into a COPY the instance then owns: the object it holds may be
+                        # shared — a class-level default (``svc: Svc = SHARED``) is the same object
+                        # in every request, so binding into it wrote one caller's values into every
+                        # other caller's view (GA review 2, Y6). Each level copies its own.
+                        import copy as _copy
+
+                        try:
+                            target = _copy.copy(target)
+                            setattr(instance, f.name, target)
+                        except Exception:  # noqa: BLE001 - an object that cannot be copied is not written
+                            continue
                         self.bind_state(target, incoming)
                 continue
             if key not in state:
