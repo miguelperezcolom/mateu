@@ -1,7 +1,8 @@
 // rc.1 re-verification of GA review 2 (Redwood): N-1, N-2, N-4 with scenarios of our own (Dialog
 // instead of Drawer, a menu click after the close, a flow from the app's action catalogue), and the
 // two findings rc.1 did not touch — N-11 (a body that stalls past the ceiling) and N-14 (header
-// actions have no double-submit guard) — pinned as EXPECTED FAILURES (xfail).
+// actions have no double-submit guard) — were pinned as EXPECTED FAILURES (xfail); fixed for rc.2
+// (also pinned in test-vb-chains.mjs, which `npm test` runs).
 //
 // It runs on the SAME harness as test-vb-chains.mjs (a fake VB context, the bridge assembled from
 // poc/, the shipped chain files): the harness part of that file is reused verbatim — this script
@@ -105,7 +106,7 @@ test('N-4 (catalogue flow): a browser-run Navigate from the app\'s action catalo
   } finally { win.confirm = realConfirm }
 })
 
-xfail('N-14: a double click on a WRITING app header action sends it once', async () => {
+test('N-14: a double click on a WRITING app header action sends it once', async () => {
   let release
   const gate = new Promise((r) => { release = r })
   answer((b) => b.actionId === 'closeDay', async () => { await gate; return { commands: [], messages: [], fragments: [] } })
@@ -120,7 +121,7 @@ xfail('N-14: a double click on a WRITING app header action sends it once', async
   assert.equal(sent.filter((s) => s.body.actionId === 'closeDay').length, 1)
 })
 
-xfail('N-11: a read whose BODY stalls past the ceiling reports a failure (or is retried), not a silent throw', async () => {
+test('N-11: a read whose BODY stalls past the ceiling reports a failure (or is retried), not a silent throw', async () => {
   const settles = []
   bridge.setTransportHooks({ onStart() {}, onSettle: (e) => settles.push(e) })
   const realFetch = win.fetch
@@ -130,13 +131,14 @@ xfail('N-11: a read whose BODY stalls past the ceiling reports a failure (or is 
     return { ok: true, status: 200, headers: { get: () => null },
       json: () => new Promise((_, rej) => init.signal && init.signal.addEventListener('abort', () => rej(Object.assign(new Error('aborted'), { name: 'AbortError' })))) }
   }
+  const keepAlive = setInterval(() => {}, 1000) // the ceiling's timer is unref'd
   try {
     let threw = null
     try { await bridge.callMateu('http://api', { route: '/slow', actionId: '' }, { timeoutMillis: 30 }) } catch (e) { threw = e }
     await settle()
     const failed = settles.some((s) => s && s.failure)
     assert.ok(failed || attempts > 1, 'onSettle reported ' + JSON.stringify(settles.map((s) => s && s.failure)) + ', attempts ' + attempts + ', threw ' + (threw && threw.message))
-  } finally { win.fetch = realFetch; bridge.setTransportHooks(null) }
+  } finally { clearInterval(keepAlive); win.fetch = realFetch; bridge.setTransportHooks(null) }
 })
 
 const failed = []
