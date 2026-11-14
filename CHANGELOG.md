@@ -103,6 +103,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   already-published ports work with the new renderer), and the conformance corpus pins the target
   in the three runners so it cannot drift again.
 
+### Fixed — listings
+
+- **A listing row's trailing action columns are frozen to the end.** A `ColumnAction` /
+  `ColumnActionGroup` field that comes after every data column of the row (a "Run" or "Edit"
+  button, the usual place) is sent `frozenToEnd`, so on a row with many fields it stays at the
+  grid's right edge instead of sitting past the horizontal scroll — the rule the editable grid's
+  row-editor button already followed. An action column placed among the data columns stays where it
+  was put.
+
 ### Fixed — web renderer
 
 - **The route-structure cache is kept per app and per build.** Its entries were keyed by route, so
