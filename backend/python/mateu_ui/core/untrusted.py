@@ -14,7 +14,14 @@ script-capable construct taken out:
 - a ``javascript:``/``vbscript:`` url anywhere is blanked;
 - nothing runs without a click and nothing posts elsewhere: ``triggers`` are emptied and no
   ``restAction`` is kept;
-- a ``MicroFrontend`` does not load from another server (its absolute ``baseUrl`` is dropped).
+- a ``MicroFrontend`` does not load from another server (its absolute ``baseUrl`` is dropped);
+- nothing loads by itself from elsewhere (GA review 2, C2): an inline REST source (any ``…Source``)
+  keeps only its catalogue ``ref`` and fetches by GET — without a ref it goes —, the answer's own
+  ``restSources`` catalogue goes, an image (``src``, ``srcset``, ``image``, ``avatar``, ``logo``,
+  ``favicon``, ``tileUrl``, ``poster``, ``background``, ``xlink:href``) loads only from this server
+  or a ``data:`` url, and a style that could load something (``url(``, ``image(``, ``image-set(``,
+  ``cross-fade(``, ``src(``, a CSS escape) is blanked — a style rule computed by an expression goes
+  too.
 
 Same rules in Java, .NET and the web renderers; shared cases: ``conformance/untrusted/cases.json``.
 """
@@ -36,6 +43,11 @@ _URL_ATTRIBUTES = frozenset(
 )
 _SAFE_SCHEMES = frozenset({"http", "https", "mailto", "tel"})
 _CODE_COMMANDS = frozenset({"AddContentToHead", "AddContentToBody"})
+_LOADING_KEYS = frozenset(
+    {"src", "srcset", "image", "avatar", "logo", "favicon", "tileurl", "poster", "background", "xlink:href"}
+)
+_LOADING_CSS = ("url(", "image(", "image-set(", "cross-fade(", "src(", "\\")
+_SOURCE_REQUEST_KEYS = frozenset({"url", "method", "headers", "body", "proxy"})
 _SCHEME = re.compile(r"^([a-zA-Z][a-zA-Z0-9+.-]*):")
 
 
@@ -77,8 +89,58 @@ def _absolute_url(value: str) -> bool:
 
 def _is_code(item: Any) -> bool:
     return isinstance(item, dict) and (
-        item.get("action") == "RunJS" or (isinstance(item.get("type"), str) and item["type"] in _CODE_COMMANDS)
+        item.get("action") == "RunJS"
+        or (isinstance(item.get("type"), str) and item["type"] in _CODE_COMMANDS)
+        or _is_loading_style_rule(item)
     )
+
+
+def is_loading_style(value: str) -> bool:
+    """A style that could fetch something."""
+    lower = value.lower()
+    return any(f in lower for f in _LOADING_CSS)
+
+
+def _is_loading_style_rule(rule: dict) -> bool:
+    # a rule that sets a style the strip cannot check (an expression) or one that could fetch
+    action = rule.get("action")
+    sets_style = action == "SetStyle" or (action == "SetAttributeValue" and rule.get("fieldAttribute") == "style")
+    if not sets_style:
+        return False
+    expression = rule.get("expression")
+    if isinstance(expression, str) and expression.strip():
+        return True
+    value = rule.get("value")
+    return isinstance(value, str) and is_loading_style(value)
+
+
+def _loads_from_elsewhere(key: str, value: str) -> bool:
+    # a url the browser would fetch from elsewhere: any scheme but data:, or //host (a backslash
+    # spelling included); a srcset lists several, so any scheme, // or backslash in it counts
+    if key == "srcset":
+        return ":" in value or "\\" in value or "//" in value
+    scheme = _scheme_of(value)
+    return scheme != "data" if scheme is not None else _cleaned(value).replace("\\", "/").startswith("//")
+
+
+def _loads_something(key: str, value: str) -> bool:
+    k = key.lower()
+    return (k in _LOADING_KEYS and _loads_from_elsewhere(k, value)) or (k.endswith("style") and is_loading_style(value))
+
+
+def _is_source_key(key: str) -> bool:
+    return len(key) > len("Source") and key.endswith("Source")
+
+
+def _source(value: dict) -> dict | None:
+    # an inline REST source as an untrusted screen may keep it: its catalogue ref, fetched by GET, and
+    # how to read the answer; nothing of where it goes or what it sends (None: it goes)
+    ref = value.get("ref")
+    if not isinstance(ref, str) or not ref.strip():
+        return None
+    out = {k: neutralize(v) for k, v in value.items() if k not in _SOURCE_REQUEST_KEYS}
+    out["method"] = "GET"
+    return out
 
 
 def _element(node: dict) -> dict:
@@ -182,7 +244,15 @@ def neutralize(value: Any) -> Any:
         node = {**node, "baseUrl": ""}
     out = {}
     for k, v in node.items():
-        if (k == "js" and isinstance(v, str)) or k == "restAction":
+        if (k == "js" and isinstance(v, str)) or k in ("restAction", "restSources"):
+            continue
+        if _is_source_key(k) and isinstance(v, dict):
+            kept = _source(v)
+            if kept is not None:
+                out[k] = kept
+            continue
+        if isinstance(v, str) and _loads_something(k, v):
+            out[k] = ""
             continue
         # nothing runs without a click: an OnLoad/OnValueChange/AutoSave trigger fires by itself
         out[k] = [] if k == "triggers" and isinstance(v, list) else neutralize(v)
