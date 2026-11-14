@@ -209,10 +209,18 @@ class MateuFocusedModeActivity : ProjectActivity {
      * REPLACED by a disabled action, never unregistered: the platform's run widget looks "Run" and
      * "Debug" up by id and asserts non-null (RunToolbarTopLevelExecutorActionGroup — an unregistered
      * id made it throw "getAction(...) must not be null" on every toolbar update).
+     * An ACTION GROUP is left alone: in 2026.3 `RunClass`/`DebugClass` are groups, and replacing a group
+     * with an action makes the platform log "cannot replace a group with an action" and blame the
+     * plugin (the release smoke test fails on it). A group has no shortcut of its own, and the menus
+     * that showed it are gone (the whitelist in [stripMainMenu]).
      */
     internal fun disableBuildActions(am: ActionManager = ActionManager.getInstance()) {
         runCatching {
-            for (id in BUILD_ACTIONS) if (am.getAction(id) != null) runCatching { am.replaceAction(id, DisabledAction()) }
+            for (id in BUILD_ACTIONS) {
+                val action = am.getAction(id) ?: continue
+                if (action is com.intellij.openapi.actionSystem.ActionGroup) continue
+                runCatching { am.replaceAction(id, DisabledAction()) }
+            }
         }
     }
 

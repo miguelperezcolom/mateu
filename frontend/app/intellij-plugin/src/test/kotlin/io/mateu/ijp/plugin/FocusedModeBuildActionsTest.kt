@@ -39,4 +39,18 @@ class FocusedModeBuildActionsTest : BasePlatformTestCase() {
             placed.forEach { am.unregisterAction(it) }
         }
     }
+
+    fun testAGroupAmongTheBuildActionsIsLeftAlone() {
+        val am = ActionManager.getInstance()
+        val id = MateuFocusedModeActivity.BUILD_ACTIONS.first { it !in MateuFocusedModeActivity.EXECUTOR_ACTIONS }
+        val before = am.getAction(id)
+        val group = com.intellij.openapi.actionSystem.DefaultActionGroup()
+        if (before == null) am.registerAction(id, group) else am.replaceAction(id, group)
+        try {
+            MateuFocusedModeActivity().disableBuildActions(am)
+            assertSame("a group is never replaced by an action", group, am.getAction(id))
+        } finally {
+            if (before == null) am.unregisterAction(id) else am.replaceAction(id, before)
+        }
+    }
 }
