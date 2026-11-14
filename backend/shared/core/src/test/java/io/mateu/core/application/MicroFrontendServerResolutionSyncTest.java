@@ -642,6 +642,30 @@ class MicroFrontendServerResolutionSyncTest {
   }
 
   @Test
+  void aCallCutAtItsDeadlineLogsNoDroppedErrorFromReactor() throws Exception {
+    // the deadline CANCELS the call; what the cancelled call does afterwards (the HTTP client
+    // failing the abandoned exchange) is nobody's news — before, every cut fragment also logged
+    // "Operator called default onErrorDropped" at ERROR with a stack trace
+    var reactorLogger =
+        (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger("reactor");
+    var logs =
+        new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+    logs.start();
+    reactorLogger.addAppender(logs);
+    try {
+      load("/mfe-slow");
+      // the abandoned exchange fails after the answer went out: give it the time to
+      Thread.sleep(500);
+      assertThat(logs.list)
+          .filteredOn(event -> event.getLevel().isGreaterOrEqual(ch.qos.logback.classic.Level.WARN))
+          .extracting(ch.qos.logback.classic.spi.ILoggingEvent::getFormattedMessage)
+          .isEmpty();
+    } finally {
+      reactorLogger.detachAppender(logs);
+    }
+  }
+
+  @Test
   void aRemoteErrorDegradesToTheClientAndLeavesATrace() {
     var microFrontend = onlyMicroFrontend(load("/mfe-broken"));
     assertThat(microFrontend.resolved()).isNull();

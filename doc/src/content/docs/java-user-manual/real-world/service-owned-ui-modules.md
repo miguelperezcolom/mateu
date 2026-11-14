@@ -242,6 +242,24 @@ the library jar, and generates the controllers (`MyPageController`,
 > classpath. Adding the library to `<annotationProcessorPaths>` ensures the processor can
 > load `META-INF/mateu/ui-registrations` from the jar.
 
+**Spring Boot: scan the library's package.** The generated controllers live in the library's
+package (next to its `@UI` classes). When that package is not under your main class's, Spring does
+not see them — the mount answers 404 and its screens "Page not found" — until you name it, either
+on the main class or in configuration:
+
+```java
+@SpringBootApplication(scanBasePackages = {"com.example.myapp", "com.example.myui"})
+```
+
+```properties
+# application.properties — the same, without touching the main class
+mateu.ui.modules=com.example.myui
+```
+
+Never add `io.mateu` to `scanBasePackages`: Mateu's own beans come with the adapter's
+auto-configuration. Quarkus, Micronaut and Helidon discover the library per jar and need neither.
+See [Using external Mateu UIs](/java-user-manual/build/using-external-mateu-uis/).
+
 ---
 
 ## Next

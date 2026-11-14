@@ -42,14 +42,19 @@ internal static class TelemetryNames
     private static readonly Regex Hex = new("^[0-9a-fA-F]{12,}$", RegexOptions.Compiled);
     private static readonly ConcurrentDictionary<string, byte> Series = new();
 
-    public static string RouteTemplate(string? route)
+    public static string RouteTemplate(string? route) => RouteTemplate(route, null);
+
+    /// <summary>The route's template, also turning into <c>:id</c> the segments the request path
+    /// KNOWS name a record (a crud's record route), even when they do not look like an id
+    /// (<c>P-002</c>).</summary>
+    public static string RouteTemplate(string? route, IReadOnlySet<string>? recordSegments)
     {
         if (string.IsNullOrWhiteSpace(route) || route == "_empty") return "/";
         var path = route;
         var query = path.IndexOf('?');
         if (query >= 0) path = path[..query];
         var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries)
-            .Select(s => IdLike(s) ? ":id" : s);
+            .Select(s => IdLike(s) || recordSegments?.Contains(s) == true ? ":id" : s);
         var template = string.Concat(segments.Select(s => "/" + s));
         return template.Length == 0 ? "/" : template;
     }
@@ -60,10 +65,11 @@ internal static class TelemetryNames
 
     public static string Action(string? actionId) => string.IsNullOrEmpty(actionId) ? Load : actionId;
 
-    public static (string Route, string Action) MetricKey(string? route, string? actionId, ActionOutcome outcome)
+    public static (string Route, string Action) MetricKey(string? route, string? actionId, ActionOutcome outcome,
+        IReadOnlySet<string>? recordSegments = null)
     {
         if (outcome is ActionOutcome.Forbidden or ActionOutcome.NotFound) return (Other, Other);
-        var template = RouteTemplate(route);
+        var template = RouteTemplate(route, recordSegments);
         var action = Action(actionId);
         if (action.Length > 128) action = Other;
         var key = template + " " + action;
@@ -90,6 +96,10 @@ internal sealed class RequestObservation : IDisposable
 
     private readonly long _started = Stopwatch.GetTimestamp();
     private readonly List<string> _recordIds = [];
+    // path segments of Route that name a record (a crud's /{id})
+    private readonly HashSet<string> _recordSegments = [];
+    // the crud's own route words are never a record, whatever a record is called
+    private static readonly HashSet<string> RouteWords = ["new", "edit", "view"];
     private readonly RequestObservation? _previous;
     private bool _ended;
 
@@ -146,7 +156,31 @@ internal sealed class RequestObservation : IDisposable
         lock (observation._recordIds)
             foreach (var id in ids)
                 if (id is not null && observation._recordIds.Count < MaxRecordIds && !observation._recordIds.Contains(id))
+                {
                     observation._recordIds.Add(id);
+                    // the record an action acted on, named by the route it ran at (a save at /P-002/edit)
+                    observation.AddRecordSegment(id);
+                }
+    }
+
+    /// <summary>The route names a record by this path segment (a crud's <c>/P-002</c> or
+    /// <c>/P-002/edit</c>): measured as <c>:id</c>, whatever it looks like.</summary>
+    public static void RecordSegment(string? segment)
+    {
+        var observation = Current;
+        if (observation is null || segment is null) return;
+        lock (observation._recordIds) observation.AddRecordSegment(segment);
+    }
+
+    private void AddRecordSegment(string segment)
+    {
+        if (string.IsNullOrWhiteSpace(segment) || segment.Contains('/') || RouteWords.Contains(segment)) return;
+        if (_recordSegments.Count < MaxRecordIds) _recordSegments.Add(segment);
+    }
+
+    private IReadOnlySet<string> RecordSegments()
+    {
+        lock (_recordIds) return _recordSegments.ToHashSet();
     }
 
     public static void RecordId(string? id)
@@ -179,8 +213,17 @@ internal sealed class RequestObservation : IDisposable
         if (_ended) return;
         _ended = true;
         var elapsed = Stopwatch.GetElapsedTime(_started);
+        var recordSegments = RecordSegments();
         if (Activity is not null)
         {
+            var template = TelemetryNames.RouteTemplate(Route, recordSegments);
+            if (template != TelemetryNames.RouteTemplate(Route))
+            {
+                // the path learnt that a segment names a record (a crud's record route)
+                var spanAction = TelemetryNames.Action(ActionId);
+                Activity.DisplayName = "mateu " + (spanAction.Length > 64 ? TelemetryNames.Other : spanAction) + " " + template;
+                Activity.SetTag("mateu.route.template", template);
+            }
             if (View is not null) Activity.SetTag("mateu.view", View);
             Activity.SetTag("mateu.outcome", OutcomeValue(Outcome));
             var records = RecordIdList().Count;
@@ -190,7 +233,7 @@ internal sealed class RequestObservation : IDisposable
             if (Outcome == ActionOutcome.Error) Activity.SetStatus(ActivityStatusCode.Error);
             Activity.Stop();
         }
-        var (route, action) = TelemetryNames.MetricKey(Route, ActionId, Outcome);
+        var (route, action) = TelemetryNames.MetricKey(Route, ActionId, Outcome, recordSegments);
         if (MateuTelemetry.Duration.Enabled)
             MateuTelemetry.Duration.Record(elapsed.TotalSeconds,
                 new KeyValuePair<string, object?>("mateu.route.template", route),

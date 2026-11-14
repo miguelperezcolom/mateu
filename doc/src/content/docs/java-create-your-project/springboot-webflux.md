@@ -106,6 +106,21 @@ client): Mateu runs every action off the Netty event loop, on Reactor's `bounded
 scheduler, so a slow store never stalls the loop that serves the other requests and the static
 assets.
 
+## `@UI` classes in another package
+
+The controllers the annotation processor generates live next to your `@UI` classes. When those are
+not under your main class's package (a separate UI module, say), name their package — or the mount
+answers 404:
+
+```java
+@SpringBootApplication(scanBasePackages = {"com.example.myapp", "com.example.myui"})
+```
+
+or, without touching the main class, `mateu.ui.modules=com.example.myui` in
+`application.properties`. Do not scan `io.mateu`: Mateu's own beans come with the adapter. See
+[multi-module projects](/java-create-your-project/springboot-mvc/#multi-module-projects) for the
+two-step annotation processing a UI module needs.
+
 ## Troubleshooting
 
 In case you are using a maven project and you are setting custom annotation processor paths (e.g. because you are using mapstruct) you must add the annotation processor from Mateu, in your pom.xml:

@@ -271,6 +271,8 @@ internal sealed partial class SyncHandler
         if (suffix == "") return ("list", null);
         if (suffix == "new") return ("new", null);
         var parts = suffix.Split('/');
+        // the record the route names: measured as ":id" (observability), whatever it looks like
+        Observability.RequestObservation.RecordSegment(parts[0]);
         return parts.Length >= 2 && parts[1] == "edit" ? ("edit", parts[0]) : ("view", parts[0]);
     }
 

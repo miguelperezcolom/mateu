@@ -40,6 +40,14 @@ public final class TelemetryNames {
 
   /** The route's template: id-like segments replaced by {@code :id}, no query, no trailing '/'. */
   public static String routeTemplate(String route) {
+    return routeTemplate(route, Set.of());
+  }
+
+  /**
+   * The route's template, also turning into {@code :id} the segments the request path KNOWS name a
+   * record (a crud's record route), even when they do not look like an id.
+   */
+  public static String routeTemplate(String route, Set<String> recordSegments) {
     if (route == null || route.isBlank() || "_empty".equals(route)) {
       return "/";
     }
@@ -53,7 +61,9 @@ public final class TelemetryNames {
       if (segment.isEmpty()) {
         continue;
       }
-      template.append('/').append(idLike(segment) ? ":id" : segment);
+      template
+          .append('/')
+          .append(idLike(segment) || recordSegments.contains(segment) ? ":id" : segment);
     }
     return template.isEmpty() ? "/" : template.toString();
   }
@@ -73,10 +83,14 @@ public final class TelemetryNames {
 
   /** The (route template, action) a request is measured under, bounded as the class says. */
   static String[] metricKey(String route, String actionId, ActionOutcome outcome) {
+    return metricKeyOfTemplate(routeTemplate(route), actionId, outcome);
+  }
+
+  /** {@link #metricKey} for a route whose template is already known. */
+  static String[] metricKeyOfTemplate(String template, String actionId, ActionOutcome outcome) {
     if (outcome == ActionOutcome.FORBIDDEN || outcome == ActionOutcome.NOT_FOUND) {
       return new String[] {OTHER, OTHER};
     }
-    var template = routeTemplate(route);
     var action = action(actionId);
     if (action.length() > 128) {
       action = OTHER;

@@ -241,6 +241,33 @@ class ObservabilitySyncTest {
   }
 
   @Test
+  void aCrudRecordLoadIsMeasuredUnderItsRouteTemplateAndTheCrudNotTheWireDto() {
+    // "P-002" does not LOOK like an id (short, a letter): the crud's record route says it is one
+    ITEMS.add(new Item("P-002", "two bis"));
+    mateu.run(
+        RunActionRqDto.builder()
+            .route("/obs/items/P-002")
+            .consumedRoute("/obs/items")
+            .serverSideType(Items.class.getName())
+            .actionId("")
+            .initiatorComponentId("c1_app")
+            .componentState(Map.of("_route", "/P-002", "_componentRoute", "/obs/items"))
+            .build());
+    var span = onlyMateuSpan();
+    assertThat(attr(span, "mateu.route")).isEqualTo("/obs/items/P-002");
+    assertThat(attr(span, "mateu.route.template")).isEqualTo("/obs/items/:id");
+    assertThat(span.getName()).isEqualTo("mateu __load__ /obs/items/:id");
+    assertThat(attr(span, "mateu.view")).isEqualTo(Items.class.getName());
+    var templates =
+        METRICS.collectAllMetrics().stream()
+            .filter(metric -> metric.getName().equals("mateu.request.duration"))
+            .flatMap(metric -> metric.getHistogramData().getPoints().stream())
+            .map(point -> point.getAttributes().get(AttributeKey.stringKey("mateu.route.template")))
+            .toList();
+    assertThat(templates).contains("/obs/items/:id").noneMatch(t -> t.contains("P-002"));
+  }
+
+  @Test
   void aUserErrorAndABugAreToldApart() {
     mateu.run(orders("outOfStock"));
     assertThat(attr(onlyMateuSpan(), "mateu.outcome")).isEqualTo("user_error");
