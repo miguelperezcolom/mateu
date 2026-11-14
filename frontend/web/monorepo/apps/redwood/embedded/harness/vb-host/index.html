@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<!-- A REAL Visual Builder HOST for <mateu-ui>: the 2701 runtime (visual-runtime + rwdjet, the JET line
+     VB 2701 runs) from Oracle's public CDN, booted the way a VB 2701 preview page boots it — the same
+     scripts in the same order, the same requirejs paths and bundles —, with a VB app (app-flow.json,
+     pages/host-page.*) whose page imported the component from resources/components/mateu-ui-<version>/.
+     Its page has its own $variables, $functions and $application: the component's view must not
+     depend on them. Served by ../serve.mjs at /ic/builder/rt/hostapp/live/webApps/hostapp/ (/vb/ redirects); probe: e2e/vb-embedded-real-vb-probe.mjs. -->
+<html class="oj-html" lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Host VB app — mateu-ui embedded</title>
+    <link rel="stylesheet" href="https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/default/css/redwood/oj-redwood-min.css" id="css" />
+    <link rel="stylesheet" href="https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/3rdparty/oraclejet-preact/amd/Theme-redwood/theme.css" id="css-theme" />
+    <link rel="stylesheet" href="https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/iconfont/ojuxIconFont.min.css" />
+    <!-- a VB app's index: the body does not scroll — the root page's shell is expected to (with only
+         <mateu-ui shell="true"> on that page, the component has to) -->
+    <style>body { margin: 0; background: var(--oj-core-neutral-30, #f1efed); } .vb-web-applayout-body { overflow-y: hidden; }</style>
+  </head>
+  <body class="oj-body vb-web-applayout-body">
+    <oj-vb-content config="[[vbApplication]]"></oj-vb-content>
+    <script>
+      window.vbInitConfig = {
+        JET_URL: 'https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1',
+        JET_CDN_PATH: 'https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1',
+        JET_CDN_VERSION: '',
+        // a VB server's app coordinates: VB's fetch plugins (CSRF client id, app version header) stamp
+        // only requests under <CONTEXT_ROOT>/<APP_URL_PREFIX>/<APP_ID>/<version>/ — without them the
+        // scope is "/" and they would stamp third-party API calls too (which their CORS refuses)
+        CONTEXT_ROOT: '/ic/builder',
+        APP_URL_PREFIX: 'rt',
+        APP_ID: 'hostapp',
+        APP_VERSION: 'live',
+        DEBUG: false,
+        IS_DT_MODE: false,
+        TRACE_CONFIG: {},
+        BASE_URL: '@VB_APP_PATH@',
+        BASE_URL_TOKEN: 'hostapp',
+        INJECTED: { security: {} },
+      };
+    </script>
+    <script src="https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/3rdparty/require/require.js"></script>
+    <script src="https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/default/js/min/oj3rdpartybundle.js"></script>
+    <script src="https://static.oracle.com/cdn/vb/2701.0.0-rc4.0/lib/core3rdpartylibs.js"></script>
+    <!-- urijs and the rest of VB's own libraries (a VB server page inlines them; a static page loads them) -->
+    <script src="https://static.oracle.com/cdn/vb/2701.0.0-rc4.0/lib/third-party-libs.js"></script>
+    <script src="https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/default/js/bundles-config.js"></script>
+    <script src="https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/default/js/min/ojcorebundle.js"></script>
+    <script src="https://static.oracle.com/cdn/vb/2701.0.0-rc4.0/lib/acorn.js"></script>
+    <script>
+      // the module paths a VB 2701 preview page configures (read off the owner's live preview): JET,
+      // the Core Pack, Spectra (oj-sp) and its OARS packs, oj-dynamic, VB's lib — and NO path for
+      // oj-fa-dom-purify (Oracle Fusion's), which some oj-sp components require
+      require.config({
+        paths: {
+          '@oracle/oraclejet-preact': 'https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/3rdparty/oraclejet-preact/amd',
+          ojs: 'https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/default/js/min',
+          ojcss: 'https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/default/js/min/ojcss',
+          ojtranslations: 'https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/default/js/resources',
+          'oj-c': 'https://static.oracle.com/cdn/ode/rwdjet/packs/oj-c/2701.0.3-1/min', // rwdjet's bundles-config: <jet>/../packs
+          'oj-sp': 'https://static.oracle.com/cdn/spectra-ui/oj-sp/2604.1.0',
+          'oj-dynamic': 'https://static.oracle.com/cdn/jet/packs/oj-dynamic/2604.1.0/min',
+          'oj-oars': 'https://static.oracle.com/cdn/oars/packs/oj-oars/2601.0.1/min',
+          'oj-oacp': 'https://static.oracle.com/cdn/oars/packs/oj-oacp/2601.0.1/min',
+          lib: 'https://static.oracle.com/cdn/vb/2701.0.0-rc4.0/lib',
+          persist: 'https://static.oracle.com/cdn/vb/2701.0.0-rc4.0/lib',
+        },
+        bundles: /*@OJ_SP_BUNDLES@*/{},
+      });
+    </script>
+    <script src="https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/default/js/min/ojdatetimebundle.js"></script>
+    <script src="https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/default/js/min/ojformbundle.js"></script>
+    <script src="https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/default/js/min/ojcommoncomponentsbundle.js"></script>
+    <script src="https://static.oracle.com/cdn/vb/2701.0.0-rc4.0/visual-runtime.js" id="vbrt"></script>
+  </body>
+</html>

@@ -918,6 +918,21 @@ test('cabecera fija: body.mateu-scrolled al dejar atrás la cabecera, y sólo cu
   assert.ok(!classes.has('mateu-scrolled'))
 })
 
+test('cabecera fija embebida: el scroll del contenido de <mateu-ui shell> cuenta; el de una tabla no', () => {
+  const listeners = {}
+  const classes = new Set()
+  const win = { scrollY: 0, addEventListener: (n, f) => { listeners[n] = f },
+    document: { body: { classList: { toggle: (c, on) => { on ? classes.add(c) : classes.delete(c) } } } } }
+  installStickyHeader(win)
+  const box = (cls, scrollTop) => ({ scrollTop, classList: { contains: (c) => c === cls } })
+  listeners.scroll({ target: box('oj-table-scroller', 300) })
+  assert.ok(!classes.has('mateu-scrolled'), 'a table scrolling inside the page is not the page')
+  listeners.scroll({ target: box('mateu-embedded-scroller', 100) })
+  assert.ok(classes.has('mateu-scrolled'))
+  listeners.scroll({ target: box('mateu-embedded-scroller', 0) })
+  assert.ok(!classes.has('mateu-scrolled'))
+})
+
 // ── #8 «I want to…» (ActionPanel) ────────────────────────────────────────────────────────────
 const apItem = (label, extra = {}) => ({ label, actionId: 'iWantTo', parameters: { what: label }, populated: false, disabled: false, ...extra })
 const apWire = {

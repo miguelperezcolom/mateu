@@ -2572,6 +2572,49 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return best
   }
 
+  // ── The subheader band (MENU_ON_TOP / HAMBURGER_SECTIONS) ─────────────────────────────────────
+  // What the band's bindings call — the standalone shell page (shell-page.js) and the embedded
+  // <mateu-ui> with shell="true" (its $mateuFunctions) both delegate here.
+
+  /** The subheader options: the top level (MENU_ON_TOP) or, with HAMBURGER_SECTIONS, the second
+   *  level of the section on screen —the hamburger carries the sections—. No section on screen (the
+   *  home): none. */
+  function subheaderItemsOf(tree, selectedRoute, sectionsMode) {
+    if (!sectionsMode) return tree || []
+    const section = sectionOf(tree, selectedRoute)
+    return section ? (section.children || []) : []
+  }
+
+  /** The subheader title: the console's, or with HAMBURGER_SECTIONS the section's. */
+  function subheaderTitleOf(title, tree, selectedRoute, sectionsMode) {
+    if (!sectionsMode) return title || ''
+    const section = sectionOf(tree, selectedRoute)
+    return section ? section.label : ''
+  }
+
+  /** The subheader class: collapsed (mateu-subheader-empty) when it has nothing to show
+   *  —HAMBURGER_SECTIONS on the home, no section on screen—, so no empty strip is left. */
+  function subheaderClassOf(title, tree, selectedRoute, sectionsMode) {
+    const section = sectionsMode ? sectionOf(tree, selectedRoute) : null
+    const empty = sectionsMode
+      ? !section || (!section.label && !(section.children || []).length)
+      : !title && !(tree || []).length
+    return empty ? 'mateu-subheader mateu-subheader-empty' : 'mateu-subheader'
+  }
+
+  /** HAMBURGER_SECTIONS: the selected entry in the section list (its id is the home). */
+  function sectionListSelection(tree, selectedRoute) {
+    const section = sectionOf(tree, selectedRoute)
+    return section ? (section.home || section.id) : ''
+  }
+
+  /** The class of a top-level subheader option: marked if its section is the one on screen. It
+   *  receives the selected route so the binding is re-evaluated on every navigation. */
+  function subheaderItemClass(node, tree, selectedRoute) {
+    const active = activeSectionOf(tree, selectedRoute) === node.id
+    return active ? 'mateu-subheader-item mateu-nav-active' : 'mateu-subheader-item'
+  }
+
 
   // CALENDAR (Calendar → isCalendar atom). JET has no calendar: the grid is drawn with
   // Redwood's tokens; the view selector is JET's oj-buttonset-one and the events, links.
@@ -19574,7 +19617,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // make-amd.mjs replaces the placeholder with apps/redwood/package.json's version when it writes the
   // bridge; run from the sources (Node tests) it stays a placeholder and reads as 'unknown'.
-  const RENDERER_VERSION_STAMP = "2604.1.0"
+  const RENDERER_VERSION_STAMP = "2604.1.7"
 
   /** The renderer's own version, or 'unknown' when the bridge was not stamped. */
   function rendererVersion(stamp = RENDERER_VERSION_STAMP) {
@@ -23361,6 +23404,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * action goes to the server as before. With a `scope` the commands' placeholders are resolved
    * ({@link resolveFlowCommands}) — the page's state with the action's parameters on top of it.
    */
+  /** The reserved ids of the page header's navigations, which runMateuAction answers itself. */
+  const CHROME_NAVIGATION_ACTIONS = Object.freeze(['__goToParent', '__peerPrev', '__peerNext', '__notFoundBack'])
+
   /**
    * Whether a content button's action is CLAIMED by something on screen — a context (page, overlay,
    * island, micro frontend) that advertises it (its actions, a `prefix*` wildcard included, or its
@@ -23371,6 +23417,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function contentActionIsClaimed(reg, actionId) {
     if (!actionId) return false
+    // the header's own navigations (go-to-parent of the automatic trail, the peer arrows, the
+    // not-found page's way back): claimed by the page chrome itself (runMateuAction) — the «Loans»
+    // go-to-parent above a record's title went through here and was dropped as unclaimed
+    if (CHROME_NAVIGATION_ACTIONS.includes(actionId)) return true
     for (const ctx of Object.values((reg && reg.contexts) || {})) {
       if (declaredActionOf(ctx, actionId)) return true
       // an OVERLAY's tree is the ClientSide Drawer/Dialog (no actions): the form it embeds is its
@@ -25707,15 +25757,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // ── record header FIXED and compact on scroll (OPERA's «business card») ─────────────
   /** Marks the body with mateu-scrolled as soon as the page leaves the header behind: app.css paints the
-   *  compact .mateu-sticky-header band (less air, no strip, with shadow). */
+   *  compact .mateu-sticky-header band (less air, no strip, with shadow). The page is the window, or —
+   *  an embedded <mateu-ui shell="true">, which scrolls its own content — the component's content box
+   *  (.mateu-embedded-scroller): heard in capture, since an element's scroll does not bubble. Any other
+   *  scrolled box (a table, a drawer body) is not the page. */
   function installStickyHeader(win = typeof window !== 'undefined' ? window : null) {
     if (!win || win.__mateuStickyHeader) return
     win.__mateuStickyHeader = true
     let on = false
-    win.addEventListener('scroll', () => {
-      const now = win.scrollY > 48
+    win.addEventListener('scroll', (event) => {
+      const target = event && event.target
+      const box = target && target.classList && target.classList.contains('mateu-embedded-scroller') ? target : null
+      if (target && !box && target !== win && target !== win.document && target !== win.document.documentElement) return
+      const now = (box ? box.scrollTop : win.scrollY) > 48
       if (now !== on) { on = now; win.document.body.classList.toggle('mateu-scrolled', now) }
-    }, { passive: true })
+    }, { passive: true, capture: true })
   }
 
   // ── @OnRowSelected on a GRID field (a list with columns inside a form): a click on a row — or the
@@ -30524,7 +30580,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  so in hybrid mode (bundle + backend) the menu comes from the backend as always; but if the
    *  backend is NOT there (pure static deployment) and the bundle carries the root route, it falls
    *  back to it so the app boots anyway. Only on failure — the happy path does not change. */
-  async function bootstrapShell(base, initiator = 'shell') {
+  /** The shell's first load. `appState`: the app state it is sent with — the embedded <mateu-ui>'s
+   *  app-context (the backend may build the App, its menu, per company / hotel); none by default. */
+  async function bootstrapShell(base, initiator = 'shell', appState = null) {
     // the shell's own backend is trusted with the user's token (hostHeaders.storedTokenMayGoTo)
     trustShellBase(base)
     await awaitBundle()
@@ -30535,7 +30593,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const res = await fetchWithPolicy(`${base}/mateu/v3/sync/_no_route`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
+        body: JSON.stringify({
+          route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator,
+          ...(appState && typeof appState === 'object' && Object.keys(appState).length ? { appState } : {}),
+        }),
       }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
       const increment = await res.json()
       observeWireVersion(increment)
@@ -34314,13 +34375,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     doc.addEventListener('pointerdown', (e) => { lastRowPress = { target: e.target, at: Date.now() } }, true)
   }
   /** Whether the selection change of `table` comes from a click on a row that OPENS (not from its
-   *  checkbox, nor from the keyboard): that change is to be undone. */
+   *  checkbox, nor from the keyboard): that change is to be undone. ONE undo per press: the press is
+   *  consumed, so the change the undo itself causes (the table fires selectedChanged again — at once,
+   *  inside the same call, where the listener runs synchronously, as in the embedded <mateu-ui>) is
+   *  not undone in turn: that ping-pong overflowed the stack in a VB 2701 host. */
   function selectionIsRowOpen(table, now = Date.now()) {
     const t = lastRowPress.target
     if (!table || !t || now - lastRowPress.at > 1500 || typeof table.contains !== 'function' || !table.contains(t)) return false
     const cls = String((table.getAttribute && table.getAttribute('class')) || '')
     if (!/(^|\s)mateu-rows-open(\s|$)/.test(cls)) return false
-    return !!(t.closest && t.closest('.oj-table-data-cell, td')) && rowActionIsRows(t, null)
+    const opens = !!(t.closest && t.closest('.oj-table-data-cell, td')) && rowActionIsRows(t, null)
+    if (opens) lastRowPress = { target: null, at: 0 }
+    return opens
   }
 
   // ── PaymentPicker: the pick is the client's (the web keeps it in the element's state) ───────────
@@ -36979,6 +37045,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       headers: headers && typeof headers === 'object' ? headers : null,
       headersProvider: typeof props.headersProvider === 'function' ? props.headersProvider : null,
       withCredentials: props.withCredentials === true || props.withCredentials === 'true',
+      // shell="true": the component draws the mount's App shell (header + menu) — for a page that is
+      // only the Mateu UI; off (the default) inside a host page that has a shell of its own
+      shell: props.shell === true || props.shell === 'true',
     }
   }
 
@@ -37021,7 +37090,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  'context' (the app context: reload the screen with it), or nothing. */
   function propertyChangeOf(previous, next) {
     if (!previous) return 'boot'
-    if (previous.baseUrl !== next.baseUrl || previous.withCredentials !== next.withCredentials) return 'boot'
+    if (previous.baseUrl !== next.baseUrl || previous.withCredentials !== next.withCredentials
+        || !!previous.shell !== !!next.shell) return 'boot'
     if (JSON.stringify(previous.appContext) !== JSON.stringify(next.appContext)) return 'context'
     if (previous.route !== next.route || JSON.stringify(previous.params) !== JSON.stringify(next.params)
         || JSON.stringify(previous.initialState) !== JSON.stringify(next.initialState)) return 'navigate'
@@ -37119,6 +37189,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return inAppRouteOfLink(anchor, event, location, false, mount)
   }
 
+  /**
+   * The navigation a `navigation-requested` asks the COMPONENT for, or null when it is not ours. The
+   * chains dispatch it on the DOCUMENT, where the standalone shell listens (loadMateuShell): the
+   * header's peer arrows (requestPeerNavigation), its go-to-parent (the «Loans» trail), a content
+   * menu's route, a FAB's, the not-found page's way back. Embedded there is no shell listening on
+   * the document — the component listened on its own element only, so those clicks did nothing. It
+   * takes one dispatched on the document itself or from inside its element; one dispatched from
+   * elsewhere in the host page (bubbling up to the document) is the host's. The params are those of
+   * the standalone listener: the route and every menu-click field it carries (chatNavigationOf).
+   */
+  function embeddedNavigationRequestOf(event, element, navigationOf = () => undefined) {
+    const detail = (event && event.detail) || {}
+    if (detail.route == null) return null
+    const target = event.target
+    const onDocument = !target || target.nodeType === 9
+    const inside = !!element && !!target && (target === element || (typeof element.contains === 'function' && element.contains(target)))
+    if (!onDocument && !inside) return null
+    return { event: { detail: { route: detail.route, navigation: navigationOf(detail) } } }
+  }
+
   /** Whether a navigation the SCREEN asked for happens inside the component. */
   function navigatesInside(policy, notCancelled) {
     return policy !== 'host' && notCancelled
@@ -37149,6 +37239,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const m = /^\{\{\s*([\s\S]*?)\s*\}\}$/.exec(value)
     if (!m) return value
     return evalDescriptorExpression(m[1], scope)
+  }
+
+  /** Whether a descriptor value holds a {{ }} expression (at any depth). */
+  function hasDescriptorExpression(value) {
+    if (typeof value === 'string') return /^\{\{[\s\S]*\}\}$/.test(value.trim())
+    if (Array.isArray(value)) return value.some(hasDescriptorExpression)
+    if (value && typeof value === 'object') return Object.values(value).some(hasDescriptorExpression)
+    return false
+  }
+
+  /** The variables a descriptor value's expressions read, as watch keys ('app.x' | 'page.x'). */
+  function descriptorReferencesOf(value) {
+    const text = JSON.stringify(value === undefined ? null : value)
+    const refs = new Set()
+    for (const m of text.matchAll(/\$(application\.variables|page\.variables|variables)\.(\w+)/g)) {
+      refs.add((m[1] === 'application.variables' ? 'app.' : 'page.') + m[2])
+    }
+    return [...refs]
   }
 
   function evalDescriptorExpression(expr, scope) {
@@ -37212,6 +37320,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const watchers = new Map() // 'app.x' | 'page.x' → [fn]
     const watch = (key, fn) => { if (!watchers.has(key)) watchers.set(key, []); watchers.get(key).push(fn) }
     const adps = []
+    // variables whose default is an EXPRESSION ({{ $page.variables.x }}, inside an object too): VB
+    // evaluates it, and keeps doing so while its references change and nobody wrote the variable
+    const computedDefaults = []
 
     const makeVariables = (defs, scopeKey) => {
       const vars = {}
@@ -37229,14 +37340,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
         const box = observable(defaultOfVariable(def))
         const key = scopeKey + '.' + name
+        const state = { written: false }
         Object.defineProperty(vars, name, {
           enumerable: true,
           get: () => box(),
           set: (v) => {
+            state.written = true
             box(v)
             for (const fn of watchers.get(key) || []) fn(v)
           },
         })
+        if (def && hasDescriptorExpression(def.defaultValue)) {
+          computedDefaults.push({ def, state, key, init: (v) => { box(v); for (const fn of watchers.get(key) || []) fn(v) } })
+        }
       }
       return vars
     }
@@ -37267,6 +37383,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           if (adp && Array.isArray(rows) && rows.length) adp.setData(rows)
         }
       }
+    }
+
+    // expression defaults: evaluated once every variable exists, and again when what they read changes
+    // (until the variable is written). The listing header's record switcher is one: its selectObject
+    // carries the switcher's DataProvider — left as the raw '{{ … }}' text, JET called isEmpty() on a
+    // string and the binding of the page header failed.
+    for (const computed of computedDefaults) {
+      const evaluate = () => {
+        if (computed.state.written) return
+        try {
+          computed.init(evalDescriptorValue(computed.def.defaultValue, { $application, $page, $variables: $page.variables }))
+        } catch (e) {
+          if (typeof console !== 'undefined' && console.warn) console.warn('mateu-ui: the default of ' + computed.key + ' could not be evaluated', e)
+        }
+      }
+      evaluate()
+      for (const ref of descriptorReferencesOf(computed.def.defaultValue)) watch(ref, evaluate)
     }
 
     // the screen's title is the host's to show (its header, its breadcrumbs, document.title): every
@@ -37532,7 +37665,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     runtime.$application.constants.mateuBaseUrl = config.baseUrl
     if (b.setElementModuleBase) b.setElementModuleBase(assetBaseOf(config.baseUrl))
     vars.mateuAppState = { ...(config.appContext || {}) }
-    const boot = await b.bootstrapShell(config.baseUrl, 'shell')
+    // the app context rides every request, the shell's first load included
+    const boot = await b.bootstrapShell(config.baseUrl, 'shell', vars.mateuAppState)
     const withoutApp = !b.bootstrapHasApp(boot)
     b.setMountWithoutApp(withoutApp)
     const reg = b.reduceContexts({ contexts: {}, stack: [], shell: null }, boot)
@@ -37542,11 +37676,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     vars.mateuRegistry = reg
     const nav = b.shellNavOf(reg)
     vars.mateuShellSST = nav.serverSideType || ''
+    Object.assign(vars, embeddedShellVarsOf(nav, reg.shell, config))
     const firstLeaf = (nav.menuTree || []).find((entry) => !entry.hasChildren)
     const homeRoute = b.routeUnderMount(nav.homeRoute) || (firstLeaf ? firstLeaf.id : '') || (withoutApp ? '/' : '')
     vars.mateuHomeRoute = homeRoute
     await navigateEmbedded(runtime, config, homeRoute)
     emitEmbedded(EMBEDDED_EVENTS.ready, { route: vars.mateuSelectedNavId || vars.mateuSelectedRoute || '' })
+  }
+
+  /**
+   * The App shell the component draws with shell="true": the variables its header and menu band bind
+   * (the standalone shell's own — loadMateuShell sets the same ones): the logo (from the backend's
+   * ROOT, like every asset) and the title on the header, the menu as the top band. Every menu variant
+   * is drawn as that band (MENU_ON_TOP's subheader; HAMBURGER_SECTIONS keeps its sections in it): the
+   * drawer/rail navigators belong to a page, not to a block of one. Off: nothing of the shell.
+   */
+  function embeddedShellVarsOf(nav, shell, config) {
+    if (!config || !config.shell || !shell) {
+      return { mateuEmbeddedShell: false, mateuMenuSubheader: false, mateuMenuSections: false }
+    }
+    const tree = (nav && nav.menuTree) || []
+    const title = (nav && nav.title) || ''
+    return {
+      mateuEmbeddedShell: true,
+      mateuShellTitle: title,
+      mateuMenuTree: tree,
+      mateuNavItems: (nav && nav.items) || [],
+      mateuMenuSubheader: !!(title || tree.length),
+      mateuMenuSections: false,
+      mateuSectionList: [],
+      mateuShellLogo: shell.logo ? assetBaseOf(config.baseUrl) + shell.logo : '',
+    }
   }
 
   /** The host asked for a screen (the route/params/initialState properties): it always happens —
@@ -37567,6 +37727,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     propertyChangeOf,
     navigationRouteOf,
     embeddedRouteOfLink,
+    embeddedNavigationRequestOf,
     assetBaseOf,
     setEmbeddedHost,
     isEmbedded,
@@ -37581,6 +37742,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     CONTENT_ACTION_SINKS,
     installEmbeddedContentRuntime,
     bootEmbedded,
+    embeddedShellVarsOf,
     navigateEmbedded,
     setHostHeaderProvider,
     setHostCredentials,
@@ -38198,6 +38360,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     isSentinelHome,
     sectionOf,
     sectionHomeOf,
+    // the subheader band's bindings (shell-page.js, and the embedded <mateu-ui shell>'s $mateuFunctions)
+    subheaderItemsOf,
+    subheaderTitleOf,
+    subheaderClassOf,
+    subheaderItemClass,
+    sectionListSelection,
     ojIconOf,
     ojIconOrGenericOf,
     findAllByType,

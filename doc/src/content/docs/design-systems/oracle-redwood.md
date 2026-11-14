@@ -69,10 +69,19 @@ its pages should show screens that a Mateu backend serves (a listing, a form, a 
 
 Download `mateu-ui-<version>.zip` from the [release](https://github.com/miguelperezcolom/mateu/releases)
 (or build it: `npm run build:embedded` in `frontend/web/monorepo/apps/redwood` →
-`build/embedded/mateu-ui-<version>.zip`). In Visual Builder: **Components → + (Import Component)**,
-pick the zip. It lands under `resources/components/mateu-ui/`; Visual Builder adds it to the
-Components palette and to the page's imports when you drop it on a page (or add it by hand to the
-page JSON: `"imports": {"components": {"mateu-ui": {"path": "resources/components/mateu-ui/loader"}}}`).
+`build/embedded/mateu-ui-<version>.zip`). In Visual Builder, import it either way:
+
+- **Page Designer**: open the **Components** palette, go to its **Custom** section and click the
+  **import** icon; drop the zip in the dialog.
+- **Navigator**: under your app's **Resources**, right-click **components** → **Import**, and drop
+  the zip.
+
+It lands under `resources/components/mateu-ui-<version>/` — **the folder name carries the
+version** (`mateu-ui-2604.1.3`), so a newer zip is a new folder next to the old one. Visual Builder
+lists the component in the palette (under **Custom**) and adds it to the page's imports when you drop
+it on a page. To add it by hand, use that folder in the page JSON:
+`"imports": {"components": {"mateu-ui": {"path": "resources/components/mateu-ui-<version>/loader"}}}`
+(after importing a newer zip, update the path and delete the old folder).
 
 ### 2. Drop it on a page
 
@@ -101,9 +110,12 @@ page JSON: `"imports": {"components": {"mateu-ui": {"path": "resources/component
 | `headersProvider` (`headers-provider`) | function | `(url) => headers` or a Promise of them, called on **every** request — the way to pass a token that rotates. Wins over `token`/`headers`. |
 | `withCredentials` (`with-credentials`) | boolean | Sends the browser's cookies to a backend on another origin. |
 | `navigation` | `internal` \| `host` | Who handles a navigation the **screen** asks for (a row click, an action returning a route, a link). See below. |
+| `shell` | boolean | Draws the Mateu UI's **App shell** inside the component: Spectra's global header with the app's logo, and the app's title and menu as a band under it; navigation stays inside the component. For a page that is *only* the Mateu UI (e.g. a VB root page holding just `<mateu-ui base-url="…">`). Off (the default) inside a page that has a shell of its own. See below. |
+
+`base-url` and `route` are trimmed: a space typed in the Properties pane does no harm.
 
 Changing `route`, `params` or `initialState` opens that screen; `appContext` reloads the current
-one; `baseUrl`/`withCredentials` start over; a new `token`/`headers`/`headersProvider` is simply used
+one; `baseUrl`/`withCredentials`/`shell` start over; a new `token`/`headers`/`headersProvider` is simply used
 from the next request on. Methods: `navigate(route, params)` and `reload()`.
 
 **Events** (JET convention: the type is camelCase, a page listens with `on-mateu-…`; all bubble)
@@ -123,6 +135,27 @@ and `route` is written back; `mateuNavigate` fires first, and a listener that ca
 page of your flow instead. With `navigation="host"` the component never navigates by itself: it only
 fires `mateuNavigate`, and your page decides (navigate its flow, or set `route`). Your page's URL is
 never touched either way: the component does not use the browser history.
+
+**The App shell (`shell="true"`).** A Mateu UI that declares an App shell (`@App`, a YAML
+`type: AppShell`) has a title, a logo and a menu. By default the component draws none of it — inside
+a VB page the shell is the host's. When the page is nothing but the Mateu UI, set `shell="true"`: the
+component draws Spectra's `oj-sp-global-header` with the app's logo, and under it the same menu band
+the standalone Redwood renderer draws for `MENU_ON_TOP` (the app's title, its top-level entries,
+groups as menus, card menus). Choosing an entry navigates inside the component, like any other
+navigation (`mateuNavigate` fires first and can be cancelled). Leave `route` empty to open the app's
+home. Not drawn yet: every menu variant (`HAMBURGER_MENU`, `MENU_ON_LEFT`, `RAIL`, `TABS`…) is shown as
+that top band, not as a navigator drawer or rail; the `@AppContext` pickers, header actions, the user
+menu, the notification bell, the AI chat and the Ask palette are not part of it.
+
+In shell mode the component **scrolls itself**. A VB app's index stops the page body from scrolling
+(`.vb-web-applayout-body { overflow-y: hidden }`) and expects the root page's shell to provide the
+scrolling area. When the page holds only `<mateu-ui>`, that area is missing. So with `shell="true"`
+the component fills the height of its container, or the window from where it starts when the
+container has no height. The header and menu band stay at its top and do not scroll; the content
+under them scrolls, laid out as in the standalone app. Spectra's sticky page and section headers
+therefore stick right below the menu band, never behind it. Drawers, dialogs and
+popups still open over the page (they live in JET's popup layer).
+Without `shell` the component flows in your page, and your page scrolls it.
 
 ### 3. Identity (your app's user on the Mateu backend)
 
@@ -171,26 +204,39 @@ See [configuration](/java-create-your-project/configuration/#cross-origin-access
 
 - **One `<mateu-ui>` per page.** The renderer core is a module with page-level state; a second
   instance on the same page takes over from the first (a warning is logged).
-- **No app shell.** The Mateu App's menu, header actions, `@AppContext` pickers, notification bell,
-  AI chat and Ask palette are shell chrome: the host page has its own. Pass the context with
-  `app-context`; navigate with `route` or your own menu.
+- **App shell only on request, and partial.** By default the component draws no shell: the host
+  page has its own. Pass the context with `app-context`; navigate with `route` or your own menu.
+  With `shell="true"` it draws the header (logo) and the menu as a top band (see above); the
+  navigator drawer/rail variants, `@AppContext` pickers, header actions, user menu, notification
+  bell, AI chat and Ask palette are not drawn.
 - **Dialogs, drawers and toasts** open in JET's popup layer over the page, as any JET overlay of the
   host does.
-- **Requirements on the host page:** JET 16–19 with the Redwood theme, the Spectra components
-  (`oj-sp`, present in every Redwood VB app) and the Redwood icon font. On a plain JET page (not
-  VB) the component points the missing `oj-sp`/`oj-dynamic`/`oj-oars` module paths at Oracle's CDN.
+- **Requirements on the host page:** JET 16 or later with the Redwood theme — the 16–19 line and
+  the 2604/2701 line Visual Builder runs today (JET reports itself as `2701.0.3-1` there) —, the
+  Spectra components (`oj-sp`, present in every Redwood VB app) and the Redwood icon font. On a plain
+  JET page (not VB) the component points the missing `oj-sp`/`oj-dynamic`/`oj-oars` module paths at
+  Oracle's CDN. Two libraries some Spectra components require under an id their host may not map —
+  `oj-fa-dom-purify` (DOMPurify; Visual Builder does not map it) and `punycode` (a plain JET page
+  does not) — are pointed, only when missing, at the same libraries on cdnjs, pinned with their SRI
+  hashes.
 - **Licensing:** the zip contains only Mateu code (Apache 2.0) — no file from Oracle. Inside your VB
   app it runs on your app's JET, Redwood and Spectra, i.e. entirely under **your** Oracle agreement.
 
 ### Manual test plan (a real Visual Builder instance)
 
-The component is verified in CI-like conditions against a plain JET host page (JET 18.1 from
-Oracle's CDN, `e2e/vb-embedded-probe.mjs`), not inside the Visual Builder designer. In a VB instance:
+The component is verified against two hosts served by `npm run serve:embedded`
+(`apps/redwood/embedded/harness`): a plain JET page (JET 18.1 from Oracle's CDN,
+`e2e/vb-embedded-probe.mjs`), and a real **Visual Builder app on the 2701 runtime** — visual-runtime
+`2701.0.0-rc4.0` and rwdjet `2701.0.3-1` from Oracle's public CDN, booted as a VB 2701 preview boots,
+with a page that imported the component from `resources/components/mateu-ui-<version>/`
+(`e2e/vb-embedded-real-vb-probe.mjs`: a listing with rows, a row opening its record, `shell="true"`).
+Not inside the Visual Builder designer. In a VB instance:
 
 1. Backend: run a Mateu app (e.g. `demo/demo-vb`) reachable from the browser over HTTPS, with
    `mateu.cors.allowed-origins=<your VB app origin>`.
-2. Import `mateu-ui-<version>.zip` (Components → Import). Expect it in the palette under *Mateu UI*,
-   with its properties in the Properties pane.
+2. Import `mateu-ui-<version>.zip` (Components palette → Custom → import icon, or Navigator →
+   Resources → components → right-click → Import). Expect it in the palette's **Custom** section as
+   *Mateu UI*, with its properties in the Properties pane.
 3. On a new page drop the component; set `base-url` to the backend and `route` to `products`. Run the
    app (Preview): the listing renders with your app's Redwood look, no console errors.
 4. Click **New**: the create drawer opens over the page; fill *Name*, **Save**: the row appears.
@@ -202,7 +248,9 @@ Oracle's CDN, `e2e/vb-embedded-probe.mjs`), not inside the Visual Builder design
 7. Identity: protect the backend with your IdP; pass the token (`token` or `headers-provider`):
    requests carry `Authorization` (browser network tab) and the screens load; with an expired token
    the `mateu-session-expired` event fires.
-8. Design time: the component should render (or show an empty box) in the designer canvas without
+8. On a page holding only `<mateu-ui base-url="…" shell="true">` (no `route`): the app's header,
+   title and menu show; choosing a menu entry opens its screen inside the component.
+9. Design time: the component should render (or show an empty box) in the designer canvas without
    breaking the page — it only calls the backend when it has a reachable `base-url`.
 
 ## Characteristics

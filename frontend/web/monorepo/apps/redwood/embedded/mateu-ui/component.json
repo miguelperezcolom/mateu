@@ -3,8 +3,15 @@
   "displayName": "Mateu UI",
   "description": "Renders a Mateu screen (a model-driven UI served by a Mateu backend) inside this page, with the page's own JET runtime and Redwood theme.",
   "version": "@VERSION@",
-  "jetVersion": ">=16.0.0 <20.0.0",
+  "jetVersion": ">=16.0.0",
   "license": "Apache-2.0",
+  "type": "composite",
+  "extension": {
+    "catalog": {
+      "category": "Integration",
+      "tags": ["mateu", "model-driven", "embedded", "redwood"]
+    }
+  },
   "icon": {
     "iconPath": "",
     "selectedIconPath": "",
@@ -68,6 +75,13 @@
       "type": "boolean",
       "displayName": "Send cookies",
       "description": "Sends the browser's cookies to a backend on another origin (fetch credentials: 'include'; the backend must allow credentials for this origin).",
+      "value": false,
+      "writeback": false
+    },
+    "shell": {
+      "type": "boolean",
+      "displayName": "App shell",
+      "description": "Draws the App shell of the Mateu UI (Spectra's global header with its logo, its title and its menu as a band; navigation stays inside the component). For a page that is only the Mateu UI; leave it off inside a page that has a shell of its own.",
       "value": false,
       "writeback": false
     },

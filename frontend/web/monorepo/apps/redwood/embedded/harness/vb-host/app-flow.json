@@ -1,0 +1,16 @@
+{
+  "id": "hostapp",
+  "description": "A Visual Builder app (the 2701 runtime, from Oracle's CDN) that imported <mateu-ui> — served by ../serve.mjs at /vb/",
+  "defaultPage": "host",
+  "routerStrategy": "query",
+  "configuration": {},
+  "services": {},
+  "security": { "access": { "requiresAuthentication": false } },
+  "flows": {},
+  "settings": {},
+  "userConfig": { "type": "vb/DefaultSecurityProvider", "configuration": {}, "embedding": "deny" },
+  "variables": {
+    "hostNote": { "type": "string", "defaultValue": "ACME Visual Builder app" }
+  },
+  "events": {}
+}

@@ -123,7 +123,8 @@ const clickButton = (page, label) => page.locator('mateu-ui oj-button, mateu-ui 
   const saved = await page.waitForFunction(() => document.body.innerText.includes('Saved Grace @ H1'), null, { timeout: 15000 }).then(() => true, () => false)
   check('an action runs: Save sends the edited state and the app context, the message shows', saved)
   check('the host hears the action (mateuAction)', (await events(page, 'mateuAction')).some((d) => d.actionId === 'save'))
-  check('the app context rides every screen request (appState)', requests.some((r) => r.url.includes('/sync/')) && requests.filter((r) => r.url.includes('/sync/')).every((r) => r.body.includes('"hotel":"H1"')))
+  check('the app context rides every screen request (appState)', requests.some((r) => r.url.includes('/sync/')) && requests.filter((r) => r.url.includes('/sync/')).every((r) => r.body.includes('"hotel":"H1"')),
+    requests.filter((r) => r.url.includes('/sync/') && !r.body.includes('"hotel":"H1"')).map((r) => r.url + ' ' + r.body.slice(0, 300)).join(' | '))
   check('no page errors (form)', !errors.length, errors[0])
   if (shots) await page.screenshot({ path: join(shots, 'vb-embedded-form.png') })
 

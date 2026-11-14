@@ -309,6 +309,7 @@
          level of a federated shell nested). A remote section that did not answer comes out disabled
          and says why (hint). No brand accent: the band uses Redwood's neutral tokens.
          It sits outside the chat drawer: it does not move with it. -->
+    <!-- @embedded-shell-menu: down to @end-embedded-shell-menu, the menu band the <mateu-ui> component draws with shell="true" (poc/make-embedded.mjs) -->
     <oj-bind-if test="[[ $application.variables.mateuMenuSubheader ]]">
       <!-- with no content (HAMBURGER_SECTIONS on the home: no section on screen) the band
            COLLAPSES —no empty white strip is left—, and appears/disappears with a transition
@@ -430,6 +431,7 @@
         </div>
       </nav>
     </oj-bind-if>
+    <!-- @end-embedded-shell-menu -->
 
     <!-- HAMBURGER_SECTIONS: the sections menu is ANOTHER LEVEL, floating above the
          subheader and the content (it does not push them): a panel on the left under the global
