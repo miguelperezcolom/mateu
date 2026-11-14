@@ -221,6 +221,39 @@ public final class FieldAccess {
     return type != null && SHAPES.get(type).guardedAnywhere();
   }
 
+  private static final ClassValue<Boolean> RESTRICTS_READING =
+      new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> type) {
+          return restrictsReading(type, new java.util.HashSet<>());
+        }
+      };
+
+  /**
+   * Whether reading an instance of {@code type} can depend on the caller: it (or an object nested
+   * in it, at any depth) has an {@code @EyesOnly} field. Narrower than {@link #isGuarded}, which
+   * also counts any field holding an application object — a plain nested object needs no narrowing
+   * and is serialised as it is.
+   */
+  public static boolean restrictsReading(Class<?> type) {
+    return type != null && RESTRICTS_READING.get(type);
+  }
+
+  private static boolean restrictsReading(Class<?> type, java.util.Set<Class<?>> visited) {
+    if (!visited.add(type)) {
+      return false; // a cycle (customer → orders → customer): already being looked at
+    }
+    for (var slot : SHAPES.get(type).slots().values()) {
+      if (MetaAnnotations.isPresent(slot.field(), EyesOnly.class)) {
+        return true;
+      }
+      if (slot.nested() != null && restrictsReading(slot.nested(), visited)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @SuppressWarnings("unchecked")
   private static Map<String, Object> walk(
       Class<?> type, Map<String, Object> state, HttpRequest rq, boolean write, int depth) {

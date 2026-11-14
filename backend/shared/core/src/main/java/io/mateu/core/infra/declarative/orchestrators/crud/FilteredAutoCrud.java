@@ -283,10 +283,14 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     var entity = toCreatedEntity(httpRequest);
     io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck.enforce(
         entity, httpRequest, true);
-    // the id is the user's to choose on a creation form: one that names a stored record overwrites
-    // it, which is an edit
+    // the id is the user's to choose on a creation form: one that names a stored record would
+    // REPLACE it — built from a creation form, so every field the user cannot see or write would
+    // go back to its default (GA round 2, N3). Refused: a New form creates, it never edits.
     if (storedWith(entity.id()).isPresent()) {
       CrudWriteGate.checkEdit(this);
+      throw new io.mateu.uidl.UserFacingException(
+          "A record with this id already exists. Choose another id, or open the record to edit"
+              + " it.");
     }
     return store().save(entity);
   }

@@ -95,32 +95,58 @@ public class CapabilityCrud extends Crud<Object, Object, Object, Object, Object,
     // the listing's save starts from the record edit(id) answers: what the editor did not let the
     // user write (its id, read-only, hidden or locked fields) keeps that record's values
     var editorClass = editorClass();
-    var idField = ClientWritableFields.declaredIdOf(editorClass);
+    // the editor's key the way the listing resolves its rows' ids (@PrimaryKey, a field called id,
+    // else the first field): a record keyed by a business code (code, sku…) found no id with the
+    // narrower rule, so the save ran under CREATION rules and zeroed every read-only field (GA
+    // round 2, N2)
+    var idField = CrudAdapterHelper.getIdField(editorClass);
     var id = editedId(idField, httpRequest);
-    var baseline = id == null ? null : ((Editable<Object, Object>) target).edit(id, httpRequest);
+    var baseline = id == null ? null : editBaseline(id, httpRequest);
+    if (baseline == null) {
+      // a save edits a record the listing holds: with none to start from, the posted state is not
+      // laid over anything — refused, as an AutoCrud refuses a save of a record that is gone
+      throw new io.mateu.uidl.UserFacingException(
+          "This record no longer exists. Reload the list to see the current records.");
+    }
     return ClientWritableFields.runWithWritableState(
         httpRequest,
         editorClass,
         baseline,
         idField,
-        baseline == null,
+        false,
         rq -> ((Editable<Object, Object>) target).save(rq));
   }
 
-  /** The id of the record a save edits: the route's, else the posted form's own id. */
+  private Object editBaseline(Object id, HttpRequest httpRequest) {
+    try {
+      return ((Editable<Object, Object>) target).edit(id, httpRequest);
+    } catch (java.util.NoSuchElementException notThere) {
+      return null; // edit(id) answered "no such record" the Optional way
+    }
+  }
+
+  /**
+   * The id of the record a save edits: the route's, else the posted form's own id (under the
+   * editor's key, else under the row's key the drawer was opened with).
+   */
   @SuppressWarnings("unchecked")
   private Object editedId(String idField, HttpRequest httpRequest) {
     var fromRoute =
         io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.CrudIdExtractor
             .idFromRoute(this, httpRequest);
     Object raw = fromRoute;
-    if (raw == null && idField != null && httpRequest.runActionRq() != null) {
+    if (raw == null && httpRequest.runActionRq() != null) {
       var parameters = httpRequest.runActionRq().parameters();
       var posted =
           parameters != null && parameters.get("initiatorState") instanceof java.util.Map<?, ?> m
               ? (java.util.Map<String, Object>) m
               : httpRequest.runActionRq().componentState();
-      raw = posted != null ? posted.get(idField) : null;
+      if (posted != null) {
+        raw = idField != null ? posted.get(idField) : null;
+        if (raw == null) {
+          raw = posted.get(getIdFieldForRow());
+        }
+      }
     }
     if (raw == null) {
       return null;
