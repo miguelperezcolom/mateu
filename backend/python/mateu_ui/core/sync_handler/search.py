@@ -259,7 +259,8 @@ class SearchHandlerMixin(MixinBase):
                 child_props = self.row_props(child_type)
                 row[camel_case(p.name)] = [self._row_dict(c, child_props) for c in (value or [])]
             else:
-                row[camel_case(p.name)] = self.cell_value(_mapped_value(p, value))
+                # a nested object / list of them as the caller may read it (GA review 2, Y5)
+                row[camel_case(p.name)] = self.cell_value(self.mapper.readable(_mapped_value(p, value)))
         return row
 
     def guarded_query(self, rq: RunActionRq, row_type) -> RunActionRq:
@@ -379,10 +380,7 @@ class SearchHandlerMixin(MixinBase):
         if size <= 0:
             size = total or 1
         window = items[page * size : page * size + size]
-        rows = _numbered([
-            {camel_case(p.name): self.cell_value(getattr(item, p.name, None)) for p in props}
-            for item in window
-        ], page, size)
+        rows = _numbered([self._row_dict(item, props) for item in window], page, size)
         crud_data = {
             "page": {
                 "content": rows,

@@ -390,6 +390,34 @@ class ReflectionMapper(
         initialData/state; the header-hoist exclusions (KPI/Timestamp/Aside) are separate."""
         return self.authorized(f.marker(EyesOnly)) and for_current_audience(f.marker(Audience))
 
+    def readable(self, value: Any, _depth: int = 0) -> Any:
+        """``value`` as the caller may READ it, at any depth: an application data object (a nested
+        form type) becomes a camelCase map of the fields the caller is permitted, and lists, tuples,
+        sets and dict values are walked the same way — Java's ``FieldAccess`` read walk. Scalars
+        pass through unchanged. One rule for every row and state map that carries objects (GA
+        review 2, Y5: one level down, an ``EyesOnly`` value still travelled)."""
+        from .. import nested_forms
+        from ..naming import camel_case
+        from ..reflection import view_fields
+
+        if value is None or isinstance(value, (str, int, float, bool)):
+            return value
+        if _depth > 32:
+            return None  # a cycle, or a structure no screen draws
+        if isinstance(value, (list, tuple, set, frozenset)):
+            return [self.readable(v, _depth + 1) for v in value]
+        if isinstance(value, dict):
+            return {k: self.readable(v, _depth + 1) for k, v in value.items()}
+        if nested_forms.is_nested_form_type(type(value)):
+            return {
+                camel_case(f.name): self.readable(getattr(value, f.name, None), _depth + 1)
+                for f in view_fields(type(value))
+                if self._permitted(f)
+            }
+        from ._common import _row_cell
+
+        return _row_cell(value)  # dates ISO, enums by name, anything else as it is
+
     def T(self, s: str) -> str:
         # ${i18n.key} expressions resolve against the translation catalogue first (Java's
         # DefaultTranslator), then the app's translator sees the result.
