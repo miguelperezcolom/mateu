@@ -5,45 +5,45 @@
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json
 type: Routes
 routes:
-  - {route: "", definition: app.yaml}                       # the app shell
-  - {route: welcome, definition: welcome.yaml}              # WelcomePage
-  - {route: dashboard, definition: dashboard.yaml, data: museum-stats}   # DashboardLandingPage, live KPIs
-  - {route: search, definition: search.yaml}                # HeroSearchPage over every collection
+  - {route: "", layout: app.yaml}                       # the app shell
+  - {route: welcome, layout: welcome.yaml}              # WelcomePage
+  - {route: dashboard, layout: dashboard.yaml, data: museum-stats}   # DashboardLandingPage, live KPIs
+  - {route: search, layout: search.yaml}                # HeroSearchPage over every collection
 
   # artworks: listing → item overview → gallery → edit; create
-  - {route: artworks, definition: artworks.yaml}
-  - {route: artworks/new, definition: artwork-new.yaml}     # AdvancedCreateEditPage, every field type
-  - {route: artworks/:id, definition: artwork.yaml, data: museum-artwork}                # ItemOverviewPage
-  - {route: artworks/:id/gallery, definition: artwork-gallery.yaml, data: museum-artwork} # MultimediaContentPage
-  - {route: artworks/:id/edit, definition: artwork-edit.yaml, data: museum-artwork}
+  - {route: artworks, layout: artworks.yaml}
+  - {route: artworks/new, layout: artwork-new.yaml}     # AdvancedCreateEditPage, every field type
+  - {route: artworks/:id, layout: artwork.yaml, data: museum-artwork}                # ItemOverviewPage
+  - {route: artworks/:id/gallery, layout: artwork-gallery.yaml, data: museum-artwork} # MultimediaContentPage
+  - {route: artworks/:id/edit, layout: artwork-edit.yaml, data: museum-artwork}
 
   # artists: CollectionDetailPage — the selection is in the URL
-  - {route: artists, definition: artists.yaml}
-  - {route: artists/:id, definition: artist.yaml, data: museum-artist}
+  - {route: artists, layout: artists.yaml}
+  - {route: artists/:id, layout: artist.yaml, data: museum-artist}
 
   # museums: master-detail listing → GeneralOverviewPage with a record switcher
-  - {route: museums, definition: museums.yaml}
-  - {route: museums/:id, definition: museum.yaml, data: museum-museum}
-  - {route: map, definition: map.yaml}                      # Map
-  - {route: collection, definition: collection.yaml}        # tree listing
-  - {route: departments, definition: departments.yaml}
+  - {route: museums, layout: museums.yaml}
+  - {route: museums/:id, layout: museum.yaml, data: museum-museum}
+  - {route: map, layout: map.yaml}                      # Map
+  - {route: collection, layout: collection.yaml}        # tree listing
+  - {route: departments, layout: departments.yaml}
 
   # exhibitions: listing, calendar, FoldoutPage, edit, create
-  - {route: exhibitions, definition: exhibitions.yaml}
-  - {route: exhibitions/new, definition: exhibition-new.yaml}
-  - {route: exhibitions/:id, definition: exhibition.yaml, data: museum-exhibition}
-  - {route: exhibitions/:id/edit, definition: exhibition-edit.yaml, data: museum-exhibition}
-  - {route: calendar, definition: calendar.yaml}            # Calendar
+  - {route: exhibitions, layout: exhibitions.yaml}
+  - {route: exhibitions/new, layout: exhibition-new.yaml}
+  - {route: exhibitions/:id, layout: exhibition.yaml, data: museum-exhibition}
+  - {route: exhibitions/:id/edit, layout: exhibition-edit.yaml, data: museum-exhibition}
+  - {route: calendar, layout: calendar.yaml}            # Calendar
 
   # loans: DataManagementPage, the request wizard (GuidedProcessPage), one loan
-  - {route: loans, definition: loans.yaml}
-  - {route: loans/new, definition: loan-new.yaml}
-  - {route: loans/:id, definition: loan.yaml, data: museum-loan}
+  - {route: loans, layout: loans.yaml}
+  - {route: loans/new, layout: loan-new.yaml}
+  - {route: loans/:id, layout: loan.yaml, data: museum-loan}
 
   # conservation: the kanban, the grouped list, one task, create
-  - {route: conservation, definition: conservation.yaml}    # Kanban
-  - {route: conservation/tasks, definition: conservation-tasks.yaml}
-  - {route: conservation/tasks/new, definition: task-new.yaml}
-  - {route: conservation/tasks/:id, definition: task-edit.yaml, data: museum-task}
+  - {route: conservation, layout: conservation.yaml}    # Kanban
+  - {route: conservation/tasks, layout: conservation-tasks.yaml}
+  - {route: conservation/tasks/new, layout: task-new.yaml}
+  - {route: conservation/tasks/:id, layout: task-edit.yaml, data: museum-task}
 
-  - {route: visits, definition: visits.yaml}
+  - {route: visits, layout: visits.yaml}
