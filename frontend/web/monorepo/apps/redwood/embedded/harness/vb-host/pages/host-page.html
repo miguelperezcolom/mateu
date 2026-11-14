@@ -1,0 +1,13 @@
+<!-- shell=true: a VB root page holding ONLY the component (it draws the shell and scrolls itself) -->
+<oj-bind-if test="[[ $variables.shell ]]">
+  <mateu-ui id="mateu" base-url="[[ $variables.baseUrl ]]" route="{{ $variables.route }}" shell="true"></mateu-ui>
+</oj-bind-if>
+<!-- otherwise a page with a shell of its own: its own scroll container, as a VB root page's shell is -->
+<oj-bind-if test="[[ !$variables.shell ]]">
+  <div class="oj-flex oj-sm-flex-direction-column" style="padding: 16px 24px; gap: 12px; height: 100vh; box-sizing: border-box; overflow-y: auto">
+    <h1 id="hostHeader" class="oj-typography-heading-sm"><oj-bind-text value="[[ $functions.hostLabel($application.variables.hostNote) ]]"></oj-bind-text></h1>
+    <div class="oj-flex">
+      <mateu-ui id="mateu" class="oj-flex-item" base-url="[[ $variables.baseUrl ]]" route="{{ $variables.route }}" shell="[[ $variables.shell ]]"></mateu-ui>
+    </div>
+  </div>
+</oj-bind-if>

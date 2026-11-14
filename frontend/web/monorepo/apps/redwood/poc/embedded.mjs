@@ -83,6 +83,9 @@ export function embeddedConfigOf(props = {}) {
     headers: headers && typeof headers === 'object' ? headers : null,
     headersProvider: typeof props.headersProvider === 'function' ? props.headersProvider : null,
     withCredentials: props.withCredentials === true || props.withCredentials === 'true',
+    // shell="true": the component draws the mount's App shell (header + menu) — for a page that is
+    // only the Mateu UI; off (the default) inside a host page that has a shell of its own
+    shell: props.shell === true || props.shell === 'true',
   }
 }
 
@@ -125,7 +128,8 @@ export function composeEmbeddedRoute(route, params = {}) {
  *  'context' (the app context: reload the screen with it), or nothing. */
 export function propertyChangeOf(previous, next) {
   if (!previous) return 'boot'
-  if (previous.baseUrl !== next.baseUrl || previous.withCredentials !== next.withCredentials) return 'boot'
+  if (previous.baseUrl !== next.baseUrl || previous.withCredentials !== next.withCredentials
+      || !!previous.shell !== !!next.shell) return 'boot'
   if (JSON.stringify(previous.appContext) !== JSON.stringify(next.appContext)) return 'context'
   if (previous.route !== next.route || JSON.stringify(previous.params) !== JSON.stringify(next.params)
       || JSON.stringify(previous.initialState) !== JSON.stringify(next.initialState)) return 'navigate'
@@ -255,6 +259,24 @@ export function evalDescriptorValue(value, scope) {
   return evalDescriptorExpression(m[1], scope)
 }
 
+/** Whether a descriptor value holds a {{ }} expression (at any depth). */
+export function hasDescriptorExpression(value) {
+  if (typeof value === 'string') return /^\{\{[\s\S]*\}\}$/.test(value.trim())
+  if (Array.isArray(value)) return value.some(hasDescriptorExpression)
+  if (value && typeof value === 'object') return Object.values(value).some(hasDescriptorExpression)
+  return false
+}
+
+/** The variables a descriptor value's expressions read, as watch keys ('app.x' | 'page.x'). */
+export function descriptorReferencesOf(value) {
+  const text = JSON.stringify(value === undefined ? null : value)
+  const refs = new Set()
+  for (const m of text.matchAll(/\$(application\.variables|page\.variables|variables)\.(\w+)/g)) {
+    refs.add((m[1] === 'application.variables' ? 'app.' : 'page.') + m[2])
+  }
+  return [...refs]
+}
+
 export function evalDescriptorExpression(expr, scope) {
   const e = String(expr).trim()
   if (e === 'true') return true
@@ -316,6 +338,9 @@ export function createVbRuntime(opts) {
   const watchers = new Map() // 'app.x' | 'page.x' → [fn]
   const watch = (key, fn) => { if (!watchers.has(key)) watchers.set(key, []); watchers.get(key).push(fn) }
   const adps = []
+  // variables whose default is an EXPRESSION ({{ $page.variables.x }}, inside an object too): VB
+  // evaluates it, and keeps doing so while its references change and nobody wrote the variable
+  const computedDefaults = []
 
   const makeVariables = (defs, scopeKey) => {
     const vars = {}
@@ -333,14 +358,19 @@ export function createVbRuntime(opts) {
       }
       const box = observable(defaultOfVariable(def))
       const key = scopeKey + '.' + name
+      const state = { written: false }
       Object.defineProperty(vars, name, {
         enumerable: true,
         get: () => box(),
         set: (v) => {
+          state.written = true
           box(v)
           for (const fn of watchers.get(key) || []) fn(v)
         },
       })
+      if (def && hasDescriptorExpression(def.defaultValue)) {
+        computedDefaults.push({ def, state, key, init: (v) => { box(v); for (const fn of watchers.get(key) || []) fn(v) } })
+      }
     }
     return vars
   }
@@ -371,6 +401,23 @@ export function createVbRuntime(opts) {
         if (adp && Array.isArray(rows) && rows.length) adp.setData(rows)
       }
     }
+  }
+
+  // expression defaults: evaluated once every variable exists, and again when what they read changes
+  // (until the variable is written). The listing header's record switcher is one: its selectObject
+  // carries the switcher's DataProvider — left as the raw '{{ … }}' text, JET called isEmpty() on a
+  // string and the binding of the page header failed.
+  for (const computed of computedDefaults) {
+    const evaluate = () => {
+      if (computed.state.written) return
+      try {
+        computed.init(evalDescriptorValue(computed.def.defaultValue, { $application, $page, $variables: $page.variables }))
+      } catch (e) {
+        if (typeof console !== 'undefined' && console.warn) console.warn('mateu-ui: the default of ' + computed.key + ' could not be evaluated', e)
+      }
+    }
+    evaluate()
+    for (const ref of descriptorReferencesOf(computed.def.defaultValue)) watch(ref, evaluate)
   }
 
   // the screen's title is the host's to show (its header, its breadcrumbs, document.title): every
@@ -636,7 +683,8 @@ export async function bootEmbedded(b, runtime, config) {
   runtime.$application.constants.mateuBaseUrl = config.baseUrl
   if (b.setElementModuleBase) b.setElementModuleBase(assetBaseOf(config.baseUrl))
   vars.mateuAppState = { ...(config.appContext || {}) }
-  const boot = await b.bootstrapShell(config.baseUrl, 'shell')
+  // the app context rides every request, the shell's first load included
+  const boot = await b.bootstrapShell(config.baseUrl, 'shell', vars.mateuAppState)
   const withoutApp = !b.bootstrapHasApp(boot)
   b.setMountWithoutApp(withoutApp)
   const reg = b.reduceContexts({ contexts: {}, stack: [], shell: null }, boot)
@@ -646,11 +694,37 @@ export async function bootEmbedded(b, runtime, config) {
   vars.mateuRegistry = reg
   const nav = b.shellNavOf(reg)
   vars.mateuShellSST = nav.serverSideType || ''
+  Object.assign(vars, embeddedShellVarsOf(nav, reg.shell, config))
   const firstLeaf = (nav.menuTree || []).find((entry) => !entry.hasChildren)
   const homeRoute = b.routeUnderMount(nav.homeRoute) || (firstLeaf ? firstLeaf.id : '') || (withoutApp ? '/' : '')
   vars.mateuHomeRoute = homeRoute
   await navigateEmbedded(runtime, config, homeRoute)
   emitEmbedded(EMBEDDED_EVENTS.ready, { route: vars.mateuSelectedNavId || vars.mateuSelectedRoute || '' })
+}
+
+/**
+ * The App shell the component draws with shell="true": the variables its header and menu band bind
+ * (the standalone shell's own — loadMateuShell sets the same ones): the logo (from the backend's
+ * ROOT, like every asset) and the title on the header, the menu as the top band. Every menu variant
+ * is drawn as that band (MENU_ON_TOP's subheader; HAMBURGER_SECTIONS keeps its sections in it): the
+ * drawer/rail navigators belong to a page, not to a block of one. Off: nothing of the shell.
+ */
+export function embeddedShellVarsOf(nav, shell, config) {
+  if (!config || !config.shell || !shell) {
+    return { mateuEmbeddedShell: false, mateuMenuSubheader: false, mateuMenuSections: false }
+  }
+  const tree = (nav && nav.menuTree) || []
+  const title = (nav && nav.title) || ''
+  return {
+    mateuEmbeddedShell: true,
+    mateuShellTitle: title,
+    mateuMenuTree: tree,
+    mateuNavItems: (nav && nav.items) || [],
+    mateuMenuSubheader: !!(title || tree.length),
+    mateuMenuSections: false,
+    mateuSectionList: [],
+    mateuShellLogo: shell.logo ? assetBaseOf(config.baseUrl) + shell.logo : '',
+  }
 }
 
 /** The host asked for a screen (the route/params/initialState properties): it always happens —
@@ -685,6 +759,7 @@ export const EMBEDDED_API = {
   CONTENT_ACTION_SINKS,
   installEmbeddedContentRuntime,
   bootEmbedded,
+  embeddedShellVarsOf,
   navigateEmbedded,
   setHostHeaderProvider,
   setHostCredentials,

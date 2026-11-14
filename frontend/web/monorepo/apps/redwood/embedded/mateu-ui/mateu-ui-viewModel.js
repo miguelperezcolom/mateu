@@ -5,8 +5,10 @@
  * Node; this file only gives them what only a browser has — Knockout observables, JET's
  * ArrayDataProvider, the element, its DOM events.
  *
- * The view binds against the SAME names a VB page sees ($application, $page, $variables,
- * $listeners): it is the content page of the standalone app, generated (make-embedded.mjs).
+ * The view is the content page of the standalone app, generated (make-embedded.mjs), with VB's
+ * context names renamed to the component's own ($application → $mateuApplication, $functions →
+ * $mateuFunctions…): under a real Visual Builder runtime the host page has its own $application,
+ * and the view must never depend on which one a binding sees.
  */
 define([
   'require',
@@ -15,8 +17,9 @@ define([
   './mateu-ui-bridge',
   './mateu-ui-chains',
   './mateu-ui-descriptors',
+  './mateu-ui-functions',
   'ojs/ojknockout',
-], (require, ko, ArrayDataProvider, bridge, chains, descriptors) => {
+], (require, ko, ArrayDataProvider, bridge, chains, descriptors, ContentPageModule) => {
   'use strict';
 
   /** VB's ArrayDataProvider2 variables, on JET's ArrayDataProvider over an observableArray. */
@@ -49,11 +52,32 @@ define([
       if (!paths[name]) missing[name] = wanted.paths[name];
     }
     if (!Object.keys(missing).length) return;
+    withIntegrity(rjs, wanted.integrity || {}, missing);
     const bundles = {};
     for (const [bundle, ids] of Object.entries(wanted.bundles || {})) {
       if (Object.keys(missing).some((p) => bundle.indexOf(p + '/') === 0)) bundles[bundle] = ids;
     }
     rjs.config({ paths: missing, bundles });
+  };
+
+  /** The third-party fallbacks (descriptors.requirejs.integrity) are loaded with their SRI hash:
+   *  requirejs creates the <script>, its onNodeCreated hook (chained after the page's) marks it. */
+  const withIntegrity = (rjs, integrity, added) => {
+    const urls = Object.keys(integrity).filter((url) => Object.values(added).some((p) => url === p + '.js' || url.indexOf(p + '/') === 0));
+    if (!urls.length) return;
+    const ctx = rjs.s && rjs.s.contexts && rjs.s.contexts._;
+    const previous = ctx && ctx.config ? ctx.config.onNodeCreated : undefined;
+    if (previous && previous.__mateuUiIntegrity) return;
+    const hook = function (node, config, moduleName, url) {
+      if (typeof previous === 'function') previous.call(this, node, config, moduleName, url);
+      const hash = integrity[String(url || '').split('?')[0]];
+      if (hash) {
+        node.setAttribute('integrity', hash);
+        node.setAttribute('crossorigin', 'anonymous');
+      }
+    };
+    hook.__mateuUiIntegrity = true;
+    rjs.config({ onNodeCreated: hook });
   };
 
   let active = null;
@@ -84,8 +108,19 @@ define([
       this._runtime.emitMessage = (n) => this._emit(bridge.EMBEDDED_EVENTS.message, {
         summary: n.summary || '', message: n.message || '', type: n.type || '', displayMode: n.displayMode || '',
       });
-      // the binding context of the view: $application, $page, $variables, $listeners, $flow
-      Object.assign(this, this._runtime.bindingContext);
+      // the binding context of the view, under the names make-embedded gave it (never VB's own:
+      // a VB host page has an $application of its own): $mateuApplication, $mateuPage,
+      // $mateuVariables, $mateuListeners, $mateuFlow and $mateuFunctions (the content page module)
+      const names = this._runtime.bindingContext;
+      this.$mateuApplication = names.$application;
+      this.$mateuPage = names.$page;
+      this.$mateuVariables = names.$variables;
+      this.$mateuListeners = names.$listeners;
+      this.$mateuFlow = names.$flow;
+      // the content page module's functions, and the shell page's the menu band binds (the bridge's)
+      const functions = new ContentPageModule();
+      for (const name of descriptors.shellFunctions || []) functions[name] = bridge[name];
+      this.$mateuFunctions = functions;
       // `route` is written back when the screen navigates inside the component: a host binding it
       // with {{ }} follows it, and setting it again later is a real change
       this._properties = context.properties;
@@ -125,6 +160,9 @@ define([
       };
       this._element.addEventListener('click', this._onClick);
       this._element.addEventListener('navigation-requested', this._onNavigationRequested);
+      this._onResize = () => this._applyPageMode();
+      window.addEventListener('resize', this._onResize);
+      this._applyPageMode();
       if (!this._booted) {
         this._booted = true;
         this._boot();
@@ -134,6 +172,7 @@ define([
     disconnected() {
       this._element.removeEventListener('click', this._onClick);
       this._element.removeEventListener('navigation-requested', this._onNavigationRequested);
+      window.removeEventListener('resize', this._onResize);
       if (active === this) {
         active = null;
         bridge.setEmbeddedHost(null);
@@ -145,6 +184,7 @@ define([
       const next = bridge.embeddedConfigOf(this._element);
       const previous = this._config;
       this._config = next;
+      if (context.property === 'shell') this._applyPageMode();
       // our own writeback of `route` (the screen navigated): already on display
       if (!this._booted || context.updatedFrom === 'internal') return;
       // the identity is read on every request: a new token needs no reload
@@ -173,6 +213,20 @@ define([
       const current = this._runtime.$application.variables.mateuSelectedNavId
         || this._runtime.$application.variables.mateuSelectedRoute || '';
       return bridge.navigateEmbedded(this._runtime, Object.assign({}, this._config, { route: current, params: {}, initialState: null }));
+    }
+
+    /** shell="true": the component is the page, so it scrolls itself (mateu-ui-embedded.css,
+     *  .mateu-ui-page) and takes the window's height from where it starts. Off: the host scrolls. */
+    _applyPageMode() {
+      const element = this._element;
+      const on = !!this._config.shell;
+      element.classList.toggle('mateu-ui-page', on);
+      if (!on) {
+        element.style.removeProperty('--mateu-ui-page-top');
+        return;
+      }
+      const top = element.getBoundingClientRect().top + (window.scrollY || 0);
+      element.style.setProperty('--mateu-ui-page-top', Math.max(0, Math.round(top)) + 'px');
     }
 
     _boot() {

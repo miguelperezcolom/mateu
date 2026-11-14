@@ -550,13 +550,18 @@ export function installRowClickSelectionGuard(doc = typeof document !== 'undefin
   doc.addEventListener('pointerdown', (e) => { lastRowPress = { target: e.target, at: Date.now() } }, true)
 }
 /** Whether the selection change of `table` comes from a click on a row that OPENS (not from its
- *  checkbox, nor from the keyboard): that change is to be undone. */
+ *  checkbox, nor from the keyboard): that change is to be undone. ONE undo per press: the press is
+ *  consumed, so the change the undo itself causes (the table fires selectedChanged again — at once,
+ *  inside the same call, where the listener runs synchronously, as in the embedded <mateu-ui>) is
+ *  not undone in turn: that ping-pong overflowed the stack in a VB 2701 host. */
 export function selectionIsRowOpen(table, now = Date.now()) {
   const t = lastRowPress.target
   if (!table || !t || now - lastRowPress.at > 1500 || typeof table.contains !== 'function' || !table.contains(t)) return false
   const cls = String((table.getAttribute && table.getAttribute('class')) || '')
   if (!/(^|\s)mateu-rows-open(\s|$)/.test(cls)) return false
-  return !!(t.closest && t.closest('.oj-table-data-cell, td')) && rowActionIsRows(t, null)
+  const opens = !!(t.closest && t.closest('.oj-table-data-cell, td')) && rowActionIsRows(t, null)
+  if (opens) lastRowPress = { target: null, at: 0 }
+  return opens
 }
 
 // ── PaymentPicker: the pick is the client's (the web keeps it in the element's state) ───────────

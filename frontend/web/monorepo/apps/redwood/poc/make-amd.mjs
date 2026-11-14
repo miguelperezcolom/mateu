@@ -474,6 +474,12 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     isSentinelHome,
     sectionOf,
     sectionHomeOf,
+    // the subheader band's bindings (shell-page.js, and the embedded <mateu-ui shell>'s $mateuFunctions)
+    subheaderItemsOf,
+    subheaderTitleOf,
+    subheaderClassOf,
+    subheaderItemClass,
+    sectionListSelection,
     ojIconOf,
     ojIconOrGenericOf,
     findAllByType,

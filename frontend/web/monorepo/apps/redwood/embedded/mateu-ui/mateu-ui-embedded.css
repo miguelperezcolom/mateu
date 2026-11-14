@@ -25,3 +25,53 @@ mateu-ui .mateu-ui-root {
   background-color: var(--oj-core-neutral-30, #f1efed);
   min-height: 12rem;
 }
+
+/* shell="true": the App shell the component draws on top of its content — Spectra's global header
+ * (the app's logo) and the shell's menu band under it, at the top of the component, not of the viewport */
+mateu-ui .mateu-embedded-shell {
+  display: block;
+  position: relative;
+}
+
+mateu-ui .mateu-embedded-shell .mateu-embedded-logo {
+  height: 22px;
+  display: block;
+}
+
+/* shell="true": the component IS the page (a VB root page holding only <mateu-ui>), so it is its own
+ * scroll container. A VB app's index sets `.vb-web-applayout-body { overflow-y: hidden }` and leaves
+ * scrolling to the root page's shell; with only <mateu-ui> on that page there is none, and a screen
+ * taller than the window was cut. The element fills its container (max-height: 100% when that has a
+ * height), else the window from where it starts (--mateu-ui-page-top, measured by the viewModel); the
+ * header + menu band stay pinned at its top. Overlays live in JET's popup layer (on <body>), so the
+ * scroll container does not clip them. Without shell the host page owns scrolling: none of this. */
+mateu-ui.mateu-ui-page {
+  display: block;
+  box-sizing: border-box;
+  height: calc(100vh - var(--mateu-ui-page-top, 0px));
+  height: calc(100dvh - var(--mateu-ui-page-top, 0px));
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+mateu-ui.mateu-ui-page .mateu-ui-root {
+  min-height: 100%;
+}
+
+mateu-ui.mateu-ui-page .mateu-embedded-shell {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--oj-core-bg-color-content, #fff);
+}
+
+/* the component owns the window: the busy bar and the FABs go back where the standalone app puts them */
+mateu-ui.mateu-ui-page .mateu-busy-bar {
+  position: fixed;
+}
+
+mateu-ui.mateu-ui-page .mateu-fabs {
+  position: fixed;
+}

@@ -1,0 +1,14 @@
+{
+  "description": "The page of the host VB app: a <mateu-ui> dropped from the Components palette, its properties typed in the Properties pane — base-url with a trailing space, as the owner typed it. ?baseUrl=&route= override them.",
+  "variables": {
+    "baseUrl": { "type": "string", "input": "fromUrl", "defaultValue": "https://museums.ec1.mateu.io " },
+    "route": { "type": "string", "input": "fromUrl", "defaultValue": "artworks" },
+    "shell": { "type": "boolean", "input": "fromUrl", "defaultValue": false }
+  },
+  "imports": {
+    "components": {
+      "mateu-ui": { "path": "resources/components/mateu-ui-@VERSION@/loader" }
+    }
+  },
+  "eventListeners": {}
+}

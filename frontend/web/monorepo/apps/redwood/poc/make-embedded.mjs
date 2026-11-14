@@ -30,7 +30,18 @@ const webApp = join(root, 'webApps', 'vbredwoodapp')
 export const SHELL_CHAINS = [
   'onMateuNavigate', 'retryMateuAction', 'dismissMateuError', 'showMessageToast',
   'showNotificationMessage', 'closeMessageBanner', 'runMateuMenuRules',
+  // shell="true": the menu band's (an option, the title → home, a card menu's popup)
+  'onMateuTopbarNav', 'onMateuSubheaderHome', 'toggleMateuWidgetPopup',
 ]
+
+/** The shell page's functions the menu band binds: the bridge's (navTree.mjs), which the
+ *  component's $mateuFunctions adds to the content page module's. */
+export const SHELL_FUNCTIONS = ['subheaderItemsOf', 'subheaderTitleOf', 'subheaderClassOf', 'subheaderItemClass', 'sectionListSelection']
+
+/** Variables of the component's own (not in the VB app's descriptors). */
+export const EMBEDDED_VARIABLES = {
+  mateuEmbeddedShell: { type: 'boolean', defaultValue: false, description: 'shell="true": the component draws the App shell (header + menu band)' },
+}
 
 /**
  * Module paths a Visual Builder runtime configures for the Spectra components (oj-sp depends on
@@ -41,6 +52,29 @@ export const SHELL_CHAINS = [
 export const HOST_FALLBACK_PATHS = {
   'oj-oars': 'https://static.oracle.com/cdn/oars/packs/oj-oars/2601.0.1/min',
   'oj-oacp': 'https://static.oracle.com/cdn/oars/packs/oj-oacp/2601.0.1/min',
+}
+
+/**
+ * Libraries the Spectra components require under an id their host may not map:
+ *   - `oj-fa-dom-purify/purify.min` (DOMPurify), an Oracle Fusion id neither JET nor Visual Builder
+ *     maps: oj-sp's hero-search-page, media-section and output-rich-text need it. In a VB app (2701
+ *     included) it is missing and those components failed to load;
+ *   - `punycode` (oj-sp's input-email), which Visual Builder's libraries define and a plain JET page
+ *     does not.
+ * Mapped, ONLY where the host has no path of its own, to the same library on cdnjs (never vendored
+ * — NOTICE.md), pinned with its SRI hash: the component puts it on the <script> requirejs creates
+ * (requirejs' onNodeCreated). A path is a folder (`<path>/purify.min.js`) or the module's own file
+ * (`<path>.js`).
+ */
+export const THIRD_PARTY_FALLBACKS = {
+  'oj-fa-dom-purify': {
+    path: 'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6',
+    integrity: { 'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.6/purify.min.js': 'sha512-YlctBG9PGZIhh9keoqI3eZkQM9T8QUbiBi7qNYAO/TUEo8jqWX5pLp5+x1cKRQDRzJ/lyGyJ9WUVNIRduxIIFw==' },
+  },
+  punycode: {
+    path: 'https://cdnjs.cloudflare.com/ajax/libs/punycode/1.4.1/punycode.min',
+    integrity: { 'https://cdnjs.cloudflare.com/ajax/libs/punycode/1.4.1/punycode.min.js': 'sha512-YZlXEJ9dOHnIn3LXSS3RpbhAtTQZWw2VOywaMsC8p7/0DyGu0gEf0pFhkQtE/i4pQpgGUDY7cicb401Tf/5sRA==' },
+  },
 }
 
 /** The only modules a chain may depend on — anything else must be thought about first. */
@@ -61,17 +95,78 @@ export function frameOf(shellHtml) {
   return shellHtml.slice(afterStart, end)
 }
 
-/** The component's view: the frame, with VB's router outlet replaced by the content page. The
- *  outlet's role="main" is NOT kept: the main landmark is the host page's. */
+/** The menu band of the shell page: between its two markers. */
+export function shellMenuOf(shellHtml) {
+  const start = shellHtml.indexOf('<!-- @embedded-shell-menu')
+  const end = shellHtml.indexOf('<!-- @end-embedded-shell-menu -->')
+  if (start < 0 || end < 0 || end < start) throw new Error('make-embedded: shell-page.html has no @embedded-shell-menu … @end-embedded-shell-menu')
+  return shellHtml.slice(shellHtml.indexOf('-->', start) + 3, end)
+}
+
+/** The App shell the component draws with shell="true" (embedded.mjs embeddedShellVarsOf): Spectra's
+ *  global header with the app's logo, and the shell page's menu band under it. */
+export function embeddedShellOf(shellHtml) {
+  return `<oj-bind-if test="[[ $application.variables.mateuEmbeddedShell ]]">
+  <div class="mateu-embedded-shell">
+    <oj-sp-global-header class="mateu-embedded-global-header" on-oj-sp-home-click="[[ $listeners.homeClicked ]]">
+      <div slot="start" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
+        <oj-bind-if test="[[ !!$application.variables.mateuShellLogo ]]">
+          <img :src="[[ $application.variables.mateuShellLogo ]]" alt="" class="oj-sm-margin-3x-end mateu-embedded-logo">
+        </oj-bind-if>
+      </div>
+    </oj-sp-global-header>
+${shellMenuOf(shellHtml)}
+  </div>
+</oj-bind-if>
+`
+}
+
+/** The component's view: the frame, with VB's router outlet replaced by the content page — and the
+ *  App shell above it, drawn only with shell="true". The outlet's role="main" is NOT kept: the main
+ *  landmark is the host page's. */
 export function embeddedViewOf(shellHtml, pageHtml) {
   const frame = frameOf(shellHtml)
   const outlet = /<oj-vb-content\b[^>]*>[\s\S]*?<\/oj-vb-content>/
   if (!outlet.test(frame)) throw new Error('make-embedded: the frame has no <oj-vb-content> outlet')
   const content = '<div class="mateu-embedded-content oj-flex-item" style="min-width:0">\n'
     + pageHtml + '\n</div>'
-  const body = frame.replace(outlet, () => content)
+  const shell = /@embedded-shell-menu/.test(shellHtml) ? embeddedShellOf(shellHtml) : ''
+  const body = shell + frame.replace(outlet, () => content)
   return '<!-- GENERATED by apps/redwood/poc/make-embedded.mjs from the standalone app\'s content page — do not edit -->\n'
-    + '<div class="mateu-ui-root oj-web-applayout-content-nopad">' + body + '</div>\n'
+    + '<div class="mateu-ui-root oj-web-applayout-content-nopad">' + withEmbeddedBindingNames(body) + '</div>\n'
+}
+
+/**
+ * The names a VB page binds against, and what the component's view calls them. Under a real
+ * Visual Builder runtime the component's view is evaluated by VB's binding evaluator, inside a VB
+ * page whose OWN $application/$page/$variables/$listeners/$functions/$flow exist: a view that kept
+ * those names would depend on which scope wins, and one the component did not provide at all
+ * ($functions, 3.0-beta.68) threw «$functions is not defined» and left the listing empty. So the
+ * view uses names of its own, which nothing but the component's viewModel defines.
+ */
+export const EMBEDDED_BINDING_NAMES = {
+  $application: '$mateuApplication',
+  $page: '$mateuPage',
+  $variables: '$mateuVariables',
+  $listeners: '$mateuListeners',
+  $functions: '$mateuFunctions',
+  $flow: '$mateuFlow',
+}
+
+/** The view with VB's context names replaced by the component's ($current, $event… are JET's). */
+export function withEmbeddedBindingNames(html) {
+  return html.replace(/\$(application|page|variables|listeners|functions|flow)(?![\w$])/g, (m) => EMBEDDED_BINDING_NAMES[m])
+}
+
+/** Every $name the view binds against (JET's own — $current, $event, $data… — included). */
+export function bindingNamesOf(html) {
+  return [...new Set([...html.matchAll(/(?:\[\[|\{\{)([\s\S]*?)(?:\]\]|\}\})/g)]
+    .flatMap((m) => [...m[1].matchAll(/(?<![\w$.])\$[A-Za-z_]\w*/g)].map((n) => n[0])))].sort()
+}
+
+/** The $functions.x the view calls. */
+export function pageFunctionsOf(html) {
+  return [...new Set([...html.matchAll(/\$mateuFunctions\.([A-Za-z_]\w*)/g)].map((m) => m[1]))].sort()
 }
 
 /** Every custom element tag the view uses. */
@@ -141,7 +236,8 @@ ${parts.join('\n')}
 // ── the style sheet ──────────────────────────────────────────────────────────────────────────
 
 // shell chrome: the component has none of it (the host's header, navigation, chat)
-const SHELL_ONLY = /oj-sp-simple-ui-shell|oj-sp-global-header|#pageContent|oj-sp-inappnav-visible|#mateuChatDrawer|mateu-chat|oj-sp-rw-chat|mateu-subheader|mateu-ask-|oj-sp-logo-global-header/
+// (the global header and the menu band stay: the component draws them with shell="true")
+const SHELL_ONLY = /oj-sp-simple-ui-shell|#pageContent|oj-sp-inappnav-visible|#mateuChatDrawer|mateu-chat|oj-sp-rw-chat|mateu-ask-/
 
 /** Splits on top-level commas (not inside :is(a, b) or [x="a,b"]). */
 function splitSelectors(text) {
@@ -292,14 +388,20 @@ export function componentFiles() {
   for (const name of SHELL_CHAINS) chainSources[name] = read(webApp, 'pages', 'shell-page-chains', name + '.js')
 
   const descriptors = {
-    app: { variables: app.variables, constants: app.constants, events: app.events },
+    app: { variables: { ...app.variables, ...EMBEDDED_VARIABLES }, constants: app.constants, events: app.events },
+    shellFunctions: SHELL_FUNCTIONS,
     // ONE page scope: the content page + the parts of the shell page the frame keeps
     pages: [
       { variables: mainPage.variables, eventListeners: mainPage.eventListeners },
       { variables: shellPage.variables, eventListeners: shellPage.eventListeners },
     ],
     requirejs: {
-      paths: { ...((app.requirejs || {}).paths || {}), ...HOST_FALLBACK_PATHS },
+      paths: {
+        ...((app.requirejs || {}).paths || {}),
+        ...HOST_FALLBACK_PATHS,
+        ...Object.fromEntries(Object.entries(THIRD_PARTY_FALLBACKS).map(([k, v]) => [k, v.path])),
+      },
+      integrity: Object.assign({}, ...Object.values(THIRD_PARTY_FALLBACKS).map((v) => v.integrity)),
       bundles: (app.requirejs || {}).bundles || {},
     },
     modules,
@@ -316,6 +418,8 @@ export function componentFiles() {
         + read(root, 'embedded', 'mateu-ui', 'mateu-ui-embedded.css'),
       'mateu-ui-bridge.js': read(webApp, 'resources', 'js', 'mateu-bridge.js'),
       'mateu-ui-chains.js': bundleChains(chainSources),
+      // the content page module: what the view's $functions.x calls (main-start-page.js, as it is)
+      'mateu-ui-functions.js': read(webApp, 'flows', 'main', 'pages', 'main-start-page.js'),
       'mateu-ui-descriptors.js': '/* GENERATED by apps/redwood/poc/make-embedded.mjs from the VB app descriptors — do not edit. */\n'
         + 'define([], () => (' + JSON.stringify(descriptors) + '));\n',
       'NOTICE.md': read(root, 'embedded', 'mateu-ui', 'NOTICE.md'),

@@ -323,6 +323,7 @@ test('a click on a row that OPENS is no selection; the checkbox still selects', 
   const table = { getAttribute: () => 'oj-sm-12 mateu-rows-open', contains: () => true }
   doc.listeners.pointerdown({ target: cell })
   assert.equal(selectionIsRowOpen(table), true)
+  assert.equal(selectionIsRowOpen(table), false, 'one undo per press: the change the undo causes is not undone again (stack overflow in VB 2701)')
   doc.listeners.pointerdown({ target: box })
   assert.equal(selectionIsRowOpen(table), false)
   doc.listeners.pointerdown({ target: cell })
