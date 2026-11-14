@@ -1,6 +1,6 @@
 import { numericCommitValue } from '@components/fieldValue'
 import { datePickerI18n } from "../fields/dateLocale.ts";
-import { appRouteHref, isExternalRoute, navigateToRoute, rowRouteOf } from '@infra/ui/rowRoute.ts'
+import { appRouteHref, isExternalRoute, leaveToRoute, rowRouteOf } from '@infra/ui/rowRoute.ts'
 import { safeHref } from '@infra/ui/safeNavigate.ts'
 import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn.ts";
 import { html, LitElement, nothing } from "lit";
@@ -507,7 +507,8 @@ export const columnRenderer = (item: any,
                     // and a middle click are the user asking for a new tab, and the href is real.
                     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
                     e.preventDefault()
-                    navigateToRoute(container, route)
+                    // it leaves the screen: unsaved changes ask first (N-8)
+                    leaveToRoute(container, route)
                 }}"
                 style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; color: var(--lumo-primary-text-color); text-decoration: none; cursor: pointer;"
                 @mouseover="${(e: MouseEvent) => { (e.currentTarget as HTMLElement).style.textDecoration = 'underline' }}"
