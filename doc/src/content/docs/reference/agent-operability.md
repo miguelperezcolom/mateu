@@ -221,6 +221,10 @@ There are two bindings:
 
 A code works once and dies after five minutes (or when a new one is asked for).
 
+Pairings add up: pairing the same tab with a second agent does not remove the first — each one is
+there because the user gave it a code. **Disconnect** removes them all. (Only the chat's binding
+replaces the previous one, since it belongs to the conversation.)
+
 ### The tools
 
 Listed only when push is on, after the operating and authoring tools:
