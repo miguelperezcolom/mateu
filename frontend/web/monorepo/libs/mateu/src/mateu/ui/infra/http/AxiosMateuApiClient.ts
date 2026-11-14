@@ -23,6 +23,10 @@ import { resolveSafeUrl } from '@infra/ui/safeNavigate.ts'
 import { rendererHeaders } from '@infra/http/rendererIdentity.ts'
 import { isStaleScreenRefusal, observeMateuResponse, STALE_SCREEN } from '@infra/http/buildWatch.ts'
 import { isMateuRefusal } from '@infra/http/requestPolicy.ts'
+import { backendKeyOf } from '@infra/http/backendKey.ts'
+import { buildOf } from '@infra/http/buildWatch.ts'
+import { noteBackendBuild } from '@infra/routeStructureCache.ts'
+import { sendWithCachedLayoutRecovery } from '@infra/http/cachedLayoutRecovery.ts'
 
 let abortControllers: AbortController[] = []
 /** What each in-flight call repeats: the loop breaker aborts ITS repetitions, nobody else's. */
@@ -378,17 +382,24 @@ export class AxiosMateuApiClient implements MateuApiClient {
             ...(options.embeddedChrome ? { embeddedChrome: options.embeddedChrome } : {}),
         }
         const idempotent = isIdempotentAction(actionId, options.idempotent)
-        const send = () => this.post(uri, payload, options.timeoutMillis, options.isStale, loopSignature)
+        // the retry of a request a cached screen made (cachedLayoutRecovery.ts) claims no structure
+        const sendOnce = (fresh: boolean) => this.post(uri, fresh ? { ...payload, knownStructureHash: undefined } : payload,
+            options.timeoutMillis, options.isStale, loopSignature)
             .then((response) => {
                 observeWireVersion(response.data)
                 // redeployed while the page was open? (buildWatch.ts)
                 observeMateuResponse(uri, response.headers)
+                // the structure cache keeps one namespace per build (routeStructureCache.ts)
+                noteBackendBuild(backendKeyOf(uri), buildOf(response.headers))
                 // an origin the app does not trust answers through the untrusted strip (R1)
                 return asAnsweredBy(uri, response.data as UIIncrement)
             }, (error: unknown) => {
+                noteBackendBuild(backendKeyOf(uri),
+                    buildOf((error as { response?: { headers?: unknown } } | undefined)?.response?.headers))
                 markStaleScreen(uri, error)
                 throw error
             })
+        const send = () => sendWithCachedLayoutRecovery(sendOnce, options.cachedLayout, actionId)
         return await this.wrap<UIIncrement>(
             () => this.sendWithRetry(send, idempotent, options.quiet, options.isStale, isForeignBaseUrl(baseUrl)), initiator, background,
             actionId, options.retry, options.quiet, options.isStale)

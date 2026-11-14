@@ -1,5 +1,9 @@
 package io.mateu.core.infra;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -174,6 +178,9 @@ public final class IndexPage {
     // group reference to replaceAll — an IllegalArgumentException, i.e. a 500 on every page load.
     html = html.replace("<!-- AQUIFAVICON -->", faviconOf(spec.favicon()));
     html = html.replace("AQUIELTITULODELAPAGINA", spec.title());
+    // which app this page is, for the renderer's client caches (ahead of the app's own head; the
+    // PWA head, added last, hashes it)
+    html = appHead(html, (spec.uiId() == null ? "" : spec.uiId()) + "|" + spec.path());
     if (!spec.extraHead().isEmpty()) {
       html = html.replace("</head>", spec.extraHead() + "</head>");
     }
@@ -193,6 +200,42 @@ public final class IndexPage {
             source,
             spec.publicBase()),
         spec.publicBase());
+  }
+
+  /** The name of the meta tag that tells the renderer which app a page is ({@link #appHead}). */
+  public static final String APP_META = "mateu-app";
+
+  /**
+   * An opaque fingerprint of an app: a short hash of {@code identity} (the {@code @UI} class and
+   * the mount path) and the Mateu version. Opaque so the page does not spell out class names.
+   */
+  public static String appFingerprint(String identity) {
+    try {
+      var digest = MessageDigest.getInstance("SHA-256");
+      digest.update(
+          (String.valueOf(identity) + "\n" + io.mateu.core.infra.versioning.MateuVersion.current())
+              .getBytes(StandardCharsets.UTF_8));
+      return HexFormat.of().formatHex(digest.digest()).substring(0, 16);
+    } catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  /**
+   * {@code html} with a {@code <meta name="mateu-app">} carrying the {@linkplain #appFingerprint
+   * fingerprint} of the app it serves. The renderer keeps its client caches (the route structure
+   * cache) per app: a page of another app served on the same origin before (localhost:8080 used by
+   * one app, then by the next) left screens there that name ITS view types, and painting them for
+   * this app sent those types to a server that refuses them (403 on every page the first app had
+   * visited). A page without {@code </head>}, or that already has the tag, is returned unchanged.
+   */
+  public static String appHead(String html, String identity) {
+    if (html == null || !html.contains("</head>") || html.contains("name=\"" + APP_META + "\"")) {
+      return html;
+    }
+    var meta = "<meta name=\"" + APP_META + "\" content=\"" + appFingerprint(identity) + "\">";
+    var at = html.indexOf("</head>");
+    return html.substring(0, at) + meta + html.substring(at);
   }
 
   /**

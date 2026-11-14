@@ -1,5 +1,6 @@
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import { ComponentState } from "@infra/ui/renderers/types.ts";
+import type { CachedLayoutGuard } from "@infra/http/cachedLayoutRecovery.ts";
 
 /**
  * Per-call transport knobs. All optional: omitting the object keeps the historical behaviour
@@ -57,6 +58,12 @@ export interface RunActionOptions {
      * from the first byte, and it is the last try: what it leaves running ends failed.
      */
     resumesTasks?: string[]
+    /**
+     * Set when the request was sent while its screen was a prediction of the structure cache: a
+     * 403/404 then drops the cache and is settled with the server's answer instead of being told as
+     * a refusal (cachedLayoutRecovery.ts).
+     */
+    cachedLayout?: CachedLayoutGuard
 }
 
 export interface MateuApiClient {

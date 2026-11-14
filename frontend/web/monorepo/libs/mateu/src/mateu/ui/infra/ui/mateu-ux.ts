@@ -25,7 +25,8 @@ import {applyPreloaded} from "@infra/ui/preloadedIncrement.ts";
 import { embeddingChromeOf, isWindowless } from "@infra/ui/embeddedChrome.ts";
 import {hasWelcomeBanner, isAppShell, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
 import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
-import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
+import {dropBackendStructures, getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
+import {cachedLayoutGuard, SeedTracker} from "@infra/http/cachedLayoutRecovery.ts";
 import {withoutResolvedMicroFrontends} from "@infra/resolvedMicroFrontends.ts";
 import {getStaticFragment, putStaticFragment} from "@infra/staticViewCache.ts";
 import {mergeOntoScreen} from "@infra/ui/fragmentMerge.ts";
@@ -147,6 +148,26 @@ export class MateuUx extends ConnectedElement {
      * until the authoritative fragment lands: an identical one only brings state and data.
      */
     private seededStructure: string | undefined
+
+    /**
+     * The cache seed on screen until the server settles it: a request its components fire meanwhile
+     * is refused-and-retried instead of told as "not allowed" when the cache was wrong about the app
+     * (cachedLayoutRecovery.ts). Read by nested uxs too (see seedTrackersAbove).
+     */
+    readonly seedTracker = new SeedTracker()
+
+    /** The seed trackers of the uxs this one is nested in, nearest first (across shadow roots). */
+    private seedTrackersAbove(): SeedTracker[] {
+        const trackers: SeedTracker[] = []
+        let node: Node | null = (this as unknown as Node).parentNode
+            ?? ((this as unknown as { host?: Node }).host ?? null)
+        while (node) {
+            const tracker = (node as unknown as { seedTracker?: unknown }).seedTracker
+            if (tracker instanceof SeedTracker) trackers.push(tracker)
+            node = node.parentNode ?? ((node as unknown as { host?: Node }).host ?? null)
+        }
+        return trackers
+    }
 
     /**
      * The component the page chrome below was last stamped from, so a view that re-reads itself
@@ -295,6 +316,8 @@ export class MateuUx extends ConnectedElement {
         e.stopPropagation()
         if (e instanceof CustomEvent) {
             if ((e as CustomEvent).detail.actionId == '') {
+                // the route load failed: the prediction on screen goes with it
+                this.seedTracker.settle('replaced')
                 this.fragment = {
                     targetComponentId: this.id,
                     data: {},
@@ -372,6 +395,13 @@ export class MateuUx extends ConnectedElement {
         }
         if (e.type == 'server-side-action-requested') {
                 const embedded = embeddingChromeOf(this)
+                // sent while a cache seed is on screen (this ux's or one it is nested in)? a 403/404
+                // then drops the cache and is settled with the server's answer, not told as a refusal
+                const baseUrl = this.baseUrl
+                const cachedLayout = cachedLayoutGuard(this.seedTracker,
+                    detail.initiator === (this as unknown as HTMLElement) && !detail.actionId,
+                    this.seedTrackersAbove(),
+                    () => dropBackendStructures(baseUrl))
                 let selectedService = service
                 if (detail.sse) {
                     selectedService = sseService
@@ -399,6 +429,7 @@ export class MateuUx extends ConnectedElement {
                         // an EMBEDDED micro frontend (MicroFrontend.chrome) says so on every
                         // request: its server then sends no window commands
                         embeddedChrome: embedded,
+                        cachedLayout,
                         // its answer dies silently if this ux has moved on to another view by then
                         // (a route load: also if a newer route load superseded it)
                         isStale: staleCheck(this.viewGeneration,
@@ -451,6 +482,7 @@ export class MateuUx extends ConnectedElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        this.seedTracker.settle('replaced')
         this.releaseFabAnchor?.()
         this.releaseFabAnchor = undefined
         this.removeEventListener('server-side-action-requested', this.actionRequestedListener)
@@ -529,6 +561,9 @@ export class MateuUx extends ConnectedElement {
                         // route (key unchanged) we keep both the live content AND its hash, so the
                         // request still carries knownStructureHash and the server can reply state-only.
                         const cached = getCachedStructure(cacheKey)
+                        // a seed of the previous navigation still pending will never be confirmed
+                        this.seedTracker.settle('replaced')
+                        if (cached) this.seedTracker.open()
                         this.currentStructureHash = cached?.hash
                         this.seededStructure = cached ? JSON.stringify(cached.component) : undefined
                         if (cached) {
@@ -635,6 +670,15 @@ export class MateuUx extends ConnectedElement {
         // Every fragment reaching here answers a request this ux sent under its current id
         // (ConnectedElement routes them by targetComponentId), so what it shows is this identity's.
         this.contentIdentity = uxIdentity(this.id, this.baseUrl)
+        if (this.seedTracker?.pending && fragment.action !== UIFragmentAction.Add) {
+            // the server's answer for the route on screen: a seed is a prediction no longer. It is
+            // confirmed when the answer keeps the structure (state-only, or the very same one).
+            const seededJson = this.seededStructure
+            this.seedTracker.settle(!fragment.component
+                || (seededJson !== undefined
+                    && seededJson === JSON.stringify(withoutResolvedMicroFrontends(fragment.component)))
+                ? 'confirmed' : 'replaced')
+        }
         if (!fragment.component && this.fragment?.component) {
             // A state/data-only fragment (e.g. a host-page push emitted while an embedded
             // mediator loads) must not blank the routed content — merge it onto the current
