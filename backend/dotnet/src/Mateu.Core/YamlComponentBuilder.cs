@@ -302,7 +302,14 @@ internal static class YamlComponentBuilder
             // A listing authored as data: rows from a REST source, fetched client-side (the yaml
             // starter's products page). Before 2026-10-17 it rendered "Unsupported component".
             "Listing" => BuildListing(map, partials, chain),
-            "Text" => new Text(Str(map, "text") ?? ""),
+            // container/size/noMargins as Java's Text record reads them (a `container: p` paragraph
+            // stayed a div before the message page's golden caught it)
+            "Text" => new Text(Str(map, "text") ?? "")
+            {
+                Container = Str(map, "container"),
+                Size = Str(map, "size"),
+                NoMargins = Bool(map, "noMargins"),
+            },
             // a C# member cannot share its record's name: the `markdown` key is MarkdownText
             "Markdown" => new Markdown { MarkdownText = Str(map, "markdown") ?? "", Style = Str(map, "style"), CssClasses = Str(map, "cssClasses") },
             "Form" => BuildForm(map, partials, chain),

@@ -32,6 +32,7 @@ internal static class PageTemplateLayout
             AdvancedCreateEditPage a => AdvancedCreateEdit(a, Content(), map),
             GuidedProcessPage p => [GuidedProcess(p, map)],
             DataManagementPage dm => [DataManagement(dm, form, map)],
+            MessagePage msg => [Message(msg, form, map)],
             _ => Content(),
         };
     }
@@ -39,7 +40,7 @@ internal static class PageTemplateLayout
     /// <summary>Whether the template draws the page's header itself (its title, subtitle and actions
     /// live in the template's banner): the form then carries no header and no toolbar of its own.</summary>
     public static bool OwnsHeader(Form form) =>
-        form.Template is WelcomePage or MultimediaContentPage or DataManagementPage or HeroSearchPage;
+        form.Template is WelcomePage or MultimediaContentPage or DataManagementPage or HeroSearchPage or MessagePage;
 
     /// <summary>The template's own values, for the wire; null for a free page.</summary>
     public static PageTemplateDto? DtoOf(IFormTemplate? template, string? pageTitle = null) => template switch
@@ -56,7 +57,7 @@ internal static class PageTemplateLayout
     {
         CollectionDetailPage or DataManagementPage => "collection",
         DashboardLandingPage => "dashboard",
-        WelcomePage or HeroSearchPage => "landing",
+        WelcomePage or HeroSearchPage or MessagePage => "landing",
         ItemOverviewPage or GeneralOverviewPage or FoldoutPage or MultimediaContentPage => "detail",
         GuidedProcessPage => "process",
         AdvancedCreateEditPage => "form",
@@ -75,6 +76,7 @@ internal static class PageTemplateLayout
         AdvancedCreateEditPage a => a.Detail,
         GuidedProcessPage p => p.Steps.SelectMany(s => s.Content),
         DataManagementPage dm => new[] { dm.End?.Content, dm.Bottom?.Content }.OfType<IComponent>(),
+        MessagePage msg => msg.Footer,
         _ => [],
     };
 
@@ -224,6 +226,43 @@ internal static class PageTemplateLayout
         return Client(new VerticalLayoutMetadataDto { Spacing = true, FullWidth = true, HorizontalAlignment = "STRETCH" },
             "data-management", page);
     }
+
+    /// <summary>Message page: the page (<c>message-page</c>, the full-bleed illustrated background —
+    /// every renderer draws it from its classes) holding ONE card (<c>message-card</c>): the form's
+    /// overline, its title as the page's h1, its subtitle, then the form's content
+    /// (<c>message-body</c>), its toolbar (<c>message-actions</c>) and the footer slot
+    /// (<c>message-footer</c>). The tone travels as a class (<c>mateu-message-page--&lt;tone&gt;</c>);
+    /// an own image and the card's width as custom properties the renderers read.</summary>
+    private static ComponentDto Message(MessagePage t, Form form, Func<IComponent, ComponentDto> map)
+    {
+        var card = new List<ComponentDto>();
+        if (!string.IsNullOrWhiteSpace(form.Overline)) card.Add(MessageText("message-overline", form.Overline, "p"));
+        if (!string.IsNullOrWhiteSpace(form.Title)) card.Add(MessageText("message-title", form.Title, "h1"));
+        if (!string.IsNullOrWhiteSpace(form.Subtitle)) card.Add(MessageText("message-subtitle", form.Subtitle, "p"));
+        card.Add(new ClientSideComponentDto(new VerticalLayoutMetadataDto { Spacing = true }, "message-body",
+            form.Content.Select(map).ToList(), null, "mateu-message-body", null));
+        if (form.Toolbar.Count > 0)
+            card.Add(new ClientSideComponentDto(new HorizontalLayoutMetadataDto { Spacing = true, Wrap = true }, "message-actions",
+                form.Toolbar.Select(b => map(b)).ToList(), null, "mateu-message-actions", null));
+        if (t.Footer.Count > 0)
+            card.Add(new ClientSideComponentDto(new HorizontalLayoutMetadataDto { Spacing = true, Wrap = true }, "message-footer",
+                t.Footer.Select(map).ToList(), null, "mateu-message-footer", null));
+        var classes = "mateu-message-page";
+        if (TemplateTones.ToneOf(t.Background) is { } tone) classes += " mateu-message-page--" + tone.ToString().ToLowerInvariant();
+        var style = new List<string>();
+        if (t.ImageOrNull() is { } image) style.Add("--mateu-message-page-image: url(\"" + image + "\");");
+        if (t.WidthOrNull() is { } width) style.Add("--mateu-message-card-width: " + width + ";");
+        var content = new ClientSideComponentDto(new VerticalLayoutMetadataDto { Spacing = true }, "message-card-content",
+            card, null, "mateu-message-card-content", null);
+        var messageCard = new ClientSideComponentDto(new CardMetadataDto(content) { Variants = [] }, "message-card", [],
+            null, "mateu-message-card", null);
+        return new ClientSideComponentDto(new VerticalLayoutMetadataDto(), "message-page", [messageCard],
+            style.Count == 0 ? null : string.Join(" ", style), classes, null);
+    }
+
+    private static ComponentDto MessageText(string id, string text, string container) =>
+        new ClientSideComponentDto(new TextMetadataDto(text) { NoMargins = true, Container = container }, id, [],
+            null, "mateu-" + id, null);
 
     /// <summary>A docked panel: its title over its content (no close button — nothing to toggle it with).</summary>
     private static ComponentDto Docked(DockedPanel panel, string style, Func<IComponent, ComponentDto> map)

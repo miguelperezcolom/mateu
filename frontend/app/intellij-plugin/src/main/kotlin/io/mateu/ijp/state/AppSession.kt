@@ -120,6 +120,25 @@ class AppSession(
     /** The view the user last navigated in — the screen the assistant is told about. */
     @Volatile var activeView: AppContext? = null
 
+    // ── what the desktop MCP server (io.mateu.ijp.mcp) reads of what the user sees ──
+    /** The app shell's metadata (`App`), as the navigator last rendered it. */
+    @Volatile var appMetadata: com.fasterxml.jackson.databind.JsonNode? = null
+
+    /** The last messages the screens showed (toasts, notices), newest last, bounded. */
+    val recentMessages: java.util.concurrent.ConcurrentLinkedDeque<io.mateu.ijp.mcp.ScreenSummary.Message> =
+        java.util.concurrent.ConcurrentLinkedDeque()
+
+    fun rememberMessage(message: io.mateu.ijp.mcp.ScreenSummary.Message) {
+        recentMessages.addLast(message)
+        while (recentMessages.size > 10) recentMessages.pollFirst()
+    }
+
+    /** An open Drawer/Dialog window: the context its body renders in and the component it shows. */
+    class OverlayView(@Volatile var context: AppContext, @Volatile var component: com.fasterxml.jackson.databind.JsonNode)
+
+    /** The open overlays, oldest first (the last one is in front). */
+    val overlayViews: java.util.concurrent.CopyOnWriteArrayList<OverlayView> = java.util.concurrent.CopyOnWriteArrayList()
+
     /** The app's MCP endpoint (`App.mcpUrl`), forwarded (absolute) with every chat message. */
     var appMcpUrl: String? = null
 
@@ -490,7 +509,7 @@ class AppSession(
 
     /** Opens the channel when the app has push on (and closes it when it has not). */
     fun syncAgentPush(wanted: Boolean) {
-        if (wanted && agentChannel == null) agentChannel = AgentChannelStream(this).also { it.start() }
+        if (wanted && agentChannel == null && !agentStopped) agentChannel = AgentChannelStream(this).also { it.start() }
         if (!wanted && agentChannel != null) {
             agentChannel?.stop()
             agentChannel = null
@@ -513,12 +532,82 @@ class AppSession(
         when (val effect = AgentPush.decide(message)) {
             is AgentPush.Effect.Status -> agentPairing.status(effect.paired, effect.agents)
             is AgentPush.Effect.UiEvent -> io.mateu.ijp.ui.AgentEvents.apply(this, effect.event, effect.detail)
+            is AgentPush.Effect.Query -> {
+                if (agentStopped) return
+                agentOperatingTouched()
+                agentScreen.submit(effect)
+            }
             AgentPush.Effect.Ignore -> Unit
         }
     }
 
+    // ── an agent reading and operating this window's screen (query messages) ──
+
+    /** Answers the channel's `query` messages ([AgentScreenQueries]). */
+    val agentScreen: AgentScreenQueries.Runner by lazy { AgentScreenQueries.Runner(this) }
+
+    /** Since when an agent operates this window (the notice's clock). EDT. */
+    val agentOperation = AgentScreenQueries.Operation()
+
+    /**
+     * Shows (true) or hides (false) the "An AI agent is operating this screen" notice, whose Stop
+     * calls [stopAgent]. Set by the host (a sticky IDE notification); EDT.
+     */
+    var agentOperatingPresenter: ((Boolean) -> Unit)? = null
+
+    /** The user pressed Stop: the channel stays closed until they connect an agent again. */
+    @Volatile var agentStopped: Boolean = false
+        private set
+
+    private var agentOperatingTimer: javax.swing.Timer? = null
+
+    private fun agentOperatingTouched(now: Long = System.currentTimeMillis()) {
+        if (agentOperation.touch(now)) agentOperatingPresenter?.invoke(true)
+        if (agentOperatingTimer == null) {
+            agentOperatingTimer = javax.swing.Timer(15_000) {
+                if (!agentOperation.active(System.currentTimeMillis())) {
+                    agentOperatingTimer?.stop()
+                    agentOperatingTimer = null
+                    agentOperatingPresenter?.invoke(false)
+                }
+            }.apply { start() }
+        }
+    }
+
+    /**
+     * Stop (the notice's button): every pairing removed (`_agent-unpair`) and this window's channel
+     * closed, so no agent — the user's own included — reaches it until "Connect AI" again. EDT.
+     */
+    fun stopAgent() {
+        agentOperation.stop()
+        agentOperatingTimer?.stop()
+        agentOperatingTimer = null
+        agentOperatingPresenter?.invoke(false)
+        disconnectAgents()
+        agentStopped = true
+        agentChannel?.stop()
+        agentChannel = null
+    }
+
+    /** A pairing asked for while the channel was stopped: sent once the channel opened again. */
+    private var pairWhenOpen: (() -> Unit)? = null
+
+    /** The channel delivered its first message (EDT): the problem clears, a waiting pairing goes. */
+    fun agentChannelOpened() {
+        agentPairing.channelOpened()
+        pairWhenOpen?.let { pairWhenOpen = null; it() }
+    }
+
     /** Asks for a new one-time pairing code (`_agent-pair`); the answer lands in [agentPairing]. */
     fun requestAgentPairing(now: () -> Long = System::currentTimeMillis) {
+        if (agentStopped) {
+            // connecting again after Stop: reopen the channel first (the server needs it registered)
+            agentStopped = false
+            agentPairing.requesting()
+            pairWhenOpen = { requestAgentPairing(now) }
+            if (agentPush && agentChannel == null) agentChannel = AgentChannelStream(this).also { it.start() }
+            return
+        }
         agentPairing.requesting()
         runAgentAction(AgentPush.PAIR_ACTION) { answer ->
             when (answer) {
@@ -634,6 +723,9 @@ class AppSession(
         tasks.closeAll()
         agentChannel?.stop()
         agentChannel = null
+        agentOperatingTimer?.stop()
+        agentOperatingTimer = null
+        agentScreen.dispose()
         runCatching { idleWatcher?.close() }
         idleWatcher = null
         executor.shutdownNow()

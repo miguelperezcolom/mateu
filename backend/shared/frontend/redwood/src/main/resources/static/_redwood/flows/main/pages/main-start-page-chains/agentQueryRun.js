@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions","resources/js/mateu-bridge"],(ActionChain,Actions,bridge)=>{"use strict";return class extends ActionChain{async run(context,{query}){const{$application,$page}=context;await bridge.runAgentQuery(query,bridge.agentPageOps({app:$application.variables,page:$page.variables,doc:document,callChain:(chain,params)=>Actions.callChain(context,{chain,params})}))}};});
+//# sourceMappingURL=agentQueryRun.js.map

@@ -309,6 +309,7 @@
          level of a federated shell nested). A remote section that did not answer comes out disabled
          and says why (hint). No brand accent: the band uses Redwood's neutral tokens.
          It sits outside the chat drawer: it does not move with it. -->
+    <!-- @embedded-shell-menu: down to @end-embedded-shell-menu, the menu band the <mateu-ui> component draws with shell="true" (poc/make-embedded.mjs) -->
     <oj-bind-if test="[[ $application.variables.mateuMenuSubheader ]]">
       <!-- with no content (HAMBURGER_SECTIONS on the home: no section on screen) the band
            COLLAPSES —no empty white strip is left—, and appears/disappears with a transition
@@ -430,6 +431,7 @@
         </div>
       </nav>
     </oj-bind-if>
+    <!-- @end-embedded-shell-menu -->
 
     <!-- HAMBURGER_SECTIONS: the sections menu is ANOTHER LEVEL, floating above the
          subheader and the content (it does not push them): a panel on the left under the global
@@ -523,6 +525,15 @@
         <oj-button id="mateuAgentNewCode" chroming="callToAction" hidden><oj-bind-text value="[[ $application.translations.appBundle.agentNewCode ]]"></oj-bind-text></oj-button>
       </div>
     </oj-dialog>
+
+    <!-- LIVE UI PUSH: while an AI agent reads or operates this screen (a query in the last two
+         minutes), a small non-modal band says so, with Stop: every pairing removed and this tab's
+         channel closed until the user connects an agent again. The bridge (poc/agentPush.mjs
+         paintAgentNotice) shows it and writes its text. -->
+    <div id="mateuAgentOperating" class="mateu-agent-operating" role="status" hidden>
+      <span id="mateuAgentOperatingText"></span>
+      <oj-button id="mateuAgentStop" chroming="outlined"><oj-bind-text value="[[ $application.translations.appBundle.agentStop ]]"></oj-bind-text></oj-button>
+    </div>
 
     <!-- OPEN ON MOBILE (@App(mobileQr)): the QR of https://mateu.io/add?u=<this UI>&r=<this screen>,
          the link as copyable text and a hint; on a phone (or a touch-first device) the link itself

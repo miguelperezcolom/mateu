@@ -1,0 +1,20 @@
+# Workshop, lab 06: a local identity provider with everything the lab needs already in it —
+# realm `workshop`, public client `mateu-ui` (Authorization Code + PKCE, no secret) and two users:
+#   ada / ada  (role manager)     bob / bob  (role clerk)
+#
+#   docker compose -f workshop/labs/06-sign-in/keycloak/compose.yml up -d
+#   open http://localhost:8180  (admin console: admin / admin)
+#
+# FOR THE WORKSHOP ONLY: dev mode, plain http, well-known passwords, a password grant enabled.
+# Pull the image before the session (docker compose ... pull) so it does not depend on the room's network.
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: ["start-dev", "--import-realm", "--http-port=8180"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "${KEYCLOAK_PORT:-8180}:8180"
+    volumes:
+      - ./realm-workshop.json:/opt/keycloak/data/import/realm-workshop.json:ro

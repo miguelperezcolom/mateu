@@ -23,8 +23,8 @@ import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM, tileLayerOf, OSM_TI
 import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { dashboardOf, dashboardDeclaresLayout, findAllByType, todoListOf, pageSubtitleOf } from './reduceContexts.mjs'
-import { hostContentPlanOf, archetypeVarsOf as archetypeVarsOfForTest, templateOwnsHeader as templateOwnsHeaderForTest } from './pageProjection.mjs'
-import { templatedGeneralOverviewOf, templatedCollectionDetailOf, templatedMultimediaOf, templatedGuidedProcessOf, templatedHeroSearchOf } from './core/overviews.mjs'
+import { hostContentPlanOf, archetypeVarsOf as archetypeVarsOfForTest, templateOwnsHeader as templateOwnsHeaderForTest, templateHostContentOf as templateHostContentOfForTest, pageLayoutOf as pageLayoutOfForTest } from './pageProjection.mjs'
+import { templatedGeneralOverviewOf, templatedCollectionDetailOf, templatedMultimediaOf, templatedGuidedProcessOf, templatedHeroSearchOf, templatedMessageOf } from './core/overviews.mjs'
 import { tocOf } from './toc.mjs'
 import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
@@ -915,6 +915,21 @@ test('cabecera fija: body.mateu-scrolled al dejar atrás la cabecera, y sólo cu
   win.scrollY = 120; listeners.scroll()
   assert.equal(toggles, 1)
   win.scrollY = 0; listeners.scroll()
+  assert.ok(!classes.has('mateu-scrolled'))
+})
+
+test('cabecera fija embebida: el scroll del contenido de <mateu-ui shell> cuenta; el de una tabla no', () => {
+  const listeners = {}
+  const classes = new Set()
+  const win = { scrollY: 0, addEventListener: (n, f) => { listeners[n] = f },
+    document: { body: { classList: { toggle: (c, on) => { on ? classes.add(c) : classes.delete(c) } } } } }
+  installStickyHeader(win)
+  const box = (cls, scrollTop) => ({ scrollTop, classList: { contains: (c) => c === cls } })
+  listeners.scroll({ target: box('oj-table-scroller', 300) })
+  assert.ok(!classes.has('mateu-scrolled'), 'a table scrolling inside the page is not the page')
+  listeners.scroll({ target: box('mateu-embedded-scroller', 100) })
+  assert.ok(classes.has('mateu-scrolled'))
+  listeners.scroll({ target: box('mateu-embedded-scroller', 0) })
   assert.ok(!classes.has('mateu-scrolled'))
 })
 
@@ -2963,6 +2978,56 @@ test('a page that DECLARES the Multimedia content page → a welcome banner (int
   assert.equal(tocOf(host).on, true)
 })
 
+test('a page that DECLARES the Message page → one card over the illustrated background, the chrome put away', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/message-page.golden.json'), 'utf-8'))
+  const host = { state: {}, data: {}, tree: golden.fragments[0].component }
+  const msg = templatedMessageOf(host)
+  assert.equal(msg.title, 'Check your email')
+  assert.equal(msg.subtitle, 'We sent a confirmation link to your inbox.')
+  // the tone and the own image (the layer's background), the card's width
+  assert.equal(msg.pageClass, 'mateu-message-page mateu-message-page--sienna mateu-message-page--image')
+  assert.equal(msg.image, 'url("/images/dunes.png")')
+  assert.equal(msg.width, 'min(100%, 32rem)')
+  // the card's body, then its actions and footer links, marked for app.css
+  assert.deepEqual(msg.content.map((b) => b.blockClass.split(' ').pop()), ['mateu-message-body', 'mateu-message-actions', 'mateu-message-footer'])
+  assert.ok(msg.content[1].items[0].isButtons)
+  assert.ok(msg.content[2].items[0].isRow)
+  const archetypes = archetypeVarsOfForTest(host)
+  assert.ok(archetypes.vars.mateuMsg)
+  assert.equal(templateOwnsHeaderForTest(archetypes), true)
+  assert.deepEqual(templateHostContentOfForTest(archetypes, [{ isPlain: true, items: [] }], [], host.tree), msg.content)
+  // the content container IS the card, edge to edge (the background is the page's)
+  const layout = pageLayoutOfForTest({ host })
+  assert.equal(layout.vars.mateuPageHostClass, 'mateu-message-card-host')
+  assert.equal(layout.vars.mateuPageMaxWidth, 'min(100%, 32rem)')
+  assert.equal(layout.pageWidth, 'edgeToEdge')
+  // without an own image: REDWOOD'S imagery — the tone's gallery illustration over its texture
+  // (sienna has a pair), or Spectra's themed image for a tone without one; a page with no tone gets
+  // the welcome's stable look (some dark-<tone> with its pair)
+  const withoutImage = (tree, tone) => {
+    const copy = JSON.parse(JSON.stringify(tree))
+    const walk = (n) => {
+      if (!n || typeof n !== 'object') return
+      if (n.id === 'message-page') { n.style = null; n.cssClasses = 'mateu-message-page' + (tone ? ' mateu-message-page--' + tone : '') }
+      Object.values(n).forEach(walk)
+    }
+    walk(copy)
+    return copy
+  }
+  const sienna = templatedMessageOf({ ...host, tree: withoutImage(host.tree, 'sienna') })
+  assert.equal(sienna.pageClass, 'mateu-message-page mateu-message-page--sienna')
+  assert.match(sienna.image, /^url\("https:\/\/static\.oracle\.com\/cdn\/fnd\/gallery\/.*illust-welcome-banner-fg-04\.png"\), url\(".*illust-welcome-banner-bg-04\.png"\)$/)
+  const slate = templatedMessageOf({ ...host, tree: withoutImage(host.tree, 'slate') })
+  assert.equal(slate.pageClass, 'mateu-message-page mateu-message-page--slate mateu-message-page--themed')
+  assert.match(slate.image, /spectra-ui\/oj-sp\/.*welcome-banner-abstract-1\.png/)
+  const untoned = templatedMessageOf({ ...host, tree: withoutImage(host.tree, null) })
+  assert.match(untoned.pageClass, /^mateu-message-page mateu-message-page--(ocean|pine|plum|sienna|teal)$/)
+  assert.match(untoned.image, /illust-welcome-banner-fg-0\d\.png/)
+  // any other page is not one
+  assert.equal(templatedMessageOf({ state: {}, data: {}, tree: { type: 'ClientSide', metadata: { type: 'Form' }, children: [] } }), null)
+})
+
 test('a page that DECLARES the Advanced create and edit template shows the anchor navigator (forced) unless it has a detail slot', () => {
   const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
     '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/create-edit-page.golden.json'), 'utf-8'))
@@ -3006,6 +3071,33 @@ test('a page that DECLARES the Hero search template → oj-sp-hero-search-page: 
   assert.deepEqual(templatedHeroSearchOf(host), { title: 'Search the galaxy', description: 'Find any character of the saga', collection: 'off' })
   // the template draws the header: the VB header stands aside
   assert.equal(templateOwnsHeaderForTest(archetypeVarsOfForTest(host)), true)
+})
+
+test('Redwood\'s colour strip is Spectra\'s: Mateu draws it only over the one page header it composes itself (the horizontal wizard)', () => {
+  const here = dirname(fileURLToPath(import.meta.url))
+  const page = readFileSync(join(here, '../webApps/vbredwoodapp/flows/main/pages/main-start-page.html'), 'utf-8')
+  const shell = readFileSync(join(here, '../webApps/vbredwoodapp/pages/shell-page.html'), 'utf-8')
+  const css = readFileSync(join(here, '../webApps/vbredwoodapp/resources/css/app.css'), 'utf-8')
+  // Spectra's headers (oj-sp-header-general-overview / -create-edit) and templates draw their own:
+  // the shell adds none over them (two strips on every page), and the page draws ONE, at the top of
+  // the horizontal wizard, whose title + train is Mateu's own header
+  assert.doesNotMatch(shell, /mateu-brand-stripe/)
+  const strips = page.match(/class="mateu-brand-stripe"/g) || []
+  assert.equal(strips.length, 1)
+  const at = page.indexOf('class="mateu-brand-stripe"')
+  assert.ok(page.lastIndexOf('mateuWizardStep.on && !!$application.variables.mateuWizard', at) > page.lastIndexOf('</oj-bind-if>', at),
+    'the strip sits inside the horizontal wizard\'s header block')
+  assert.ok(page.indexOf('mateu-wizard-top', at) - at < 200, 'right above the wizard\'s title')
+  // Spectra's contract: the theme's strip first, the gallery's generic strip (on the Oracle CDN) after,
+  // 12px / 6px on a phone, gone under a custom (non-Redwood) Spectra theme
+  const rule = css.slice(css.indexOf('.mateu-brand-stripe {'), css.indexOf('}', css.indexOf('.mateu-brand-stripe {')))
+  assert.match(rule, /background-image: var\(--oj-sp-theme-page-header-strip, var\(--mateu-brand-stripe-gallery\)\)/)
+  // the gallery url ONE var() deep (nested deeper, the build's minifier mangled its version)
+  assert.match(rule, /--mateu-brand-stripe-gallery: var\(--mateu-brand-stripe-image, url\('https:\/\/static\.oracle\.com\/cdn\/fnd\/gallery\/\d+\.\d+\.\d+\/images\/color-strip-generic-2x\.webp'\)\)/)
+  assert.match(rule, /height: 0\.75rem/)
+  assert.match(rule, /border-top-left-radius: var\(--oj-sp-headers-colortstrip-border-radius/)
+  assert.match(css, /max-width: 599px\) \{\s*\.mateu-brand-stripe \{ height: 0\.375rem; border-radius: 0; background-size: 22\.5rem; \}/)
+  assert.match(css, /body\.oj-sp-theme-appearance-override \.mateu-brand-stripe \{ display: none; \}/)
 })
 
 test('Item overview page as in Redwood\'s examples: a stacked body, sections with Spectra\'s header in the main slot', () => {

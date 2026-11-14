@@ -4528,6 +4528,8 @@
       }, {
         "$ref" : "#/$defs/ItemOverviewPage"
       }, {
+        "$ref" : "#/$defs/MessagePage"
+      }, {
         "$ref" : "#/$defs/MultimediaContentPage"
       }, {
         "$ref" : "#/$defs/WelcomePage"
@@ -6360,6 +6362,32 @@
         },
         "userColorIndex" : {
           "type" : "integer"
+        }
+      }
+    },
+    "MessagePage" : {
+      "description" : "A message page: one card, centred near the top of a full-bleed illustrated background, with no app chrome around it — for a confirmation, a \"check your email\", an error, a signed-out page or a simple entry page (a sign-in form).",
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "MessagePage"
+        },
+        "background" : {
+          "type" : "string"
+        },
+        "image" : {
+          "type" : "string"
+        },
+        "width" : {
+          "type" : "string"
+        },
+        "footer" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
         }
       }
     },

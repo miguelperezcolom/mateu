@@ -15,6 +15,7 @@ import { KeyShortcutRegistry, sharedKeyShortcuts } from './keyShortcuts.ts';
 import { CredentialScope, appStateFor } from './credentialScope.ts';
 import type { ChatNavigation, ChatPreviewTarget, ChatScreenSnapshot } from './chatStream.ts';
 import { AgentPushState } from './agentPush.ts';
+import { AgentScreenRegistry } from './agentScreen.ts';
 import { TaskCenter } from './taskCenter.ts';
 import { InboxStore, inboxChangeOf } from './inbox.ts';
 import { PRESENCE_ACTION, PresenceHub } from './presence.ts';
@@ -114,6 +115,8 @@ export class MateuSession {
   /** The UI session (id + channel secret) the assistant chat and the live-push channel share, and
    *  the paired state the channel reports (core/agentPush.ts). One per running app. */
   readonly agent: AgentPushState;
+  /** What an agent reading / operating this UI sees of it (core/agentScreen.ts): per app, shared by its islands. */
+  readonly agentScreen: AgentScreenRegistry;
   /** The long-running tasks this UI started (Progress commands), running and recently finished. */
   readonly tasks: TaskCenter;
   /** The notification inbox: the server's list + this session's own entries. */
@@ -332,6 +335,7 @@ export class MateuSession {
     this.keyShortcuts = storesFrom?.keyShortcuts ?? (own ? new KeyShortcutRegistry() : sharedKeyShortcuts);
     // per app instance, never process-wide: two hub UIs are two UI sessions
     this.agent = storesFrom?.agent ?? new AgentPushState();
+    this.agentScreen = storesFrom?.agentScreen ?? new AgentScreenRegistry();
     // per UI too: an island's task (its LongTask) shows in the app's task center
     this.tasks = storesFrom?.tasks ?? new TaskCenter();
     this.inbox = storesFrom?.inbox ?? new InboxStore();

@@ -1,0 +1,15 @@
+# build output
+target/
+bin/
+obj/
+build/
+.gradle/
+# python
+__pycache__/
+.pytest_cache/
+.venv/
+# IDEs
+.idea/
+*.iml
+.vscode/
+.DS_Store

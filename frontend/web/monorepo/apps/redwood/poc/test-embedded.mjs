@@ -14,13 +14,13 @@ import {
   parseJsonProp, navigationRouteOf, navigatesInside, evalDescriptorValue, evalDescriptorExpression, defaultOfVariable,
   createVbRuntime, embeddedActions, EmbeddedActionChain, setEmbeddedHost, isEmbedded, emitEmbedded, setDocTitle,
   setEmbeddedSeed, takeEmbeddedSeed, CONTENT_INSTALLERS, CONTENT_ACTION_SINKS, NOT_IN_EMBEDDED,
-  installEmbeddedContentRuntime, bootEmbedded, embeddedRouteOfLink,
+  installEmbeddedContentRuntime, bootEmbedded, embeddedRouteOfLink, embeddedNavigationRequestOf, embeddedShellVarsOf, hasDescriptorExpression, descriptorReferencesOf,
 } from './embedded.mjs'
 import { setHostHeaderProvider, setHostCredentials, hostHeadersFor, cleanHeaders, lastHostHeadersOf } from './hostHeaders.mjs'
 import { fetchWithPolicy, authHeadersOf } from './resilience.mjs'
 import {
   frameOf, embeddedViewOf, componentModulesOf, bundleChains, scopeCss, scopeSelector, zipOf, componentFiles,
-  SHELL_CHAINS, MODULE_ALIASES,
+  SHELL_CHAINS, SHELL_FUNCTIONS, EMBEDDED_VARIABLES, shellMenuOf, embeddedShellOf, MODULE_ALIASES, EMBEDDED_BINDING_NAMES, THIRD_PARTY_FALLBACKS, bindingNamesOf, pageFunctionsOf, withEmbeddedBindingNames,
 } from './make-embedded.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -224,6 +224,24 @@ test('a content link is resolved against the BACKEND, not the host page', () => 
   assert.equal(embeddedRouteOfLink(a('/orders'), {}, 'http://localhost:9005', host), '/orders')
 })
 
+test('a navigation-requested on the DOCUMENT (the header arrows, go-to-parent) is the component\'s', () => {
+  const inner = { nodeType: 1 }
+  const element = { nodeType: 1, contains: (n) => n === inner }
+  const doc = { nodeType: 9 }
+  const ev = (target, detail) => ({ target, detail })
+  const nav = (d) => (d.baseUrl ? { baseUrl: d.baseUrl } : undefined)
+  assert.deepEqual(embeddedNavigationRequestOf(ev(doc, { route: 'loans/43' }), element, nav),
+    { event: { detail: { route: 'loans/43', navigation: undefined } } }, 'the chains dispatch it on the document')
+  assert.deepEqual(embeddedNavigationRequestOf(ev(inner, { route: '/inbox', baseUrl: '/_inbox' }), element, nav).event.detail,
+    { route: '/inbox', navigation: { baseUrl: '/_inbox' } }, 'from inside: a widget link, with its pod')
+  assert.equal(embeddedNavigationRequestOf(ev({ nodeType: 1 }, { route: 'x' }), element, nav), null, 'elsewhere in the host page: the host\'s')
+  assert.equal(embeddedNavigationRequestOf(ev(doc, {}), element, nav), null, 'no route')
+  // the chains that navigate this way are the content page's: the component takes them (the viewModel listens on the document)
+  const vm = readFileSync(join(here, '..', 'embedded', 'mateu-ui', 'mateu-ui-viewModel.js'), 'utf8')
+  assert.match(vm, /document\.addEventListener\('navigation-requested'/)
+  assert.match(vm, /document\.removeEventListener\('navigation-requested'/)
+})
+
 // ── the runtime for VB's descriptors ──────────────────────────────────────────────────────
 
 test('descriptor expressions: the whole grammar the page descriptors use, and nothing else', () => {
@@ -312,6 +330,62 @@ test('listeners run their chains with $event/$current; Actions reach the runtime
   assert.deepEqual(rt.$page.variables.bannerADP.rows, [])
 })
 
+test('the Actions outside the runtime, a missing chain or element, a failing chain, notifications, refresh', async () => {
+  assert.throws(() => embeddedActions.fireEvent({}, { name: 'x' }), /outside the embedded runtime/)
+  const warnings = []
+  const errors = []
+  const was = { warn: console.warn, error: console.error }
+  console.warn = (...a) => warnings.push(a[0])
+  console.error = (...a) => errors.push(a[0])
+  try {
+    class Boom extends EmbeddedActionChain { async run() { throw new Error('boom') } }
+    class Stale extends EmbeddedActionChain { async run() { throw Object.assign(new Error('old'), { stale: true }) } }
+    const emitted = []
+    const before = globalThis.document
+    globalThis.document = { querySelector: (sel) => (sel === '#popup' ? { open: () => 'opened in the popup layer' } : null) }
+    try {
+      const rt = createVbRuntime({
+        app: { variables: {} },
+        pages: [{
+          variables: { bannerADP: { type: 'vb/ArrayDataProvider2', defaultValue: { keyAttributes: 'id' } } },
+          eventListeners: {
+            fails: { chains: [{ chain: 'boom' }, { chain: 'stale' }, { chain: 'missing' }] },
+            vbNotification: { chains: [{ chain: 'missing' }] },
+          },
+        }],
+        chains: { boom: Boom, stale: Stale },
+        observable, adpFactory, root: { querySelector: () => null },
+        emit: (name, detail) => { emitted.push([name, detail]); return true },
+      })
+      await rt.runListener('fails', {}, undefined)
+      await rt.runListener('nobody', {}, undefined)
+      assert.deepEqual(emitted.filter(([n]) => n === EMBEDDED_EVENTS.error), [[EMBEDDED_EVENTS.error, { chain: 'boom', message: 'boom' }]], 'a stale chain is no error')
+      assert.match(errors[0], /chain boom failed/)
+      assert.ok(warnings.some((w) => /no chain missing/.test(w)))
+      // an element found in the popup layer, outside the component; a missing one refuses
+      assert.equal(await embeddedActions.callComponentMethod(rt.context(), { selector: '#popup', method: 'open' }), 'opened in the popup layer')
+      await assert.rejects(embeddedActions.callComponentMethod(rt.context(), { selector: '#none', method: 'open' }), /no #none\.open\(\)/)
+      // a notification reaches the host's message sink, then the page's listeners
+      const messages = []
+      rt.emitMessage = (n) => messages.push(n)
+      await embeddedActions.fireNotificationEvent(rt.context(), { summary: 'Saved' })
+      assert.deepEqual(messages, [{ summary: 'Saved' }])
+      await embeddedActions.fireNotificationEvent(rt.context())
+      // an unknown data provider is ignored; a refresh refreshes
+      await embeddedActions.fireDataProviderEvent(rt.context(), { target: {}, refresh: null })
+      await embeddedActions.fireDataProviderEvent(rt.context(), { target: rt.$page.variables.bannerADP, refresh: null })
+      assert.equal(rt.adps.find((a) => a.provider === rt.$page.variables.bannerADP).refreshed, true)
+    } finally {
+      if (before === undefined) delete globalThis.document; else globalThis.document = before
+    }
+  } finally {
+    console.warn = was.warn
+    console.error = was.error
+  }
+  // a base url that is no url resolves no link
+  assert.equal(embeddedRouteOfLink({ getAttribute: () => '/x' }, {}, 'http://[bad', undefined), null)
+})
+
 test('navigation the SCREEN asks for: mateuNavigate first; internal goes on, cancelled/host does not', async () => {
   const runs = []
   class Nav extends EmbeddedActionChain { async run(context, params) { runs.push(params) } }
@@ -391,6 +465,12 @@ test('the view is the content page inside the shell frame, without the router ou
   const view = embeddedViewOf(shell, '<p id="content">page</p>')
   assert.match(view, /<p id="content">page<\/p>/)
   assert.doesNotMatch(view, /oj-vb-content|role="main"/)
+  // the shell band sits OUTSIDE the content box, which holds the whole frame (with shell="true" that
+  // box is the scroll container, so Spectra's stickies are relative to the content, not to the band)
+  const scroller = view.indexOf('<div class="mateu-embedded-scroller">')
+  assert.ok(scroller > 0, 'the content box')
+  assert.ok(view.indexOf('mateu-embedded-shell') < scroller, 'the shell band comes before it')
+  assert.ok(view.indexOf('mateu-error-band') > scroller && view.indexOf('<p id="content">') > scroller, 'the frame and the page inside it')
   assert.throws(() => frameOf('<div></div>'), /@embedded-frame/)
 })
 
@@ -420,7 +500,8 @@ test('the style sheet: our classes stay global, JET overrides scoped, page and s
   assert.equal(scopeSelector('.oj-sp-foldout-layout-children-container'), 'mateu-ui .oj-sp-foldout-layout-children-container')
   assert.equal(scopeSelector('body::after'), null)
   assert.equal(scopeSelector('html.mateu-theme-dark .oj-panel'), null)
-  assert.equal(scopeSelector('oj-sp-global-header oj-button'), null)
+  assert.equal(scopeSelector('oj-sp-global-header oj-button'), 'mateu-ui oj-sp-global-header oj-button', 'the global header stays: shell="true" draws one')
+  assert.equal(scopeSelector('oj-sp-simple-ui-shell .x'), null)
   const css = scopeCss('body { color: red }\n/* c */\n.a, .mateu-b { x: 1 }\n@media (max-width: 1px) { .c { y: 2 } body { z: 3 } }\n@keyframes k { to { opacity: 1 } }\n@media print { body { a: 1 } }')
   assert.match(css, /mateu-ui \.a,\n\.mateu-b \{ x: 1 \}/)
   assert.match(css, /@media \(max-width: 1px\) \{\nmateu-ui \.c \{ y: 2 \}\n\}/)
@@ -431,7 +512,7 @@ test('the style sheet: our classes stay global, JET overrides scoped, page and s
 test('the package: the files of a JET component, nothing from Oracle, a valid zip', () => {
   const { files, version } = componentFiles()
   assert.deepEqual(Object.keys(files).sort(), ['NOTICE.md', 'component.json', 'loader.js', 'mateu-ui-bridge.js', 'mateu-ui-chains.js',
-    'mateu-ui-descriptors.js', 'mateu-ui-styles.css', 'mateu-ui-view.html', 'mateu-ui-viewModel.js'])
+    'mateu-ui-descriptors.js', 'mateu-ui-functions.js', 'mateu-ui-styles.css', 'mateu-ui-view.html', 'mateu-ui-viewModel.js'])
   const meta = JSON.parse(files['component.json'])
   assert.equal(meta.name, 'mateu-ui')
   assert.equal(meta.version, version)
@@ -452,6 +533,116 @@ test('the package: the files of a JET component, nothing from Oracle, a valid zi
   assert.equal(zip.readUInt32LE(zip.length - 22), 0x06054b50)
   assert.equal(zip.readUInt16LE(zip.length - 22 + 10), 2)
   assert.deepEqual(zipOf({ 'b.txt': 'world', 'a.txt': 'hello' }), zip)
+})
+
+test('the view binds only names the component defines: no VB context name survives (a VB host has its own)', () => {
+  const { files } = componentFiles()
+  const view = files['mateu-ui-view.html']
+  const own = new Set(Object.values(EMBEDDED_BINDING_NAMES))
+  // JET's own context names (the binding context of a for-each / template, a listener's event)
+  const jet = new Set(['$current', '$event', '$data', '$parent', '$parents', '$root', '$index', '$context', '$element', '$props', '$properties', '$unique', '$uniqueId', '$slotCounts'])
+  const names = bindingNamesOf(view)
+  assert.ok(names.includes('$mateuApplication') && names.includes('$mateuFunctions'), names.join(' '))
+  for (const name of names) assert.ok(own.has(name) || jet.has(name), name + ' is bound by the view and defined by nobody')
+  for (const vb of Object.keys(EMBEDDED_BINDING_NAMES)) assert.doesNotMatch(view, new RegExp('\\' + vb + '(?![\\w$])'), vb + ' left in the view')
+  // every $mateuFunctions.x the view calls is a method of the content page module
+  const methods = pageFunctionsOf(view)
+  assert.ok(methods.includes('serverSorted'))
+  let Module
+  new Function('define', files['mateu-ui-functions.js'])((deps, f) => { Module = f() })
+  for (const m of methods) assert.ok(typeof Module.prototype[m] === 'function' || SHELL_FUNCTIONS.includes(m), '$functions.' + m)
+  // the viewModel provides every one of the names
+  for (const name of own) assert.match(files['mateu-ui-viewModel.js'], new RegExp('this\\.\\' + name + ' ='), name)
+  assert.equal(withEmbeddedBindingNames('[[ $page.x + $pageSize + $functions.f($current) ]]'), '[[ $mateuPage.x + $pageSize + $mateuFunctions.f($current) ]]')
+})
+
+test('a VB host: the JET version range accepts the 2701 line, missing third-party paths are mapped with SRI', () => {
+  const { files } = componentFiles()
+  const meta = JSON.parse(files['component.json'])
+  assert.equal(meta.jetVersion, '>=16.0.0', 'JET 2701.0.3-1 (VB 2701) is a version a <20 range refused')
+  const descriptors = files['mateu-ui-descriptors.js']
+  for (const [id, { path, integrity }] of Object.entries(THIRD_PARTY_FALLBACKS)) {
+    assert.ok(descriptors.includes(JSON.stringify(id) + ':' + JSON.stringify(path)), id)
+    for (const [url, hash] of Object.entries(integrity)) {
+      assert.ok(url === path + '.js' || url.startsWith(path + '/'), url)
+      assert.match(hash, /^sha512-/)
+    }
+  }
+  assert.ok(THIRD_PARTY_FALLBACKS['oj-fa-dom-purify'], 'oj-sp hero-search-page / media-section / output-rich-text need it')
+})
+
+test('shell="true": a boolean property, a change of it boots again', () => {
+  assert.equal(embeddedConfigOf({}).shell, false)
+  assert.equal(embeddedConfigOf({ shell: 'true' }).shell, true)
+  assert.equal(embeddedConfigOf({ shell: true }).shell, true)
+  const a = embeddedConfigOf({ baseUrl: 'https://x.io' })
+  assert.equal(propertyChangeOf(a, embeddedConfigOf({ baseUrl: 'https://x.io', shell: true })), 'boot')
+})
+
+test('shell="true": the header and menu band variables come from the App (logo from the backend root); off, nothing', () => {
+  const nav = { title: 'Museums', menuTree: [{ id: '/welcome', label: 'Home' }, { id: '/explore', label: 'Explore', hasChildren: true, children: [] }], items: [{ id: '/welcome' }] }
+  const on = embeddedShellVarsOf(nav, { logo: '/images/museum.svg' }, { shell: true, baseUrl: 'https://museums.ec1.mateu.io' })
+  assert.equal(on.mateuEmbeddedShell, true)
+  assert.equal(on.mateuShellTitle, 'Museums')
+  assert.equal(on.mateuMenuSubheader, true)
+  assert.equal(on.mateuMenuSections, false, 'every variant is drawn as the band')
+  assert.equal(on.mateuMenuTree.length, 2)
+  assert.equal(on.mateuShellLogo, 'https://museums.ec1.mateu.io/images/museum.svg')
+  const off = embeddedShellVarsOf(nav, { logo: '/x.svg' }, { shell: false, baseUrl: '' })
+  assert.deepEqual(off, { mateuEmbeddedShell: false, mateuMenuSubheader: false, mateuMenuSections: false })
+  assert.equal(embeddedShellVarsOf(nav, null, { shell: true }).mateuEmbeddedShell, false, 'a mount without an App has no shell to draw')
+})
+
+test('shell="true": the view carries the global header and the shell page\'s menu band, behind the flag; their chains and functions are shipped', () => {
+  const shellHtml = readFileSync(webApp('pages', 'shell-page.html'), 'utf8')
+  assert.match(shellMenuOf(shellHtml), /mateu-subheader-menu/)
+  assert.match(embeddedShellOf(shellHtml), /^<oj-bind-if test="\[\[ \$application\.variables\.mateuEmbeddedShell \]\]">/)
+  const { files } = componentFiles()
+  const view = files['mateu-ui-view.html']
+  assert.match(view, /<oj-sp-global-header class="mateu-embedded-global-header"/)
+  assert.match(view, /\$mateuApplication\.variables\.mateuEmbeddedShell/)
+  for (const name of ['onMateuTopbarNav', 'onMateuSubheaderHome', 'toggleMateuWidgetPopup']) assert.ok(SHELL_CHAINS.includes(name), name)
+  // the bridge RETURNS them (make-amd's list): a function only defined inside it is not reachable
+  const bridge = loadBridge()
+  for (const name of SHELL_FUNCTIONS) assert.equal(typeof bridge[name], 'function', 'bridge.' + name)
+  assert.ok(EMBEDDED_VARIABLES.mateuEmbeddedShell)
+  assert.match(files['mateu-ui-descriptors.js'], /"mateuEmbeddedShell"/)
+  assert.ok(JSON.parse(files['component.json']).properties.shell)
+  // every listener the view binds is a descriptor's
+  const listeners = new Set([...view.matchAll(/\$mateuListeners\.(\w+)/g)].map((m) => m[1]))
+  const declared = new Set(JSON.parse(files['mateu-ui-descriptors.js'].replace(/^[\s\S]*?define\(\[\], \(\) => \(/, '').replace(/\)\);\s*$/, '')).pages.flatMap((p) => Object.keys(p.eventListeners || {})))
+  for (const l of listeners) assert.ok(declared.has(l), 'listener ' + l)
+})
+
+test('a variable whose default is an expression is evaluated, follows its references and stops once written', () => {
+  const vals = []
+  const observable = (initial) => { let v = initial; const f = (n) => { if (n === undefined) return v; v = n; vals.push(n) }; return f }
+  const adpFactory = () => { const provider = { fetchFirst() {}, isEmpty: () => 'no' }; return { provider, setData() {}, add() {}, remove() {}, refresh() {} } }
+  const rt = createVbRuntime({
+    app: { variables: { header: { type: 'any', defaultValue: { label: 'Artwork' } } } },
+    pages: [{ variables: {
+      switcherADP: { type: 'vb/ArrayDataProvider2', defaultValue: { keyAttributes: 'id' } },
+      switcher: { type: 'any', defaultValue: { data: '{{ $page.variables.switcherADP }}', itemText: 'label', labelHint: '{{ $application.variables.header.label }}' } },
+    } }],
+    chains: {}, observable, adpFactory,
+  })
+  const s = rt.$page.variables.switcher
+  assert.equal(typeof s.data.isEmpty, 'function', 'data is the DataProvider, not the "{{ }}" text')
+  assert.equal(s.labelHint, 'Artwork')
+  rt.$application.variables.header = { label: 'Museum' }
+  assert.equal(rt.$page.variables.switcher.labelHint, 'Museum', 'follows what it reads')
+  rt.$page.variables.switcher = { data: null, labelHint: 'mine' }
+  rt.$application.variables.header = { label: 'Again' }
+  assert.equal(rt.$page.variables.switcher.labelHint, 'mine', 'a written variable keeps what was written')
+  assert.ok(hasDescriptorExpression({ a: ['{{ x }}'] }) && !hasDescriptorExpression({ a: 'plain' }))
+  assert.deepEqual(descriptorReferencesOf({ a: '{{ $variables.x }}', b: '{{ $application.variables.y.z }}' }).sort(), ['app.y', 'page.x'])
+})
+
+test('base-url and route typed with spaces (a VB Properties pane) are trimmed', () => {
+  const c = embeddedConfigOf({ baseUrl: 'https://museums.ec1.mateu.io ', route: ' artworks ' })
+  assert.equal(c.baseUrl, 'https://museums.ec1.mateu.io')
+  assert.equal(c.route, 'artworks')
+  assert.equal(embeddedConfigOf({ baseUrl: '  https://x.io/mateu/ \n' }).baseUrl, 'https://x.io/mateu')
 })
 
 // ── the REAL bridge and chains on the embedded runtime ────────────────────────────────────
@@ -533,6 +724,7 @@ test('end to end in Node: the properties become the requests the real chains sen
     assert.equal(sent[0].url, 'https://erp.acme.com/mateu/mateu/v3/sync/_no_route')
     assert.equal(sent[0].body.actionId, '__load__')
     assert.equal(sent[0].headers.Authorization, 'Bearer host-token')
+    assert.deepEqual(sent[0].body.appState, { hotel: 'H1' }, 'the app context rides the shell\'s first load too')
     // 2. the screen: the composed route, the seed and the app context, with the same identity
     const load = sent.find((s) => s.url.includes('/mateu/v3/sync/') && s.body.actionId !== '__load__')
     // …with the params that are not path params as its URL's query, which the server seeds

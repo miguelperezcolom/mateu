@@ -165,6 +165,12 @@ final class OtelTelemetry implements Telemetry {
       @Override
       public void end(RequestObservation ended) {
         var outcome = ended.outcome;
+        var endedTemplate = ended.routeTemplate();
+        if (!endedTemplate.equals(template)) {
+          // the path learnt that a segment names a record (a crud's record route)
+          span.setAttribute(ROUTE_TEMPLATE, endedTemplate);
+          span.updateName("mateu " + spanAction(action) + " " + endedTemplate);
+        }
         if (ended.view != null) {
           span.setAttribute(VIEW, ended.view);
         }
@@ -183,7 +189,7 @@ final class OtelTelemetry implements Telemetry {
           span.setStatus(StatusCode.ERROR);
         }
         span.end();
-        var key = TelemetryNames.metricKey(ended.route, ended.actionId, outcome);
+        var key = TelemetryNames.metricKeyOfTemplate(endedTemplate, ended.actionId, outcome);
         AttributesBuilder metric =
             Attributes.builder()
                 .put(ROUTE_TEMPLATE, key[0])

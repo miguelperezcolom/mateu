@@ -3343,6 +3343,34 @@
     ]
    }
   },
+  "MessagePage": {
+   "class": [
+    [
+     "background",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "image",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "width",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "footer",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "image_or_null": [],
+    "width_or_null": []
+   }
+  },
   "MessagePersistence": {
    "enum": [
     "INBOX",

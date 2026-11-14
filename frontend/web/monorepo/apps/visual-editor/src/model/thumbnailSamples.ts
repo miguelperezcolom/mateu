@@ -255,6 +255,7 @@ export const NO_THUMBNAIL: Readonly<Record<string, string>> = {
     GuidedProcessPage: 'a page template — a Form\'s `template:`, not a component placed on the canvas',
     AdvancedCreateEditPage: 'a page template — a Form\'s `template:`, not a component placed on the canvas',
     MultimediaContentPage: 'a page template — a Form\'s `template:`, not a component placed on the canvas',
+    MessagePage: 'a page template — a Form\'s `template:`, not a component placed on the canvas',
     FoldoutPage: 'a page template — a Form\'s `template:`, not a component placed on the canvas',
     CollectionDetailPage: 'a page template — a Form\'s `template:`, not a component placed on the canvas',
     GeneralOverviewPage: 'a page template — a Form\'s `template:`, not a component placed on the canvas',

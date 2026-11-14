@@ -150,6 +150,34 @@ public class ObservabilityTests
     }
 
     [Fact]
+    public async Task A_crud_record_load_is_measured_under_its_route_template_and_the_crud()
+    {
+        // "P-002" does not LOOK like an id (short, a letter): the crud's record route says it is one
+        using var recorder = new Recorder();
+        var (app, http) = await Start();
+        await using var _ = app;
+        ObsItems.Items.Add(new ObsItem { Id = "P-002", Name = "two bis" });
+        try
+        {
+            await Post(http, "/obs-items/P-002", "", typeof(ObsItems));
+        }
+        finally
+        {
+            ObsItems.Items.RemoveAll(i => i.Id == "P-002");
+        }
+
+        var activity = recorder.Request("__load__");
+        Assert.Equal("/obs-items/P-002", activity.GetTagItem("mateu.route"));
+        Assert.Equal("/obs-items/:id", activity.GetTagItem("mateu.route.template"));
+        Assert.Equal("mateu __load__ /obs-items/:id", activity.DisplayName);
+        Assert.Equal(typeof(ObsItems).FullName, activity.GetTagItem("mateu.view"));
+        Assert.Contains(recorder.Measurements, m => m.Name == "mateu.request.duration"
+            && (string?)m.Tags["mateu.route.template"] == "/obs-items/:id");
+        Assert.DoesNotContain(recorder.Measurements,
+            m => ((string?)m.Tags.GetValueOrDefault("mateu.route.template"))?.Contains("P-002") == true);
+    }
+
+    [Fact]
     public async Task A_user_error_and_a_bug_are_told_apart_and_the_bug_is_counted()
     {
         using var recorder = new Recorder();

@@ -11,6 +11,7 @@ photo}``) for a renderer that has the template itself (Redwood paints Spectra's)
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from .components import Component
@@ -163,6 +164,41 @@ class DataManagementPage(FormTemplate):
     bottom: DockedPanel | None = None
 
 
+@dataclass(frozen=True)
+class MessagePage(FormTemplate):
+    """A message page: ONE card, centred near the top of a full-bleed illustrated background, with no
+    app chrome — a confirmation, a "check your email", an error, a signed-out or a simple entry page.
+    Spectra has no such component; it is composed. The card is filled from the form: its title is the
+    card's heading, its subtitle and overline the lines around it, its content the card's body and its
+    toolbar the card's actions; the ``footer`` slot is the row of small links at the card's foot. OWNS
+    the header. ``background`` = a tone of the welcome palette (Spectra's ``dark-<tone>`` accepted;
+    ``auto`` or none keeps the default), ``image`` = an own illustration (a URL), ``width`` = the
+    card's width (a CSS length, 460px when absent)."""
+
+    background: str | None = None
+    image: str | None = None
+    width: str | None = None
+    footer: tuple[Component, ...] = ()
+
+    def __post_init__(self):
+        object.__setattr__(self, "footer", tuple(self.footer or ()))
+
+    def image_or_null(self) -> str | None:
+        """The own image's URL when it is safe inside a CSS ``url("…")`` (no quote, parenthesis or
+        backslash could end it), else None (Java's ``MessagePage.imageOrNull``)."""
+        if self.image is None or not str(self.image).strip():
+            return None
+        trimmed = str(self.image).strip()
+        return trimmed if re.fullmatch(r"[\w\s/.:%~?&=#+,@-]+", trimmed, re.ASCII) else None
+
+    def width_or_null(self) -> str | None:
+        """The card's width when it is a plain CSS length (``32rem``, ``520px``…), else None."""
+        if self.width is None or not str(self.width).strip():
+            return None
+        trimmed = str(self.width).strip()
+        return trimmed if re.fullmatch(r"\d+(\.\d+)?(px|rem|em|ch|vw|%)", trimmed, re.ASCII) else None
+
+
 #: Every template by its YAML ``type`` (= the Java record's simple name).
 TEMPLATES: dict[str, type] = {
     cls.__name__: cls
@@ -178,5 +214,6 @@ TEMPLATES: dict[str, type] = {
         GuidedProcessPage,
         DataManagementPage,
         HeroSearchPage,
+        MessagePage,
     )
 }

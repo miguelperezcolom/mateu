@@ -266,6 +266,22 @@ export class MateuViewController {
    *  remote's server leaves the window commands out (RunActionRqDto.embeddedChrome). */
   embeddedChrome: string | undefined = undefined;
 
+  /** Listing id → the page its listing shows now (what an agent reading the screen gets, core/agentScreen.ts). */
+  listingPages: Record<string, unknown> = {};
+  /** Listing id → how an agent drives its search box, filters, pager and rows (set by the listing). */
+  listingDrivers: Record<string, import('./agentScreen.ts').ListingDriver> = {};
+
+  /** The listing `id` shows `data` now (it repainted with it). */
+  noteListing(id: string, data: unknown, driver?: import('./agentScreen.ts').ListingDriver): void {
+    this.listingPages[id] = data;
+    if (driver) this.listingDrivers[id] = driver;
+  }
+
+  /** The window title this screen shows (SetWindowTitle, or the page's own once resolved). */
+  get shownTitle(): string {
+    return this.windowTitle;
+  }
+
   private dataHandlers: Record<string, (data: unknown) => void> = {};
   /** Field-scoped data (lookup `search-<field>` results arrive as `{ <fieldId>: page }`). */
   private fieldDataHandlers: Record<string, (data: unknown) => void> = {};

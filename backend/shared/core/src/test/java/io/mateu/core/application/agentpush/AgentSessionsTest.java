@@ -57,10 +57,21 @@ class AgentSessionsTest {
     sessions = new AgentSessions(clock, new Random(7), () -> rate, () -> max);
   }
 
+  /**
+   * Opens a session; a signed-in one is then PAIRED to its user's caller (being signed in as the
+   * session's user is not enough to reach it: only a caller it is bound to does).
+   */
   List<AgentSessions.Message> open(String id, String principal) {
     var received = new ArrayList<AgentSessions.Message>();
     sessions.open(id, "secret-" + id, principal, "/r", "vaadin", received::add, () -> {});
+    if (principal != null) pairUser(sessions, id, "secret-" + id, principal);
     return received;
+  }
+
+  /** Pairs the session to the caller signed in as {@code principal}, with the tab's own code. */
+  static void pairUser(AgentSessions registry, String id, String secret, String principal) {
+    var code = (String) registry.pairingCode(id, secret, principal).get("code");
+    registry.pair(AgentCaller.user(principal), code);
   }
 
   String handleOf(AgentCaller caller) {
@@ -108,6 +119,7 @@ class AgentSessionsTest {
       var push =
           new java.util.concurrent.FutureTask<Void>(
               () -> {
+                pairUser(sessions, "tab", "secret-tab", "alice");
                 sessions.deliver(alice, handleOf(alice), message(), "x", 1);
                 return null;
               });
@@ -120,21 +132,72 @@ class AgentSessionsTest {
     // the thread that was stuck delivers what queued up behind it, in order
     assertThat(delivered)
         .extracting(AgentSessions.Message::kind)
-        .containsExactly("status", "event");
+        .containsExactly("status", "status", "event");
   }
 
   @Test
-  void aSessionIsOnlyVisibleToItsOwnPrincipal() {
-    open("ui-1", "alice");
+  void aSessionIsOnlyReachableByACallerItIsBoundTo() {
+    sessions.open("ui-1", "secret-ui-1", "alice", "/r", "vaadin", m -> {}, () -> {});
     open("ui-2", "bob");
-    assertThat(sessions.visible(alice))
-        .extracting(AgentSessions.Entry::user)
-        .containsExactly("alice");
+    sessions.open("ui-3", "secret-ui-3", "alice", "/r", "vaadin", m -> {}, () -> {});
+    // signed in as the sessions' user is not enough
+    assertThat(sessions.visible(alice)).isEmpty();
+    pairUser(sessions, "ui-1", "secret-ui-1", "alice");
+    assertThat(sessions.visible(alice)).hasSize(1);
+    var mine = handleOf(alice);
+    // ui-3 is alice's too, bound to her chat's agent only: alice cannot reach it, the agent can
+    sessions.bindChat("ui-3", "secret-ui-3", "alice", "chat-agent-key-of-ui-3");
+    var chat = AgentCaller.agentKey("chat-agent-key-of-ui-3");
+    var other = handleOf(chat);
+    assertThat(sessions.visible(chat)).hasSize(1);
+    assertThat(other).isNotEqualTo(mine);
+    sessions.deliver(chat, other, message(), "", 1);
+    assertThatThrownBy(() -> sessions.deliver(alice, other, message(), "", 1))
+        .hasMessage("Unknown session \"" + other + "\".");
+    assertThatThrownBy(() -> sessions.deliver(chat, mine, message(), "", 1))
+        .hasMessage("Unknown session \"" + mine + "\".");
+    // an agent key sent by a signed-in agent is still that one agent
+    var signedInChat =
+        AgentCaller.of(
+            new io.mateu.core.testutil.FakeHttpRequest(null)
+                .withHeader(AgentPush.AGENT_KEY_HEADER, "chat-agent-key-of-ui-3")
+                .withPrincipal(
+                    io.mateu.core.testutil.TestIdentities.principal(Map.of("sub", "alice"))));
+    assertThat(sessions.visible(signedInChat))
+        .extracting(AgentSessions.Entry::session)
+        .containsExactly(other);
     assertThat(sessions.visible(anon)).isEmpty();
     var bobs = handleOf(bob);
     assertThatThrownBy(() -> sessions.deliver(alice, bobs, message(), "", 1))
         .isInstanceOf(UserFacingException.class)
         .hasMessage("Unknown session \"" + bobs + "\".");
+  }
+
+  @Test
+  void aChatBindingIsForOneConversationAndOneTab() {
+    var received = open("ui-1", null);
+    sessions.open("ui-2", "secret-ui-2", null, "/r", "vaadin", m -> {}, () -> {});
+    assertThatThrownBy(() -> sessions.bindChat("ui-1", "secret-ui-1", null, "short"))
+        .hasMessage(AgentPush.INVALID_AGENT_KEY);
+    assertThatThrownBy(() -> sessions.bindChat("ui-1", "wrong", null, "a-long-enough-chat-key"))
+        .hasMessage(AgentPush.CHANNEL_REFUSED);
+    sessions.bindChat("ui-1", "secret-ui-1", null, "a-long-enough-chat-key");
+    var first = AgentCaller.agentKey("a-long-enough-chat-key");
+    assertThat(sessions.visible(first)).hasSize(1);
+    assertThat(received.get(received.size() - 1).detail())
+        .isEqualTo(Map.of("paired", true, "agents", List.of("an agent")));
+    // a new conversation in the same tab replaces the old binding
+    sessions.bindChat("ui-1", "secret-ui-1", null, "the-next-conversation-key");
+    assertThat(sessions.visible(first)).isEmpty();
+    // the same key bound to another tab leaves the first one
+    var next = AgentCaller.agentKey("the-next-conversation-key");
+    sessions.bindChat("ui-2", "secret-ui-2", null, "the-next-conversation-key");
+    assertThat(sessions.visible(next)).hasSize(1);
+    assertThat(received.get(received.size() - 1).detail())
+        .isEqualTo(Map.of("paired", false, "agents", List.of()));
+    // unpairing removes it too
+    sessions.unpair("ui-2", "secret-ui-2", null);
+    assertThat(sessions.visible(next)).isEmpty();
   }
 
   @Test
@@ -161,10 +224,11 @@ class AgentSessionsTest {
     var second = new ArrayList<AgentSessions.Message>();
     sessions.open("ui-1", "s", "alice", "/b", "vaadin", second::add, () -> {});
     assertThat(replaced[0]).isTrue();
+    pairUser(sessions, "ui-1", "s", "alice");
     channel.close(); // the old stream's close does not disconnect the new one
     sessions.deliver(alice, handleOf(alice), message(), "", 1);
     assertThat(first).hasSize(1); // its status only
-    assertThat(second).hasSize(2);
+    assertThat(second).hasSize(3);
     assertThat(sessions.visible(alice).get(0).route()).isEqualTo("/b");
   }
 
@@ -243,12 +307,13 @@ class AgentSessionsTest {
         .hasMessage(AgentPush.RATE_LIMITED);
     clock.advance(Duration.ofSeconds(61));
     sessions.deliver(alice, handle, message(), "", 1);
-    assertThat(received).hasSize(1 + rate + 1);
+    assertThat(received).hasSize(1 + 1 + rate + 1); // status, paired, the messages
   }
 
   @Test
   void aDisconnectedSessionIsKeptForTheGraceTimeThenForgotten() {
     var channel = sessions.open("ui-1", "s", "alice", "/", "vaadin", m -> {}, () -> {});
+    pairUser(sessions, "ui-1", "s", "alice");
     var handle = handleOf(alice);
     channel.close();
     assertThat(sessions.visible(alice).get(0).connected()).isFalse();
@@ -268,10 +333,13 @@ class AgentSessionsTest {
     var c1 = sessions.open("ui-1", "s", "alice", "/", "vaadin", m -> {}, () -> {});
     sessions.open("ui-2", "s", "alice", "/", "vaadin", m -> {}, () -> {});
     sessions.open("ui-3", "s", "alice", "/", "vaadin", m -> {}, () -> {});
+    pairUser(sessions, "ui-2", "s", "alice");
+    pairUser(sessions, "ui-3", "s", "alice");
     assertThatThrownBy(() -> sessions.open("ui-4", "s", "alice", "/", "vaadin", m -> {}, () -> {}))
         .hasMessage(AgentPush.TOO_MANY_SESSIONS);
     c1.close();
     sessions.open("ui-4", "s", "alice", "/", "vaadin", m -> {}, () -> {});
+    pairUser(sessions, "ui-4", "s", "alice");
     assertThat(sessions.visible(alice)).hasSize(3).allMatch(AgentSessions.Entry::connected);
   }
 
@@ -287,7 +355,9 @@ class AgentSessionsTest {
 
   AgentSessions.Channel openAs(
       AgentSessions registry, String id, String principal, String address) {
-    return registry.open(id, "s", principal, address, "/", "vaadin", m -> {}, () -> {});
+    var channel = registry.open(id, "s", principal, address, "/", "vaadin", m -> {}, () -> {});
+    if (principal != null) pairUser(registry, id, "s", principal);
+    return channel;
   }
 
   @Test
@@ -443,5 +513,118 @@ class AgentSessionsTest {
     } finally {
       logger.detachAppender(logs);
     }
+  }
+
+  // ── query messages: the UI answers what it shows ─────────────────────────────────────────
+
+  /** A sink that answers each query with {@code answer} (as the tab's _agent-screen would). */
+  List<AgentSessions.Message> openAnswering(
+      String id, String principal, String secret, AgentSessions.Answer answer) {
+    var received = new ArrayList<AgentSessions.Message>();
+    sessions.open(
+        id,
+        "secret-" + id,
+        principal,
+        "/r",
+        "vaadin",
+        m -> {
+          received.add(m);
+          if ("query".equals(m.kind()) && answer != null) {
+            sessions.answer(id, secret, principal, (String) m.detail().get("requestId"), answer);
+          }
+        },
+        () -> {});
+    if (principal != null) pairUser(sessions, id, "secret-" + id, principal);
+    return received;
+  }
+
+  @Test
+  void aQueryIsAnsweredByTheSessionsOwnTab() {
+    var received =
+        openAnswering(
+            "ui-1", "alice", "secret-ui-1", AgentSessions.Answer.of(Map.of("route", "/x")));
+    var answer =
+        sessions.request(
+            alice, handleOf(alice), "describe-screen", Map.of(), "", 2, Duration.ofSeconds(2));
+    assertThat(answer.wasRefused()).isFalse();
+    assertThat(answer.screen()).containsEntry("route", "/x");
+    var query = received.get(received.size() - 1);
+    assertThat(query.kind()).isEqualTo("query");
+    assertThat(query.detail().keySet().iterator().next()).isEqualTo("requestId");
+  }
+
+  @Test
+  void anAnswerWithAnotherSecretIsRefusedAndTheWaitTimesOut() {
+    openAnswering("ui-1", "alice", "not-the-secret", null);
+    var handle = handleOf(alice);
+    // the tab's own answer, but with the wrong secret
+    var thrown = new java.util.concurrent.atomic.AtomicReference<Throwable>();
+    var t =
+        new Thread(
+            () -> {
+              try {
+                sessions.answer(
+                    "ui-1", "wrong", "alice", "whatever", AgentSessions.Answer.of(Map.of()));
+              } catch (Throwable e) {
+                thrown.set(e);
+              }
+            });
+    t.start();
+    try {
+      t.join();
+    } catch (InterruptedException e) {
+      throw new IllegalStateException(e);
+    }
+    assertThat(thrown.get()).hasMessage(AgentPush.CHANNEL_REFUSED);
+    assertThatThrownBy(
+            () ->
+                sessions.request(
+                    alice, handle, "describe-screen", Map.of(), "", 2, Duration.ofMillis(50)))
+        .hasMessage(String.format(AgentPush.NO_ANSWER, handle));
+  }
+
+  @Test
+  void closingTheChannelFailsAWaitingQueryAtOnce() throws Exception {
+    var received = new ArrayList<AgentSessions.Message>();
+    var channel =
+        sessions.open("ui-1", "secret-ui-1", "alice", "/r", "vaadin", received::add, () -> {});
+    pairUser(sessions, "ui-1", "secret-ui-1", "alice");
+    var handle = handleOf(alice);
+    var failure = new java.util.concurrent.atomic.AtomicReference<Throwable>();
+    var asker =
+        new Thread(
+            () -> {
+              try {
+                sessions.request(
+                    alice, handle, "describe-screen", Map.of(), "", 2, Duration.ofSeconds(30));
+              } catch (Throwable e) {
+                failure.set(e);
+              }
+            });
+    long started = System.nanoTime();
+    asker.start();
+    while (received.stream().noneMatch(m -> "query".equals(m.kind()))) Thread.sleep(5);
+    channel.close();
+    asker.join(5_000);
+    assertThat(failure.get()).hasMessage(String.format(AgentPush.NOT_CONNECTED, handle));
+    assertThat(Duration.ofNanos(System.nanoTime() - started)).isLessThan(Duration.ofSeconds(5));
+  }
+
+  @Test
+  void aStrangerCannotQueryASessionAndARefusalIsItsText() {
+    openAnswering(
+        "ui-1", "alice", "secret-ui-1", AgentSessions.Answer.refusal("unknownField", "x"));
+    var handle = handleOf(alice);
+    assertThatThrownBy(
+            () ->
+                sessions.request(
+                    bob, handle, "describe-screen", Map.of(), "", 2, Duration.ofSeconds(1)))
+        .hasMessage(String.format(AgentPush.UNKNOWN_SESSION, handle));
+    var answer =
+        sessions.request(alice, handle, "set-fields", Map.of(), "", 2, Duration.ofSeconds(1));
+    assertThat(AgentPush.refusal(answer.errorCode(), answer.errorId()))
+        .isEqualTo("Field \"x\" is not on the screen or cannot be edited.");
+    assertThat(AgentPush.refusal("unknownRow", "3\n"))
+        .isEqualTo("Row 3? is not on the current page of the listing.");
   }
 }

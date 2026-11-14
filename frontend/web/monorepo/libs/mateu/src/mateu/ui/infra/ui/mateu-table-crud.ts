@@ -1168,7 +1168,7 @@ export class MateuTableCrud extends LitElement {
             // its own — a red bulk action would otherwise render like any other button here.
             return stampButton(button, html`
                 <button class="crud-btn ${neutralButtonClass(button)}"
-                        data-action-id="${button.id}"
+                        data-action-id="${button.id || button.actionId}"
                         theme="${buttonTheme(button) || nothing}"
                         ?disabled="${button.disabled}"
                         @click="${() => this.handleToolbarButtonClick(button)}"
@@ -1652,7 +1652,7 @@ export class MateuTableCrud extends LitElement {
                     <div style="display: flex; flex-wrap: wrap; gap: var(--lumo-space-m, 1rem); width: 100%; box-sizing: border-box; align-items: flex-end; padding-bottom: var(--lumo-space-m, 1rem); ${EDGE_GUTTER}">
                         ${backButtons.map(button => html`
                             <button class="back-chevron"
-                                    data-action-id="${button.id}"
+                                    data-action-id="${button.id || button.actionId}"
                                     title="${this.evalLabel(button.label)}"
                                     aria-label="${this.evalLabel(button.label)}"
                                     @click="${() => this.handleToolbarButtonClick(button)}">

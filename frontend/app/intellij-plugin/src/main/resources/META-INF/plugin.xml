@@ -60,6 +60,10 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
              + properties in one view. Successor to the retired Swing split-preview. -->
         <fileEditorProvider implementation="io.mateu.ijp.visualeditor.MateuVisualEditorProvider"/>
         <postStartupActivity implementation="io.mateu.ijp.plugin.MateuFocusedModeActivity"/>
+        <!-- The desktop app's OWN MCP server (io.mateu.ijp.mcp; not JetBrains' IDE MCP server): OFF by
+             default, 127.0.0.1 + a token, started here only when the user turned it on. -->
+        <postStartupActivity implementation="io.mateu.ijp.mcp.DesktopMcpStartup"/>
+        <notificationGroup id="Mateu agent" displayType="STICKY_BALLOON"/>
         <!-- mateu://add?… / mateu://import?… opened on this machine reach the desktop HUB (io.mateu.ijp.hub);
              the installer registers the scheme with the OS for the hub variant only. -->
         <protocolHandler implementation="io.mateu.ijp.hub.MateuProtocolHandler"/>
@@ -100,6 +104,7 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <internalFileTemplate name="Mateu Page Item Overview"/>
         <internalFileTemplate name="Mateu Page Listing"/>
         <internalFileTemplate name="Mateu Page Matrix Grid"/>
+        <internalFileTemplate name="Mateu Page Message"/>
         <internalFileTemplate name="Mateu Page Planning Board"/>
         <internalFileTemplate name="Mateu Page Smart Search"/>
         <internalFileTemplate name="Mateu Page Todo List"/>

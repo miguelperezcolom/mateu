@@ -87,8 +87,83 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode, componentId: String =
         }
     }
 
+    // Drag and drop: what is on screen this paint (to hit-test a drop), and when the last drop
+    // happened (a release after a short drag may still arrive as a click — it must not open the card).
+    val columnPanels = mutableListOf<Pair<KanbanModel.Column, JPanel>>()
+    val cardPanels = mutableMapOf<String, JPanel>()
+    var lastDropAt = 0L
+
+    fun dropMoveAt(cardId: String, boardPoint: java.awt.Point): KanbanModel.Move? {
+        val spans = columnPanels.map { (_, p) -> p.x until p.x + p.width }
+        val i = KanbanModel.columnAt(spans, boardPoint.x)
+        if (i < 0) return null
+        val (column, panel) = columnPanels[i]
+        val y = boardPoint.y - panel.y
+        val middles = column.cards.filter { it.id != cardId }.mapNotNull { c -> cardPanels[c.id]?.let { it.y + it.height / 2 } }
+        return KanbanModel.dropMove(shown, cardId, column.id, KanbanModel.insertionIndex(middles, y))
+    }
+
+    /** Press on a card (or anything in it but its ⋯ button), drag past a few pixels, release over a
+     *  column: the card moves there, at the place between the cards it was dropped. Swing hands the
+     *  mouse to the DEEPEST component with a listener (the title label has one, for its tooltip), so
+     *  the listener goes on the card and on every child. */
+    fun installDrag(cardPanel: JPanel, cardId: String) {
+        var pressed: java.awt.Point? = null
+        var dragging = false
+        var highlighted: JPanel? = null
+        val idle = JBUI.Borders.empty(10)
+        fun highlight(p: JPanel?) {
+            if (p === highlighted) return
+            highlighted?.border = idle
+            p?.border = JBUI.Borders.compound(JBUI.Borders.customLine(uxAccent(), 2), JBUI.Borders.empty(8))
+            highlighted = p
+        }
+        val listener = object : java.awt.event.MouseAdapter() {
+            override fun mousePressed(e: java.awt.event.MouseEvent) {
+                pressed = if (javax.swing.SwingUtilities.isLeftMouseButton(e)) javax.swing.SwingUtilities.convertPoint(e.component, e.point, board) else null
+                dragging = false
+            }
+            override fun mouseDragged(e: java.awt.event.MouseEvent) {
+                val start = pressed ?: return
+                val p = javax.swing.SwingUtilities.convertPoint(e.component, e.point, board)
+                if (!dragging && start.distance(p) < JBUI.scale(5)) return
+                if (!dragging) {
+                    dragging = true
+                    board.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.MOVE_CURSOR)
+                    (e.component as? JComponent)?.cursor = board.cursor
+                }
+                val spans = columnPanels.map { (_, c) -> c.x until c.x + c.width }
+                highlight(columnPanels.getOrNull(KanbanModel.columnAt(spans, p.x))?.second)
+                board.scrollRectToVisible(java.awt.Rectangle(p.x - JBUI.scale(40), 0, JBUI.scale(80), 1))
+            }
+            override fun mouseReleased(e: java.awt.event.MouseEvent) {
+                val wasDragging = dragging
+                pressed = null
+                dragging = false
+                highlight(null)
+                board.cursor = java.awt.Cursor.getDefaultCursor()
+                (e.component as? JComponent)?.cursor = if (e.component === cardPanel && cardPanel.getClientProperty(CARD_OPENS_KEY) == true)
+                    java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR) else null
+                if (!wasDragging) return
+                lastDropAt = System.currentTimeMillis()
+                val move = dropMoveAt(cardId, javax.swing.SwingUtilities.convertPoint(e.component, e.point, board)) ?: return
+                // after this event: the repaint replaces the very component the mouse is on
+                javax.swing.SwingUtilities.invokeLater { commit(move) }
+            }
+        }
+        fun attach(c: java.awt.Component) {
+            if (c is javax.swing.AbstractButton) return // the ⋯ button keeps its own click
+            c.addMouseListener(listener)
+            c.addMouseMotionListener(listener)
+            if (c is java.awt.Container) c.components.forEach { attach(it) }
+        }
+        attach(cardPanel)
+    }
+
     paint = {
         board.removeAll()
+        columnPanels.clear()
+        cardPanels.clear()
         shown.forEachIndexed { i, column ->
             if (i > 0) board.add(javax.swing.Box.createHorizontalStrut(JBUI.scale(12)))
             // Fixed width, content height: the old `preferredSize = (220, preferredSize.height)` was
@@ -131,10 +206,12 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode, componentId: String =
                 }
                 if (card.badge.isNotBlank()) cardPanel.addStacked(JBLabel(plain(card.badge)), 0)
                 if (card.actionId.isNotBlank() || KanbanModel.cardRouteOf(cardRoute, card) != null) {
-                    cardPanel.activatable { open(card) }
+                    cardPanel.putClientProperty(CARD_OPENS_KEY, true)
+                    cardPanel.activatable { if (System.currentTimeMillis() - lastDropAt > 400) open(card) }
                 }
                 if (moveActionId.isNotBlank() && card.id.isNotBlank() && column.id.isNotBlank()) {
-                    // the ⋯ button, a right click or Shift+F10 open the Move popup (no drag on Swing yet)
+                    // dragged with the mouse (installDrag below); the ⋯ button, a right click or
+                    // Shift+F10 open the Move popup — the keyboard way
                     val more = javax.swing.JButton("⋯").apply {
                         isBorderPainted = false
                         isContentAreaFilled = false
@@ -151,9 +228,12 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode, componentId: String =
                     }
                     titleRow.add(more, java.awt.BorderLayout.EAST)
                     cardPanel.componentPopupMenu = movePopup(card, column.id)
+                    installDrag(cardPanel, card.id)
                 }
+                cardPanels[card.id] = cardPanel
                 col.addStacked(cardPanel, 6)
             }
+            columnPanels += column to col
             board.add(col)
         }
         board.revalidate()
@@ -308,3 +388,6 @@ fun renderResourceGrid(r: ComponentRenderer, metadata: JsonNode): JComponent {
 
 /** The client property naming the card a Move button belongs to (focus after a move). */
 private const val CARD_MOVE_KEY = "mateu.kanbanCardId"
+
+/** Set on a card that opens on a click (it keeps its hand cursor after a drag). */
+private const val CARD_OPENS_KEY = "mateu.kanbanCardOpens"

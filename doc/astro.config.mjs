@@ -91,6 +91,7 @@ export default defineConfig({
 						{ slug: 'csharp-user-manual', label: 'Quickstart: C#' },
 						{ slug: 'python-user-manual', label: 'Quickstart: Python' },
 						{ slug: 'build-a-full-backoffice-in-10-minutes', label: 'A full backoffice in 10 minutes' },
+						{ slug: 'workshop', label: 'Hands-on workshop' },
 						{
 							label: 'About the project',
 							collapsed: true,
@@ -237,6 +238,7 @@ export default defineConfig({
 										{ slug: 'ux-patterns/wizard' },
 										{ slug: 'ux-patterns/dashboard' },
 										{ slug: 'ux-patterns/welcome-page' },
+										{ slug: 'ux-patterns/message-page' },
 										{ slug: 'ux-patterns/workspace' },
 										{ slug: 'ux-patterns/task-centric', label: 'Task-Centric Page' },
 										{ slug: 'ux-patterns/front-office', label: 'Front-Office Screens' },
@@ -546,6 +548,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/mobile-app', label: 'Mobile: Open on mobile (QR)' },
 						{ slug: 'native', label: 'Desktop: IntelliJ (and native overview)' },
 						{ slug: 'native/desktop-app', label: 'Desktop: the Mateu app' },
+						{ slug: 'native/white-label', label: 'Your own app (white label, no fork)' },
 						{ slug: 'design-systems/branding-and-design-tokens', label: 'Branding & design tokens' },
 						{ slug: 'design-systems/accent-strip', label: 'Accent colour' },
 						{

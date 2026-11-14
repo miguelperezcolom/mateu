@@ -30,6 +30,7 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         // Publish the app menu/title for the IDE hosts (toolbar widget, Search Everywhere actions)
         // and nudge the action system so they pick it up.
         session.appMenu = metadata.path("menu")
+        session.appMetadata = metadata
         session.appTitle = metadata.text("title")
         session.contextSelectors = metadata.path("contextSelectors").takeIf { it.isArray && !it.isEmpty }
         // the signed-in user (AppDto.user, display only): the user menu at the top of the navigator

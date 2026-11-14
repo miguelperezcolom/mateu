@@ -219,6 +219,7 @@ filled with the record's data (`${state.x}`) — is the **page**.
 | `DataManagementPage` | `oj-sp-data-management-page` | `end`, `bottom` (`DockedPanel`: `id`, `title`, `content`, `size`, `open` — shown while open; a YAML page has no server to toggle them) | the form's `content` is the data view (a `Listing`, a grid…); its toolbar sits over the data; its title heads the page |
 | `DashboardLandingPage` | `oj-sp-dashboard-landing-page` | — | `kpi` (the scoreboard's `MetricCard`s); the form's `content` is the main area (one `DashboardPanel` per chart or list) |
 | `MultimediaContentPage` | composed: `oj-sp-header-welcome-banner` + sections + the vertical anchor navigator (Spectra ships no `oj-sp-multimedia-content-page` in 2604) | `backgroundColor` (as `WelcomePage`) | the form's `content` is the sections (`Card` + `mateu-section`); the banner is the form's title/subtitle/overline/toolbar |
+| `MessagePage` | composed (Spectra has no component for it): one card on Redwood's Neutral 10 surface near the top of a full-bleed background, the welcome banner's tone and gallery illustration; no app chrome | `background` (a tone, as `WelcomePage`'s `backgroundColor`; `auto`/none = the default illustration), `image` (your own background image URL, wins), `width` (the card's width, a CSS length; 460px when absent) | `footer` (the small links at the card's foot); the form's `content` is the card's body (text, links, fields, buttons), its `title` the card's h1, its `subtitle`/`overline` the lines around it, its `toolbar` the card's actions |
 | `WelcomePage` | `oj-sp-welcome-page` | `backgroundColor` (Spectra's `dark-ocean` … `dark-sienna`, or the bare tone; `auto`/none = default) | the form's `content` is the default slot (the tiles under the banner) |
 
 The rest of the template comes from the `type: Form` that carries it: its `title`/`subtitle` are
@@ -279,9 +280,43 @@ content:                     # the template's main slot
   on the form (`template: {type, avatar, photo}`).
 - It works served by the **Java** backend, pre-rendered into a static bundle and expanded in the
   browser from a `specsOnly` bundle. The .NET and Python YAML builders do not read `template:` yet.
-- `template:` is **experimental** (`@Experimental("page templates (3.0 beta)")`). The eleven templates
+- `template:` is **experimental** (`@Experimental("page templates (3.0 beta)")`). The twelve templates
   in the table above are available; the IDEs' **Item Overview** page template writes `template:` for you.
 - Demo: the record pages of `demo/demo-starwars` (`person.yaml`, `planet.yaml`, `film.yaml`…).
+
+### A message page — `MessagePage`
+
+One card over an illustrated background, and nothing else on screen: a confirmation, "check your
+email", an error, a signed-out page, or a simple entry page such as a sign-in. The page **owns the
+viewport** — while it is on screen the app shell puts its header, menu and floating buttons away (a
+route of any app can be one; the chrome comes back on the next page), and the page is drawn edge to
+edge. The card sits near the top (not vertically centred), 460px wide, on the design system's light
+surface; on a phone it takes the width with the usual 16px gutters.
+
+```yaml
+type: Form
+title: Check your email                    # the card's h1
+subtitle: Your visit is almost booked.
+toolbar:                                   # the card's actions (one primary spans the card)
+  - {type: Button, label: Back to the museums, buttonStyle: primary, actionable: {type: RouteLink, route: welcome}}
+template:
+  type: MessagePage
+  background: sienna                       # optional: tints the illustration
+  footer:                                  # the small links at the card's foot
+    - {type: Anchor, text: Accessibility, url: /accessibility}
+    - {type: Anchor, text: Privacy, url: /privacy}
+content:                                   # the card's body: text, links, fields, buttons
+  - {type: Markdown, markdown: "We sent a confirmation link to your inbox. Did not get it? [Try again](/resend)."}
+```
+
+The card's body holds any components, so a sign-in step is the same template with a field:
+`content: [{type: FormField, id: username, label: Username or email, required: true}, {type: Anchor, text: "Forgot username?", url: /forgot}]`
+and a `Next` primary button in the toolbar. Unless `image:` names your own picture, the background is
+the design system's imagery. On Redwood that is the welcome banner's tone and gallery illustration
+(or Spectra's themed image), loaded from Oracle's CDN or your mirror. On Vaadin it is Mateu's own
+illustration, drawn in CSS. See
+[Message page](/ux-patterns/message-page/). Demo: `demo/demo-museum` `visit-booked.yaml` and
+`sign-in.yaml`.
 
 ## Available types
 

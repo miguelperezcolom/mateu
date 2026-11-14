@@ -61,7 +61,7 @@ public class McpService {
       HttpRequestFactory httpRequests) {
     return project(
         sync(
-            content(route, baseUrl, httpRequests).action(actionId, componentState, null),
+            content(route, baseUrl, httpRequests).dispatch(actionId, componentState),
             baseUrl,
             httpRequests));
   }
@@ -121,6 +121,69 @@ public class McpService {
           .parameters(parameters == null ? Map.of() : parameters)
           .build();
     }
+
+    /**
+     * An action the agent picked from the screen, sent where the browser sends it. The screen's own
+     * actions go to the screen. One it marks {@code bubble} — a crud record page's Create / Save,
+     * buttons of the page but methods of the CRUD — the browser re-dispatches to the component that
+     * loaded the page (the crud's mediator), with the page's state as {@code initiatorState}: sent
+     * to the page's own type instead (the entity) it was refused as "no such action". The page's
+     * state (its id, its whereabouts) travels under what the agent typed.
+     */
+    RunActionRqDto dispatch(String actionId, Map<String, Object> componentState) {
+      JsonNode screen = firstServerSide(increment);
+      String loader = request.serverSideType();
+      if (screen == null
+          || !bubbles(screen, actionId)
+          || loader == null
+          || loader.equals(serverSideType)) {
+        return action(actionId, componentState, null);
+      }
+      Map<String, Object> state = new java.util.LinkedHashMap<>(initialStateOf(screen));
+      if (componentState != null) state.putAll(componentState);
+      return RunActionRqDto.builder()
+          .route(request.route())
+          .consumedRoute(request.consumedRoute())
+          .appState(Map.of())
+          .actionId(actionId == null ? "" : actionId)
+          .serverSideType(loader)
+          .componentState(state)
+          .parameters(Map.of("initiatorState", state))
+          .build();
+    }
+
+    /**
+     * The screen lists the action as one its ancestor runs: the browser's mateu-component
+     * re-dispatches it upwards, with the page's state as {@code initiatorState}.
+     */
+    private static boolean bubbles(JsonNode serverSide, String actionId) {
+      for (JsonNode a : serverSide.path("actions")) {
+        if (a.path("id").asText("").equals(actionId)) return a.path("bubble").asBoolean(false);
+      }
+      return false;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> initialStateOf(JsonNode screen) {
+      JsonNode data = screen.path("initialData");
+      if (!data.isObject()) return Map.of();
+      return new ObjectMapper().convertValue(data, Map.class);
+    }
+  }
+
+  /** The first ServerSide node of the answer — the screen it renders — or null. */
+  private static JsonNode firstServerSide(JsonNode increment) {
+    JsonNode[] found = {null};
+    for (JsonNode fragment : increment.path("fragments")) {
+      visit(
+          fragment.path("component"),
+          node -> {
+            if (found[0] == null
+                && "ServerSide".equals(node.path("type").asText(null))
+                && node.hasNonNull("serverSideType")) found[0] = node;
+          });
+    }
+    return found[0];
   }
 
   /** Bounds the shell → content (→ crud mediator → listing) chain; the browser nests no deeper. */
@@ -552,6 +615,104 @@ public class McpService {
     }
     deliver(caller(httpRequests), session, "event", event, map, "event=" + event);
     return delivered(session);
+  }
+
+  // ── reading and operating a live screen: the UI answers with what it draws ───────────────
+
+  /** {@code mateu_get_session_screen}. */
+  public ObjectNode sessionScreen(String session, HttpRequestFactory httpRequests) {
+    return ask(
+        session,
+        io.mateu.core.application.agentpush.AgentPush.DESCRIBE_SCREEN_EVENT,
+        new java.util.LinkedHashMap<>(),
+        "",
+        httpRequests);
+  }
+
+  /** {@code mateu_set_session_fields}. */
+  public ObjectNode setSessionFields(
+      String session, JsonNode values, HttpRequestFactory httpRequests) {
+    if (values == null || !values.isObject()) {
+      throw new io.mateu.uidl.UserFacingException("Missing argument \"values\".");
+    }
+    var detail = new java.util.LinkedHashMap<String, Object>();
+    detail.put("values", asObjectMap(values));
+    if (bytes(detail) > io.mateu.core.application.agentpush.AgentPush.MAX_DETAIL_BYTES) {
+      throw new io.mateu.uidl.UserFacingException(
+          io.mateu.core.application.agentpush.AgentPush.DETAIL_TOO_LARGE);
+    }
+    return ask(
+        session,
+        io.mateu.core.application.agentpush.AgentPush.SET_FIELDS_EVENT,
+        detail,
+        "fields=" + values.size(),
+        httpRequests);
+  }
+
+  /** {@code mateu_run_session_action}. */
+  public ObjectNode runSessionAction(
+      String session,
+      String actionId,
+      JsonNode parameters,
+      JsonNode row,
+      String listing,
+      HttpRequestFactory httpRequests) {
+    var detail = new java.util.LinkedHashMap<String, Object>();
+    detail.put("actionId", actionId);
+    if (parameters != null && parameters.isObject()) {
+      detail.put("parameters", asObjectMap(parameters));
+    }
+    if (row != null && !row.isNull()) {
+      if (!row.isIntegralNumber() || row.asLong() < 0 || row.asLong() > Integer.MAX_VALUE) {
+        throw new io.mateu.uidl.UserFacingException(
+            io.mateu.core.application.agentpush.AgentPush.INVALID_ROW);
+      }
+      detail.put("row", row.asInt());
+    }
+    if (listing != null) detail.put("listing", listing);
+    if (bytes(detail) > io.mateu.core.application.agentpush.AgentPush.MAX_DETAIL_BYTES) {
+      throw new io.mateu.uidl.UserFacingException(
+          io.mateu.core.application.agentpush.AgentPush.DETAIL_TOO_LARGE);
+    }
+    return ask(
+        session,
+        io.mateu.core.application.agentpush.AgentPush.RUN_ACTION_EVENT,
+        detail,
+        "action=" + actionId,
+        httpRequests);
+  }
+
+  private ObjectNode ask(
+      String session,
+      String event,
+      Map<String, Object> detail,
+      String what,
+      HttpRequestFactory httpRequests) {
+    var answer =
+        sessions()
+            .request(
+                caller(httpRequests),
+                session,
+                event,
+                detail,
+                what,
+                bytes(detail),
+                java.time.Duration.ofMillis(
+                    io.mateu.core.application.agentpush.AgentPush.answerTimeoutMillis()));
+    if (answer.wasRefused()) {
+      throw new io.mateu.uidl.UserFacingException(
+          io.mateu.core.application.agentpush.AgentPush.refusal(
+              answer.errorCode(), answer.errorId()));
+    }
+    var out = objectMapper.createObjectNode();
+    out.put("session", session);
+    out.set("screen", objectMapper.valueToTree(answer.screen()));
+    return out;
+  }
+
+  private Map<String, Object> asObjectMap(JsonNode node) {
+    return objectMapper.convertValue(
+        node, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
   }
 
   private void deliver(

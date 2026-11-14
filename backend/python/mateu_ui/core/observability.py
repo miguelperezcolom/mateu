@@ -64,12 +64,15 @@ def _id_like(segment: str) -> bool:
     )
 
 
-def route_template(route: str | None) -> str:
-    """The route's template: id-like segments replaced by ``:id``, no query, no trailing '/'."""
+def route_template(route: str | None, record_segments: Iterable[str] = ()) -> str:
+    """The route's template: id-like segments replaced by ``:id``, no query, no trailing '/'. The
+    segments the request path KNOWS name a record (a crud's record route) are ``:id`` too, even
+    when they do not look like an id (``P-002``)."""
     if not route or not route.strip() or route == "_empty":
         return "/"
+    known = set(record_segments)
     path = route.split("?", 1)[0]
-    segments = [":id" if _id_like(s) else s for s in path.split("/") if s]
+    segments = [":id" if _id_like(s) or s in known else s for s in path.split("/") if s]
     return "/" + "/".join(segments) if segments else "/"
 
 
@@ -77,12 +80,13 @@ def action_name(action_id: str | None) -> str:
     return action_id if action_id else LOAD
 
 
-def metric_key(route: str | None, action_id: str | None, outcome: ActionOutcome) -> tuple[str, str]:
+def metric_key(route: str | None, action_id: str | None, outcome: ActionOutcome,
+               record_segments: Iterable[str] = ()) -> tuple[str, str]:
     """The (route template, action) a request is measured under: a refused or not-found request is
     ``_other``/``_other`` (what the caller sent must not mint series), at most ``MAX_SERIES`` pairs."""
     if outcome in (ActionOutcome.FORBIDDEN, ActionOutcome.NOT_FOUND):
         return OTHER, OTHER
-    template = route_template(route)
+    template = route_template(route, record_segments)
     action = action_name(action_id)
     if len(action) > 128:
         action = OTHER
@@ -118,6 +122,8 @@ class RequestObservation:
     at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     started: float = field(default_factory=time.monotonic)
     record_ids: list[str] = field(default_factory=list)
+    #: path segments of ``route`` that name a record (a crud's ``/{id}``)
+    record_segments: set[str] = field(default_factory=set)
     span: Any = None
     ended: bool = False
 
@@ -186,6 +192,24 @@ def set_view(view_class: type | None) -> None:
         observation.view = f"{view_class.__module__}.{view_class.__qualname__}"
 
 
+#: the crud's own route words are never a record, whatever a record is called
+_ROUTE_WORDS = frozenset({"new", "edit", "view"})
+
+
+def _add_record_segment(observation: RequestObservation, segment: str) -> None:
+    if (segment and segment.strip() and "/" not in segment and segment not in _ROUTE_WORDS
+            and len(observation.record_segments) < _MAX_RECORD_IDS):
+        observation.record_segments.add(segment)
+
+
+def record_segment(segment: Any) -> None:
+    """The route names a record by this path segment (a crud's ``/P-002`` or ``/P-002/edit``):
+    measured as ``:id``, whatever it looks like."""
+    observation = _current.get()
+    if observation is not None and segment is not None:
+        _add_record_segment(observation, str(segment))
+
+
 def record_ids(ids: Iterable[Any]) -> None:
     """The records the action acted on (their ids, as text); nulls are skipped."""
     observation = _current.get()
@@ -197,6 +221,8 @@ def record_ids(ids: Iterable[Any]) -> None:
         text = str(i)
         if text not in observation.record_ids and len(observation.record_ids) < _MAX_RECORD_IDS:
             observation.record_ids.append(text)
+        # the record an action acted on, named by the route it ran at (a save at /P-002/edit)
+        _add_record_segment(observation, text)
 
 
 def record_id(i: Any) -> None:
@@ -231,6 +257,12 @@ def end(observation: RequestObservation | None, listeners: Iterable[ActionAuditL
     span = observation.span
     if span is not None:
         try:
+            template = route_template(observation.route, observation.record_segments)
+            if template != route_template(observation.route):
+                # the path learnt that a segment names a record (a crud's record route)
+                span.set_attribute("mateu.route.template", template)
+                action = action_name(observation.action_id)
+                span.update_name("mateu " + (OTHER if len(action) > 64 else action) + " " + template)
             if observation.view:
                 span.set_attribute("mateu.view", observation.view)
             span.set_attribute("mateu.outcome", observation.outcome.value)
@@ -295,7 +327,8 @@ def _meter_instruments():
 
 def _record_metrics(observation: RequestObservation, elapsed: float) -> None:
     duration, errors = _meter_instruments()
-    route, action = metric_key(observation.route, observation.action_id, observation.outcome)
+    route, action = metric_key(observation.route, observation.action_id, observation.outcome,
+                               observation.record_segments)
     duration.record(elapsed, {
         "mateu.route.template": route, "mateu.action": action, "mateu.outcome": observation.outcome.value,
     })
@@ -393,5 +426,5 @@ def record_child(name: str, duration_millis: int, attributes: Mapping[str, Any],
 __all__ = [
     "ENABLED_ENV", "LOAD", "OTHER", "RequestObservation", "action_name", "begin", "child", "current",
     "end", "failed", "metric_key", "record_child", "record_id", "record_ids", "release",
-    "reset_series", "route_template", "set_view",
+    "record_segment", "reset_series", "route_template", "set_view",
 ]

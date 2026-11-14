@@ -1609,6 +1609,13 @@ Mateu.Uidl.MessageListItem property System.String Time { get;init; }
 Mateu.Uidl.MessageListItem property System.String UserAbbr { get;init; }
 Mateu.Uidl.MessageListItem property System.String UserImg { get;init; }
 Mateu.Uidl.MessageListItem property System.String UserName { get;init; }
+Mateu.Uidl.MessagePage ctor()
+Mateu.Uidl.MessagePage method System.String ImageOrNull()
+Mateu.Uidl.MessagePage method System.String WidthOrNull()
+Mateu.Uidl.MessagePage property System.Collections.Generic.IReadOnlyList<Mateu.Uidl.IComponent> Footer { get;init; }
+Mateu.Uidl.MessagePage property System.String Background { get;init; }
+Mateu.Uidl.MessagePage property System.String Image { get;init; }
+Mateu.Uidl.MessagePage property System.String Width { get;init; }
 Mateu.Uidl.MessagePersistence enum Inbox
 Mateu.Uidl.MessagePersistence enum Sticky
 Mateu.Uidl.MessagePersistence enum Toast

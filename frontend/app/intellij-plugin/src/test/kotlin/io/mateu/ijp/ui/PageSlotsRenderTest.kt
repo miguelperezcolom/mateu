@@ -67,6 +67,26 @@ class PageSlotsRenderTest : BasePlatformTestCase() {
         assertEquals("Previous: Record 1", buttons["‹ Record 1"]!!.accessibleContext.accessibleName)
     }
 
+    /**
+     * The museum's artwork editor (artworks/118/edit, `timestamp: Image ${state.imageCredit}`) drew
+     * the template as written under its title. The header of the captured Form, with the state the
+     * view holds.
+     */
+    fun testTheTimestampIsInterpolatedWithTheState() {
+        val c = ctx()
+        c.currentComponentState["imageCredit"] = "The Metropolitan Museum of Art · CC0"
+        val form = render(
+            c,
+            """
+            {"type":"ClientSide","metadata":{"type":"Form","title":"${'$'}{state.title}","subtitle":"Editing",
+              "timestamp":"Image ${'$'}{state.imageCredit}","content":[]},"children":[]}
+            """.trimIndent(),
+        )
+        val texts = labels(form)
+        assertTrue(texts.toString(), texts.contains("Image The Metropolitan Museum of Art · CC0"))
+        assertFalse(texts.toString(), texts.any { it.contains("\${") })
+    }
+
     fun testAnUntitledPageShowsItsTitlePlaceholder() {
         val page = render(ctx(), """{"type":"ClientSide","metadata":{"type":"Page","title":"","titlePlaceholder":"New booking…"},"children":[]}""")
         assertTrue(labels(page).contains("New booking…"))

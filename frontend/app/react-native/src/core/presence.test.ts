@@ -53,3 +53,33 @@ test('the hub reports, hears the stream for its record only, and leaves', async 
   assert.equal(sent.at(-1)!.state, 'leave');
   hub.configure(null);
 });
+
+test('three or more people are summarised; a non-record screen reports nothing; a failed report is tolerated', async () => {
+  assert.deepEqual(presenceSummary([{ name: 'a', editing: false }, { name: 'b', editing: false }, { name: 'c', editing: false }, { name: 'd', editing: false }]), {
+    text: 'a, b and 2 more are viewing it',
+    tone: 'neutral',
+  });
+  const sent: Record<string, unknown>[] = [];
+  const hub = new PresenceHub(async (body) => {
+    sent.push(body.parameters);
+    throw new Error('offline');
+  });
+  assert.equal(hub.enabled, false);
+  assert.equal(hub.rootRoute, '');
+  hub.configure({ presence: true, rootRoute: '/desk' });
+  assert.equal(hub.enabled, true);
+  assert.equal(hub.rootRoute, '/desk');
+  hub.configure({ presence: true, rootRoute: '/desk' }); // unchanged: nothing restarts
+  const list = hub.watch('orders', 'V', false, false, () => undefined);
+  list.setEditing(true);
+  list.stop();
+  assert.equal(sent.length, 0);
+  const record = hub.watch('orders/7', 'V', false, false, () => undefined);
+  record.setEditing(false); // unchanged: not sent again
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(sent.length, 1);
+  record.stop();
+  record.stop(); // twice: one leave
+  assert.deepEqual(sent.map((p) => p.state), ['viewing', 'leave']);
+  hub.configure(null);
+});

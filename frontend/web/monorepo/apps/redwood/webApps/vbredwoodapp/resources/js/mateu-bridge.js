@@ -209,6 +209,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       agentPushOff: 'Live UI push is not enabled on this server.',
       agentError: 'Could not reach the agent service: {message}',
       agentPushedScreen: 'An AI agent sent a screen',
+      agentOperating: "An AI agent is operating this screen",
+      agentStop: "Stop",
+      agentStopped: "The AI agent can no longer operate this screen",
       // ── open on mobile (@App(mobileQr), qr.mjs) ──
       mobileQrAction: 'Open on mobile',
       mobileQrTitle: 'Open on your phone',
@@ -508,6 +511,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       agentPushOff: 'El envío de UI en vivo no está activado en este servidor.',
       agentError: 'No se pudo contactar con el servicio de agentes: {message}',
       agentPushedScreen: 'Un agente de IA ha enviado una pantalla',
+      agentOperating: "Un agente de IA está manejando esta pantalla",
+      agentStop: "Detener",
+      agentStopped: "El agente de IA ya no puede manejar esta pantalla",
       // ── open on mobile (@App(mobileQr), qr.mjs) ──
       mobileQrAction: 'Abrir en el móvil',
       mobileQrTitle: 'Ábrelo en tu móvil',
@@ -800,6 +806,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       agentPushOff: "L'envoi d'interface en direct n'est pas activé sur ce serveur.",
       agentError: "Impossible de joindre le service de l'agent : {message}",
       agentPushedScreen: "Un agent d'IA a envoyé un écran",
+      agentOperating: "Un agent d'IA pilote cet écran",
+      agentStop: "Arrêter",
+      agentStopped: "L'agent d'IA ne peut plus piloter cet écran",
       mobileQrAction: 'Ouvrir sur mobile',
       mobileQrTitle: 'Ouvrir sur votre téléphone',
       mobileQrHint: "Scannez avec l'appareil photo de votre téléphone ou l'app Mateu. Le code indique seulement où se trouve cette application : vous vous connectez sur le téléphone.",
@@ -1101,6 +1110,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       agentPushOff: 'Live-UI-Push ist auf diesem Server nicht aktiviert.',
       agentError: 'Der Agentendienst ist nicht erreichbar: {message}',
       agentPushedScreen: 'Ein KI-Agent hat einen Bildschirm gesendet',
+      agentOperating: "Ein KI-Agent bedient diesen Bildschirm",
+      agentStop: "Stoppen",
+      agentStopped: "Der KI-Agent kann diesen Bildschirm nicht mehr bedienen",
       mobileQrAction: 'Auf dem Handy öffnen',
       mobileQrTitle: 'Auf dem Handy öffnen',
       mobileQrHint: 'Scannen Sie ihn mit der Handykamera oder der Mateu-App. Der Code sagt nur, wo diese Anwendung ist: Anmelden müssen Sie sich auf dem Handy.',
@@ -1402,6 +1414,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       agentPushOff: 'O envio de interface ao vivo não está ativado neste servidor.',
       agentError: 'Não foi possível acessar o serviço do agente: {message}',
       agentPushedScreen: 'Um agente de IA enviou uma tela',
+      agentOperating: "Um agente de IA está operando esta tela",
+      agentStop: "Parar",
+      agentStopped: "O agente de IA não pode mais operar esta tela",
       mobileQrAction: 'Abrir no celular',
       mobileQrTitle: 'Abrir no celular',
       mobileQrHint: 'Leia com a câmera do celular ou com o app Mateu. O código só diz onde está este aplicativo: o login é feito no celular.',
@@ -1703,6 +1718,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       agentPushOff: "L'invio dell'interfaccia in diretta non è attivo su questo server.",
       agentError: "Impossibile raggiungere il servizio dell'agente: {message}",
       agentPushedScreen: 'Un agente IA ha inviato una schermata',
+      agentOperating: "Un agente di IA sta usando questa schermata",
+      agentStop: "Interrompi",
+      agentStopped: "L'agente di IA non può più usare questa schermata",
       mobileQrAction: 'Apri sul cellulare',
       mobileQrTitle: 'Apri sul telefono',
       mobileQrHint: "Scansiona con la fotocamera del telefono o con l'app Mateu. Il codice indica solo dove si trova questa applicazione: l'accesso si fa sul telefono.",
@@ -2570,6 +2588,49 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     visit(menu)
     return best
+  }
+
+  // ── The subheader band (MENU_ON_TOP / HAMBURGER_SECTIONS) ─────────────────────────────────────
+  // What the band's bindings call — the standalone shell page (shell-page.js) and the embedded
+  // <mateu-ui> with shell="true" (its $mateuFunctions) both delegate here.
+
+  /** The subheader options: the top level (MENU_ON_TOP) or, with HAMBURGER_SECTIONS, the second
+   *  level of the section on screen —the hamburger carries the sections—. No section on screen (the
+   *  home): none. */
+  function subheaderItemsOf(tree, selectedRoute, sectionsMode) {
+    if (!sectionsMode) return tree || []
+    const section = sectionOf(tree, selectedRoute)
+    return section ? (section.children || []) : []
+  }
+
+  /** The subheader title: the console's, or with HAMBURGER_SECTIONS the section's. */
+  function subheaderTitleOf(title, tree, selectedRoute, sectionsMode) {
+    if (!sectionsMode) return title || ''
+    const section = sectionOf(tree, selectedRoute)
+    return section ? section.label : ''
+  }
+
+  /** The subheader class: collapsed (mateu-subheader-empty) when it has nothing to show
+   *  —HAMBURGER_SECTIONS on the home, no section on screen—, so no empty strip is left. */
+  function subheaderClassOf(title, tree, selectedRoute, sectionsMode) {
+    const section = sectionsMode ? sectionOf(tree, selectedRoute) : null
+    const empty = sectionsMode
+      ? !section || (!section.label && !(section.children || []).length)
+      : !title && !(tree || []).length
+    return empty ? 'mateu-subheader mateu-subheader-empty' : 'mateu-subheader'
+  }
+
+  /** HAMBURGER_SECTIONS: the selected entry in the section list (its id is the home). */
+  function sectionListSelection(tree, selectedRoute) {
+    const section = sectionOf(tree, selectedRoute)
+    return section ? (section.home || section.id) : ''
+  }
+
+  /** The class of a top-level subheader option: marked if its section is the one on screen. It
+   *  receives the selected route so the binding is re-evaluated on every navigation. */
+  function subheaderItemClass(node, tree, selectedRoute) {
+    const active = activeSectionOf(tree, selectedRoute) === node.id
+    return active ? 'mateu-subheader-item mateu-nav-active' : 'mateu-subheader-item'
   }
 
 
@@ -6751,6 +6812,65 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * results — the page's listing — are painted by the template's slots (the hero node itself is not
    * painted as content).
    */
+  /**
+   * A page that DECLARES the Message page template (`template: MessagePage`) → mateuMsg: ONE card over
+   * a full-bleed illustrated background, with no app chrome around it. Spectra ships no component for
+   * it (Oracle's own sign-in and confirmation pages are their own apps), so it is composed: the
+   * background is a fixed layer (app.css `.mateu-message-page`) painted with REDWOOD'S OWN imagery — the
+   * welcome banner's tone colour (Spectra's `--oj-sp-rw-*` palette) with its gallery illustration and
+   * texture, or Spectra's themed image, from Oracle's CDN (or its mirror) — or the template's own image;
+   * the content container is the card
+   * (`mateu-message-card-host`), its heading (overline, h1, subtitle) is drawn above the host atoms,
+   * and the host atoms are the card's body, then its actions and its footer links (blocks marked so
+   * app.css lays them out). Read by id off the server's layout (PageTemplates.message).
+   */
+  /** Spectra's themed image (the welcome banner's `themed-image` for a tone with no gallery pair). */
+  const SPECTRA_THEMED_IMAGE =
+    'https://static.oracle.com/cdn/spectra-ui/oj-sp/2604.1.0/header-welcome-banner/resources/img/welcome-banner-abstract-1.png'
+
+  function templatedMessageOf(ctx) {
+    if (!declaresTemplate(ctx, 'MessagePage')) return null
+    const page = nodeById(ctx.tree, 'message-page')
+    if (!page) return null
+    const state = (ctx && ctx.state) || {}
+    const textOf = (id) => {
+      const n = nodeById(ctx.tree, id)
+      return n && n.metadata ? interpolate(String(n.metadata.text || ''), state) : ''
+    }
+    const FULL = 'oj-flex-item oj-sm-12'
+    const blocksOf = (nodes, mark) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_msg',
+      metadata: { type: 'VerticalLayout' }, children: nodes } }) || [])
+      .map((b) => ({ ...b, blockClass: FULL + (mark ? ' ' + mark : '') }))
+    const body = nodeById(ctx.tree, 'message-body')
+    const actions = nodeById(ctx.tree, 'message-actions')
+    const footer = nodeById(ctx.tree, 'message-footer')
+    const classes = String(page.cssClasses || '').split(/\s+/)
+    const tone = (classes.find((c) => c.startsWith('mateu-message-page--')) || '').slice('mateu-message-page--'.length)
+    const style = String(page.style || '')
+    const image = (style.match(/--mateu-message-page-image:\s*url\("([\w\s/.:%~?&=#+,@-]+)"\)/) || [])[1] || ''
+    const width = (style.match(/--mateu-message-card-width:\s*(\d+(?:\.\d+)?(?:px|rem|em|ch|vw|%))/) || [])[1] || ''
+    // Redwood's own imagery, as the welcome banner takes it (welcomeLookOf): the declared tone, else
+    // the page's stable look; a tone with a gallery pair gets its illustration over its texture, one
+    // without gets Spectra's themed image — every url through the Oracle CDN mirror
+    const look = welcomeLookOf(welcomeKeyOf(ctx), WELCOME_TONES.indexOf(tone) >= 0 ? tone : null)
+    const lookTone = String(look.theme || '').replace(/^dark-/, '')
+    const illustration = look.illu
+      ? 'url("' + look.illu + '"), url("' + look.illuBg + '")'
+      : 'url("' + oracleCdnUrl(SPECTRA_THEMED_IMAGE) + '")'
+    return {
+      pageClass: 'mateu-message-page mateu-message-page--' + lookTone
+        + (image ? ' mateu-message-page--image' : look.illu ? '' : ' mateu-message-page--themed'),
+      image: image ? 'url("' + image + '")' : illustration,
+      width: width ? 'min(100%, ' + width + ')' : '',
+      overline: textOf('message-overline'),
+      title: textOf('message-title'),
+      subtitle: textOf('message-subtitle'),
+      content: blocksOf((body && body.children) || [], 'mateu-message-body')
+        .concat(actions ? blocksOf([actions], 'mateu-message-actions') : [])
+        .concat(footer ? blocksOf([footer], 'mateu-message-footer') : []),
+    }
+  }
+
   function templatedHeroSearchOf(ctx) {
     if (!declaresTemplate(ctx, 'HeroSearchPage')) return null
     const hero = nodeById(ctx.tree, 'hero-search')
@@ -19574,7 +19694,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // make-amd.mjs replaces the placeholder with apps/redwood/package.json's version when it writes the
   // bridge; run from the sources (Node tests) it stays a placeholder and reads as 'unknown'.
-  const RENDERER_VERSION_STAMP = "2604.1.0"
+  const RENDERER_VERSION_STAMP = "2604.1.7"
 
   /** The renderer's own version, or 'unknown' when the bridge was not stamped. */
   function rendererVersion(stamp = RENDERER_VERSION_STAMP) {
@@ -23361,6 +23481,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * action goes to the server as before. With a `scope` the commands' placeholders are resolved
    * ({@link resolveFlowCommands}) — the page's state with the action's parameters on top of it.
    */
+  /** The reserved ids of the page header's navigations, which runMateuAction answers itself. */
+  const CHROME_NAVIGATION_ACTIONS = Object.freeze(['__goToParent', '__peerPrev', '__peerNext', '__notFoundBack'])
+
   /**
    * Whether a content button's action is CLAIMED by something on screen — a context (page, overlay,
    * island, micro frontend) that advertises it (its actions, a `prefix*` wildcard included, or its
@@ -23371,6 +23494,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function contentActionIsClaimed(reg, actionId) {
     if (!actionId) return false
+    // the header's own navigations (go-to-parent of the automatic trail, the peer arrows, the
+    // not-found page's way back): claimed by the page chrome itself (runMateuAction) — the «Loans»
+    // go-to-parent above a record's title went through here and was dropped as unclaimed
+    if (CHROME_NAVIGATION_ACTIONS.includes(actionId)) return true
     for (const ctx of Object.values((reg && reg.contexts) || {})) {
       if (declaredActionOf(ctx, actionId)) return true
       // an OVERLAY's tree is the ClientSide Drawer/Dialog (no actions): the form it embeds is its
@@ -25707,15 +25834,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // ── record header FIXED and compact on scroll (OPERA's «business card») ─────────────
   /** Marks the body with mateu-scrolled as soon as the page leaves the header behind: app.css paints the
-   *  compact .mateu-sticky-header band (less air, no strip, with shadow). */
+   *  compact .mateu-sticky-header band (less air, no strip, with shadow). The page is the window, or —
+   *  an embedded <mateu-ui shell="true">, which scrolls its own content — the component's content box
+   *  (.mateu-embedded-scroller): heard in capture, since an element's scroll does not bubble. Any other
+   *  scrolled box (a table, a drawer body) is not the page. */
   function installStickyHeader(win = typeof window !== 'undefined' ? window : null) {
     if (!win || win.__mateuStickyHeader) return
     win.__mateuStickyHeader = true
     let on = false
-    win.addEventListener('scroll', () => {
-      const now = win.scrollY > 48
+    win.addEventListener('scroll', (event) => {
+      const target = event && event.target
+      const box = target && target.classList && target.classList.contains('mateu-embedded-scroller') ? target : null
+      if (target && !box && target !== win && target !== win.document && target !== win.document.documentElement) return
+      const now = (box ? box.scrollTop : win.scrollY) > 48
       if (now !== on) { on = now; win.document.body.classList.toggle('mateu-scrolled', now) }
-    }, { passive: true })
+    }, { passive: true, capture: true })
   }
 
   // ── @OnRowSelected on a GRID field (a list with columns inside a form): a click on a row — or the
@@ -27455,7 +27588,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // GENERATED by poc/make-expander.mjs from libs/mateu/src/mateu/ui/infra — DO NOT EDIT.
   // http/bundleResolver.ts, expander/expandDefinition.ts, ui/layout/templatePageTypes.ts, ui/humanize.ts, expander/accessKeys.ts, expander/expandComponent.ts, expander/pageHeader.ts, expander/pageTemplates.ts, http/componentCatalogue.ts, ui/renderers/nodeIdStampFlag.ts, ui/actionCatalogue.ts, expander/fieldTypes.ts, i18n/translations.ts
-  // source sha256 9091935e833eba9e4c61284560f37d502494bc3430393c9d989e4b47aa8620c4
+  // source sha256 7476edab8869001cc8305acd8243c8682ffd3ce2bd0c43a485e30dd5e8741b52
   // The web renderers' static-bundle resolver + YAML expander, for a static remote (transport.mjs).
   const mateuBundleResolver = (function () {
     'use strict'
@@ -28522,6 +28655,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // ── ui/layout/templatePageTypes.ts ──
     __defs["ui/layout/templatePageTypes.ts"] = function (exports, __mateuRequire) {
       Object.defineProperty(exports, "templatePageType", { enumerable: true, get: () => templatePageType });
+      Object.defineProperty(exports, "pageTemplateOf", { enumerable: true, get: () => pageTemplateOf });
+      Object.defineProperty(exports, "pageOwnsViewport", { enumerable: true, get: () => pageOwnsViewport });
       /**
        * The kind of page a YAML `template:` stands for — the same table as the server's
        * PageTypeResolver.ofTemplate. Dependency-free: the browser expander (also loaded by the React
@@ -28533,6 +28668,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           DashboardLandingPage: 'dashboard',
           WelcomePage: 'landing',
           HeroSearchPage: 'landing',
+          MessagePage: 'landing',
           ItemOverviewPage: 'detail',
           GeneralOverviewPage: 'detail',
           FoldoutPage: 'detail',
@@ -28544,6 +28680,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       /** The page type a template's type names, or undefined. */
       const templatePageType = (templateType                    )                     =>
           templateType ? TEMPLATE_PAGE_TYPES[templateType] : undefined
+
+      /**
+       * The template a routed view fills when its content IS a Form (bare, or in the envelopes of a
+       * served YAML page): the Form's `template.type`, or undefined.
+       */
+      const pageTemplateOf = (component         )                     => {
+
+          let node = component
+          while (node && node.type === 'ServerSide' && (node.children ?? []).length === 1) {
+              node = node.children [0]
+          }
+          const metadata = node?.metadata
+          return metadata?.type === 'Form' ? metadata.template?.type : undefined
+      }
+
+      /** Whether a page draws the whole viewport itself, with no shell chrome around it: a MessagePage. */
+      const pageOwnsViewport = (component         )          => pageTemplateOf(component) === 'MessagePage'
 
     }
 
@@ -29180,6 +29333,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       Object.defineProperty(exports, "templateMetadataOf", { enumerable: true, get: () => templateMetadataOf });
       Object.defineProperty(exports, "ownsHeader", { enumerable: true, get: () => ownsHeader });
       Object.defineProperty(exports, "contentOf", { enumerable: true, get: () => contentOf });
+      Object.defineProperty(exports, "messageImageOf", { enumerable: true, get: () => messageImageOf });
+      Object.defineProperty(exports, "messageWidthOf", { enumerable: true, get: () => messageWidthOf });
       /**
        * A `type: Form` that fills a design-system page template (`template:`), laid out in the BROWSER the
        * way the server's PageTemplates (core, fragmentmapper) lays it out: the template's slots become
@@ -29227,6 +29382,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           if (t.type === 'GuidedProcessPage') return { type: 'GuidedProcessPage', avatar: null, photo: null }
           if (t.type === 'DataManagementPage') return { type: 'DataManagementPage', avatar: null, photo: null }
           if (t.type === 'HeroSearchPage') return { type: 'HeroSearchPage', avatar: null, photo: null }
+          if (t.type === 'MessagePage') return { type: 'MessagePage', avatar: null, photo: null }
           return undefined
       }
 
@@ -29236,7 +29392,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
        */
       function ownsHeader(template         )          {
           const t = template
-          return !!t && (t.type === 'WelcomePage' || t.type === 'MultimediaContentPage' || t.type === 'DataManagementPage' || t.type === 'HeroSearchPage')
+          return !!t && (t.type === 'WelcomePage' || t.type === 'MultimediaContentPage' || t.type === 'DataManagementPage' || t.type === 'HeroSearchPage' || t.type === 'MessagePage')
       }
 
       /** The page's content: the template laid out, or the authored content of a free page. `form` is the
@@ -29248,6 +29404,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           if (t.type === 'WelcomePage') return banner('welcome', t, nodes(content), form)
           if (t.type === 'MultimediaContentPage') return banner('multimedia-banner', t, nodes(content), form)
           if (t.type === 'HeroSearchPage') return banner('hero-search', t, nodes(content), form)
+          if (t.type === 'MessagePage') return [message(t, nodes(content), form)]
           if (t.type === 'DashboardLandingPage') return dashboard(t, nodes(content))
           if (t.type === 'GeneralOverviewPage') return [generalOverview(t, nodes(content))]
           if (t.type === 'CollectionDetailPage') return [collectionDetail(t, nodes(content))]
@@ -29434,6 +29591,52 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
                   + (bottom.size ?? '16rem') + '; overflow: auto;'))
           }
           return { type: 'VerticalLayout', id: 'data-management', fullWidth: true, spacing: true, horizontalAlignment: 'STRETCH', content: page }
+      }
+
+      /** MessagePage.imageOrNull: an own image URL only when nothing in it could end a CSS url("…"). */
+      const messageImageOf = (image         )                =>
+          filled(image) && /^[\w\s/.:%~?&=#+,@-]+$/.test(image.trim()) ? image.trim() : null
+
+      /** MessagePage.widthOrNull: the card's width only when it is a plain CSS length. */
+      const messageWidthOf = (width         )                =>
+          filled(width) && /^\d+(\.\d+)?(px|rem|em|ch|vw|%)$/.test(width.trim()) ? width.trim() : null
+
+      const messageText = (id        , text         , container        )             =>
+          ({ type: 'Text', id, text, container, noMargins: true, cssClasses: 'mateu-' + id })
+
+      /** Message page: ONE card over the full-bleed illustrated background — the form's overline, title
+       *  (the h1) and subtitle, its content, its toolbar as the card's actions and the `footer` slot as the
+       *  small links at its foot (PageTemplates.message). The tone is a class; an own image and the card's
+       *  width ride as custom properties. */
+      function message(t      , body              , form      )             {
+          const card               = []
+          if (filled(form.overline)) card.push(messageText('message-overline', form.overline, 'p'))
+          if (filled(form.title)) card.push(messageText('message-title', form.title, 'h1'))
+          if (filled(form.subtitle)) card.push(messageText('message-subtitle', form.subtitle, 'p'))
+          card.push({ type: 'VerticalLayout', id: 'message-body', cssClasses: 'mateu-message-body', spacing: true, content: body }                         )
+          const actions = nodes(form.toolbar)
+          if (actions.length) {
+              card.push({ type: 'HorizontalLayout', id: 'message-actions', cssClasses: 'mateu-message-actions', spacing: true, wrap: true, content: actions }                         )
+          }
+          const footer = nodes(t.footer)
+          if (footer.length) {
+              card.push({ type: 'HorizontalLayout', id: 'message-footer', cssClasses: 'mateu-message-footer', spacing: true, wrap: true, content: footer }                         )
+          }
+          const tone = toneOf(t.background)
+          const style           = []
+          const image = messageImageOf(t.image)
+          if (image) style.push(`--mateu-message-page-image: url("${image}");`)
+          const width = messageWidthOf(t.width)
+          if (width) style.push(`--mateu-message-card-width: ${width};`)
+          return {
+              type: 'VerticalLayout', id: 'message-page', spacing: false,
+              cssClasses: 'mateu-message-page' + (tone ? ' mateu-message-page--' + tone : ''),
+              ...(style.length ? { style: style.join(' ') } : {}),
+              content: [{
+                  type: 'Card', id: 'message-card', cssClasses: 'mateu-message-card',
+                  content: { type: 'VerticalLayout', id: 'message-card-content', cssClasses: 'mateu-message-card-content', spacing: true, content: card },
+              }],
+          }
       }
 
     }
@@ -30506,12 +30709,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // through the untrusted strip: what it sends cannot run code in this tab
     const increment = answeredBy(base, await res.json())
     observeWireVersion(increment)
+    if (answerObserver) { try { answerObserver(increment) } catch (e) { /* an observer cannot break a call */ } }
     // the catalogue entries this response names by ref (a page with no app shell gets them no other way)
     adoptReferencedSources(increment)
     // the body takes time too: whatever arrives after the screen changed is not applied either
     if (isViewStale(view)) throw staleResponseError(body.actionId)
     return increment
   }
+
+  // Who hears every answer callMateu gets (the live UI push summary keeps the last messages,
+  // agentPush.mjs): one observer, set once.
+  let answerObserver = null
+
+  /** Sets the observer of every answer callMateu gets (null = none). */
+  function setAnswerObserver(fn) { answerObserver = typeof fn === 'function' ? fn : null }
 
   /** An answer as it may be painted: as written from a trusted origin (hostHeaders.isTrustedOrigin),
    *  through the untrusted strip (untrusted.mjs) from any other. */
@@ -30524,7 +30735,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  so in hybrid mode (bundle + backend) the menu comes from the backend as always; but if the
    *  backend is NOT there (pure static deployment) and the bundle carries the root route, it falls
    *  back to it so the app boots anyway. Only on failure — the happy path does not change. */
-  async function bootstrapShell(base, initiator = 'shell') {
+  /** The shell's first load. `appState`: the app state it is sent with — the embedded <mateu-ui>'s
+   *  app-context (the backend may build the App, its menu, per company / hotel); none by default. */
+  async function bootstrapShell(base, initiator = 'shell', appState = null) {
     // the shell's own backend is trusted with the user's token (hostHeaders.storedTokenMayGoTo)
     trustShellBase(base)
     await awaitBundle()
@@ -30535,7 +30748,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const res = await fetchWithPolicy(`${base}/mateu/v3/sync/_no_route`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
+        body: JSON.stringify({
+          route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator,
+          ...(appState && typeof appState === 'object' && Object.keys(appState).length ? { appState } : {}),
+        }),
       }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
       const increment = await res.json()
       observeWireVersion(increment)
@@ -33364,7 +33580,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * message (`sendMenu`), the menu. Returns `{ body, shown }`: `shown` is what is painted as the
    * user's message (the text + 📎 the attachments).
    */
-  function chatTurnOf({ message, sessionId, attachments = [], registry, appState, appData, url, screenTitle, currentRoute, mcpUrl, menu, sendMenu, origin }) {
+  function chatTurnOf({ message, sessionId, attachments = [], registry, appState, appData, url, screenTitle, currentRoute, mcpUrl, menu, sendMenu, origin, agentKey }) {
     const text = String(message || '').trim()
     const host = registry && registry.contexts ? registry.contexts.__root__ : null
     const context = {
@@ -33389,6 +33605,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         currentRoute,
       }),
       ...(hasScreen ? { screen } : {}),
+      // the key the tab bound this conversation to (live UI push): the agent acts on this tab only
+      ...(agentKey ? { agentKey } : {}),
     }
     const names = (attachments || []).map((a) => a.name).join(', ')
     const shown = names ? `${text}${text ? '\n\n' : ''}📎 ${names}` : text
@@ -34314,13 +34532,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     doc.addEventListener('pointerdown', (e) => { lastRowPress = { target: e.target, at: Date.now() } }, true)
   }
   /** Whether the selection change of `table` comes from a click on a row that OPENS (not from its
-   *  checkbox, nor from the keyboard): that change is to be undone. */
+   *  checkbox, nor from the keyboard): that change is to be undone. ONE undo per press: the press is
+   *  consumed, so the change the undo itself causes (the table fires selectedChanged again — at once,
+   *  inside the same call, where the listener runs synchronously, as in the embedded <mateu-ui>) is
+   *  not undone in turn: that ping-pong overflowed the stack in a VB 2701 host. */
   function selectionIsRowOpen(table, now = Date.now()) {
     const t = lastRowPress.target
     if (!table || !t || now - lastRowPress.at > 1500 || typeof table.contains !== 'function' || !table.contains(t)) return false
     const cls = String((table.getAttribute && table.getAttribute('class')) || '')
     if (!/(^|\s)mateu-rows-open(\s|$)/.test(cls)) return false
-    return !!(t.closest && t.closest('.oj-table-data-cell, td')) && rowActionIsRows(t, null)
+    const opens = !!(t.closest && t.closest('.oj-table-data-cell, td')) && rowActionIsRows(t, null)
+    if (opens) lastRowPress = { target: null, at: 0 }
+    return opens
   }
 
   // ── PaymentPicker: the pick is the client's (the web keeps it in the element's state) ───────────
@@ -34700,6 +34923,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       mateuMmc: templatedMultimediaOf(host),
       // a YAML Hero search page (oj-sp-hero-search-page: its hero, the listing in its slots)
       mateuHs: templatedHeroSearchOf(host),
+      // a YAML Message page (one card over the illustrated background, no chrome): composed
+      mateuMsg: templatedMessageOf(host),
       // a YAML Guided process (oj-sp-guided-process) and its first step
       mateuGp: gp,
       mateuGpCurrent: gp && gp.steps.length ? gp.steps[0].id : '',
@@ -34724,7 +34949,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  a guided process, a hero search): the VB header stands aside, as for the composed archetypes. */
   function templateOwnsHeader(archetypes) {
     const v = (archetypes && archetypes.vars) || {}
-    return !!(v.mateuMmc || v.mateuGp || v.mateuHs)
+    return !!(v.mateuMmc || v.mateuGp || v.mateuHs || v.mateuMsg)
   }
 
   /**
@@ -34737,6 +34962,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const v = (archetypes && archetypes.vars) || {}
     if (v.mateuGp) return []
     if (v.mateuMmc) return hostBlocks || []
+    // a message page: the card's body, then its actions and footer links (its own blocks, no form row)
+    if (v.mateuMsg) return v.mateuMsg.content || []
     return withFormActions(hostBlocks, actions, { tree }) || []
   }
 
@@ -35019,6 +35246,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // …and a full-width / edge-to-edge page drops the inner sections' own 48px gutters (the page's
       // padding — 24px / none — is the whole margin, as the Redwood guide measures it)
       mateuPageHostClass: [iopOn ? 'mateu-iop-host' : '', pw === 'edgeToEdge' ? 'mateu-page-edge' : pw === 'fullWidth' ? 'mateu-page-full' : ''].filter(Boolean).join(' '),
+    }
+    // a MESSAGE page: the content container IS the card (app.css .mateu-message-card-host places it
+    // near the top of the viewport, over the illustrated background); its width is the template's
+    const message = templatedMessageOf(host)
+    if (message) {
+      out.mateuShellPageLayout = 'edgeToEdge'
+      out.mateuPageHostClass = 'mateu-message-card-host'
+      out.mateuPageMaxWidth = message.width || ''
+      out.mateuPageMargin = ''
+      out.mateuPagePadding = ''
+      return { vars: out, pageWidth: 'edgeToEdge' }
     }
     if (band) {
       out.mateuBandBoxMargin = pageStyle.margin
@@ -35443,6 +35681,575 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+  // LIVE UI PUSH — reading and operating the screen the user has open (conformance/mcp/README.md,
+  // "Reading and operating the screen the user has open"): an MCP agent asks THIS tab what it shows
+  // (`describe-screen`), to type into its fields (`set-fields`) or to press one of its actions
+  // (`run-action`). The tab answers with a SUMMARY built from its OWN rendered wire state — the
+  // registry's contexts (the host, the top overlay), the drafts of what was typed, the listing page —
+  // and nothing else: a field the server did not send is not there, a password is dots, no token.
+  //
+  // The shape is the desktop app's `mateu_get_screen` (intellij-plugin mcp/ScreenSummary.kt) so an
+  // agent reads both the same way; this module is its Redwood port, PURE (tested in Node,
+  // test-agent-screen.mjs). The imperative half — applying an edit or a click through the same chains
+  // a user's takes, waiting for the screen to settle, answering `_agent-screen` — is agentPush.mjs's.
+  //
+  // Every top-level name starts with `ss`/`screen`/`agentScreen`: make-amd puts all the poc modules in
+  // ONE scope, where a repeated name breaks the bridge build.
+
+  const SCREEN_MAX_TEXT = 500
+  const SCREEN_MAX_LIST = 50
+  const SCREEN_MAX_OPTIONS = 50
+  const SCREEN_MAX_ROWS = 50
+  const SCREEN_MAX_FIELDS = 200
+  const SCREEN_MAX_ACTIONS = 200
+  const SCREEN_MAX_MESSAGES = 10
+  /** The row action that opens a listing row (as a click on it does). */
+  const SCREEN_OPEN_ROW = 'open-row'
+  const SCREEN_QUERY_EVENTS = ['describe-screen', 'set-fields', 'run-action']
+
+  // keys never walked as part of what is drawn (data, plumbing, or summarised on their own)
+  const SS_SKIP = new Set([
+    'initialData', 'state', 'data', 'menu', 'options', 'columns', 'filters', 'triggers', 'rules',
+    'validations', 'actions', 'restSources', 'actionCatalogue', 'contextSelectors', 'contextActions',
+    'shortcuts', 'headerValues', 'editorOptions', 'valueLabels', 'tones', 'optionsSource', 'rowsSource',
+    'restAction', 'attributes', 'remoteCoordinates', 'resolved', 'server',
+  ])
+  // actions the renderer runs on its own (a search box, a pager): not options of their own
+  const SS_INTERNAL_ACTIONS = new Set(['search', '__restdata__', '__restfetch__', 'nextPage', 'prevPage', 'update-row'])
+  const SS_SECRET_WORDS = ['token', 'secret', 'password', 'credential']
+
+  const ssText = (node, key, fallback = '') => {
+    const v = node && typeof node === 'object' ? node[key] : undefined
+    return v == null || typeof v === 'object' ? fallback : String(v)
+  }
+  const ssNonBlank = (s) => typeof s === 'string' && s.trim() !== ''
+  const ssIsObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v)
+
+  /** The sorted, unique paths whose content was cut. */
+  function ssNotes() {
+    const set = new Set()
+    return { add: (p) => set.add(p), list: () => [...set].sort() }
+  }
+
+  function ssCapText(text, path, notes) {
+    const s = String(text)
+    if (s.startsWith('data:')) {
+      notes.add(path)
+      return '[' + s.split(',')[0].split(';')[0] + ' data, ' + s.length + ' characters]'
+    }
+    if (s.length <= SCREEN_MAX_TEXT) return s
+    notes.add(path)
+    return s.slice(0, SCREEN_MAX_TEXT) + '…'
+  }
+
+  /** A value as the summary carries it: texts capped, lists and objects capped, nested 4 deep. */
+  function screenCap(value, path, notes, depth = 0) {
+    if (value === undefined || value === null) return null
+    if (typeof value === 'string') return ssCapText(value, path, notes)
+    if (Array.isArray(value)) {
+      if (value.length > SCREEN_MAX_LIST) notes.add(path)
+      return value.slice(0, SCREEN_MAX_LIST).map((v) => screenCap(v, path, notes, depth + 1))
+    }
+    if (typeof value === 'object') {
+      if (depth >= 4) { notes.add(path); return '{…}' }
+      const keys = Object.keys(value)
+      if (keys.length > SCREEN_MAX_LIST) notes.add(path)
+      const out = {}
+      for (const k of keys.slice(0, SCREEN_MAX_LIST)) out[k] = screenCap(value[k], path, notes, depth + 1)
+      return out
+    }
+    return typeof value === 'number' || typeof value === 'boolean' ? value : String(value)
+  }
+
+  const ssInterpolate = (text, ctx) => {
+    const s = text == null ? '' : String(text)
+    if (!s.includes('${')) return s
+    try { return interpolate(s, ctx.state, { data: {}, appState: ctx.appState }) } catch (e) { return s }
+  }
+
+  function ssWalkChildren(n, acc, initial, skipAlso) {
+    for (const [k, v] of Object.entries(n)) {
+      if (SS_SKIP.has(k) || skipAlso.has(k)) continue
+      if (v && typeof v === 'object') ssWalk(v, acc, initial)
+    }
+  }
+
+  function ssWalk(n, acc, inherited) {
+    if (!n || typeof n !== 'object' || acc.seen.has(n)) return
+    acc.seen.add(n)
+    if (Array.isArray(n)) { for (const x of n) ssWalk(x, acc, inherited); return }
+    let initial = inherited
+    const type = ssText(n, 'type')
+    if (type === 'ServerSide') {
+      if (ssIsObject(n.initialData)) initial = n.initialData
+      for (const a of Array.isArray(n.actions) ? n.actions : []) if (a && ssNonBlank(a.id)) acc.declared.add(a.id)
+    }
+    if (type === 'FormField') {
+      const id = ssText(n, 'fieldId')
+      if (id && !acc.fields.has(id)) {
+        acc.fields.set(id, n)
+        if (initial && id in initial && !acc.initialData.has(id)) acc.initialData.set(id, initial[id])
+      }
+    } else if (type === 'Button') {
+      // a button group's children are listed under it, not again on their own
+      acc.buttons.push(n)
+      return
+    } else if (type === 'Page' || type === 'Form') {
+      if (!acc.header) acc.header = n
+      for (const a of Array.isArray(n.actions) ? n.actions : []) if (a && ssNonBlank(a.id)) acc.declared.add(a.id)
+    }
+    const meta = n.metadata
+    if (ssIsObject(meta)) {
+      if (ssText(meta, 'type') === 'Crud') {
+        acc.crudNodes.push([n, meta])
+        // its toolbar is the listing's: summarised with it
+        ssWalkChildren(meta, acc, initial, new Set(['toolbar']))
+      } else {
+        ssWalk(meta, acc, initial)
+      }
+    }
+    ssWalkChildren(n, acc, initial, new Set(['metadata']))
+  }
+
+  const ssIsSecret = (meta) => {
+    const s = ssText(meta, 'stereotype').toLowerCase()
+    return s === 'password' || ssText(meta, 'dataType').toLowerCase() === 'password'
+  }
+
+  function ssField(id, meta, view, acc, ctx, notes, path) {
+    const out = { id }
+    const label = ssText(meta, 'label')
+    if (ssNonBlank(label)) out.label = ssInterpolate(label, ctx)
+    out.type = ssText(meta, 'dataType')
+    const stereotype = ssText(meta, 'stereotype')
+    if (ssNonBlank(stereotype) && stereotype !== 'regular') out.stereotype = stereotype
+    if (meta.required === true) out.required = true
+    if (meta.readOnly === true || (view.disabledFields && view.disabledFields.has(id))) out.readOnly = true
+    const help = ssText(meta, 'description')
+    if (ssNonBlank(help)) out.help = ssCapText(help, path, notes)
+    const state = view.state || {}
+    const raw = Object.prototype.hasOwnProperty.call(state, id) ? state[id] : acc.initialData.get(id)
+    if (ssIsSecret(meta)) out.value = raw == null || String(raw) === '' ? '' : '••••••'
+    else out.value = screenCap(raw, path, notes)
+    const options = Array.isArray(meta.options) ? meta.options : []
+    if (options.length) {
+      out.options = options.slice(0, SCREEN_MAX_OPTIONS).map((o) => ({ value: ssText(o, 'value'), label: ssText(o, 'label', ssText(o, 'value')) }))
+      if (options.length > SCREEN_MAX_OPTIONS) notes.add(path + '.options')
+    } else if (meta.optionsSource != null) {
+      out.optionsFrom = 'a source the renderer fetches'
+    }
+    const error = view.fieldErrors && view.fieldErrors[id]
+    if (error) out.error = error
+    return out
+  }
+
+  function ssAction(b, ctx) {
+    const id = ssText(b, 'actionId')
+    const route = ssText(b, 'route')
+    const label = ssInterpolate(ssText(b, 'label'), ctx)
+    const children = Array.isArray(b.children) && b.children.length ? b.children : null
+    if (!id && !route && !children) return null
+    const out = { id: id || route || label }
+    if (label) out.label = label
+    out.enabled = b.disabled !== true
+    if (route) out.navigatesTo = route
+    if (b.rowsSelectedRequired === true) out.needsSelectedRows = true
+    if (children) out.children = children.map((c) => ssAction(c, ctx)).filter(Boolean)
+    return out
+  }
+
+  function ssRowActionsOf(cell, dataType) {
+    if (cell == null || typeof cell !== 'object') return []
+    if (dataType === 'action') return cell.methodNameInCrud ? [cell] : []
+    return Array.isArray(cell.actions) ? cell.actions : []
+  }
+
+  function ssCellValue(cell, col, path, notes) {
+    // a status / link cell is an object: what it shows is its text
+    if (ssIsObject(cell)) {
+      for (const k of ['message', 'text', 'label', 'value']) {
+        const v = cell[k]
+        if (v != null && typeof v !== 'object') return ssCapText(String(v), path, notes)
+      }
+    }
+    if (cell != null && typeof cell !== 'object' && col && ssIsObject(col.valueLabels)) {
+      const label = col.valueLabels[String(cell)]
+      if (typeof label === 'string') return label
+    }
+    return screenCap(cell, path, notes)
+  }
+
+  function ssListing(node, meta, view, ctx, notes, prefix) {
+    const id = ssText(node, 'id') || ssText(meta, 'id') || 'crud'
+    const path = prefix + 'listings.' + id
+    const out = { id }
+    const title = ssText(meta, 'title')
+    if (ssNonBlank(title)) out.title = ssInterpolate(title, ctx)
+    const columns = (Array.isArray(meta.columns) ? meta.columns : []).map((c) => (ssIsObject(c && c.metadata) ? c.metadata : c) || {})
+    out.columns = columns.map((c) => ({ id: ssText(c, 'id'), label: ssText(c, 'label') }))
+    out.actions = (Array.isArray(meta.toolbar) ? meta.toolbar : []).map((b) => ssAction(b, ctx)).filter(Boolean)
+    const state = view.state || {}
+    if (meta.searchable === true) out.searchText = state.searchText == null ? '' : String(state.searchText)
+    const filters = Array.isArray(meta.filters) ? meta.filters : []
+    if (filters.length) {
+      out.filters = filters.map((raw) => {
+        const f = ssIsObject(raw && raw.metadata) ? raw.metadata : raw || {}
+        const fid = ssText(f, 'fieldId')
+        const one = { id: fid, label: ssText(f, 'label', fid), type: ssText(f, 'dataType') }
+        if (state[fid] != null) one.value = screenCap(state[fid], path + '.filters.' + fid, notes)
+        if (state[fid + '_from'] != null) one.from = screenCap(state[fid + '_from'], path, notes)
+        if (state[fid + '_to'] != null) one.to = screenCap(state[fid + '_to'], path, notes)
+        if (Array.isArray(f.options) && f.options.length) {
+          one.options = f.options.slice(0, SCREEN_MAX_OPTIONS).map((o) => ({ value: ssText(o, 'value'), label: ssText(o, 'label') }))
+        }
+        return one
+      })
+    }
+    if (Array.isArray(state.sort) && state.sort.length) out.sort = state.sort
+    // the page it painted
+    const listings = view.listings || {}
+    const envelope = listings[id] || listings.crud
+    const page = envelope ? (ssIsObject(envelope.crud && envelope.crud.page) ? envelope.crud.page : ssIsObject(envelope.page) ? envelope.page : envelope) : null
+    const rows = page && Array.isArray(page.content) ? page.content : []
+    if (page) {
+      out.page = Number(page.pageNumber) || 0
+      out.pageSize = page.pageSize != null ? Number(page.pageSize) : rows.length
+      if (typeof page.totalElements === 'number') out.totalElements = page.totalElements
+    }
+    const colIds = columns.map((c) => ssText(c, 'id')).filter(Boolean)
+    out.rows = rows.slice(0, SCREEN_MAX_ROWS).map((row) => {
+      const r = {}
+      const keys = colIds.length ? colIds : Object.keys(row || {}).filter((k) => !k.startsWith('_'))
+      for (const k of keys) {
+        if (!row || !(k in row)) continue
+        r[k] = ssCellValue(row[k], columns.find((c) => ssText(c, 'id') === k), path, notes)
+      }
+      return r
+    })
+    if (rows.length > SCREEN_MAX_ROWS) notes.add(path + '.rows')
+    // what a row offers: opening it, its link columns, its own actions
+    const rowActions = []
+    const rowOpens = ssNonBlank(ssText(meta, 'rowRoute')) || columns.some((c) => ssText(c, 'actionId') === 'view')
+    if (rowOpens) rowActions.push({ id: SCREEN_OPEN_ROW, label: 'Open' })
+    for (const c of columns) {
+      const a = ssText(c, 'actionId')
+      if (a && a !== 'view') rowActions.push({ id: a, label: ssText(c, 'label') })
+    }
+    const seen = new Set()
+    for (const c of columns.filter((c) => ['action', 'actionGroup', 'menu'].includes(ssText(c, 'dataType')))) {
+      for (const row of rows) {
+        for (const a of ssRowActionsOf(row && row[ssText(c, 'id')], ssText(c, 'dataType'))) {
+          const method = ssText(a, 'methodNameInCrud')
+          if (method && !seen.has(method)) {
+            seen.add(method)
+            rowActions.push({ id: 'action-on-row-' + method, label: ssText(a, 'label', method) })
+          }
+        }
+      }
+    }
+    out.rowActions = rowActions
+    if (meta.rowsSelectionEnabled === true) out.rowsSelectable = true
+    if (ssIsObject(meta.rowsSource)) {
+      // fetched by the renderer from a REST source: its search box and pager are the user's
+      out.rowsFrom = 'a REST source the app fetches; search and paging are not offered to agents'
+    } else {
+      out.builtInActions = page ? ['search', 'nextPage', 'prevPage'] : ['search']
+    }
+    return out
+  }
+
+  function ssDescribeView(into, tree, view, appState, notes, prefix) {
+    const acc = { header: null, fields: new Map(), buttons: [], crudNodes: [], declared: new Set(), initialData: new Map(), seen: new Set() }
+    if (tree) ssWalk(tree, acc, null)
+    const ctx = { state: view.state || {}, appState: appState || {} }
+    if (acc.header) {
+      // the Page / Form metadata (the walk reaches it as its own node)
+      const h = acc.header
+      const header = {}
+      for (const k of ['title', 'subtitle', 'overline']) {
+        const v = k === 'title' ? (ssText(h, 'title') || ssText(h, 'pageTitle')) : ssText(h, k)
+        if (ssNonBlank(v)) header[k] = ssInterpolate(v, ctx)
+      }
+      if (ssNonBlank(ssText(h, 'timestamp'))) header.timestamp = ssText(h, 'timestamp')
+      if (Array.isArray(h.badges) && h.badges.length) header.badges = h.badges.map((b) => ssInterpolate(ssText(b, 'text', ssText(b, 'label')), ctx))
+      if (Array.isArray(h.kpis) && h.kpis.length) header.kpis = h.kpis.map((k) => ({ title: ssInterpolate(ssText(k, 'title'), ctx), value: ssInterpolate(ssText(k, 'text'), ctx) }))
+      if (Object.keys(header).length) into.header = header
+      if (Array.isArray(h.breadcrumbs) && h.breadcrumbs.length) {
+        into.breadcrumbs = h.breadcrumbs.map((b) => {
+          const one = { label: ssText(b, 'text') }
+          if (ssNonBlank(ssText(b, 'link'))) one.route = ssText(b, 'link')
+          return one
+        })
+      }
+    }
+    // fields
+    const fields = []
+    let count = 0
+    for (const [id, meta] of acc.fields) {
+      if (view.hiddenFields && view.hiddenFields.has(id)) continue
+      if (count++ >= SCREEN_MAX_FIELDS) { notes.add(prefix + 'fields'); break }
+      fields.push(ssField(id, meta, view, acc, ctx, notes, prefix + 'fields.' + id))
+    }
+    into.fields = fields
+    if (view.fieldErrors && Object.keys(view.fieldErrors).length) into.errors = { ...view.fieldErrors }
+    // actions: the buttons drawn on it
+    const actions = []
+    const seenActions = new Set()
+    for (const b of acc.buttons) {
+      if (actions.length >= SCREEN_MAX_ACTIONS) { notes.add(prefix + 'actions'); break }
+      const a = ssAction(b, ctx)
+      if (a && !seenActions.has(a.id + '|' + (a.label || ''))) { seenActions.add(a.id + '|' + (a.label || '')); actions.push(a) }
+    }
+    into.actions = actions
+    const buttonIds = new Set(actions.map((a) => a.id))
+    const others = [...acc.declared].filter((id) => !buttonIds.has(id) && !SS_INTERNAL_ACTIONS.has(id))
+    if (others.length) into.otherActionIds = others.slice(0, SCREEN_MAX_ACTIONS)
+    if (acc.crudNodes.length) into.listings = acc.crudNodes.map(([node, meta]) => ssListing(node, meta, view, ctx, notes, prefix))
+  }
+
+  function ssAppContext(app, appState, notes) {
+    const selectors = app && Array.isArray(app.contextSelectors) ? app.contextSelectors : []
+    if (!selectors.length) return null
+    return selectors.map((s) => {
+      const field = ssText(s, 'fieldName')
+      const value = appState && appState[field] != null ? String(appState[field]) : ''
+      const options = Array.isArray(s.options) ? s.options : []
+      const out = { field, label: ssText(s, 'label', field), value }
+      const picked = options.find((o) => ssText(o, 'value') === value)
+      if (picked) out.valueLabel = ssText(picked, 'label')
+      out.options = options.slice(0, SCREEN_MAX_OPTIONS).map((o) => ({ value: ssText(o, 'value'), label: ssText(o, 'label') }))
+      if (options.length > SCREEN_MAX_OPTIONS) notes.add('appContext.' + field + '.options')
+      return out
+    })
+  }
+
+  function ssAppAction(a) {
+    const out = { id: ssText(a, 'actionId'), label: ssText(a, 'label', ssText(a, 'actionId')) }
+    if (ssNonBlank(ssText(a, 'route'))) out.navigatesTo = ssText(a, 'route')
+    if (Array.isArray(a.children) && a.children.length) out.children = a.children.map(ssAppAction)
+    return out
+  }
+
+  function ssUser(app) {
+    const u = app && app.user
+    if (typeof u === 'string') return u
+    if (!ssIsObject(u)) return null
+    const out = {}
+    for (const [k, v] of Object.entries(u)) {
+      const lower = k.toLowerCase()
+      if (v != null && typeof v !== 'object' && !SS_SECRET_WORDS.some((w) => lower.includes(w))) out[k] = v
+    }
+    return out
+  }
+
+  /**
+   * THE SUMMARY of what the user sees. `input`:
+   *   { uiName?, baseUrl?, route, windowTitle?, app? (the App metadata: contextSelectors,
+   *     contextActions, title, user), appState?, messages?: [{variant, title?, text}],
+   *     view?: {content, state, fieldErrors?, listings?, hiddenFields?, disabledFields?},
+   *     overlay?: {component, view} }
+   */
+  function buildScreenSummary(input) {
+    const i = input || {}
+    const notes = ssNotes()
+    const out = {}
+    const ui = {}
+    if (ssNonBlank(i.uiName)) ui.name = i.uiName
+    if (ssNonBlank(i.baseUrl)) ui.baseUrl = i.baseUrl
+    if (i.app && ssNonBlank(ssText(i.app, 'title'))) ui.appTitle = ssText(i.app, 'title')
+    out.ui = ui
+    const user = ssUser(i.app)
+    if (user) out.user = user
+    out.route = i.route || ''
+    if (ssNonBlank(i.windowTitle)) out.windowTitle = i.windowTitle
+    out.focus = i.overlay ? 'overlay' : 'page'
+    const appContext = ssAppContext(i.app, i.appState, notes)
+    if (appContext) out.appContext = appContext
+    if (i.app && Array.isArray(i.app.contextActions) && i.app.contextActions.length) out.appActions = i.app.contextActions.map(ssAppAction)
+    if (i.overlay) {
+      const component = i.overlay.component || {}
+      const meta = component.metadata || {}
+      const view = i.overlay.view || {}
+      const ctx = { state: view.state || {}, appState: i.appState || {} }
+      const o = { kind: (i.overlay.kind || ssText(meta, 'type') || 'overlay').toLowerCase() }
+      const title = i.overlay.title || ssText(meta, 'headerTitle', ssText(meta, 'title'))
+      if (ssNonBlank(title)) o.title = ssInterpolate(title, ctx)
+      const subtitle = i.overlay.subtitle || ssText(meta, 'subtitle')
+      if (ssNonBlank(subtitle)) o.subtitle = ssInterpolate(subtitle, ctx)
+      if (ssNonBlank(i.overlay.message)) o.message = ssCapText(i.overlay.message, 'overlay.message', notes)
+      const parts = []
+      for (const k of ['header', 'content', 'footer']) if (ssIsObject(meta[k])) parts.push(meta[k])
+      for (const c of Array.isArray(component.children) ? component.children : []) parts.push(c)
+      ssDescribeView(o, parts, view, i.appState, notes, 'overlay.')
+      if (Array.isArray(i.overlay.actions)) o.actions = o.actions.concat(i.overlay.actions)
+      out.overlay = o
+    }
+    if (i.view) {
+      const page = i.overlay ? (out.page = {}) : out
+      ssDescribeView(page, i.view.content, i.view, i.appState, notes, '')
+    }
+    const messages = Array.isArray(i.messages) ? i.messages : []
+    if (messages.length) {
+      out.messages = messages.slice(-SCREEN_MAX_MESSAGES).map((m) => {
+        const one = { variant: ssText(m, 'variant', 'info') }
+        if (ssNonBlank(ssText(m, 'title'))) one.title = ssText(m, 'title')
+        one.text = ssCapText(ssText(m, 'text'), 'messages', notes)
+        return one
+      })
+    }
+    const cut = notes.list()
+    if (cut.length) out.truncated = cut
+    return out
+  }
+
+  /** The part of the summary in front of the user: the overlay when one is open, else the page. */
+  function screenFocusOf(summary) {
+    if (summary && summary.overlay) return summary.overlay
+    return summary || {}
+  }
+
+  /** The action ids one part of the summary (the page, or the overlay) offers. */
+  function screenOfferedIn(part) {
+    const ids = new Set()
+    const walk = (a) => { if (a && ssNonBlank(a.id)) ids.add(a.id); for (const c of (a && a.children) || []) walk(c) }
+    for (const a of (part && part.actions) || []) walk(a)
+    for (const id of (part && part.otherActionIds) || []) ids.add(id)
+    for (const l of (part && part.listings) || []) {
+      for (const a of l.actions || []) walk(a)
+      for (const a of l.rowActions || []) walk(a)
+      for (const id of l.builtInActions || []) ids.add(id)
+    }
+    return ids
+  }
+
+  /** Every action id the summary offers: the focused part's and the app header's. */
+  function screenOfferedActionIds(summary) {
+    const ids = screenOfferedIn(screenFocusOf(summary))
+    const walk = (a) => { if (a && ssNonBlank(a.id)) ids.add(a.id); for (const c of (a && a.children) || []) walk(c) }
+    for (const a of (summary && summary.appActions) || []) walk(a)
+    return ids
+  }
+
+  /** The action of the summary with that id (the first found), or null. */
+  function ssFindAction(summary, id) {
+    const lists = []
+    const focus = screenFocusOf(summary)
+    lists.push(focus.actions || [])
+    for (const l of focus.listings || []) lists.push(l.actions || [], l.rowActions || [])
+    lists.push(summary.appActions || [])
+    const find = (list) => {
+      for (const a of list) {
+        if (a.id === id) return a
+        const inner = find(a.children || [])
+        if (inner) return inner
+      }
+      return null
+    }
+    for (const list of lists) { const a = find(list); if (a) return a }
+    return null
+  }
+
+  /** The query a pushed message carries ({event, requestId, …}), or null when it is not one. */
+  function screenQueryOf(push) {
+    if (!push || push.kind !== 'query' || !SCREEN_QUERY_EVENTS.includes(push.event)) return null
+    const d = ssIsObject(push.detail) ? push.detail : {}
+    if (!ssNonBlank(d.requestId)) return null
+    const q = { event: push.event, requestId: d.requestId }
+    if (push.event === 'set-fields') q.values = ssIsObject(d.values) ? d.values : {}
+    if (push.event === 'run-action') {
+      q.actionId = typeof d.actionId === 'string' ? d.actionId : ''
+      if (ssIsObject(d.parameters)) q.parameters = d.parameters
+      if (Number.isInteger(d.row) && d.row >= 0) q.row = d.row
+      if (typeof d.listing === 'string') q.listing = d.listing
+    }
+    return q
+  }
+
+  /**
+   * Whether `values` may be typed into the screen: every id a field of the focused part that is not
+   * readOnly, or a listing's `searchText` / filter id. → {ok: true, edits: [{fieldId, value, kind}]} |
+   * {ok: false, error: {code: 'unknownField', id}} — the first other id refuses the WHOLE call.
+   */
+  function planScreenEdits(summary, values) {
+    const focus = screenFocusOf(summary)
+    const editable = new Set((focus.fields || []).filter((f) => !f.readOnly).map((f) => f.id))
+    const searchable = new Set()
+    const filterIds = new Set()
+    for (const l of focus.listings || []) {
+      if ('searchText' in l) searchable.add('searchText')
+      for (const f of l.filters || []) if (f.id) filterIds.add(f.id)
+    }
+    const edits = []
+    for (const [fieldId, value] of Object.entries(values || {})) {
+      if (editable.has(fieldId)) edits.push({ fieldId, value, kind: 'field' })
+      else if (searchable.has(fieldId)) edits.push({ fieldId, value, kind: 'search' })
+      else if (filterIds.has(fieldId)) edits.push({ fieldId, value, kind: 'filter' })
+      else return { ok: false, error: { code: 'unknownField', id: fieldId } }
+    }
+    return { ok: true, edits }
+  }
+
+  /**
+   * What pressing `actionId` (with `row` / `listing`) means on this screen →
+   *   {ok: false, error: {code, id?}}
+   * | {ok: true, kind: 'open-row' | 'row-action' | 'search' | 'page' | 'app' | 'action', actionId,
+   *    parameters?, rowIndex?, listingId?, which? ('next'|'prev')}
+   */
+  function planScreenAction(summary, { actionId, parameters, row, listing } = {}) {
+    const id = String(actionId || '')
+    if (!id || !screenOfferedActionIds(summary).has(id)) return { ok: false, error: { code: 'unknownAction', id } }
+    const found = ssFindAction(summary, id)
+    if (found && found.enabled === false) return { ok: false, error: { code: 'disabledAction', id } }
+    const focus = screenFocusOf(summary)
+    const listings = focus.listings || []
+    const named = listing != null ? listings.find((l) => l.id === listing) : listings[0]
+    const base = { ok: true, actionId: id, ...(parameters ? { parameters } : {}) }
+    if (row != null) {
+      if (!named || !(row >= 0 && row < (named.rows || []).length)) return { ok: false, error: { code: 'unknownRow', id: String(row) } }
+      base.rowIndex = row
+      base.listingId = named.id
+    }
+    if (id === SCREEN_OPEN_ROW) {
+      if (row == null) return { ok: false, error: { code: 'unknownRow', id: '' } }
+      return { ...base, kind: 'open-row' }
+    }
+    if (id.startsWith('action-on-row-') && row != null) return { ...base, kind: 'row-action', method: id.slice('action-on-row-'.length) }
+    if (id === 'search') return { ...base, kind: 'search', listingId: named ? named.id : undefined }
+    if (id === 'nextPage' || id === 'prevPage') return { ...base, kind: 'page', which: id === 'nextPage' ? 'next' : 'prev', listingId: named ? named.id : undefined }
+    const app = (summary.appActions || [])
+    const inApp = (list) => list.some((a) => a.id === id || inApp(a.children || []))
+    if (!screenOfferedIn(focus).has(id) && inApp(app)) return { ...base, kind: 'app' }
+    return { ...base, kind: 'action' }
+  }
+
+  /** For a refusal answer: `_agent-screen`'s `error` ({code, id?}, id only when there is one). */
+  function screenRefusalOf(code, id) {
+    return id == null || id === '' ? { code } : { code, id: String(id) }
+  }
+
+  /** The recent messages a tab keeps for the summary: the last SCREEN_MAX_MESSAGES of an increment
+   *  stream (each increment's `messages`, variant/title/text). */
+  function screenMessagesAfter(kept, increment) {
+    const next = (kept || []).slice()
+    for (const m of (increment && Array.isArray(increment.messages) ? increment.messages : [])) {
+      if (!m || (m.text == null && m.title == null)) continue
+      next.push({ variant: String(m.variant || 'info').toLowerCase(), ...(m.title ? { title: String(m.title) } : {}), text: String(m.text != null ? m.text : '') })
+    }
+    return next.slice(-SCREEN_MAX_MESSAGES)
+  }
+
+  /** How long the "an agent is operating this screen" notice stays after the last query. */
+  const AGENT_OPERATING_MS = 120000
+
+  /** Whether the notice shows: a query in the last two minutes, and the user did not press Stop. */
+  function agentOperatingOf({ lastQueryAt, stopped } = {}, now = Date.now()) {
+    return !stopped && typeof lastQueryAt === 'number' && now - lastQueryAt < AGENT_OPERATING_MS
+  }
+
+
+
+
+
 
 
 
@@ -35464,6 +36271,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // else the built-in render target via `__preview__` into the content / a drawer / a dialog);
   // navigate → `navigation-requested` (a menu click with those fields); event → a document CustomEvent
   // + the @SubscribeTo views on screen. `status` ({paired, agents}) only updates the control.
+  // `query` (describe-screen / set-fields / run-action) asks the tab what it shows or to act on it as
+  // the user would: the CONTENT page runs it (application event mateuAgentQuery → its agentQueryRun
+  // chain → runAgentQuery here, with the page's drafts and chains) and the tab answers `_agent-screen`
+  // with the summary of agentScreen.mjs. While an agent operates the tab, a non-modal band says so,
+  // with Stop (unpair + close this tab's channel until the user connects an agent again).
   //
   // The stream ends after 5 minutes by design: the tab reconnects at once; a failure backs off.
   // A duplicated tab (the browser copies sessionStorage) would share the id and the two tabs would
@@ -35476,6 +36288,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const AGENT_CHANNEL_ACTION = '_agent-channel'
   const AGENT_PAIR_ACTION = '_agent-pair'
   const AGENT_UNPAIR_ACTION = '_agent-unpair'
+  /** The chat binds its conversation to THIS tab: its agent then reaches this session, and only it. */
+  const AGENT_BIND_ACTION = '_agent-bind'
+  /** The tab's answer to a `query` message: {requestId, screen} | {requestId, error: {code, id?}}. */
+  const AGENT_SCREEN_ACTION = '_agent-screen'
+  /** The largest screen the server takes (UTF-8 bytes of its JSON); a larger one is answered `tooLarge`. */
+  const AGENT_MAX_SCREEN_BYTES = 262144
+  /** How long the content page has to take a query before the tab answers `failed`. */
+  const AGENT_QUERY_CLAIM_MS = 2000
+  /** The longest the tab waits for the screen to settle after an edit or a click. */
+  const AGENT_SETTLE_MAX_MS = 6000
   const AGENT_RENDERER = 'redwood'
   /** The per-tab UI session id — the SAME key as libs/mateu authToken.ts SESSION_ID_KEY. */
   const UI_SESSION_KEY = '__mateu_sesion_id'
@@ -35564,9 +36386,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** The body of an agent action: app-level (route '', the app's serverSideType), the session's
    *  credentials in the parameters (+ the channel's route and renderer). */
-  function agentActionBodyOf(actionId, { sessionId, secret, serverSideType, route }) {
+  function agentActionBodyOf(actionId, { sessionId, secret, serverSideType, route }, extra) {
     const parameters = { sessionId, secret }
     if (actionId === AGENT_CHANNEL_ACTION) Object.assign(parameters, { route: route || '', renderer: AGENT_RENDERER })
+    // `_agent-screen`: the answer (requestId + screen | error) — never the credentials again
+    if (extra && typeof extra === 'object') {
+      for (const [k, v] of Object.entries(extra)) if (k !== 'sessionId' && k !== 'secret') parameters[k] = v
+    }
     return {
       route: '',
       consumedRoute: '',
@@ -35579,7 +36405,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  const AGENT_KINDS = ['status', 'render', 'navigate', 'event']
+  const AGENT_KINDS = ['status', 'render', 'navigate', 'event', 'query']
 
   /** The AgentPush messages an increment carries ({kind, event, detail}, detail {} when none). */
   function agentPushesOf(increment) {
@@ -35617,6 +36443,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function agentPushPlanOf(push) {
     if (!push) return { kind: 'ignore' }
     if (push.kind === 'status') return { kind: 'status', status: agentStatusOf(push.detail) }
+    if (push.kind === 'query') {
+      const query = screenQueryOf(push)
+      return query ? { kind: 'query', query } : { kind: 'ignore' }
+    }
     if (push.kind === 'render') return { kind: 'chat', event: { event: 'render-screen', detail: push.detail } }
     if (push.kind === 'navigate') return { kind: 'chat', event: { event: 'navigation-requested', detail: push.detail } }
     if (push.kind === 'event' && /^[A-Za-z][A-Za-z0-9_.:-]{0,63}$/.test(push.event) && !AGENT_RESERVED.includes(push.event)) {
@@ -35919,6 +36749,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   async function applyAgentPush(push, host) {
     const plan = agentPushPlanOf(push)
     if (plan.kind === 'status') { adoptAgentStatus(plan.status); return plan }
+    if (plan.kind === 'query') { handleAgentQuery(plan.query); return plan }
     if (plan.kind !== 'chat') return plan
     if (plan.event.event === 'render-screen') announce(chromeText('agentPushedScreen'))
     if (host === undefined) await dispatchChatEvent(plan.event)
@@ -35926,13 +36757,29 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return plan
   }
 
-  const agentAppAction = (actionId) => {
+  const agentAppAction = (actionId, extra) => {
     const t = agentUi.target
-    const body = agentActionBodyOf(actionId, t)
+    const body = agentActionBodyOf(actionId, t, extra)
     // quiet: the dialog shows what went wrong (no second error band), and no screen staleness —
     // the pairing belongs to the tab, not to the screen on show
     const call = agentUi.sinks && agentUi.sinks.call
     return call ? call(t.base, body) : callMateu(t.base, body, { quiet: true })
+  }
+
+  /**
+   * Binds an in-app chat conversation to this tab (`_agent-bind {agentKey}`): the agent the chat hands
+   * `key` to — it sends it as X-Mateu-Agent-Key — reaches this tab's session and no other, not even
+   * the same user's other tabs. False when there is nothing to bind (no live UI push, the user
+   * stopped the agents here) or the server refused.
+   */
+  async function bindChatConversation(key) {
+    if (!agentUi.target || agentOps.stopped || !key) return false
+    try {
+      const answer = await agentAppAction(AGENT_BIND_ACTION, { agentKey: key })
+      return !agentRefusalOf(answer)
+    } catch (e) {
+      return false
+    }
   }
 
   /** "Connect AI": asks the server for a fresh one-time code (the previous unused one dies). */
@@ -35942,6 +36789,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     agentUi.error = null
     paintAgentControl()
     try {
+      // the user stopped the agent on this tab (Stop): connecting one again reopens the channel first
+      if (agentOps.stopped) await resumeAgentChannel()
       const answer = await agentAppAction(AGENT_PAIR_ACTION)
       const refusal = agentRefusalOf(answer)
       const pairing = agentPairingOf(answer)
@@ -36018,7 +36867,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         onRefusal: agentWarn,
       })
     }
-    agentChannel.start(agentUi.target)
+    // Stop closed this tab's channel: it stays closed until the user connects an agent again
+    if (!agentOps.stopped) agentChannel.start(agentUi.target)
     paintAgentControl()
     return agentUi.target
   }
@@ -36037,6 +36887,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     agentClaim = null
     stopAgentTicker()
     Object.assign(agentUi, { channel: 'idle', status: { paired: false, agents: [] }, pairing: null, loading: false, error: null, target: null, sinks: {}, expiredSaid: false })
+    resetAgentOperation()
   }
 
   /** Installs (once) the control's document listeners: the header button, the dialog's buttons. */
@@ -36050,9 +36901,326 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t.closest('#mateuAgentConnect')) openAgentDialog(doc)
       else if (t.closest('#mateuAgentNewCode')) requestAgentPairing()
       else if (t.closest('#mateuAgentDisconnect')) unpairAgents()
+      else if (t.closest('#mateuAgentStop')) stopAgentOperation()
     }, true)
+    // the summary's last messages: every answer the tab gets (transport.mjs)
+    setAnswerObserver(noteAgentAnswer)
     const win = doc.defaultView
     if (win && win.addEventListener) win.addEventListener('pagehide', () => { if (agentChannel) agentChannel.stop() })
+  }
+
+  // ── reading and operating the screen (query messages) ────────────────────────────────────────
+
+  const agentOps = {
+    host: null, // {fire(query)}: hands a query to the content page (loadMateuShell)
+    pending: new Map(), // requestId → the timer that answers `failed` when nobody takes it
+    messages: [], // the last messages the tab got (for the summary)
+    busy: 0, // the tab's own calls in flight (transport hooks)
+    lastQueryAt: null,
+    stopped: false,
+    noticeTimer: null,
+    noticeShown: false,
+  }
+
+  /** The shell's sink for queries (it fires application:mateuAgentQuery at the content page). */
+  function setAgentQueryHost(host) { agentOps.host = host || null }
+
+  /** A call of the tab's own started (+1) or settled (-1): the screen settles when none is left. */
+  function noteAgentTransport(delta) { agentOps.busy = Math.max(0, agentOps.busy + (delta > 0 ? 1 : -1)) }
+
+  /** An answer the tab got: its messages join the summary's last messages. */
+  function noteAgentAnswer(increment) { agentOps.messages = screenMessagesAfter(agentOps.messages, increment) }
+
+  /** Whether the "an AI agent is operating this screen" band shows (tests, probes). */
+  function agentOperationState(now = Date.now()) {
+    return { operating: agentOperatingOf(agentOps, now), stopped: agentOps.stopped, pending: agentOps.pending.size, busy: agentOps.busy }
+  }
+
+  /** For the tests. */
+  function resetAgentOperation() {
+    for (const t of agentOps.pending.values()) clearTimeout(t)
+    if (agentOps.noticeTimer) clearTimeout(agentOps.noticeTimer)
+    Object.assign(agentOps, { host: null, pending: new Map(), messages: [], busy: 0, lastQueryAt: null, stopped: false, noticeTimer: null, noticeShown: false })
+  }
+
+  /** Paints the band (#mateuAgentOperating in shell-page.html): shown while an agent operates. */
+  function paintAgentNotice(doc = agentUi.doc || agentDocOf(), now = Date.now()) {
+    const on = agentOperatingOf(agentOps, now)
+    if (on && !agentOps.noticeShown) announce(chromeText('agentOperating'))
+    agentOps.noticeShown = on
+    if (!doc) return on
+    const band = doc.getElementById('mateuAgentOperating')
+    if (band) agentSetHidden(band, !on)
+    const text = doc.getElementById('mateuAgentOperatingText')
+    if (text) text.textContent = chromeText('agentOperating')
+    return on
+  }
+
+  function agentNoteQuery(now = Date.now()) {
+    agentOps.lastQueryAt = now
+    paintAgentNotice()
+    if (agentOps.noticeTimer) clearTimeout(agentOps.noticeTimer)
+    agentOps.noticeTimer = setTimeout(() => { agentOps.noticeTimer = null; paintAgentNotice() }, AGENT_OPERATING_MS + 50)
+  }
+
+  /** Stop (the band's button): the agent loses this tab — every pairing removed and the channel closed;
+   *  it opens again only when the user connects an agent ("Connect AI"). */
+  async function stopAgentOperation() {
+    agentOps.stopped = true
+    agentOps.lastQueryAt = null
+    paintAgentNotice()
+    for (const [requestId, t] of agentOps.pending) { clearTimeout(t); agentOps.pending.delete(requestId) }
+    try { if (agentUi.target) await unpairAgents() } finally {
+      if (agentChannel) agentChannel.stop()
+      announce(chromeText('agentStopped'))
+    }
+    return true
+  }
+
+  /** Reopens the channel Stop closed and waits (≤ 5 s) for it to be open: pairing needs it registered. */
+  async function resumeAgentChannel(waitMs = 5000) {
+    agentOps.stopped = false
+    if (!agentChannel || !agentUi.target) return
+    agentChannel.start(agentUi.target)
+    const until = Date.now() + waitMs
+    while (agentUi.channel !== 'open' && Date.now() < until) await new Promise((r) => setTimeout(r, 100))
+  }
+
+  /** Answers a query (`_agent-screen`). A screen over the server's limit is answered `tooLarge`. */
+  async function answerAgentQuery(requestId, answer) {
+    if (!agentUi.target) return false
+    let payload = answer && answer.screen ? { requestId, screen: answer.screen } : { requestId, error: (answer && answer.error) || { code: 'failed' } }
+    if (payload.screen) {
+      let bytes = 0
+      try { bytes = new TextEncoder().encode(JSON.stringify(payload.screen)).length } catch (e) { bytes = AGENT_MAX_SCREEN_BYTES + 1 }
+      if (bytes > AGENT_MAX_SCREEN_BYTES) payload = { requestId, error: { code: 'tooLarge' } }
+    }
+    try {
+      await agentAppAction(AGENT_SCREEN_ACTION, payload)
+      return true
+    } catch (e) {
+      agentWarn(e)
+      return false
+    }
+  }
+
+  /** A query arrived: the band shows, and the content page is handed it (it answers it). */
+  function handleAgentQuery(query) {
+    if (!query || agentOps.stopped) return
+    agentNoteQuery()
+    if (!agentOps.host || typeof agentOps.host.fire !== 'function') {
+      answerAgentQuery(query.requestId, { error: { code: 'unsupported' } })
+      return
+    }
+    agentOps.pending.set(query.requestId, setTimeout(() => {
+      agentOps.pending.delete(query.requestId)
+      answerAgentQuery(query.requestId, { error: { code: 'failed' } })
+    }, AGENT_QUERY_CLAIM_MS))
+    Promise.resolve().then(() => agentOps.host.fire(query)).catch((e) => {
+      agentWarn(e)
+      const t = agentOps.pending.get(query.requestId)
+      if (t) { clearTimeout(t); agentOps.pending.delete(query.requestId); answerAgentQuery(query.requestId, { error: { code: 'failed' } }) }
+    })
+  }
+
+  const agentSleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+  /** Waits until the screen settled: none of the tab's calls in flight for a moment, a confirmation
+   *  the user has to answer on screen, or the cap. */
+  async function settleAgentScreen(ops, { maxMs = AGENT_SETTLE_MAX_MS, quietMs = 300, firstMs = 150 } = {}) {
+    const until = Date.now() + maxMs
+    await agentSleep(firstMs)
+    let quietSince = agentOps.busy === 0 ? Date.now() : null
+    while (Date.now() < until) {
+      if (ops && typeof ops.confirmationOpen === 'function' && ops.confirmationOpen()) return 'confirmation'
+      if (agentOps.busy === 0) {
+        if (quietSince == null) quietSince = Date.now()
+        if (Date.now() - quietSince >= quietMs) return 'idle'
+      } else {
+        quietSince = null
+      }
+      await agentSleep(50)
+    }
+    return 'timeout'
+  }
+
+  /**
+   * Runs a query on the content page — what its agentQueryRun chain calls with the page's operations
+   * (agentPageOps): describe; set-fields (refused WHOLE when an id is not an editable field on show,
+   * else each value typed as the user does); run-action (refused when the screen does not offer it,
+   * else pressed as a click) — then the screen settles and its summary is the answer.
+   */
+  async function runAgentQuery(query, ops, opts = {}) {
+    if (!query || !query.requestId) return null
+    const t = agentOps.pending.get(query.requestId)
+    if (t) clearTimeout(t)
+    if (!agentOps.pending.has(query.requestId) && !opts.unclaimed) return null // answered already (failed)
+    agentOps.pending.delete(query.requestId)
+    const answer = (a) => answerAgentQuery(query.requestId, a).then(() => a)
+    try {
+      const before = buildScreenSummary(ops.describe())
+      if (query.event === 'describe-screen') return await answer({ screen: before })
+      if (query.event === 'set-fields') {
+        const plan = planScreenEdits(before, query.values)
+        if (!plan.ok) return await answer({ error: plan.error })
+        for (const edit of plan.edits) {
+          const done = await ops.edit(edit)
+          if (done === false) return await answer({ error: screenRefusalOf('unsupported') })
+        }
+        await settleAgentScreen(ops, opts.settle)
+        return await answer({ screen: buildScreenSummary(ops.describe()) })
+      }
+      const plan = planScreenAction(before, query)
+      if (!plan.ok) return await answer({ error: plan.error })
+      if (plan.kind === 'app') return await answer({ error: screenRefusalOf('unsupported') })
+      // not awaited: a confirmation the action asks for waits for the USER, who answers it
+      let refused = false
+      Promise.resolve().then(() => ops.press(plan)).then((r) => { if (r === false) refused = true }).catch(agentWarn)
+      await settleAgentScreen(ops, opts.settle)
+      if (refused) return await answer({ error: screenRefusalOf('unsupported') })
+      return await answer({ screen: buildScreenSummary(ops.describe()) })
+    } catch (e) {
+      agentWarn(e)
+      return answer({ error: screenRefusalOf('failed') })
+    }
+  }
+
+  const agentQuote = (id) => String(id).replace(/["\\]/g, '\\$&')
+
+  /** The input of the field `fieldId` on show — inside the open overlay when `inOverlay`, else the
+   *  page's content — or null. */
+  function agentFieldElementOf(doc, fieldId, inOverlay) {
+    if (!doc || typeof doc.querySelectorAll !== 'function') return null
+    const all = [...doc.querySelectorAll('[data-field-id="' + agentQuote(fieldId) + '"]')]
+    if (!all.length) return null
+    const within = (sel) => all.find((el) => typeof el.closest === 'function' && el.closest(sel))
+    return (inOverlay ? within('#mateuDrawerPanel, oj-dialog, oj-drawer-popup') : within('#pageContent')) || all[0]
+  }
+
+  /** The field errors painted on show ({fieldId: message}): the messages-custom of each input. */
+  function agentFieldErrorsOf(doc, inOverlay) {
+    const out = {}
+    if (!doc || typeof doc.querySelectorAll !== 'function') return out
+    for (const el of doc.querySelectorAll('[data-field-id]')) {
+      if (inOverlay && typeof el.closest === 'function' && !el.closest('#mateuDrawerPanel, oj-dialog, oj-drawer-popup')) continue
+      const messages = el.messagesCustom
+      const first = Array.isArray(messages) ? messages.find((m) => m && (m.detail || m.summary)) : null
+      const id = el.getAttribute ? el.getAttribute('data-field-id') : null
+      if (first && id && !(id in out)) out[id] = String(first.detail || first.summary)
+    }
+    return out
+  }
+
+  /**
+   * Types `value` into the input on show exactly as the user does: the input takes the value (the
+   * user sees it) and then announces the change as one of its own (`valueChanged`, updatedFrom
+   * internal) — the binding's chain runs as for a user edit (the draft, rules, the dirty state,
+   * OnValueChange). False when the input is not on show.
+   */
+  function agentTypeInto(el, value) {
+    if (!el) return false
+    const previousValue = el.value
+    try { el.value = value } catch (e) { /* a read-only property: the chain still records it */ }
+    const Ev = (el.ownerDocument && el.ownerDocument.defaultView && el.ownerDocument.defaultView.CustomEvent) || globalThis.CustomEvent
+    el.dispatchEvent(new Ev('valueChanged', { detail: { value, previousValue, updatedFrom: 'internal' } }))
+    return true
+  }
+
+  /**
+   * The content page's operations for runAgentQuery, from its VB variables: `app` = $application
+   * variables, `page` = $page variables, `callChain(name, params)` = Actions.callChain in the page's
+   * context, `doc` = the document.
+   */
+  function agentPageOps({ app, page, callChain, doc = agentDocOf() }) {
+    const reg = () => (app && app.mateuRegistry) || { contexts: {}, stack: [] }
+    const topOverlay = () => {
+      const r = reg()
+      const stack = r.stack || []
+      for (let i = stack.length - 1; i >= 0; i--) if ((r.contexts || {})[stack[i]]) return r.contexts[stack[i]]
+      return null
+    }
+    const confirmationOpen = () => !!pendingConfirmation
+    const describe = () => {
+      const r = reg()
+      const host = (r.contexts || {})[HOST_ID] || {}
+      const shell = r.shell || {}
+      const ov = topOverlay()
+      const confirming = confirmationOpen() && page && page.mateuConfirm
+      const input = {
+        route: (app && app.mateuSelectedRoute) || '',
+        windowTitle: doc ? doc.title : '',
+        app: { title: shell.title, contextSelectors: shell.appContext, contextActions: shell.headerActions, user: shell.user },
+        appState: (app && app.mateuAppState) || {},
+        messages: agentOps.messages,
+        view: {
+          content: host.tree,
+          state: Object.assign({}, host.state || {}, (page && page.mateuDraft) || {}),
+          listings: host.data || {},
+          fieldErrors: ov || confirming ? {} : agentFieldErrorsOf(doc, false),
+        },
+      }
+      if (confirming) {
+        // the action's own confirmation: the USER answers it — shown, offered nothing
+        input.overlay = { kind: 'confirmation', title: page.mateuConfirm.title, message: page.mateuConfirm.message, component: {}, view: {} }
+      } else if (ov) {
+        const kind = String(((ov.tree || {}).metadata || {}).type || ov.kind || 'drawer').toLowerCase()
+        input.overlay = {
+          kind,
+          title: ov.title,
+          subtitle: ov.subtitle,
+          component: ov.tree || {},
+          view: {
+            state: Object.assign({}, ov.state || {}, (page && page.mateuDrawerDraft) || {}),
+            listings: ov.data || {},
+            fieldErrors: agentFieldErrorsOf(doc, true),
+          },
+        }
+      }
+      return input
+    }
+    const listingRow = (listingId, index) => {
+      const host = (reg().contexts || {})[HOST_ID] || {}
+      const data = host.data || {}
+      const envelope = data[listingId] || data.crud || {}
+      const pageOf = envelope.page || (envelope.crud && envelope.crud.page) || {}
+      const row = (pageOf.content || [])[index]
+      if (!row) return null
+      const shown = ((app && app.mateuListingRows) || []).filter((r) => r && !r._group)
+      const projected = (row.id != null && shown.find((r) => r.id != null && String(r.id) === String(row.id))) || shown[index] || null
+      return { row, projected }
+    }
+    const edit = async ({ fieldId, value, kind }) => {
+      if (kind === 'search') {
+        // the listing's search box: the text the next search (and paging) sends
+        if (app) app.mateuLastSearchText = value == null ? '' : String(value)
+        return true
+      }
+      const inOverlay = !!topOverlay()
+      const el = agentFieldElementOf(doc, fieldId, inOverlay)
+      if (el) return agentTypeInto(el, value)
+      if (kind === 'filter') return false
+      // not painted as an input (a template's own widget): the edit chain still records it
+      await callChain('mateuFieldEdited', { fieldId, event: { detail: { value, updatedFrom: 'internal' } } })
+      return true
+    }
+    const press = async (plan) => {
+      if (plan.kind === 'open-row' || plan.kind === 'row-action') {
+        const found = listingRow(plan.listingId, plan.rowIndex)
+        if (!found) return false
+        const key = found.projected ? found.projected._rowNumber : undefined
+        if (plan.kind === 'open-row') {
+          return callChain('mateuRowClicked', {
+            event: { detail: { context: { key, item: { data: found.projected || found.row } } }, timeStamp: Date.now() + Math.random() },
+          })
+        }
+        return callChain('listingRowAction', { methodName: plan.method, rowId: found.row.id, rowKey: key })
+      }
+      if (plan.kind === 'search') return callChain('runMateuSearch', { searchText: (app && app.mateuLastSearchText) || '' })
+      if (plan.kind === 'page') return callChain('listingPaged', { which: plan.which })
+      if (topOverlay()) return callChain('runMateuAction', { actionId: plan.actionId, parameters: plan.parameters })
+      return callChain('dispatchHostBlockAction', { actionId: plan.actionId, parameters: plan.parameters })
+    }
+    return { describe, edit, press, confirmationOpen }
   }
 
 
@@ -36979,6 +38147,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       headers: headers && typeof headers === 'object' ? headers : null,
       headersProvider: typeof props.headersProvider === 'function' ? props.headersProvider : null,
       withCredentials: props.withCredentials === true || props.withCredentials === 'true',
+      // shell="true": the component draws the mount's App shell (header + menu) — for a page that is
+      // only the Mateu UI; off (the default) inside a host page that has a shell of its own
+      shell: props.shell === true || props.shell === 'true',
     }
   }
 
@@ -37021,7 +38192,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  'context' (the app context: reload the screen with it), or nothing. */
   function propertyChangeOf(previous, next) {
     if (!previous) return 'boot'
-    if (previous.baseUrl !== next.baseUrl || previous.withCredentials !== next.withCredentials) return 'boot'
+    if (previous.baseUrl !== next.baseUrl || previous.withCredentials !== next.withCredentials
+        || !!previous.shell !== !!next.shell) return 'boot'
     if (JSON.stringify(previous.appContext) !== JSON.stringify(next.appContext)) return 'context'
     if (previous.route !== next.route || JSON.stringify(previous.params) !== JSON.stringify(next.params)
         || JSON.stringify(previous.initialState) !== JSON.stringify(next.initialState)) return 'navigate'
@@ -37119,6 +38291,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return inAppRouteOfLink(anchor, event, location, false, mount)
   }
 
+  /**
+   * The navigation a `navigation-requested` asks the COMPONENT for, or null when it is not ours. The
+   * chains dispatch it on the DOCUMENT, where the standalone shell listens (loadMateuShell): the
+   * header's peer arrows (requestPeerNavigation), its go-to-parent (the «Loans» trail), a content
+   * menu's route, a FAB's, the not-found page's way back. Embedded there is no shell listening on
+   * the document — the component listened on its own element only, so those clicks did nothing. It
+   * takes one dispatched on the document itself or from inside its element; one dispatched from
+   * elsewhere in the host page (bubbling up to the document) is the host's. The params are those of
+   * the standalone listener: the route and every menu-click field it carries (chatNavigationOf).
+   */
+  function embeddedNavigationRequestOf(event, element, navigationOf = () => undefined) {
+    const detail = (event && event.detail) || {}
+    if (detail.route == null) return null
+    const target = event.target
+    const onDocument = !target || target.nodeType === 9
+    const inside = !!element && !!target && (target === element || (typeof element.contains === 'function' && element.contains(target)))
+    if (!onDocument && !inside) return null
+    return { event: { detail: { route: detail.route, navigation: navigationOf(detail) } } }
+  }
+
   /** Whether a navigation the SCREEN asked for happens inside the component. */
   function navigatesInside(policy, notCancelled) {
     return policy !== 'host' && notCancelled
@@ -37149,6 +38341,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const m = /^\{\{\s*([\s\S]*?)\s*\}\}$/.exec(value)
     if (!m) return value
     return evalDescriptorExpression(m[1], scope)
+  }
+
+  /** Whether a descriptor value holds a {{ }} expression (at any depth). */
+  function hasDescriptorExpression(value) {
+    if (typeof value === 'string') return /^\{\{[\s\S]*\}\}$/.test(value.trim())
+    if (Array.isArray(value)) return value.some(hasDescriptorExpression)
+    if (value && typeof value === 'object') return Object.values(value).some(hasDescriptorExpression)
+    return false
+  }
+
+  /** The variables a descriptor value's expressions read, as watch keys ('app.x' | 'page.x'). */
+  function descriptorReferencesOf(value) {
+    const text = JSON.stringify(value === undefined ? null : value)
+    const refs = new Set()
+    for (const m of text.matchAll(/\$(application\.variables|page\.variables|variables)\.(\w+)/g)) {
+      refs.add((m[1] === 'application.variables' ? 'app.' : 'page.') + m[2])
+    }
+    return [...refs]
   }
 
   function evalDescriptorExpression(expr, scope) {
@@ -37212,6 +38422,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const watchers = new Map() // 'app.x' | 'page.x' → [fn]
     const watch = (key, fn) => { if (!watchers.has(key)) watchers.set(key, []); watchers.get(key).push(fn) }
     const adps = []
+    // variables whose default is an EXPRESSION ({{ $page.variables.x }}, inside an object too): VB
+    // evaluates it, and keeps doing so while its references change and nobody wrote the variable
+    const computedDefaults = []
 
     const makeVariables = (defs, scopeKey) => {
       const vars = {}
@@ -37229,14 +38442,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
         const box = observable(defaultOfVariable(def))
         const key = scopeKey + '.' + name
+        const state = { written: false }
         Object.defineProperty(vars, name, {
           enumerable: true,
           get: () => box(),
           set: (v) => {
+            state.written = true
             box(v)
             for (const fn of watchers.get(key) || []) fn(v)
           },
         })
+        if (def && hasDescriptorExpression(def.defaultValue)) {
+          computedDefaults.push({ def, state, key, init: (v) => { box(v); for (const fn of watchers.get(key) || []) fn(v) } })
+        }
       }
       return vars
     }
@@ -37267,6 +38485,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           if (adp && Array.isArray(rows) && rows.length) adp.setData(rows)
         }
       }
+    }
+
+    // expression defaults: evaluated once every variable exists, and again when what they read changes
+    // (until the variable is written). The listing header's record switcher is one: its selectObject
+    // carries the switcher's DataProvider — left as the raw '{{ … }}' text, JET called isEmpty() on a
+    // string and the binding of the page header failed.
+    for (const computed of computedDefaults) {
+      const evaluate = () => {
+        if (computed.state.written) return
+        try {
+          computed.init(evalDescriptorValue(computed.def.defaultValue, { $application, $page, $variables: $page.variables }))
+        } catch (e) {
+          if (typeof console !== 'undefined' && console.warn) console.warn('mateu-ui: the default of ' + computed.key + ' could not be evaluated', e)
+        }
+      }
+      evaluate()
+      for (const ref of descriptorReferencesOf(computed.def.defaultValue)) watch(ref, evaluate)
     }
 
     // the screen's title is the host's to show (its header, its breadcrumbs, document.title): every
@@ -37532,7 +38767,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     runtime.$application.constants.mateuBaseUrl = config.baseUrl
     if (b.setElementModuleBase) b.setElementModuleBase(assetBaseOf(config.baseUrl))
     vars.mateuAppState = { ...(config.appContext || {}) }
-    const boot = await b.bootstrapShell(config.baseUrl, 'shell')
+    // the app context rides every request, the shell's first load included
+    const boot = await b.bootstrapShell(config.baseUrl, 'shell', vars.mateuAppState)
     const withoutApp = !b.bootstrapHasApp(boot)
     b.setMountWithoutApp(withoutApp)
     const reg = b.reduceContexts({ contexts: {}, stack: [], shell: null }, boot)
@@ -37542,11 +38778,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     vars.mateuRegistry = reg
     const nav = b.shellNavOf(reg)
     vars.mateuShellSST = nav.serverSideType || ''
+    Object.assign(vars, embeddedShellVarsOf(nav, reg.shell, config))
     const firstLeaf = (nav.menuTree || []).find((entry) => !entry.hasChildren)
     const homeRoute = b.routeUnderMount(nav.homeRoute) || (firstLeaf ? firstLeaf.id : '') || (withoutApp ? '/' : '')
     vars.mateuHomeRoute = homeRoute
     await navigateEmbedded(runtime, config, homeRoute)
     emitEmbedded(EMBEDDED_EVENTS.ready, { route: vars.mateuSelectedNavId || vars.mateuSelectedRoute || '' })
+  }
+
+  /**
+   * The App shell the component draws with shell="true": the variables its header and menu band bind
+   * (the standalone shell's own — loadMateuShell sets the same ones): the logo (from the backend's
+   * ROOT, like every asset) and the title on the header, the menu as the top band. Every menu variant
+   * is drawn as that band (MENU_ON_TOP's subheader; HAMBURGER_SECTIONS keeps its sections in it): the
+   * drawer/rail navigators belong to a page, not to a block of one. Off: nothing of the shell.
+   */
+  function embeddedShellVarsOf(nav, shell, config) {
+    if (!config || !config.shell || !shell) {
+      return { mateuEmbeddedShell: false, mateuMenuSubheader: false, mateuMenuSections: false }
+    }
+    const tree = (nav && nav.menuTree) || []
+    const title = (nav && nav.title) || ''
+    return {
+      mateuEmbeddedShell: true,
+      mateuShellTitle: title,
+      mateuMenuTree: tree,
+      mateuNavItems: (nav && nav.items) || [],
+      mateuMenuSubheader: !!(title || tree.length),
+      mateuMenuSections: false,
+      mateuSectionList: [],
+      mateuShellLogo: shell.logo ? assetBaseOf(config.baseUrl) + shell.logo : '',
+    }
   }
 
   /** The host asked for a screen (the route/params/initialState properties): it always happens —
@@ -37567,6 +38829,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     propertyChangeOf,
     navigationRouteOf,
     embeddedRouteOfLink,
+    embeddedNavigationRequestOf,
     assetBaseOf,
     setEmbeddedHost,
     isEmbedded,
@@ -37581,6 +38844,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     CONTENT_ACTION_SINKS,
     installEmbeddedContentRuntime,
     bootEmbedded,
+    embeddedShellVarsOf,
     navigateEmbedded,
     setHostHeaderProvider,
     setHostCredentials,
@@ -38198,6 +39462,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     isSentinelHome,
     sectionOf,
     sectionHomeOf,
+    // the subheader band's bindings (shell-page.js, and the embedded <mateu-ui shell>'s $mateuFunctions)
+    subheaderItemsOf,
+    subheaderTitleOf,
+    subheaderClassOf,
+    subheaderItemClass,
+    sectionListSelection,
     ojIconOf,
     ojIconOrGenericOf,
     findAllByType,
@@ -38389,9 +39659,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // live UI push (agentPush.mjs): the tab's UI session (also the chat's sessionId), its channel
     // and the "Connect AI" control
     uiSessionId,
+    bindChatConversation,
+    agentRandomToken,
     installAgentPush,
     syncAgentPush,
     agentControlState,
+    // reading and operating the screen (agentScreen.mjs + agentPush.mjs): the content page's
+    // agentQueryRun chain runs a query; the shell hands it over and feeds the busy count
+    setAgentQueryHost,
+    noteAgentTransport,
+    runAgentQuery,
+    agentPageOps,
+    stopAgentOperation,
+    agentOperationState,
+    paintAgentNotice,
     // un <a href="/ruta"> del contenido navega dentro de la shell (links.mjs)
     inAppRouteOfLink,
     transcriptOf,

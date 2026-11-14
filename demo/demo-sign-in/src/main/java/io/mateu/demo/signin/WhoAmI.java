@@ -9,10 +9,12 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.Map;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 /**
- * The GitHub profile the session carries, read off Spring's OAuth2User attributes — a second
- * screen, so navigating shows the session holds across requests.
+ * What the server knows about the caller: GitHub's user attributes (the `github` profile's session)
+ * or the access token's claims (the `keycloak` profile's bearer token) — a second screen, so
+ * navigating shows the sign-in holds across requests.
  */
 @Title("Who am I")
 public class WhoAmI implements ComponentTreeSupplier {
@@ -20,13 +22,15 @@ public class WhoAmI implements ComponentTreeSupplier {
   @Override
   public Component component(HttpRequest httpRequest) {
     Map<String, Object> profile =
-        httpRequest.getUserPrincipal() instanceof OAuth2AuthenticationToken token
-            ? token.getPrincipal().getAttributes()
-            : Map.of();
+        switch (httpRequest.getUserPrincipal()) {
+          case OAuth2AuthenticationToken login -> login.getPrincipal().getAttributes();
+          case JwtAuthenticationToken bearer -> bearer.getTokenAttributes();
+          case null, default -> Map.of();
+        };
     return new VerticalLayout(
-        new Text("title", "Your GitHub profile", TextContainer.h2),
-        new Text("login", "Login: " + profile.getOrDefault("login", "—")),
+        new Text("title", "Who am I", TextContainer.h2),
+        new Text("login", "Login: " + profile.getOrDefault("login", profile.getOrDefault("preferred_username", "—"))),
         new Text("name", "Name: " + profile.getOrDefault("name", "—")),
-        new Text("url", "Profile: " + profile.getOrDefault("html_url", "—")));
+        new Text("email", "E-mail: " + profile.getOrDefault("email", "—")));
   }
 }

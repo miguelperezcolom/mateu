@@ -200,6 +200,18 @@ export class MateuApp extends ComponentElement {
         this.pageCompact = (e as CustomEvent).detail?.compact ?? false
     }
 
+    /**
+     * A page that draws the whole viewport (a MessagePage) puts the shell's chrome away while it is
+     * on screen: header, menu, drawer, FABs are hidden by CSS (data-page-owns-viewport) — never
+     * re-rendered, so the content view is not re-created. Only a content view (a mateu-ux this shell
+     * renders as its content) is listened to.
+     */
+    private _pageOwnsViewportHandler = (e: Event) => {
+        const origin = e.composedPath()[0] as HTMLElement | undefined
+        if (!origin || origin.tagName !== 'MATEU-UX' || !origin.hasAttribute('data-content-view')) return
+        this.toggleAttribute('data-page-owns-viewport', !!(e as CustomEvent).detail?.owns)
+    }
+
     @query("mateu-chat")
     chat: MateuChat | undefined
 
@@ -225,6 +237,7 @@ export class MateuApp extends ComponentElement {
         document.addEventListener('keydown', this._commandPaletteHandler)
         dirtyGuard.install()
         this.addEventListener('compact-changed', this._compactHandler)
+        this.addEventListener('page-owns-viewport-changed', this._pageOwnsViewportHandler)
         // The command center's "Ask AI" row opens the assistant panel.
         this.addEventListener('mateu-open-ai', this._openAiHandler)
     }
@@ -235,6 +248,7 @@ export class MateuApp extends ComponentElement {
             document.removeEventListener('keydown', this._commandPaletteHandler)
         }
         this.removeEventListener('compact-changed', this._compactHandler)
+        this.removeEventListener('page-owns-viewport-changed', this._pageOwnsViewportHandler)
         this.removeEventListener('mateu-open-ai', this._openAiHandler)
         forgetShell(this)
     }
@@ -1305,6 +1319,19 @@ export class MateuApp extends ComponentElement {
         .app-content.no-padding {
             padding: 0;
             width: 100%;
+        }
+
+        /* A page that owns the viewport (a message page): no chrome around it — the header bands,
+           the menu, the drawer and the shell's FABs are put away (display: none takes them out of
+           the tab order too) and the content area is the whole viewport. */
+        :host([data-page-owns-viewport]) :is(.mateu-app-band1, .mateu-app-band2, .app-navbar, .app-drawer,
+            .mateu-app-header, .mateu-sections-panel, .mateu-app-left-menu, .app-fab, .ai-fab, mateu-sign-out-corner) {
+            display: none !important;
+        }
+        :host([data-page-owns-viewport]) .app-content {
+            padding: 0;
+            width: 100%;
+            height: 100dvh;
         }
 
         /* Native top navigation (was a vaadin-menu-bar). */

@@ -6,7 +6,8 @@ import com.fasterxml.jackson.databind.JsonNode
  * The pure half of a kanban board in the plugin: a LIVE board's cards from the items of its
  * rowsSource, what a move does to the columns and what the move action receives. The same rules as
  * the web's libs/mateu kanbanModel.ts, Redwood's poc/core/kanban.mjs and RN's core/kanban.ts. In
- * the plugin a card moves from its "Move…" popup (its ⋯ button, a right click, or Shift+F10).
+ * the plugin a card is DRAGGED to a column (and a place in it) with the mouse, or moved from its
+ * "Move…" popup (its ⋯ button, a right click, or Shift+F10) — the keyboard way.
  *
  * Side-effect-free, unit-tested by KanbanModelTest.
  */
@@ -145,6 +146,30 @@ object KanbanModel {
             }
             if (c === from || c === to) c.copy(cards = cards) else c
         }
+    }
+
+    /** The column under the pointer: the one whose horizontal span holds [x], else the nearest one
+     *  (a drop in the gap between two columns, or past the last one, still lands). -1 when none. */
+    fun columnAt(spans: List<IntRange>, x: Int): Int {
+        if (spans.isEmpty()) return -1
+        spans.indexOfFirst { x in it }.takeIf { it >= 0 }?.let { return it }
+        return spans.indices.minByOrNull { i -> minOf(Math.abs(x - spans[i].first), Math.abs(x - spans[i].last)) } ?: -1
+    }
+
+    /** Where a dropped card goes in its target column: the number of the column's OTHER cards (the
+     *  dragged one left out) whose vertical middle is above the pointer — which is Move.toIndex. */
+    fun insertionIndex(otherCardMiddles: List<Int>, y: Int): Int = otherCardMiddles.count { it < y }
+
+    /** The move a drop makes, or null when it changes nothing (same column, same place) or names an
+     *  unknown card/column. */
+    fun dropMove(columns: List<Column>, cardId: String, toColumnId: String, toIndex: Int): Move? {
+        val from = columns.firstOrNull { c -> c.cards.any { it.id == cardId } } ?: return null
+        val to = columns.firstOrNull { it.id == toColumnId } ?: return null
+        if (from.id.isBlank() || to.id.isBlank()) return null
+        val others = if (to === from) to.cards.size - 1 else to.cards.size
+        val at = toIndex.coerceIn(0, others)
+        if (to === from && from.cards.indexOfFirst { it.id == cardId } == at) return null
+        return Move(cardId, from.id, to.id, at)
     }
 
     /** The moves a card's popup offers: up/down in its column, then to the end of each other column. */

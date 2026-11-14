@@ -153,6 +153,20 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <!-- UiModuleOnlyAppTest runs a consumer's two-step build in-process: the indexer for the UI
+         module, Micronaut's own processors + Mateu's for the app -->
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>mateu-annotation-processor-indexer</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.micronaut</groupId>
+      <artifactId>micronaut-inject-java</artifactId>
+      <version>${micronaut.core.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>io.micronaut.test</groupId>
       <artifactId>micronaut-test-junit5</artifactId>

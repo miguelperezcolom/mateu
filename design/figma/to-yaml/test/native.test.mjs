@@ -9,7 +9,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { FigmaToYaml, parseOptions } from '../src/convert.mjs'
+import { FigmaToYaml, parseChartData, parseOptions } from '../src/convert.mjs'
 import { loadContract, loadSchema } from '../src/load.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -172,6 +172,15 @@ test('the options syntax: labels (value slugified), value=Label pairs, mixed, an
     'the value "spain" is given twice ("spain" left out)',
   ])
   assert.deepEqual(parseOptions(' , ').problems, ['" , " lists no option'])
+})
+
+test('the chart data syntax: Label=number items, an optional series name, what is refused', () => {
+  assert.deepEqual(parseChartData('Films: A=1; B=2,5').chartData, { labels: ['A', 'B'], datasets: [{ label: 'Films', data: [1, 2.5] }] })
+  assert.deepEqual(parseChartData('A=1, B=2').chartData, { labels: ['A', 'B'], datasets: [{ data: [1, 2] }] })
+  const bad = parseChartData('A=x; =3; C=3')
+  assert.deepEqual(bad.chartData, { labels: ['C'], datasets: [{ data: [3] }] })
+  assert.equal(bad.problems.length, 2)
+  assert.equal(parseChartData('').chartData, undefined)
 })
 
 test('options on a RadioGroup and a multiSelect; untouched = unset; malformed = a warning, the rest kept', () => {

@@ -85,6 +85,8 @@ public class AgentPushLoggingTests
         };
         handler.OpenAgentChannel(Rq(SyncHandler.AgentChannelAction, "ui-1", "secret-1", ("route", "/" + new string('r', 2000)), ("renderer", "vaadin")));
         var mcp = new McpService(handler, Json) { Push = sessions, Caller = AgentCaller.From("alice", null) };
+        // being signed in as the session's user is not enough: pair it
+        sessions.Pair(AgentCaller.From("alice", null), sessions.NewPairingCode("ui-1", "secret-1", "alice"));
         var listed = Tool(mcp, "mateu_list_sessions", new());
         var handle = (string)listed["sessions"]![0]!["session"]!;
         Assert.True(((string)listed["sessions"]![0]!["route"]!).Length <= 512);

@@ -393,6 +393,14 @@ public class RunActionUseCase {
             instance ->
                 io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud.bridgeIfNeeded(
                     instance, command.componentState()))
+        .map(
+            instance -> {
+              // named before routing: a route handler (a crud's record page) hands over the wire
+              // answer, which is not a view model and keeps this name
+              io.mateu.core.infra.observability.RequestObservation.view(
+                  command.httpRequest(), instance);
+              return instance;
+            })
         .flatMap(instance -> routeIfNeeded(command, instance))
         .map(instance -> enforceClassLevelAccess(instance, command))
         .map(

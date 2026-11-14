@@ -300,3 +300,50 @@ test('a UI event that throws while being applied does not take the channel down'
   assert.equal(throwing.consecutiveFailures, 0);
   throwing.dispose();
 });
+
+test('a query whose answer throws is logged, the channel goes on; without a scheduler it reopens on a real timer', async () => {
+  const state = new AgentPushState(() => ({ sessionId: 'ui-1', secret: 's' }));
+  const logs: string[] = [];
+  const queries: string[] = [];
+  let opens = 0;
+  let reopened!: () => void;
+  const second = new Promise<void>((r) => (reopened = r));
+  const channel = new AgentChannel({
+    state,
+    request: () => agentActionRequest({}, AGENT_CHANNEL_ACTION, state.session, {}),
+    open: async (_r, onIncrement) => {
+      opens++;
+      if (opens === 2) {
+        reopened();
+        return new Promise<void>(() => {});
+      }
+      onIncrement({ commands: [push('query', 'describe-screen', { requestId: 'q1' }), push('query', 'set-fields', { requestId: 'q2' })] });
+    },
+    onEvent: () => {},
+    onQuery: (q) => {
+      queries.push(q.requestId);
+      if (q.requestId === 'q1') throw new Error('no screen');
+    },
+    log: (m) => logs.push(m),
+  });
+  channel.start();
+  await second; // the clean end reopened at once (0 ms) through setTimeout
+  assert.deepEqual(queries, ['q1', 'q2']);
+  assert.deepEqual(logs, ['agent channel: answering describe-screen failed: no screen']);
+  assert.equal(opens, 2);
+  channel.dispose();
+});
+
+test('a painter that throws does not stop the others; unsubscribed ones hear nothing', () => {
+  const state = new AgentPushState(() => ({ sessionId: 'ui-1', secret: 's' }));
+  let heard = 0;
+  state.subscribe(() => {
+    throw new Error('broken');
+  });
+  const off = state.subscribe(() => heard++);
+  state.setStatus({ paired: true, agents: ['alice'] });
+  assert.equal(heard, 1);
+  off();
+  state.setStatus({ paired: false, agents: [] });
+  assert.equal(heard, 1);
+});

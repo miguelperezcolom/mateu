@@ -69,6 +69,9 @@ export function resolveFlowCommands(commands, scope) {
  * action goes to the server as before. With a `scope` the commands' placeholders are resolved
  * ({@link resolveFlowCommands}) — the page's state with the action's parameters on top of it.
  */
+/** The reserved ids of the page header's navigations, which runMateuAction answers itself. */
+export const CHROME_NAVIGATION_ACTIONS = Object.freeze(['__goToParent', '__peerPrev', '__peerNext', '__notFoundBack'])
+
 /**
  * Whether a content button's action is CLAIMED by something on screen — a context (page, overlay,
  * island, micro frontend) that advertises it (its actions, a `prefix*` wildcard included, or its
@@ -79,6 +82,10 @@ export function resolveFlowCommands(commands, scope) {
  */
 export function contentActionIsClaimed(reg, actionId) {
   if (!actionId) return false
+  // the header's own navigations (go-to-parent of the automatic trail, the peer arrows, the
+  // not-found page's way back): claimed by the page chrome itself (runMateuAction) — the «Loans»
+  // go-to-parent above a record's title went through here and was dropped as unclaimed
+  if (CHROME_NAVIGATION_ACTIONS.includes(actionId)) return true
   for (const ctx of Object.values((reg && reg.contexts) || {})) {
     if (declaredActionOf(ctx, actionId)) return true
     // an OVERLAY's tree is the ClientSide Drawer/Dialog (no actions): the form it embeds is its

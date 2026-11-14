@@ -277,3 +277,46 @@ export function localMenuOptionOf(menu, route) {
   visit(menu)
   return best
 }
+
+// ── The subheader band (MENU_ON_TOP / HAMBURGER_SECTIONS) ─────────────────────────────────────
+// What the band's bindings call — the standalone shell page (shell-page.js) and the embedded
+// <mateu-ui> with shell="true" (its $mateuFunctions) both delegate here.
+
+/** The subheader options: the top level (MENU_ON_TOP) or, with HAMBURGER_SECTIONS, the second
+ *  level of the section on screen —the hamburger carries the sections—. No section on screen (the
+ *  home): none. */
+export function subheaderItemsOf(tree, selectedRoute, sectionsMode) {
+  if (!sectionsMode) return tree || []
+  const section = sectionOf(tree, selectedRoute)
+  return section ? (section.children || []) : []
+}
+
+/** The subheader title: the console's, or with HAMBURGER_SECTIONS the section's. */
+export function subheaderTitleOf(title, tree, selectedRoute, sectionsMode) {
+  if (!sectionsMode) return title || ''
+  const section = sectionOf(tree, selectedRoute)
+  return section ? section.label : ''
+}
+
+/** The subheader class: collapsed (mateu-subheader-empty) when it has nothing to show
+ *  —HAMBURGER_SECTIONS on the home, no section on screen—, so no empty strip is left. */
+export function subheaderClassOf(title, tree, selectedRoute, sectionsMode) {
+  const section = sectionsMode ? sectionOf(tree, selectedRoute) : null
+  const empty = sectionsMode
+    ? !section || (!section.label && !(section.children || []).length)
+    : !title && !(tree || []).length
+  return empty ? 'mateu-subheader mateu-subheader-empty' : 'mateu-subheader'
+}
+
+/** HAMBURGER_SECTIONS: the selected entry in the section list (its id is the home). */
+export function sectionListSelection(tree, selectedRoute) {
+  const section = sectionOf(tree, selectedRoute)
+  return section ? (section.home || section.id) : ''
+}
+
+/** The class of a top-level subheader option: marked if its section is the one on screen. It
+ *  receives the selected route so the binding is re-evaluated on every navigation. */
+export function subheaderItemClass(node, tree, selectedRoute) {
+  const active = activeSectionOf(tree, selectedRoute) === node.id
+  return active ? 'mateu-subheader-item mateu-nav-active' : 'mateu-subheader-item'
+}

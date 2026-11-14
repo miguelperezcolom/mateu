@@ -139,6 +139,8 @@ The renderer pins exact versions of Oracle's CDN artefacts. Everything below is 
 | Redwood gallery (icon font, shell textures, welcome illustrations: `cdn/fnd/gallery/<ver>`) | `resources/css/app.css`, `app-flow.json`, `poc/core/overviews.mjs` (`WELCOME_GALLERY`) |
 | Leaflet (cdnjs, not Oracle) | `poc/map.mjs` |
 | OARS packs (`cdn/oars/packs/oj-oars|oj-oacp/<ver>`), only for a NON-VB host of `<mateu-ui>` | `poc/make-embedded.mjs` (`HOST_FALLBACK_PATHS`) |
+| DOMPurify + punycode (cdnjs, not Oracle; SRI-pinned), only where a `<mateu-ui>` host lacks them | `poc/make-embedded.mjs` (`THIRD_PARTY_FALLBACKS`) |
+| The VB 2701 host of the embedded probe (`cdn/vb/2701…`, `cdn/ode/rwdjet/2701…`) | `embedded/harness/vb-host/index.html` |
 
 Procedure:
 
@@ -169,8 +171,11 @@ The same renderer ships two ways:
 ONE core: the component's view is this app's content page (`main-start-page.html`, inside the
 content frame of `shell-page.html` between the `@embedded-frame` markers) and its viewModel runs the
 same action chains, on a minimal runtime (`poc/embedded.mjs`) that gives the page's binding names
-(`$application`, `$page`, `$variables`, `$listeners`) and the chains' five VB Actions their meaning
-without the VB runtime. The descriptors (`app-flow.json`, the page JSONs) say what variables and
+and the chains' five VB Actions their meaning without the VB runtime. In the component's view those
+names are RENAMED (`$application` → `$mateuApplication`, `$functions` → `$mateuFunctions`, …,
+`make-embedded.mjs` `EMBEDDED_BINDING_NAMES`): inside a real VB page the host has its own
+`$application`/`$functions`, and a name the component did not provide (`$functions`, 3.0-beta.68)
+threw and left the listing empty. `test-embedded.mjs` fails on any binding name nobody defines. The descriptors (`app-flow.json`, the page JSONs) say what variables and
 listeners exist, exactly as they say it to VB. The chains only learn three things: leave the host's
 URL and title alone (`bridge.isEmbedded()`, `bridge.setDocTitle`) and seed the first load
 (`bridge.takeEmbeddedSeed()`). The content runtime (rules, calendars, maps, keys…) is the list
@@ -179,9 +184,17 @@ loadMateuShell installs — `test-embedded.mjs` fails if they drift.
 ```bash
 npm run build            # the VB app AND build/embedded/mateu-ui/ + build/embedded/mateu-ui-<version>.zip
 npm run build:embedded   # only the component (after npm run bridge)
-npm run serve:embedded   # the host harness on :9131 (a plain JET page, JET from Oracle's CDN)
+npm run serve:embedded   # the hosts on :9131: a plain JET page (/) and a VB 2701 app (/vb/)
 cd ../../../../../e2e && HOST_URL=http://localhost:9131 BACKEND_URL=http://localhost:9005 node vb-embedded-probe.mjs
+HOST_URL=http://localhost:9131 node vb-embedded-real-vb-probe.mjs   # the VB 2701 host, against museums.ec1.mateu.io
 ```
+
+The VB host (`embedded/harness/vb-host`) is a real Visual Builder app on the 2701 runtime from
+Oracle's public CDN (the scripts, requirejs paths and bundles a VB 2701 preview page uses), served at
+the path shape VB serves apps from (`/ic/builder/rt/<app>/<version>/…`: VB's fetch plugins scope their
+CSRF/version headers by it — at `/` they would stamp third-party API calls too, which a REST API's
+CORS refuses). Its page imports the built component from `resources/components/mateu-ui-<version>/`.
+`?baseUrl=&route=&shell=true` set the component's properties.
 
 The backend must allow the harness/VB origin: `mateu.cors.allowed-origins=http://localhost:9131`.
 The zip is not part of the jar: it is attached to the GitHub release

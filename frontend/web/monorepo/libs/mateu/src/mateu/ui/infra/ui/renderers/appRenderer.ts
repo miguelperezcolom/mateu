@@ -798,7 +798,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             ${metadata.variant == AppVariant.MENU_ON_LEFT?html`
 
                 <div class="m-hl">
-                    <div class="m-scroll" style="width: 16em; border-right: 2px solid var(--lumo-contrast-5pct);">
+                    <div class="m-scroll mateu-app-left-menu" style="width: 16em; border-right: 2px solid var(--lumo-contrast-5pct);">
                         <div class="m-vl"
                                 @navigation-requested="${container.updateRoute}">
                             ${metadata.menu.map(option => container.renderOptionOnLeftMenu(option))}

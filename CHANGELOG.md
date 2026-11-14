@@ -8,6 +8,21 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added — message page
+
+- **`MessagePage`, a page template for a page that stands on its own** — a confirmation, "check
+  your email", an error, a signed-out page, a sign-in step: one card near the top of a full-bleed
+  illustrated background, with no app chrome. `template: {type: MessagePage, background, image,
+  width, footer}` on a `type: Form`: the form's title is the card's h1, its content the card's body
+  (text, links, fields, buttons), its toolbar the card's actions, `footer` the small links at its
+  foot. While it is on screen the app shell puts its header, menu and FABs away (Vaadin and
+  Redwood). On Redwood the background is Redwood's own imagery (the welcome banner's tone and
+  gallery illustration, from Oracle's CDN or its mirror) and the card Redwood's Neutral 10 surface;
+  on Vaadin it is Mateu's own illustration, drawn in CSS. Java, .NET and Python, the browser
+  expander, Vaadin, Redwood (composed — Spectra has no component for it), the Figma contract and the
+  IntelliJ / VS Code "New › Mateu" page templates. Demo: `demo-museum` `visit-booked` and `sign-in`.
+  Docs `ux-patterns/message-page.md`.
+
 ### Security
 
 - **Licence notices travel with every artifact.** Every jar carries `META-INF/LICENSE.txt` and
@@ -65,6 +80,18 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   major, not Maven Central's last-deployed `<release>`.
 - **The Android APK on the GitHub releases keeps updating from there after an over-the-air update**
   (it has its own update channel, `github`); "Update Mateu" sent it to Google Play.
+
+### Fixed — Micronaut app with its UI only in a UI module
+
+- **A Micronaut app whose `@UI` classes live only in a separate UI module serves them.** The
+  controllers of an indexed mount (`META-INF/mateu/ui-registrations` read from the processor path)
+  were generated in javac's LAST round, which no processor sees, so Micronaut's bean-definition
+  processor never registered them and the app answered 404 on `/` (an `@UI`/`@App` class in the app
+  module itself hid it: that path generates in the first round). They are now generated the first
+  time the companion processor runs, and never twice when the plain processor already did
+  (an `@App`-only source used to generate every indexed mount a second time). Pinned by
+  `UiModuleOnlyAppTest` (Micronaut: a real two-step build in a forked javac, then the page is
+  served) and `IndexedMountsCompileTest`.
 
 ### Fixed — .NET and Python on the Redwood renderer
 

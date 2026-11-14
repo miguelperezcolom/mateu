@@ -79,12 +79,20 @@ export async function callMateu(base, body, options = {}) {
   // through the untrusted strip: what it sends cannot run code in this tab
   const increment = answeredBy(base, await res.json())
   observeWireVersion(increment)
+  if (answerObserver) { try { answerObserver(increment) } catch (e) { /* an observer cannot break a call */ } }
   // the catalogue entries this response names by ref (a page with no app shell gets them no other way)
   adoptReferencedSources(increment)
   // the body takes time too: whatever arrives after the screen changed is not applied either
   if (isViewStale(view)) throw staleResponseError(body.actionId)
   return increment
 }
+
+// Who hears every answer callMateu gets (the live UI push summary keeps the last messages,
+// agentPush.mjs): one observer, set once.
+let answerObserver = null
+
+/** Sets the observer of every answer callMateu gets (null = none). */
+export function setAnswerObserver(fn) { answerObserver = typeof fn === 'function' ? fn : null }
 
 /** An answer as it may be painted: as written from a trusted origin (hostHeaders.isTrustedOrigin),
  *  through the untrusted strip (untrusted.mjs) from any other. */
@@ -97,7 +105,9 @@ export function answeredBy(base, increment) {
  *  so in hybrid mode (bundle + backend) the menu comes from the backend as always; but if the
  *  backend is NOT there (pure static deployment) and the bundle carries the root route, it falls
  *  back to it so the app boots anyway. Only on failure — the happy path does not change. */
-export async function bootstrapShell(base, initiator = 'shell') {
+/** The shell's first load. `appState`: the app state it is sent with — the embedded <mateu-ui>'s
+ *  app-context (the backend may build the App, its menu, per company / hotel); none by default. */
+export async function bootstrapShell(base, initiator = 'shell', appState = null) {
   // the shell's own backend is trusted with the user's token (hostHeaders.storedTokenMayGoTo)
   trustShellBase(base)
   await awaitBundle()
@@ -108,7 +118,10 @@ export async function bootstrapShell(base, initiator = 'shell') {
     const res = await fetchWithPolicy(`${base}/mateu/v3/sync/_no_route`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
+      body: JSON.stringify({
+        route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator,
+        ...(appState && typeof appState === 'object' && Object.keys(appState).length ? { appState } : {}),
+      }),
     }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
     const increment = await res.json()
     observeWireVersion(increment)

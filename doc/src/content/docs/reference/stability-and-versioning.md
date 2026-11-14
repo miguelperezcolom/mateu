@@ -220,7 +220,7 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl` | 9 | 5 | 3 | 0 | 1 |
 | `mateu-uidl` | `io.mateu.uidl.annotations` | 174 | 163 | 11 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.audit` | 3 | 0 | 3 | 0 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.data` | 335 | 264 | 71 | 0 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.data` | 336 | 264 | 72 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 32 | 31 | 1 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.interfaces` | 113 | 91 | 15 | 0 | 7 |
@@ -229,14 +229,14 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.remote` | 10 | 0 | 10 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 8 | 6 | 2 | 0 | 0 |
-| **Total** | | **1026** | **846** | **119** | **0** | **61** |
+| **Total** | | **1027** | **846** | **120** | **0** | **61** |
 
 **Experimental types** (the whole type and its members):
 
 - `io.mateu.uidl`: `LiveHeaderValues`, `LiveNotifications`, `PushNotifications`
 - `io.mateu.uidl.annotations`: `AI`, `AppShortcut`, `AppShortcuts`, `CacheableFragment`, `ContentSlot`, `DragRows`, `MobileApp`, `NoCrudNavigation`, `OfflinePolicy`, `RowStatus`, `Tooltip`
 - `io.mateu.uidl.audit`: `ActionAuditEvent`, `ActionAuditListener`, `ActionOutcome`
-- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `AdvancedCreateEditPage`, `Announcement`, `AppAiChat`, `AppContextSelector`, `AppGlobalSearchSource`, `AppNotificationsSource`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CollectionDetailPage`, `ContentSlot`, `CrudDisplay`, `DashboardLandingPage`, `DataManagementPage`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `EmbeddedChrome`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `FoldoutPage`, `GeneralOverviewDisplay`, `GeneralOverviewPage`, `GuidedProcessPage`, `GuidedProcessStep`, `HeaderValue`, `HeroSearchPage`, `HeroTone`, `IncomingFile`, `ItemOverviewPage`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `MessageAction`, `MessagePersistence`, `MultimediaContentPage`, `NotFound`, `OrgChartDisplay`, `PageFab`, `PageSetup`, `PopoverTrigger`, `PresenceMember`, `ProjectRenderer`, `ProjectSettings`, `RecordMerge`, `RecordSwitcher`, `Resolve`, `StoredFile`, `SwitcherType`, `TemplateImage`, `Toggle`, `Translations`, `UploadRequest`, `UploadTarget`, `WelcomePage`, `WizardDisplay`
+- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `AdvancedCreateEditPage`, `Announcement`, `AppAiChat`, `AppContextSelector`, `AppGlobalSearchSource`, `AppNotificationsSource`, `AppShortcutEntry`, `CalendarDay`, `CalendarView`, `Chat`, `CollectionDetailPage`, `ContentSlot`, `CrudDisplay`, `DashboardLandingPage`, `DataManagementPage`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `EmbeddedChrome`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `FoldoutPage`, `GeneralOverviewDisplay`, `GeneralOverviewPage`, `GuidedProcessPage`, `GuidedProcessStep`, `HeaderValue`, `HeroSearchPage`, `HeroTone`, `IncomingFile`, `ItemOverviewPage`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `MergeField`, `MergeRecord`, `MessageAction`, `MessagePage`, `MessagePersistence`, `MultimediaContentPage`, `NotFound`, `OrgChartDisplay`, `PageFab`, `PageSetup`, `PopoverTrigger`, `PresenceMember`, `ProjectRenderer`, `ProjectSettings`, `RecordMerge`, `RecordSwitcher`, `Resolve`, `StoredFile`, `SwitcherType`, `TemplateImage`, `Toggle`, `Translations`, `UploadRequest`, `UploadTarget`, `WelcomePage`, `WizardDisplay`
 - `io.mateu.uidl.fluent`: `FormTemplate`
 - `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DetailContentSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `FileStorage`, `HeaderValuesSupplier`, `InboxStore`, `KeepAliveHandler`, `PresenceStore`, `PushSender`, `PushTokenStore`, `RecordSwitcherSupplier`, `Restorable`, `TranslationsSupplier`
 - `io.mateu.uidl.push`: `PushMessage`, `PushResult`, `PushToken`

@@ -5,6 +5,7 @@ import {
   pageSwitcherOf, pageHeaderNodeOf, pageHeaderExtrasOf, headerTimestampOf, contextualInfoOf, factActionsJsonOf,
   drawerOverlayOf, dialogOverlayOf, dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf,
   templatedCollectionDetailOf, templatedMultimediaOf, templatedGuidedProcessOf, templatedHeroSearchOf, withFormActions,
+  templatedMessageOf,
 } from './reduceContexts.mjs'
 import { parentCrumb } from './breadcrumbs.mjs'
 import { urlOfRoute } from './mount.mjs'
@@ -249,6 +250,8 @@ export function archetypeVarsOf(host) {
     mateuMmc: templatedMultimediaOf(host),
     // a YAML Hero search page (oj-sp-hero-search-page: its hero, the listing in its slots)
     mateuHs: templatedHeroSearchOf(host),
+    // a YAML Message page (one card over the illustrated background, no chrome): composed
+    mateuMsg: templatedMessageOf(host),
     // a YAML Guided process (oj-sp-guided-process) and its first step
     mateuGp: gp,
     mateuGpCurrent: gp && gp.steps.length ? gp.steps[0].id : '',
@@ -273,7 +276,7 @@ export function archetypeVarsOf(host) {
  *  a guided process, a hero search): the VB header stands aside, as for the composed archetypes. */
 export function templateOwnsHeader(archetypes) {
   const v = (archetypes && archetypes.vars) || {}
-  return !!(v.mateuMmc || v.mateuGp || v.mateuHs)
+  return !!(v.mateuMmc || v.mateuGp || v.mateuHs || v.mateuMsg)
 }
 
 /**
@@ -286,6 +289,8 @@ export function templateHostContentOf(archetypes, hostBlocks, actions, tree) {
   const v = (archetypes && archetypes.vars) || {}
   if (v.mateuGp) return []
   if (v.mateuMmc) return hostBlocks || []
+  // a message page: the card's body, then its actions and footer links (its own blocks, no form row)
+  if (v.mateuMsg) return v.mateuMsg.content || []
   return withFormActions(hostBlocks, actions, { tree }) || []
 }
 
@@ -568,6 +573,17 @@ export function pageLayoutOf({ host, drawerNav, iopOn = false, bleedingHeader, b
     // …and a full-width / edge-to-edge page drops the inner sections' own 48px gutters (the page's
     // padding — 24px / none — is the whole margin, as the Redwood guide measures it)
     mateuPageHostClass: [iopOn ? 'mateu-iop-host' : '', pw === 'edgeToEdge' ? 'mateu-page-edge' : pw === 'fullWidth' ? 'mateu-page-full' : ''].filter(Boolean).join(' '),
+  }
+  // a MESSAGE page: the content container IS the card (app.css .mateu-message-card-host places it
+  // near the top of the viewport, over the illustrated background); its width is the template's
+  const message = templatedMessageOf(host)
+  if (message) {
+    out.mateuShellPageLayout = 'edgeToEdge'
+    out.mateuPageHostClass = 'mateu-message-card-host'
+    out.mateuPageMaxWidth = message.width || ''
+    out.mateuPageMargin = ''
+    out.mateuPagePadding = ''
+    return { vars: out, pageWidth: 'edgeToEdge' }
   }
   if (band) {
     out.mateuBandBoxMargin = pageStyle.margin

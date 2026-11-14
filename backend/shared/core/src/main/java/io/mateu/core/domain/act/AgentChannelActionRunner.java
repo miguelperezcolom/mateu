@@ -31,7 +31,13 @@ import reactor.core.publisher.Flux;
  *       #MAX_MINUTES} minutes (the UI reconnects at once — an adapter does not always tell the
  *       stream that its browser went away);
  *   <li>{@value AgentPush#PAIR_ACTION} → {@code Data{_agentPairing: {code, expiresInSeconds}}};
- *   <li>{@value AgentPush#UNPAIR_ACTION} → {@code Data{_agentPairing: null}}.
+ *   <li>{@value AgentPush#UNPAIR_ACTION} → {@code Data{_agentPairing: null}};
+ *   <li>{@value AgentPush#BIND_ACTION} (+ {@code agentKey}, ≥ 16 characters): the in-app chat binds
+ *       its conversation to this tab → {@code Data{}};
+ *   <li>{@value AgentPush#SCREEN_ACTION} (+ {@code requestId}, and {@code screen} or {@code error:
+ *       {code, id?}}): the UI's answer to a {@code query} message ({@code describe-screen}, {@code
+ *       set-fields}, {@code run-action}) → {@code Data{}}; a screen larger than {@value
+ *       AgentPush#MAX_SCREEN_BYTES} bytes is answered as the refusal {@code tooLarge}.
  * </ul>
  *
  * With push off each of them is refused.
@@ -43,6 +49,9 @@ public class AgentChannelActionRunner implements ActionRunner {
   static final int HEARTBEAT_SECONDS = 20;
   static final int MAX_MINUTES = 5;
 
+  private static final com.fasterxml.jackson.databind.ObjectMapper SIZER =
+      new com.fasterxml.jackson.databind.ObjectMapper();
+
   @Override
   public int priority() {
     return 100;
@@ -52,7 +61,9 @@ public class AgentChannelActionRunner implements ActionRunner {
   public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
     return AgentPush.CHANNEL_ACTION.equals(actionId)
         || AgentPush.PAIR_ACTION.equals(actionId)
-        || AgentPush.UNPAIR_ACTION.equals(actionId);
+        || AgentPush.UNPAIR_ACTION.equals(actionId)
+        || AgentPush.SCREEN_ACTION.equals(actionId)
+        || AgentPush.BIND_ACTION.equals(actionId);
   }
 
   @Override
@@ -70,6 +81,15 @@ public class AgentChannelActionRunner implements ActionRunner {
       if (AgentPush.PAIR_ACTION.equals(command.actionId())) {
         var code = sessions.pairingCode(sessionId, secret, principal);
         return Flux.just(new Data(Map.of(AgentPush.PAIRING_KEY, code)));
+      }
+      if (AgentPush.BIND_ACTION.equals(command.actionId())) {
+        sessions.bindChat(sessionId, secret, principal, text(parameters, "agentKey"));
+        return Flux.just(new Data(Map.of()));
+      }
+      if (AgentPush.SCREEN_ACTION.equals(command.actionId())) {
+        sessions.answer(
+            sessionId, secret, principal, text(parameters, "requestId"), answerOf(parameters));
+        return Flux.just(new Data(Map.of()));
       }
       if (AgentPush.UNPAIR_ACTION.equals(command.actionId())) {
         sessions.unpair(sessionId, secret, principal);
@@ -122,6 +142,30 @@ public class AgentChannelActionRunner implements ActionRunner {
                     UICommandTypeDto.AgentPush,
                     new AgentPushDto(message.kind(), message.event(), message.detail()))))
         .build();
+  }
+
+  /** The answer a {@value AgentPush#SCREEN_ACTION} carries, read defensively. */
+  @SuppressWarnings("unchecked")
+  public static AgentSessions.Answer answerOf(Map<String, Object> parameters) {
+    var error = parameters != null ? parameters.get("error") : null;
+    if (error instanceof Map<?, ?> refusal) {
+      var code = refusal.get("code");
+      var id = refusal.get("id");
+      return AgentSessions.Answer.refusal(
+          code == null ? null : String.valueOf(code), id == null ? null : String.valueOf(id));
+    }
+    var screen = parameters != null ? parameters.get("screen") : null;
+    if (!(screen instanceof Map<?, ?> map)) {
+      return AgentSessions.Answer.refusal("failed", null);
+    }
+    try {
+      if (SIZER.writeValueAsBytes(map).length > AgentPush.MAX_SCREEN_BYTES) {
+        return AgentSessions.Answer.refusal("tooLarge", null);
+      }
+    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+      return AgentSessions.Answer.refusal("failed", null);
+    }
+    return AgentSessions.Answer.of((Map<String, Object>) map);
   }
 
   private static String remoteAddress(HttpRequest httpRequest) {

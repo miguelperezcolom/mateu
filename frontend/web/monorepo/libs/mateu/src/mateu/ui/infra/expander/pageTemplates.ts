@@ -45,6 +45,7 @@ export function templateMetadataOf(template: unknown, pageTitle?: unknown): Node
     if (t.type === 'GuidedProcessPage') return { type: 'GuidedProcessPage', avatar: null, photo: null }
     if (t.type === 'DataManagementPage') return { type: 'DataManagementPage', avatar: null, photo: null }
     if (t.type === 'HeroSearchPage') return { type: 'HeroSearchPage', avatar: null, photo: null }
+    if (t.type === 'MessagePage') return { type: 'MessagePage', avatar: null, photo: null }
     return undefined
 }
 
@@ -54,7 +55,7 @@ export function templateMetadataOf(template: unknown, pageTitle?: unknown): Node
  */
 export function ownsHeader(template: unknown): boolean {
     const t = template as Node | undefined
-    return !!t && (t.type === 'WelcomePage' || t.type === 'MultimediaContentPage' || t.type === 'DataManagementPage' || t.type === 'HeroSearchPage')
+    return !!t && (t.type === 'WelcomePage' || t.type === 'MultimediaContentPage' || t.type === 'DataManagementPage' || t.type === 'HeroSearchPage' || t.type === 'MessagePage')
 }
 
 /** The page's content: the template laid out, or the authored content of a free page. `form` is the
@@ -66,6 +67,7 @@ export function contentOf(template: unknown, content: unknown, form: Node = {}):
     if (t.type === 'WelcomePage') return banner('welcome', t, nodes(content), form)
     if (t.type === 'MultimediaContentPage') return banner('multimedia-banner', t, nodes(content), form)
     if (t.type === 'HeroSearchPage') return banner('hero-search', t, nodes(content), form)
+    if (t.type === 'MessagePage') return [message(t, nodes(content), form)]
     if (t.type === 'DashboardLandingPage') return dashboard(t, nodes(content))
     if (t.type === 'GeneralOverviewPage') return [generalOverview(t, nodes(content))]
     if (t.type === 'CollectionDetailPage') return [collectionDetail(t, nodes(content))]
@@ -252,4 +254,50 @@ function dataManagement(t: Node, main: FluentNode[], form: Node): FluentNode {
             + (bottom.size ?? '16rem') + '; overflow: auto;'))
     }
     return { type: 'VerticalLayout', id: 'data-management', fullWidth: true, spacing: true, horizontalAlignment: 'STRETCH', content: page } as unknown as FluentNode
+}
+
+/** MessagePage.imageOrNull: an own image URL only when nothing in it could end a CSS url("…"). */
+export const messageImageOf = (image: unknown): string | null =>
+    filled(image) && /^[\w\s/.:%~?&=#+,@-]+$/.test(image.trim()) ? image.trim() : null
+
+/** MessagePage.widthOrNull: the card's width only when it is a plain CSS length. */
+export const messageWidthOf = (width: unknown): string | null =>
+    filled(width) && /^\d+(\.\d+)?(px|rem|em|ch|vw|%)$/.test(width.trim()) ? width.trim() : null
+
+const messageText = (id: string, text: unknown, container: string): FluentNode =>
+    ({ type: 'Text', id, text, container, noMargins: true, cssClasses: 'mateu-' + id }) as unknown as FluentNode
+
+/** Message page: ONE card over the full-bleed illustrated background — the form's overline, title
+ *  (the h1) and subtitle, its content, its toolbar as the card's actions and the `footer` slot as the
+ *  small links at its foot (PageTemplates.message). The tone is a class; an own image and the card's
+ *  width ride as custom properties. */
+function message(t: Node, body: FluentNode[], form: Node): FluentNode {
+    const card: FluentNode[] = []
+    if (filled(form.overline)) card.push(messageText('message-overline', form.overline, 'p'))
+    if (filled(form.title)) card.push(messageText('message-title', form.title, 'h1'))
+    if (filled(form.subtitle)) card.push(messageText('message-subtitle', form.subtitle, 'p'))
+    card.push({ type: 'VerticalLayout', id: 'message-body', cssClasses: 'mateu-message-body', spacing: true, content: body } as unknown as FluentNode)
+    const actions = nodes(form.toolbar)
+    if (actions.length) {
+        card.push({ type: 'HorizontalLayout', id: 'message-actions', cssClasses: 'mateu-message-actions', spacing: true, wrap: true, content: actions } as unknown as FluentNode)
+    }
+    const footer = nodes(t.footer)
+    if (footer.length) {
+        card.push({ type: 'HorizontalLayout', id: 'message-footer', cssClasses: 'mateu-message-footer', spacing: true, wrap: true, content: footer } as unknown as FluentNode)
+    }
+    const tone = toneOf(t.background)
+    const style: string[] = []
+    const image = messageImageOf(t.image)
+    if (image) style.push(`--mateu-message-page-image: url("${image}");`)
+    const width = messageWidthOf(t.width)
+    if (width) style.push(`--mateu-message-card-width: ${width};`)
+    return {
+        type: 'VerticalLayout', id: 'message-page', spacing: false,
+        cssClasses: 'mateu-message-page' + (tone ? ' mateu-message-page--' + tone : ''),
+        ...(style.length ? { style: style.join(' ') } : {}),
+        content: [{
+            type: 'Card', id: 'message-card', cssClasses: 'mateu-message-card',
+            content: { type: 'VerticalLayout', id: 'message-card-content', cssClasses: 'mateu-message-card-content', spacing: true, content: card },
+        }],
+    } as unknown as FluentNode
 }

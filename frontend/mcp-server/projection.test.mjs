@@ -293,6 +293,55 @@ test("under an app shell, a route is described by the content the shell loads", 
   assert.equal(action.consumedRoute, "");
 });
 
+test("a crud record page's bubbling action (Create) is sent to the crud that loaded the page", async () => {
+  const sent = [];
+  const page = {
+    fragments: [
+      {
+        component: {
+          type: "ServerSide",
+          serverSideType: "com.acme.Product",
+          route: "/products/new",
+          initialData: { id: null, name: "", _pageId: "p", _pageRoute: "/products" },
+          actions: [{ id: "create", bubble: true }],
+        },
+      },
+    ],
+  };
+  const shell = {
+    fragments: [
+      {
+        component: {
+          type: "ClientSide",
+          metadata: {
+            type: "App",
+            serverSideType: "com.acme.Shell",
+            homeRoute: "/products/new",
+            homeConsumedRoute: "/products",
+            homeBaseUrl: "",
+            homeServerSideType: "com.acme.Products",
+          },
+        },
+      },
+    ],
+  };
+  const wire = new MateuWire({
+    baseUrl: "http://x",
+    fetchImpl: async (_url, init) => {
+      const body = JSON.parse(init.body);
+      sent.push(body);
+      return { ok: true, json: async () => (body.consumedRoute === null ? shell : page) };
+    },
+  });
+  await wire.runAction("products/new", "create", { id: "P-100", name: "Tamper" });
+  const action = sent.at(-1);
+  assert.equal(action.actionId, "create");
+  assert.equal(action.serverSideType, "com.acme.Products");
+  assert.equal(action.consumedRoute, "/products");
+  assert.deepEqual(action.componentState, { id: "P-100", name: "Tamper", _pageId: "p", _pageRoute: "/products" });
+  assert.deepEqual(action.parameters.initiatorState, action.componentState);
+});
+
 test("actions: a page toolbar button (a bare button, not a component node) labels its action", () => {
   const s = projectIncrement({
     fragments: [

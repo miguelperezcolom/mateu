@@ -1,0 +1,19 @@
+# A MESSAGE PAGE holding a form: the sign-in step of the members' area — one field, one primary
+# action that spans the card, a "forgot" link. A tone tints the illustration.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Sign in to Museums
+toolbar:
+  - type: Button
+    label: Next
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: visit-booked}
+template:
+  type: MessagePage
+  background: slate
+  footer:
+    - {type: Anchor, text: Terms of use, url: /welcome}
+    - {type: Anchor, text: Privacy, url: /welcome}
+content:
+  - {type: FormField, id: username, label: Username or email, required: true}
+  - {type: Anchor, text: "Forgot username?", url: /welcome}

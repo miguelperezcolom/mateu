@@ -1,5 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 
+import io.mateu.core.infra.declarative.orchestrators.RoutedPage;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.Map;
@@ -49,6 +50,20 @@ public class CrudIdExtractor {
     var route = rq.route();
     if (route.contains("?")) {
       route = route.substring(0, route.indexOf('?'));
+    }
+    // An action of a record page (the editor's Save, the view's Edit) bubbles to an ancestor — the
+    // app around the crud when the crud is a menu entry — which sends ITS route and consumed route.
+    // The page itself says where the crud is mounted (its _pageRoute): measured against the app's
+    // consumed route ("") instead, the crud's own segment was read as a record id — /products named
+    // the record "products", and a save from the listing → row → Edit path was refused as "no
+    // longer exists" (the app had not followed the in-crud navigation, so its route was still the
+    // listing's).
+    var pageRoute = RoutedPage.route(httpRequest);
+    if (pageRoute != null
+        && !pageRoute.isEmpty()
+        && (route.equals(pageRoute) || route.startsWith(pageRoute + "/"))
+        && pageRoute.startsWith(consumed)) {
+      consumed = pageRoute;
     }
     if (!route.startsWith(consumed + "/")) {
       return null;
