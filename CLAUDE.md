@@ -286,6 +286,16 @@ the one-to-one case.
   `remoteRoutes`/deep links are unchanged. `routeCollisions`/`warnRouteCollisions` (Redwood `routeCollisionsOf`, warned
   in `expandRemoteMenus`) console.warn ONCE per collision of leaf routes between the shell and remotes or two
   remotes — routes are mount-relative and spliced as they are, so the later registration silently wins.
+- **Same route in two remotes + cookie sign-in (2026-11-14)**: the menu's active entry/section, the breadcrumb trail
+  and `navigateLikeMenu` take a `navTree.SelectionSource` (`{base: selectedBaseUrl, shellBase: mateu-app baseUrl}`;
+  an entry's base = its `baseUrl` or the shell's) — `selectionSourceFor` drops it (route alone, first wins) when no
+  entry served from that base holds the route. `markActiveSection` marks ONE top-level item (the first active).
+  The URL stays mount-relative, so back/forward and reload (fresh loads) mount the FIRST claimant — prefixing remote
+  URLs with the mount path would fix that but changes every federated URL (owner's call). Server:
+  `RemoteMenuHandler.credentials` forwards `Cookie` (besides `Authorization`) to RELATIVE remotes only (same front
+  door; absolute = another host, no cookies); the descriptor cache keys on both. Without it a cookie-signed-in system
+  (modux's `ModuxAuthCookie`) got 401 from every remote on a deep link → "Page not found". Tests
+  `RemoteDeepLinkCookieSyncTest`, `navTree.test.ts` ("two remotes hold the same route"), `activeSection.test.ts`.
 - **Routes are RELATIVE to the mount**, so two federated domains can each have an `orders` screen.
   A route that REPEATS the mount it is sent to (`/e2-demo/page` to the `/e2-demo` controller) is
   the same place: `MountPrefixedRoutes.relativize` (start of `RunActionUseCase.handle`) strips it
