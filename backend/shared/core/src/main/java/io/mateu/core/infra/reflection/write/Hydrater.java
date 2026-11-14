@@ -65,14 +65,19 @@ public class Hydrater {
                       if (held != null) {
                         @SuppressWarnings("unchecked")
                         var incoming = (Map<String, Object>) map;
+                        // bound into the form's OWN copy, never into the held object: a field
+                        // initialised to a shared instance (a static default) would otherwise
+                        // carry one caller's values to every later request (parity D8/Y6)
+                        var copy = copyOf(held);
                         hydrate(
-                            held,
+                            copy,
                             io.mateu.core.domain.FieldAccess.inServerScope()
                                 ? incoming
                                 : io.mateu.core.domain.FieldAccess.writable(
                                     held.getClass(), incoming, httpRequest),
                             instanceFactory,
                             httpRequest);
+                        replaceHeld(field, object, copy);
                       }
                       return;
                     }
@@ -159,6 +164,35 @@ public class Hydrater {
         && io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
             field, io.mateu.uidl.annotations.Inline.class)
         && io.mateu.core.domain.FieldAccess.isApplicationType(field.getType());
+  }
+
+  /**
+   * A shallow copy of a declared sub-form's object (same class, every instance field), so the
+   * client's values are written into it and never into the object the field held. Throws when the
+   * class has no no-arg constructor: the entry is then dropped (warned once) rather than written
+   * into an object possibly shared by every request.
+   */
+  static Object copyOf(Object held) throws ReflectiveOperationException {
+    var type = held.getClass();
+    var constructor = type.getDeclaredConstructor();
+    constructor.setAccessible(true);
+    var copy = constructor.newInstance();
+    for (var c = type; c != null && c != Object.class; c = c.getSuperclass()) {
+      for (var f : c.getDeclaredFields()) {
+        if (java.lang.reflect.Modifier.isStatic(f.getModifiers())) {
+          continue;
+        }
+        f.setAccessible(true);
+        f.set(copy, f.get(held));
+      }
+    }
+    return copy;
+  }
+
+  /** Puts the bound copy in the (final) field of the form, for this request's instance only. */
+  static void replaceHeld(Field field, Object owner, Object copy) throws IllegalAccessException {
+    field.setAccessible(true);
+    field.set(owner, copy);
   }
 
   public static void setValue(String fn, Object o, Object v) throws Exception {
