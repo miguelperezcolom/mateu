@@ -49,5 +49,5 @@ routes:
   - {route: visits, definition: visits.yaml}
 
   # message pages: one card over the illustrated background, no app chrome (MessagePage)
-  - {route: sign-in, definition: sign-in.yaml}
-  - {route: visit-booked, definition: visit-booked.yaml}
+  - {route: sign-in, layout: sign-in.yaml}
+  - {route: visit-booked, layout: visit-booked.yaml}

@@ -693,7 +693,12 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   component → composed (`templatedMessageOf` → `mateuMsg`): a fixed background layer before the content
   container, the container IS the card (`mateu-message-card-host`), heading markup above the host atoms,
   body/actions/footer as host blocks (blockClass-marked); app.css hides the chrome with
-  `body:has(.mateu-message-card-host)`.
+  `body:has(.mateu-message-card-host)`. OWNER RULE: in Redwood, Redwood's guidance decides — the background
+  is REDWOOD'S imagery, never our CSS illustration (that one is Vaadin-only): the welcome look
+  (`welcomeLookOf`, declared tone else the stable hash) → tone colour from Spectra's `--oj-sp-rw-*` palette
+  (the banner loader's dark-<tone> mapping) under the gallery fg+bg pair, or Spectra's themed image
+  (`SPECTRA_THEMED_IMAGE`, placed cover/end like the banner) for a tone without a pair, all through
+  `oracleCdnUrl`; the card is Redwood Neutral 10 (`rgb(var(--oj-palette-neutral-rgb-10))`).
 - The visual editor's tests read `demo/demo-starwars/src/main/resources/specs/ui` as a fixture
   (`mountGraph.test.ts` counts its pages, `yamlPreserve.test.ts` rewrites every file): a new Star Wars
   page or folder moves them.

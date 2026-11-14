@@ -76,9 +76,9 @@ content:
   on the next page. Shown without a shell, the page is the document's `main` landmark.
 - **The card sits near the top**, not vertically centred, so a long body never pushes the heading
   off screen. On a phone it takes the width, with 16px gutters.
-- **The background is full-bleed.** The default illustration is Mateu's own — organic shapes in
-  ochre, terracotta, sand and slate with a light grain — drawn in CSS, so nothing is downloaded and
-  nothing of Oracle's is copied. It is anchored at the top-left corner on a 2560px-wide canvas, so
+- **The background is full-bleed.** Each renderer draws it with its design system's own imagery
+  (see Renderers below); on Vaadin the default illustration is Mateu's own — organic shapes in
+  ochre, terracotta, sand and slate with a light grain — drawn in CSS. It is anchored at the top-left corner on a 2560px-wide canvas, so
   its shapes keep their size whatever the window. A `background` tone tints its two dominant shapes;
   `image:` replaces it (only a plain URL is accepted — anything that could escape the CSS is dropped).
 - **Accessibility.** The title is the page's only `h1`; the first Tab reaches the skip link, then the
@@ -90,12 +90,25 @@ content:
 - **Vaadin** draws it with Lumo tokens: the card on `--lumo-base-color`, the small border radius,
   no shadow, the heading in `--lumo-font-size-xxl`. In dark mode the illustration deepens with the
   theme.
-- **Redwood** — Spectra ships no component for this pattern (Oracle's own sign-in and confirmation
-  pages are applications of their own), so the page is composed from Redwood's pieces: the card on
-  Redwood's content surface with Oracle Sans, Redwood buttons and links, the same illustration in
-  Redwood's palette, and the global header, subheader, navigator and Ask button put away.
+- **Redwood** — here Redwood's design guidance decides. Spectra ships no component for this pattern
+  (Oracle's own sign-in and confirmation pages are applications of their own) and the Redwood guide
+  has no message or sign-in page template, so the page is composed from Redwood's own pieces, with
+  none of Mateu's illustration:
+  - **The background is Redwood's imagery**, used the way the guide uses it on the welcome banner: a
+    dark tone of the Redwood palette (the same `ocean` … `sienna` vocabulary as `background`, with
+    the colours Spectra gives its banner) under the gallery illustration and its texture. A tone the
+    gallery has no illustration for gets Spectra's own themed image, since the guide treats the
+    banner's image as required. With no tone declared, the page takes a stable look of its own, as a
+    welcome page does. The images come from Oracle's CDN, or your organisation's mirror
+    (`mateu.oracle-cdn.url`); nothing is bundled.
+  - **The card** is Redwood's Neutral 10 surface, the light off-white of Redwood's own sign-in card
+    rather than pure white. It uses Redwood's small border radius, no shadow, Oracle Sans, and
+    Redwood buttons and links.
+  - The global header, subheader, navigator and Ask button are put away while the page is on screen.
 
-![The sign-in step on the Redwood renderer](/images/docs/message-page/redwood-sign-in.png)
+![The confirmation on the Redwood renderer: the welcome banner's tone and gallery illustration](/images/docs/message-page/redwood-confirmation.png)
+
+![The sign-in step on the Redwood renderer, tone slate: Spectra's themed image](/images/docs/message-page/redwood-sign-in.png)
 
 ![The confirmation on the Redwood renderer, at phone width](/images/docs/message-page/redwood-confirmation-phone.png)
 

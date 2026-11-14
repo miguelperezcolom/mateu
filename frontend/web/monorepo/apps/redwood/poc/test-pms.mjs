@@ -2968,6 +2968,28 @@ test('a page that DECLARES the Message page → one card over the illustrated ba
   assert.equal(layout.vars.mateuPageHostClass, 'mateu-message-card-host')
   assert.equal(layout.vars.mateuPageMaxWidth, 'min(100%, 32rem)')
   assert.equal(layout.pageWidth, 'edgeToEdge')
+  // without an own image: REDWOOD'S imagery — the tone's gallery illustration over its texture
+  // (sienna has a pair), or Spectra's themed image for a tone without one; a page with no tone gets
+  // the welcome's stable look (some dark-<tone> with its pair)
+  const withoutImage = (tree, tone) => {
+    const copy = JSON.parse(JSON.stringify(tree))
+    const walk = (n) => {
+      if (!n || typeof n !== 'object') return
+      if (n.id === 'message-page') { n.style = null; n.cssClasses = 'mateu-message-page' + (tone ? ' mateu-message-page--' + tone : '') }
+      Object.values(n).forEach(walk)
+    }
+    walk(copy)
+    return copy
+  }
+  const sienna = templatedMessageOf({ ...host, tree: withoutImage(host.tree, 'sienna') })
+  assert.equal(sienna.pageClass, 'mateu-message-page mateu-message-page--sienna')
+  assert.match(sienna.image, /^url\("https:\/\/static\.oracle\.com\/cdn\/fnd\/gallery\/.*illust-welcome-banner-fg-04\.png"\), url\(".*illust-welcome-banner-bg-04\.png"\)$/)
+  const slate = templatedMessageOf({ ...host, tree: withoutImage(host.tree, 'slate') })
+  assert.equal(slate.pageClass, 'mateu-message-page mateu-message-page--slate mateu-message-page--themed')
+  assert.match(slate.image, /spectra-ui\/oj-sp\/.*welcome-banner-abstract-1\.png/)
+  const untoned = templatedMessageOf({ ...host, tree: withoutImage(host.tree, null) })
+  assert.match(untoned.pageClass, /^mateu-message-page mateu-message-page--(ocean|pine|plum|sienna|teal)$/)
+  assert.match(untoned.image, /illust-welcome-banner-fg-0\d\.png/)
   // any other page is not one
   assert.equal(templatedMessageOf({ state: {}, data: {}, tree: { type: 'ClientSide', metadata: { type: 'Form' }, children: [] } }), null)
 })

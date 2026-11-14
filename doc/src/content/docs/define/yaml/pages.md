@@ -219,7 +219,7 @@ filled with the record's data (`${state.x}`) — is the **page**.
 | `DataManagementPage` | `oj-sp-data-management-page` | `end`, `bottom` (`DockedPanel`: `id`, `title`, `content`, `size`, `open` — shown while open; a YAML page has no server to toggle them) | the form's `content` is the data view (a `Listing`, a grid…); its toolbar sits over the data; its title heads the page |
 | `DashboardLandingPage` | `oj-sp-dashboard-landing-page` | — | `kpi` (the scoreboard's `MetricCard`s); the form's `content` is the main area (one `DashboardPanel` per chart or list) |
 | `MultimediaContentPage` | composed: `oj-sp-header-welcome-banner` + sections + the vertical anchor navigator (Spectra ships no `oj-sp-multimedia-content-page` in 2604) | `backgroundColor` (as `WelcomePage`) | the form's `content` is the sections (`Card` + `mateu-section`); the banner is the form's title/subtitle/overline/toolbar |
-| `MessagePage` | composed (Spectra has no component for it): one card near the top of a full-bleed illustrated background, no app chrome | `background` (a tone, as `WelcomePage`'s `backgroundColor`; `auto`/none = the default illustration), `image` (your own background image URL, wins), `width` (the card's width, a CSS length; 460px when absent) | `footer` (the small links at the card's foot); the form's `content` is the card's body (text, links, fields, buttons), its `title` the card's h1, its `subtitle`/`overline` the lines around it, its `toolbar` the card's actions |
+| `MessagePage` | composed (Spectra has no component for it): one card on Redwood's Neutral 10 surface near the top of a full-bleed background, the welcome banner's tone and gallery illustration; no app chrome | `background` (a tone, as `WelcomePage`'s `backgroundColor`; `auto`/none = the default illustration), `image` (your own background image URL, wins), `width` (the card's width, a CSS length; 460px when absent) | `footer` (the small links at the card's foot); the form's `content` is the card's body (text, links, fields, buttons), its `title` the card's h1, its `subtitle`/`overline` the lines around it, its `toolbar` the card's actions |
 | `WelcomePage` | `oj-sp-welcome-page` | `backgroundColor` (Spectra's `dark-ocean` … `dark-sienna`, or the bare tone; `auto`/none = default) | the form's `content` is the default slot (the tiles under the banner) |
 
 The rest of the template comes from the `type: Form` that carries it: its `title`/`subtitle` are
@@ -311,8 +311,10 @@ content:                                   # the card's body: text, links, field
 
 The card's body holds any components, so a sign-in step is the same template with a field:
 `content: [{type: FormField, id: username, label: Username or email, required: true}, {type: Anchor, text: "Forgot username?", url: /forgot}]`
-and a `Next` primary button in the toolbar. The background is Mateu's own illustration (organic
-shapes and a light grain, drawn in CSS — nothing is downloaded) unless `image:` names yours. See
+and a `Next` primary button in the toolbar. Unless `image:` names your own picture, the background is
+the design system's imagery. On Redwood that is the welcome banner's tone and gallery illustration
+(or Spectra's themed image), loaded from Oracle's CDN or your mirror. On Vaadin it is Mateu's own
+illustration, drawn in CSS. See
 [Message page](/ux-patterns/message-page/). Demo: `demo/demo-museum` `visit-booked.yaml` and
 `sign-in.yaml`.
 

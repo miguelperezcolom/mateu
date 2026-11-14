@@ -16,7 +16,9 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   width, footer}` on a `type: Form`: the form's title is the card's h1, its content the card's body
   (text, links, fields, buttons), its toolbar the card's actions, `footer` the small links at its
   foot. While it is on screen the app shell puts its header, menu and FABs away (Vaadin and
-  Redwood); the illustration is Mateu's own, drawn in CSS. Java, .NET and Python, the browser
+  Redwood). On Redwood the background is Redwood's own imagery (the welcome banner's tone and
+  gallery illustration, from Oracle's CDN or its mirror) and the card Redwood's Neutral 10 surface;
+  on Vaadin it is Mateu's own illustration, drawn in CSS. Java, .NET and Python, the browser
   expander, Vaadin, Redwood (composed — Spectra has no component for it), the Figma contract and the
   IntelliJ / VS Code "New › Mateu" page templates. Demo: `demo-museum` `visit-booked` and `sign-in`.
   Docs `ux-patterns/message-page.md`.

@@ -6755,12 +6755,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * A page that DECLARES the Message page template (`template: MessagePage`) → mateuMsg: ONE card over
    * a full-bleed illustrated background, with no app chrome around it. Spectra ships no component for
    * it (Oracle's own sign-in and confirmation pages are their own apps), so it is composed: the
-   * background is a fixed layer (app.css `.mateu-message-page`, Mateu's own illustration drawn with
-   * Redwood's palette — or the template's image), the content container is the card
+   * background is a fixed layer (app.css `.mateu-message-page`) painted with REDWOOD'S OWN imagery — the
+   * welcome banner's tone colour (Spectra's `--oj-sp-rw-*` palette) with its gallery illustration and
+   * texture, or Spectra's themed image, from Oracle's CDN (or its mirror) — or the template's own image;
+   * the content container is the card
    * (`mateu-message-card-host`), its heading (overline, h1, subtitle) is drawn above the host atoms,
    * and the host atoms are the card's body, then its actions and its footer links (blocks marked so
    * app.css lays them out). Read by id off the server's layout (PageTemplates.message).
    */
+  /** Spectra's themed image (the welcome banner's `themed-image` for a tone with no gallery pair). */
+  const SPECTRA_THEMED_IMAGE =
+    'https://static.oracle.com/cdn/spectra-ui/oj-sp/2604.1.0/header-welcome-banner/resources/img/welcome-banner-abstract-1.png'
+
   function templatedMessageOf(ctx) {
     if (!declaresTemplate(ctx, 'MessagePage')) return null
     const page = nodeById(ctx.tree, 'message-page')
@@ -6782,10 +6788,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const style = String(page.style || '')
     const image = (style.match(/--mateu-message-page-image:\s*url\("([\w\s/.:%~?&=#+,@-]+)"\)/) || [])[1] || ''
     const width = (style.match(/--mateu-message-card-width:\s*(\d+(?:\.\d+)?(?:px|rem|em|ch|vw|%))/) || [])[1] || ''
+    // Redwood's own imagery, as the welcome banner takes it (welcomeLookOf): the declared tone, else
+    // the page's stable look; a tone with a gallery pair gets its illustration over its texture, one
+    // without gets Spectra's themed image — every url through the Oracle CDN mirror
+    const look = welcomeLookOf(welcomeKeyOf(ctx), WELCOME_TONES.indexOf(tone) >= 0 ? tone : null)
+    const lookTone = String(look.theme || '').replace(/^dark-/, '')
+    const illustration = look.illu
+      ? 'url("' + look.illu + '"), url("' + look.illuBg + '")'
+      : 'url("' + oracleCdnUrl(SPECTRA_THEMED_IMAGE) + '")'
     return {
-      pageClass: 'mateu-message-page' + (WELCOME_TONES.indexOf(tone) >= 0 ? ' mateu-message-page--' + tone : '')
-        + (image ? ' mateu-message-page--image' : ''),
-      image: image ? 'url("' + image + '")' : '',
+      pageClass: 'mateu-message-page mateu-message-page--' + lookTone
+        + (image ? ' mateu-message-page--image' : look.illu ? '' : ' mateu-message-page--themed'),
+      image: image ? 'url("' + image + '")' : illustration,
       width: width ? 'min(100%, ' + width + ')' : '',
       overline: textOf('message-overline'),
       title: textOf('message-title'),
