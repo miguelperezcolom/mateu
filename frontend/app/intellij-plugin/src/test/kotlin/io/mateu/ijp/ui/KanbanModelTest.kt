@@ -59,4 +59,27 @@ class KanbanModelTest : TestCase() {
         assertEquals(mapOf("id" to "7", "title" to "Varnish"), params["_clickedCard"])
         listOf("_cardId", "_fromColumnId", "_toColumnId", "_toIndex").forEach { assertFalse(it, params.containsKey(it)) }
     }
+
+    fun testADropLandsInTheColumnUnderThePointerAtThePlaceBetweenItsCards() {
+        val spans = listOf(0 until 220, 232 until 452)
+        assertEquals(0, KanbanModel.columnAt(spans, 10))
+        assertEquals(1, KanbanModel.columnAt(spans, 300))
+        assertEquals("the gap goes to the nearest", 1, KanbanModel.columnAt(spans, 230))
+        assertEquals("past the last one", 1, KanbanModel.columnAt(spans, 900))
+        assertEquals(-1, KanbanModel.columnAt(emptyList(), 5))
+        assertEquals(0, KanbanModel.insertionIndex(listOf(40, 90), 10))
+        assertEquals(1, KanbanModel.insertionIndex(listOf(40, 90), 60))
+        assertEquals(2, KanbanModel.insertionIndex(listOf(40, 90), 200))
+        assertEquals(0, KanbanModel.insertionIndex(emptyList(), 200))
+    }
+
+    fun testTheMoveADropMakes() {
+        val columns = KanbanModel.cardsFromRows(board, KanbanModel.itemsOf(items, "content"))
+        assertEquals(KanbanModel.Move("1", "backlog", "done", 1), KanbanModel.dropMove(columns, "1", "done", 1))
+        assertEquals("clamped", KanbanModel.Move("1", "backlog", "done", 1), KanbanModel.dropMove(columns, "1", "done", 9))
+        assertEquals("reorder", KanbanModel.Move("2", "backlog", "backlog", 0), KanbanModel.dropMove(columns, "2", "backlog", 0))
+        assertNull("same place", KanbanModel.dropMove(columns, "1", "backlog", 0))
+        assertNull("unknown column", KanbanModel.dropMove(columns, "1", "nope", 0))
+        assertNull("unknown card", KanbanModel.dropMove(columns, "x", "done", 0))
+    }
 }
