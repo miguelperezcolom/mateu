@@ -259,6 +259,36 @@ Not inside the Visual Builder designer. In a VB instance:
 - Designed for data-dense enterprise UIs
 - Builds the RDS page templates (Smart Search, Collection Detail, General Overview, Guided Process…) from the same archetypes as every other renderer
 
+### The colour strip
+
+Redwood pages carry a thin colour strip, a band of Redwood imagery that belongs to the page header
+or the page template. The *Guided process* template guide (redwood.oracle.com, `pageId=GUIDEC9`,
+"Display mode") describes it as the strip at the top of the page, shown in the light display mode.
+Redwood supports only its own colours and images there.
+
+Spectra draws this strip itself, so Mateu does not add one over it:
+
+- The page headers Mateu uses (`oj-sp-header-general-overview`, `oj-sp-header-create-edit`) draw
+  it under the header. That covers listings, record pages and create/edit pages.
+- The templates `oj-sp-guided-process` (the RAIL wizard), `oj-sp-hero-search-page` and the item
+  overview page draw it at their top.
+- Pages whose template owns the whole page draw no strip, because Spectra draws none there. Those
+  are the welcome page, the foldout layout and the dashboard landing page.
+
+Mateu draws its own page header in one place, the horizontal wizard (title and train). There it
+draws the strip at the top, where the guided process puts it, and copies the look of Spectra's
+header strip. The image is the theme's `--oj-sp-theme-page-header-strip` when Spectra's theme sets
+one. Otherwise it is the generic strip from Oracle's gallery, the same image Spectra ships. The
+strip is 12px tall with rounded top corners, and 6px tall and square below 600px. It is loaded from
+the Oracle CDN and never bundled, and an [Oracle CDN mirror](/deploy/oracle-cdn-mirror/) serves it
+too.
+
+To turn every strip off, Spectra's and Mateu's, use Spectra's own switch: the
+`oj-sp-theme-appearance-override` class on `<body>`, which marks a custom (non-Redwood) theme.
+
+The Redwood shell has no footer, so there is no strip above one. Visual Builder's default web
+layout does draw a strip over its footer.
+
 ## Related
 
 - [Design systems overview](/design-systems/)

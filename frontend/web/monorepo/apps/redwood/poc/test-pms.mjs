@@ -3073,6 +3073,33 @@ test('a page that DECLARES the Hero search template → oj-sp-hero-search-page: 
   assert.equal(templateOwnsHeaderForTest(archetypeVarsOfForTest(host)), true)
 })
 
+test('Redwood\'s colour strip is Spectra\'s: Mateu draws it only over the one page header it composes itself (the horizontal wizard)', () => {
+  const here = dirname(fileURLToPath(import.meta.url))
+  const page = readFileSync(join(here, '../webApps/vbredwoodapp/flows/main/pages/main-start-page.html'), 'utf-8')
+  const shell = readFileSync(join(here, '../webApps/vbredwoodapp/pages/shell-page.html'), 'utf-8')
+  const css = readFileSync(join(here, '../webApps/vbredwoodapp/resources/css/app.css'), 'utf-8')
+  // Spectra's headers (oj-sp-header-general-overview / -create-edit) and templates draw their own:
+  // the shell adds none over them (two strips on every page), and the page draws ONE, at the top of
+  // the horizontal wizard, whose title + train is Mateu's own header
+  assert.doesNotMatch(shell, /mateu-brand-stripe/)
+  const strips = page.match(/class="mateu-brand-stripe"/g) || []
+  assert.equal(strips.length, 1)
+  const at = page.indexOf('class="mateu-brand-stripe"')
+  assert.ok(page.lastIndexOf('mateuWizardStep.on && !!$application.variables.mateuWizard', at) > page.lastIndexOf('</oj-bind-if>', at),
+    'the strip sits inside the horizontal wizard\'s header block')
+  assert.ok(page.indexOf('mateu-wizard-top', at) - at < 200, 'right above the wizard\'s title')
+  // Spectra's contract: the theme's strip first, the gallery's generic strip (on the Oracle CDN) after,
+  // 12px / 6px on a phone, gone under a custom (non-Redwood) Spectra theme
+  const rule = css.slice(css.indexOf('.mateu-brand-stripe {'), css.indexOf('}', css.indexOf('.mateu-brand-stripe {')))
+  assert.match(rule, /background-image: var\(--oj-sp-theme-page-header-strip, var\(--mateu-brand-stripe-gallery\)\)/)
+  // the gallery url ONE var() deep (nested deeper, the build's minifier mangled its version)
+  assert.match(rule, /--mateu-brand-stripe-gallery: var\(--mateu-brand-stripe-image, url\('https:\/\/static\.oracle\.com\/cdn\/fnd\/gallery\/\d+\.\d+\.\d+\/images\/color-strip-generic-2x\.webp'\)\)/)
+  assert.match(rule, /height: 0\.75rem/)
+  assert.match(rule, /border-top-left-radius: var\(--oj-sp-headers-colortstrip-border-radius/)
+  assert.match(css, /max-width: 599px\) \{\s*\.mateu-brand-stripe \{ height: 0\.375rem; border-radius: 0; background-size: 22\.5rem; \}/)
+  assert.match(css, /body\.oj-sp-theme-appearance-override \.mateu-brand-stripe \{ display: none; \}/)
+})
+
 test('Item overview page as in Redwood\'s examples: a stacked body, sections with Spectra\'s header in the main slot', () => {
   // the body is Spectra's read-only form layout: property rows (nested ones too) are drawn stacked
   const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),

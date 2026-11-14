@@ -155,11 +155,12 @@ export const indexPage = ({ stylesheets, libraries, runtime, settings, requireCo
 ${stylesheets.map((s) => `    <link rel="stylesheet" type="text/css" href="${attr(s.href)}"${s.id ? ` id="${attr(s.id)}"` : ''}>`).join('\n')}
     <link rel="stylesheet" href="${appDir}/resources/css/app.css?v=${hash}">
     <style>mateu-ui { display: none !important; }
-      /* the shell background (app.css) from Oracle's gallery — written here, in the page, so a mirror
+      /* the shell background and the colour strip (app.css) from Oracle's gallery — written here, in the page, so a mirror
          of Oracle's CDN (mateu.oracle-cdn.url) replaces it with the page's other urls */
       :root {
         --mateu-shell-bg-start: url('https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/background-shell-generic-start.png');
         --mateu-shell-bg-end: url('https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/background-shell-generic-end.png');
+        --mateu-brand-stripe-image: url('https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/color-strip-generic-2x.webp');
       }
       /* until Visual Builder mounts the app (Oracle's CDN is still downloading): Redwood's loader, the
          large indeterminate progress circle — the very markup JET renders for oj-progress-circle, styled

@@ -90015,6 +90015,12 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
      — the new page painted above and the whole wizard left on screen under it. Every read of
      mateuWizard here is null-safe (pinned by test-chains.mjs). -->
 <oj-bind-if test="[[ $application.variables.mateuWizardStep.on && !!$application.variables.mateuWizard ]]">
+  <!-- Redwood's colour strip at the top of the page: every other page gets it from its Spectra
+       header (oj-sp-header-general-overview / -create-edit draw it under themselves) or template
+       (oj-sp-guided-process draws it at its top — the RAIL wizard). This train is our own header, so
+       it draws the strip itself, at the top like the guided process and with the contract of
+       Spectra's header strip (app.css .mateu-brand-stripe) -->
+  <div class="mateu-brand-stripe" aria-hidden="true"></div>
   <div class="mateu-wizard-top oj-sm-padding-12x-horizontal oj-sm-padding-6x-top">
     <h1 class="oj-typography-heading-md" :class="[[ ($application.variables.mateuWizard && $application.variables.mateuWizard.subtitle) ? 'oj-sm-margin-2x-bottom' : 'oj-sm-margin-6x-bottom' ]]"><oj-bind-text value="[[ $application.variables.mateuWizardStep.title || $application.variables.mateuHostTitle ]]"></oj-bind-text></h1>
     <oj-bind-if test="[[ ($application.variables.mateuWizard && $application.variables.mateuWizard.subtitle) ]]">
