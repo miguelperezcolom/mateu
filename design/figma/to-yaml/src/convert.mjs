@@ -91,6 +91,42 @@ export function undeclaredActionWarnings(files, declared) {
 }
 
 /**
+ * The `data` property of a Chart (contract `yamlConventions.chartData`): `Label=number` items split
+ * by `;` when the text has one, else by `,`, optionally after `Series name:`. Returns
+ * `{chartData: {labels, datasets: [{label?, data}]} | undefined, problems: [message]}`.
+ */
+export function parseChartData(text) {
+  const problems = []
+  let source = String(text ?? '').trim()
+  let series
+  const colon = source.indexOf(':')
+  if (colon >= 0 && (source.indexOf('=') < 0 || colon < source.indexOf('='))) {
+    series = source.substring(0, colon).trim() || undefined
+    source = source.substring(colon + 1)
+  }
+  const labels = []
+  const data = []
+  for (const raw of source.split(source.includes(';') ? ';' : ',')) {
+    const item = raw.trim()
+    if (item === '') continue
+    const eq = item.lastIndexOf('=')
+    const label = eq >= 0 ? item.substring(0, eq).trim() : ''
+    const number = eq >= 0 ? Number(item.substring(eq + 1).trim().replace(',', '.')) : NaN
+    if (label === '' || item.substring(eq + 1).trim() === '' || !Number.isFinite(number)) {
+      problems.push(`"${item}" needs a label and a number (Label=12)`)
+      continue
+    }
+    labels.push(label)
+    data.push(number)
+  }
+  if (!labels.length) {
+    if (source.trim()) problems.push(`"${String(text).trim()}" lists no value`)
+    return { chartData: undefined, problems }
+  }
+  return { chartData: { labels, datasets: [{ ...(series ? { label: series } : {}), data }] }, problems }
+}
+
+/**
  * The `options` property of a Select / RadioGroup (contract `yamlConventions.options`): items split
  * by `;` when the text has one, else by `,`; each a bare label (value = the label slugified) or
  * `value=Label`. Returns `{options: [{value, label}], problems: [message]}` — a malformed item is a
@@ -624,6 +660,11 @@ export class FigmaToYaml {
       const { options, problems } = parseOptions(text)
       for (const m of problems) this.warn(node, `${param}: ${m}`)
       return options.length ? options : undefined
+    }
+    if (kind === 'chartData') {
+      const { chartData, problems } = parseChartData(text)
+      for (const m of problems) this.warn(node, `${param}: ${m}`)
+      return chartData
     }
     this.warn(node, `${param}: no parser "${kind}"`)
     return undefined
