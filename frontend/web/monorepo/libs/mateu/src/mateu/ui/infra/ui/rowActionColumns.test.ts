@@ -45,8 +45,8 @@ describe('withRowActionsPinnedToEnd', () => {
         const out = withRowActionsPinnedToEnd([name, city, actions])
         expect(out[0]).toBe(name)
         expect(out[1]).toBe(city)
-        expect(out[2].metadata.frozenToEnd).toBe(true)
-        expect(actions.metadata.frozenToEnd).toBe(false)
+        expect((out[2].metadata as { frozenToEnd?: boolean }).frozenToEnd).toBe(true)
+        expect((actions.metadata as { frozenToEnd?: boolean }).frozenToEnd).toBe(false)
         expect(endsPinned(out)).toBe(true)
     })
     it('returns the same node for the same wire node (stable across renders)', () => {
