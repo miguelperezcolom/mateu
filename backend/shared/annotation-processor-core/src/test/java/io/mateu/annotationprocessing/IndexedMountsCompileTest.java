@@ -7,12 +7,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 import org.junit.Test;
 
 /**
@@ -164,6 +169,85 @@ public class IndexedMountsCompileTest {
     assertThat(app.errors()).isEmpty();
     assertThat(app.generatedClassNames())
         .contains("com.example.IndexedAppController", "com.example.IndexedAppUIRouteResolver");
+  }
+
+  /**
+   * The indexed controllers must be generated BEFORE the last round: a file created in the round
+   * where {@code processingOver()} is true is never handed to another processor, so Micronaut's
+   * bean-definition processor never saw them and a Micronaut app whose UI lives only in a UI module
+   * answered 404 on every mount.
+   */
+  @Test
+  public void theIndexedControllersReachTheOtherProcessorsInALaterRound() {
+    var seen = new RoundRecorder();
+    var app =
+        Javac.compile(
+            List.of(frameworkApSeeing(compileUiModule()), seen),
+            Map.of("com.acme.app.Application", APP_MODULE));
+
+    assertThat(app.errors()).isEmpty();
+    assertThat(seen.rootsSeenBeforeTheLastRound)
+        .contains(
+            "com.acme.ui.HomeController",
+            "com.acme.ui.HomeMateuController",
+            "com.acme.ui.HomeConfig",
+            "com.acme.ui.SecureMateuController");
+    assertThat(app.diagnostics().toString()).doesNotContain("last round");
+  }
+
+  /** Stands for any framework AP that has to see the generated sources (Micronaut's). */
+  @SupportedAnnotationTypes("*")
+  @SupportedSourceVersion(SourceVersion.RELEASE_8)
+  static class RoundRecorder extends AbstractProcessor {
+    final Set<String> rootsSeenBeforeTheLastRound = new HashSet<>();
+
+    @Override
+    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+      if (!roundEnv.processingOver()) {
+        for (Element e : roundEnv.getRootElements()) {
+          if (e instanceof TypeElement t) {
+            rootsSeenBeforeTheLastRound.add(t.getQualifiedName().toString());
+          }
+        }
+      }
+      return false;
+    }
+  }
+
+  /** An {@code @App} without a route still makes the plain AP read the index: once, not twice. */
+  @Test
+  public void aValuelessAppSourceGeneratesEachIndexedMountOnce() {
+    assertGeneratedOnce(
+        "com.acme.app.Chrome",
+        "package com.acme.app; @io.mateu.uidl.annotations.App public class Chrome {}");
+  }
+
+  /** Same with a routed {@code @UI} source: the plain AP claims it and runs alone in round one. */
+  @Test
+  public void aUiSourceGeneratesEachIndexedMountOnce() {
+    assertGeneratedOnce(
+        "com.acme.app.Admin",
+        "package com.acme.app; @io.mateu.uidl.annotations.UI(\"/admin\") public class Admin {}");
+  }
+
+  private static void assertGeneratedOnce(String className, String source) {
+    // the generator prints a FilerException instead of reporting it: watch stderr
+    var err = new java.io.ByteArrayOutputStream();
+    var previous = System.err;
+    System.setErr(new java.io.PrintStream(err, true));
+    Javac.Result app;
+    try {
+      app =
+          Javac.compile(
+              List.of(new MateuUIAnnotationProcessor(), new MateuIndexedUIProcessor()),
+              Map.of(className, source));
+    } finally {
+      System.setErr(previous);
+    }
+
+    assertThat(app.errors()).isEmpty();
+    assertThat(err.toString()).doesNotContain("recreate");
+    assertThat(app.generatedClassNames()).contains("com.example.IndexedAppController");
   }
 
   /** A mount compiled in this module is not generated a second time from a stale index entry. */
