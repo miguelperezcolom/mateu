@@ -74,6 +74,12 @@ class AppContext(val session: AppSession) {
      *  here is drawn as its navigator AND its screens ([io.mateu.ijp.ui.EmbeddedAppContent]). */
     var embedsApps = false
 
+    /**
+     * The screen an AGENT wrote (the shell's `__preview__` of its YAML, and the islands in it): the
+     * base urls it names are the agent's, so they declare no remote ([io.mateu.ijp.ui.declareRemotes]).
+     */
+    var agentAuthored = false
+
     /** Loads the screen this context shows again (an embedded app's context selector changed). */
     fun reload() = navigate(currentRoute, currentConsumedRoute, navigationServerSideType.ifBlank { null }, "")
 

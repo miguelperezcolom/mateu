@@ -9,6 +9,7 @@
  */
 import { resolveUploadUrl, uploadErrorOf, uploadHeaders, uploadTargetOf, uploadedValueOf, type UploadConfig } from './fileUploads.ts';
 import { chromeText } from './chromeTexts.ts';
+import { underPublicBase } from '@infra/http/publicBase.ts';
 
 export interface UploadRequest {
   method: string;
@@ -69,7 +70,10 @@ async function mateuHeaders(api: UploadApi, url: string, own: Record<string, str
 export async function uploadFile(api: UploadApi, config: UploadConfig, file: PickedFile, transport: UploadTransport,
   onProgress?: (fraction: number) => void, signal?: AbortSignal): Promise<string> {
   if (!config.uploadTicket || !config.uploadUrl) throw new UploadError(0, chromeText('uploadsNotAvailable'));
-  const url = resolveUploadUrl(api.baseUrl, config.uploadUrl);
+  // the server names its ROOT path (`/mateu/v3/upload`): under a context path or a prefix-stripping
+  // proxy (`/crm`) it is `/crm/mateu/v3/upload` as the browser sees it (GA review 2, N-10). This
+  // leg is the web's only: the phone's base url is absolute, so its upload url always is too
+  const url = underPublicBase(resolveUploadUrl(api.baseUrl, config.uploadUrl));
   const ticket = config.uploadTicket;
 
   if (config.uploadDirect) {
