@@ -46,7 +46,19 @@ function walk(value, visit) {
 
 const pages = (files) => files.filter((f) => !f.partial && f.value.type !== 'AppShell')
 const routeOf = (f) => f.path.replace(/\.yaml$/, '')
-const labelOf = (f) => f.value.title ?? f.frame
+/** The frame's name as a menu label: `person-new` → `Person new`. */
+const humanized = (name) => {
+  const words = String(name).replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim()
+  return words ? words[0].toUpperCase() + words.slice(1) : String(name)
+}
+/**
+ * A menu label is plain text. A page title drawn as a template (`${state.name}`) only means
+ * something on the page, with its state; in the menu it would show raw, so the frame names it.
+ */
+export const labelOf = (f) => {
+  const title = typeof f.value.title === 'string' ? f.value.title.trim() : ''
+  return title && !title.includes('${') ? title : humanized(f.frame)
+}
 
 /** A target with `${…}` segments as a route pattern: `artworks/${row.id}` → `artworks/:id`. */
 export function routePattern(target) {
