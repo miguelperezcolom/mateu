@@ -356,7 +356,12 @@ test('the macOS re-sign is inside-out with the entitlements kept, never --deep',
 test('every desktop smoke test checks the hub, a mateu:// link and Mateu\'s errors, not only "the plugin loaded"', () => {
     const smoke = withoutShellComments(repoText('scripts/desktop-smoke.sh'))
     assert.match(smoke, /export MATEU_OPEN_LINK='mateu:\/\/add\?u=/)
-    assert.match(smoke, /node "\$here\/desktop-log-check\.mjs" "\$log" --hub --link/)
+    // the hub is the default, and checking it means the hub AND the link (a white-label `fixed` app,
+    // MATEU_SMOKE_VARIANT=fixed, has neither) — Mateu's own release never sets the variant
+    assert.match(smoke, /variant="\$\{MATEU_SMOKE_VARIANT:-hub\}"/)
+    assert.match(smoke, /checks=\(--hub --link\)/)
+    assert.match(smoke, /node "\$here\/desktop-log-check\.mjs" "\$log" \$\{checks\[@\]\+"\$\{checks\[@\]\}"\}/)
+    assert.doesNotMatch(repoText('.github/workflows/desktop.yml'), /MATEU_SMOKE_VARIANT/)
     const windows = withoutComments(jobBlock('desktop.yml', 'smoke-windows'))
     assert.match(windows, /MATEU_OPEN_LINK: mateu:\/\/add\?u=/)
     assert.match(windows, /node scripts\/desktop-log-check\.mjs \$log --hub --link/)
