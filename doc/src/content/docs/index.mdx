@@ -26,13 +26,14 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## The same screen, everywhere
 
 One artwork page of the [museums demo](https://museums.ec1.mateu.io/artworks/1), authored entirely in
-YAML and served by one backend, as the browser, the phone and Oracle Redwood draw it. Open them: they
-are live.
+YAML and served by one backend, as the browser, the phone, Oracle Redwood and the desktop app draw it.
+Open them: they are live.
 
 <div class="mateu-surfaces">
   <a href="https://museums.ec1.mateu.io/artworks/1"><img src="/images/home/museums-vaadin.jpg" alt="An artwork page of the museums demo on the Vaadin renderer" loading="lazy" /><span>Web · Vaadin</span></a>
   <a href="/native/mateu-app/" class="phone"><img src="/images/home/museums-phone.jpg" alt="The same artwork page in the Mateu phone app" loading="lazy" /><span>The Mateu app · iOS &amp; Android</span></a>
   <a href="https://museums-rw.ec1.mateu.io/artworks/1"><img src="/images/home/museums-redwood.jpg" alt="The same artwork page on the Oracle Redwood renderer" loading="lazy" /><span>Web · Oracle Redwood</span></a>
+  <a href="/native/desktop-app/" class="desktop"><img src="/images/home/museums-desktop.jpg" alt="The same artwork page in the Mateu desktop app on macOS" loading="lazy" /><span>The Mateu desktop app · macOS, Windows &amp; Linux</span></a>
 </div>
 
 <style>{`
@@ -40,6 +41,7 @@ are live.
   .mateu-surfaces a { display: flex; flex-direction: column; gap: .4rem; text-decoration: none; color: var(--sl-color-gray-2); font-size: var(--sl-text-sm); text-align: center; }
   .mateu-surfaces img { width: 100%; border-radius: 10px; border: 1px solid var(--sl-color-hairline); box-shadow: 0 18px 40px -24px rgba(0,0,0,.45); }
   .mateu-surfaces a.phone img { border-radius: 18px; }
+  .mateu-surfaces a.desktop { grid-column: 1 / -1; max-width: 46rem; width: 100%; margin: .75rem auto 0; }
   @media (max-width: 50rem) { .mateu-surfaces { grid-template-columns: 1fr; } .mateu-surfaces a.phone { max-width: 16rem; margin: 0 auto; } }
 `}</style>
 
