@@ -157,8 +157,7 @@ public final class ComponentState {
       return state;
     }
     var readable =
-        io.mateu.core.domain.FieldAccess.readable(
-            source.getClass(), (Map<String, Object>) map, httpRequest);
+        io.mateu.core.domain.FieldAccess.readable(source, (Map<String, Object>) map, httpRequest);
     var hidden = yamlHidden(source, httpRequest);
     if (hidden.isEmpty() || hidden.stream().noneMatch(readable::containsKey)) {
       return readable;

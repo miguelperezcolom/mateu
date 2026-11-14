@@ -28,7 +28,7 @@ public class StateMapper {
         (raw == null || raw instanceof Map || raw instanceof Collection || isBasic(raw))
             ? mapItem(raw)
             : io.mateu.core.domain.FieldAccess.readable(
-                raw.getClass(), (Map<String, Object>) toMap(raw), httpRequest);
+                (Object) raw, (Map<String, Object>) toMap(raw), httpRequest);
     return new UIFragmentDto(
         targetComponentId, null, mapped, null, UIFragmentActionDto.ReplaceKeepData, null);
   }
