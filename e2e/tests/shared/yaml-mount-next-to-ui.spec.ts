@@ -18,6 +18,23 @@ test.describe('a YAML mount next to @UI classes (/yaml-mixed)', () => {
     await expect(page.getByText('A YAML mount in a deployment that also has @UI classes.')).toBeVisible();
   });
 
+  // GA review 2, Explorer N1: the page wrote the address bar back WITHOUT the mount (/welcome), so a
+  // reload landed in the root app's "Page not found".
+  test('a deep link into the mount keeps its address, and a reload stays in the mount', async ({ page }) => {
+    await page.goto('/yaml-mixed/welcome');
+    await expect(page.getByRole('heading', { name: 'Served next to the classes' })).toBeVisible();
+    await expect(page).toHaveURL(/\/yaml-mixed\/welcome$/);
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Served next to the classes' })).toBeVisible();
+    await expect(page).toHaveURL(/\/yaml-mixed\/welcome$/);
+  });
+
+  test('the mount root keeps its address', async ({ page }) => {
+    await page.goto('/yaml-mixed');
+    await expect(page.getByRole('heading', { name: 'Served next to the classes' })).toBeVisible();
+    await expect(page).toHaveURL(/\/yaml-mixed\/?$/);
+  });
+
   test('the @UI classes keep their own paths', async ({ page }) => {
     await page.goto('/walk-yaml');
     await expect(page.getByRole('heading', { name: 'YAML booking' })).toBeVisible();
