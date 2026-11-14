@@ -81,6 +81,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   the npm package until a 3.0 version is there (`embedded-ui.md`). The client library `mateu`
   (libs/mateu) is not an npm package: it is bundled inside `mateu-vaadin`.
 
+### Fixed — Figma
+
+- **A text that looks like a number, a time or a date is written quoted** (`1.`, `+.inf`, `0b101`,
+  `12:30`, `2026-11-13`): Java read `1.` as `1.0` and failed the page on `+.inf`, Python read `12:30`
+  as 750. Slugs keep the combining marks of Thai, Devanagari… and a long frame name is cut (it
+  crashed the CLI). Mateu Publish offers — never applies — the original's site to a duplicated or
+  renamed file, and its chunked settings are written atomically.
+
 ### Fixed — React Native
 
 - **The overlay fallback's "Close" speaks the UI's language** (`renderFailure.ts` gained `close` in
