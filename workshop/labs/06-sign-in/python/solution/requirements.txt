@@ -1,0 +1,10 @@
+# Mateu for Python — published on PyPI as `mateu-ui` (the name `mateu` is taken), the same release
+# as the Java artifacts (3.0-beta.N is 3.0.0bN).
+mateu-ui==3.0.0b64
+fastapi>=0.110
+uvicorn>=0.27
+# workshop, lab 06: verifies the Keycloak access token the browser sends
+pyjwt[crypto]>=2.8
+# tests
+pytest>=8
+httpx>=0.27

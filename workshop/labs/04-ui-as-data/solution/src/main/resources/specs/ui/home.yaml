@@ -1,0 +1,20 @@
+# The home page: a hero with the app's title, a short intro and a call to action. The button
+# navigates because its actionable is a RouteLink — no code behind it. Open it in the Mateu visual
+# editor (IntelliJ or VS Code) to edit it on a canvas.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.64/backend/shared/uidl/specs-schema.json
+pageType: landing
+type: VerticalLayout
+fullWidth: true
+horizontalAlignment: STRETCH
+content:
+  - type: HeroSection
+    title: Workshop ui
+    subtitle: Every screen here is declared as data, in src/main/resources/specs/ui.
+    centered: true
+    content:
+      - type: Button
+        label: Browse products
+        buttonStyle: primary
+        actionable:
+          type: RouteLink
+          route: products

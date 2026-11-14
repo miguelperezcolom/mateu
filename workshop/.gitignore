@@ -1,0 +1,4 @@
+# Downloaded by tools/fetch-renderers.sh (Maven Central): never committed
+renderers/
+# lab 04 ships its .mvn/maven.config (sample mode), which the repository root ignores elsewhere
+!.mvn/

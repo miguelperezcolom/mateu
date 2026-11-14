@@ -40,6 +40,30 @@ sed -E -i.bak "s#(<PackageReference Include=\"Mateu\.[A-Za-z]+\" Version=\")[^\"
 sed -E -i.bak "s#^mateu-ui==.*#mateu-ui==$pypi#" starters/python/requirements.txt
 rm -f starters/dotnet/MateuStarter.csproj.bak starters/python/requirements.txt.bak
 echo "starters/dotnet → $nuget, starters/python → $pypi"
+# The workshop's labs are generated from the starters (workshop/tools/build-labs.mjs) and committed;
+# move them with the starters, or `build-labs.mjs --check` (workshop/verify.sh) fails on the drift.
+if [[ -d workshop/labs ]]; then
+  # the guides, READMEs and slides name the pinned release in prose (an archetype command, "verified
+  # on …", pip/NuGet versions): replace the OLD pin literally, read before the projects move
+  old=$(sed -n 's#.*<mateu.version>\(.*\)</mateu.version>.*#\1#p' workshop/labs/01-first-app/java/start/pom.xml | head -1)
+  if [[ -n $old && $old != "$new" ]]; then
+    old_nuget=$(echo "$old" | sed -E 's#^([0-9]+)\.([0-9]+)-#\1.\2.0-#')
+    old_pypi=$(echo "$old" | sed -E -e 's#^([0-9]+)\.([0-9]+)-([a-z]+)\.([0-9]+)$#\1.\2.0\3\4#' -e 's#alpha#a#' -e 's#beta#b#')
+    for f in $(grep -rlF -e "$old" -e "$old_pypi" -e "$old_nuget" --include='*.md' --include='*.html' workshop || true); do
+      sed -i.bak -e "s#$old_nuget#$nuget#g" -e "s#$old_pypi#$pypi#g" -e "s#$old#$new#g" "$f"
+      rm -f "$f.bak"
+    done
+  fi
+  for f in $(grep -rlE "<mateu.version>$REL</mateu.version>|mateu/v$REL/backend/shared/uidl/|Include=\"Mateu\.[A-Za-z]+\" Version=|^mateu-ui==" \
+               --include=pom.xml --include='*.yaml' --include='*.md' --include='*.csproj' --include=requirements.txt workshop/labs || true); do
+    sed -E -i.bak -e "s#<mateu.version>$REL</mateu.version>#<mateu.version>$new</mateu.version>#" \
+                  -e "s#(raw\.githubusercontent\.com/miguelperezcolom/mateu/)v$REL(/backend/shared/uidl/)#\1v$new\3#g" \
+                  -e "s#(<PackageReference Include=\"Mateu\.[A-Za-z]+\" Version=\")[^\"]+\"#\1$nuget\"#" \
+                  -e "s#^mateu-ui==.*#mateu-ui==$pypi#" "$f"
+    rm -f "$f.bak"
+  done
+  echo "workshop/labs → $new (NuGet $nuget, PyPI $pypi)"
+fi
 # The .NET and Python READMEs download the web renderer of a release to serve it (MATEU_UI=…).
 # (The doc site's guides write MATEU_VERSION, which the docs build resolves — nothing to bump there.)
 for f in backend/dotnet/README.md backend/python/README.md; do
