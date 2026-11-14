@@ -538,7 +538,8 @@
 
   // ── timeline ─────────────────────────────────────────────────────────
   const scenes = [...document.querySelectorAll('.scene')];
-  const durations = reduce
+  // a recording (the narrated video) may pace the scenes to its voice-over
+  const durations = Array.isArray(window.REEL_DURATIONS) ? window.REEL_DURATIONS : reduce
     ? [2600, 3200, 5200, 4600, 4600, 4000, 5200, 6000]
     : [3400, 3900, 6600, 5400, 6200, 4900, 6800, 6000];
   const total = durations.reduce((a, b) => a + b, 0);
