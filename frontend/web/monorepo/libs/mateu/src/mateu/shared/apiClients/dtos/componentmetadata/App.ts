@@ -128,6 +128,8 @@ export default interface App extends ComponentMetadata {
 
     /** `@App(presence)`: record pages tell who else has the same record open and who edits it (presence.ts). */
     presence?: boolean
+    /** The signed-in user, for the header's user menu (null/absent for an anonymous caller). Display only. */
+    user?: { name: string, email?: string, picture?: string }
 
     /** `@App(idleTimeoutMinutes)`: the idle-session warning; absent = off. */
     idleSession?: IdleSession | null

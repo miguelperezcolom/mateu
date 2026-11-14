@@ -330,14 +330,17 @@ define([
       $application.variables.mateuContextSelectors = nav.selectors.map((selector) => Object.assign({}, selector, {
         value: appState[selector.fieldName] != null ? appState[selector.fieldName] : null,
       }));
-      // + "Sign out" when the built-in sign-in holds a session (bridge signIn.mjs)
-      $application.variables.mateuHeaderActions = bridge.withSignOutAction(nav.headerActions);
-
       // The App's header widgets (WidgetSupplier): the user one to the profile area, the rest to
       // the actions zone. The bridge puts the HTML into the hole the template stamps; a
       // MicroFrontend loads from ITS pod and stays alive with its triggers (the badge: every 10 s).
       const widgets = bridge.headerWidgetsOf(reg);
-      $application.variables.mateuUserWidget = widgets.user;
+      // AppDto.user → the user menu in the profile area (bridge userMenu.mjs), Sign out inside it;
+      // it absorbs the greeting widget's rows. Nobody named → + the bare "Sign out" header action
+      // when the built-in sign-in holds a session (bridge signIn.mjs)
+      const account = bridge.accountMenuOf(reg.shell, bridge.signOutAvailable(), widgets.user && widgets.user.rows);
+      $application.variables.mateuAccountMenu = account;
+      $application.variables.mateuHeaderActions = account ? (nav.headerActions || []) : bridge.withSignOutAction(nav.headerActions);
+      $application.variables.mateuUserWidget = account ? null : widgets.user;
       $application.variables.mateuHeaderWidgets = widgets.items;
       bridge.stopRemoteWidgets();
       for (const item of widgets.items) {

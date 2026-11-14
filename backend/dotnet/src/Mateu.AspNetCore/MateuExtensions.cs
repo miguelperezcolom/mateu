@@ -129,6 +129,12 @@ public static partial class MateuExtensions
                 PushSender = pushSender,
                 PushTokenStore = sp.GetService<IPushTokenStore>(),
                 PresenceStore = sp.GetService<IPresenceStore>() ?? Presence.DefaultStore,
+                // the header's user menu: only for a caller the access checks know by name; the
+                // app's IUserProfileSupplier services first, else HttpContext.User's claims
+                SignedInUser = () => accessor.HttpContext is { } ctx
+                    ? UserProfiles.Dto(ctx.User, options.Identity(ctx)?.Name,
+                        ctx.RequestServices?.GetServices<IUserProfileSupplier>() ?? sp.GetServices<IUserProfileSupplier>())
+                    : null,
             };
             // PushNotifications.Send reaches this handler's sender (process lifetime)
             if (pushSender is not null) PushNotifications.Subscribe(handler.DeliverPush);

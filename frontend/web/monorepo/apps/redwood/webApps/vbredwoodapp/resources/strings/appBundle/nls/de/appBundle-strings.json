@@ -295,5 +295,6 @@
   "signInHint": "Melden Sie sich an, um fortzufahren.",
   "signInWith": "Weiter mit {provider}",
   "signInFailed": "Die Anmeldung hat nicht funktioniert. Bitte versuchen Sie es erneut.",
-  "signOut": "Abmelden"
+  "signOut": "Abmelden",
+  "userMenuOf": "Konto: {name}"
 }

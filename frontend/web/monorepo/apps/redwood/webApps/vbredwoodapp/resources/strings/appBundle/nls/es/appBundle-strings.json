@@ -267,6 +267,7 @@
   "signInWith": "Continuar con {provider}",
   "signInFailed": "No se ha podido iniciar sesión. Inténtalo de nuevo.",
   "signOut": "Cerrar sesión",
+  "userMenuOf": "Cuenta: {name}",
   "tasks": "Tareas",
   "tasksRunning": "{n} en curso",
   "tasksTitle": "Tareas, {n} en curso",

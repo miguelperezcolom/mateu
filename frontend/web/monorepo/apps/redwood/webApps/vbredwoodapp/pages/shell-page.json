@@ -329,6 +329,27 @@
         }
       ]
     },
+    "accountMenuClicked": {
+      "chains": [
+        {
+          "chain": "toggleMateuWidgetPopup",
+          "parameters": {
+            "popupId": "mateuAccountPopup",
+            "anchorId": "mateuAccountButton"
+          }
+        }
+      ]
+    },
+    "accountSignOutClicked": {
+      "chains": [
+        {
+          "chain": "runMateuHeaderAction",
+          "parameters": {
+            "actionId": "__mateu_sign_out"
+          }
+        }
+      ]
+    },
     "userWidgetClicked": {
       "chains": [
         {
