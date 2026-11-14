@@ -1,5 +1,5 @@
 
-import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";import{i as s,r as c}from"./chromeTexts.js";import{G as l,J as u,Y as d,Z as f}from"./mateu-vaadin.js";var p,m=(e,t,n,r)=>{if(t.length){let n=Math.max(e.startIdx,Math.min(r-1,e.endIdx+t.length));return{...e,mode:`resize`,resourceId:e.originResourceId,endIdx:n}}let i=e.endIdx-e.startIdx,a=Math.max(0,Math.min(r-1-i,e.startIdx+(t.days??0))),o=n.indexOf(e.resourceId),s=Math.max(0,Math.min(n.length-1,o+(t.rows??0)));return{...e,mode:`move`,startIdx:a,endIdx:a+i,resourceId:n[s]??e.resourceId}},h=e=>!!e&&(e.resourceId!==e.originResourceId||e.startIdx!==e.originStartIdx||e.endIdx!==e.originEndIdx),g=(e,t)=>({startIdx:Math.min(e,t),endIdx:Math.max(e,t)}),_=(e,t,n,r)=>e===`start`?{startIdx:Math.min(r,n),endIdx:n}:{startIdx:t,endIdx:Math.max(r,t)},v=class extends o{static{p=this}constructor(...e){super(...e),this.resources=[],this.blocks=[],this.attributeColumns=[],this.resize=null,this.range=null,this.drag=null,this.pending=null,this.activeBlockId=null,this.dragStartX=0,this.dragStartY=0,this.laneRects=[],this.onDragKeydown=e=>{e.key===`Escape`&&(this.drag||this.resize||this.range)&&(e.stopPropagation(),this.endDrag())}}static{this.styles=[u,i`
+import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";import{i as s,r as c}from"./chromeTexts.js";import{$ as l,X as u,et as d,nt as f}from"./mateu-vaadin.js";var p,m=(e,t,n,r)=>{if(t.length){let n=Math.max(e.startIdx,Math.min(r-1,e.endIdx+t.length));return{...e,mode:`resize`,resourceId:e.originResourceId,endIdx:n}}let i=e.endIdx-e.startIdx,a=Math.max(0,Math.min(r-1-i,e.startIdx+(t.days??0))),o=n.indexOf(e.resourceId),s=Math.max(0,Math.min(n.length-1,o+(t.rows??0)));return{...e,mode:`move`,startIdx:a,endIdx:a+i,resourceId:n[s]??e.resourceId}},h=e=>!!e&&(e.resourceId!==e.originResourceId||e.startIdx!==e.originStartIdx||e.endIdx!==e.originEndIdx),g=(e,t)=>({startIdx:Math.min(e,t),endIdx:Math.max(e,t)}),_=(e,t,n,r)=>e===`start`?{startIdx:Math.min(r,n),endIdx:n}:{startIdx:t,endIdx:Math.max(r,t)},v=class extends o{static{p=this}constructor(...e){super(...e),this.resources=[],this.blocks=[],this.attributeColumns=[],this.resize=null,this.range=null,this.drag=null,this.pending=null,this.activeBlockId=null,this.dragStartX=0,this.dragStartY=0,this.laneRects=[],this.onDragKeydown=e=>{e.key===`Escape`&&(this.drag||this.resize||this.range)&&(e.stopPropagation(),this.endDrag())}}static{this.styles=[l,i`
         :host {
             display: block;
             width: 100%;
@@ -216,7 +216,7 @@ import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";im
                 `)}
                 ${o}
             </div>
-        `}isWeekend(e){return e.getDay()===0||e.getDay()===6}renderRow(n,r,i,a){let o=100/r.days,s=this.blocks.filter(e=>e.resourceId===n.id&&e.start&&e.end),c=this.drag?.moved&&this.drag.targetResourceId===n.id?this.drag:null,u=this.pending&&h(this.pending)&&this.pending.resourceId===n.id?this.pending:null;return t`
+        `}isWeekend(e){return e.getDay()===0||e.getDay()===6}renderRow(n,r,i,a){let o=100/r.days,s=this.blocks.filter(e=>e.resourceId===n.id&&e.start&&e.end),c=this.drag?.moved&&this.drag.targetResourceId===n.id?this.drag:null,l=this.pending&&h(this.pending)&&this.pending.resourceId===n.id?this.pending:null;return t`
             <div class="label" title="${n.label??``}">
                 <span class="res-name">${n.icon?d(n.icon):e}${n.label}</span>
                 ${this.attributeColumns.map((e,r)=>t`<span class="attr">${(n.attributes??[])[r]??``}</span>`)}
@@ -230,15 +230,15 @@ import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";im
                     ${i.map(e=>t`<div class="cell ${this.isWeekend(e)?`weekend`:``}"></div>`)}
                 </div>
                 ${a==null?e:t`<div class="today-line" style="left: ${(a+.5)*o}%;"></div>`}
-                ${s.map(n=>{let i=p.daysBetween(r.from,p.parse(n.start)),a=p.daysBetween(r.from,p.parse(n.end));if(a<0||i>=r.days)return e;let s=Math.max(0,i),c=Math.min(r.days-1,a),u=this.drag?.moved&&this.drag.blockId===n.id,f=this.resize?.blockId===n.id?this.resize:null,m=f?Math.max(0,f.startIdx):s,h=f?Math.min(r.days-1,f.endIdx):c,g=n.summary??`${n.label??``} · ${n.start} → ${n.end}${n.status?` · ${n.status}`:``}`;return t`
-                        <div class="block ${this.selectActionId?`clickable`:``} ${this.moveActionId?`draggable`:``} ${u?`dragging`:``}"
+                ${s.map(n=>{let i=p.daysBetween(r.from,p.parse(n.start)),a=p.daysBetween(r.from,p.parse(n.end));if(a<0||i>=r.days)return e;let s=Math.max(0,i),c=Math.min(r.days-1,a),l=this.drag?.moved&&this.drag.blockId===n.id,f=this.resize?.blockId===n.id?this.resize:null,m=f?Math.max(0,f.startIdx):s,h=f?Math.min(r.days-1,f.endIdx):c,g=n.summary??`${n.label??``} · ${n.start} → ${n.end}${n.status?` · ${n.status}`:``}`;return t`
+                        <div class="block ${this.selectActionId?`clickable`:``} ${this.moveActionId?`draggable`:``} ${l?`dragging`:``}"
                              title="${g}"
                              tabindex="0" role="button"
                              aria-label="${g}"
                              aria-describedby="${this.moveActionId||this.resizeActionId?`planning-keys`:e}"
                              @keydown="${e=>this.onBlockKeydown(e,n)}"
                              @focus="${()=>{this.activeBlockId=n.id}}"
-                             style="left: ${m*o}%; width: ${(h-m+1)*o}%; ${n.color?`--mateu-planning-block: ${n.color}; ${l(n.color)?`--mateu-planning-block-ink: ${l(n.color)};`:``}`:``}"
+                             style="left: ${m*o}%; width: ${(h-m+1)*o}%; ${n.color?`--mateu-planning-block: ${n.color}; ${u(n.color)?`--mateu-planning-block-ink: ${u(n.color)};`:``}`:``}"
                              @dblclick="${this.openActionId?()=>this.emit(this.openActionId,{_blockId:n.id}):e}"
                              @pointerdown="${e=>this.onBlockPointerDown(e,n,i)}"
                              @pointermove="${e=>this.onBlockPointerMove(e)}"
@@ -253,9 +253,9 @@ import{S as e,T as t,a as n,i as r,k as i,o as a,x as o}from"./vendor-lit.js";im
                                 @pointerup="${e=>this.onHandlePointerUp(e)}"></span>`:e}</div>
                     `})}
                 ${this.range&&this.range.resourceId===n.id?(()=>{let{startIdx:e,endIdx:n}=g(this.range.anchorIdx,this.range.currentIdx);return t`<div class="range" style="left: ${e*o}%; width: ${(n-e+1)*o}%;"></div>`})():e}
-                ${u?t`
+                ${l?t`
                     <div class="ghost pending-ghost"
-                         style="left: ${u.startIdx*o}%; width: ${(u.endIdx-u.startIdx+1)*o}%;"></div>
+                         style="left: ${l.startIdx*o}%; width: ${(l.endIdx-l.startIdx+1)*o}%;"></div>
                 `:e}
                 ${c?t`
                     <div class="ghost"

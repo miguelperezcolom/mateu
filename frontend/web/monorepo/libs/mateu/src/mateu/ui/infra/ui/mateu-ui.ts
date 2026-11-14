@@ -232,6 +232,8 @@ export class MateuUi extends LitElement {
                     if (!proceed) return
                     this.signingIn = false
                     this.loadUrl(window)
+                    // "Sign out" for a UI with no header to carry it (lazy: only pages with a sign-in)
+                    void import('@infra/auth/mateu-sign-out-corner.ts').then((m) => m.mountSignOutCorner())
                 })
             } else {
                 this.loadUrl(window)
