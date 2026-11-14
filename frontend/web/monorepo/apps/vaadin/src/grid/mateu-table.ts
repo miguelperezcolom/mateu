@@ -44,6 +44,7 @@ import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { columnRenderer, renderColumnOrGroup, sorterChanged } from "./renderColumn.ts";
 import { splitLines } from "@infra/ui/listingLines.ts";
 import { withDefaultColumnSizing } from "@infra/ui/columnSizing.ts";
+import { endsPinned, withRowActionsPinnedToEnd } from "@infra/ui/rowActionColumns.ts";
 import { interpolate } from "@infra/ui/interpolation.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 
@@ -395,7 +396,10 @@ export class MateuTable extends LitElement {
         const extraLines = lines.extra.map(line => line.map(c => c.metadata as GridColumn))
         // columns that declare no width: compact ones fit their content, text ones share the rest
         // by weight (columnSizing.ts — the same rule as the Redwood renderer)
-        const gridColumns = withDefaultColumnSizing(multiLine ? lines.first : (this.metadata?.columns ?? []))
+        // the trailing row-action columns are pinned to the end edge: on a wide listing they stay
+        // visible instead of sitting past the horizontal scroll (rowActionColumns.ts)
+        const gridColumns = withRowActionsPinnedToEnd(withDefaultColumnSizing(multiLine ? lines.first : (this.metadata?.columns ?? [])))
+        const actionsPinned = endsPinned(gridColumns as { metadata?: GridColumn }[])
         const hasDetail = !!this.metadata?.detailPath
         const loadedRows: any[] = (items ?? page?.content ?? []) as any[]
         const gridDetailsOpened = multiLine ? loadedRows.filter(row => !isGroupRow(row)) : this.detailsOpenedItems
@@ -495,6 +499,7 @@ export class MateuTable extends LitElement {
                     <vaadin-grid-column
                             width="44px"
                             flex-grow="0"
+                            ?frozen-to-end="${actionsPinned}"
                             ${columnBodyRenderer<any>(
                                     (person, { detailsOpened: gridOpened }) => {
                                         const detailsOpened = multiLine ? this.isDetailOpen(person) : gridOpened
