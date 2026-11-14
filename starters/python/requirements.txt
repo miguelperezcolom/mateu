@@ -1,7 +1,7 @@
 # Mateu for Python — published on PyPI as `mateu-ui` (the name `mateu` is taken), the same release
 # as the Java artifacts (3.0-beta.N is 3.0.0bN). Inside the Mateu repository CI installs the
 # sources instead (pip install -e backend/python, then the rest of this file).
-mateu-ui==3.0.0b64
+mateu-ui==3.0.0b66
 fastapi>=0.110
 uvicorn>=0.27
 # tests

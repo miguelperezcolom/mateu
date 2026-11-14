@@ -1,5 +1,5 @@
 # One planet, read-only (route planets/:id), fetched by the route's `data:` source.
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.64/backend/shared/uidl/specs-schema.json
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.66/backend/shared/uidl/specs-schema.json
 type: Form
 title: ${state.name}
 subtitle: Planet

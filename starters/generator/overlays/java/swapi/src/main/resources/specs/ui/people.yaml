@@ -1,6 +1,6 @@
 # A listing over the `people` source (sources.yaml): the search box, the filter and the pager are
 # answered by the API. `rowRoute` makes a row the way in to its record, at its own URL.
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.64/backend/shared/uidl/uidl-schema.json
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.66/backend/shared/uidl/uidl-schema.json
 pageType: collection
 type: Listing
 title: People
