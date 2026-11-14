@@ -114,14 +114,8 @@ export class MateuWire {
   /** Run an action on a screen, return the resulting projection. */
   async runAction(route, actionId, componentState = null, parameters = null) {
     if (!actionId) throw new Error("actionId is required");
-    const { request, serverSideType } = await this.content(route);
-    const increment = await this.sync({
-      ...request,
-      serverSideType: serverSideType ?? request.serverSideType ?? null,
-      actionId,
-      componentState,
-      parameters,
-    });
+    const content = await this.content(route);
+    const increment = await this.sync(dispatchOf(content, actionId, componentState, parameters));
     return projectIncrement(increment);
   }
 
@@ -179,6 +173,43 @@ function appOf(increment) {
   for (const fragment of increment?.fragments || []) {
     visitObjects(fragment?.component, (node) => {
       if (!found && node.metadata && node.metadata.type === "App") found = node.metadata;
+    });
+  }
+  return found;
+}
+
+/**
+ * Where an action the agent picked from a screen is sent — where the browser sends it (same rule as
+ * the Java McpService.Content.dispatch). The screen's own actions go to the screen. One it marks
+ * `bubble` (a crud record page's Create / Save: buttons of the page, methods of the CRUD) the
+ * browser re-dispatches to the component that loaded the page — the crud's mediator — with the
+ * page's state as `initiatorState`; sent to the page's own type (the entity) it was refused as "no
+ * such action". The page's state (its id, its whereabouts) travels under what the agent typed.
+ */
+export function dispatchOf({ request, serverSideType, increment }, actionId, componentState = null, parameters = null) {
+  const screen = firstServerSide(increment);
+  const loader = request.serverSideType ?? null;
+  const own = screen && (screen.actions || []).find((a) => a && a.id === actionId);
+  if (!screen || !own?.bubble || !loader || loader === serverSideType) {
+    return {
+      ...request,
+      serverSideType: serverSideType ?? request.serverSideType ?? null,
+      actionId,
+      componentState,
+      parameters,
+    };
+  }
+  const initial = screen.initialData && typeof screen.initialData === "object" && !Array.isArray(screen.initialData) ? screen.initialData : {};
+  const state = { ...initial, ...(componentState || {}) };
+  return { ...request, serverSideType: loader, actionId, componentState: state, parameters: { initiatorState: state } };
+}
+
+/** The first ServerSide node of the answer — the screen it renders — or null. */
+function firstServerSide(increment) {
+  let found = null;
+  for (const fragment of increment?.fragments || []) {
+    visitObjects(fragment?.component, (node) => {
+      if (!found && node.type === "ServerSide" && node.serverSideType) found = node;
     });
   }
   return found;
