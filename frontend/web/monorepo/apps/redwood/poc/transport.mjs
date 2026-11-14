@@ -79,12 +79,20 @@ export async function callMateu(base, body, options = {}) {
   // through the untrusted strip: what it sends cannot run code in this tab
   const increment = answeredBy(base, await res.json())
   observeWireVersion(increment)
+  if (answerObserver) { try { answerObserver(increment) } catch (e) { /* an observer cannot break a call */ } }
   // the catalogue entries this response names by ref (a page with no app shell gets them no other way)
   adoptReferencedSources(increment)
   // the body takes time too: whatever arrives after the screen changed is not applied either
   if (isViewStale(view)) throw staleResponseError(body.actionId)
   return increment
 }
+
+// Who hears every answer callMateu gets (the live UI push summary keeps the last messages,
+// agentPush.mjs): one observer, set once.
+let answerObserver = null
+
+/** Sets the observer of every answer callMateu gets (null = none). */
+export function setAnswerObserver(fn) { answerObserver = typeof fn === 'function' ? fn : null }
 
 /** An answer as it may be painted: as written from a trusted origin (hostHeaders.isTrustedOrigin),
  *  through the untrusted strip (untrusted.mjs) from any other. */

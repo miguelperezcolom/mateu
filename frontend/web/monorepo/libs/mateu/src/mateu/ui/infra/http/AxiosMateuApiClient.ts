@@ -35,6 +35,10 @@ const signatureOf = new WeakMap<AbortController, string>()
 /** Default ceiling for a sync call. Overridable per action via `@Action(timeoutMillis = …)`. */
 const DEFAULT_TIMEOUT_MS = 60000
 
+/** Mateu calls (sync endpoint) this tab has in flight, background ones included. */
+let callsInFlight = 0
+export const mateuCallsInFlight = (): number => callsInFlight
+
 const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
 export class AxiosMateuApiClient implements MateuApiClient {
@@ -144,7 +148,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
             }))
             throw new StaleResponse(actionId, outcome)
         }
-        return call().then(response => {
+        callsInFlight++
+        return call().finally(() => { callsInFlight = Math.max(0, callsInFlight - 1) }).then(response => {
             if (isStale?.()) dropStale('answered')
             initiator.dispatchEvent(new CustomEvent('backend-succeeded-event', {
                 bubbles: true,

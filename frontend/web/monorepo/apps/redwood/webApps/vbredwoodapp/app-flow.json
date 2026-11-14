@@ -1072,6 +1072,12 @@
         "fromNested": "boolean",
         "surfaceId": "string"
       }
+    },
+    "mateuAgentQuery": {
+      "description": "an MCP agent asked this tab what it shows or to act on it (live UI push, a query message): the shell hands it to the content page, whose agentQueryRun chain runs it with the page's drafts and chains and answers _agent-screen",
+      "payloadType": {
+        "query": "any"
+      }
     }
   }
 }

@@ -194,6 +194,10 @@ const en = {
     agentAnAgent: 'an agent',
     agentDisconnect: 'Disconnect',
     agentDisconnected: 'AI disconnected',
+    // an agent operating this tab through live UI push (agentOperating.ts)
+    agentOperating: 'An AI agent is operating this screen',
+    agentStop: 'Stop',
+    agentStopped: 'The AI agent can no longer operate this screen',
     agentDisconnectFailed: 'Could not disconnect the AI.',
     // notifications
     notifications: 'Notifications',
@@ -572,6 +576,10 @@ const es: Catalogue = {
     agentAnAgent: 'un agente',
     agentDisconnect: 'Desconectar',
     agentDisconnected: 'IA desconectada',
+    // an agent operating this tab through live UI push (agentOperating.ts)
+    agentOperating: 'Un agente de IA está manejando esta pantalla',
+    agentStop: 'Detener',
+    agentStopped: 'El agente de IA ya no puede manejar esta pantalla',
     agentDisconnectFailed: 'No se pudo desconectar la IA.',
     notifications: 'Notificaciones',
     notificationsUnread: 'Notificaciones, {count} sin leer',
@@ -922,6 +930,10 @@ const fr: Catalogue = {
     agentAnAgent: 'un agent',
     agentDisconnect: 'Déconnecter',
     agentDisconnected: 'IA déconnectée',
+    // an agent operating this tab through live UI push (agentOperating.ts)
+    agentOperating: "Un agent d'IA pilote cet écran",
+    agentStop: 'Arrêter',
+    agentStopped: "L'agent d'IA ne peut plus piloter cet écran",
     agentDisconnectFailed: "Impossible de déconnecter l'IA.",
     notifications: 'Notifications',
     notificationsUnread: 'Notifications, {count} non lues',
@@ -1283,6 +1295,10 @@ const de: Catalogue = {
     agentAnAgent: 'einem Agenten',
     agentDisconnect: 'Trennen',
     agentDisconnected: 'KI getrennt',
+    // an agent operating this tab through live UI push (agentOperating.ts)
+    agentOperating: 'Ein KI-Agent bedient diesen Bildschirm',
+    agentStop: 'Stoppen',
+    agentStopped: 'Der KI-Agent kann diesen Bildschirm nicht mehr bedienen',
     agentDisconnectFailed: 'Die KI konnte nicht getrennt werden.',
     notifications: 'Benachrichtigungen',
     notificationsUnread: 'Benachrichtigungen, {count} ungelesen',
@@ -1644,6 +1660,10 @@ const pt: Catalogue = {
     agentAnAgent: 'um agente',
     agentDisconnect: 'Desconectar',
     agentDisconnected: 'IA desconectada',
+    // an agent operating this tab through live UI push (agentOperating.ts)
+    agentOperating: 'Um agente de IA está operando esta tela',
+    agentStop: 'Parar',
+    agentStopped: 'O agente de IA não pode mais operar esta tela',
     agentDisconnectFailed: 'Não foi possível desconectar a IA.',
     notifications: 'Notificações',
     notificationsUnread: 'Notificações, {count} não lidas',
@@ -2005,6 +2025,10 @@ const it: Catalogue = {
     agentAnAgent: 'un agente',
     agentDisconnect: 'Scollega',
     agentDisconnected: 'IA scollegata',
+    // an agent operating this tab through live UI push (agentOperating.ts)
+    agentOperating: 'Un agente di IA sta usando questa schermata',
+    agentStop: 'Interrompi',
+    agentStopped: 'L\'agente di IA non può più usare questa schermata',
     agentDisconnectFailed: "Impossibile scollegare l'IA.",
     notifications: 'Notifiche',
     notificationsUnread: 'Notifiche, {count} non lette',

@@ -65,6 +65,24 @@ public final class AgentSessions {
       boolean connected,
       boolean paired) {}
 
+  /**
+   * A UI's answer to a {@code query} message: what it shows ({@code screen}), or why it could not
+   * do what was asked ({@code errorCode} + the field/action/row it names).
+   */
+  public record Answer(Map<String, Object> screen, String errorCode, String errorId) {
+    public static Answer of(Map<String, Object> screen) {
+      return new Answer(screen, null, null);
+    }
+
+    public static Answer refusal(String code, String id) {
+      return new Answer(null, code == null ? "failed" : code, id);
+    }
+
+    public boolean wasRefused() {
+      return errorCode != null;
+    }
+  }
+
   /** An open stream; closing it marks the session disconnected (unless it was replaced). */
   public interface Channel extends AutoCloseable {
     @Override
@@ -96,6 +114,11 @@ public final class AgentSessions {
     final Deque<Instant> deliveries = new ArrayDeque<>();
     String code;
     Instant codeExpiresAt;
+    final Map<String, java.util.concurrent.CompletableFuture<Answer>> pending =
+        new LinkedHashMap<>();
+
+    /** The identity the in-app chat bound to this session ({@code key:<sha256>}), or null. */
+    String chatKey;
 
     Session(
         String sessionId,
@@ -339,14 +362,63 @@ public final class AgentSessions {
       }
       session.pairings.clear();
       session.capabilityPaired = false;
+      session.chatKey = null;
       send(session, status(session));
     }
     flush(session);
   }
 
+  /**
+   * The in-app chat binds its conversation to this tab: the session becomes reachable by the agent
+   * sending {@code agentKey} — and that agent reaches nothing else through this binding. A new
+   * binding of the session replaces its previous chat binding; a key bound to another session
+   * leaves it (one conversation, one tab).
+   */
+  public void bindChat(String sessionId, String secret, String principal, String agentKey) {
+    Session session;
+    var changed = new ArrayList<Session>();
+    synchronized (this) {
+      sweep(clock.instant());
+      requireIds(sessionId, secret);
+      session = bySessionId.get(sessionId);
+      if (session == null) {
+        throw new UserFacingException(AgentPush.CHANNEL_REFUSED);
+      }
+      owned(session, secret, principal);
+      var raw = agentKey == null ? "" : agentKey.trim();
+      if (raw.length() < AgentCaller.MIN_AGENT_KEY || raw.length() > 256) {
+        throw new UserFacingException(AgentPush.INVALID_AGENT_KEY);
+      }
+      var key = AgentCaller.keyOf(raw);
+      for (var other : bySessionId.values()) {
+        if (other != session && key.equals(other.chatKey)) {
+          other.pairings.remove(key);
+          other.chatKey = null;
+          send(other, status(other));
+          changed.add(other);
+        }
+      }
+      if (session.chatKey != null && !session.chatKey.equals(key)) {
+        session.pairings.remove(session.chatKey);
+      }
+      session.chatKey = key;
+      session.pairings.put(key, AgentCaller.AN_AGENT);
+      send(session, status(session));
+    }
+    flush(session);
+    changed.forEach(this::flush);
+    log.info(
+        "Mateu agent push: chat bound session={} (user={})",
+        fingerprint(session.handle),
+        session.principal);
+  }
+
   // ── the MCP side ──────────────────────────────────────────────────────────────────────────
 
-  /** The sessions the caller may send to, most recently registered first. */
+  /**
+   * The sessions the caller may send to — the ones BOUND to it (pairing, the chat) — most recently
+   * registered first.
+   */
   public synchronized List<Entry> visible(AgentCaller caller) {
     sweep(clock.instant());
     var out = new ArrayList<Session>();
@@ -469,6 +541,93 @@ public final class AgentSessions {
         bytes);
   }
 
+  /**
+   * Sends a {@code query} message to the session the caller may reach and waits for the UI's answer
+   * ({@value AgentPush#SCREEN_ACTION}): the same checks as {@link #deliver} (visibility,
+   * connection, rate limit), at most {@value AgentPush#MAX_PENDING_REQUESTS} waiting per session,
+   * then at most {@code timeout} for the answer ({@link AgentPush#NO_ANSWER}). The message's detail
+   * gets a fresh {@code requestId} first. A stream that closes meanwhile fails the wait at once
+   * ({@link AgentPush#NOT_CONNECTED}).
+   */
+  public Answer request(
+      AgentCaller caller,
+      String handle,
+      String event,
+      Map<String, Object> detail,
+      String what,
+      int bytes,
+      java.time.Duration timeout) {
+    Session session;
+    String requestId;
+    var future = new java.util.concurrent.CompletableFuture<Answer>();
+    synchronized (this) {
+      var now = clock.instant();
+      sweep(now);
+      session = reachable(caller, handle);
+      prune(session.deliveries, now);
+      if (session.deliveries.size() >= ratePerMinute.getAsInt()
+          || session.pending.size() >= AgentPush.MAX_PENDING_REQUESTS) {
+        throw new UserFacingException(AgentPush.RATE_LIMITED);
+      }
+      session.deliveries.addLast(now);
+      do {
+        requestId = newHandle();
+      } while (session.pending.containsKey(requestId));
+      session.pending.put(requestId, future);
+      var withId = new LinkedHashMap<String, Object>();
+      withId.put("requestId", requestId);
+      if (detail != null) withId.putAll(detail);
+      send(session, new Message(AgentPush.QUERY_KIND, event, withId));
+    }
+    log.info(
+        "Mateu agent push: caller={} session={} kind={} event={}{} bytes={}",
+        caller.logLabel(),
+        fingerprint(handle),
+        AgentPush.QUERY_KIND,
+        event,
+        what == null || what.isBlank()
+            ? ""
+            : " " + io.mateu.core.application.logging.LogSafe.of(what),
+        bytes);
+    try {
+      flush(session);
+      return future.get(
+          Math.max(1, timeout.toMillis()), java.util.concurrent.TimeUnit.MILLISECONDS);
+    } catch (java.util.concurrent.TimeoutException e) {
+      throw new UserFacingException(String.format(AgentPush.NO_ANSWER, handle));
+    } catch (java.util.concurrent.ExecutionException e) {
+      if (e.getCause() instanceof RuntimeException runtime) throw runtime;
+      throw new UserFacingException(AgentPush.FAILED);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new UserFacingException(String.format(AgentPush.NO_ANSWER, handle));
+    } finally {
+      synchronized (this) {
+        session.pending.remove(requestId);
+      }
+    }
+  }
+
+  /**
+   * The UI's answer to one of its session's waiting requests: the session's secret and principal
+   * must match (like every UI-side call); an unknown, finished or timed-out request id is ignored.
+   */
+  public void answer(
+      String sessionId, String secret, String principal, String requestId, Answer answer) {
+    java.util.concurrent.CompletableFuture<Answer> waiting;
+    synchronized (this) {
+      sweep(clock.instant());
+      requireIds(sessionId, secret);
+      var session = bySessionId.get(sessionId);
+      if (session == null) {
+        throw new UserFacingException(AgentPush.CHANNEL_REFUSED);
+      }
+      owned(session, secret, principal);
+      waiting = requestId == null ? null : session.pending.remove(requestId);
+    }
+    if (waiting != null) waiting.complete(answer);
+  }
+
   /** Forgets everything (tests). */
   public synchronized void reset() {
     bySessionId.clear();
@@ -491,10 +650,12 @@ public final class AgentSessions {
     return session;
   }
 
+  /**
+   * Only a caller the session is explicitly BOUND to — paired with its one-time code, or the agent
+   * its chat conversation handed its key to. Being signed in as the session's user is NOT enough:
+   * an agent acts on the session that launched it, never on the user's other tabs or devices.
+   */
   private static boolean listable(Session session, AgentCaller caller) {
-    if (caller.principal() != null && caller.principal().equals(session.principal)) {
-      return true;
-    }
     return caller.key() != null && session.pairings.containsKey(caller.key());
   }
 
@@ -527,6 +688,10 @@ public final class AgentSessions {
     session.onReplaced = null;
     session.channelToken = null;
     session.disconnectedAt = clock.instant();
+    // nobody is left to answer what was asked
+    var gone = new UserFacingException(String.format(AgentPush.NOT_CONNECTED, session.handle));
+    session.pending.values().forEach(f -> f.completeExceptionally(gone));
+    session.pending.clear();
   }
 
   /** Queues a message for the session's stream. Called holding the registry's lock. */

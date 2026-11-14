@@ -557,6 +557,8 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         val listing = if (!crudNode.path("page").isMissingNode && !crudNode.path("page").isNull) crudNode else d
         val eff = listing.path("page").let { if (!it.isMissingNode && !it.isNull) it else d }
         val rows = extractRows(eff)
+        // the page on screen, for the desktop MCP server's screen summary
+        ctx.noteListingPage(component.text("id"), listing)
         model.setEntries(buildEntries(rows, specs, groupBy, listing))
         // `width` / `@ColumnWidth("auto")` (autoWidth) / flexGrow 0 — the desktop ignored them all;
         // an auto column needs its rows to measure, so the plan is applied on every page

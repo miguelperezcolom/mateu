@@ -1,4 +1,5 @@
-// Live UI push (phase C): the five tools that send UI to a UI open in a browser tab or app window.
+// Live UI push (phase C): the tools that send UI to a UI open in a browser tab or app window, and read
+// and operate its screen.
 // The sidecar holds no sessions — each call is forwarded as a JSON-RPC `tools/call` to the backend's
 // own MCP endpoint, which owns sessions, pairing, visibility and rate limits, and its result is
 // relayed as is. Spec: conformance/mcp/README.md, "Live UI push (phase C)" → "The sidecar"; the
@@ -85,6 +86,56 @@ export const PUSH_TOOLS = [
         detail: { type: "object", description: "optional: the event's detail" },
       },
       ["session", "event"],
+    ),
+  },
+  {
+    name: "mateu_get_session_screen",
+    description:
+      "Read what the user sees in a live UI session, as that tab draws it: route, window title, page " +
+      "header, fields (id, label, type, value, required, readOnly, error, options), the actions the " +
+      "user can press (id, label, enabled), the rows of each listing's current page with its search, " +
+      "filters, sort, page and total, an open dialog or drawer (focus: overlay, in front of the page) " +
+      "and the last messages. Only what the screen shows; long values and lists are capped and named " +
+      "in truncated. Returns {session, screen}.",
+    inputSchema: objSchema({ session: SESSION }, ["session"]),
+  },
+  {
+    name: "mateu_set_session_fields",
+    description:
+      "Type values into fields of the screen in a live UI session (the dialog's or drawer's when one " +
+      "is open), exactly as the user editing them: validation, client rules and the unsaved-changes " +
+      "state follow. Only fields the screen shows as editable: any other refuses the whole call and " +
+      "nothing changes. Returns {session, screen} after the change.",
+    inputSchema: objSchema(
+      {
+        session: SESSION,
+        values: {
+          type: "object",
+          description: "field id -> value (a string, number, boolean, or a list for a multi-value field)",
+        },
+      },
+      ["session", "values"],
+    ),
+  },
+  {
+    name: "mateu_run_session_action",
+    description:
+      "Press an action the screen in a live UI session offers (an id from mateu_get_session_screen; a " +
+      "row action needs row), as the user clicking it: validation runs, and a confirmation the action " +
+      "asks for is shown to the user, who answers it. Returns {session, screen} once the screen " +
+      "settled.",
+    inputSchema: objSchema(
+      {
+        session: SESSION,
+        actionId: str("an action id from mateu_get_session_screen"),
+        parameters: { type: "object", description: "optional: extra parameters of the action" },
+        row: {
+          type: "integer",
+          description: "optional, for a row action: the 0-based index of the row in the listing's rows",
+        },
+        listing: str("optional, for a row action on a screen with several listings: the listing id"),
+      },
+      ["session", "actionId"],
     ),
   },
 ];

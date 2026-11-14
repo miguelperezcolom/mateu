@@ -178,14 +178,16 @@ per-tab `X-Session-Id` (`sessionStorage`), which the chat sends as its `sessionI
 **channel secret** (random, kept with it, sent only on the actions below). The app tells the UI that
 push is on with `AppDto.agentPush: true`; only then does the UI open its channel and show "Connect AI".
 
-Three app-level actions (dispatched like `_live-updates`: the app's `serverSideType`, route = the
+Five app-level actions (dispatched like `_live-updates`: the app's `serverSideType`, route = the
 app's root route, exempt from menu resolution), all with `parameters: {sessionId, secret}`:
 
 | Action | Where | Answer |
 |---|---|---|
 | `_agent-channel` (+ `route`, `renderer`) | the SSE endpoint (`/mateu/v3/sse/…`) | an open-ended stream: a first increment with the session's status, then one increment per message, an empty increment every 20 s, and the end after 5 minutes (the UI reconnects at once) |
 | `_agent-pair` | the sync endpoint | `Data{_agentPairing: {code, expiresInSeconds}}` — a new one-time code (the previous unused one dies) |
-| `_agent-unpair` | the sync endpoint | `Data{_agentPairing: null}` — every pairing of the session removed; the channel is told |
+| `_agent-unpair` | the sync endpoint | `Data{_agentPairing: null}` — every pairing of the session removed (the chat binding included); the channel is told |
+| `_agent-bind` (+ `agentKey`) | the sync endpoint | `Data{}` — the in-app chat binds its conversation to this tab (see "Who may reach a session"); the channel is told (`agents: ["an agent"]`) |
+| `_agent-screen` (+ `requestId`, `screen` \| `error`) | the sync endpoint | `Data{}` — the answer to a `query` message (below) |
 
 Registration: the first `_agent-channel` for a sessionId registers it with the caller's principal
 name (null when anonymous), the secret's SHA-256, the route and the renderer (`vaadin`, `redwood`,
@@ -207,16 +209,33 @@ Each message is an increment carrying ONE command `{type: "AgentPush", data: {ki
 | `render` | `render-screen` | `{yaml, target, title?}` | exactly what it does with the chat's `render-screen`: a subscriber first, else the built-in render target (`__preview__` → content / drawer / dialog) |
 | `navigate` | `navigation-requested` | `{route, consumedRoute, actionId?, baseUrl?, serverSideType?, uriPrefix?}` | like the chat's `navigation-requested` (a menu click with those fields) |
 | `event` | the name | the detail (`{}` when none) | like any other chat event: a DOM `CustomEvent` / the session event bus |
+| `query` | `describe-screen` / `set-fields` / `run-action` | `{requestId, …}` | answers through `_agent-screen` — see "Reading and operating the screen the user has open" |
 
 ### Who may reach a session
 
-The caller of an MCP tool is identified by, in order: its authenticated principal name (`user:<name>`),
-else the header `X-Mateu-Agent-Key` when ≥ 16 characters (`key:<sha256 of it>` — what the sidecar
-sends), else nobody (anonymous). A session is **visible** to a caller when the caller is signed in
-with the session's principal, or when the session was paired to that caller. A session paired by an
-**anonymous** caller is reachable by an anonymous caller knowing its handle (the handle is the
-capability; it is returned only to whoever paired). Everything else answers `Unknown session "<s>".`
-— a session another user owns and one that does not exist are indistinguishable.
+**An agent acts only on the session that launched it.** A session is reachable ONLY by a caller it
+is explicitly **bound** to — being signed in as the session's user is NOT enough (an agent must not
+reach the same user's other tabs, phone or desktop). Two bindings exist:
+
+- **pairing**: the one-time code shown in that tab (`mateu_pair_session`) binds the session to the
+  caller that pairs;
+- **the in-app chat**: the conversation is bound to the tab that opened it — the tab sends
+  `_agent-bind {sessionId, secret, agentKey}` (a random key per conversation, 16..256 characters,
+  else `The agent key must be between 16 and 256 characters.`), hands `agentKey` to the chat backend
+  in the chat request, and the chat's agent sends it as `X-Mateu-Agent-Key`. A new conversation in
+  the tab replaces the tab's previous chat binding; a key bound to another tab leaves the first one;
+  `_agent-unpair` removes it too.
+
+The caller of an MCP tool is identified by, in order: the header `X-Mateu-Agent-Key` when ≥ 16
+characters (`key:<sha256 of it>` — what the sidecar and the chat's agent send; it wins over a
+principal the same request carries, so an agent acting for a signed-in user is still that ONE agent),
+else its authenticated principal name (`user:<name>`), else nobody (anonymous). A session is
+**visible** to a caller only when one of the bindings above is that caller's identity. A session
+paired by an **anonymous** caller is reachable by an anonymous caller knowing its handle (the handle
+is the capability; it is returned only to whoever paired). Everything else — another user's session,
+the same user's OTHER sessions, one that does not exist — answers `Unknown session "<s>".`,
+indistinguishably, on every session tool (`mateu_push_ui`, `mateu_navigate`, `mateu_dispatch_event`,
+`mateu_get_session_screen`, `mateu_set_session_fields`, `mateu_run_session_action`).
 
 The `session` handle is opaque (≥ 128 random bits, URL-safe), distinct from the UI session id, stable
 while the session is registered. `mateu_list_sessions` lists the visible sessions, most recently
@@ -255,9 +274,100 @@ session; try again in a minute.`). Every delivery is logged at INFO: `Mateu agen
 session=<handle> kind=<kind> <target=…|event=…|route=…> bytes=<n>`. With push off the push tools are
 neither listed nor callable (`Unknown tool: <name>`).
 
+### Reading and operating the screen the user has open
+
+Three more tools (same switch, same access model, listed after `mateu_dispatch_event`) let an agent
+SEE what the user is looking at in that tab and ACT on it as the user would. The server cannot know
+what a tab draws, so it ASKS the tab: it sends a `query` message over the channel and waits for the
+tab's answer.
+
+| Tool | Message sent (`kind: "query"`) | Detail |
+|---|---|---|
+| `mateu_get_session_screen {session}` | `describe-screen` | `{requestId}` |
+| `mateu_set_session_fields {session, values}` | `set-fields` | `{requestId, values}` |
+| `mateu_run_session_action {session, actionId, parameters?, row?, listing?}` | `run-action` | `{requestId, actionId, parameters?, row?, listing?}` (absent ones are not sent) |
+
+`requestId` is fresh (≥ 128 random bits, URL-safe) and always the detail's first key. The tab answers
+with the app-level action **`_agent-screen`** on the sync endpoint (dispatched like `_agent-pair`),
+`parameters: {sessionId, secret, requestId, screen}` — what it shows after doing what was asked — or
+`{sessionId, secret, requestId, error: {code, id?}}` when it refused; answer `Data{}`. The session id,
+secret and principal must match the session's (else `This UI session belongs to another channel.`);
+an unknown, finished or timed-out `requestId` is ignored. A `screen` larger than 262144 UTF-8 bytes
+of JSON is taken as the refusal `tooLarge`; an answer with neither is `failed`.
+
+The tool's result is `{session, screen}` (the tab's screen, as it sent it). A refusal is the tool error
+for its code — `unknownField` → `Field "<id>" is not on the screen or cannot be edited.`,
+`unknownAction` → `Action "<id>" is not offered by the screen.`, `disabledAction` → `Action "<id>" is
+disabled.`, `unknownRow` → `Row <id> is not on the current page of the listing.`, `unsupported` →
+`This client does not support reading or operating its screen.`, `tooLarge` → `The screen the UI
+answered is larger than the 262144-byte limit.`, anything else → `The UI could not complete the
+request.` (the id is clipped to 200 characters and its control characters become `?`).
+
+Checks, in order: arguments (`values` not an object → `Missing argument "values".`; `row` not an
+integer ≥ 0 → `Invalid row: use the 0-based index of a row in the listing's rows.`; `values` /
+the run-action detail serialised > 65536 bytes → `The detail is larger than the 65536-byte limit.`),
+visibility, connection, rate limit (each request counts as a message; more than 4 requests waiting
+for one session → the rate-limit error too), then the wait: no answer within
+`mateu.mcp.push.answer-timeout-ms` (default 10000; .NET `MateuOptions.McpPushAnswerTimeoutMs`, Python
+`add_mateu(mcp_push_answer_timeout_ms=…)`, env `MATEU_MCP_PUSH_ANSWER_TIMEOUT_MS`) → `Session "<s>"
+did not answer in time.`; the stream closing meanwhile → `Session "<s>" is not connected.` at once.
+Each request is logged at INFO WITHOUT values: `Mateu agent push: caller=<label> session=<handle>
+kind=query event=<event>[ fields=<n>| action=<id>] bytes=<n>`.
+
+**What the tab does** (every renderer; a renderer that cannot answers `error: {code: "unsupported"}`):
+
+- `describe-screen` — builds the summary below from ITS OWN rendered wire state, nothing else.
+- `set-fields` — every id must be a field of the summary's focus (the overlay's when one is open)
+  that is not `readOnly`, or the listing's `searchText` / a filter id; the first other id refuses the
+  WHOLE call (`unknownField`, nothing changed). Each value is applied exactly as a user edit is (the
+  field's own change event: validation, client rules, OnValueChange triggers, the dirty state), then
+  it answers the summary.
+- `run-action` — the id must be one the summary offers (its `actions`, `otherActionIds`, a listing's
+  `actions`/`rowActions`/`builtInActions`, the `appActions`), else `unknownAction`; one shown
+  `enabled: false` → `disabledAction`. With `row`, the row of the listing named by `listing` (the
+  first one when absent) on its current page, else `unknownRow` (id = the index). `open-row` opens the
+  row as a click on it does, a row action runs with that row, `search` / `nextPage` / `prevPage` drive
+  the listing; any other id is pressed as a click on it: its validation, its leave question and its
+  confirmation (shown to the USER, who answers it) apply. The tab waits until the screen settled (no
+  call of its own in flight, ≤ 6 s) and answers the summary.
+
+While an agent operates a tab (from its first `query` until 2 minutes after the last one), the
+renderer shows a small non-modal notice "An AI agent is operating this screen" with **Stop**, in the
+six chrome languages; Stop unpairs the session (`_agent-unpair`) and closes its channel — the tab
+opens it again only when the user connects an agent again ("Connect AI").
+
+**The summary** (the shape the desktop app's `mateu_get_screen` answers, so an agent reads both the
+same way). Only what the wire gave the tab, and what is visible: a field the server did not send is
+not there, one a client rule hid is left out, a password is `"••••••"` (or `""`), no token, secret or
+credential. Caps: text 500 characters (`…` appended), lists 50, options 50, rows 50, fields 200,
+actions 200, the last 10 messages; a `data:` value is `[<type> data, <n> characters]`; each cut path
+is listed in `truncated`.
+
+```
+{ route, windowTitle?, focus: "page" | "overlay",
+  appContext?: [{field, label, value, valueLabel?, options: [{value, label}]}],
+  appActions?: [{id, label, navigatesTo?, children?}],
+  overlay?: {kind: "dialog" | "drawer", title?, subtitle?, …view},
+  page?: {…view},            // only with an overlay; else the view's keys are at the top level
+  …view,
+  messages?: [{variant, title?, text}],
+  truncated?: [path…] }
+view = { header?: {title?, subtitle?, overline?, timestamp?, badges?: [text], kpis?: [{title, value}]},
+  breadcrumbs?: [{label, route?}],
+  fields: [{id, label?, type, stereotype?, required?, readOnly?, help?, value, options?, optionsFrom?, error?}],
+  errors?: {fieldId: message},
+  actions: [{id, label?, enabled, navigatesTo?, needsSelectedRows?, children?}],
+  otherActionIds?: [id],
+  listings?: [{id, title?, columns: [{id, label}], actions, searchText?, filters?: [{id, label, type, value?, from?, to?, options?}],
+    sort?, page?, pageSize?, totalElements?, rows: [{column: value}], rowActions: [{id, label}],
+    rowsSelectable?, builtInActions?: ["search", "nextPage", "prevPage"], rowsFrom?}] }
+```
+
+Older renderers ignore a `query` message, so the tool answers `did not answer in time`.
+
 ### The sidecar
 
-`MATEU_PUSH=true` lists the five tools; each call is forwarded as `tools/call` to the backend's
+`MATEU_PUSH=true` lists the eight tools; each call is forwarded as `tools/call` to the backend's
 `MATEU_MCP_URL` (default `<MATEU_BASE_URL>/mateu/mcp`) with the `MATEU_TOKEN` bearer and an
 `X-Mateu-Agent-Key` (`MATEU_AGENT_KEY`, else a random key generated per sidecar process), and the
 backend's result is returned as is.

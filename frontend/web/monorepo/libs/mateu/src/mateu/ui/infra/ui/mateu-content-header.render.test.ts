@@ -179,6 +179,17 @@ describe('the toolbar', () => {
         expect(root.querySelector('[data-action-id="s"]')!.className).toContain('primary')
     })
 
+    it('a button with no id is stamped with its action id (an agent presses it by that id)', async () => {
+        // a crud's Save/Cancel come with id "" and actionId create/cancel-new; stamped empty, the
+        // live-session agent found no control and the press went from the wrong component
+        const { root } = await mount({ title: 'New product', toolbar: [
+            { id: '', actionId: 'cancel-new', label: 'Cancel' },
+            { id: '', actionId: 'create', label: 'Save', buttonStyle: 'primary' },
+        ] })
+        expect(root.querySelector('[data-action-id="create"]')).not.toBeNull()
+        expect(root.querySelector('[data-action-id="cancel-new"]')).not.toBeNull()
+    })
+
     it('a button hidden through data is not drawn', async () => {
         const { root } = await mount({ title: 'Edit', toolbar: [{ id: 'b', actionId: 'back', label: 'Back' }, { id: 's', actionId: 'save', label: 'Save' }] },
             { data: { 'save.hidden': true, 'back.hidden': true } })

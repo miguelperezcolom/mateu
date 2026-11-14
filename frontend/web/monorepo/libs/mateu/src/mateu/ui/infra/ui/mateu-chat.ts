@@ -20,6 +20,7 @@ import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { CLOSE_REQUESTED } from './chatEvents'
 import { applyAgentEvent } from './agentEvents'
 import { sessionId } from '@infra/http/authToken.ts'
+import { bindChatConversation } from './agentChannel'
 
 /**
  * An icon-only button of the panel's header: the active renderer's own (the Vaadin adapter: a
@@ -111,6 +112,15 @@ export class MateuChat extends LitElement {
     /** Read when the message is sent, not at construction: a duplicated tab rotates its id at boot. */
     private readonly fallbackSessionId = nanoid();
     private menuContextSent = false;
+
+    /**
+     * This conversation's agent key (live UI push): the tab binds it to ITS session
+     * (`_agent-bind`), and the chat hands it to its agent as `agentKey`, which the agent sends as
+     * `X-Mateu-Agent-Key` — so the agent acts on the tab the conversation was opened from, and on no
+     * other (not even the same user's other tabs). One per conversation (this element).
+     */
+    private readonly conversationKey = nanoid(43);
+    private conversationBound: Promise<boolean> | undefined;
 
     /** Files uploaded for the NEXT message: shown as chips, sent as `attachments`, cleared on send. */
     @state()
@@ -497,6 +507,10 @@ export class MateuChat extends LitElement {
             const shell = this.enclosingApp();
             const menu = this.menu.length ? this.menu : (shell?.menu ?? []);
             const mcpUrl = this.mcpUrl ?? shell?.mcpUrl;
+            // bound once; a tab without live UI push (or a failed bind) sends no key
+            this.conversationBound ??= bindChatConversation(this.conversationKey)
+            const bound = await this.conversationBound
+            if (!bound) this.conversationBound = undefined
             const body = JSON.stringify({
                 message: text,
                 sessionId: this.chatSessionId,
@@ -506,6 +520,7 @@ export class MateuChat extends LitElement {
                 ...(context !== undefined && context !== null && { context }),
                 ...(hasScreen && { screen }),
                 ...(mcpUrl && { mcpUrl: new URL(mcpUrl, window.location.origin).href }),
+                ...(bound && { agentKey: this.conversationKey }),
                 ...(!this.menuContextSent && { menuContext: this.buildMenuContext(menu) }),
             });
             this.menuContextSent = true;

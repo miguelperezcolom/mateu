@@ -802,23 +802,50 @@ AND `mateu.mcp.push.enabled` (`AgentPush.enabled()` via `MateuSettings`; .NET `M
 Python `mcp_push=True`, env `MATEU_MCP_PUSH_ENABLED`). Spec + golden: `conformance/mcp/README.md`
 "Live UI push" + `conformance/mcp/push.json` (pushTools byte for byte + a scripted scenario every
 backend runs: Java `McpPushCorpusTest`, .NET `AgentPushTests`, Python `test_mcp_push.py`).
-- UI side = three app-level actions (exempt in `ActionInstanceCreator.isAppLevelAction`), runner
+- UI side = app-level actions (exempt in `ActionInstanceCreator.isAppLevelAction`), runner
   `AgentChannelActionRunner`: `_agent-channel` (SSE, per TAB — no leader election, a push is for one
   tab; status first, 20 s heartbeat, ends after 5 min), `_agent-pair` (one-time code, 300 s),
-  `_agent-unpair`; all with `{sessionId, secret}` — sessionId = the per-tab UI session id, which the
+  `_agent-unpair`, `_agent-bind {agentKey}` (the in-app chat binds its conversation to its tab),
+  `_agent-screen`; all with `{sessionId, secret}` — sessionId = the per-tab UI session id, which the
   chat now sends as its `sessionId` too. Wire: `AppDto.agentPush`, command `AgentPush {kind, event,
   detail}` whose events ARE the chat's catalogue (`render-screen`, `navigation-requested`, custom), so
   every renderer applies a push with the chat's own code (web `agentEvents.applyAgentEvent`, RN
   `core/uiEvents.ts`, IntelliJ `ui/AgentEvents.kt`, Redwood `poc/agentPush.mjs`).
 - Registry `application/agentpush/AgentSessions` (process-wide, in memory, bounded): a session is
-  pinned to its secret's hash + principal; a caller (= principal, else `X-Mateu-Agent-Key` ≥ 16
-  chars, else anonymous) reaches its own user's sessions or ones PAIRED to it; an anonymous pairing
-  makes the opaque handle the capability; anything else = `Unknown session` (indistinguishable).
+  pinned to its secret's hash + principal. **An agent acts ONLY on the session that launched it
+  (owner rule, 2026-11-14)**: a session is reachable only by a caller it is BOUND to — its pairing
+  code, or the chat conversation opened in it (`bindChat`: web `mateu-chat` → `bindChatConversation`,
+  Redwood `chatSend.js`, a random key per conversation sent to the chat backend as `agentKey`, which
+  its agent sends as `X-Mateu-Agent-Key`). Same principal is NOT enough. A caller = `X-Mateu-Agent-Key`
+  ≥ 16 chars FIRST (even with a principal), else principal, else anonymous; an anonymous pairing
+  makes the opaque handle the capability; anything else = `Unknown session` (indistinguishable, every
+  session tool). The desktop app's own local MCP (feat/desktop-mcp) is a different model.
   Caps: 1000 sessions + 20 per owner (principal, else the UI's client address via
   `HttpRequest.getRemoteAddress()`; Helidon MP's Jersey leg cannot tell → `unknown`). Rate limit 30/min/session, 10 failed pairings/min/caller, 120 s grace after disconnect, every
   delivery logged at INFO. `mateu_push_ui` validates through `__validate__` AS THE CALLER first; the
   UI renders through `__preview__` with ITS identity. The sidecar holds no sessions: `MATEU_PUSH=true`
   forwards the tools to the app's `/mateu/mcp` with a per-process agent key.
+- **Seeing and operating the open screen (2026-11-14)**: `mateu_get_session_screen` /
+  `mateu_set_session_fields` / `mateu_run_session_action` — the server cannot know what a tab draws,
+  so it ASKS it: `AgentSessions.request` sends `{kind: "query", event: describe-screen|set-fields|
+  run-action, detail: {requestId, …}}` and waits (`mateu.mcp.push.answer-timeout-ms`, 10 s; ≤ 4
+  waiting per session; a closing stream fails the wait at once) for the tab's app-level
+  `_agent-screen {sessionId, secret, requestId, screen | error: {code, id?}}` (secret+principal
+  checked like every UI call; codes → server texts in `AgentPush.refusal`, pinned in push.json).
+  Requests are logged WITHOUT values (`fields=<n>` / `action=<id>`). The tab builds the summary from
+  ITS OWN rendered wire state, in the desktop's `mateu_get_screen` shape (intellij `mcp/ScreenSummary.kt`
+  on feat/desktop-mcp; caps 500 chars / 50 items / 50 rows, `truncated`), applies set-fields as the
+  field's own value-changed (whole call refused on a non-editable id) and run-action as a click on
+  the control (confirmation shown to the USER), waits ≤ 6 s for idle, then answers. Web
+  `infra/ui/agentScreenSummary.ts` (pure) + `agentScreen.ts` (DOM: mateu-component/-table-crud/-field
+  elements, top dialog/drawer) + `agentOperating.ts`/`mateu-agent-operating` ("An AI agent is operating
+  this screen" + Stop = `_agent-unpair` + channel closed until "Connect AI"); RN `core/screenSummary.ts`
+  + `core/agentScreen.ts`; IntelliJ `state/AgentScreenQueries.kt` over BYTE-IDENTICAL copies of
+  feat/desktop-mcp's `mcp/ScreenSummary.kt` + `McpTools.kt` (keep them identical until that branch
+  merges; notice in `plugin/MateuPlatformNotices.kt`); Redwood `poc/agentScreen.mjs` (+ content-page chain `agentQueryRun.js`, event
+  `mateuAgentQuery`). The corpus scenario scripts the UI's answers (`ui: "answer"`), normalises
+  `requestId` → `<request>` and runs with a 300 ms answer timeout; `-Dmcp.push.write=true`
+  (McpPushCorpusTest) rewrites push.json's pushTools.
 - Parity: `AdapterParityITFoundation.pushesUiToALiveSessionOverTheSseStream` (5 adapters). Docs
   `reference/agent-operability.md#drive-a-live-ui`, wire spec "Live UI push".
 

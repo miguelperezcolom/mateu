@@ -1616,6 +1616,12 @@ oj-sp-dashboard-grid .oj-sp-dashboard-panel-content oj-chart { flex: 1 1 auto; h
 .mateu-agent-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 2rem; font-weight: 600; letter-spacing: .2em; text-align: center; margin: 1rem 0 .25rem; }
 .mateu-agent-countdown { text-align: center; margin: 0 0 .5rem; }
 .mateu-agent-list { margin: .25rem 0 0; padding-inline-start: 1.25rem; }
+/* "An AI agent is operating this screen" + Stop (live UI push, agentPush.mjs paintAgentNotice):
+   non-modal, at the bottom-start corner, above the content but under dialogs */
+.mateu-agent-operating { position: fixed; inset-inline-start: 1rem; bottom: 1rem; z-index: 900; display: flex; align-items: center; gap: .75rem;
+  max-width: calc(100vw - 2rem); padding: .5rem .75rem; border-radius: .5rem; background: #fff4ce; color: #1a1a1a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .18); font-size: .875rem; }
+.mateu-agent-operating[hidden] { display: none !important; }
 .mateu-bell { position: relative; display: inline-flex; }
 .mateu-bell-badge { position: absolute; top: -4px; right: -6px; transform: scale(0.85); pointer-events: none; min-width: 1.1rem; text-align: center; }
 .mateu-bell-panel { width: 22rem; max-width: 90vw; }

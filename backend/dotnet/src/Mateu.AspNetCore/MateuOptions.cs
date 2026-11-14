@@ -205,6 +205,12 @@ public sealed class MateuOptions
     /// <c>mateu.mcp.push.max-anonymous-sessions-per-address</c>).</summary>
     public int? McpPushMaxAnonymousSessionsPerAddress { get; set; }
 
+    /// <summary>How long <c>mateu_get_session_screen</c> / <c>mateu_set_session_fields</c> /
+    /// <c>mateu_run_session_action</c> wait for the tab's answer (<c>_agent-screen</c>), in
+    /// milliseconds. Null (the default) reads <c>MATEU_MCP_PUSH_ANSWER_TIMEOUT_MS</c>, else 10000 (Java:
+    /// <c>mateu.mcp.push.answer-timeout-ms</c>).</summary>
+    public int? McpPushAnswerTimeoutMs { get; set; }
+
     /// <summary>Whether <c>MATEU_MCP_PUSH_ENABLED</c> turns live UI push on (true/1/yes).</summary>
     public static bool McpPushEnabledByEnvironment() =>
         System.Environment.GetEnvironmentVariable("MATEU_MCP_PUSH_ENABLED")?.Trim().ToLowerInvariant() is "true" or "1" or "yes";
@@ -226,6 +232,10 @@ public sealed class MateuOptions
     internal int PushMaxAnonymousSessionsPerAddress => McpPushMaxAnonymousSessionsPerAddress
         ?? IntFromEnvironment("MATEU_MCP_PUSH_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS")
         ?? Mateu.Core.AgentPush.AgentSessions.DefaultMaxAnonymousSessionsPerAddress;
+
+    internal int PushAnswerTimeoutMs => McpPushAnswerTimeoutMs is > 0 ? McpPushAnswerTimeoutMs.Value
+        : IntFromEnvironment("MATEU_MCP_PUSH_ANSWER_TIMEOUT_MS")
+        ?? Mateu.Core.AgentPush.AgentSessions.DefaultAnswerTimeoutMs;
 
     private static int? IntFromEnvironment(string name) =>
         int.TryParse(System.Environment.GetEnvironmentVariable(name)?.Trim(), out var n) && n > 0 ? n : null;

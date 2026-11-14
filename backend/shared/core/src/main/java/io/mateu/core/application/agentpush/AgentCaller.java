@@ -8,9 +8,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 
 /**
- * Who calls an MCP push tool: its authenticated principal ({@code user:<name>}), else the agent key
- * it sends in {@value AgentPush#AGENT_KEY_HEADER} when it is at least 16 characters ({@code
- * key:<sha256>} — what the sidecar sends), else nobody (anonymous: {@code key} null).
+ * Who calls an MCP push tool. Its identity ({@code key}) — what a session is BOUND to — is the
+ * agent key it sends in {@value AgentPush#AGENT_KEY_HEADER} when that is at least 16 characters
+ * ({@code key:<sha256>}: what the sidecar and the in-app chat's agent send), else its authenticated
+ * principal ({@code user:<name>}), else nobody (anonymous: {@code key} null). The agent key comes
+ * first: an agent acting for a signed-in user is still that ONE agent, and reaches only the
+ * sessions bound to it — never the user's other tabs.
  *
  * @param key the identity sessions are paired to; null for an anonymous caller
  * @param principal the principal name, or null
@@ -39,9 +42,6 @@ public record AgentCaller(String key, String principal, String label) {
   /** The caller of {@code httpRequest}. */
   public static AgentCaller of(HttpRequest httpRequest) {
     var name = principalOf(httpRequest);
-    if (name != null) {
-      return user(name);
-    }
     String header = null;
     try {
       header = httpRequest != null ? httpRequest.getHeaderValue(AgentPush.AGENT_KEY_HEADER) : null;
@@ -49,9 +49,10 @@ public record AgentCaller(String key, String principal, String label) {
       // an adapter with no header access
     }
     if (header != null && header.trim().length() >= MIN_AGENT_KEY) {
-      return agentKey(header.trim());
+      var key = agentKey(header.trim());
+      return name == null ? key : new AgentCaller(key.key(), name, name);
     }
-    return anonymous();
+    return name != null ? user(name) : anonymous();
   }
 
   /** The authenticated principal name of the request, or null when anonymous. */
@@ -63,6 +64,11 @@ public record AgentCaller(String key, String principal, String label) {
   /** Whether nothing identifies this caller. */
   public boolean isAnonymous() {
     return key == null;
+  }
+
+  /** The identity a session bound to this agent key carries. */
+  public static String keyOf(String agentKey) {
+    return "key:" + sha256(agentKey);
   }
 
   /** How the log names it: the user, a key prefix, or anonymous. */

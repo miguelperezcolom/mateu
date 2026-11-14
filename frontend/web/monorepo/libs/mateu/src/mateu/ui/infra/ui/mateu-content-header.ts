@@ -305,7 +305,7 @@ export class MateuContentHeader extends LitElement {
         const label = this.evalLabel(button.label)
         return html`
         <button class="back-chevron"
-                data-action-id="${button.id}"
+                data-action-id="${button.id || button.actionId}"
                 title="${label}"
                 aria-label="${label}"
                 @click="${() => this.handleButtonClick(button)}">
@@ -344,7 +344,7 @@ export class MateuContentHeader extends LitElement {
         // renderToolbarButton hook; icons are the adapter's job).
         return stampButton(button, html`
         <button class="mtb ${neutralButtonClass(button)}"
-                data-action-id="${button.id}"
+                data-action-id="${button.id || button.actionId}"
                 @click="${() => this.handleButtonClick(button)}"
                 ?disabled="${button.disabled}"
         >${label}</button>

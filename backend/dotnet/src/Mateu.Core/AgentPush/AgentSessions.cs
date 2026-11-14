@@ -8,8 +8,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Mateu.Core.AgentPush;
 
-/// <summary>Who calls an MCP push tool (or a UI action): the authenticated principal name, else the
-/// SHA-256 of an <c>X-Mateu-Agent-Key</c> of at least 16 characters, else nobody (anonymous).</summary>
+/// <summary>Who calls an MCP push tool (or a UI action). Its identity (<see cref="Id"/>) — what a session
+/// is BOUND to — is the SHA-256 of an <c>X-Mateu-Agent-Key</c> of at least 16 characters when one is
+/// sent (even with a principal: an agent acting for a signed-in user is still that ONE agent), else
+/// the authenticated principal name, else nobody (anonymous).</summary>
 internal sealed record AgentCaller(string? Principal, string? KeyHash)
 {
     /// <summary>The header the sidecar sends to identify itself when it has no principal.</summary>
@@ -23,14 +25,14 @@ internal sealed record AgentCaller(string? Principal, string? KeyHash)
     /// <summary>The caller from a principal name (null/blank = none) and the agent-key header.</summary>
     public static AgentCaller From(string? principal, string? agentKey)
     {
-        if (!string.IsNullOrWhiteSpace(principal)) return new AgentCaller(principal, null);
+        var name = string.IsNullOrWhiteSpace(principal) ? null : principal;
         var key = agentKey?.Trim();
-        if (key is { Length: >= MinKeyLength }) return new AgentCaller(null, AgentSessions.Sha256(key));
-        return Anonymous;
+        if (key is { Length: >= MinKeyLength }) return new AgentCaller(name, AgentSessions.Sha256(key));
+        return name is not null ? new AgentCaller(name, null) : Anonymous;
     }
 
     /// <summary><c>user:&lt;name&gt;</c>, <c>key:&lt;sha256&gt;</c>, or null when anonymous.</summary>
-    public string? Id => Principal is not null ? "user:" + Principal : KeyHash is not null ? "key:" + KeyHash : null;
+    public string? Id => KeyHash is not null ? "key:" + KeyHash : Principal is not null ? "user:" + Principal : null;
 
     /// <summary>How the UI names this caller on its "Connect AI" control.</summary>
     public string Label => Principal ?? "an agent";
@@ -58,6 +60,15 @@ internal sealed class AgentChannel
 
     /// <summary>The increments to stream; the SSE endpoint also writes its heartbeats here.</summary>
     public Channel<UIIncrementDto> Queue { get; }
+}
+
+/// <summary>A UI's answer to a <c>query</c> message: what it shows (<see cref="Screen"/>), or why it
+/// could not do what was asked (<see cref="ErrorCode"/> + the field/action/row it names).</summary>
+internal sealed record AgentAnswer(JsonObject? Screen, string? ErrorCode, string? ErrorId)
+{
+    public static AgentAnswer Refused(string? code, string? id = null) => new(null, code ?? "failed", id);
+
+    public bool WasRefused => ErrorCode is not null;
 }
 
 /// <summary>A registered UI session (a browser tab, an app window, an IDE project).</summary>
@@ -98,9 +109,15 @@ internal sealed class AgentSession
     /// handle is the capability).</summary>
     internal List<(string? CallerId, string Label)> Pairings { get; } = [];
 
+    /// <summary>The identity the in-app chat bound to this session (<c>key:&lt;sha256&gt;</c>), or null.</summary>
+    internal string? ChatKey { get; set; }
+
     internal string? PendingCode { get; set; }
     internal DateTimeOffset PendingCodeExpiresAt { get; set; }
     internal Queue<DateTimeOffset> Sent { get; } = new();
+
+    /// <summary>requestId → the answer its <c>query</c> message waits for.</summary>
+    internal Dictionary<string, TaskCompletionSource<AgentAnswer>> Pending { get; } = new(StringComparer.Ordinal);
 }
 
 /// <summary>
@@ -121,6 +138,30 @@ internal sealed class AgentSessions
     public const string TooManySessions = "Too many live UI sessions; try again later.";
     public const string HasErrors = "The definition has errors; nothing was sent.";
     public const string NotAPage = "Only a page (a component, or a layout: envelope) can be pushed.";
+    public const string Unsupported = "This client does not support reading or operating its screen.";
+    public const string Failed = "The UI could not complete the request.";
+    public const string ScreenTooLarge = "The screen the UI answered is larger than the 262144-byte limit.";
+    public const string InvalidAgentKey = "The agent key must be between 16 and 256 characters.";
+    public const string InvalidRow = "Invalid row: use the 0-based index of a row in the listing's rows.";
+
+    public static string NoAnswer(string session) => $"Session \"{session}\" did not answer in time.";
+
+    /// <summary>The text of a UI's refusal (README "Reading and operating the screen the user has
+    /// open"); the id comes from the UI, so it is clipped and stripped of control characters.</summary>
+    public static string Refusal(string? code, string? id)
+    {
+        var what = LogSafe(id ?? "");
+        return code switch
+        {
+            "unknownField" => $"Field \"{what}\" is not on the screen or cannot be edited.",
+            "unknownAction" => $"Action \"{what}\" is not offered by the screen.",
+            "disabledAction" => $"Action \"{what}\" is disabled.",
+            "unknownRow" => $"Row {what} is not on the current page of the listing.",
+            "unsupported" => Unsupported,
+            "tooLarge" => ScreenTooLarge,
+            _ => Failed,
+        };
+    }
 
     public static string UnknownSession(string session) => $"Unknown session \"{session}\".";
     public static string NotConnected(string session) => $"Session \"{session}\" is not connected.";
@@ -195,6 +236,11 @@ internal sealed class AgentSessions
     public const int DefaultMaxSessions = 1000;
     public const int DefaultMaxSessionsPerOwner = 20;
     public const int DefaultMaxAnonymousSessionsPerAddress = 200;
+    public const int DefaultAnswerTimeoutMs = 10_000;
+    /// <summary>The requests one session may have waiting for its answer at once.</summary>
+    public const int MaxPendingRequests = 4;
+    /// <summary>The largest screen a UI may answer (UTF-8 bytes of its JSON).</summary>
+    public const int MaxScreenBytes = 262_144;
     static readonly TimeSpan Minute = TimeSpan.FromMinutes(1);
 
     /// <summary>The pairing code alphabet: no 0/O, 1/I — read off a screen and typed by a person.</summary>
@@ -204,6 +250,11 @@ internal sealed class AgentSessions
     public const string StatusEvent = "mateu-agent-status";
     public const string RenderEvent = "render-screen";
     public const string NavigateEvent = "navigation-requested";
+    /// <summary>The kind of the messages the UI answers through <c>_agent-screen</c>.</summary>
+    public const string QueryKind = "query";
+    public const string DescribeScreenEvent = "describe-screen";
+    public const string SetFieldsEvent = "set-fields";
+    public const string RunActionEvent = "run-action";
     public static readonly IReadOnlySet<string> ReservedEvents =
         new HashSet<string>(StringComparer.Ordinal) { RenderEvent, NavigateEvent, "close-requested", StatusEvent };
 
@@ -235,6 +286,9 @@ internal sealed class AgentSessions
     /// cap: behind a reverse proxy without forwarded-header handling every anonymous UI shares the
     /// proxy's address). An address the host cannot tell is not limited — only the global cap.</summary>
     public int MaxAnonymousSessionsPerAddress { get; init; } = DefaultMaxAnonymousSessionsPerAddress;
+
+    /// <summary>How long a screen tool waits for the tab's answer, in milliseconds.</summary>
+    public int AnswerTimeoutMs { get; init; } = DefaultAnswerTimeoutMs;
 
     /// <summary>The owner a NEW session counts against: <c>user:&lt;principal&gt;</c>, else
     /// <c>session:&lt;sessionId&gt;</c> — an anonymous session is nobody else's (keyed on the address,
@@ -315,8 +369,86 @@ internal sealed class AgentSessions
             if (!ReferenceEquals(session.Current, channel)) return;
             session.Current = null;
             session.DisconnectedAt = _clock();
+            FailPending(session);
         }
     }
+
+    /// <summary>Nobody is left to answer what was asked: every waiting request fails at once.</summary>
+    static void FailPending(AgentSession session)
+    {
+        var gone = new UserFacingException(NotConnected(session.Handle));
+        foreach (var waiting in session.Pending.Values) waiting.TrySetException(gone);
+        session.Pending.Clear();
+    }
+
+    /// <summary>Sends a <c>query</c> message to a reachable session: the rate limit (each request
+    /// counts; more than <see cref="MaxPendingRequests"/> waiting is refused too), then the message
+    /// with a fresh <c>requestId</c> first. Returns the id and the task the answer completes.</summary>
+    public (string RequestId, Task<AgentAnswer> Answer) Ask(AgentSession session, string @event, JsonObject detail)
+    {
+        lock (_lock)
+        {
+            var now = _clock();
+            if (!session.Connected) throw new UserFacingException(NotConnected(session.Handle));
+            while (session.Sent.Count > 0 && now - session.Sent.Peek() >= Minute) session.Sent.Dequeue();
+            if (session.Sent.Count >= RatePerMinute || session.Pending.Count >= MaxPendingRequests)
+                throw new UserFacingException(RateLimited);
+            session.Sent.Enqueue(now);
+            string requestId;
+            do requestId = NewRequestId(); while (session.Pending.ContainsKey(requestId));
+            var waiting = new TaskCompletionSource<AgentAnswer>(TaskCreationOptions.RunContinuationsAsynchronously);
+            session.Pending[requestId] = waiting;
+            var withId = new JsonObject { ["requestId"] = requestId };
+            foreach (var (k, v) in detail) withId[k] = v?.DeepClone();
+            Deliver(session, Message(QueryKind, @event, withId));
+            return (requestId, waiting.Task);
+        }
+    }
+
+    /// <summary>The request is over (answered, timed out or failed): it no longer waits.</summary>
+    public void Forget(AgentSession session, string requestId)
+    {
+        lock (_lock) session.Pending.Remove(requestId);
+    }
+
+    /// <summary><c>_agent-screen</c>: the UI's answer to one of its session's waiting requests. The
+    /// session's secret and principal must match; an unknown, finished or timed-out id is ignored.</summary>
+    public void Answer(string sessionId, string secret, string? principal, string? requestId, AgentAnswer answer)
+    {
+        TaskCompletionSource<AgentAnswer>? waiting = null;
+        lock (_lock)
+        {
+            var session = Registered(sessionId, secret, principal);
+            if (requestId is not null && session.Pending.Remove(requestId, out var found)) waiting = found;
+        }
+        waiting?.TrySetResult(answer);
+    }
+
+    /// <summary>The answer an <c>_agent-screen</c> carries, read defensively: <c>error: {code, id?}</c>
+    /// is a refusal, a screen larger than <see cref="MaxScreenBytes"/> is <c>tooLarge</c>, neither is
+    /// <c>failed</c>.</summary>
+    public static AgentAnswer AnswerOf(JsonNode? screen, JsonNode? error)
+    {
+        if (error is JsonObject refusal)
+            return AgentAnswer.Refused(Text(refusal["code"]), Text(refusal["id"]));
+        if (screen is not JsonObject shown) return AgentAnswer.Refused("failed");
+        var bytes = Encoding.UTF8.GetByteCount(shown.ToJsonString(new System.Text.Json.JsonSerializerOptions
+        {
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        }));
+        return bytes > MaxScreenBytes ? AgentAnswer.Refused("tooLarge") : new AgentAnswer(shown, null, null);
+    }
+
+    static string? Text(JsonNode? node) => node switch
+    {
+        null => null,
+        JsonValue v when v.TryGetValue<string>(out var s) => s,
+        JsonValue v when v.TryGetValue<bool>(out var b) => b ? "true" : "false",
+        _ => node.ToJsonString(),
+    };
+
+    static string NewRequestId() =>
+        Convert.ToBase64String(RandomNumberGenerator.GetBytes(18)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
     /// <summary><c>_agent-pair</c>: a new one-time code for a registered session (the previous unused
     /// one dies). Returns the code as shown, XXXX-XXXX.</summary>
@@ -342,14 +474,46 @@ internal sealed class AgentSessions
         {
             var session = Registered(sessionId, secret, principal);
             session.Pairings.Clear();
+            session.ChatKey = null;
             Deliver(session, StatusIncrement(session));
+        }
+    }
+
+    /// <summary><c>_agent-bind</c>: the in-app chat binds its conversation to this tab — the session
+    /// becomes reachable by the agent sending <paramref name="agentKey"/>, and that agent reaches
+    /// nothing else through it. A new binding of the session replaces its previous chat binding; a
+    /// key bound to another session leaves it (one conversation, one tab).</summary>
+    public void BindChat(string sessionId, string secret, string? principal, string? agentKey)
+    {
+        lock (_lock)
+        {
+            var session = Registered(sessionId, secret, principal);
+            var raw = agentKey?.Trim() ?? "";
+            if (raw.Length < AgentCaller.MinKeyLength || raw.Length > 256)
+                throw new UserFacingException(InvalidAgentKey);
+            var key = "key:" + Sha256(raw);
+            foreach (var other in _byId.Values)
+            {
+                if (other == session || other.ChatKey != key) continue;
+                other.Pairings.RemoveAll(p => p.CallerId == key);
+                other.ChatKey = null;
+                Deliver(other, StatusIncrement(other));
+            }
+            if (session.ChatKey is { } previous && previous != key)
+                session.Pairings.RemoveAll(p => p.CallerId == previous);
+            session.ChatKey = key;
+            if (!session.Pairings.Any(p => p.CallerId == key)) session.Pairings.Add((key, "an agent"));
+            Deliver(session, StatusIncrement(session));
+            MateuLogging.For("Mateu.Mcp").LogInformation(
+                "Mateu agent push: chat bound session={Session} (user={User})",
+                Fingerprint(session.Handle), session.Principal);
         }
     }
 
     // ── the MCP side ──────────────────────────────────────────────────────────────────────────
 
-    /// <summary><c>mateu_list_sessions</c>: the sessions the caller is signed in as, or paired to it,
-    /// most recently registered first. (A session reachable only by its capability is not listed:
+    /// <summary><c>mateu_list_sessions</c>: the sessions BOUND to the caller (pairing, the chat) — being
+    /// signed in as the session's user is not enough — most recently registered first. (A session reachable only by its capability is not listed:
     /// the handle is returned only to whoever paired.)</summary>
     public JsonObject List(AgentCaller caller)
     {
@@ -358,7 +522,7 @@ internal sealed class AgentSessions
             Purge(_clock());
             var list = new JsonArray();
             foreach (var s in _byId.Values.OrderByDescending(s => s.RegisteredOrder))
-                if (Owns(caller, s) || PairedTo(caller, s)) list.Add(Entry(s));
+                if (PairedTo(caller, s)) list.Add(Entry(s));
             return new JsonObject { ["sessions"] = list };
         }
     }
@@ -484,13 +648,11 @@ internal sealed class AgentSessions
         ["paired"] = s.Pairings.Count > 0,
     };
 
-    static bool Owns(AgentCaller caller, AgentSession s) => caller.Principal is not null && caller.Principal == s.Principal;
-
     static bool PairedTo(AgentCaller caller, AgentSession s) =>
         caller.Id is not null && s.Pairings.Any(p => p.CallerId == caller.Id);
 
     static bool Visible(AgentCaller caller, AgentSession s) =>
-        Owns(caller, s) || PairedTo(caller, s) || (caller.Id is null && s.Pairings.Any(p => p.CallerId is null));
+        PairedTo(caller, s) || (caller.Id is null && s.Pairings.Any(p => p.CallerId is null));
 
     AgentSession Registered(string sessionId, string secret, string? principal)
     {
@@ -536,6 +698,7 @@ internal sealed class AgentSessions
         if (s.PendingCode is { } code) _byCode.Remove(code);
         s.Current?.Queue.Writer.TryComplete();
         s.Current = null;
+        FailPending(s);
     }
 
     /// <summary>A session id (≤ 128 chars) and a secret (≤ 256) are required; anything else is refused

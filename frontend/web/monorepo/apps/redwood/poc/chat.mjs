@@ -714,7 +714,7 @@ export function projectChatScreen(component, state) {
  * message (`sendMenu`), the menu. Returns `{ body, shown }`: `shown` is what is painted as the
  * user's message (the text + 📎 the attachments).
  */
-export function chatTurnOf({ message, sessionId, attachments = [], registry, appState, appData, url, screenTitle, currentRoute, mcpUrl, menu, sendMenu, origin }) {
+export function chatTurnOf({ message, sessionId, attachments = [], registry, appState, appData, url, screenTitle, currentRoute, mcpUrl, menu, sendMenu, origin, agentKey }) {
   const text = String(message || '').trim()
   const host = registry && registry.contexts ? registry.contexts.__root__ : null
   const context = {
@@ -739,6 +739,8 @@ export function chatTurnOf({ message, sessionId, attachments = [], registry, app
       currentRoute,
     }),
     ...(hasScreen ? { screen } : {}),
+    // the key the tab bound this conversation to (live UI push): the agent acts on this tab only
+    ...(agentKey ? { agentKey } : {}),
   }
   const names = (attachments || []).map((a) => a.name).join(', ')
   const shown = names ? `${text}${text ? '\n\n' : ''}📎 ${names}` : text

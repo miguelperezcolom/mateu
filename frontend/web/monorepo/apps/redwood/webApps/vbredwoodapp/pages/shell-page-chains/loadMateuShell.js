@@ -226,9 +226,10 @@ define([
       // different chains and threading the event through all of them would be forgotten in the next one.
       bridge.trackPressedControls();
       bridge.setTransportHooks({
-        onStart: () => { $application.variables.mateuBusy = true; bridge.markPressedControlBusy(); },
+        onStart: () => { $application.variables.mateuBusy = true; bridge.markPressedControlBusy(); bridge.noteAgentTransport(1); },
         onSettle: ({ failure }) => {
           $application.variables.mateuBusy = false;
+          bridge.noteAgentTransport(-1);
           bridge.clearPressedControlBusy();
           // 'cancelled' is our own decision (navigation, abort): it is never news.
           if (failure && failure.kind !== 'cancelled') {
@@ -534,6 +535,12 @@ define([
       // tab's own channel (`_agent-channel`, one per tab) delivers each message, applied exactly
       // like the chat's event of the same name — through the chat event host set just above.
       bridge.installAgentPush();
+      // An agent reading or operating this screen (a `query` message): the CONTENT page owns the
+      // drafts and the chains a user's edit or click goes through, so the query is handed to it
+      // (application:mateuAgentQuery -> its agentQueryRun chain), against the LIVE context.
+      bridge.setAgentQueryHost({
+        fire: (query) => Actions.fireEvent(liveContext(), { name: 'application:mateuAgentQuery', payload: { query } }),
+      });
       $application.variables.mateuAgentPush = !!(reg.shell && reg.shell.agentPush);
       bridge.syncAgentPush(reg.shell, {
         base,
