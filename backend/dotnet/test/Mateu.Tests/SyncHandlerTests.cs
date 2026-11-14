@@ -2472,13 +2472,36 @@ public class SyncHandlerTests
         var inc = Handler().Handle(rq);
 
         var frag = Assert.Single(inc.Fragments);
-        // The data fragment goes back to the component that initiated the search.
-        Assert.Equal("ux_main", frag.TargetComponentId);
+        // The data fragment goes back to the component that initiated the search: none named, an
+        // empty target (the initiator echoed, as Java does — never a "ux_main" only the web knows).
+        Assert.Equal("", frag.TargetComponentId);
         Assert.Null(frag.Component);
+        Assert.Equal("crud1", Assert.Single(Handler().Handle(rq with { InitiatorComponentId = "crud1" }).Fragments).TargetComponentId);
         var json = Render(inc);
         Assert.Contains("\"totalElements\":2", json);
         Assert.Contains("Alpha", json);
         Assert.Contains("Beta", json);
+    }
+
+    /// <summary>Redwood paints a fragment aimed at "ux_main" nowhere (it is no surface it knows): a
+    /// load with no initiator — what every renderer sends for the page — answers an EMPTY target,
+    /// fragments and commands alike, and a placeholder command built in code follows the initiator.</summary>
+    [Fact]
+    public void An_answer_echoes_the_initiator_like_java()
+    {
+        var load = Handler().Handle(new RunActionRqDto { ActionId = "", ServerSideType = typeof(Things).FullName });
+        Assert.NotEmpty(load.Fragments);
+        Assert.All(load.Fragments, f => Assert.Equal("", f.TargetComponentId));
+        Assert.All(load.Commands, c => Assert.True(string.IsNullOrEmpty(c.TargetComponentId)));
+        var placeholder = UIIncrementDto.Of(
+            commands: [UICommandDto.CloseModal()],
+            fragments: [new UIFragmentDto("ux_main", null, null, null, "Replace", null)]);
+        foreach (var (initiator, expected) in new (string?, string)[] { (null, ""), ("", ""), ("c-1", "c-1"), ("ux_main", "ux_main") })
+        {
+            var aimed = SyncHandler.AimedAtTheInitiator(placeholder, initiator);
+            Assert.Equal(expected, Assert.Single(aimed.Fragments).TargetComponentId);
+            Assert.Equal(expected, Assert.Single(aimed.Commands).TargetComponentId);
+        }
     }
 
     [Fact]

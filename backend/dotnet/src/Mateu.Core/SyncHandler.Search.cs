@@ -37,7 +37,7 @@ internal sealed partial class SyncHandler
             [fieldId] = new { content, pageSize = size, pageNumber = page, totalElements = all.Count },
         };
         return UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
+            [new UIFragmentDto(rq.InitiatorComponentId ?? "", null, null, data, "Replace", null)]);
     }
 
     /// <summary>Opens a [Searchable] field's selector dialog: the selector Listing (with its
@@ -58,7 +58,7 @@ internal sealed partial class SyncHandler
         var dialog = new ClientSideComponentDto(
             new DialogMetadataDto(null, null, component), null, [], null, null, null);
         return UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", dialog, null, null, "Add", null)]);
+            [new UIFragmentDto(rq.InitiatorComponentId ?? "", dialog, null, null, "Add", null)]);
     }
 
     /// <summary>A selector dialog's row pick: rebuilds the clicked row, asks the ISelector for

@@ -80,9 +80,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         {
             EstablishRequestContext(rq);
             rq = GuardYamlAccess(rq);
-            return rq.ActionId == AppSourceAction
+            return AimedAtTheInitiator(rq.ActionId == AppSourceAction
                 ? await AppSourceResponseAsync(rq, cancellationToken).ConfigureAwait(false)
-                : await RestFetchResponseAsync(rq, cancellationToken).ConfigureAwait(false);
+                : await RestFetchResponseAsync(rq, cancellationToken).ConfigureAwait(false), rq.InitiatorComponentId);
         }
         var pending = MicroFrontends.MicroFrontendPending.Begin();
         var increment = WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl));
@@ -91,9 +91,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // the micro frontends this server resolves (Resolve.Server, content slots), awaited end to
         // end: a response without any costs nothing (the mapper marks the ones that carry some)
         // — and an EMBEDDED micro frontend's answer never names the window (EmbeddedWindowCommands)
-        return EmbeddedWindowCommands.Strip(pending.Value
+        return AimedAtTheInitiator(EmbeddedWindowCommands.Strip(pending.Value
             ? await ResolveMicroFrontendsAsync(increment, cancellationToken).ConfigureAwait(false)
-            : increment, rq);
+            : increment, rq), rq.InitiatorComponentId);
     }
 
     /// <summary>Handles a sync call synchronously. In-process callers (tests, the MCP projection)
@@ -110,9 +110,9 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         Observability.RequestObservation.Describe(new(rq.Route, rq.ActionId, rq.ServerSideType));
         var pending = MicroFrontends.MicroFrontendPending.Begin();
         var increment = StoreInbox(WithStreamsDrained(() => HandleUnresolved(rq, requestBaseUrl)), Principal?.Invoke());
-        return EmbeddedWindowCommands.Strip(pending.Value
+        return AimedAtTheInitiator(EmbeddedWindowCommands.Strip(pending.Value
             ? ResolveMicroFrontendsAsync(increment, CancellationToken.None).GetAwaiter().GetResult()
-            : increment, rq);
+            : increment, rq), rq.InitiatorComponentId);
     }
 
     private UIIncrementDto HandleUnresolved(RunActionRqDto rq, string? requestBaseUrl)
@@ -1132,7 +1132,7 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         // An overlay (drawer/dialog) → an ADD fragment on the initiator, so it stacks on top of
         // the page instead of replacing it (mirrors Java's FragmentDataSerializer.isOverlay).
         Drawer or Dialog => UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(rq?.InitiatorComponentId ?? "ux_main",
+            [new UIFragmentDto(rq?.InitiatorComponentId ?? "",
                 ComponentMapper.Map((IComponent)result), null, null, "Add", null)]),
         // A route string → navigate; a UICommand → pass through (dispatchEvent / closeModal),
         // retargeting the "ux_main" placeholder at the initiator (the frontend drops commands
@@ -1289,10 +1289,38 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
         return ssc with { Actions = actions, Triggers = triggers };
     }
 
-    /// <summary>Fragments and commands address the component that initiated the request (the
-    /// web frontend's top ux id is "_ux" — Java echoes the initiator the same way).</summary>
-    private static string Target(RunActionRqDto rq) =>
-        string.IsNullOrEmpty(rq.InitiatorComponentId) ? "ux_main" : rq.InitiatorComponentId!;
+    /// <summary>Fragments and commands address the component that initiated the request: its id
+    /// ECHOED, exactly as Java does — an empty initiator (a renderer's page load) gets an empty
+    /// target, which every renderer reads as the page. (Up to 3.0-beta.67 it answered "ux_main", a
+    /// slot only the web client knows: the Redwood renderer drew the shell and left the content
+    /// blank.)</summary>
+    private static string Target(RunActionRqDto rq) => rq.InitiatorComponentId ?? "";
+
+    /// <summary>The placeholder a command built in code carries (<c>UICommandDto.CloseModal()</c>,
+    /// a flow Step…) before the answer knows who asked.</summary>
+    internal const string PlaceholderTarget = "ux_main";
+
+    /// <summary>The increment with every <see cref="PlaceholderTarget"/> target replaced by the
+    /// request's initiator, echoed (empty for a page load). Applied at the end of every answer, so
+    /// no producer has to remember it: a placeholder that reached the wire addressed a slot the
+    /// Redwood renderer does not know.</summary>
+    internal static UIIncrementDto AimedAtTheInitiator(UIIncrementDto increment, string? initiator)
+    {
+        var target = initiator ?? "";
+        if (target == PlaceholderTarget) return increment;
+        var fragments = increment.Fragments is { Count: > 0 } fs && fs.Any(f => f?.TargetComponentId == PlaceholderTarget)
+            ? fs.Select(f => f?.TargetComponentId == PlaceholderTarget ? f with { TargetComponentId = target } : f).ToList()
+            : null;
+        var commands = increment.Commands is { Count: > 0 } cs && cs.Any(c => c?.TargetComponentId == PlaceholderTarget)
+            ? cs.Select(c => c?.TargetComponentId == PlaceholderTarget ? c with { TargetComponentId = target } : c).ToList()
+            : null;
+        if (fragments is null && commands is null) return increment;
+        return increment with
+        {
+            Fragments = (IReadOnlyList<UIFragmentDto>?)fragments ?? increment.Fragments,
+            Commands = (IReadOnlyList<UICommandDto>?)commands ?? increment.Commands,
+        };
+    }
 
     /// <summary>Display labels for reference fields whose value is already set when the form
     /// renders: [Searchable] fields ask their selector, [Lookup] fields the view's

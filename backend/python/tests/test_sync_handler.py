@@ -1265,12 +1265,34 @@ def test_crud_search_returns_rows():
         RunActionRq(action_id="search", server_side_type=_name(Things), component_state={"searchText": ""})
     )
     assert len(inc.fragments) == 1
-    # The data fragment goes back to the component that initiated the search.
-    assert inc.fragments[0].target_component_id == "ux_main"
+    # The data fragment goes back to the component that initiated the search: none named, an
+    # empty target (the initiator echoed, as Java does — never a "ux_main" only the web knows).
+    assert inc.fragments[0].target_component_id == ""
     assert inc.fragments[0].component is None
+    named = handler().handle(RunActionRq(action_id="search", server_side_type=_name(Things),
+                                         component_state={"searchText": ""}, initiator_component_id="crud1"))
+    assert named.fragments[0].target_component_id == "crud1"
     j = render(inc)
     assert '"totalElements": 2' in j
     assert "Alpha" in j and "Beta" in j
+
+
+def test_an_answer_echoes_the_initiator_like_java():
+    """Redwood paints a fragment aimed at "ux_main" nowhere (it is no surface it knows): a load with
+    no initiator — what every renderer sends for the page — answers an EMPTY target, fragments and
+    commands alike, and a placeholder command built in code follows the initiator."""
+    from mateu_ui.core.sync_handler import aimed_at_the_initiator
+    from mateu_ui.dtos import UICommand, UIFragment, UIIncrement
+
+    load = handler().handle(RunActionRq(action_id="", server_side_type=_name(Things)))
+    assert load.fragments and all(f.target_component_id == "" for f in load.fragments)
+    assert all(c.target_component_id in ("", None) for c in load.commands or [])
+    placeholder = UIIncrement.of(fragments=[UIFragment(target_component_id="ux_main", action="Replace")],
+                                 commands=[UICommand.close_modal()])
+    for initiator, expected in ((None, ""), ("", ""), ("c-1", "c-1"), ("ux_main", "ux_main")):
+        out = aimed_at_the_initiator(placeholder, initiator)
+        assert [f.target_component_id for f in out.fragments] == [expected]
+        assert [c.target_component_id for c in out.commands] == [expected]
 
 
 @ui("booking-form")

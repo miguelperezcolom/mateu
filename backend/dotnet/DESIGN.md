@@ -104,7 +104,7 @@ but we match the Java output to be safe). Verified against golden files.
 HTTP sync ─▶ RouteRegistry.resolve(route) ─▶ instantiate model type
           ─▶ (action?) deserialize componentState → set properties → invoke action method
           ─▶ ReflectionUiMapper.map(modelInstance) ─▶ ComponentDto tree
-          ─▶ wrap in UIFragment(targetComponentId="ux_main"/sscId) ─▶ UIIncrementDto
+          ─▶ wrap in UIFragment(targetComponentId=the initiator, echoed — "" for a page load) ─▶ UIIncrementDto
 ```
 
 - **RouteRegistry** — scans loaded assemblies once for `[UI]` types; maps route → Type. (The Java

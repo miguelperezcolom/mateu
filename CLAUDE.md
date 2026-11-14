@@ -981,7 +981,11 @@ refresh/id tokens NEVER go in it — Redwood mirror `poc/authStore.mjs`); listen
   `PYPI_TRUSTED_PUBLISHING=true` is set. .NET is split into partial files (`ReflectionMapper.*.cs`,
   `SyncHandler.*.cs`), targets net10.0 only (net8.0 dropped 2026-11-10) and has a NuGet release job.
 - **Conformance.** `conformance/cases` (52 since the beta integration — first loads AND second requests: action effects, drawer, rejected save, error boundary, wizard step 2, crud new/edit/view) match EXACTLY in Java, .NET and Python, with empty
-  allow-lists; `homeServerSideType` is volatile in all three normalisers; Java renders the corpus with
+  allow-lists; `homeServerSideType` is volatile in all three normalisers; `targetComponentId` is NOT
+  (2026-11-14): every server ECHOES the request's initiator (empty for a page load) — the ports used to
+  answer `"ux_main"` and Redwood painted the shell with no content; ports `AimedAtTheInitiator`/
+  `aimed_at_the_initiator` retarget code-built `"ux_main"` placeholders at the end of every answer, and
+  Redwood's `resolveTarget` reads `"ux_main"` as the page (older ports, the web expander); Java renders the corpus with
   an empty REST source catalogue (the core test classpath carries one). `ActionMapper` does not treat a
   component-holder field as a nested form.
 - **IDE tooling.** New › Mateu (UI Mount, Routes File — created EMPTY and registered in the chosen
