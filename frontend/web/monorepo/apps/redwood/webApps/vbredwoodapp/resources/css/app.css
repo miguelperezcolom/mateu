@@ -22,6 +22,36 @@ body::after {
   background-position: left bottom, right bottom;
 }
 
+/* Redwood's COLOUR STRIP. Spectra draws it itself: its page headers (oj-sp-header-general-overview,
+   oj-sp-header-create-edit) under the header, its templates (oj-sp-guided-process,
+   oj-sp-hero-search-page, the item overview page) at their top — so nearly every page already has
+   it and nothing here touches theirs. This class is the strip for the one page header Mateu draws
+   ITSELF (the horizontal wizard's train, main-start-page.html), with the contract of Spectra's
+   header strip (oj-sp-header-general-overview styles, oj-sp 2604), so it caps the content card the
+   same way: the theme's --oj-sp-theme-page-header-strip (Spectra's pillar theme) wins, else the
+   gallery's generic strip — byte-identical to the one Spectra ships — 45rem tiles repeated along the
+   bottom, 0.75rem tall with Spectra's rounded top corners; on a phone 0.375rem, square, 22.5rem tiles.
+   A custom (non-Redwood) Spectra theme has no strip, as in Spectra's headers. */
+.mateu-brand-stripe {
+  /* the gallery's strip (the page sets it, so an Oracle CDN mirror rewrites it — scripts/index-page.mjs).
+     Its own declaration, ONE var() deep: nested in the theme's var() below, the build's CSS minifier
+     shortened the url's version (2604.0.2 → 2604.2, a 404) */
+  --mateu-brand-stripe-gallery: var(--mateu-brand-stripe-image, url('https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/color-strip-generic-2x.webp'));
+  height: 0.75rem;
+  width: 100%;
+  flex: 0 0 auto;
+  background-image: var(--oj-sp-theme-page-header-strip, var(--mateu-brand-stripe-gallery));
+  background-size: 45rem;
+  background-position: left bottom;
+  background-repeat: repeat-x;
+  border-top-left-radius: var(--oj-sp-headers-colortstrip-border-radius, 0.375rem);
+  border-top-right-radius: var(--oj-sp-headers-colortstrip-border-radius, 0.375rem);
+}
+@media print, screen and (max-width: 599px) {
+  .mateu-brand-stripe { height: 0.375rem; border-radius: 0; background-size: 22.5rem; }
+}
+body.oj-sp-theme-appearance-override .mateu-brand-stripe { display: none; }
+
 /* The Home icon oj-sp-global-header stamps is not configurable by API and sits to the
    left of the end slot; it shares a flex container with it → all the way to the right. */
 oj-sp-global-header a[id$='_HOa1'] {

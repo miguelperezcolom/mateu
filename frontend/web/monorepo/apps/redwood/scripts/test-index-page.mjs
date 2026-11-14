@@ -37,6 +37,9 @@ test('carries every marker the controllers rely on, once', () => {
     assert.equal(page.split(m).length, 2, m)
   }
   assert.match(page, /mateu-ui \{ display: none !important; \}/)
+  // the colour strip's image is written in the PAGE (like the shell background), so a mirror of
+  // Oracle's CDN (mateu.oracle-cdn.url) rewrites it with the page's other urls
+  assert.match(page, /--mateu-brand-stripe-image: url\('https:\/\/static\.oracle\.com\/cdn\/fnd\/gallery\/[\d.]+\/images\/color-strip-generic-2x\.webp'\);/)
 })
 
 test('the boot is parked, in order, between AQUIJS and HASTAAQUIJS', () => {
