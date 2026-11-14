@@ -64,36 +64,78 @@ export const mountPrefix = (option: MenuOption): string =>
     isMount(option) ? normRoute(option.routePrefix || option.path || option.route) : ''
 
 /**
+ * Where the screen on display was loaded from, to tell apart two entries with the same route.
+ *
+ * <p>A remote's routes are mount-relative and spliced into the shell's menu as they are, so two
+ * remotes — two apps of one service, say, each with its own «Concerts» — can both hold `/concerts`.
+ * By route alone both are the active one, and the menu band marked both sections at once. The base
+ * url the content came from (`base`; the remote's, or the shell's own) is what names the one the
+ * user went through. `shellBase` is the shell's base url: the base of the entries that name none.
+ */
+export interface SelectionSource {
+    base: string | undefined
+    shellBase: string | undefined
+}
+
+/** A base url with no trailing '/'s, in linear time (a /\/+$/ regex backtracks on a long run of slashes). */
+const trimBase = (base: string | undefined | null): string => {
+    const s = (base ?? '').trim()
+    let end = s.length
+    while (end > 0 && s.codePointAt(end - 1) === 47) end--
+    return s.slice(0, end)
+}
+
+/** Whether `option` (an entry, or a remote section) is served from the base `source` names. */
+const servedFrom = (option: MenuOption, source: SelectionSource): boolean =>
+    trimBase(option.baseUrl || source.shellBase) === trimBase(source.base || source.shellBase)
+
+/**
  * How specifically `option` (with whatever it holds) covers `path`: the length of the longest
  * route in it that `path` is or lives under; -1 when none does. A remote section counts with its
- * prefix; a group with its own route and every entry below it.
+ * prefix; a group with its own route and every entry below it. With a `source`, only the entries
+ * (and remote sections) served from that base count.
  */
-export const coverLength = (option: MenuOption | undefined, path: string): number => {
+export const coverLength = (option: MenuOption | undefined, path: string, source?: SelectionSource): number => {
     if (!option || option.separator) return -1
     const current = normRoute(path)
     if (isMount(option)) {
         const prefix = mountPrefix(option)
-        return routeCovers(prefix, current) ? prefix.length : -1
+        return routeCovers(prefix, current) && (!source || servedFrom(option, source)) ? prefix.length : -1
     }
     let best = -1
     const own = normRoute(option.route)
-    if (routeCovers(own, current)) best = own.length
-    for (const child of option.submenus ?? []) best = Math.max(best, coverLength(child, current))
+    const children = option.submenus ?? []
+    // a group's own route is a heading's, not a page served from somewhere: it counts as it is
+    if (routeCovers(own, current) && (!source || children.length > 0 || servedFrom(option, source))) best = own.length
+    for (const child of children) best = Math.max(best, coverLength(child, current, source))
     return best
 }
 
-/** Whether `option` is the active one — or holds it — for `path`. */
-export const isActiveFor = (option: MenuOption, path: string): boolean => coverLength(option, path) >= 0
+/** Whether `option` is the active one — or holds it — for `path` (served from `source`, if given). */
+export const isActiveFor = (option: MenuOption, path: string, source?: SelectionSource): boolean =>
+    coverLength(option, path, source) >= 0
+
+/**
+ * The `source` to tell the active entry by: itself when some entry of the menu served from it
+ * covers `path`, undefined otherwise — route alone, then, as before. The base a screen was loaded
+ * from does not always name an entry (a page a local screen navigated to, a base spelt another way),
+ * and an unknown base must not leave the menu with nothing active.
+ */
+export function selectionSourceFor(menu: MenuOption[] | undefined, path: string, source: SelectionSource | undefined): SelectionSource | undefined {
+    if (!source || !source.base) return undefined
+    return (menu ?? []).some(option => coverLength(option, path, source) >= 0) ? source : undefined
+}
 
 /**
  * The index of the top-level option that holds `path` most specifically — a section of a remote
- * that has not answered yet included — or NaN when none does.
+ * that has not answered yet included — or NaN when none does. On a tie the first one wins.
  */
-export function activeTopIndex(menu: MenuOption[] | undefined, path: string): number {
+export function activeTopIndex(menu: MenuOption[] | undefined, path: string, source?: SelectionSource): number {
     let bestIdx = NaN
     let bestLength = -1
+    const from = selectionSourceFor(menu, path, source)
     ;(menu ?? []).forEach((option, i) => {
-        const length = coverLength(option, path)
+        const length = coverLength(option, path, from)
         if (length > bestLength) {
             bestLength = length
             bestIdx = i
@@ -116,8 +158,10 @@ export interface TrailCrumb {
  * reached from a header widget is still Inbox › Tasks). A remote section that has not answered
  * counts by its prefix, as the section alone — `pending`, because what is below it is not known yet.
  */
-export function menuTrail(menu: MenuOption[] | undefined, path: string): { crumbs: TrailCrumb[], matched?: string, pending?: boolean } {
+export function menuTrail(menu: MenuOption[] | undefined, path: string, source?: SelectionSource): { crumbs: TrailCrumb[], matched?: string, pending?: boolean } {
     const current = normRoute(path)
+    // two remotes holding the route: the trail goes through the one the screen came from
+    const from = selectionSourceFor(menu, path, source)
     let best: { crumbs: TrailCrumb[], route: string, pending: boolean } | undefined
     // A group is a heading, not a page: its route (a federated section's prefix, "/admin") usually
     // leads nowhere. Its crumb navigates only if some ENTRY of the menu has exactly that route.
@@ -134,7 +178,7 @@ export function menuTrail(menu: MenuOption[] | undefined, path: string): { crumb
             const label = plainText(option.label)
             if (isMount(option)) {
                 const prefix = mountPrefix(option)
-                if (routeCovers(prefix, current)) consider(prefix, [...above, { text: label }], true)
+                if (routeCovers(prefix, current) && (!from || servedFrom(option, from))) consider(prefix, [...above, { text: label }], true)
                 continue
             }
             const route = normRoute(option.route)
@@ -143,7 +187,7 @@ export function menuTrail(menu: MenuOption[] | undefined, path: string): { crumb
                 walk(children, [...above, route && route !== '/' && pages.has(route) ? { text: label, route } : { text: label }])
                 continue
             }
-            if (routeCovers(route, current)) consider(route, [...above, { text: label, route }], false)
+            if (routeCovers(route, current) && (!from || servedFrom(option, from))) consider(route, [...above, { text: label, route }], false)
         }
     }
     walk(menu, [])
@@ -171,8 +215,9 @@ export function leafRoutes(menu: MenuOption[] | undefined): Set<string> {
  * (a crud record under its listing). Undefined when no entry owns it — a remote section that has
  * not answered is not an entry: there is nothing in it to open yet.
  */
-export function menuEntryFor(menu: MenuOption[] | undefined, route: string): MenuOption | undefined {
+export function menuEntryFor(menu: MenuOption[] | undefined, route: string, source?: SelectionSource): MenuOption | undefined {
     const target = normRoute(route)
+    const from = selectionSourceFor(menu, route, source)
     let best: { option: MenuOption, route: string } | undefined
     const walk = (options: MenuOption[] | undefined) => {
         for (const option of options ?? []) {
@@ -180,7 +225,7 @@ export function menuEntryFor(menu: MenuOption[] | undefined, route: string): Men
             const children = option.submenus ?? []
             if (children.length > 0) { walk(children); continue }
             const r = normRoute(option.route)
-            if (routeCovers(r, target) && (!best || r.length > best.route.length)) {
+            if (routeCovers(r, target) && (!from || servedFrom(option, from)) && (!best || r.length > best.route.length)) {
                 best = { option, route: r }
             }
         }
@@ -464,8 +509,8 @@ export function withoutHidden(menu: MenuOption[]): MenuOption[] {
  */
 
 /** The section (top-level option) that holds `path`, or undefined when none does — the home, say. */
-export function activeSection(menu: MenuOption[] | undefined, path: string): MenuOption | undefined {
-    const index = activeTopIndex(menu, path)
+export function activeSection(menu: MenuOption[] | undefined, path: string, source?: SelectionSource): MenuOption | undefined {
+    const index = activeTopIndex(menu, path, source)
     return Number.isNaN(index) ? undefined : menu![index]
 }
 
