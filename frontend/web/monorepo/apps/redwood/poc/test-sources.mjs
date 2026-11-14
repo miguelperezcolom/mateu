@@ -28,6 +28,7 @@ import { filterDescriptorOf } from './core/listing.mjs'
 import { imageUrlOf } from './inputs.mjs'
 import { layoutFieldOf, hasOptionsSource } from './core/rowEditor.mjs'
 import { readFileSync } from 'node:fs'
+import { trustShellBase } from './hostHeaders.mjs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -349,6 +350,9 @@ test('a page with no app shell: the sources a response names resolve its refs', 
   globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => ({
     fragments: [], restSources: [{ name: 'late', source: { url: 'https://late.example.com/x' } }] }) })
   try {
+    // the shell's own backend (an answer from an origin the shell does not trust brings no
+    // catalogue of its own: the untrusted strip drops it, conformance/untrusted)
+    trustShellBase('http://mateu')
     await runMateuAction('http://mateu', listingCtx(undefined), '/orders', 'save', {}, {})
     assert.equal(resolveRestSource({ ref: 'late' }).url, 'https://late.example.com/x')
   } finally { globalThis.fetch = realFetch }

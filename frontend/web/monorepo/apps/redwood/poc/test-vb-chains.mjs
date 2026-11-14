@@ -344,7 +344,7 @@ test('the visual editor\'s canvas: the shell boots with no backend, paints what 
     MutationObserver: class { observe() {} },
     setTimeout, clearTimeout,
   })
-  const send = (msg) => win.dispatchEvent(new FakeEvent('message', { data: msg, source: win.parent }))
+  const send = (msg) => win.dispatchEvent(new FakeEvent('message', { data: msg, source: win.parent, origin: win.location.origin }))
   const draft = (t) => ({ mateuPreview: 'render', fragment: { component: { type: 'ClientSide', metadata: { type: 'Text', text: t, container: 'p' }, children: [] } } })
   try {
     const ctx = newContext()

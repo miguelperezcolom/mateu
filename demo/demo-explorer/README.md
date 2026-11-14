@@ -198,7 +198,7 @@ Measured 2026-11-13 on Mateu 3.0-beta.64 (Vaadin renderer, Explorer + the Java, 
 remotes booted with `remotes/run.sh`; the Python remote not started).
 
 **Coverage:** 298 / 298 checklist ids covered by **205 entries** (1 of them `notDemonstrable:` —
-AppShell); **6 entries declare a known Mateu bug** (each one re-checked on beta.64 — the 25 others
+AppShell); **4 entries declare a known Mateu bug** (i18n, proxy-secrets, sample-data, remote-menu; each one re-checked on beta.64 — the 25 others
 declared on beta.51 no longer reproduce and were removed).
 
 **`e2e/explorer-probe.mjs`** — every entry page in a browser:
@@ -207,10 +207,10 @@ declared on beta.51 no longer reproduce and were removed).
 |---|---|---|---|---|---|
 | archetypes | 17 | 17 | 0 | 0 | 0 |
 | behaviour | 110 | 110 | 0 | 0 | 3 |
-| components | 52 | 52 | 0 | 0 | 1 |
-| distributed | 15 | 14 | 0 | 1 | 2 |
+| components | 52 | 52 | 0 | 0 | 0 |
+| distributed | 15 | 14 | 0 | 1 | 1 |
 | page-templates | 11 | 11 | 0 | 0 | 0 |
-| **total** | **205** | **204** | **0** | **1** | **6** |
+| **total** | **205** | **204** | **0** | **1** | **4** |
 
 The one failure is `distributed/federation/cross-backend`: the Python remote was not running. The
 declared known issues are visual or need an interaction, which this probe does not try.
