@@ -1559,6 +1559,28 @@ test('R-3: inline editing — the second edit of a row carries the first, a sear
   }
 })
 
+test('inline editing — a re-stamped cell sends nothing; an edit names the cell it changed', async () => {
+  // 3.0-beta.68 (Vaadin): a grid that re-used a cell editor for another row reported that row's
+  // value as an edit of the previous one. Here a value the TABLE binds arrives as an 'external'
+  // change and is no edit; a user's edit names its cell, which is all the server writes.
+  const cellEdited = chain('flows/main/pages/main-start-page-chains/mateuCellEdited.js')
+  const sent = []
+  const real = chains.runMateuAction
+  chains.runMateuAction = class { async run(_ctx, params) { sent.push(params.parameters) } }
+  try {
+    const ctx = newContext()
+    ctx.$application.variables.mateuListing = { editable: true, columns: [{ field: 'genre', template: 'text' }] }
+    const shown = { _rowNumber: 1, id: 'B-004', genre: 'ScienceFiction' }
+    await new cellEdited().run(ctx, { event: { detail: { value: 'ScienceFiction', updatedFrom: 'external' } }, row: { data: { _rowNumber: 1, id: 'B-002', genre: 'Fantasy' } }, columnIndex: 0 })
+    assert.deepEqual(sent, [])
+    await new cellEdited().run(ctx, { event: { detail: { value: 'Mystery', updatedFrom: 'internal' } }, row: { data: shown }, columnIndex: 0 })
+    assert.deepEqual(sent, [{ _editedRow: { _rowNumber: 1, id: 'B-004', genre: 'Mystery' }, _editedField: 'genre' }])
+  } finally {
+    chains.runMateuAction = real
+    bridge.forgetEditedRows()
+  }
+})
+
 const failed = []
 for (const { name, fn } of queue) {
   reset()

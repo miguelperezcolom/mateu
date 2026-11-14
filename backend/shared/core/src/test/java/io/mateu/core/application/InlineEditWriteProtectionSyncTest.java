@@ -145,6 +145,65 @@ class InlineEditWriteProtectionSyncTest {
             .build());
   }
 
+  private static UIIncrementDto updateCell(
+      Class<?> crud, String route, Map<String, Object> row, String editedField) {
+    return mateu.run(
+        RunActionRqDto.builder()
+            .route(route)
+            .consumedRoute(route)
+            .serverSideType(crud.getName())
+            .actionId("update-row")
+            .initiatorComponentId("c1")
+            .componentState(Map.of())
+            .parameters(Map.of("_editedRow", row, "_editedField", editedField))
+            .build());
+  }
+
+  /**
+   * 3.0-beta.68: a recycled grid cell sent a row carrying ANOTHER row's values. When the request
+   * names the cell the user edited, only that cell is written — the rest of the posted row is the
+   * browser's copy, and the stored record keeps its own values.
+   */
+  @Test
+  void aRowNamingItsEditedCellWritesOnlyThatCell() {
+    updateCell(
+        InlineParts.class,
+        "/inline-parts",
+        Map.of("id", "p1", "name", "Bolt M8", "units", 999),
+        "name");
+    assertThat(stored("p1").name).isEqualTo("Bolt M8");
+    assertThat(stored("p1").units).isEqualTo(10);
+    assertThat(stored("p1").code).isEqualTo("B-01");
+  }
+
+  @Test
+  void aNamedEditedCellThatIsNotInTheRowIsRefused() {
+    var increment =
+        updateCell(InlineParts.class, "/inline-parts", Map.of("id", "p1", "units", 999), "name");
+    assertThat(stored("p1").units).isEqualTo(10);
+    assertThat(increment.messages())
+        .anySatisfy(m -> assertThat(m.text()).contains("the edited cell is not in the edited row"));
+  }
+
+  @Test
+  void aNamedEditedCellTheUserMayNotWriteStaysStored() {
+    updateCell(InlineParts.class, "/inline-parts", Map.of("id", "p1", "code", "HACKED"), "code");
+    assertThat(stored("p1").code).isEqualTo("B-01");
+  }
+
+  @Test
+  void theEditedCellKeepsTheRowsIdAndVersionAndAnOlderClientKeepsItsRow() {
+    var row = Map.<String, Object>of("id", "p1", "name", "x", "units", 3, "version", 7);
+    assertThat(
+            io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.UpdateRowActionHandler
+                .onlyTheEditedCell(row, "name", "id", "version"))
+        .containsExactlyInAnyOrderEntriesOf(Map.of("id", "p1", "version", 7, "name", "x"));
+    assertThat(
+            io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.UpdateRowActionHandler
+                .onlyTheEditedCell(row, null, "id", "version"))
+        .isSameAs(row);
+  }
+
   private static Part stored(String id) {
     return PARTS.stream().filter(p -> p.id.equals(id)).findFirst().orElse(null);
   }

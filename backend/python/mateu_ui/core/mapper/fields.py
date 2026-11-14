@@ -413,13 +413,16 @@ class FieldMapperMixin(MixinBase):
         # ...also when the VIEW CLASS carries it (read_only_unless(...) on the class, .NET's
         # class-level [ReadOnlyUnless])
         # A field-level ReadOnly() locks the field too (Java's field-level @ReadOnly → readOnly).
-        from .crud_modes import current_mode, server_owned
+        from .crud_modes import current_mode, is_technical_id, server_owned
 
         read_only = (
             read_only
             or f.has(ReadOnly)
             # GeneratedValue(): always; EditableOnlyWhenCreating(): but on a creation form
             or server_owned(f, current_mode() == "new")
+            # a crud edit form shows the record's technical id, never as an input (Java's
+            # TechnicalId.isLockedOnTheEditForm)
+            or (current_mode() == "edit" and is_technical_id(f))
             # locked for this request (Java's ReadOnlySupplier)
             or (isinstance(instance, ReadOnlySupplier) and bool(instance.is_read_only(f.name)))
             or not self.authorized(f.marker(ReadOnlyUnless))

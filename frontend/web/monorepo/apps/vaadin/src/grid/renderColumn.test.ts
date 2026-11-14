@@ -88,33 +88,39 @@ describe('column width policy', () => {
     })
 })
 
+// what a user does to an editor: focus it, then change it
+const userEdit = (editor: HTMLElement, set: () => void) => {
+    editor.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    set()
+    editor.dispatchEvent(new Event('change'))
+}
+
 describe('inline-edited cells', () => {
-    it('a listing cell commit persists the edited row with update-row', () => {
+    it('a listing cell commit persists the edited row with update-row, naming the edited cell', () => {
         const row = { id: 1, name: 'Ada' }
         const { el, events } = cell(row, { editable: true, editorType: 'string' })
         const input = el.querySelector('vaadin-text-field') as HTMLElement & { value: string }
-        input.value = 'Ada L.'
-        input.dispatchEvent(new Event('change'))
-        expect(events).toEqual([{ type: 'action-requested', detail: { actionId: 'update-row', parameters: { _editedRow: { id: 1, name: 'Ada L.' } } } }])
+        userEdit(input, () => { input.value = 'Ada L.' })
+        expect(events).toEqual([{ type: 'action-requested', detail: { actionId: 'update-row', parameters: { _editedRow: { id: 1, name: 'Ada L.' }, _editedField: 'name' } } }])
     })
 
     it('a commit that changes nothing is NOT persisted (the checkbox init event, an empty text over null)', () => {
         const { el, events } = cell({ id: 1, name: true }, { editable: true, editorType: 'boolean' })
-        el.querySelector('vaadin-checkbox')!.dispatchEvent(new CustomEvent('checked-changed', { detail: { value: true } }))
+        const box = el.querySelector('vaadin-checkbox') as HTMLElement & { checked: boolean }
+        box.dispatchEvent(new CustomEvent('checked-changed', { detail: { value: true } }))
+        userEdit(box, () => { box.checked = true })
         expect(events).toEqual([])
 
         const other = cell({ id: 2, name: null }, { editable: true, editorType: 'string' })
         const input = other.el.querySelector('vaadin-text-field') as HTMLElement & { value: string }
-        input.value = ''
-        input.dispatchEvent(new Event('change'))
+        userEdit(input, () => { input.value = '' })
         expect(other.events).toEqual([])
     })
 
     it('numeric editors commit numbers (blank → null), never strings', () => {
         const { el, events } = cell({ id: 1, name: 3 }, { editable: true, editorType: 'integer' })
         const input = el.querySelector('vaadin-integer-field') as HTMLElement & { value: string }
-        input.value = '7'
-        input.dispatchEvent(new Event('change'))
+        userEdit(input, () => { input.value = '7' })
         expect(events[0].detail.parameters._editedRow.name).toBe(7)
     })
 
@@ -123,8 +129,7 @@ describe('inline-edited cells', () => {
         const { el, events } = cell(rows[0], { editable: true, editorType: 'string' },
             { field: { fieldId: 'lines' }, state: { lines: rows } })
         const input = el.querySelector('vaadin-text-field') as HTMLElement & { value: string }
-        input.value = 'b'
-        input.dispatchEvent(new Event('change'))
+        userEdit(input, () => { input.value = 'b' })
         expect(events).toEqual([{ type: 'value-changed', detail: { fieldId: 'lines', value: [{ id: 1, name: 'b' }] } }])
     })
 

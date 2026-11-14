@@ -529,6 +529,21 @@ internal sealed partial class SyncHandler
 
         var row = rowEl.EnumerateObject()
             .ToDictionary(prop => prop.Name, prop => (object?)prop.Value);
+        // A request naming the cell the user edited writes ONLY that cell (+ the row's id and
+        // version): the rest of the posted row is the browser's copy of the listing, which a
+        // recycled grid cell once filled with another row's values (Java's
+        // UpdateRowActionHandler.onlyTheEditedCell). An older client naming none keeps its row.
+        var editedFieldRaw = GetState(rq.Parameters, "_editedField");
+        var namesACell = editedFieldRaw is not null and not JsonElement { ValueKind: JsonValueKind.Null };
+        var editedField = namesACell ? StateString(editedFieldRaw) : null;
+        if (namesACell)
+        {
+            if (string.IsNullOrWhiteSpace(editedField) || !row.ContainsKey(editedField))
+                return Error("update-row: the edited cell is not in the edited row");
+            var versionProperty = VersionProperty(element);
+            row = OnlyTheEditedCell(row, editedField, EntityIds.FieldName(element),
+                versionProperty is null ? null : Naming.CamelCase(versionProperty.Name));
+        }
         // The same protection as the editor's save: the row names a STORED record (an unknown id is
         // refused, never inserted), it is laid over that record (the fields it does not carry are
         // kept) and only the fields the user may write are bound (read-only / locked ones keep the
@@ -565,12 +580,27 @@ internal sealed partial class SyncHandler
                 "This row changed while you were editing it. Reload to see the changes or"
                 + " overwrite them with your version.",
                 "search", "update-row",
-                new Dictionary<string, object?> { ["_editedRow"] = rowEl }, rq);
+                editedField is null
+                    ? new Dictionary<string, object?> { ["_editedRow"] = rowEl }
+                    : new Dictionary<string, object?> { ["_editedRow"] = rowEl, ["_editedField"] = editedField },
+                rq);
         BumpVersion(entity);
 
         crudType.GetMethod("Save")!.Invoke(crud, [entity]);
         Observability.RequestObservation.RecordId(id);
         return UIIncrementDto.Of(messages: [new MessageDto("success", "middle", "", "Saved", 3000)]);
+    }
+
+    /// <summary>The cells an inline edit writes when the request names the edited one: that cell,
+    /// plus the row's id and version (they identify and guard the record).</summary>
+    internal static Dictionary<string, object?> OnlyTheEditedCell(
+        Dictionary<string, object?> row, string editedField, string? idField, string? versionField)
+    {
+        var cells = new Dictionary<string, object?>();
+        foreach (var key in new[] { idField, versionField })
+            if (key is not null && row.TryGetValue(key, out var v)) cells[key] = v;
+        cells[editedField] = row[editedField];
+        return cells;
     }
 
     // ── Optimistic locking ([Version], mirrors Java's OptimisticLock) ────────────

@@ -167,6 +167,8 @@ public class PageFormBuilder {
         || MetaAnnotations.isPresent(field, ReadOnly.class)
         || MetaAnnotations.isPresent(field, GeneratedValue.class)
         || (!forCreationForm && MetaAnnotations.isPresent(field, EditableOnlyWhenCreating.class))
+        // a crud's edit form shows the record's technical id, but never as an input
+        || TechnicalId.isLockedOnTheEditForm(field, instance, forCreationForm, httpRequest)
         || readOnlyByPermission(field, instance, httpRequest)
         || (instance instanceof ReadOnlySupplier ros
             && ros.isReadOnly(field.getName(), httpRequest));
@@ -236,6 +238,7 @@ public class PageFormBuilder {
         || MetaAnnotations.isPresent(field, ReadOnly.class)
         || MetaAnnotations.isPresent(field, GeneratedValue.class)
         || (!forCreationForm && MetaAnnotations.isPresent(field, EditableOnlyWhenCreating.class))
+        || TechnicalId.isLockedOnTheEditForm(field, instance, forCreationForm, httpRequest)
         || MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.PlainText.class)
         || MetaAnnotations.isPresent(viewClass, io.mateu.uidl.annotations.PlainText.class)
         || MetaAnnotations.isPresent(

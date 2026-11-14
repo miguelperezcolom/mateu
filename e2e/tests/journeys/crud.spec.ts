@@ -57,7 +57,9 @@ test.describe('create and edit in a drawer (/j/tasks)', () => {
 
     // still open, now on the next record
     await expect(drawer(page).getByRole('textbox', { name: 'Title' })).toHaveValue('Tag the build')
-    await expect(drawer(page).getByRole('textbox', { name: 'Id' })).toHaveValue('T-03')
+    // the technical id is shown read-only on the edit form, never as an input
+    await expect(drawer(page).getByText('T-03').first()).toBeVisible()
+    await expect(drawer(page).getByRole('textbox', { name: 'Id' })).toHaveCount(0)
     await drawer(page).getByRole('button', { name: 'Cancel' }).click()
     await expect(drawer(page)).toHaveCount(0)
     // the save bumped the version
