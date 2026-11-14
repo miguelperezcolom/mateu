@@ -164,3 +164,77 @@ def test_a_field_the_layout_hides_is_not_sent_in_the_view_models_state(tmp_path)
 
     assert '"salary"' not in load(())
     assert '"salary"' in load(("admin",))
+
+
+# --- GA review 2, Y3: the bindings follow the type that RUNS, not the name on the wire -----------
+
+
+def pay_unnamed(h: SyncHandler, route: str, server_side_type=None, action_id="pay", state=None):
+    return h.handle(RunActionRq(
+        route=route, server_side_type=server_side_type, action_id=action_id,
+        component_state={"salary": 999} if state is None else state,
+    ))
+
+
+def said(increment) -> str:
+    return " ".join(m.text for m in increment.messages)
+
+
+@pytest.mark.parametrize("server_side_type", [None, "", "garbage.Nothing"])
+def test_omitting_the_type_at_the_views_own_code_route_keeps_the_locks(tmp_path, server_side_type):
+    """Y3a: PayrollView is also @ui("payroll-code"). Without a (valid) type the route resolves it —
+    the request must get the same locks as the one naming it (it used to run with 999)."""
+    assert said(pay_unnamed(handler(specs(tmp_path)), "/payroll-code", server_side_type)) == "paid 100.0"
+
+
+def test_the_load_at_the_code_route_does_not_send_what_a_bound_layout_hides(tmp_path):
+    import json
+
+    (tmp_path / "routes.yaml").write_text(
+        "routes:\n"
+        f"  - route: payroll-hidden\n    layout: hidden.yaml\n    viewModel: {type_name(PayrollView)}\n"
+    )
+    (tmp_path / "hidden.yaml").write_text(
+        "layout:\n  type: VerticalLayout\n  content:\n"
+        "    - {type: FormField, id: salary, label: Salary, dataType: number, eyesOnly: {roles: [admin]}}\n"
+    )
+    for sst in (None, type_name(PayrollView)):
+        inc = handler(tmp_path).handle(RunActionRq(route="/payroll-code", server_side_type=sst))
+        # the code view draws its own field; its VALUE must not travel in the state
+        assert '"salary": 100' not in json.dumps(inc.model_dump(by_alias=True, mode="json")), sst
+
+
+def test_a_route_bound_to_one_type_keeps_its_locks_when_another_bound_type_is_named(tmp_path):
+    """The route's entry decides the view model that runs; naming ANOTHER bound type must not
+    swap that route's locks for the other type's."""
+    (tmp_path / "routes.yaml").write_text(
+        "routes:\n"
+        f"  - route: payroll-locked\n    layout: locked.yaml\n    viewModel: {type_name(PayrollView)}\n"
+        f"  - route: plain\n    viewModel: {__name__}.PlainPayroll\n"
+    )
+    (tmp_path / "locked.yaml").write_text(LOCKED)
+    out = pay_unnamed(handler(tmp_path), "/payroll-locked", f"{__name__}.PlainPayroll")
+    assert said(out) == "paid 100.0"
+
+
+@ui("conv-code")
+class ConvView:
+    salary: float = 100.0
+
+    @button
+    def pay(self):
+        return Message(f"paid {self.salary}")
+
+
+@pytest.mark.parametrize(
+    "route,named",
+    [("/conv", True), ("/conv", False), ("/hello", True), ("/nowhere", True), ("", True),
+     ("/conv-code", True), ("/conv-code", False)],
+)
+def test_a_convention_page_declaring_view_model_binds_that_type(tmp_path, route, named):
+    """Y3b: specs/ui/conv.yaml declares ``viewModel:`` and no routes.yaml entry names it — its
+    locks bind the type everywhere, as Java's computeBindings counts inline declarations."""
+    (tmp_path / "conv.yaml").write_text(f"viewModel: {type_name(ConvView)}\n" + LOCKED)
+    (tmp_path / "hello.yaml").write_text("type: Text\ntext: Hello\n")
+    out = pay_unnamed(handler(tmp_path), route, type_name(ConvView) if named else None)
+    assert said(out) == "paid 100.0"
