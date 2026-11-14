@@ -383,6 +383,8 @@ jobs:
         shell: pwsh
         env:
           MATEU_OPEN_LINK: mateu://add?u=https://smoke-test.mateu.invalid
+          # the 2026.3 base's first-launch user agreement is modal — accepted for this launch only (see desktop-smoke.sh)
+          JAVA_TOOL_OPTIONS: -Djb.privacy.policy.text=<!--999.999--> -Djb.consents.confirmation.enabled=false
         run: |
           $zip = Get-ChildItem "$env:RUNNER_TEMP\pkg\*-windows.zip" | Select-Object -First 1
           Expand-Archive $zip.FullName -DestinationPath "$env:RUNNER_TEMP\app"

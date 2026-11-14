@@ -21,6 +21,11 @@ target="${2:?the packaged app}"
 out="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/mateu-smoke.out"
 here="$(cd "$(dirname "$0")" && pwd)"
 export MATEU_OPEN_LINK='mateu://add?u=https://smoke-test.mateu.invalid'
+# The 2026.3 base asks a fresh profile to accept JetBrains' user agreement in a MODAL dialog before any
+# plugin starts (seen on the beta.66 dry run: the event thread parked in AgreementUi). A user clicks it;
+# a CI runner cannot, so the smoke marks it accepted for THIS launch only — the JVM reads
+# JAVA_TOOL_OPTIONS itself, nothing in the (signed) bundle changes. The ide-starter does the same.
+export JAVA_TOOL_OPTIONS='-Djb.privacy.policy.text=<!--999.999--> -Djb.consents.confirmation.enabled=false'
 
 case "$platform" in
   macos)
@@ -71,10 +76,12 @@ if [[ "$platform" = macos ]]; then
 fi
 # Linux: when Mateu never got as far as the hub link, say WHERE the app stands before it is killed —
 # a modal dialog (an agreement, an import prompt) leaves idea.log silent, and only the event thread tells.
-if [[ "$platform" = linux ]] && ! grep -q 'Mateu hub: a link asks to add' "$log" 2> /dev/null; then
-  for p in $(pgrep -f "$target/jbr" 2> /dev/null); do
+if ! grep -q 'Mateu hub: a link asks to add' "$log" 2> /dev/null; then
+  if [[ "$platform" = macos ]]; then jcmd="$target/Contents/jbr/Contents/Home/bin/jcmd"; procs=$pid
+  else jcmd="$target/jbr/bin/jcmd"; procs=$(pgrep -f "$target/jbr" 2> /dev/null); fi
+  for p in $procs; do
     echo "--- event thread of $p"
-    "$target/jbr/bin/jcmd" "$p" Thread.print 2> /dev/null \
+    "$jcmd" "$p" Thread.print 2> /dev/null \
       | awk '/^"AWT-EventQueue/{on=1} on&&/^$/{exit} on' | head -60
   done
   echo "--- idea.log (last 40 lines)"; tail -40 "$log" 2> /dev/null || true
