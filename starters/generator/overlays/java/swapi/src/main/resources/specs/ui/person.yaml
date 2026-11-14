@@ -1,7 +1,7 @@
 # One character, read-only (route people/:id). The route's `data:` fetches the record into the
 # page state and the fields show it. The toolbar's back button navigates because its actionable is
 # a RouteLink — a back id renders as a < chevron before the title.
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.64/backend/shared/uidl/specs-schema.json
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.67/backend/shared/uidl/specs-schema.json
 type: Form
 title: ${state.name}
 subtitle: Character

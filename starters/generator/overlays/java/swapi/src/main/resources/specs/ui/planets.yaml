@@ -1,5 +1,5 @@
 # A listing over the `planets` source (sources.yaml); a row opens the planet at planets/<id>.
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.64/backend/shared/uidl/uidl-schema.json
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.67/backend/shared/uidl/uidl-schema.json
 pageType: collection
 type: Listing
 title: Planets
