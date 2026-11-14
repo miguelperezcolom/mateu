@@ -212,19 +212,30 @@ class MateuFocusedModeActivity : ProjectActivity {
         }
     }
 
-    /** Reduce the native menu bar to the essentials — drop the dev-oriented top menus. */
+    /**
+     * The menu bar of an APP, not of an IDE: File (Settings, Exit), Edit (undo, clipboard, select
+     * all, find) and Help (About) — a WHITELIST, rebuilt from the registered actions. On Windows
+     * and Linux the bar is drawn inside the window, and the IDE's own File/Edit/View/Tools/Window
+     * menus (Project Structure, Invalidate Caches, Find Usages, Repair IDE…) showed there; on macOS
+     * the same menus fill the system bar. Removing the dev menus one by one kept the rest of the IDE.
+     */
     private fun stripMainMenu() {
-        val remove = { id: String ->
-            id in setOf("GoToMenu", "CodeMenu", "RefactoringMenu", "BuildMenu", "RunMenu", "AnalyzeMenu") ||
-                id.contains("Vcs", ignoreCase = true)
-        }
         runCatching {
             val am = ActionManager.getInstance()
             val menu = am.getAction("MainMenu") as? DefaultActionGroup ?: return
-            for (child in menu.getChildActionsOrStubs()) {
-                val id = am.getId(child) ?: continue
-                if (remove(id)) menu.remove(child)
+            val sections = appMenuSections().mapNotNull { (title, groups) ->
+                val section = DefaultActionGroup(title, true)
+                groups.forEachIndexed { i, ids ->
+                    val actions = ids.mapNotNull { am.getAction(it) }
+                    if (actions.isEmpty()) return@forEachIndexed
+                    if (i > 0 && section.childrenCount > 0) section.addSeparator()
+                    actions.forEach(section::add)
+                }
+                section.takeIf { it.childrenCount > 0 }
             }
+            if (sections.isEmpty()) return // nothing to show: keep the platform's bar rather than none
+            menu.removeAll()
+            sections.forEach(menu::add)
         }
     }
 
@@ -330,5 +341,15 @@ class MateuFocusedModeActivity : ProjectActivity {
 
         @Volatile
         private var quitHooked = false
+
+        /**
+         * The app's whole menu bar ([stripMainMenu]): each menu's title and its groups of action ids
+         * (a separator between groups). Ids the platform does not register are skipped.
+         */
+        internal fun appMenuSections(): List<Pair<String, List<List<String>>>> = listOf(
+            "File" to listOf(listOf("ShowSettings"), listOf("Exit")),
+            "Edit" to listOf(listOf("\$Undo", "\$Redo"), listOf("\$Cut", "\$Copy", "\$Paste"), listOf("\$SelectAll", "Find")),
+            "Help" to listOf(listOf("About")),
+        )
     }
 }
