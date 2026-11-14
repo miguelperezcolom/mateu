@@ -38,7 +38,7 @@ import { NotifyOnThisDevice } from './TaskHost';
 import { useRemotePush } from './RemotePush';
 import { HeaderValuesView, IdleSessionGuard, QuickLaunch, useLiveUpdates, type ShellExtrasMeta } from './AppShellExtras';
 import type { AppShortcut } from '../core/appShellExtras';
-import { ConnectAiEntry, useAgentChannel, type AgentPushMeta } from './AgentPush';
+import { AgentOperatingNotice, ConnectAiEntry, useAgentChannel, type AgentPushMeta } from './AgentPush';
 import { openExternal } from './openExternal';
 import { fetch as streamingFetch } from 'expo/fetch';
 import { discoverDevEvents, followLiveReload } from '../core/liveReload';
@@ -227,6 +227,7 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, baseUrl
           onController={(c) => {
             topController.current = c;
             appSession.currentScreen = () => screenOf(c);
+            appSession.agentScreen.page = c;
           }}
         />
       </ScreenHasBack.Provider>
@@ -247,7 +248,10 @@ function PreviewScreen({ preview, onDismiss, bottomInset }: { preview: ContentPr
         key={preview.version}
         session={session}
         preview={{ increment: preview.increment, route: preview.route, consumedRoute: preview.route }}
-        onController={(c) => (session.currentScreen = () => screenOf(c))}
+        onController={(c) => {
+          session.currentScreen = () => screenOf(c);
+          session.agentScreen.page = c;
+        }}
       />
     </View>
   );
@@ -1071,6 +1075,11 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // the remotes the app's menu names are the ones its backend chose: they may carry credentials
   declareMenuRemotes(session, appMeta.menu);
   const runAppAction = useRunAppAction(appMeta);
+  // what an agent reading / operating this UI sees of its shell (core/agentScreen.ts): its header
+  // actions run, and a button route navigates, as the user's own press does
+  session.agentScreen.app = appMeta as unknown as Record<string, unknown>;
+  session.agentScreen.runAppAction = runAppAction;
+  session.agentScreen.navigate = (route) => session.openView({ label: '', route, consumedRoute: '', serverSideType: '' });
   // the assistant's render-screen shown in the content area: transient — any navigation (even back
   // to the same menu entry) shows the real screen again
   const [preview, setPreview] = useState<ContentPreview | null>(null);
@@ -1185,6 +1194,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   const guard = (content: React.ReactNode) => (
     <IdleSessionGuard meta={appMeta} runAppAction={(id) => void runAppAction(id)} onSignOut={goHome}>
       {content}
+      {/* "An AI agent is operating this screen" + Stop, while an agent reads / operates it */}
+      <AgentOperatingNotice meta={appMeta} />
     </IdleSessionGuard>
   );
 

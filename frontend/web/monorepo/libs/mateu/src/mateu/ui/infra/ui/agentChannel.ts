@@ -10,6 +10,8 @@ import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
 import { SseParser } from './chatStream'
 import { CLOSE_REQUESTED } from './chatEvents'
 import { applyAgentEvent } from './agentEvents'
+import { describeScreen, runAction, setFields, type QueryAnswer } from './agentScreen'
+import { noteAgentQuery, setAgentStopHandler, stopOperating } from './agentOperating'
 
 /**
  * The LIVE UI PUSH channel (`AppDto.agentPush`, conformance/mcp/README.md "Live UI push"): an agent
@@ -26,8 +28,10 @@ import { applyAgentEvent } from './agentEvents'
  * reconnects at once (with a back-off when it failed, or ended right away).
  *
  * `status` messages feed the "Connect AI" control (mateu-agent-connect) through
- * {@link subscribeAgentStatus}; every other one goes through {@link applyAgentEvent}, exactly as
- * the chat's events do.
+ * {@link subscribeAgentStatus}; `query` messages (an agent reading or operating this screen) are
+ * answered through `_agent-screen` (agentScreen.ts) while the "An AI agent is operating this
+ * screen" notice is shown (agentOperating.ts, whose Stop closes the channel); every other one goes
+ * through {@link applyAgentEvent}, exactly as the chat's events do.
  */
 
 export { AGENT_SECRET_KEY }
@@ -36,7 +40,7 @@ export const AGENT_STATUS_EVENT = 'mateu-agent-status'
 /** A stream that ended cleanly after living at least this long is a normal end: reconnect at once. */
 export const HEALTHY_STREAM_MS = 5_000
 
-export type AgentPushKind = 'status' | 'render' | 'navigate' | 'event'
+export type AgentPushKind = 'status' | 'render' | 'navigate' | 'event' | 'query'
 
 export interface AgentPush { kind: AgentPushKind, event: string, detail: unknown }
 
@@ -51,7 +55,9 @@ export interface AgentStatus {
 
 export interface AgentPairing { code: string, expiresInSeconds: number }
 
-const KINDS: AgentPushKind[] = ['status', 'render', 'navigate', 'event']
+const KINDS: AgentPushKind[] = ['status', 'render', 'navigate', 'event', 'query']
+
+export const QUERY_EVENTS = ['describe-screen', 'set-fields', 'run-action'] as const
 
 /** Pure: the AgentPush messages an increment carries, in order. */
 export const agentPushesOf = (increment: unknown): AgentPush[] => {
@@ -149,6 +155,8 @@ interface Target { baseUrl: string, route: string, serverSideType: string, origi
 
 let target: Target | null = null
 let controller: AbortController | null = null
+/** The user pressed Stop: no channel until they connect an agent again. */
+let stopped = false
 let failures = 0
 let reconnectTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -158,6 +166,10 @@ const currentRoute = () => (typeof window !== 'undefined' ? window.location.path
 export const applyAgentPush = (origin: Element, push: AgentPush) => {
     if (push.kind === 'status' || push.event === AGENT_STATUS_EVENT) {
         setStatus({ ...status, ...statusOf(push.detail) })
+        return
+    }
+    if (push.kind === 'query') {
+        void answerQuery(origin, push)
         return
     }
     // the chat panel's own close: never something the channel can ask for
@@ -181,13 +193,68 @@ onTabSessionRekeyed(() => {
     connect()
 })
 
+// ── queries: an agent reading or operating this screen ─────────────────────────────────────
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/** The shell's App metadata (the origin is the shell). */
+const appOf = (origin: Element): unknown => (origin as unknown as { component?: { metadata?: unknown } }).component?.metadata
+
+/** Pure: what a query asks, read defensively. */
+export const queryOf = (push: AgentPush): { requestId: string, event: string, detail: Record<string, any> } | null => {
+    const detail = (push.detail ?? {}) as Record<string, any>
+    const requestId = typeof detail.requestId === 'string' ? detail.requestId : ''
+    if (!requestId || !(QUERY_EVENTS as readonly string[]).includes(push.event)) return null
+    return { requestId, event: push.event, detail }
+}
+
+/** Runs one query on this tab's screen; never throws (a failure is the refusal `failed`). */
+export const runQuery = async (origin: Element, event: string, detail: Record<string, any>): Promise<QueryAnswer> => {
+    const app = appOf(origin)
+    try {
+        if (event === 'describe-screen') return describeScreen(app)
+        if (event === 'set-fields') {
+            const values = detail.values && typeof detail.values === 'object' && !Array.isArray(detail.values) ? detail.values : {}
+            return await setFields(app, values)
+        }
+        if (event === 'run-action') {
+            const row = Number.isInteger(detail.row) ? detail.row as number : undefined
+            return await runAction(app, origin as HTMLElement, String(detail.actionId ?? ''),
+                detail.parameters && typeof detail.parameters === 'object' ? detail.parameters : undefined,
+                row, typeof detail.listing === 'string' ? detail.listing : undefined)
+        }
+        return { error: { code: 'unsupported' } }
+    } catch (e) {
+        console.warn('[mateu] agent query', e)
+        return { error: { code: 'failed' } }
+    }
+}
+
+const answerQuery = async (origin: Element, push: AgentPush) => {
+    const query = queryOf(push)
+    const t = target
+    if (!query || !t || stopped) return
+    noteAgentQuery()
+    const answer = await runQuery(origin, query.event, query.detail)
+    if (!target || stopped) return
+    try {
+        await tabSessionReady()
+        await mateuApiClient.runAction(t.baseUrl, t.route, '', '_agent-screen', 'mateu-agent-channel',
+            undefined, t.serverSideType, {}, { sessionId: sessionId(), secret: channelSecret(), requestId: query.requestId, ...answer },
+            origin as HTMLElement, true)
+    } catch (e) {
+        console.warn('[mateu] agent query answer', e)
+    }
+}
+
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
 const schedule = (delay: number) => {
     clearTimeout(reconnectTimer)
     reconnectTimer = setTimeout(() => { reconnectTimer = undefined; if (target && !controller) connect() }, delay)
 }
 
 const connect = () => {
-    if (!target || controller) return
+    if (!target || controller || stopped) return
     const own = new AbortController()
     controller = own
     const { baseUrl, route, serverSideType } = target
@@ -287,6 +354,12 @@ const runAgentAction = async (app: App, baseUrl: string, actionId: string, from:
 
 /** Asks for a new one-time pairing code (`_agent-pair`). Rejects when the server gives none. */
 export const pairAgent = async (app: App, baseUrl: string, from: HTMLElement): Promise<AgentPairing> => {
+    // connecting an agent again, after Stop: the channel comes back first (the code is its session's)
+    if (stopped) {
+        stopped = false
+        if (target && !controller) connect()
+        await whenConnected(5_000)
+    }
     const pairing = pairingOf(await runAgentAction(app, baseUrl, '_agent-pair', from))
     if (!pairing) throw new Error('no pairing code')
     return pairing
@@ -298,8 +371,51 @@ export const unpairAgent = async (app: App, baseUrl: string, from: HTMLElement):
     setStatus({ ...status, paired: false, agents: [] })
 }
 
+/** Waits until the channel's stream is open (at most `ms`). */
+const whenConnected = (ms: number): Promise<void> => new Promise((resolve) => {
+    if (status.connected) { resolve(); return }
+    const timer = setTimeout(() => { listeners.delete(check); resolve() }, ms)
+    const check = (s: AgentStatus) => {
+        if (!s.connected) return
+        clearTimeout(timer)
+        listeners.delete(check)
+        resolve()
+    }
+    listeners.add(check)
+})
+
+/**
+ * Stop (the "An AI agent is operating this screen" notice): every pairing of this tab removed and
+ * its channel closed — no agent reaches it any more, its user's own included, until the user
+ * connects one again ("Connect AI").
+ */
+export const stopAgentChannel = async (): Promise<void> => {
+    const t = target
+    stopped = true
+    stopOperating()
+    if (t) {
+        try {
+            await tabSessionReady()
+            await mateuApiClient.runAction(t.baseUrl, t.route, '', '_agent-unpair', 'mateu-agent-channel',
+                undefined, t.serverSideType, {}, { sessionId: sessionId(), secret: channelSecret() },
+                t.origin as HTMLElement, true)
+        } catch {
+            // the channel goes anyway
+        }
+    }
+    failures = 0
+    stopStream()
+    setStatus({ connected: false, paired: false, agents: [] })
+}
+
+setAgentStopHandler(() => stopAgentChannel())
+
+/** Whether the user stopped the agents on this tab. */
+export const agentChannelStopped = (): boolean => stopped
+
 /** For tests. */
 export const resetAgentChannel = () => {
+    stopped = false
     target = null
     stopStream()
     failures = 0

@@ -16,6 +16,7 @@ import { secureRandomBytes } from './secureRandom.ts';
 import { randomUuid } from './sessionId.ts';
 import { reconnectDelay } from './appShellExtras.ts';
 import type { ChatUiEvent } from './chatStream.ts';
+import { agentQueryOf, type AgentQuery } from './agentScreen.ts';
 
 type Json = Record<string, unknown>;
 
@@ -72,6 +73,7 @@ export class AgentPushState {
   private identity: UiSessionIdentity | null = null;
   private current: AgentStatus = NOT_PAIRED;
   private known = false;
+  private stopped = false;
   private listeners = new Set<() => void>();
 
   private readonly make: () => UiSessionIdentity;
@@ -99,6 +101,26 @@ export class AgentPushState {
   /** Whether the channel has reported a status yet (i.e. it is connected). */
   get connected(): boolean {
     return this.known;
+  }
+
+  /** The user pressed Stop on the "an agent is operating this screen" notice: the channel stays
+   *  closed until the user connects an agent again ("Connect AI"). */
+  get stoppedByUser(): boolean {
+    return this.stopped;
+  }
+
+  stopByUser(): void {
+    if (this.stopped) return;
+    this.stopped = true;
+    this.setStatus(NOT_PAIRED, false);
+    this.emit();
+  }
+
+  /** The user connects an agent again: the channel may open. */
+  resume(): void {
+    if (!this.stopped) return;
+    this.stopped = false;
+    this.emit();
   }
 
   /** Records a status; returns what changed, to announce ("AI connected: alice"), or null. */
@@ -184,6 +206,7 @@ const EVENT_NAME = /^[A-Za-z][A-Za-z0-9_.:-]{0,63}$/;
 export type AgentPushRoute =
   | { kind: 'status'; status: AgentStatus }
   | { kind: 'ui'; event: ChatUiEvent }
+  | { kind: 'query'; query: AgentQuery }
   | { kind: 'ignored' };
 
 /**
@@ -205,6 +228,12 @@ export function routeAgentPush(message: AgentPushMessage): AgentPushRoute {
       return EVENT_NAME.test(message.event) && !RESERVED_EVENTS.has(message.event)
         ? { kind: 'ui', event: { event: message.event, detail } }
         : { kind: 'ignored' };
+    case 'query': {
+      // what the user sees / a field to type into / an action to press: answered through
+      // `_agent-screen` (core/agentScreen.ts)
+      const query = agentQueryOf(message.kind, message.event, detail);
+      return query ? { kind: 'query', query } : { kind: 'ignored' };
+    }
     default:
       return { kind: 'ignored' };
   }
@@ -296,6 +325,8 @@ export interface AgentChannelDeps {
   state: AgentPushState;
   /** A pushed UI event, to apply exactly like the chat's. */
   onEvent: (event: ChatUiEvent) => void;
+  /** A query (read / operate the screen), to answer through `_agent-screen`. */
+  onQuery?: (query: AgentQuery) => void;
   /** A status change worth announcing ("AI connected: alice"). */
   onAnnounce?: (text: string) => void;
   schedule?: (fn: () => void, ms: number) => () => void;
@@ -335,7 +366,7 @@ export class AgentChannel {
   }
 
   start(): void {
-    if (this.disposed) return;
+    if (this.disposed || this.deps.state.stoppedByUser) return;
     this.running = true;
     if (this.controller || this.cancelTimer) return;
     void this.connect();
@@ -368,6 +399,12 @@ export class AgentChannel {
       if (route.kind === 'status') {
         const said = this.deps.state.setStatus(route.status);
         if (said) this.deps.onAnnounce?.(said);
+      } else if (route.kind === 'query') {
+        try {
+          this.deps.onQuery?.(route.query);
+        } catch (e) {
+          this.deps.log?.(`agent channel: answering ${route.query.event} failed: ${e instanceof Error ? e.message : String(e)}`);
+        }
       } else if (route.kind === 'ui') {
         try {
           this.deps.onEvent(route.event);

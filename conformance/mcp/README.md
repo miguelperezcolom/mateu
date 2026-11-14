@@ -207,6 +207,7 @@ Each message is an increment carrying ONE command `{type: "AgentPush", data: {ki
 | `render` | `render-screen` | `{yaml, target, title?}` | exactly what it does with the chat's `render-screen`: a subscriber first, else the built-in render target (`__preview__` → content / drawer / dialog) |
 | `navigate` | `navigation-requested` | `{route, consumedRoute, actionId?, baseUrl?, serverSideType?, uriPrefix?}` | like the chat's `navigation-requested` (a menu click with those fields) |
 | `event` | the name | the detail (`{}` when none) | like any other chat event: a DOM `CustomEvent` / the session event bus |
+| `query` | `describe-screen` / `set-fields` / `run-action` | `{requestId, …}` | answers through `_agent-screen` — see "Reading and operating the screen the user has open" |
 
 ### Who may reach a session
 
@@ -255,9 +256,100 @@ session; try again in a minute.`). Every delivery is logged at INFO: `Mateu agen
 session=<handle> kind=<kind> <target=…|event=…|route=…> bytes=<n>`. With push off the push tools are
 neither listed nor callable (`Unknown tool: <name>`).
 
+### Reading and operating the screen the user has open
+
+Three more tools (same switch, same access model, listed after `mateu_dispatch_event`) let an agent
+SEE what the user is looking at in that tab and ACT on it as the user would. The server cannot know
+what a tab draws, so it ASKS the tab: it sends a `query` message over the channel and waits for the
+tab's answer.
+
+| Tool | Message sent (`kind: "query"`) | Detail |
+|---|---|---|
+| `mateu_get_session_screen {session}` | `describe-screen` | `{requestId}` |
+| `mateu_set_session_fields {session, values}` | `set-fields` | `{requestId, values}` |
+| `mateu_run_session_action {session, actionId, parameters?, row?, listing?}` | `run-action` | `{requestId, actionId, parameters?, row?, listing?}` (absent ones are not sent) |
+
+`requestId` is fresh (≥ 128 random bits, URL-safe) and always the detail's first key. The tab answers
+with the app-level action **`_agent-screen`** on the sync endpoint (dispatched like `_agent-pair`),
+`parameters: {sessionId, secret, requestId, screen}` — what it shows after doing what was asked — or
+`{sessionId, secret, requestId, error: {code, id?}}` when it refused; answer `Data{}`. The session id,
+secret and principal must match the session's (else `This UI session belongs to another channel.`);
+an unknown, finished or timed-out `requestId` is ignored. A `screen` larger than 262144 UTF-8 bytes
+of JSON is taken as the refusal `tooLarge`; an answer with neither is `failed`.
+
+The tool's result is `{session, screen}` (the tab's screen, as it sent it). A refusal is the tool error
+for its code — `unknownField` → `Field "<id>" is not on the screen or cannot be edited.`,
+`unknownAction` → `Action "<id>" is not offered by the screen.`, `disabledAction` → `Action "<id>" is
+disabled.`, `unknownRow` → `Row <id> is not on the current page of the listing.`, `unsupported` →
+`This client does not support reading or operating its screen.`, `tooLarge` → `The screen the UI
+answered is larger than the 262144-byte limit.`, anything else → `The UI could not complete the
+request.` (the id is clipped to 200 characters and its control characters become `?`).
+
+Checks, in order: arguments (`values` not an object → `Missing argument "values".`; `row` not an
+integer ≥ 0 → `Invalid row: use the 0-based index of a row in the listing's rows.`; `values` /
+the run-action detail serialised > 65536 bytes → `The detail is larger than the 65536-byte limit.`),
+visibility, connection, rate limit (each request counts as a message; more than 4 requests waiting
+for one session → the rate-limit error too), then the wait: no answer within
+`mateu.mcp.push.answer-timeout-ms` (default 10000; .NET `MateuOptions.McpPushAnswerTimeoutMs`, Python
+`add_mateu(mcp_push_answer_timeout_ms=…)`, env `MATEU_MCP_PUSH_ANSWER_TIMEOUT_MS`) → `Session "<s>"
+did not answer in time.`; the stream closing meanwhile → `Session "<s>" is not connected.` at once.
+Each request is logged at INFO WITHOUT values: `Mateu agent push: caller=<label> session=<handle>
+kind=query event=<event>[ fields=<n>| action=<id>] bytes=<n>`.
+
+**What the tab does** (every renderer; a renderer that cannot answers `error: {code: "unsupported"}`):
+
+- `describe-screen` — builds the summary below from ITS OWN rendered wire state, nothing else.
+- `set-fields` — every id must be a field of the summary's focus (the overlay's when one is open)
+  that is not `readOnly`, or the listing's `searchText` / a filter id; the first other id refuses the
+  WHOLE call (`unknownField`, nothing changed). Each value is applied exactly as a user edit is (the
+  field's own change event: validation, client rules, OnValueChange triggers, the dirty state), then
+  it answers the summary.
+- `run-action` — the id must be one the summary offers (its `actions`, `otherActionIds`, a listing's
+  `actions`/`rowActions`/`builtInActions`, the `appActions`), else `unknownAction`; one shown
+  `enabled: false` → `disabledAction`. With `row`, the row of the listing named by `listing` (the
+  first one when absent) on its current page, else `unknownRow` (id = the index). `open-row` opens the
+  row as a click on it does, a row action runs with that row, `search` / `nextPage` / `prevPage` drive
+  the listing; any other id is pressed as a click on it: its validation, its leave question and its
+  confirmation (shown to the USER, who answers it) apply. The tab waits until the screen settled (no
+  call of its own in flight, ≤ 6 s) and answers the summary.
+
+While an agent operates a tab (from its first `query` until 2 minutes after the last one), the
+renderer shows a small non-modal notice "An AI agent is operating this screen" with **Stop**, in the
+six chrome languages; Stop unpairs the session (`_agent-unpair`) and closes its channel — the tab
+opens it again only when the user connects an agent again ("Connect AI").
+
+**The summary** (the shape the desktop app's `mateu_get_screen` answers, so an agent reads both the
+same way). Only what the wire gave the tab, and what is visible: a field the server did not send is
+not there, one a client rule hid is left out, a password is `"••••••"` (or `""`), no token, secret or
+credential. Caps: text 500 characters (`…` appended), lists 50, options 50, rows 50, fields 200,
+actions 200, the last 10 messages; a `data:` value is `[<type> data, <n> characters]`; each cut path
+is listed in `truncated`.
+
+```
+{ route, windowTitle?, focus: "page" | "overlay",
+  appContext?: [{field, label, value, valueLabel?, options: [{value, label}]}],
+  appActions?: [{id, label, navigatesTo?, children?}],
+  overlay?: {kind: "dialog" | "drawer", title?, subtitle?, …view},
+  page?: {…view},            // only with an overlay; else the view's keys are at the top level
+  …view,
+  messages?: [{variant, title?, text}],
+  truncated?: [path…] }
+view = { header?: {title?, subtitle?, overline?, timestamp?, badges?: [text], kpis?: [{title, value}]},
+  breadcrumbs?: [{label, route?}],
+  fields: [{id, label?, type, stereotype?, required?, readOnly?, help?, value, options?, optionsFrom?, error?}],
+  errors?: {fieldId: message},
+  actions: [{id, label?, enabled, navigatesTo?, needsSelectedRows?, children?}],
+  otherActionIds?: [id],
+  listings?: [{id, title?, columns: [{id, label}], actions, searchText?, filters?: [{id, label, type, value?, from?, to?, options?}],
+    sort?, page?, pageSize?, totalElements?, rows: [{column: value}], rowActions: [{id, label}],
+    rowsSelectable?, builtInActions?: ["search", "nextPage", "prevPage"], rowsFrom?}] }
+```
+
+Older renderers ignore a `query` message, so the tool answers `did not answer in time`.
+
 ### The sidecar
 
-`MATEU_PUSH=true` lists the five tools; each call is forwarded as `tools/call` to the backend's
+`MATEU_PUSH=true` lists the eight tools; each call is forwarded as `tools/call` to the backend's
 `MATEU_MCP_URL` (default `<MATEU_BASE_URL>/mateu/mcp`) with the `MATEU_TOKEN` bearer and an
 `X-Mateu-Agent-Key` (`MATEU_AGENT_KEY`, else a random key generated per sidecar process), and the
 backend's result is returned as is.

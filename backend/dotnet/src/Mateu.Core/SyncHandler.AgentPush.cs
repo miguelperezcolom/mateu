@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Mateu.Core.AgentPush;
 using Mateu.Dtos;
 using Mateu.Uidl;
@@ -16,6 +17,10 @@ internal sealed partial class SyncHandler
 
     /// <summary>The app-level action that removes every pairing of the session.</summary>
     public const string AgentUnpairAction = "_agent-unpair";
+
+    /// <summary>The app-level action the UI answers a <c>query</c> message with:
+    /// <c>{sessionId, secret, requestId, screen | error: {code, id?}}</c> → Data{}.</summary>
+    public const string AgentScreenAction = "_agent-screen";
 
     /// <summary>The data key the pairing answer travels under.</summary>
     public const string AgentPairingKey = "_agentPairing";
@@ -43,7 +48,7 @@ internal sealed partial class SyncHandler
     }
 
     private static bool IsAgentAction(string? actionId) =>
-        actionId is AgentChannelAction or AgentPairAction or AgentUnpairAction;
+        actionId is AgentChannelAction or AgentPairAction or AgentUnpairAction or AgentScreenAction;
 
     /// <summary><c>_agent-pair</c> → Data{_agentPairing: {code, expiresInSeconds}};
     /// <c>_agent-unpair</c> → Data{_agentPairing: null}. A channel asked on the sync endpoint is
@@ -61,6 +66,18 @@ internal sealed partial class SyncHandler
                     ["expiresInSeconds"] = (int)AgentSessions.CodeLifetime.TotalSeconds,
                 };
                 break;
+            case AgentScreenAction:
+            {
+                var parameters = rq.Parameters;
+                JsonNode? Node(string key) => parameters is not null && parameters.TryGetValue(key, out var v) && v is not null
+                    ? System.Text.Json.JsonSerializer.SerializeToNode(v)
+                    : null;
+                var requestId = StateString(GetState(rq.Parameters, "requestId"));
+                sessions.Answer(Param(rq, "sessionId"), Param(rq, "secret"), Principal?.Invoke(), requestId,
+                    AgentSessions.AnswerOf(Node("screen"), Node("error")));
+                return UIIncrementDto.Of(fragments:
+                    [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, new Dictionary<string, object?>(), "Replace", null)]);
+            }
             case AgentUnpairAction:
                 sessions.Unpair(Param(rq, "sessionId"), Param(rq, "secret"), Principal?.Invoke());
                 pairing = null;

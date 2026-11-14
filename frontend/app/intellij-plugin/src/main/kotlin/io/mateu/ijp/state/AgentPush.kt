@@ -18,6 +18,9 @@ object AgentPush {
     const val CHANNEL_ACTION = "_agent-channel"
     const val PAIR_ACTION = "_agent-pair"
     const val UNPAIR_ACTION = "_agent-unpair"
+
+    /** The UI's answer to a `query` message (what it shows, or why it refused): [AgentScreenQueries]. */
+    const val SCREEN_ACTION = "_agent-screen"
     const val RENDERER = "intellij"
     const val STATUS_EVENT = "mateu-agent-status"
     const val COMMAND_TYPE = "AgentPush"
@@ -53,6 +56,9 @@ object AgentPush {
         /** Apply [event] exactly like the chat's event of that name (`ui/AgentEvents`). */
         data class UiEvent(val event: String, val detail: JsonNode) : Effect
 
+        /** A `query` message: describe / operate the screen and answer through [SCREEN_ACTION]. */
+        data class Query(val event: String, val requestId: String, val detail: JsonNode) : Effect
+
         data object Ignore : Effect
     }
 
@@ -73,6 +79,11 @@ object AgentPush {
         "event" -> {
             val name = message.event
             if (name.isBlank() || name in RESERVED_EVENTS) Effect.Ignore else Effect.UiEvent(name, message.detail)
+        }
+        "query" -> {
+            val requestId = message.detail.text("requestId")
+            if (requestId.isBlank() || message.event.isBlank()) Effect.Ignore
+            else Effect.Query(message.event, requestId, message.detail)
         }
         else -> Effect.Ignore
     }

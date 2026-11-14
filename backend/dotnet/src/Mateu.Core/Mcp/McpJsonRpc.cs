@@ -35,6 +35,38 @@ internal static class McpJsonRpc
     public static JsonNode? Handle(JsonNode? message, McpService svc) =>
         Handle(message, svc, DevSpecs.Enabled, DevSpecs.SpecsDir);
 
+    /// <summary><see cref="Handle(JsonNode?, McpService)"/> for the HTTP endpoint: a screen tool (which
+    /// waits for the tab's answer, another request on this host) is awaited instead of blocking a
+    /// thread-pool thread; everything else is <see cref="Handle(JsonNode?, McpService)"/>.</summary>
+    public static async Task<JsonNode?> HandleAsync(JsonNode? message, McpService svc)
+    {
+        if (message is JsonObject msg && AsString(msg["method"]) == "tools/call" && svc.Push is not null
+            && msg["params"] is JsonObject pars && AsString(pars["name"]) is { } name
+            && McpPushTools.ScreenTools.Contains(name))
+        {
+            var idNode = msg["id"];
+            if (idNode is null) return null;
+            try
+            {
+                var data = await McpPushTools.DispatchAsync(svc, svc.Push, name,
+                    pars["arguments"] as JsonObject ?? new JsonObject()).ConfigureAwait(false);
+                return Ok(idNode, new JsonObject
+                {
+                    ["content"] = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = data.ToJsonString(Pretty) }),
+                });
+            }
+            catch (Exception e)
+            {
+                return Ok(idNode, new JsonObject
+                {
+                    ["isError"] = true,
+                    ["content"] = new JsonArray(new JsonObject { ["type"] = "text", ["text"] = "Error: " + ErrorText(e, name) }),
+                });
+            }
+        }
+        return Handle(message, svc);
+    }
+
     /// <summary><see cref="Handle(JsonNode?, McpService)"/> with the development mode and the specs
     /// directory given (the host's — and the tests').</summary>
     internal static JsonNode? Handle(JsonNode? message, McpService svc, bool devMode, string? specsDir)

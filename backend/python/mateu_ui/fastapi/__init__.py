@@ -229,6 +229,7 @@ def add_mateu(
     mcp_push_max_sessions: int | None = None,
     mcp_push_max_sessions_per_owner: int | None = None,
     mcp_push_max_anonymous_sessions_per_address: int | None = None,
+    mcp_push_answer_timeout_ms: int | None = None,
     build_id: str | None = None,
     oracle_cdn_url: str | None = None,
     public_base_path: str | None = None,
@@ -305,6 +306,9 @@ def add_mateu(
       (``MATEU_MCP_PUSH_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS``, default 200) one client address — the
       address the server reports, so behind a reverse proxy run uvicorn with ``--proxy-headers``
       and ``--forwarded-allow-ips`` set to the proxy, or every anonymous UI shares its address.
+      ``mcp_push_answer_timeout_ms`` (``MATEU_MCP_PUSH_ANSWER_TIMEOUT_MS``, default 10000) is how
+      long ``mateu_get_session_screen`` / ``mateu_set_session_fields`` / ``mateu_run_session_action``
+      wait for the tab's answer (``_agent-screen``).
     - ``build_id`` — the id every response of a Mateu endpoint carries in ``X-Mateu-Build`` (how a
       renderer tells the app was redeployed). Default: the ``MATEU_BUILD_ID`` env var, else a
       fingerprint computed once of the package version, the source of the modules defining the
@@ -476,6 +480,11 @@ def add_mateu(
                     "MATEU_MCP_PUSH_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS",
                     agent_push.DEFAULT_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS,
                 )
+            ),
+            answer_timeout_ms=(
+                mcp_push_answer_timeout_ms
+                if mcp_push_answer_timeout_ms is not None
+                else _int_from_env("MATEU_MCP_PUSH_ANSWER_TIMEOUT_MS", agent_push.DEFAULT_ANSWER_TIMEOUT_MS)
             ),
         )
         if push_on and mcp_on

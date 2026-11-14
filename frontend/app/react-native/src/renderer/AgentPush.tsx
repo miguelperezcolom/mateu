@@ -6,8 +6,11 @@ import { Text } from '../ui/Text';
 import { theme, themed } from '../theme';
 import { announceLive, buttonA11y, headingA11y, modalA11y } from '../a11y/a11y';
 import { useAppContext } from '../context/AppContext';
-import { AGENT_CHANNEL_ACTION, AGENT_RENDERER, AgentChannel, agentActionRequest, type AgentAppMeta } from '../core/agentPush';
+import { AGENT_CHANNEL_ACTION, AGENT_RENDERER, AGENT_UNPAIR_ACTION, AgentChannel, agentActionRequest, type AgentAppMeta } from '../core/agentPush';
 import { AgentPairingModel, connectAiEntry, type PairingButton } from '../core/agentPairing';
+import { AGENT_SCREEN_ACTION, answerParameters, answerQuery, waitIdle } from '../core/agentScreen';
+import { agentOperatingTexts } from '../core/agentOperatingTexts';
+import { uiLocale } from '../core/money';
 import { applyUiEvent } from '../core/uiEvents';
 import { isDev } from '../api/MateuApiClient';
 
@@ -46,17 +49,42 @@ export function useAgentChannel(meta: AgentPushMeta) {
         if (event.event === 'render-screen') announceLive('Your AI agent sent a screen', false);
       },
       onAnnounce: (text) => announceLive(text, false),
+      // an agent reads / operates the screen: answered with what the app shows (core/agentScreen.ts)
+      onQuery: (query) => {
+        if (session.agent.stoppedByUser) return;
+        session.agentScreen.noteQuery();
+        void answerQuery(query, {
+          registry: session.agentScreen,
+          appState: session.appState,
+          idle: () => waitIdle(() => session.activity.busy, (l) => session.activity.subscribe(l)),
+        }).then((answer) => {
+          if (isDev()) console.log(`[Mateu] agent screen: ${query.event} → ${'screen' in answer ? 'screen' : answer.error.code}`);
+          return session.api.runAction({
+            ...agentActionRequest(meta, AGENT_SCREEN_ACTION, session.agent.session, session.appState, answerParameters(query, answer)),
+            background: true,
+          });
+        }).catch((e) => {
+          if (isDev()) console.log('[Mateu] agent screen: the answer could not be sent', e);
+        });
+      },
       log: (m) => {
         if (isDev()) console.log('[Mateu]', m);
       },
     });
+    const active = () => AppState.currentState === 'active' || AppState.currentState == null;
     const sub = AppState.addEventListener('change', (next) => {
       if (next === 'active') channel.start();
       else channel.stop();
     });
-    if (AppState.currentState === 'active' || AppState.currentState == null) channel.start();
+    // Stop on the operating notice closes the channel; connecting an agent again reopens it
+    const offStopped = session.agent.subscribe(() => {
+      if (session.agent.stoppedByUser) channel.stop();
+      else if (active()) channel.start();
+    });
+    if (active()) channel.start();
     return () => {
       sub.remove();
+      offStopped();
       channel.dispose();
     };
     // the request reads the meta at each connect; these are what make it another channel
@@ -93,6 +121,53 @@ export function ConnectAiEntry({ meta, asFab = false }: { meta: AgentPushMeta; a
       )}
       {open && <ConnectAiModal meta={meta} onClose={() => setOpen(false)} />}
     </>
+  );
+}
+
+/**
+ * "An AI agent is operating this screen" — a small non-modal strip at the top while an agent reads
+ * or operates this UI (from its first query until OPERATING_WINDOW_MS after the last), with Stop:
+ * every pairing is removed (`_agent-unpair`) and the channel is closed — it opens again only when
+ * the user connects an agent again ("Connect AI"). Announced once when it appears.
+ */
+export function AgentOperatingNotice({ meta }: { meta: AgentPushMeta }) {
+  const { session } = useAppContext();
+  const registry = session.agentScreen;
+  const [, setVersion] = React.useState(0);
+  React.useEffect(() => registry.subscribe(() => setVersion((v) => v + 1)), [registry]);
+  const operating = registry.operating();
+  // it goes by itself: repaint when the window ends
+  const until = registry.operatingUntil();
+  React.useEffect(() => {
+    if (!operating) return;
+    const t = setTimeout(() => setVersion((v) => v + 1), Math.max(0, until - Date.now()) + 50);
+    return () => clearTimeout(t);
+  }, [operating, until]);
+  const texts = agentOperatingTexts(uiLocale());
+  React.useEffect(() => {
+    if (operating) announceLive(texts.operating, false);
+  }, [operating, texts.operating]);
+  if (!meta.agentPush || !operating) return null;
+  const stop = () => {
+    registry.stopOperating();
+    void session.api
+      .runAction(agentActionRequest(meta, AGENT_UNPAIR_ACTION, session.agent.session, session.appState))
+      .catch(() => undefined)
+      .finally(() => {
+        session.agent.stopByUser();
+        announceLive(texts.stopped, false);
+      });
+  };
+  return (
+    <View style={styles.noticeHost} pointerEvents="box-none">
+      <View style={styles.notice} accessibilityRole="alert" accessibilityLiveRegion="polite">
+        <View style={styles.noticeDot} importantForAccessibility="no" />
+        <Text style={styles.noticeText} numberOfLines={2}>{texts.operating}</Text>
+        <TouchableOpacity {...buttonA11y({ label: texts.stop })} style={styles.noticeStop} onPress={stop}>
+          <Text style={styles.noticeStopText}>{texts.stop}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
@@ -227,4 +302,14 @@ const styles = themed(() => StyleSheet.create({
   primaryText: { color: theme.onPrimary, fontWeight: '700' },
   secondary: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, minHeight: theme.minTouch, paddingHorizontal: 16, justifyContent: 'center' },
   secondaryText: { color: theme.ink, fontWeight: '600' },
+  noticeHost: { position: 'absolute', top: 8, left: 8, right: 8, alignItems: 'center', zIndex: 20 },
+  notice: {
+    flexDirection: 'row', alignItems: 'center', gap: 10, maxWidth: 560, width: '100%',
+    backgroundColor: theme.white, borderRadius: theme.radiusMd, borderWidth: 1, borderColor: theme.warning,
+    paddingLeft: 12, paddingRight: 4, paddingVertical: 4, elevation: 4,
+  },
+  noticeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.warning },
+  noticeText: { flex: 1, fontSize: 14, color: theme.ink, fontWeight: '600' },
+  noticeStop: { minHeight: theme.minTouch, paddingHorizontal: 14, justifyContent: 'center' },
+  noticeStopText: { color: theme.primary, fontWeight: '700' },
 }));

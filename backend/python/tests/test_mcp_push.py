@@ -68,7 +68,16 @@ class Ui:
         self.received: list[dict] = []
         self.closed = False
         self.code: str | None = None
-        self.channel = AgentChannel(self.received.append, self._close)
+        #: the scripted answers to the next query messages, in order (the corpus' ui "answer")
+        self.answers: list[dict] = []
+        self.channel = AgentChannel(self._deliver, self._close)
+
+    def _deliver(self, data):
+        self.received.append(data)
+        if data.get("kind") == "query" and self.answers:
+            scripted = self.answers.pop(0)
+            # answered as the tab does: the app-level action _agent-screen on the sync path
+            self.run(agent_push.SCREEN_ACTION, self.params(requestId=data["detail"]["requestId"], **scripted))
 
     def _close(self):
         self.closed = True
@@ -161,6 +170,15 @@ def test_error_texts_are_the_corpus():
     assert agent_push.invalid_target("t") == errors["invalidTarget"].format(target="t")
     assert agent_push.CHANNEL_REFUSED == errors["channelRefused"]
     assert agent_push.TOO_MANY_SESSIONS == errors["tooManySessions"]
+    assert agent_push.no_answer("s") == errors["noAnswer"].format(session="s")
+    assert agent_push.refusal("unknownField", "x") == errors["unknownField"].format(id="x")
+    assert agent_push.refusal("unknownAction", "x") == errors["unknownAction"].format(id="x")
+    assert agent_push.refusal("disabledAction", "x") == errors["disabledAction"].format(id="x")
+    assert agent_push.refusal("unknownRow", "3") == errors["unknownRow"].format(id="3")
+    assert agent_push.refusal("unsupported", None) == errors["unsupported"]
+    assert agent_push.refusal("whatever", "x") == errors["failed"] == agent_push.FAILED
+    assert agent_push.refusal("tooLarge", None) == errors["screenTooLarge"]
+    assert agent_push.INVALID_ROW == errors["invalidRow"]
     assert agent_push.HAS_ERRORS == CORPUS["reasons"]["hasErrors"]
     assert agent_push.NOT_A_PAGE == CORPUS["reasons"]["notAPage"]
 
@@ -178,6 +196,8 @@ def _normalised(value, handles: dict[str, str]):
                 out[k] = "<time>"
             elif k == "code" and isinstance(v, str) and PAIRING_CODE.match(v):
                 out[k] = "<code>"
+            elif k == "requestId" and isinstance(v, str):
+                out[k] = "<request>"
             else:
                 out[k] = _normalised(v, handles)
         return out
@@ -204,6 +224,7 @@ def _substituted(value, uis: dict[str, Ui], handle_of):
 def test_the_scripted_scenario():
     scenario = CORPUS["scenario"]
     handler = _handler()
+    handler.agent_push.answer_timeout_ms = 300  # the corpus' unanswered query waits this long
     uis: dict[str, Ui] = {}
     for s in scenario["sessions"]:
         ui_ = Ui(handler, s["sessionId"], s["secret"], s["principal"], s["route"], s["renderer"])
@@ -222,6 +243,9 @@ def test_the_scripted_scenario():
             assert _normalised(uis[step["received"]].take(), handles) == step["expect"], where
         elif "ui" in step:
             target = uis[step["sessionId"]]
+            if step["ui"] == "answer":
+                target.answers.append({k: step[k] for k in ("screen", "error") if k in step})
+                continue
             {"pair": target.pair, "unpair": target.unpair, "disconnect": target.disconnect}[step["ui"]]()
         else:
             args = _substituted(step["args"], uis, handle_of)
@@ -613,7 +637,7 @@ def test_push_needs_the_mcp_endpoint_and_its_own_switch(monkeypatch):
     assert handler.agent_push.rate_per_minute == 7 and handler.agent_push.max_sessions == 1000
     names = [t["name"] for t in TestClient(api).post(
         "/mateu/mcp", json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"}).json()["result"]["tools"]]
-    assert names[len(mcp.TOOLS): len(mcp.TOOLS) + 5] == list(agent_push.TOOL_NAMES)
+    assert names[len(mcp.TOOLS): len(mcp.TOOLS) + len(agent_push.TOOL_NAMES)] == list(agent_push.TOOL_NAMES)
 
 
 def test_a_refused_channel_streams_its_error(monkeypatch):
@@ -862,3 +886,119 @@ def test_the_frameworks_own_event_names_are_the_renderers_ones():
     assert list(agent_push.FRAMEWORK_EVENT_PREFIXES) == events["reservedPrefixes"]
     assert agent_push.is_framework_event("vaadin-x")
     assert not agent_push.is_framework_event("highlight-row")
+
+
+# ── Reading and operating the screen (the query messages and _agent-screen) ─────────────────
+def test_an_answer_with_another_secret_or_principal_is_refused_and_an_unknown_request_ignored():
+    sessions = AgentSessions()
+    sessions.open_channel("ui-1", "s3cret", "alice", "", "", AgentChannel(lambda d: None))
+    for secret, principal in (("wrong", "alice"), ("s3cret", "bob"), ("s3cret", None)):
+        with pytest.raises(UserFacingException) as refused:
+            sessions.answer("ui-1", secret, principal, "r", agent_push.Answer(screen={}))
+        assert refused.value.message == agent_push.CHANNEL_REFUSED
+    with pytest.raises(UserFacingException):
+        sessions.answer("nobody", "s3cret", "alice", "r", agent_push.Answer(screen={}))
+    sessions.answer("ui-1", "s3cret", "alice", "no-such-request", agent_push.Answer(screen={}))
+
+
+def test_closing_the_channel_fails_a_waiting_request_at_once():
+    sessions = AgentSessions(answer_timeout_ms=5000)
+    channel = AgentChannel(lambda d: threading.Timer(0.05, lambda: sessions.channel_closed(channel)).start())
+    sessions.open_channel("ui-1", "s3cret", "alice", "", "", channel)
+    caller = Caller.of("alice")
+    handle = sessions.list(caller)[0]["session"]
+    import time as clock
+
+    started = clock.monotonic()
+    with pytest.raises(UserFacingException) as refused:
+        sessions.request(caller, handle, agent_push.DESCRIBE_SCREEN_EVENT, {})
+    assert refused.value.message == agent_push.not_connected(handle)
+    assert clock.monotonic() - started < 2
+
+
+def test_an_oversized_screen_is_too_large_and_an_answer_without_screen_failed():
+    assert agent_push.answer_of({"screen": {"x": "y" * agent_push.MAX_SCREEN_BYTES}}).error_code == "tooLarge"
+    assert agent_push.answer_of({}).error_code == "failed"
+    assert agent_push.answer_of({"error": {"code": "unknownRow", "id": 7}}) == agent_push.Answer(None, "unknownRow", "7")
+    assert agent_push.answer_of({"screen": {"route": "/"}}).screen == {"route": "/"}
+
+
+def test_no_more_than_four_requests_wait_for_one_session():
+    sessions = AgentSessions(answer_timeout_ms=1000)
+    sessions.open_channel("ui-1", "s3cret", "alice", "", "", AgentChannel(lambda d: None))
+    caller = Caller.of("alice")
+    handle = sessions.list(caller)[0]["session"]
+    started = threading.Barrier(5)
+    errors: list[str] = []
+
+    def wait():
+        started.wait()
+        try:
+            sessions.request(caller, handle, agent_push.DESCRIBE_SCREEN_EVENT, {})
+        except UserFacingException as e:
+            errors.append(e.message)
+
+    threads = [threading.Thread(target=wait) for _ in range(4)]
+    for t in threads:
+        t.start()
+    started.wait()
+    import time as clock
+
+    for _ in range(100):
+        if len(sessions._sessions["ui-1"].pending) == 4:
+            break
+        clock.sleep(0.01)
+    with pytest.raises(UserFacingException) as refused:
+        sessions.request(caller, handle, agent_push.DESCRIBE_SCREEN_EVENT, {})
+    assert refused.value.message == agent_push.RATE_LIMITED
+    for t in threads:
+        t.join(3)
+    assert errors == [agent_push.no_answer(handle)] * 4
+
+
+def test_the_tab_answers_over_the_real_endpoints_while_the_tool_call_waits(monkeypatch):
+    """The MCP call waits in the threadpool, never on the event loop: the tab's _agent-screen
+    answer, another request on the same server, gets through while it waits."""
+    from fastapi.testclient import TestClient
+
+    api, handler = _api(monkeypatch, mcp=True, mcp_push=True, identity_provider=None)
+    client = TestClient(api)
+    result: dict = {}
+
+    def ask_when_registered():
+        import time
+
+        for _ in range(200):
+            listed = _rpc(client, "mateu_list_sessions", {}, user="alice")
+            if listed.get("sessions"):
+                handle = listed["sessions"][0]["session"]
+                result["screen"] = _rpc(client, "mateu_get_session_screen", {"session": handle}, user="alice")
+                result["handle"] = handle
+                return
+            time.sleep(0.01)
+
+    asker = threading.Thread(target=ask_when_registered)
+    asker.start()
+    with client.stream(
+        "POST", "/mateu/v3/sse/_empty",
+        json={"actionId": "_agent-channel", "route": "", "componentState": {},
+              "parameters": {"sessionId": "tab-9", "secret": "s", "route": "/home", "renderer": "vaadin"}},
+        headers={"x-test-user": "alice"},
+    ) as rs:
+        for line in rs.iter_lines():
+            if not line.startswith("data:"):
+                continue
+            inc = json.loads(line[len("data:"):])
+            queries = [c["data"] for c in inc["commands"] if c["type"] == "AgentPush" and c["data"]["kind"] == "query"]
+            if queries:
+                answered = client.post("/mateu/v3/sync/_empty", json={
+                    "actionId": "_agent-screen",
+                    "parameters": {"sessionId": "tab-9", "secret": "s",
+                                   "requestId": queries[0]["detail"]["requestId"],
+                                   "screen": {"route": "/home", "focus": "page", "fields": [], "actions": []}}},
+                    headers={"x-test-user": "alice"})
+                assert answered.status_code == 200
+                break
+    asker.join(5)
+    assert result["screen"] == {"session": result["handle"],
+                                "screen": {"route": "/home", "focus": "page", "fields": [], "actions": []}}

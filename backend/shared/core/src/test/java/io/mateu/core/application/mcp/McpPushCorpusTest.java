@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.mateu.core.application.agentpush.AgentPush;
 import io.mateu.core.application.agentpush.AgentSessions;
 import io.mateu.core.testutil.FakeHttpRequest;
 import io.mateu.core.testutil.TestIdentities;
@@ -26,6 +27,9 @@ import org.junit.jupiter.api.Test;
  * The Java reference of {@code conformance/mcp/push.json}: the push tools byte for byte, and the
  * scripted scenario (three UI sessions, three callers) run through {@link McpJsonRpc} exactly as
  * the native endpoint runs it. The .NET and Python backends run the same file.
+ *
+ * <p>{@code mvn -pl shared/core test -Dtest=McpPushCorpusTest -Dmcp.push.write=true} rewrites the
+ * file's {@code pushTools} from the Java tool list (the rest of the file is written by hand).
  */
 class McpPushCorpusTest {
 
@@ -42,6 +46,8 @@ class McpPushCorpusTest {
   static void boot() {
     System.setProperty("mateu.mcp.enabled", "true");
     System.setProperty("mateu.mcp.push.enabled", "true");
+    // the scenario's unanswered query waits this long (the corpus asks for a short timeout)
+    System.setProperty("mateu.mcp.push.answer-timeout-ms", "300");
     AgentSessions.shared().reset();
     mateu = TestMateu.withUis(Home.class);
     mcp = new McpService(mateu.service(), OM);
@@ -53,6 +59,7 @@ class McpPushCorpusTest {
     AgentSessions.shared().reset();
     System.clearProperty("mateu.mcp.enabled");
     System.clearProperty("mateu.mcp.push.enabled");
+    System.clearProperty("mateu.mcp.push.answer-timeout-ms");
   }
 
   static JsonNode corpus() throws Exception {
@@ -66,12 +73,83 @@ class McpPushCorpusTest {
     var base = McpJsonRpc.tools(OM, false, false);
     var push = OM.createArrayNode();
     for (int i = base.size(); i < all.size() - 1; i++) push.add(all.get(i));
+    if (Boolean.getBoolean("mcp.push.write")) writePushTools(push);
     assertThat(push).isEqualTo(corpus().get("pushTools"));
     assertThat(all.get(all.size() - 1).path("name").asText()).isEqualTo("mateu_save_spec");
     assertThat(McpJsonRpc.tools(OM, false, false).toString()).doesNotContain("mateu_push_ui");
     // and tools/list follows the switch
     var listed = call("alice", OM.createObjectNode().put("id", 1).put("method", "tools/list"));
     assertThat(listed.path("result").path("tools").toString()).contains("mateu_push_ui");
+  }
+
+  /**
+   * The texts of the screen tools are the corpus' (placeholders {@code {session}} / {@code {id}}).
+   */
+  @Test
+  void theScreenToolTextsAreTheCorpusOnes() throws Exception {
+    var errors = corpus().get("errors");
+    assertThat(AgentPush.NO_ANSWER.replace("%s", "{session}"))
+        .isEqualTo(errors.get("noAnswer").asText());
+    assertThat(AgentPush.UNKNOWN_FIELD.replace("%s", "{id}"))
+        .isEqualTo(errors.get("unknownField").asText());
+    assertThat(AgentPush.UNKNOWN_ACTION.replace("%s", "{id}"))
+        .isEqualTo(errors.get("unknownAction").asText());
+    assertThat(AgentPush.DISABLED_ACTION.replace("%s", "{id}"))
+        .isEqualTo(errors.get("disabledAction").asText());
+    assertThat(AgentPush.UNKNOWN_ROW.replace("%s", "{id}"))
+        .isEqualTo(errors.get("unknownRow").asText());
+    assertThat(AgentPush.UNSUPPORTED).isEqualTo(errors.get("unsupported").asText());
+    assertThat(AgentPush.FAILED).isEqualTo(errors.get("failed").asText());
+    assertThat(AgentPush.SCREEN_TOO_LARGE).isEqualTo(errors.get("screenTooLarge").asText());
+    assertThat(AgentPush.INVALID_ROW).isEqualTo(errors.get("invalidRow").asText());
+    assertThat(AgentPush.refusal("whatever", "x")).isEqualTo(AgentPush.FAILED);
+  }
+
+  /** Rewrites the corpus' {@code pushTools} array in place, in the file's own JSON style. */
+  static void writePushTools(ArrayNode tools) throws Exception {
+    var file = McpAuthoringCorpusTest.corpusFile().resolveSibling("push.json");
+    var text = Files.readString(file);
+    var start = text.indexOf("\"pushTools\": [");
+    var end = text.indexOf("\n  ],\n  \"errors\"", start);
+    if (start < 0 || end < 0) throw new IllegalStateException("push.json: no pushTools array");
+    var out = new StringBuilder();
+    out.append("\"pushTools\": ");
+    pretty(tools, 1, out);
+    Files.writeString(file, text.substring(0, start) + out + text.substring(end + 4));
+  }
+
+  private static void pretty(JsonNode node, int depth, StringBuilder out) throws Exception {
+    var pad = "  ".repeat(depth + 1);
+    var close = "  ".repeat(depth);
+    if (node.isObject()) {
+      if (node.isEmpty()) {
+        out.append("{}");
+        return;
+      }
+      out.append("{\n");
+      var names = node.fieldNames();
+      while (names.hasNext()) {
+        var name = names.next();
+        out.append(pad).append(OM.writeValueAsString(name)).append(": ");
+        pretty(node.get(name), depth + 1, out);
+        out.append(names.hasNext() ? ",\n" : "\n");
+      }
+      out.append(close).append("}");
+    } else if (node.isArray()) {
+      if (node.isEmpty()) {
+        out.append("[]");
+        return;
+      }
+      out.append("[\n");
+      for (int i = 0; i < node.size(); i++) {
+        out.append(pad);
+        pretty(node.get(i), depth + 1, out);
+        out.append(i < node.size() - 1 ? ",\n" : "\n");
+      }
+      out.append(close).append("]");
+    } else {
+      out.append(OM.writeValueAsString(node));
+    }
   }
 
   /**
@@ -113,12 +191,30 @@ class McpPushCorpusTest {
     Map<String, AgentSessions.Channel> channels = new HashMap<>();
     Map<String, String[]> secrets = new HashMap<>();
     Map<String, String> codes = new HashMap<>();
+    // the scripted answers each UI session gives to its next query messages, in order
+    Map<String, java.util.ArrayDeque<JsonNode>> answers = new HashMap<>();
     for (var s : scenario.get("sessions")) {
       var id = s.get("sessionId").asText();
       var principal = s.get("principal").isNull() ? null : s.get("principal").asText();
       secrets.put(id, new String[] {s.get("secret").asText(), principal});
       var messages = new ArrayList<AgentSessions.Message>();
       received.put(id, messages);
+      var queued = new java.util.ArrayDeque<JsonNode>();
+      answers.put(id, queued);
+      java.util.function.Consumer<AgentSessions.Message> sink =
+          message -> {
+            messages.add(message);
+            if (!"query".equals(message.kind()) || queued.isEmpty()) return;
+            var scripted = queued.poll();
+            var parameters = OM.convertValue(scripted, Map.class);
+            AgentSessions.shared()
+                .answer(
+                    id,
+                    s.get("secret").asText(),
+                    principal,
+                    (String) message.detail().get("requestId"),
+                    io.mateu.core.domain.act.AgentChannelActionRunner.answerOf(parameters));
+          };
       channels.put(
           id,
           AgentSessions.shared()
@@ -128,7 +224,7 @@ class McpPushCorpusTest {
                   principal,
                   s.get("route").asText(),
                   s.get("renderer").asText(),
-                  messages::add,
+                  sink,
                   () -> {}));
     }
     // handle -> sessionId, learnt from the answers (they are opaque and random)
@@ -141,9 +237,14 @@ class McpPushCorpusTest {
         var id = step.get("received").asText();
         var all = received.get(id);
         var from = seen.getOrDefault(id, 0);
-        var got = OM.valueToTree(all.subList(from, all.size()));
+        JsonNode got = OM.valueToTree(all.subList(from, all.size()));
         seen.put(id, all.size());
-        assertThat((JsonNode) got).as(label).isEqualTo(step.get("expect"));
+        for (var message : got) {
+          if (message.path("detail").has("requestId")) {
+            ((ObjectNode) message.get("detail")).put("requestId", "<request>");
+          }
+        }
+        assertThat(got).as(label).isEqualTo(step.get("expect"));
         continue;
       }
       if (step.has("ui")) {
@@ -155,6 +256,12 @@ class McpPushCorpusTest {
                   id, (String) AgentSessions.shared().pairingCode(id, s[0], s[1]).get("code"));
           case "unpair" -> AgentSessions.shared().unpair(id, s[0], s[1]);
           case "disconnect" -> channels.get(id).close();
+          case "answer" -> {
+            var scripted = OM.createObjectNode();
+            if (step.has("screen")) scripted.set("screen", step.get("screen"));
+            if (step.has("error")) scripted.set("error", step.get("error"));
+            answers.get(id).add(scripted);
+          }
           default -> throw new IllegalStateException(step.toString());
         }
         continue;

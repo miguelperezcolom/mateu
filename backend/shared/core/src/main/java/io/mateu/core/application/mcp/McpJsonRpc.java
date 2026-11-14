@@ -196,6 +196,9 @@ public final class McpJsonRpc {
       case "mateu_push_ui":
       case "mateu_navigate":
       case "mateu_dispatch_event":
+      case "mateu_get_session_screen":
+      case "mateu_set_session_fields":
+      case "mateu_run_session_action":
         if (!io.mateu.core.application.agentpush.AgentPush.enabled()) {
           throw new UserFacingException("Unknown tool: " + name);
         }
@@ -249,6 +252,25 @@ public final class McpJsonRpc {
             if (value != null) navigation.put(key, value);
           }
           return svc.navigate(session, navigation, httpRequests);
+        }
+      case "mateu_get_session_screen":
+        return svc.sessionScreen(argument(args, "session"), httpRequests);
+      case "mateu_set_session_fields":
+        {
+          var session = argument(args, "session");
+          return svc.setSessionFields(session, args.get("values"), httpRequests);
+        }
+      case "mateu_run_session_action":
+        {
+          var session = argument(args, "session");
+          var actionId = argument(args, "actionId");
+          return svc.runSessionAction(
+              session,
+              actionId,
+              args.get("parameters"),
+              args.get("row"),
+              optional(args, "listing"),
+              httpRequests);
         }
       default:
         {
@@ -477,6 +499,66 @@ public final class McpJsonRpc {
                 + " it (@SubscribeTo). The built-in events are reserved: use mateu_push_ui and"
                 + " mateu_navigate for them. Returns {delivered, session}.",
             dispatch));
+    ObjectNode screen = objSchema(om);
+    strProp(screen, "session", sessionDescription);
+    required(screen, "session");
+    tools.add(
+        tool(
+            om,
+            "mateu_get_session_screen",
+            "Read what the user sees in a live UI session, as that tab draws it: route, window"
+                + " title, page header, fields (id, label, type, value, required, readOnly, error,"
+                + " options), the actions the user can press (id, label, enabled), the rows of each"
+                + " listing's current page with its search, filters, sort, page and total, an open"
+                + " dialog or drawer (focus: overlay, in front of the page) and the last"
+                + " messages. Only what the screen shows; long values and lists are capped and named"
+                + " in truncated. Returns {session, screen}.",
+            screen));
+    ObjectNode set = objSchema(om);
+    strProp(set, "session", sessionDescription);
+    objProp(
+        set,
+        "values",
+        "field id -> value (a string, number, boolean, or a list for a multi-value field)");
+    required(set, "session", "values");
+    tools.add(
+        tool(
+            om,
+            "mateu_set_session_fields",
+            "Type values into fields of the screen in a live UI session (the dialog's or drawer's"
+                + " when one is open), exactly as the user editing them: validation, client rules"
+                + " and the unsaved-changes state follow. Only fields the screen shows as editable:"
+                + " any other refuses the whole call and nothing changes. Returns {session, screen}"
+                + " after the change.",
+            set));
+    ObjectNode press = objSchema(om);
+    strProp(press, "session", sessionDescription);
+    strProp(press, "actionId", "an action id from mateu_get_session_screen");
+    objProp(press, "parameters", "optional: extra parameters of the action");
+    intProp(
+        press,
+        "row",
+        "optional, for a row action: the 0-based index of the row in the listing's rows");
+    strProp(
+        press,
+        "listing",
+        "optional, for a row action on a screen with several listings: the listing id");
+    required(press, "session", "actionId");
+    tools.add(
+        tool(
+            om,
+            "mateu_run_session_action",
+            "Press an action the screen in a live UI session offers (an id from"
+                + " mateu_get_session_screen; a row action needs row), as the user clicking it:"
+                + " validation runs, and a confirmation the action asks for is shown to the user,"
+                + " who answers it. Returns {session, screen} once the screen settled.",
+            press));
+  }
+
+  private static void intProp(ObjectNode schema, String name, String description) {
+    ObjectNode p = schema.with("properties").putObject(name);
+    p.put("type", "integer");
+    if (description != null) p.put("description", description);
   }
 
   private static ObjectNode tool(

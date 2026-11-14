@@ -307,6 +307,11 @@ class AppHandlerMixin(MixinBase):
             return UIIncrement.of(
                 commands=[UICommand.agent_push(answer["kind"], answer["event"], answer["detail"])]
             )
+        if rq.action_id == agent_push.SCREEN_ACTION:
+            # the UI's answer to a query message: Data{} (Java's AgentChannelActionRunner)
+            return UIIncrement.of(
+                fragments=[UIFragment(target_component_id=self.target(rq), data={}, action="Replace")]
+            )
         return UIIncrement.of(
             fragments=[
                 UIFragment(

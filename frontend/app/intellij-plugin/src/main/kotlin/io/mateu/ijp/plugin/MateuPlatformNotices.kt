@@ -64,8 +64,40 @@ object MateuPlatformNotices {
             com.intellij.ui.SystemNotifications.getInstance().notify("Mateu", notice.title, notice.text)
         }
         session.inbox.presenter = PlatformInboxPresenter(project)
+        // live UI push: "An AI agent is operating this screen" while an agent reads/operates it, with Stop
+        session.agentOperatingPresenter = agentOperatingNotice(project, session)
         session.openNotificationsView = {
             ToolWindowManager.getInstance(project).getToolWindow("Notifications")?.activate(null)
+        }
+    }
+
+    /**
+     * The sticky, non-modal notice shown while an agent operates the window (`true`), expired when it
+     * stops (`false`). Its Stop unpairs and closes the channel ([AppSession.stopAgent]); both the
+     * notice and the stop are announced to screen readers.
+     */
+    private fun agentOperatingNotice(project: Project, session: AppSession): (Boolean) -> Unit {
+        var shown: Notification? = null
+        fun announceInFrame(text: String) {
+            WindowManager.getInstance().getFrame(project)?.rootPane?.let { io.mateu.ijp.ui.announce(it, text) }
+        }
+        return { active ->
+            val texts = io.mateu.ijp.state.AgentScreenQueries.textsFor(MoneyValues.uiLocale())
+            if (active && (shown == null || shown!!.isExpired)) {
+                val notification = NotificationGroupManager.getInstance().getNotificationGroup("Mateu sticky")
+                    .createNotification(texts.operating, NotificationType.WARNING)
+                notification.addAction(NotificationAction.createSimpleExpiring(texts.stop) {
+                    shown = null
+                    session.stopAgent()
+                    announceInFrame(texts.stopped)
+                })
+                shown = notification
+                notification.notify(project)
+                announceInFrame(texts.operating)
+            } else if (!active) {
+                shown?.expire()
+                shown = null
+            }
         }
     }
 

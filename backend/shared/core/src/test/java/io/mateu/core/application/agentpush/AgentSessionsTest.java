@@ -444,4 +444,115 @@ class AgentSessionsTest {
       logger.detachAppender(logs);
     }
   }
+
+  // ── query messages: the UI answers what it shows ─────────────────────────────────────────
+
+  /** A sink that answers each query with {@code answer} (as the tab's _agent-screen would). */
+  List<AgentSessions.Message> openAnswering(
+      String id, String principal, String secret, AgentSessions.Answer answer) {
+    var received = new ArrayList<AgentSessions.Message>();
+    sessions.open(
+        id,
+        "secret-" + id,
+        principal,
+        "/r",
+        "vaadin",
+        m -> {
+          received.add(m);
+          if ("query".equals(m.kind()) && answer != null) {
+            sessions.answer(id, secret, principal, (String) m.detail().get("requestId"), answer);
+          }
+        },
+        () -> {});
+    return received;
+  }
+
+  @Test
+  void aQueryIsAnsweredByTheSessionsOwnTab() {
+    var received =
+        openAnswering(
+            "ui-1", "alice", "secret-ui-1", AgentSessions.Answer.of(Map.of("route", "/x")));
+    var answer =
+        sessions.request(
+            alice, handleOf(alice), "describe-screen", Map.of(), "", 2, Duration.ofSeconds(2));
+    assertThat(answer.wasRefused()).isFalse();
+    assertThat(answer.screen()).containsEntry("route", "/x");
+    var query = received.get(received.size() - 1);
+    assertThat(query.kind()).isEqualTo("query");
+    assertThat(query.detail().keySet().iterator().next()).isEqualTo("requestId");
+  }
+
+  @Test
+  void anAnswerWithAnotherSecretIsRefusedAndTheWaitTimesOut() {
+    openAnswering("ui-1", "alice", "not-the-secret", null);
+    var handle = handleOf(alice);
+    // the tab's own answer, but with the wrong secret
+    var thrown = new java.util.concurrent.atomic.AtomicReference<Throwable>();
+    var t =
+        new Thread(
+            () -> {
+              try {
+                sessions.answer(
+                    "ui-1", "wrong", "alice", "whatever", AgentSessions.Answer.of(Map.of()));
+              } catch (Throwable e) {
+                thrown.set(e);
+              }
+            });
+    t.start();
+    try {
+      t.join();
+    } catch (InterruptedException e) {
+      throw new IllegalStateException(e);
+    }
+    assertThat(thrown.get()).hasMessage(AgentPush.CHANNEL_REFUSED);
+    assertThatThrownBy(
+            () ->
+                sessions.request(
+                    alice, handle, "describe-screen", Map.of(), "", 2, Duration.ofMillis(50)))
+        .hasMessage(String.format(AgentPush.NO_ANSWER, handle));
+  }
+
+  @Test
+  void closingTheChannelFailsAWaitingQueryAtOnce() throws Exception {
+    var received = new ArrayList<AgentSessions.Message>();
+    var channel =
+        sessions.open("ui-1", "secret-ui-1", "alice", "/r", "vaadin", received::add, () -> {});
+    var handle = handleOf(alice);
+    var failure = new java.util.concurrent.atomic.AtomicReference<Throwable>();
+    var asker =
+        new Thread(
+            () -> {
+              try {
+                sessions.request(
+                    alice, handle, "describe-screen", Map.of(), "", 2, Duration.ofSeconds(30));
+              } catch (Throwable e) {
+                failure.set(e);
+              }
+            });
+    long started = System.nanoTime();
+    asker.start();
+    while (received.stream().noneMatch(m -> "query".equals(m.kind()))) Thread.sleep(5);
+    channel.close();
+    asker.join(5_000);
+    assertThat(failure.get()).hasMessage(String.format(AgentPush.NOT_CONNECTED, handle));
+    assertThat(Duration.ofNanos(System.nanoTime() - started)).isLessThan(Duration.ofSeconds(5));
+  }
+
+  @Test
+  void aStrangerCannotQueryASessionAndARefusalIsItsText() {
+    openAnswering(
+        "ui-1", "alice", "secret-ui-1", AgentSessions.Answer.refusal("unknownField", "x"));
+    var handle = handleOf(alice);
+    assertThatThrownBy(
+            () ->
+                sessions.request(
+                    bob, handle, "describe-screen", Map.of(), "", 2, Duration.ofSeconds(1)))
+        .hasMessage(String.format(AgentPush.UNKNOWN_SESSION, handle));
+    var answer =
+        sessions.request(alice, handle, "set-fields", Map.of(), "", 2, Duration.ofSeconds(1));
+    assertThat(AgentPush.refusal(answer.errorCode(), answer.errorId()))
+        .isEqualTo("Field \"x\" is not on the screen or cannot be edited.");
+    assertThat(AgentPush.refusal("unknownRow", "3\n"))
+        .isEqualTo("Row 3? is not on the current page of the listing.");
+  }
 }

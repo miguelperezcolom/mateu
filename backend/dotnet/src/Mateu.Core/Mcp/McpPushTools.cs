@@ -16,7 +16,12 @@ namespace Mateu.Core.Mcp;
 internal static partial class McpPushTools
 {
     public static readonly IReadOnlyList<string> Names =
-        ["mateu_list_sessions", "mateu_pair_session", "mateu_push_ui", "mateu_navigate", "mateu_dispatch_event"];
+        ["mateu_list_sessions", "mateu_pair_session", "mateu_push_ui", "mateu_navigate", "mateu_dispatch_event",
+            "mateu_get_session_screen", "mateu_set_session_fields", "mateu_run_session_action"];
+
+    /// <summary>The tools that wait for the tab's answer (<see cref="DispatchAsync"/>).</summary>
+    public static readonly IReadOnlySet<string> ScreenTools = new HashSet<string>(StringComparer.Ordinal)
+        { "mateu_get_session_screen", "mateu_set_session_fields", "mateu_run_session_action" };
 
     static readonly string[] Targets = ["content", "drawer", "dialog"];
 
@@ -31,8 +36,89 @@ internal static partial class McpPushTools
         "mateu_push_ui" => PushUi(svc, sessions, args),
         "mateu_navigate" => Navigate(svc, sessions, args),
         "mateu_dispatch_event" => DispatchEvent(svc, sessions, args),
+        // a synchronous caller blocks on the wait; the HTTP endpoint goes through DispatchAsync
+        _ when ScreenTools.Contains(name) => DispatchAsync(svc, sessions, name, args).GetAwaiter().GetResult(),
         _ => null,
     };
+
+    /// <summary>Run one of the <see cref="ScreenTools"/>: the argument checks, then the query message,
+    /// then the wait for the tab's answer — awaited, never blocking a thread.</summary>
+    public static async Task<JsonNode> DispatchAsync(McpService svc, AgentSessions sessions, string name, JsonObject args)
+    {
+        var handle = Argument(args, "session");
+        JsonObject detail;
+        string @event;
+        string what;
+        switch (name)
+        {
+            case "mateu_get_session_screen":
+                detail = new JsonObject();
+                @event = AgentSessions.DescribeScreenEvent;
+                what = "";
+                break;
+            case "mateu_set_session_fields":
+                if (args["values"] is not JsonObject values)
+                    throw new UserFacingException("Missing argument \"values\".");
+                detail = new JsonObject { ["values"] = values.DeepClone() };
+                if (Encoding.UTF8.GetByteCount(detail.ToJsonString()) > AgentSessions.MaxDetailBytes)
+                    throw new UserFacingException(AgentSessions.DetailTooLarge);
+                @event = AgentSessions.SetFieldsEvent;
+                what = "fields=" + values.Count;
+                break;
+            default:
+            {
+                var actionId = Argument(args, "actionId");
+                detail = new JsonObject { ["actionId"] = actionId };
+                if (args["parameters"] is JsonObject parameters) detail["parameters"] = parameters.DeepClone();
+                if (args["row"] is { } row)
+                {
+                    if (!IsIndex(row, out var index))
+                        throw new UserFacingException(AgentSessions.InvalidRow);
+                    detail["row"] = (int)index;
+                }
+                if (AsString(args["listing"]) is { } listing) detail["listing"] = listing;
+                if (Encoding.UTF8.GetByteCount(detail.ToJsonString()) > AgentSessions.MaxDetailBytes)
+                    throw new UserFacingException(AgentSessions.DetailTooLarge);
+                @event = AgentSessions.RunActionEvent;
+                what = "action=" + actionId;
+                break;
+            }
+        }
+        var session = sessions.Reachable(svc.Caller, handle);
+        var bytes = Encoding.UTF8.GetByteCount(detail.ToJsonString());
+        var (requestId, answer) = sessions.Ask(session, @event, detail);
+        MateuLogging.For("Mateu.Mcp").LogInformation(
+            "Mateu agent push: caller={Caller} session={Session} kind=query event={Event}{What} bytes={Bytes}",
+            svc.Caller.LogLabel, AgentSessions.Fingerprint(session.Handle), @event,
+            what.Length == 0 ? "" : " " + AgentSessions.LogSafe(what), bytes);
+        AgentAnswer got;
+        try
+        {
+            got = await answer.WaitAsync(TimeSpan.FromMilliseconds(Math.Max(1, sessions.AnswerTimeoutMs)))
+                .ConfigureAwait(false);
+        }
+        catch (TimeoutException)
+        {
+            throw new UserFacingException(AgentSessions.NoAnswer(handle));
+        }
+        finally
+        {
+            sessions.Forget(session, requestId);
+        }
+        if (got.WasRefused) throw new UserFacingException(AgentSessions.Refusal(got.ErrorCode, got.ErrorId));
+        return new JsonObject { ["session"] = handle, ["screen"] = got.Screen?.DeepClone() };
+    }
+
+    /// <summary>An integer literal 0…int.MaxValue — not a string, nor a number written with a fraction or
+    /// an exponent (1.0, 1e2), as in Java (<c>isIntegralNumber</c>).</summary>
+    static bool IsIndex(JsonNode row, out long index)
+    {
+        index = -1;
+        return row is JsonValue v && v.GetValueKind() == System.Text.Json.JsonValueKind.Number
+            && long.TryParse(v.ToJsonString(), System.Globalization.NumberStyles.AllowLeadingSign,
+                System.Globalization.CultureInfo.InvariantCulture, out index)
+            && index >= 0 && index <= int.MaxValue;
+    }
 
     static JsonObject PushUi(McpService svc, AgentSessions sessions, JsonObject args)
     {
@@ -158,6 +244,37 @@ internal static partial class McpPushTools
                 Prop("session", "string", sessionDescription),
                 Prop("event", "string", "the event name, e.g. highlight-row"),
                 Prop("detail", "object", "optional: the event's detail")));
+        yield return Tool("mateu_get_session_screen",
+            "Read what the user sees in a live UI session, as that tab draws it: route, window"
+            + " title, page header, fields (id, label, type, value, required, readOnly, error,"
+            + " options), the actions the user can press (id, label, enabled), the rows of each"
+            + " listing's current page with its search, filters, sort, page and total, an open"
+            + " dialog or drawer (focus: overlay, in front of the page) and the last"
+            + " messages. Only what the screen shows; long values and lists are capped and named"
+            + " in truncated. Returns {session, screen}.",
+            Schema(["session"], Prop("session", "string", sessionDescription)));
+        yield return Tool("mateu_set_session_fields",
+            "Type values into fields of the screen in a live UI session (the dialog's or drawer's"
+            + " when one is open), exactly as the user editing them: validation, client rules"
+            + " and the unsaved-changes state follow. Only fields the screen shows as editable:"
+            + " any other refuses the whole call and nothing changes. Returns {session, screen}"
+            + " after the change.",
+            Schema(["session", "values"],
+                Prop("session", "string", sessionDescription),
+                Prop("values", "object",
+                    "field id -> value (a string, number, boolean, or a list for a multi-value field)")));
+        yield return Tool("mateu_run_session_action",
+            "Press an action the screen in a live UI session offers (an id from"
+            + " mateu_get_session_screen; a row action needs row), as the user clicking it:"
+            + " validation runs, and a confirmation the action asks for is shown to the user,"
+            + " who answers it. Returns {session, screen} once the screen settled.",
+            Schema(["session", "actionId"],
+                Prop("session", "string", sessionDescription),
+                Prop("actionId", "string", "an action id from mateu_get_session_screen"),
+                Prop("parameters", "object", "optional: extra parameters of the action"),
+                Prop("row", "integer", "optional, for a row action: the 0-based index of the row in the listing's rows"),
+                Prop("listing", "string",
+                    "optional, for a row action on a screen with several listings: the listing id")));
     }
 
     static JsonObject Tool(string name, string description, JsonObject schema) =>

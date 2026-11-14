@@ -58,6 +58,12 @@ public final class AgentPush {
   public static final String PAIR_ACTION = "_agent-pair";
   public static final String UNPAIR_ACTION = "_agent-unpair";
 
+  /**
+   * The UI's answer to a {@code query} message (what it shows, or why it could not do what was
+   * asked): {@code parameters: {sessionId, secret, requestId, screen | error: {code, id?}}}.
+   */
+  public static final String SCREEN_ACTION = "_agent-screen";
+
   /** The data key of the pairing answer. */
   public static final String PAIRING_KEY = "_agentPairing";
 
@@ -69,6 +75,24 @@ public final class AgentPush {
   public static final String RENDER_EVENT = "render-screen";
   public static final String NAVIGATE_EVENT = "navigation-requested";
   public static final String CLOSE_EVENT = "close-requested";
+
+  /** The kind of the messages the UI answers through {@value #SCREEN_ACTION}. */
+  public static final String QUERY_KIND = "query";
+
+  public static final String DESCRIBE_SCREEN_EVENT = "describe-screen";
+  public static final String SET_FIELDS_EVENT = "set-fields";
+  public static final String RUN_ACTION_EVENT = "run-action";
+
+  /** How long a tool call waits for the UI's answer, in milliseconds. */
+  public static final String ANSWER_TIMEOUT_PROPERTY = "mateu.mcp.push.answer-timeout-ms";
+
+  public static final int DEFAULT_ANSWER_TIMEOUT_MS = 10_000;
+
+  /** The requests one session may have waiting for its answer at once. */
+  public static final int MAX_PENDING_REQUESTS = 4;
+
+  /** The largest screen a UI may answer (UTF-8 bytes of its JSON). */
+  public static final int MAX_SCREEN_BYTES = 262_144;
 
   // The texts (pinned by conformance/mcp/push.json).
   public static final String DISABLED = "Live UI push is not enabled.";
@@ -202,6 +226,20 @@ public final class AgentPush {
       "Invalid target \"%s\": use content, drawer or dialog.";
   public static final String CHANNEL_REFUSED = "This UI session belongs to another channel.";
   public static final String TOO_MANY_SESSIONS = "Too many live UI sessions; try again later.";
+  public static final String NO_ANSWER = "Session \"%s\" did not answer in time.";
+  public static final String UNKNOWN_FIELD =
+      "Field \"%s\" is not on the screen or cannot be edited.";
+  public static final String UNKNOWN_ACTION = "Action \"%s\" is not offered by the screen.";
+  public static final String DISABLED_ACTION = "Action \"%s\" is disabled.";
+  public static final String UNKNOWN_ROW = "Row %s is not on the current page of the listing.";
+  public static final String UNSUPPORTED =
+      "This client does not support reading or operating its screen.";
+  public static final String FAILED = "The UI could not complete the request.";
+  public static final String SCREEN_TOO_LARGE =
+      "The screen the UI answered is larger than the 262144-byte limit.";
+  public static final String INVALID_ROW =
+      "Invalid row: use the 0-based index of a row in the listing's rows.";
+
   public static final String HAS_ERRORS = "The definition has errors; nothing was sent.";
   public static final String NOT_A_PAGE =
       "Only a page (a component, or a layout: envelope) can be pushed.";
@@ -212,6 +250,31 @@ public final class AgentPush {
   public static boolean enabled() {
     return MateuSettings.isTrue(io.mateu.core.application.mcp.McpEndpoint.ENABLED_PROPERTY)
         && MateuSettings.isTrue(ENABLED_PROPERTY);
+  }
+
+  /** {@value #ANSWER_TIMEOUT_PROPERTY}, default {@value #DEFAULT_ANSWER_TIMEOUT_MS}. */
+  public static int answerTimeoutMillis() {
+    return positive(ANSWER_TIMEOUT_PROPERTY, DEFAULT_ANSWER_TIMEOUT_MS);
+  }
+
+  /**
+   * The text of a UI's refusal: {@code code} is what the UI answered ({@code unknownField}, {@code
+   * unknownAction}, {@code disabledAction}, {@code unknownRow}, {@code unsupported}, {@code
+   * tooLarge}); anything else is {@link #FAILED}. The {@code id} (a field, an action, a row) is
+   * clipped and stripped of control characters: it comes from the UI.
+   */
+  public static String refusal(String code, String id) {
+    var what = AgentSessions.logSafe(id == null ? "" : id);
+    if (code == null) return FAILED;
+    return switch (code) {
+      case "unknownField" -> String.format(UNKNOWN_FIELD, what);
+      case "unknownAction" -> String.format(UNKNOWN_ACTION, what);
+      case "disabledAction" -> String.format(DISABLED_ACTION, what);
+      case "unknownRow" -> String.format(UNKNOWN_ROW, what);
+      case "unsupported" -> UNSUPPORTED;
+      case "tooLarge" -> SCREEN_TOO_LARGE;
+      default -> FAILED;
+    };
   }
 
   /** {@value #RATE_PROPERTY}, default {@value #DEFAULT_RATE_PER_MINUTE}. */

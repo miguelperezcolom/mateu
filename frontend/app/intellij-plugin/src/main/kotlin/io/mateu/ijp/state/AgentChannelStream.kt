@@ -81,7 +81,7 @@ class AgentChannelStream(
                     AgentPush.errorOf(increment)?.let { if (!opened) error = it }
                 } else if (!opened) {
                     opened = true
-                    SwingUtilities.invokeLater { if (running) session.agentPairing.channelOpened() }
+                    SwingUtilities.invokeLater { if (running) session.agentChannelOpened() }
                 }
                 messages.forEach(deliver)
             }

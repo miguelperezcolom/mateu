@@ -82,6 +82,8 @@ function ToastHost({ visible = true }: { visible?: boolean }) {
 
   useEffect(() => {
     session.notify = (title, text, variant, options) => {
+      // the last messages are part of what an agent reading the screen is told (core/agentScreen.ts)
+      session.agentScreen.noteMessage({ variant, title, text });
       // undoable toasts default to 10s (like the web's SSEService) so the button can be pressed;
       // an error (or a sticky notice) stays until dismissed (toastLifetime)
       const duration = toastLifetime(variant, { ...options, undo: options?.undo ?? (options?.actions?.length ? true : undefined), screenReader: screenReader.current });
@@ -182,6 +184,20 @@ function OverlayHost({ visible = true }: { visible?: boolean }) {
   // the latest stack, for the synchronous "is this update for an open overlay?" answer
   const overlaysRef = useRef(overlays);
   overlaysRef.current = overlays;
+  // each open overlay's own view, for an agent reading / operating the screen (core/agentScreen.ts)
+  const overlayViews = useRef(new Map<unknown, MateuViewController>());
+
+  useEffect(() => {
+    session.agentScreen.overlays = () =>
+      overlaysRef.current.map((o) => ({ component: o.component, view: overlayViews.current.get(o.component) ?? null }));
+    return () => {
+      session.agentScreen.overlays = () => [];
+    };
+  }, [session]);
+  useEffect(() => {
+    const open = new Set(overlays.map((o) => o.component));
+    for (const key of [...overlayViews.current.keys()]) if (!open.has(key)) overlayViews.current.delete(key);
+  }, [overlays]);
 
   useEffect(() => {
     session.openOverlay = (component, _state, _data, opener) => {
@@ -205,7 +221,7 @@ function OverlayHost({ visible = true }: { visible?: boolean }) {
   const layers = overlays.map((entry, i) => (
     // an overlay that cannot be drawn fails alone, and can still be closed
     <RenderBoundary key={`${overlayIdOf(entry.component) || i}#${entry.revision}`} where="overlay" onClose={() => session.closeTopOverlay()}>
-      <OverlayLayer entry={entry} top={i === overlays.length - 1} fallbackSession={session} />
+      <OverlayLayer entry={entry} top={i === overlays.length - 1} fallbackSession={session} onController={(c) => overlayViews.current.set(entry.component, c)} />
     </RenderBoundary>
   ));
   // only modeless drawers open: no modal at all — the screen behind them stays usable
@@ -234,7 +250,7 @@ const overlayTitleOf = (entry: OverlayEntryState) => interpolate(entry.title, { 
 const asNodes = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 
 /** One open overlay: a Dialog / ConfirmDialog (Material's dialog) or a Drawer (a bottom sheet). */
-function OverlayLayer({ entry, top, fallbackSession }: { entry: OverlayEntryState; top: boolean; fallbackSession: import('../core/MateuSession').MateuSession }) {
+function OverlayLayer({ entry, top, fallbackSession, onController }: { entry: OverlayEntryState; top: boolean; fallbackSession: import('../core/MateuSession').MateuSession; onController?: (c: MateuViewController) => void }) {
   const session = entry.opener?.session ?? fallbackSession;
   const opener = entry.opener?.controller as MateuViewController | undefined;
   const meta = ((entry.component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
@@ -261,7 +277,7 @@ function OverlayLayer({ entry, top, fallbackSession }: { entry: OverlayEntryStat
   const host = (fit: boolean) =>
     content ? (
       <FitsContent.Provider value={fit}>
-        <MateuViewHost session={session} serverSideNode={content} overlaid overlayOpener={entry.opener} />
+        <MateuViewHost session={session} serverSideNode={content} overlaid overlayOpener={entry.opener} onController={onController} />
       </FitsContent.Provider>
     ) : null;
   const closeButton = <IconButton icon="close" accessibilityLabel={title ? `Close ${title}` : 'Close'} onPress={close} />;

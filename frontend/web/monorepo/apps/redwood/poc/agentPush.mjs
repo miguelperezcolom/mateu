@@ -3,7 +3,12 @@ import { announce } from './a11y.mjs'
 import { authHeadersOf } from './resilience.mjs'
 import { rendererHeaders } from './versionSkew.mjs'
 import { dispatchChatEvent } from './chat.mjs'
-import { callMateu } from './transport.mjs'
+import { callMateu, setAnswerObserver } from './transport.mjs'
+import {
+  buildScreenSummary, screenQueryOf, planScreenEdits, planScreenAction, screenRefusalOf, screenMessagesAfter,
+  agentOperatingOf, AGENT_OPERATING_MS,
+} from './agentScreen.mjs'
+import { HOST_ID, pendingConfirmation } from './reduceContexts.mjs'
 
 // LIVE UI PUSH (phase C, conformance/mcp/README.md "Live UI push"): an agent speaking MCP sends UI
 // to THIS browser tab — a screen (render), a navigation or a custom event — once the user paired the
@@ -21,6 +26,11 @@ import { callMateu } from './transport.mjs'
 // else the built-in render target via `__preview__` into the content / a drawer / a dialog);
 // navigate → `navigation-requested` (a menu click with those fields); event → a document CustomEvent
 // + the @SubscribeTo views on screen. `status` ({paired, agents}) only updates the control.
+// `query` (describe-screen / set-fields / run-action) asks the tab what it shows or to act on it as
+// the user would: the CONTENT page runs it (application event mateuAgentQuery → its agentQueryRun
+// chain → runAgentQuery here, with the page's drafts and chains) and the tab answers `_agent-screen`
+// with the summary of agentScreen.mjs. While an agent operates the tab, a non-modal band says so,
+// with Stop (unpair + close this tab's channel until the user connects an agent again).
 //
 // The stream ends after 5 minutes by design: the tab reconnects at once; a failure backs off.
 // A duplicated tab (the browser copies sessionStorage) would share the id and the two tabs would
@@ -33,6 +43,14 @@ import { callMateu } from './transport.mjs'
 export const AGENT_CHANNEL_ACTION = '_agent-channel'
 export const AGENT_PAIR_ACTION = '_agent-pair'
 export const AGENT_UNPAIR_ACTION = '_agent-unpair'
+/** The tab's answer to a `query` message: {requestId, screen} | {requestId, error: {code, id?}}. */
+export const AGENT_SCREEN_ACTION = '_agent-screen'
+/** The largest screen the server takes (UTF-8 bytes of its JSON); a larger one is answered `tooLarge`. */
+export const AGENT_MAX_SCREEN_BYTES = 262144
+/** How long the content page has to take a query before the tab answers `failed`. */
+export const AGENT_QUERY_CLAIM_MS = 2000
+/** The longest the tab waits for the screen to settle after an edit or a click. */
+export const AGENT_SETTLE_MAX_MS = 6000
 export const AGENT_RENDERER = 'redwood'
 /** The per-tab UI session id — the SAME key as libs/mateu authToken.ts SESSION_ID_KEY. */
 export const UI_SESSION_KEY = '__mateu_sesion_id'
@@ -121,9 +139,13 @@ export function claimTabSession({ storage = sessionStore(), Channel = globalThis
 
 /** The body of an agent action: app-level (route '', the app's serverSideType), the session's
  *  credentials in the parameters (+ the channel's route and renderer). */
-export function agentActionBodyOf(actionId, { sessionId, secret, serverSideType, route }) {
+export function agentActionBodyOf(actionId, { sessionId, secret, serverSideType, route }, extra) {
   const parameters = { sessionId, secret }
   if (actionId === AGENT_CHANNEL_ACTION) Object.assign(parameters, { route: route || '', renderer: AGENT_RENDERER })
+  // `_agent-screen`: the answer (requestId + screen | error) — never the credentials again
+  if (extra && typeof extra === 'object') {
+    for (const [k, v] of Object.entries(extra)) if (k !== 'sessionId' && k !== 'secret') parameters[k] = v
+  }
   return {
     route: '',
     consumedRoute: '',
@@ -136,7 +158,7 @@ export function agentActionBodyOf(actionId, { sessionId, secret, serverSideType,
   }
 }
 
-const AGENT_KINDS = ['status', 'render', 'navigate', 'event']
+const AGENT_KINDS = ['status', 'render', 'navigate', 'event', 'query']
 
 /** The AgentPush messages an increment carries ({kind, event, detail}, detail {} when none). */
 export function agentPushesOf(increment) {
@@ -174,6 +196,10 @@ const AGENT_RESERVED = ['render-screen', 'navigation-requested', 'close-requeste
 export function agentPushPlanOf(push) {
   if (!push) return { kind: 'ignore' }
   if (push.kind === 'status') return { kind: 'status', status: agentStatusOf(push.detail) }
+  if (push.kind === 'query') {
+    const query = screenQueryOf(push)
+    return query ? { kind: 'query', query } : { kind: 'ignore' }
+  }
   if (push.kind === 'render') return { kind: 'chat', event: { event: 'render-screen', detail: push.detail } }
   if (push.kind === 'navigate') return { kind: 'chat', event: { event: 'navigation-requested', detail: push.detail } }
   if (push.kind === 'event' && /^[A-Za-z][A-Za-z0-9_.:-]{0,63}$/.test(push.event) && !AGENT_RESERVED.includes(push.event)) {
@@ -476,6 +502,7 @@ function adoptAgentStatus(status) {
 export async function applyAgentPush(push, host) {
   const plan = agentPushPlanOf(push)
   if (plan.kind === 'status') { adoptAgentStatus(plan.status); return plan }
+  if (plan.kind === 'query') { handleAgentQuery(plan.query); return plan }
   if (plan.kind !== 'chat') return plan
   if (plan.event.event === 'render-screen') announce(chromeText('agentPushedScreen'))
   if (host === undefined) await dispatchChatEvent(plan.event)
@@ -483,9 +510,9 @@ export async function applyAgentPush(push, host) {
   return plan
 }
 
-const agentAppAction = (actionId) => {
+const agentAppAction = (actionId, extra) => {
   const t = agentUi.target
-  const body = agentActionBodyOf(actionId, t)
+  const body = agentActionBodyOf(actionId, t, extra)
   // quiet: the dialog shows what went wrong (no second error band), and no screen staleness —
   // the pairing belongs to the tab, not to the screen on show
   const call = agentUi.sinks && agentUi.sinks.call
@@ -499,6 +526,8 @@ export async function requestAgentPairing(now = () => Date.now()) {
   agentUi.error = null
   paintAgentControl()
   try {
+    // the user stopped the agent on this tab (Stop): connecting one again reopens the channel first
+    if (agentOps.stopped) await resumeAgentChannel()
     const answer = await agentAppAction(AGENT_PAIR_ACTION)
     const refusal = agentRefusalOf(answer)
     const pairing = agentPairingOf(answer)
@@ -575,7 +604,8 @@ export async function syncAgentPush(shell, sinks = {}) {
       onRefusal: agentWarn,
     })
   }
-  agentChannel.start(agentUi.target)
+  // Stop closed this tab's channel: it stays closed until the user connects an agent again
+  if (!agentOps.stopped) agentChannel.start(agentUi.target)
   paintAgentControl()
   return agentUi.target
 }
@@ -594,6 +624,7 @@ export function resetAgentPush() {
   agentClaim = null
   stopAgentTicker()
   Object.assign(agentUi, { channel: 'idle', status: { paired: false, agents: [] }, pairing: null, loading: false, error: null, target: null, sinks: {}, expiredSaid: false })
+  resetAgentOperation()
 }
 
 /** Installs (once) the control's document listeners: the header button, the dialog's buttons. */
@@ -607,7 +638,324 @@ export function installAgentPush(doc = agentDocOf()) {
     if (t.closest('#mateuAgentConnect')) openAgentDialog(doc)
     else if (t.closest('#mateuAgentNewCode')) requestAgentPairing()
     else if (t.closest('#mateuAgentDisconnect')) unpairAgents()
+    else if (t.closest('#mateuAgentStop')) stopAgentOperation()
   }, true)
+  // the summary's last messages: every answer the tab gets (transport.mjs)
+  setAnswerObserver(noteAgentAnswer)
   const win = doc.defaultView
   if (win && win.addEventListener) win.addEventListener('pagehide', () => { if (agentChannel) agentChannel.stop() })
+}
+
+// ── reading and operating the screen (query messages) ────────────────────────────────────────
+
+const agentOps = {
+  host: null, // {fire(query)}: hands a query to the content page (loadMateuShell)
+  pending: new Map(), // requestId → the timer that answers `failed` when nobody takes it
+  messages: [], // the last messages the tab got (for the summary)
+  busy: 0, // the tab's own calls in flight (transport hooks)
+  lastQueryAt: null,
+  stopped: false,
+  noticeTimer: null,
+  noticeShown: false,
+}
+
+/** The shell's sink for queries (it fires application:mateuAgentQuery at the content page). */
+export function setAgentQueryHost(host) { agentOps.host = host || null }
+
+/** A call of the tab's own started (+1) or settled (-1): the screen settles when none is left. */
+export function noteAgentTransport(delta) { agentOps.busy = Math.max(0, agentOps.busy + (delta > 0 ? 1 : -1)) }
+
+/** An answer the tab got: its messages join the summary's last messages. */
+export function noteAgentAnswer(increment) { agentOps.messages = screenMessagesAfter(agentOps.messages, increment) }
+
+/** Whether the "an AI agent is operating this screen" band shows (tests, probes). */
+export function agentOperationState(now = Date.now()) {
+  return { operating: agentOperatingOf(agentOps, now), stopped: agentOps.stopped, pending: agentOps.pending.size, busy: agentOps.busy }
+}
+
+/** For the tests. */
+export function resetAgentOperation() {
+  for (const t of agentOps.pending.values()) clearTimeout(t)
+  if (agentOps.noticeTimer) clearTimeout(agentOps.noticeTimer)
+  Object.assign(agentOps, { host: null, pending: new Map(), messages: [], busy: 0, lastQueryAt: null, stopped: false, noticeTimer: null, noticeShown: false })
+}
+
+/** Paints the band (#mateuAgentOperating in shell-page.html): shown while an agent operates. */
+export function paintAgentNotice(doc = agentUi.doc || agentDocOf(), now = Date.now()) {
+  const on = agentOperatingOf(agentOps, now)
+  if (on && !agentOps.noticeShown) announce(chromeText('agentOperating'))
+  agentOps.noticeShown = on
+  if (!doc) return on
+  const band = doc.getElementById('mateuAgentOperating')
+  if (band) agentSetHidden(band, !on)
+  const text = doc.getElementById('mateuAgentOperatingText')
+  if (text) text.textContent = chromeText('agentOperating')
+  return on
+}
+
+function agentNoteQuery(now = Date.now()) {
+  agentOps.lastQueryAt = now
+  paintAgentNotice()
+  if (agentOps.noticeTimer) clearTimeout(agentOps.noticeTimer)
+  agentOps.noticeTimer = setTimeout(() => { agentOps.noticeTimer = null; paintAgentNotice() }, AGENT_OPERATING_MS + 50)
+}
+
+/** Stop (the band's button): the agent loses this tab — every pairing removed and the channel closed;
+ *  it opens again only when the user connects an agent ("Connect AI"). */
+export async function stopAgentOperation() {
+  agentOps.stopped = true
+  agentOps.lastQueryAt = null
+  paintAgentNotice()
+  for (const [requestId, t] of agentOps.pending) { clearTimeout(t); agentOps.pending.delete(requestId) }
+  try { if (agentUi.target) await unpairAgents() } finally {
+    if (agentChannel) agentChannel.stop()
+    announce(chromeText('agentStopped'))
+  }
+  return true
+}
+
+/** Reopens the channel Stop closed and waits (≤ 5 s) for it to be open: pairing needs it registered. */
+async function resumeAgentChannel(waitMs = 5000) {
+  agentOps.stopped = false
+  if (!agentChannel || !agentUi.target) return
+  agentChannel.start(agentUi.target)
+  const until = Date.now() + waitMs
+  while (agentUi.channel !== 'open' && Date.now() < until) await new Promise((r) => setTimeout(r, 100))
+}
+
+/** Answers a query (`_agent-screen`). A screen over the server's limit is answered `tooLarge`. */
+export async function answerAgentQuery(requestId, answer) {
+  if (!agentUi.target) return false
+  let payload = answer && answer.screen ? { requestId, screen: answer.screen } : { requestId, error: (answer && answer.error) || { code: 'failed' } }
+  if (payload.screen) {
+    let bytes = 0
+    try { bytes = new TextEncoder().encode(JSON.stringify(payload.screen)).length } catch (e) { bytes = AGENT_MAX_SCREEN_BYTES + 1 }
+    if (bytes > AGENT_MAX_SCREEN_BYTES) payload = { requestId, error: { code: 'tooLarge' } }
+  }
+  try {
+    await agentAppAction(AGENT_SCREEN_ACTION, payload)
+    return true
+  } catch (e) {
+    agentWarn(e)
+    return false
+  }
+}
+
+/** A query arrived: the band shows, and the content page is handed it (it answers it). */
+export function handleAgentQuery(query) {
+  if (!query || agentOps.stopped) return
+  agentNoteQuery()
+  if (!agentOps.host || typeof agentOps.host.fire !== 'function') {
+    answerAgentQuery(query.requestId, { error: { code: 'unsupported' } })
+    return
+  }
+  agentOps.pending.set(query.requestId, setTimeout(() => {
+    agentOps.pending.delete(query.requestId)
+    answerAgentQuery(query.requestId, { error: { code: 'failed' } })
+  }, AGENT_QUERY_CLAIM_MS))
+  Promise.resolve().then(() => agentOps.host.fire(query)).catch((e) => {
+    agentWarn(e)
+    const t = agentOps.pending.get(query.requestId)
+    if (t) { clearTimeout(t); agentOps.pending.delete(query.requestId); answerAgentQuery(query.requestId, { error: { code: 'failed' } }) }
+  })
+}
+
+const agentSleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+/** Waits until the screen settled: none of the tab's calls in flight for a moment, a confirmation
+ *  the user has to answer on screen, or the cap. */
+export async function settleAgentScreen(ops, { maxMs = AGENT_SETTLE_MAX_MS, quietMs = 300, firstMs = 150 } = {}) {
+  const until = Date.now() + maxMs
+  await agentSleep(firstMs)
+  let quietSince = agentOps.busy === 0 ? Date.now() : null
+  while (Date.now() < until) {
+    if (ops && typeof ops.confirmationOpen === 'function' && ops.confirmationOpen()) return 'confirmation'
+    if (agentOps.busy === 0) {
+      if (quietSince == null) quietSince = Date.now()
+      if (Date.now() - quietSince >= quietMs) return 'idle'
+    } else {
+      quietSince = null
+    }
+    await agentSleep(50)
+  }
+  return 'timeout'
+}
+
+/**
+ * Runs a query on the content page — what its agentQueryRun chain calls with the page's operations
+ * (agentPageOps): describe; set-fields (refused WHOLE when an id is not an editable field on show,
+ * else each value typed as the user does); run-action (refused when the screen does not offer it,
+ * else pressed as a click) — then the screen settles and its summary is the answer.
+ */
+export async function runAgentQuery(query, ops, opts = {}) {
+  if (!query || !query.requestId) return null
+  const t = agentOps.pending.get(query.requestId)
+  if (t) clearTimeout(t)
+  if (!agentOps.pending.has(query.requestId) && !opts.unclaimed) return null // answered already (failed)
+  agentOps.pending.delete(query.requestId)
+  const answer = (a) => answerAgentQuery(query.requestId, a).then(() => a)
+  try {
+    const before = buildScreenSummary(ops.describe())
+    if (query.event === 'describe-screen') return await answer({ screen: before })
+    if (query.event === 'set-fields') {
+      const plan = planScreenEdits(before, query.values)
+      if (!plan.ok) return await answer({ error: plan.error })
+      for (const edit of plan.edits) {
+        const done = await ops.edit(edit)
+        if (done === false) return await answer({ error: screenRefusalOf('unsupported') })
+      }
+      await settleAgentScreen(ops, opts.settle)
+      return await answer({ screen: buildScreenSummary(ops.describe()) })
+    }
+    const plan = planScreenAction(before, query)
+    if (!plan.ok) return await answer({ error: plan.error })
+    if (plan.kind === 'app') return await answer({ error: screenRefusalOf('unsupported') })
+    // not awaited: a confirmation the action asks for waits for the USER, who answers it
+    let refused = false
+    Promise.resolve().then(() => ops.press(plan)).then((r) => { if (r === false) refused = true }).catch(agentWarn)
+    await settleAgentScreen(ops, opts.settle)
+    if (refused) return await answer({ error: screenRefusalOf('unsupported') })
+    return await answer({ screen: buildScreenSummary(ops.describe()) })
+  } catch (e) {
+    agentWarn(e)
+    return answer({ error: screenRefusalOf('failed') })
+  }
+}
+
+const agentQuote = (id) => String(id).replace(/["\\]/g, '\\$&')
+
+/** The input of the field `fieldId` on show — inside the open overlay when `inOverlay`, else the
+ *  page's content — or null. */
+export function agentFieldElementOf(doc, fieldId, inOverlay) {
+  if (!doc || typeof doc.querySelectorAll !== 'function') return null
+  const all = [...doc.querySelectorAll('[data-field-id="' + agentQuote(fieldId) + '"]')]
+  if (!all.length) return null
+  const within = (sel) => all.find((el) => typeof el.closest === 'function' && el.closest(sel))
+  return (inOverlay ? within('#mateuDrawerPanel, oj-dialog, oj-drawer-popup') : within('#pageContent')) || all[0]
+}
+
+/** The field errors painted on show ({fieldId: message}): the messages-custom of each input. */
+export function agentFieldErrorsOf(doc, inOverlay) {
+  const out = {}
+  if (!doc || typeof doc.querySelectorAll !== 'function') return out
+  for (const el of doc.querySelectorAll('[data-field-id]')) {
+    if (inOverlay && typeof el.closest === 'function' && !el.closest('#mateuDrawerPanel, oj-dialog, oj-drawer-popup')) continue
+    const messages = el.messagesCustom
+    const first = Array.isArray(messages) ? messages.find((m) => m && (m.detail || m.summary)) : null
+    const id = el.getAttribute ? el.getAttribute('data-field-id') : null
+    if (first && id && !(id in out)) out[id] = String(first.detail || first.summary)
+  }
+  return out
+}
+
+/**
+ * Types `value` into the input on show exactly as the user does: the input takes the value (the
+ * user sees it) and then announces the change as one of its own (`valueChanged`, updatedFrom
+ * internal) — the binding's chain runs as for a user edit (the draft, rules, the dirty state,
+ * OnValueChange). False when the input is not on show.
+ */
+export function agentTypeInto(el, value) {
+  if (!el) return false
+  const previousValue = el.value
+  try { el.value = value } catch (e) { /* a read-only property: the chain still records it */ }
+  const Ev = (el.ownerDocument && el.ownerDocument.defaultView && el.ownerDocument.defaultView.CustomEvent) || globalThis.CustomEvent
+  el.dispatchEvent(new Ev('valueChanged', { detail: { value, previousValue, updatedFrom: 'internal' } }))
+  return true
+}
+
+/**
+ * The content page's operations for runAgentQuery, from its VB variables: `app` = $application
+ * variables, `page` = $page variables, `callChain(name, params)` = Actions.callChain in the page's
+ * context, `doc` = the document.
+ */
+export function agentPageOps({ app, page, callChain, doc = agentDocOf() }) {
+  const reg = () => (app && app.mateuRegistry) || { contexts: {}, stack: [] }
+  const topOverlay = () => {
+    const r = reg()
+    const stack = r.stack || []
+    for (let i = stack.length - 1; i >= 0; i--) if ((r.contexts || {})[stack[i]]) return r.contexts[stack[i]]
+    return null
+  }
+  const confirmationOpen = () => !!pendingConfirmation
+  const describe = () => {
+    const r = reg()
+    const host = (r.contexts || {})[HOST_ID] || {}
+    const shell = r.shell || {}
+    const ov = topOverlay()
+    const confirming = confirmationOpen() && page && page.mateuConfirm
+    const input = {
+      route: (app && app.mateuSelectedRoute) || '',
+      windowTitle: doc ? doc.title : '',
+      app: { title: shell.title, contextSelectors: shell.appContext, contextActions: shell.headerActions, user: shell.user },
+      appState: (app && app.mateuAppState) || {},
+      messages: agentOps.messages,
+      view: {
+        content: host.tree,
+        state: Object.assign({}, host.state || {}, (page && page.mateuDraft) || {}),
+        listings: host.data || {},
+        fieldErrors: ov || confirming ? {} : agentFieldErrorsOf(doc, false),
+      },
+    }
+    if (confirming) {
+      // the action's own confirmation: the USER answers it — shown, offered nothing
+      input.overlay = { kind: 'confirmation', title: page.mateuConfirm.title, message: page.mateuConfirm.message, component: {}, view: {} }
+    } else if (ov) {
+      const kind = String(((ov.tree || {}).metadata || {}).type || ov.kind || 'drawer').toLowerCase()
+      input.overlay = {
+        kind,
+        title: ov.title,
+        subtitle: ov.subtitle,
+        component: ov.tree || {},
+        view: {
+          state: Object.assign({}, ov.state || {}, (page && page.mateuDrawerDraft) || {}),
+          listings: ov.data || {},
+          fieldErrors: agentFieldErrorsOf(doc, true),
+        },
+      }
+    }
+    return input
+  }
+  const listingRow = (listingId, index) => {
+    const host = (reg().contexts || {})[HOST_ID] || {}
+    const data = host.data || {}
+    const envelope = data[listingId] || data.crud || {}
+    const pageOf = envelope.page || (envelope.crud && envelope.crud.page) || {}
+    const row = (pageOf.content || [])[index]
+    if (!row) return null
+    const shown = ((app && app.mateuListingRows) || []).filter((r) => r && !r._group)
+    const projected = (row.id != null && shown.find((r) => r.id != null && String(r.id) === String(row.id))) || shown[index] || null
+    return { row, projected }
+  }
+  const edit = async ({ fieldId, value, kind }) => {
+    if (kind === 'search') {
+      // the listing's search box: the text the next search (and paging) sends
+      if (app) app.mateuLastSearchText = value == null ? '' : String(value)
+      return true
+    }
+    const inOverlay = !!topOverlay()
+    const el = agentFieldElementOf(doc, fieldId, inOverlay)
+    if (el) return agentTypeInto(el, value)
+    if (kind === 'filter') return false
+    // not painted as an input (a template's own widget): the edit chain still records it
+    await callChain('mateuFieldEdited', { fieldId, event: { detail: { value, updatedFrom: 'internal' } } })
+    return true
+  }
+  const press = async (plan) => {
+    if (plan.kind === 'open-row' || plan.kind === 'row-action') {
+      const found = listingRow(plan.listingId, plan.rowIndex)
+      if (!found) return false
+      const key = found.projected ? found.projected._rowNumber : undefined
+      if (plan.kind === 'open-row') {
+        return callChain('mateuRowClicked', {
+          event: { detail: { context: { key, item: { data: found.projected || found.row } } }, timeStamp: Date.now() + Math.random() },
+        })
+      }
+      return callChain('listingRowAction', { methodName: plan.method, rowId: found.row.id, rowKey: key })
+    }
+    if (plan.kind === 'search') return callChain('runMateuSearch', { searchText: (app && app.mateuLastSearchText) || '' })
+    if (plan.kind === 'page') return callChain('listingPaged', { which: plan.which })
+    if (topOverlay()) return callChain('runMateuAction', { actionId: plan.actionId, parameters: plan.parameters })
+    return callChain('dispatchHostBlockAction', { actionId: plan.actionId, parameters: plan.parameters })
+  }
+  return { describe, edit, press, confirmationOpen }
 }

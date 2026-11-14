@@ -1,5 +1,5 @@
 {
-  "$comment": "The MCP live-UI push contract (phase C) shared by the Java, .NET and Python backends and the sidecar. See README.md, section 'Live UI push'. pushTools are normative byte for byte (listed after the eight base tools and before mateu_save_spec, only when push is enabled); scenario is run by each backend's test with the volatile values normalised: a session handle -> \"<session:NAME>\" (NAME = the UI session's sessionId), connectedAt -> \"<time>\", a pairing code -> \"<code>\".",
+  "$comment": "The MCP live-UI push contract (phase C) shared by the Java, .NET and Python backends and the sidecar. See README.md, section 'Live UI push'. pushTools are normative byte for byte (listed after the eight base tools and before mateu_save_spec, only when push is enabled); scenario is run by each backend's test with the volatile values normalised: a session handle -> \"<session:NAME>\" (NAME = the UI session's sessionId), connectedAt -> \"<time>\", a pairing code -> \"<code>\", the requestId of a query message -> \"<request>\". The runners set the answer timeout (answer-timeout-ms) to a short value (300 ms): one query of the scenario is left unanswered.",
   "pushTools": [
     {
       "name": "mateu_list_sessions",
@@ -129,6 +129,79 @@
           "event"
         ]
       }
+    },
+    {
+      "name": "mateu_get_session_screen",
+      "description": "Read what the user sees in a live UI session, as that tab draws it: route, window title, page header, fields (id, label, type, value, required, readOnly, error, options), the actions the user can press (id, label, enabled), the rows of each listing's current page with its search, filters, sort, page and total, an open dialog or drawer (focus: overlay, in front of the page) and the last messages. Only what the screen shows; long values and lists are capped and named in truncated. Returns {session, screen}.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "a session from mateu_list_sessions or mateu_pair_session"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "session"
+        ]
+      }
+    },
+    {
+      "name": "mateu_set_session_fields",
+      "description": "Type values into fields of the screen in a live UI session (the dialog's or drawer's when one is open), exactly as the user editing them: validation, client rules and the unsaved-changes state follow. Only fields the screen shows as editable: any other refuses the whole call and nothing changes. Returns {session, screen} after the change.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "a session from mateu_list_sessions or mateu_pair_session"
+          },
+          "values": {
+            "type": "object",
+            "description": "field id -> value (a string, number, boolean, or a list for a multi-value field)"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "session",
+          "values"
+        ]
+      }
+    },
+    {
+      "name": "mateu_run_session_action",
+      "description": "Press an action the screen in a live UI session offers (an id from mateu_get_session_screen; a row action needs row), as the user clicking it: validation runs, and a confirmation the action asks for is shown to the user, who answers it. Returns {session, screen} once the screen settled.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "description": "a session from mateu_list_sessions or mateu_pair_session"
+          },
+          "actionId": {
+            "type": "string",
+            "description": "an action id from mateu_get_session_screen"
+          },
+          "parameters": {
+            "type": "object",
+            "description": "optional: extra parameters of the action"
+          },
+          "row": {
+            "type": "integer",
+            "description": "optional, for a row action: the 0-based index of the row in the listing's rows"
+          },
+          "listing": {
+            "type": "string",
+            "description": "optional, for a row action on a screen with several listings: the listing id"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "session",
+          "actionId"
+        ]
+      }
     }
   ],
   "errors": {
@@ -144,14 +217,23 @@
     "detailTooLarge": "The detail is larger than the 65536-byte limit.",
     "invalidTarget": "Invalid target \"{target}\": use content, drawer or dialog.",
     "channelRefused": "This UI session belongs to another channel.",
-    "tooManySessions": "Too many live UI sessions; try again later."
+    "tooManySessions": "Too many live UI sessions; try again later.",
+    "noAnswer": "Session \"{session}\" did not answer in time.",
+    "unknownField": "Field \"{id}\" is not on the screen or cannot be edited.",
+    "unknownAction": "Action \"{id}\" is not offered by the screen.",
+    "disabledAction": "Action \"{id}\" is disabled.",
+    "unknownRow": "Row {id} is not on the current page of the listing.",
+    "unsupported": "This client does not support reading or operating its screen.",
+    "failed": "The UI could not complete the request.",
+    "screenTooLarge": "The screen the UI answered is larger than the 262144-byte limit.",
+    "invalidRow": "Invalid row: use the 0-based index of a row in the listing's rows."
   },
   "reasons": {
     "hasErrors": "The definition has errors; nothing was sent.",
     "notAPage": "Only a page (a component, or a layout: envelope) can be pushed."
   },
   "scenario": {
-    "$comment": "UI sessions are opened in this order (sessionId, secret, principal or null, route, renderer). Callers: alice / bob (signed-in principals), anon (no identity, no agent key). Each step: as (caller), and either tool+args (args strings may name a session as <session:ID>, a code as <code:ID> = the last code the UI session ID asked for) with expect (the tool result JSON, or {error: text}), or ui (a UI-side operation: pair | unpair | disconnect) on sessionId, or received (the messages the session's channel received since the last check, in order, AgentPush data).",
+    "$comment": "UI sessions are opened in this order (sessionId, secret, principal or null, route, renderer). Callers: alice / bob (signed-in principals), anon (no identity, no agent key). Each step: as (caller), and either tool+args (args strings may name a session as <session:ID>, a code as <code:ID> = the last code the UI session ID asked for) with expect (the tool result JSON, or {error: text}), or ui (a UI-side operation: pair | unpair | disconnect) on sessionId, or received (the messages the session's channel received since the last check, in order, AgentPush data). The ui operation answer queues what the session answers ({screen} or {error: {code, id?}}, the parameters of _agent-screen besides sessionId/secret/requestId) to its NEXT query message, answered as soon as the message reaches it; a query with no answer queued is left unanswered.",
     "sessions": [
       { "sessionId": "ui-1", "secret": "secret-1", "principal": "alice", "route": "/orders", "renderer": "vaadin" },
       { "sessionId": "ui-2", "secret": "secret-2", "principal": "bob", "route": "", "renderer": "redwood" },
@@ -201,6 +283,34 @@
       { "ui": "unpair", "sessionId": "ui-2" },
       { "as": "anon", "tool": "mateu_push_ui", "args": { "session": "<session:ui-2>", "yaml": "type: Text\ntext: Again\n" }, "expect": { "error": "Unknown session \"<session:ui-2>\"." } },
       { "received": "ui-2", "expect": [ { "kind": "status", "event": "mateu-agent-status", "detail": { "paired": false, "agents": [] } } ] },
+      { "ui": "answer", "sessionId": "ui-1", "screen": { "route": "/orders/42", "windowTitle": "Order 42", "focus": "page", "header": { "title": "Order 42" }, "fields": [ { "id": "customer", "label": "Customer", "type": "string", "required": true, "value": "Ada" } ], "actions": [ { "id": "save", "label": "Save", "enabled": true } ] } },
+      { "as": "alice", "tool": "mateu_get_session_screen", "args": { "session": "<session:ui-1>" }, "expect": { "session": "<session:ui-1>", "screen": { "route": "/orders/42", "windowTitle": "Order 42", "focus": "page", "header": { "title": "Order 42" }, "fields": [ { "id": "customer", "label": "Customer", "type": "string", "required": true, "value": "Ada" } ], "actions": [ { "id": "save", "label": "Save", "enabled": true } ] } } },
+      { "as": "bob", "tool": "mateu_get_session_screen", "args": { "session": "<session:ui-1>" }, "expect": { "error": "Unknown session \"<session:ui-1>\"." } },
+      { "as": "alice", "tool": "mateu_set_session_fields", "args": { "session": "<session:ui-1>", "values": "Grace" }, "expect": { "error": "Missing argument \"values\"." } },
+      { "ui": "answer", "sessionId": "ui-1", "error": { "code": "unknownField", "id": "secret" } },
+      { "as": "alice", "tool": "mateu_set_session_fields", "args": { "session": "<session:ui-1>", "values": { "secret": "x" } }, "expect": { "error": "Field \"secret\" is not on the screen or cannot be edited." } },
+      { "ui": "answer", "sessionId": "ui-1", "screen": { "route": "/orders/42", "windowTitle": "Order 42", "focus": "page", "header": { "title": "Order 42" }, "fields": [ { "id": "customer", "label": "Customer", "type": "string", "required": true, "value": "Grace" } ], "actions": [ { "id": "save", "label": "Save", "enabled": true } ] } },
+      { "as": "alice", "tool": "mateu_set_session_fields", "args": { "session": "<session:ui-1>", "values": { "customer": "Grace" } }, "expect": { "session": "<session:ui-1>", "screen": { "route": "/orders/42", "windowTitle": "Order 42", "focus": "page", "header": { "title": "Order 42" }, "fields": [ { "id": "customer", "label": "Customer", "type": "string", "required": true, "value": "Grace" } ], "actions": [ { "id": "save", "label": "Save", "enabled": true } ] } } },
+      { "as": "alice", "tool": "mateu_run_session_action", "args": { "session": "<session:ui-1>", "actionId": "save", "row": -1 }, "expect": { "error": "Invalid row: use the 0-based index of a row in the listing's rows." } },
+      { "ui": "answer", "sessionId": "ui-1", "error": { "code": "unknownAction", "id": "delete" } },
+      { "as": "alice", "tool": "mateu_run_session_action", "args": { "session": "<session:ui-1>", "actionId": "delete" }, "expect": { "error": "Action \"delete\" is not offered by the screen." } },
+      { "ui": "answer", "sessionId": "ui-1", "error": { "code": "unknownRow", "id": "7" } },
+      { "as": "alice", "tool": "mateu_run_session_action", "args": { "session": "<session:ui-1>", "actionId": "action-on-row-archive", "row": 7, "listing": "lines" }, "expect": { "error": "Row 7 is not on the current page of the listing." } },
+      { "ui": "answer", "sessionId": "ui-1", "screen": { "route": "/orders/42", "focus": "page", "fields": [], "actions": [], "messages": [ { "variant": "success", "text": "Saved" } ] } },
+      { "as": "alice", "tool": "mateu_run_session_action", "args": { "session": "<session:ui-1>", "actionId": "save", "parameters": { "notify": true } }, "expect": { "session": "<session:ui-1>", "screen": { "route": "/orders/42", "focus": "page", "fields": [], "actions": [], "messages": [ { "variant": "success", "text": "Saved" } ] } } },
+      { "ui": "answer", "sessionId": "ui-1", "error": { "code": "unsupported" } },
+      { "as": "alice", "tool": "mateu_get_session_screen", "args": { "session": "<session:ui-1>" }, "expect": { "error": "This client does not support reading or operating its screen." } },
+      { "as": "alice", "tool": "mateu_get_session_screen", "args": { "session": "<session:ui-1>" }, "expect": { "error": "Session \"<session:ui-1>\" did not answer in time." } },
+      { "received": "ui-1", "expect": [
+        { "kind": "query", "event": "describe-screen", "detail": { "requestId": "<request>" } },
+        { "kind": "query", "event": "set-fields", "detail": { "requestId": "<request>", "values": { "secret": "x" } } },
+        { "kind": "query", "event": "set-fields", "detail": { "requestId": "<request>", "values": { "customer": "Grace" } } },
+        { "kind": "query", "event": "run-action", "detail": { "requestId": "<request>", "actionId": "delete" } },
+        { "kind": "query", "event": "run-action", "detail": { "requestId": "<request>", "actionId": "action-on-row-archive", "row": 7, "listing": "lines" } },
+        { "kind": "query", "event": "run-action", "detail": { "requestId": "<request>", "actionId": "save", "parameters": { "notify": true } } },
+        { "kind": "query", "event": "describe-screen", "detail": { "requestId": "<request>" } },
+        { "kind": "query", "event": "describe-screen", "detail": { "requestId": "<request>" } }
+      ] },
       { "ui": "disconnect", "sessionId": "ui-1" },
       { "as": "alice", "tool": "mateu_navigate", "args": { "session": "<session:ui-1>", "route": "/" }, "expect": { "error": "Session \"<session:ui-1>\" is not connected." } },
       { "as": "alice", "tool": "mateu_list_sessions", "args": {}, "expect": { "sessions": [

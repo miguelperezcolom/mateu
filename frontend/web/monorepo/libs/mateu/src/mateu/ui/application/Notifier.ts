@@ -115,7 +115,17 @@ export function setNotifier(notifier: Notifier): void {
     current = notifier
 }
 
+/** The last toasts shown (text only), newest last — what an agent reading the screen is told. */
+const RECENT_MAX = 10
+const recent: { variant: string, title?: string, text: string }[] = []
+
+export const recentToasts = (): readonly { variant: string, title?: string, text: string }[] => recent
+
 /** Show a toast through the currently registered adapter. */
 export function notify(message: ToastMessage, initiator: HTMLElement): void {
+    if (message?.text || message?.title) {
+        recent.push({ variant: message.variant ?? 'info', ...(message.title ? { title: message.title } : {}), text: message.text ?? '' })
+        if (recent.length > RECENT_MAX) recent.splice(0, recent.length - RECENT_MAX)
+    }
     current.show(message, initiator)
 }

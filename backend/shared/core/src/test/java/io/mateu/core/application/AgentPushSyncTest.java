@@ -190,6 +190,54 @@ class AgentPushSyncTest {
     }
   }
 
+  /**
+   * An agent reads the tab's screen: the server asks over the stream ({@code describe-screen}) and
+   * the tab answers through the app-level {@code _agent-screen} action, on its own request.
+   */
+  @Test
+  void anAgentReadsTheScreenTheTabAnswers() throws Exception {
+    var received = new CopyOnWriteArrayList<UIIncrementDto>();
+    var subscription =
+        mateu.stream(rq("_agent-channel", ids()))
+            .subscribe(
+                increment -> {
+                  received.add(increment);
+                  for (var push : pushes(List.of(increment))) {
+                    if (!"query".equals(push.kind())) continue;
+                    // the tab answers on its own request, like a browser would
+                    new Thread(
+                            () -> {
+                              var answer = new java.util.HashMap<String, Object>(ids());
+                              answer.put("requestId", push.detail().get("requestId"));
+                              answer.put("screen", Map.of("route", "/orders", "focus", "page"));
+                              var data = OM.valueToTree(mateu.run(rq("_agent-screen", answer)));
+                              assertThat(data.path("messages").toString()).doesNotContain("Error");
+                            })
+                        .start();
+                  }
+                });
+    try {
+      await(() -> !pushes(received).isEmpty());
+      var code =
+          OM.valueToTree(mateu.run(rq("_agent-pair", ids())))
+              .toString()
+              .replaceAll(".*\"code\":\"([A-Z0-9-]+)\".*", "$1");
+      var mcp = new McpService(mateu.service(), OM);
+      var handle = call(mcp, null, "mateu_pair_session", Map.of("code", code)).path("session");
+      var screen = call(mcp, null, "mateu_get_session_screen", Map.of("session", handle.asText()));
+      assertThat(screen.path("screen").path("route").asText()).isEqualTo("/orders");
+      assertThat(screen.path("session").asText()).isEqualTo(handle.asText());
+      // a stolen secret cannot answer for the tab
+      var stolen = new java.util.HashMap<String, Object>(ids());
+      stolen.put("secret", "guessed");
+      stolen.put("requestId", "x");
+      assertThat(OM.valueToTree(mateu.run(rq("_agent-screen", stolen))).path("messages").toString())
+          .contains("This UI session belongs to another channel.");
+    } finally {
+      subscription.dispose();
+    }
+  }
+
   @Test
   void anotherUserCannotTakeOverTheChannelOrAskForItsCode() {
     var received = new CopyOnWriteArrayList<UIIncrementDto>();

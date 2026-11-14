@@ -809,6 +809,27 @@ backend runs: Java `McpPushCorpusTest`, .NET `AgentPushTests`, Python `test_mcp_
   delivery logged at INFO. `mateu_push_ui` validates through `__validate__` AS THE CALLER first; the
   UI renders through `__preview__` with ITS identity. The sidecar holds no sessions: `MATEU_PUSH=true`
   forwards the tools to the app's `/mateu/mcp` with a per-process agent key.
+- **Seeing and operating the open screen (2026-11-14)**: `mateu_get_session_screen` /
+  `mateu_set_session_fields` / `mateu_run_session_action` — the server cannot know what a tab draws,
+  so it ASKS it: `AgentSessions.request` sends `{kind: "query", event: describe-screen|set-fields|
+  run-action, detail: {requestId, …}}` and waits (`mateu.mcp.push.answer-timeout-ms`, 10 s; ≤ 4
+  waiting per session; a closing stream fails the wait at once) for the tab's app-level
+  `_agent-screen {sessionId, secret, requestId, screen | error: {code, id?}}` (secret+principal
+  checked like every UI call; codes → server texts in `AgentPush.refusal`, pinned in push.json).
+  Requests are logged WITHOUT values (`fields=<n>` / `action=<id>`). The tab builds the summary from
+  ITS OWN rendered wire state, in the desktop's `mateu_get_screen` shape (intellij `mcp/ScreenSummary.kt`
+  on feat/desktop-mcp; caps 500 chars / 50 items / 50 rows, `truncated`), applies set-fields as the
+  field's own value-changed (whole call refused on a non-editable id) and run-action as a click on
+  the control (confirmation shown to the USER), waits ≤ 6 s for idle, then answers. Web
+  `infra/ui/agentScreenSummary.ts` (pure) + `agentScreen.ts` (DOM: mateu-component/-table-crud/-field
+  elements, top dialog/drawer) + `agentOperating.ts`/`mateu-agent-operating` ("An AI agent is operating
+  this screen" + Stop = `_agent-unpair` + channel closed until "Connect AI"); RN `core/screenSummary.ts`
+  + `core/agentScreen.ts`; IntelliJ `state/AgentScreenQueries.kt` over BYTE-IDENTICAL copies of
+  feat/desktop-mcp's `mcp/ScreenSummary.kt` + `McpTools.kt` (keep them identical until that branch
+  merges; notice in `plugin/MateuPlatformNotices.kt`); Redwood `poc/agentScreen.mjs` (+ content-page chain `agentQueryRun.js`, event
+  `mateuAgentQuery`). The corpus scenario scripts the UI's answers (`ui: "answer"`), normalises
+  `requestId` → `<request>` and runs with a 300 ms answer timeout; `-Dmcp.push.write=true`
+  (McpPushCorpusTest) rewrites push.json's pushTools.
 - Parity: `AdapterParityITFoundation.pushesUiToALiveSessionOverTheSseStream` (5 adapters). Docs
   `reference/agent-operability.md#drive-a-live-ui`, wire spec "Live UI push".
 
