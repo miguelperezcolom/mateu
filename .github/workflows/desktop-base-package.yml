@@ -57,7 +57,7 @@ jobs:
           echo "IDE_VERSION=$v" >> "$GITHUB_ENV"
       - name: Fetch the base (from-source)
         if: inputs.base == 'from-source'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: base-from-source-macos-${{ matrix.arch }}
           path: ${{ runner.temp }}/base
@@ -84,7 +84,7 @@ jobs:
           xcrun stapler validate "$app" 2>&1 || true
           [ -d "$RUNNER_TEMP/inspect/mnt" ] && hdiutil detach "$RUNNER_TEMP/inspect/mnt" -quiet || true
           rm -rf "$RUNNER_TEMP/inspect/x"
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           java-version: 21
           distribution: zulu
@@ -116,7 +116,7 @@ jobs:
           kill $pid 2>/dev/null || true; pkill -f 'Mateu.app' || true
           echo "--- idea.log (selected)"; grep -E 'IDE: |Loaded custom plugins|Loaded bundled plugins|io\.mateu|ERROR' "$log" | head -60 || true
           grep 'Loaded custom plugins' "$log" | grep -q 'Mateu' && echo "✅ macOS: Mateu plugin loaded" | tee -a "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mateu-desktop-${{ inputs.base }}-macos-${{ matrix.arch }}
           path: frontend/app/intellij-plugin/build/installer/*.dmg
@@ -157,7 +157,7 @@ jobs:
           echo "IDE_VERSION=$v" >> "$GITHUB_ENV"
       - name: Fetch the base (from-source)
         if: inputs.base == 'from-source'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: base-from-source-${{ matrix.platform }}
           path: ${{ runner.temp }}/base
@@ -177,7 +177,7 @@ jobs:
           unzip -q -o "$IDE_ARCHIVE" '*bin/idea64.exe' || true
           exe=$(find . -name idea64.exe | head -1); echo "exe: $exe"
           osslsigncode verify -in "$exe" 2>&1 | grep -E 'Subject:|Signature verification|No signature|Message digest' | head -8 || true
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           java-version: 21
           distribution: zulu
@@ -209,7 +209,7 @@ jobs:
           pkill -f "$root" || true
           echo "--- idea.log (selected)"; grep -E 'IDE: |Loaded custom plugins|io\.mateu|ERROR' "$log" | head -60 || true
           grep 'Loaded custom plugins' "$log" | grep -q 'Mateu' && echo "✅ linux: Mateu plugin loaded" | tee -a "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mateu-desktop-${{ inputs.base }}-${{ matrix.platform }}
           path: |
@@ -223,7 +223,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         id: dl
         continue-on-error: true
         with:
