@@ -1,0 +1,14 @@
+# Workshop, lab 04: a listing over the `planets` source (sources.yaml), live from swapi.mateu.io.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.64/backend/shared/uidl/uidl-schema.json
+pageType: collection
+type: Listing
+title: Planets
+pageSize: 10
+searchable: true
+rowsSource:
+  ref: planets
+columns:
+  - {type: GridColumn, id: name, label: Name, identifier: true, stereotype: primary, leadingPath: image}
+  - {type: GridColumn, id: climate, label: Climate}
+  - {type: GridColumn, id: terrain, label: Terrain}
+  - {type: GridColumn, id: population, label: Population}

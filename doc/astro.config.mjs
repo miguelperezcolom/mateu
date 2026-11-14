@@ -91,6 +91,7 @@ export default defineConfig({
 						{ slug: 'csharp-user-manual', label: 'Quickstart: C#' },
 						{ slug: 'python-user-manual', label: 'Quickstart: Python' },
 						{ slug: 'build-a-full-backoffice-in-10-minutes', label: 'A full backoffice in 10 minutes' },
+						{ slug: 'workshop', label: 'Hands-on workshop' },
 						{
 							label: 'About the project',
 							collapsed: true,

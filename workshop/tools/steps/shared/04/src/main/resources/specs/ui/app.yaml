@@ -1,0 +1,17 @@
+# The app shell: title and menu around every screen, bound to the mount root ("") in routes.yaml.
+# Each menu entry routes to an entry of the route registry.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v@MATEU_VERSION@/backend/shared/uidl/uidl-schema.json
+type: AppShell
+title: Workshop ui
+variant: MENU_ON_TOP
+menu:
+  - type: RouteLink
+    label: Home
+    route: home
+  - type: RouteLink
+    label: Products
+    route: products
+  # workshop, lab 04: a menu entry for the new page
+  - type: RouteLink
+    label: Planets
+    route: planets
