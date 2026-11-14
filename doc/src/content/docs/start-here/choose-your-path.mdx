@@ -66,7 +66,7 @@ backend, or bundled into static files.
 <TabItem label="Java">
 
 ```java
-public record Product(@NotEmpty String id, @NotEmpty String name,
+public record Product(@EditableOnlyWhenCreating @NotEmpty String id, @NotEmpty String name,
                       @Min(0) @Stereotype(FieldStereotype.money) double price,
                       @NotNull ProductStatus status)
     implements Identifiable {}

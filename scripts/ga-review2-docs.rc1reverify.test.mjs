@@ -7,8 +7,9 @@ import { readFileSync } from 'node:fs'
 const root = new URL('..', import.meta.url).pathname
 const read = (p) => readFileSync(root + p, 'utf8')
 
-// Release S1: the Java CRUD guides still declare a user-typed id with no @EditableOnlyWhenCreating
-// and a store keyed by it — since the technical-id rule, "New" has no id input and the create is refused.
+// Release S1 (fixed for rc.2): the Java CRUD guides declared a user-typed id with no
+// @EditableOnlyWhenCreating and a store keyed by it — since the technical-id rule, "New" had no id
+// input and the create was refused. The snippets themselves run in core's DocsCrudGuidesSyncTest.
 const JAVA_CRUD_GUIDES = [
   'doc/src/content/docs/java-user-manual/use-cases/users-crud.md',
   'doc/src/content/docs/java-user-manual/advanced/rules.md',
@@ -16,11 +17,15 @@ const JAVA_CRUD_GUIDES = [
   'doc/src/content/docs/java-user-manual/use-cases/nested-crud.md',
   'doc/src/content/docs/java-user-manual/build/master-detail.md',
 ]
-test('GA r2 release S1: the Java CRUD guides say who assigns the id of a new record', { todo: 'open on rc.1' }, () => {
+test('GA r2 release S1: the Java CRUD guides say who assigns the id of a new record', () => {
   for (const p of JAVA_CRUD_GUIDES) {
     const text = read(p)
     assert.match(text, /EditableOnlyWhenCreating|assigns? (the|its) id|technical id/i, p)
   }
+  // and none keys a new record by an id it never assigned
+  const users = read(JAVA_CRUD_GUIDES[0])
+  assert.doesNotMatch(users, /db\.put\(entity\.id\(\), entity\)/)
+  assert.doesNotMatch(read('doc/src/content/docs/start-here/choose-your-path.mdx'), /record Product\(@NotEmpty String id/)
 })
 
 // Release B-2: the NuGet packages carry no LICENSE / NOTICE file.

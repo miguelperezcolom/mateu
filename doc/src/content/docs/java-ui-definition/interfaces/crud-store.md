@@ -86,6 +86,8 @@ class ItemStore implements CrudStore<Item> {
 
     @Override
     public String save(Item entity) {
+        // `id` is technical: a new item arrives without one and the store assigns it
+        if (entity.getId() == null || entity.getId().isBlank()) entity.setId(UUID.randomUUID().toString());
         db.put(entity.getId(), entity);
         return entity.getId();
     }
@@ -113,6 +115,12 @@ public class ItemsCatalog extends AutoCrud<Item> {
 ```
 
 Navigating to `/items` renders a full list-create-edit-delete UI with no additional configuration.
+
+`save` returns the id the record was stored under. `Item.id` carries no annotation, so it is a
+**technical** id: **New** shows no input for it and the store assigns it — a create the store saves
+without an id is refused ("The record was saved without an id"). For an id the user types (a code,
+a username), mark the field `@EditableOnlyWhenCreating`: the store then keys by it as it comes. See
+[Who assigns the id](/java-user-manual/build/entity-interfaces/#who-assigns-the-id).
 
 ## Spring Data JPA integration
 
@@ -159,6 +167,9 @@ public class ProductStore implements CrudStore<Product> {
 ```
 
 The adapter decouples Mateu's API from Spring Data so the rest of your code is not tied to the framework.
+With an `@Id @GeneratedValue` the database assigns a new record's id and `jpa.save(entity).id()`
+returns it; a `String` id with no generator is one the user types, so mark it
+`@EditableOnlyWhenCreating`.
 
 ---
 
