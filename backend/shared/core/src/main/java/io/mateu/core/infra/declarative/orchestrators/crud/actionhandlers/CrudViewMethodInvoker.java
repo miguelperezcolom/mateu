@@ -61,7 +61,14 @@ final class CrudViewMethodInvoker {
         throw ActionMethods.notAnAction(subject.getClass(), methodName);
       }
     }
-    return null;
+    // no method of that name on the record or the crud: an id no handler claims (a button renamed
+    // since the tab was opened) is refused like any other unknown action, not answered as if the
+    // method had returned nothing
+    throw ActionMethods.noSuchAction(
+        orchestrator.behaviourSource() != null
+            ? orchestrator.behaviourSource().getClass()
+            : orchestrator.getClass(),
+        "action-on-view-" + methodName);
   }
 
   private CrudViewMethodInvoker() {}
