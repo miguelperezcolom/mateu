@@ -1386,7 +1386,9 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
                 ) : (
                   <Appbar.Action icon="menu" accessibilityLabel="Open menu" onPress={() => (navigation as { toggleDrawer: () => void }).toggleDrawer()} />
                 )}
-                <Appbar.Content title={barTitle} titleStyle={styles.appBarTitle} accessibilityRole="header" testID="app-bar-title" />
+                {/* no accessibilityRole here: Paper already makes the title text the heading, and a
+                    role on Appbar.Content lands on its container — on web an <h1> around that <h1> */}
+                <Appbar.Content title={barTitle} titleStyle={styles.appBarTitle} testID="app-bar-title" />
                 {appMeta.themeToggle && (
                   <Appbar.Action
                     icon={dark ? 'white-balance-sunny' : 'weather-night'}
