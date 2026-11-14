@@ -698,6 +698,30 @@ test('F3: a content button whose action nobody on screen claims is inert, as on 
   assert.equal(bridge.contentActionIsClaimed({ contexts: {}, shell: null }, 'cat'), false)
 })
 
+test('N-1: a content button of a form embedded in a drawer/dialog reaches it — the overlay\'s SURFACE claims its actions', async () => {
+  const dispatchHost = chain('flows/main/pages/main-start-page-chains/dispatchHostBlockAction.js')
+  const dispatchIsland = chain('flows/main/pages/main-start-page-chains/dispatchIslandAction.js')
+  // a reflected page with an explicit action list opens a Drawer whose embedded form has its own ServerSide
+  const overlay = bridge.buildOverlay({ component: { type: 'ClientSide', metadata: { type: 'Drawer', headerTitle: 'Cancel booking',
+    content: { type: 'ServerSide', id: 'cancel-form', serverSideType: 'x.CancelBooking', actions: [{ id: 'confirmCancel' }], children: [] } } } }, bridge.HOST_ID)
+  const ctx = newContext()
+  ctx.$application.variables.mateuRegistry = { contexts: {
+    [bridge.HOST_ID]: { id: bridge.HOST_ID, tree: { type: 'ServerSide', id: 'p', actions: [{ id: 'save' }], children: [] } },
+    [overlay.id]: overlay,
+  }, stack: [overlay.id], shell: null }
+  assert.equal(bridge.contentActionIsClaimed(ctx.$application.variables.mateuRegistry, 'confirmCancel'), true)
+  assert.equal(bridge.contentActionIsClaimed(ctx.$application.variables.mateuRegistry, 'nobodys'), false)
+  const real = chains.runMateuAction
+  delete chains.runMateuAction
+  calls.length = 0
+  try {
+    await new dispatchHost().run(ctx, { actionId: 'confirmCancel' })
+    await new dispatchIsland().run(ctx, { actionId: 'confirmCancel' })
+    await new dispatchHost().run(ctx, { actionId: 'nobodys' })
+    assert.deepEqual(calls.filter((c) => c[0] === 'callChain').map((c) => c[2].actionId), ['confirmCancel', 'confirmCancel'])
+  } finally { chains.runMateuAction = real }
+})
+
 // ═══ runMateuAction ═══════════════════════════════════════════════════════════════════════════
 
 const act = (ctx, actionId, parameters) => new chains.runMateuAction().run(ctx, { actionId, parameters })
@@ -840,6 +864,61 @@ test('R-7: edits typed on a page survive an overlay opened over them; a server M
   assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), true, 'MarkAsDirty from the server counts')
   await act(ctx, 'save')
   assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), false, 'MarkAsClean clears it')
+})
+
+test('N-2: an overlay the server closes (CloseModal) leaves the page\'s typed values and its unsaved changes', async () => {
+  const dialogOpen = { commands: [], messages: [], fragments: [{ targetComponentId: '', action: 'Add', state: {}, data: null, component: {
+    type: 'ClientSide', id: 'dlg', metadata: { type: 'Drawer', headerTitle: 'Note', position: 'end',
+      content: { type: 'ServerSide', id: 'n2-form', serverSideType: 'x.Note', route: '/n2', actions: [{ id: 'n2Done' }], triggers: [], rules: [], validations: [],
+        children: [{ type: 'ClientSide', metadata: { type: 'FormField', fieldId: 'note', label: 'Note', dataType: 'string' } }] } },
+    children: [] } }] }
+  answer(byRoute('/n2-tracked'), replace(page('pn2', 'x.Edit2', 'Edit', [], { actions: [{ id: 'n2Open' }, { id: 'n2Save' }] })))
+  answer((b) => b.actionId === 'n2Open', dialogOpen)
+  answer((b) => b.actionId === 'n2Done', { commands: [{ type: 'CloseModal', targetComponentId: '', data: null }], messages: [], fragments: [] })
+  const sentSaves = () => sent.filter((s) => s.body && s.body.actionId === 'n2Save')
+  answer((b) => b.actionId === 'n2Save', { commands: [], messages: [], fragments: [] })
+  const ctx = newContext()
+  ctx.$page.variables.mateuModalOpen = false
+  await navigate(ctx, '/n2-tracked')
+  ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID].tree.confirmOnNavigationIfDirty = true
+  await new chains.mateuFieldEdited().run(ctx, { fieldId: 'nombre', event: { detail: { value: 'Ana', updatedFrom: 'internal' } } })
+  await act(ctx, 'n2Open')
+  assert.equal(ctx.$application.variables.mateuDrawerOpen, true)
+  await act(ctx, 'n2Done')
+  assert.equal((ctx.$application.variables.mateuRegistry.stack || []).length, 0, 'the overlay is closed')
+  assert.equal(ctx.$page.variables.mateuDraft.nombre, 'Ana', 'the typed value is still in the draft')
+  assert.equal(ctx.$application.variables.mateuDirty, true, 'still unsaved')
+  assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), true)
+  // and the next Save sends it
+  await act(ctx, 'n2Save')
+  assert.equal(sentSaves().at(-1).body.componentState.nombre, 'Ana')
+})
+
+test('N-4: a browser-run flow\'s Navigate asks when the unsaved changes are the user\'s own typing', async () => {
+  answer(byRoute('/n4-edit'), replace(page('pn4', 'x.Edit4', 'Edit', [text('x')], { actions: [
+    { id: 'goList', commands: [{ type: 'NavigateTo', data: '/n4-list' }] }] })))
+  const ctx = newContext()
+  await navigate(ctx, '/n4-edit')
+  ctx.$application.variables.mateuRegistry.contexts[bridge.HOST_ID].tree.confirmOnNavigationIfDirty = true
+  await new chains.mateuFieldEdited().run(ctx, { fieldId: 'nombre', event: { detail: { value: 'Ana', updatedFrom: 'internal' } } })
+  assert.equal(ctx.$application.variables.mateuDirty, true)
+  const navs = () => calls.filter((c) => c[0] === 'event' && c[1] === 'application:mateuNavigate')
+  const asked = []
+  const realConfirm = win.confirm
+  win.confirm = (t) => { asked.push(t); return confirmAnswer }
+  try {
+    confirmAnswer = false
+    const navsBefore = navs().length
+    await act(ctx, 'goList')
+    assert.equal(asked.length, 1, 'it asked')
+    assert.equal(navs().length, navsBefore, '«stay» navigates nowhere')
+    assert.equal(ctx.$page.variables.mateuDraft.nombre, 'Ana', '«stay» keeps what was typed')
+    assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), true)
+    confirmAnswer = true
+    await act(ctx, 'goList')
+    assert.equal(asked.length, 2)
+    assert.deepEqual(navs().at(-1)[2], { route: '/n4-list', force: true })
+  } finally { win.confirm = realConfirm; confirmAnswer = true }
 })
 
 // ── the crud's create/edit DRAWER (CrudDrawerBuilder): its form sits in metadata.content ───────────
