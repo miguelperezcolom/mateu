@@ -492,6 +492,11 @@ fun desktopOptions(): DesktopOptions {
 /** The VM options every desktop build bakes in (the launcher's `.vmoptions`). */
 fun desktopVmOptions(o: DesktopOptions, installerKey: String): List<String> = listOfNotNull(
     "-Djb.consents.confirmation.enabled=false",
+    // The 2026.3 base opens JetBrains' user agreement as a MODAL dialog on a fresh profile, before any
+    // plugin starts — the app's first screen would be IntelliJ's legal text, not the hub. The highest
+    // version marks it as already accepted (what JetBrains' own ide-starter does); data sharing stays
+    // off (the line above). Owner decision 2026-11-14: the app skips it.
+    "-Djb.privacy.policy.text=<!--999.999-->",
     "-Didea.trust.all.projects=true",
     "-Dmateu.productName=${o.product}",
     // The desktop app IS the standalone shell — focused mode on (OFF by default in the plugin, so the
