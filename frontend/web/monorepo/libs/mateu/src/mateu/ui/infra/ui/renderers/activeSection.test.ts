@@ -26,4 +26,15 @@ describe('the active section of the menu band', () => {
         const [item] = markActiveSection([{ text: 'Orders', selected: 'ord' as unknown as boolean }])
         expect(item.className).toBeUndefined()
     })
+
+    it('marks one section only: the first, when two hold the selected route', () => {
+        const [catalog, reports, sales] = markActiveSection([
+            { text: 'Catalog', children: [{ text: 'Concerts', selected: true }] },
+            { text: 'Catalog reports', children: [{ text: 'Concerts', selected: true }] },
+            { text: 'Sales', selected: true },
+        ])
+        expect(catalog.className).toBe(ACTIVE_NAV_CLASS)
+        expect(reports.className).toBeUndefined()
+        expect(sales.className).toBeUndefined()
+    })
 })

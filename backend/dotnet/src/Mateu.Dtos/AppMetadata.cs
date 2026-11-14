@@ -101,6 +101,11 @@ public record AppMetadataDto(
     /// EXPERIMENTAL. (Mirrors AppDto.presence.)</summary>
     public bool Presence { get; init; }
 
+    /// <summary>The signed-in user the header's user menu shows; null (omitted) for an anonymous
+    /// caller. EXPERIMENTAL. (Mirrors AppDto.user.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public UserProfileDto? User { get; init; }
+
     /// <summary>[App(IdleTimeoutMinutes)]: the idle-session warning; null = off. (Mirrors
     /// AppDto.idleSession.)</summary>
     public IdleSessionDto? IdleSession { get; init; }

@@ -33,12 +33,17 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         session.appMetadata = metadata
         session.appTitle = metadata.text("title")
         session.contextSelectors = metadata.path("contextSelectors").takeIf { it.isArray && !it.isEmpty }
+        // the signed-in user (AppDto.user, display only): the user menu at the top of the navigator
+        session.appUser = UserMenu.of(metadata)
         // @HomeRoute coordinates: the standalone landing opens this route (like the web shells)
         session.homeRoute = metadata.text("homeRoute").ifBlank { null }
         session.homeConsumedRoute = metadata.text("homeConsumedRoute")
         session.homeServerSideType = metadata.text("homeServerSideType")
         // absolute when the server mounted a REMOTE screen as the home (a fresh deep link to it)
         session.homeBaseUrl = metadata.text("homeBaseUrl").ifBlank { null }
+        // the remotes the app's backend names — its menu's federated entries and a remote home —
+        // may carry the user's credentials; nothing else does (a navigation never declares, B1)
+        declareRemotes(session, menuRemotes(session.appMenu) + listOfNotNull(session.homeBaseUrl))
         // The shell's flows (App.actions) + where they navigate from: a menu leaf naming one runs it.
         session.appActions = metadata.path("actions").takeIf { it.isArray }
         // The app's ACTION catalogue: an id the shell (or a view) does not declare resolves here.
@@ -72,6 +77,10 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         com.intellij.ide.ActivityTracker.getInstance().inc()
     }
     val sidebar = verticalPanel(4)
+    // The signed-in user (avatar + name → a popup with the e-mail and Sign out), or the bare Sign out.
+    if (r.ctx.appShell) {
+        sidebar.addStacked(userMenuRow(session, session.appUser), 2)
+    }
     // Live header values ("Business date: 12 Oct") at the very top, repainted when they change.
     if (r.ctx.appShell && session.headerValues.isNotEmpty()) {
         sidebar.addStacked(headerValuesPanel(session), 2)

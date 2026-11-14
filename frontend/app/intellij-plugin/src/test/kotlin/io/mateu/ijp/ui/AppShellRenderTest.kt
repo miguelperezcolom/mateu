@@ -130,6 +130,21 @@ class AppShellRenderTest : BasePlatformTestCase() {
         assertEquals(listOf<String?>("Export", "/orders", "", "x.Orders", "export"), opened.single())
     }
 
+    fun testTheSignedInUserHeadsTheNavigatorWithANamedMenuButton() {
+        val ctx = context(shell = true)
+        val withUser = app.trimEnd().removeSuffix("}") + ""","user":{"name":"Ana López","email":"ana@example.com"}}"""
+        val root = render(ctx, withUser) as Container
+        assertEquals(UserMenu.User("Ana López", "ana@example.com"), ctx.session.appUser)
+        val button = all(root).filterIsInstance<javax.swing.JButton>().firstOrNull { it.getClientProperty("mateu.userMenu") == true }
+        assertNotNull("the user menu button", button)
+        assertEquals(UserMenu.texts(MoneyValues.uiLocale()).accountLabel("Ana López"), button!!.getAccessibleContext().accessibleName)
+        // anonymous: no user menu, and no bare Sign out without a session
+        val anon = context(shell = true)
+        val plainRoot = render(anon) as Container
+        assertNull(all(plainRoot).filterIsInstance<javax.swing.JButton>().firstOrNull { it.getClientProperty("mateu.userMenu") == true })
+        assertNull(all(plainRoot).filterIsInstance<ActionLink>().firstOrNull { it.text == UserMenu.texts(MoneyValues.uiLocale()).signOut })
+    }
+
     fun testTheAppContextSelectorFixesAValueForEveryRequest() {
         val ctx = context(shell = true)
         ctx.session.appState["hotel"] = "h2"

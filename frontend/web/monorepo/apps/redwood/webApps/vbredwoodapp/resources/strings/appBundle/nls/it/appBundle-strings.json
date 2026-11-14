@@ -295,5 +295,6 @@
   "signInHint": "Accedi per continuare.",
   "signInWith": "Continua con {provider}",
   "signInFailed": "Accesso non riuscito. Riprova.",
-  "signOut": "Esci"
+  "signOut": "Esci",
+  "userMenuOf": "Account: {name}"
 }

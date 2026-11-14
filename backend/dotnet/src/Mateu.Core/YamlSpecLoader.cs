@@ -194,9 +194,12 @@ internal sealed class YamlSpecLoader : ISpecsCache
 
     private Spec Parse(string normalizedRoute)
     {
+        if (RouteRegistry.HasUnsafeSegments(normalizedRoute)) return None;
         var entry = _registry.Match(normalizedRoute)?.Entry;
         var declared = string.IsNullOrWhiteSpace(entry?.Definition) ? null : entry!.Definition;
         var path = Path.Combine(_dir, declared ?? normalizedRoute + ".yaml");
+        // by convention, never a file outside the specs directory (GA round 2, J1)
+        if (declared is null && !IsUnder(_dir, path)) return None;
         if (!File.Exists(path))
         {
             // routes.yaml names a layout file that is not there: say so, or the route answers "not
@@ -255,6 +258,13 @@ internal sealed class YamlSpecLoader : ISpecsCache
     {
         var restricted = ActionRegistry.RestrictedIn(MateuCatalogs.Actions);
         return restricted.Count > 0 && ActionRegistry.CatalogueIdsNamedBy(root).Overlaps(restricted);
+    }
+
+    private static bool IsUnder(string dir, string path)
+    {
+        var root = Path.GetFullPath(dir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                   + Path.DirectorySeparatorChar;
+        return Path.GetFullPath(path).StartsWith(root, StringComparison.Ordinal);
     }
 
     private static string Normalize(string? route)

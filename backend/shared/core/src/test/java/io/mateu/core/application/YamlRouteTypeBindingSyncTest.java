@@ -51,6 +51,17 @@ class YamlRouteTypeBindingSyncTest {
     }
   }
 
+  /** Bound by routes.yaml AND routed by its own @UI (GA round 2, J4). */
+  @io.mateu.uidl.annotations.UI("/payroll-code")
+  public static class PayrollCodeView {
+    public double salary = 100;
+
+    @Action
+    public Message pay() {
+      return new Message("paid " + salary);
+    }
+  }
+
   public static class NoteView {
     public String note = "HIDDEN-NOTE-777";
   }
@@ -58,6 +69,7 @@ class YamlRouteTypeBindingSyncTest {
   static final String NOTE = NoteView.class.getName();
   static final String VIEW = PayrollView.class.getName();
   static final String SECRET = SecretView.class.getName();
+  static final String CODE = PayrollCodeView.class.getName();
 
   @TempDir Path dir;
 
@@ -85,8 +97,11 @@ class YamlRouteTypeBindingSyncTest {
                 viewModel: %s
               - route: hello
                 layout: hello.yaml
+              - route: payroll-code-locked
+                layout: payroll-locked.yaml
+                viewModel: %s
             """
-                .formatted(VIEW, VIEW, SECRET, NOTE),
+                .formatted(VIEW, VIEW, SECRET, NOTE, CODE),
             "notes.yaml",
             """
             layout:
@@ -159,7 +174,11 @@ class YamlRouteTypeBindingSyncTest {
         cl -> {
           try (var mateu =
               TestMateu.withUisAndBeans(
-                  List.of(), PayrollView.class, SecretView.class, NoteView.class)) {
+                  List.of(),
+                  PayrollView.class,
+                  SecretView.class,
+                  NoteView.class,
+                  PayrollCodeView.class)) {
             try {
               return JSON.valueToTree(
                       mateu.run(
@@ -185,6 +204,11 @@ class YamlRouteTypeBindingSyncTest {
     assertThat(outcome(root, VIEW, "/payroll-locked", "pay")).contains("paid 100.0");
     // anywhere else, the lock of payroll-locked holds (the caller may reach that route)
     for (var route : FOREIGN_ROUTES) {
+      if (route.contains("..")) {
+        // a dot segment is refused outright (GA round 2, J1)
+        assertThat(outcome(root, VIEW, route, "pay")).as(route).contains("Forbidden");
+        continue;
+      }
       assertThat(outcome(root, VIEW, route, "pay")).as(route).contains("paid 100.0");
     }
   }
@@ -217,5 +241,15 @@ class YamlRouteTypeBindingSyncTest {
       assertThat(outcome(root, NOTE, route, "")).as(route).doesNotContain("HIDDEN-NOTE-777");
     }
     assertThat(outcome(root, NOTE, "/notes", "", "admin")).contains("HIDDEN-NOTE-777");
+  }
+
+  @Test
+  void theLocksOfABoundTypeHoldAtItsOwnUiRouteWhetherOrNotTheRequestNamesIt() {
+    var root = specs();
+    assertThat(outcome(root, CODE, "/payroll-code", "pay")).contains("paid 100.0");
+    // naming no type used to skip the union of locks: the route resolved the same class
+    assertThat(outcome(root, null, "/payroll-code", "pay")).contains("paid 100.0");
+    assertThat(outcome(root, "", "/payroll-code", "pay")).contains("paid 100.0");
+    assertThat(outcome(root, null, "/payroll-code", "pay", "admin")).contains("paid 999.0");
   }
 }

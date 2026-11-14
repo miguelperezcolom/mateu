@@ -267,6 +267,7 @@
   "signInWith": "Continue with {provider}",
   "signInFailed": "Signing in did not work. Please try again.",
   "signOut": "Sign out",
+  "userMenuOf": "Account: {name}",
   "tasks": "Tasks",
   "tasksRunning": "{n} running",
   "tasksTitle": "Tasks, {n} running",

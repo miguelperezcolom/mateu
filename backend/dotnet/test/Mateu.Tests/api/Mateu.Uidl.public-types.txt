@@ -285,6 +285,7 @@ Mateu.Uidl.ITitlePlaceholderSupplier
 Mateu.Uidl.ITodoList
 Mateu.Uidl.ITranslationsSupplier
 Mateu.Uidl.ITranslator
+Mateu.Uidl.IUserProfileSupplier
 Mateu.Uidl.IValueGenerator
 Mateu.Uidl.Icon
 Mateu.Uidl.IdAttribute
@@ -521,6 +522,7 @@ Mateu.Uidl.UploadRequest
 Mateu.Uidl.UploadTarget
 Mateu.Uidl.UseRadioButtonsAttribute
 Mateu.Uidl.UserFacingException
+Mateu.Uidl.UserProfile
 Mateu.Uidl.ValueMappingAttribute
 Mateu.Uidl.VersionAttribute
 Mateu.Uidl.VerticalLayout

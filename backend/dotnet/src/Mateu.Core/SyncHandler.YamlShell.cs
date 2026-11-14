@@ -73,7 +73,14 @@ internal sealed partial class SyncHandler
                 RequiredCapabilities = caps.ToList(),
                 MockSources = sampleMode ? true : null,
                 AgentPush = AgentPush is not null ? true : null,
+                User = SignedInUser?.Invoke(),
             },
         };
     }
+
+    /// <summary>The signed-in user of the current request, for the header's user menu
+    /// (<see cref="UserProfiles"/>); null = anonymous. The adapter reads it off
+    /// <c>HttpContext.User</c> and the app's <see cref="IUserProfileSupplier"/> services.
+    /// EXPERIMENTAL.</summary>
+    public Func<UserProfileDto?>? SignedInUser { get; init; }
 }

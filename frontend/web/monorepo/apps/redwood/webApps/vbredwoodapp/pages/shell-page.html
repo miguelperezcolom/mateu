@@ -223,6 +223,56 @@
          App's Popover(Text) widget — the greeting — as an avatar with initials + name; when clicked,
          its content (email, Logout) in an anchored popup. On a narrow screen, only the avatar. -->
     <div slot="usermenu" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
+      <!-- USER MENU (AppDto.user, bridge accountMenuOf): the avatar — picture, else initials — opens
+           an anchored popup with the name, the e-mail, the greeting widget's rows and Sign out (when
+           the built-in sign-in holds the session). The button's accessible name is "Account: {name}";
+           oj-popup closes on Escape and gives the focus back to the button. -->
+      <oj-bind-if test="[[ !!$application.variables.mateuAccountMenu ]]">
+        <oj-button id="mateuAccountButton" class="mateu-account-button oj-color-invert oj-sm-margin-2x-start" chroming="borderless" display="icons"
+          :aria-label="[[ $application.variables.mateuAccountMenu.label ]]"
+          :title="[[ $application.variables.mateuAccountMenu.label ]]"
+          aria-haspopup="dialog" aria-controls="mateuAccountPopup"
+          on-oj-action="[[ $listeners.accountMenuClicked ]]">
+          <oj-avatar slot="startIcon" size="2xs" background="neutral"
+            :src="[[ $application.variables.mateuAccountMenu.picture ]]"
+            :initials="[[ $application.variables.mateuAccountMenu.initials ]]"></oj-avatar>
+          <oj-bind-text value="[[ $application.variables.mateuAccountMenu.label ]]"></oj-bind-text>
+        </oj-button>
+        <oj-popup id="mateuAccountPopup" class="mateu-widget-popup mateu-account-popup" position.my.horizontal="end" position.at.horizontal="end"
+          auto-dismiss="focusLoss" modality="modeless" initial-focus="firstFocusable" role="dialog"
+          :aria-label="[[ $application.variables.mateuAccountMenu.label ]]">
+          <div class="oj-sm-padding-4x oj-flex oj-sm-flex-direction-column" style="gap: .75rem; min-width: 15rem; max-width: 20rem;">
+            <div class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center" style="gap: .75rem;">
+              <oj-avatar size="sm" background="neutral" aria-hidden="true"
+                :src="[[ $application.variables.mateuAccountMenu.picture ]]"
+                :initials="[[ $application.variables.mateuAccountMenu.initials ]]"></oj-avatar>
+              <div style="min-width: 0;">
+                <div class="oj-typography-body-md oj-typography-bold mateu-account-name"><oj-bind-text value="[[ $application.variables.mateuAccountMenu.name ]]"></oj-bind-text></div>
+                <oj-bind-if test="[[ !!$application.variables.mateuAccountMenu.email ]]">
+                  <div class="oj-typography-body-sm oj-text-color-secondary mateu-account-email"><oj-bind-text value="[[ $application.variables.mateuAccountMenu.email ]]"></oj-bind-text></div>
+                </oj-bind-if>
+              </div>
+            </div>
+            <oj-bind-for-each data="[[ $application.variables.mateuAccountMenu.rows ]]">
+              <template>
+                <oj-bind-if test="[[ $current.data.isText ]]">
+                  <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></span>
+                </oj-bind-if>
+                <oj-bind-if test="[[ $current.data.isLink ]]">
+                  <a class="oj-link oj-typography-body-md" :href="[[ $current.data.href ]]" :target="[[ $current.data.target || null ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a>
+                </oj-bind-if>
+              </template>
+            </oj-bind-for-each>
+            <oj-bind-if test="[[ $application.variables.mateuAccountMenu.signOut ]]">
+              <oj-button id="mateuAccountSignOut" class="mateu-sign-out" chroming="outlined"
+                on-oj-action="[[ $listeners.accountSignOutClicked ]]">
+                <span slot="startIcon" class="oj-ux-ico-logout"></span>
+                <oj-bind-text value="[[ $application.variables.mateuAccountMenu.signOutLabel ]]"></oj-bind-text>
+              </oj-button>
+            </oj-bind-if>
+          </div>
+        </oj-popup>
+      </oj-bind-if>
       <oj-bind-if test="[[ !!$application.variables.mateuUserWidget ]]">
         <oj-button id="mateuUserButton" class="mateu-user-button oj-color-invert oj-sm-margin-2x-start" chroming="borderless"
           :aria-label="[[ $application.variables.mateuUserWidget.label ]]"

@@ -318,6 +318,8 @@ export function reduceContexts(reg, increment, opts = {}) {
         // the HEADER widgets (WidgetSupplier / @Widget): they travel as children of the App with
         // slot "widgets"; projected by headerWidgetsOf (widgets.mjs)
         widgets: (fr.component.children || []).filter((child) => child && child.slot === 'widgets'),
+        // AppDto.user: the signed-in user the header's user menu shows (userMenu.mjs), display only
+        user: md.user || null,
       }
       continue
     }

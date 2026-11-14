@@ -526,6 +526,9 @@
         "uploadUrl" : {
           "type" : "string"
         },
+        "user" : {
+          "$ref" : "#/$defs/UserProfileDto"
+        },
         "variant" : {
           "$ref" : "#/$defs/AppVariantDto"
         },
@@ -5980,6 +5983,20 @@
           }
         },
         "wireVersion" : {
+          "type" : "string"
+        }
+      }
+    },
+    "UserProfileDto" : {
+      "type" : "object",
+      "properties" : {
+        "email" : {
+          "type" : "string"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "picture" : {
           "type" : "string"
         }
       }

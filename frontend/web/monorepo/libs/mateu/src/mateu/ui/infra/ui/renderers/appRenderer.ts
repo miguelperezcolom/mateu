@@ -7,6 +7,8 @@ import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@infra/ui/mateu-app-context-picker.ts";
 import "@infra/ui/mateu-notification-bell.ts";
+import "@infra/ui/mateu-user-menu.ts";
+import { headerAccountControl } from "@infra/ui/userMenu.ts";
 import "@infra/ui/mateu-agent-connect.ts";
 import "@infra/ui/mateu-header-values.ts";
 import { requireElement } from "@infra/ui/lazyElements.ts";
@@ -252,6 +254,18 @@ export const renderSignOutButton = () =>
     }) : nothing
 
 /**
+ * The signed-in user's menu (AppDto.user: avatar, name, Sign out inside it) — or, when the server
+ * named nobody but the built-in sign-in holds a session, the bare Sign out icon.
+ */
+export const renderAccountControl = (metadata: App) => {
+    switch (headerAccountControl(metadata.user, signOutAvailable())) {
+        case 'menu': return html`<mateu-user-menu .user="${metadata.user}"></mateu-user-menu>`
+        case 'signOut': return renderSignOutButton()
+        default: return nothing
+    }
+}
+
+/**
  * The agent's chat toggle: a header widget, not a FAB — the conversation icon, just before the app's
  * own widgets (the inbox bell…), shown only when the app declares the chat (sseUrl). It opens and
  * closes the chat panel on the content's left (see renderChat), and reads as pressed while it is open.
@@ -270,7 +284,7 @@ export const renderChatToggle = (metadata: App, container: MateuApp) =>
 const renderHeaderWidgets = (metadata: App, container: MateuApp) => html`
     ${renderChatToggle(metadata, container)}
     <slot name="widgets"></slot>
-    ${renderContextSelectors(metadata, container)}${renderMobileQrButton(metadata, container)}${renderThemeToggle(metadata, container)}${renderSignOutButton()}`
+    ${renderContextSelectors(metadata, container)}${renderMobileQrButton(metadata, container)}${renderThemeToggle(metadata, container)}${renderAccountControl(metadata)}`
 
 /**
  * Whether the header's widget zone has anything to show: the chat toggle, an authored widget (an

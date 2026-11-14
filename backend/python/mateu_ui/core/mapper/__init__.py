@@ -315,6 +315,22 @@ class ReflectionMapper(
         #: The app's field type catalogue (a FieldTypeRegistry) for FieldType() markers on
         #: listing columns; None = the default one over MATEU_SPECS_DIR.
         self.field_types: Any = None
+        #: The app's UserProfileSuppliers (``add_mateu(user_profile_suppliers=…)``), asked first
+        #: how the signed-in user is shown in the header's user menu.
+        self.user_profile_suppliers: list = []
+
+    def signed_in_user(self):
+        """The header's user menu: the signed-in user (a ``UserProfileRecord``), or None for an
+        anonymous caller (mirrors Java's ``AppMapper.signedInUser``)."""
+        from mateu_ui.dtos import UserProfileRecord
+
+        from ..user_profiles import profile_of
+
+        identity = self.identity_provider() if self.identity_provider else None
+        profile = profile_of(identity, self.user_profile_suppliers)
+        if profile is None:
+            return None
+        return UserProfileRecord(name=profile.name, email=profile.email, picture=profile.picture)
 
     def _locale(self) -> str | None:
         """The UI language the translator declares, or None (the browser decides)."""
