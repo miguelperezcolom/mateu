@@ -21,6 +21,14 @@ final class FormViewSerializer {
     getAllFields(instance.getClass()).stream()
         .filter(field -> isNonDataHolder(field))
         .forEach(field -> map.remove(field.getName()));
+    // ...and so are the dependencies the view HOLDS — an injected field, or a final one typed by
+    // an interface or abstract class (a service, a store port): Jackson serialised them through the
+    // view's getters, sending the bean's readable properties to the browser (GA round 2, J3). A
+    // final field of a concrete type stays: an immutable entity's constructor reads it back from
+    // this map (a crud save's baseline), and the client can no longer write it either way.
+    getAllFields(instance.getClass()).stream()
+        .filter(field -> isHeldDependency(instance.getClass(), field))
+        .forEach(field -> map.remove(field.getName()));
     getAllFields(instance.getClass()).stream()
         .filter(
             field ->
@@ -33,6 +41,7 @@ final class FormViewSerializer {
                     // transient = framework wiring (e.g. the current request), never state: Jackson
                     // already skips it, and so must this nested-object pass
                     && !Modifier.isTransient(field.getModifiers())
+                    && !isHeldDependency(instance.getClass(), field)
                     && (instance.getClass().isRecord() || !Modifier.isFinal(field.getModifiers())))
         .forEach(
             field -> {
@@ -61,6 +70,47 @@ final class FormViewSerializer {
               }
             });
     return map;
+  }
+
+  /** Whether {@code type} holds a dependency (see {@link #isHeldDependency}). */
+  static boolean holdsDependencies(Class<?> type) {
+    return HOLDS_DEPENDENCIES.get(type);
+  }
+
+  private static final ClassValue<Boolean> HOLDS_DEPENDENCIES =
+      new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> type) {
+          return getAllFields(type).stream().anyMatch(field -> isHeldDependency(type, field));
+        }
+      };
+
+  /**
+   * A dependency the view HOLDS rather than state it carries — an injected field, or a final one
+   * typed by an interface or abstract class (a service, a store port): Jackson serialised them
+   * through the view's getters, sending the bean's readable properties to the browser (GA round 2,
+   * J3). A final field of a concrete type stays: an immutable entity's constructor reads it back
+   * from this map (a crud save's baseline), and the client can no longer write it either way.
+   */
+  static boolean isHeldDependency(Class<?> owner, java.lang.reflect.Field field) {
+    if (owner.isRecord() || Modifier.isStatic(field.getModifiers())) {
+      return false;
+    }
+    return io.mateu.core.application.security.WireTypes.isInjected(field)
+        || (Modifier.isFinal(field.getModifiers()) && holdsAnObject(field));
+  }
+
+  /** A field typed by an interface or abstract class that is not a value, a collection or a map. */
+  private static boolean holdsAnObject(java.lang.reflect.Field field) {
+    var type = field.getType();
+    return (type.isInterface() || Modifier.isAbstract(type.getModifiers()))
+        && !type.isPrimitive()
+        && !isBasic(type)
+        && !type.isEnum()
+        && !type.isArray()
+        && !Collection.class.isAssignableFrom(type)
+        && !Map.class.isAssignableFrom(type)
+        && !isNonDataHolder(field);
   }
 
   private FormViewSerializer() {}

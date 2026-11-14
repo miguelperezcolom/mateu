@@ -196,12 +196,17 @@ public final class ComponentState {
       return instance;
     }
     if (!io.mateu.core.domain.FieldAccess.isGuarded(instance.getClass())
+        && !io.mateu.core.infra.declarative.FormViewModel.holdsDependencies(instance.getClass())
         && yamlHidden(instance, httpRequest).isEmpty()) {
       return instance;
     }
     var map = new LinkedHashMap<>(toMap(instance));
     var stripped = stripRestricted(instance, map, httpRequest);
-    return stripped == map ? instance : stripped;
+    // a view holding dependencies always travels as its map: the raw instance would serialise them
+    return stripped == map
+            && !io.mateu.core.infra.declarative.FormViewModel.holdsDependencies(instance.getClass())
+        ? instance
+        : stripped;
   }
 
   public static String getAppRoute(Object potentialApp) {

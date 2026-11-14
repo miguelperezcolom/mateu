@@ -159,7 +159,7 @@ public final class FieldAccess {
   }
 
   /** An object of the application's own (a form, a row, an entity), worth looking into. */
-  static boolean isApplicationType(Class<?> type) {
+  public static boolean isApplicationType(Class<?> type) {
     if (type == null
         || type.isPrimitive()
         || type.isEnum()
@@ -198,7 +198,31 @@ public final class FieldAccess {
    */
   public static Map<String, Object> writable(
       Class<?> type, Map<String, Object> state, HttpRequest httpRequest) {
-    return walk(type, state, httpRequest, true, 0);
+    return walk(type, withoutDottedKeys(state), httpRequest, true, 0);
+  }
+
+  /**
+   * {@code state} without its DOTTED keys ({@code pay.salary}). The client never sends one — a
+   * nested form travels as a nested map or as flattened {@code pay-salary} keys — but the
+   * reflective writer follows a dot through the parent's getter, so such a key reached the leaf
+   * past every rule of its parent ({@code @EyesOnly}/{@code @ReadOnlyUnless} on {@code pay}) and
+   * past any bean a view exposes through a getter (GA round 2, J2/J3). The same map when there is
+   * none.
+   */
+  public static Map<String, Object> withoutDottedKeys(Map<String, Object> state) {
+    if (state == null || state.isEmpty()) {
+      return state;
+    }
+    Map<String, Object> out = null;
+    for (var key : state.keySet()) {
+      if (key != null && key.indexOf('.') >= 0) {
+        if (out == null) {
+          out = new LinkedHashMap<>(state);
+        }
+        out.remove(key);
+      }
+    }
+    return out == null ? state : out;
   }
 
   /** The names of {@code type}'s own fields the caller may not READ. */
