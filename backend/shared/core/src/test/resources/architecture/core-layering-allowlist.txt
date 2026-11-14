@@ -31,6 +31,8 @@
 # GA field access (2026-11-13): FieldAccess, the one may-read/may-write rule every path shares,
 # tells a container-injected field by WireTypes.isInjected like the Hydrater did; ListingQueryGuard
 # reads its page-size cap through MateuSettings — reviewed.
+# User menu (2026-11-14): AppMapper reads the signed-in user's profile through UserProfiles
+# (infra/security, beside IdentityResolver, which it builds on) — reviewed.
 application -> infra: io/mateu/core/application/agentpush/AgentCaller.java
 application -> infra: io/mateu/core/application/agentpush/AgentPush.java
 application -> infra: io/mateu/core/application/export/MateuBundleExporter.java
@@ -138,6 +140,7 @@ domain -> infra: io/mateu/core/domain/out/componentmapper/SectionFormRenderer.ja
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/ComponentToFragmentDtoMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/UIFragmentAssembler.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ActionMapper.java
+domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/AppMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ComponentTreeSupplierMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/ConstraintValidationMapper.java
 domain -> infra: io/mateu/core/domain/out/fragmentmapper/mappers/FieldMapper.java
