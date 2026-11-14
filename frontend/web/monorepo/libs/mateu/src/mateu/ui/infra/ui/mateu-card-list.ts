@@ -7,6 +7,7 @@ import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statu
 import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { keyed } from 'lit/directives/keyed.js'
 
 
 @customElement('mateu-card-list')
@@ -99,7 +100,7 @@ export class MateuCardList extends LitElement {
         }
         if (item.title) {
             return html`<div class="neutral-card">
-                ${item.image?html`<img class="card-media" src="${item.image}" alt="${item.title ?? ''}" />`:nothing}
+                ${item.image?keyed(item.image, html`<img class="card-media" src="${item.image}" alt="${item.title ?? ''}" />`):nothing}
                 <div class="card-body">
                     <div class="card-head">
                         ${item.title?html`<span class="card-title">${item.title}</span>`:nothing}

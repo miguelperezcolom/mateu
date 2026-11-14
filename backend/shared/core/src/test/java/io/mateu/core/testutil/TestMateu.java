@@ -119,6 +119,22 @@ public final class TestMateu implements AutoCloseable {
     return new TestMateu(ctx);
   }
 
+  private String selfBaseUrl = FakeHttpRequest.SELF_BASE_URL;
+
+  /**
+   * Requests from now on carry no view of the local socket, like the other backends' conformance
+   * runners: a relative proxied url then fails before any call is made — the answer no longer
+   * depends on whether something listens on this machine's port 8080.
+   */
+  public TestMateu withoutSelfBaseUrl() {
+    this.selfBaseUrl = null;
+    return this;
+  }
+
+  private FakeHttpRequest request(RunActionRqDto rq) {
+    return new FakeHttpRequest(rq).withSelfBaseUrl(selfBaseUrl);
+  }
+
   /** Initial page load for a route — what the browser does when navigating to it. */
   public UIIncrementDto sync(String route) {
     return run(RunActionRqDto.builder().route(route).actionId("").build());
@@ -127,7 +143,7 @@ public final class TestMateu implements AutoCloseable {
   /** The same, sent to the controller of a mount ({@code baseUrl}, e.g. {@code /books}). */
   public UIIncrementDto runAt(String baseUrl, RunActionRqDto rq) {
     try {
-      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", baseUrl);
+      var httpRequest = request(rq).withAttribute("baseUrl", baseUrl);
       var result = service.runAction("", rq, baseUrl, httpRequest).blockFirst();
       if (result == null) {
         throw new AssertionError("runAction produced no increment for " + rq);
@@ -147,7 +163,7 @@ public final class TestMateu implements AutoCloseable {
     try {
       // Adapters set the "baseUrl" request attribute; internal wraps (e.g. the crud mediator)
       // read it and NPE without it.
-      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", "");
+      var httpRequest = request(rq).withAttribute("baseUrl", "");
       Flux<UIIncrementDto> flux = service.runAction("", rq, "", httpRequest);
       var result = flux.blockFirst();
       if (result == null) {
@@ -164,7 +180,7 @@ public final class TestMateu implements AutoCloseable {
   /** Same as {@link #run(RunActionRqDto)}, sending the given request headers (e.g. a token). */
   public UIIncrementDto run(RunActionRqDto rq, java.util.Map<String, String> headers) {
     try {
-      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", "");
+      var httpRequest = request(rq).withAttribute("baseUrl", "");
       headers.forEach(httpRequest::withHeader);
       Flux<UIIncrementDto> flux = service.runAction("", rq, "", httpRequest);
       var result = flux.blockFirst();
@@ -182,7 +198,7 @@ public final class TestMateu implements AutoCloseable {
   /** The increments as they come — for an open-ended stream (e.g. the live-updates events). */
   public Flux<UIIncrementDto> stream(RunActionRqDto rq) {
     try {
-      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", "").withPath(SSE_PATH);
+      var httpRequest = request(rq).withAttribute("baseUrl", "").withPath(SSE_PATH);
       return service.runAction("", rq, "", httpRequest);
     } catch (RuntimeException | Error e) {
       throw e;
@@ -194,7 +210,7 @@ public final class TestMateu implements AutoCloseable {
   /** Same as {@link #stream(RunActionRqDto)}, sending the given request headers. */
   public Flux<UIIncrementDto> stream(RunActionRqDto rq, java.util.Map<String, String> headers) {
     try {
-      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", "").withPath(SSE_PATH);
+      var httpRequest = request(rq).withAttribute("baseUrl", "").withPath(SSE_PATH);
       headers.forEach(httpRequest::withHeader);
       return service.runAction("", rq, "", httpRequest);
     } catch (RuntimeException | Error e) {
@@ -207,7 +223,7 @@ public final class TestMateu implements AutoCloseable {
   /** All increments (some flows emit several, e.g. remote menus). */
   public List<UIIncrementDto> runAll(RunActionRqDto rq) {
     try {
-      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", "");
+      var httpRequest = request(rq).withAttribute("baseUrl", "");
       return service.runAction("", rq, "", httpRequest).collectList().block();
     } catch (RuntimeException | Error e) {
       throw e;

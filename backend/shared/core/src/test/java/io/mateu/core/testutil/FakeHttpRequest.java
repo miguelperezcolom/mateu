@@ -89,9 +89,21 @@ public class FakeHttpRequest implements HttpRequest {
   /** What an adapter knows of its local socket: a relative remote menu resolves against it. */
   public static final String SELF_BASE_URL = "http://localhost:8080";
 
+  private String selfBaseUrl = SELF_BASE_URL;
+
+  /**
+   * Another view of the local socket — {@code null} for an adapter that knows none (what the
+   * conformance runners of the other backends have, so a relative proxied url never leaves the
+   * process, whatever listens on this machine's port 8080).
+   */
+  public FakeHttpRequest withSelfBaseUrl(String selfBaseUrl) {
+    this.selfBaseUrl = selfBaseUrl;
+    return this;
+  }
+
   @Override
   public String getSelfBaseUrl() {
-    return SELF_BASE_URL;
+    return selfBaseUrl;
   }
 
   @Override

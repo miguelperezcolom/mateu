@@ -25,8 +25,18 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 @Configuration
 public class SecurityConfig {
 
-  private static final RequestMatcher MATEU_CALLS =
-      request -> request.getRequestURI().startsWith("/mateu/");
+  /**
+   * Mateu's calls — but not its public files: the PWA (manifest, service worker, register script)
+   * and the UI manifest are read at boot, before anybody signed in. Refused, every first load logged
+   * a 401 and a MIME error for {@code /mateu/v3/pwa/register.js}.
+   */
+  static final RequestMatcher MATEU_CALLS =
+      request -> {
+        var uri = request.getRequestURI();
+        return uri.startsWith("/mateu/")
+            && !uri.startsWith("/mateu/v3/pwa/")
+            && !uri.equals("/mateu/v3/manifest");
+      };
 
   /**
    * {@code keycloak} — an {@code oidc} provider: the Mateu client runs the login itself
@@ -52,7 +62,7 @@ public class SecurityConfig {
   SecurityFilterChain security(HttpSecurity http) throws Exception {
     RequestMatcher mateuCalls = MATEU_CALLS;
     // Spring returns the user, after the login, to the last request it refused. With Mateu that is
-    // always one of its calls (a sync POST, the PWA manifest…), never a page: the page itself is
+    // always one of its calls (a sync POST, an SSE stream…), never a page: the page itself is
     // open. So only pages are remembered, and after signing in the user is back on the app.
     HttpSessionRequestCache pagesOnly = new HttpSessionRequestCache();
     pagesOnly.setRequestMatcher(request -> !mateuCalls.matches(request));
