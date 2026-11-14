@@ -546,6 +546,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/mobile-app', label: 'Mobile: Open on mobile (QR)' },
 						{ slug: 'native', label: 'Desktop: IntelliJ (and native overview)' },
 						{ slug: 'native/desktop-app', label: 'Desktop: the Mateu app' },
+						{ slug: 'native/white-label', label: 'Your own app (white label, no fork)' },
 						{ slug: 'design-systems/branding-and-design-tokens', label: 'Branding & design tokens' },
 						{ slug: 'design-systems/accent-strip', label: 'Accent colour' },
 						{

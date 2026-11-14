@@ -421,7 +421,9 @@ tasks.runIde {
 // ./gradlew buildInstaller [-Pinstaller.platform=linux|windows|macos] [-Pinstaller.arch=aarch64|intel]
 //                          [-Pmateu.variant=hub|fixed] [-Pmateu.productName=…]
 //                          [-Pmateu.baseUrl=… | -Pmateu.registryUrl=… -Pmateu.appId=…]   (fixed)
-//                          [-Pmateu.updateUrl=…|none] [-Pinstaller.ideArchive=<local IDE archive>]
+//                          [-Pmateu.updateUrl=…|none] [-Pmateu.bundleId=…]
+//                          [-Pmateu.icon.macos=….icns] [-Pmateu.icon.windows=….ico] [-Pmateu.icon.linux=….png]
+//                          [-Pinstaller.ideArchive=<local IDE archive>]
 //                          [-Pinstaller.ideVersion=<another IntelliJ IDEA Open Source release>]
 //
 // The base is downloaded from JetBrains/intellij-community's `idea/<desktopIdeVersion>` GitHub Release
@@ -489,6 +491,22 @@ fun desktopOptions(): DesktopOptions {
     return DesktopOptions(product, slug, variant, baseUrl, registryUrl, appId, updateUrl)
 }
 
+/**
+ * A white-label build's icon: `-Pmateu.icon.<platform>=<file>` (absolute, or relative to this
+ * project), else Mateu's own under branding/. The file must exist and carry the platform's format —
+ * macOS `.icns`, Windows `.ico`, Linux `.png` (a square image, 512 px or more reads well).
+ */
+fun brandingIcon(platform: String, default: String, extension: String): File {
+    val given = (findProperty("mateu.icon.$platform") as String?)?.trim()?.ifBlank { null }
+        ?: return layout.projectDirectory.file("branding/$default").asFile
+    val icon = file(given)
+    require(icon.isFile) { "-Pmateu.icon.$platform=$given: no such file" }
+    require(icon.name.endsWith(".$extension", ignoreCase = true)) {
+        "-Pmateu.icon.$platform=$given: a $platform icon is a .$extension file"
+    }
+    return icon
+}
+
 /** The VM options every desktop build bakes in (the launcher's `.vmoptions`). */
 fun desktopVmOptions(o: DesktopOptions, installerKey: String): List<String> = listOfNotNull(
     "-Djb.consents.confirmation.enabled=false",
@@ -520,6 +538,10 @@ fun desktopVmOptions(o: DesktopOptions, installerKey: String): List<String> = li
     // (io.mateu.ijp.update) and IntelliJ's plugin updates are off (updates.xml), so the feature has
     // nothing to do here: its registry switch, overridden as a system property (unknown key on 2025.2).
     "-Dplatform.enable.plugin.update.source.feature=false",
+    // On Windows the platform checks Microsoft Defender at start and shows a sticky "may affect IDE
+    // performance — exclude the IDE and the project folders" balloon: advice for a developer's build
+    // folders, alarming in an app (it names the install folder). Its registry key, as a property.
+    "-Dide.check.windows.defender.rules=false",
 )
 
 /** Release asset names, shared by the installers and the update feed (keys = installerKey). */
@@ -679,8 +701,8 @@ tasks.register("buildInstaller") {
             val bundleId = (findProperty("mateu.bundleId") as String?)
                 ?: if (o.slug == "mateu") "io.mateu.desktop" else "io.mateu.desktop.${o.slug}"
             plistSet("CFBundleIdentifier", bundleId)
-            val icns = layout.projectDirectory.file("branding/mateu.icns").asFile
-            check(icns.exists()) { "missing branding/mateu.icns — build it first" }
+            val icns = brandingIcon("macos", "mateu.icns", "icns")
+            check(icns.exists()) { "missing ${icns.path} — build it first" }
             icns.copyTo(File(contents, "Resources/mateu.icns"), overwrite = true)
             plistSet("CFBundleIconFile", "mateu.icns")
             // The hub claims mateu:// links (macOS hands the OpenURL event to the IDE, which routes it
@@ -864,13 +886,13 @@ tasks.register("buildInstaller") {
                 template("linux/mateu.desktop", *values)
                     .replace("@MIME@\n", if (o.hub) "MimeType=x-scheme-handler/mateu;\n" else ""),
             )
-            layout.projectDirectory.file("branding/mateu-1024.png").asFile.copyTo(File(root, "${o.slug}.png"), overwrite = true)
+            brandingIcon("linux", "mateu-1024.png", "png").copyTo(File(root, "${o.slug}.png"), overwrite = true)
         } else {
             // cmd.exe wants CRLF
             fun crlf(name: String, from: String) = File(root, name).writeText(File(src, from).readText().replace("\r\n", "\n").replace("\n", "\r\n"))
             crlf("apply-update.cmd", "apply-update.cmd")
             crlf("mateu.bat", "windows/mateu.bat")
-            layout.projectDirectory.file("branding/mateu.ico").asFile.copyTo(File(root, "${o.slug}.ico"), overwrite = true)
+            brandingIcon("windows", "mateu.ico", "ico").copyTo(File(root, "${o.slug}.ico"), overwrite = true)
         }
 
         logger.lifecycle("Packing the bundle…")
