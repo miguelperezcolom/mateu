@@ -111,19 +111,7 @@ public final class WireTypes {
 
   /** Injection points: a field filled by the container is a dependency, not part of the view. */
   static final Set<String> INJECTION_ANNOTATIONS =
-      Set.of(
-          "Autowired",
-          "Inject",
-          "Resource",
-          "Value",
-          "PersistenceContext",
-          "PersistenceUnit",
-          "Context",
-          "ConfigProperty",
-          "Property",
-          "Client",
-          "RestClient",
-          "GrpcClient");
+      io.mateu.core.domain.InjectionAnnotations.SIMPLE_NAMES;
 
   /**
    * The uidl interfaces a VIEW MODEL implements (as opposed to the SPI a service implements — a
@@ -444,12 +432,7 @@ public final class WireTypes {
 
   /** Filled by the container ({@code @Autowired}, {@code @Inject}, …). */
   public static boolean isInjected(AnnotatedElement element) {
-    for (var annotation : element.getAnnotations()) {
-      if (INJECTION_ANNOTATIONS.contains(annotation.annotationType().getSimpleName())) {
-        return true;
-      }
-    }
-    return false;
+    return io.mateu.core.domain.InjectionAnnotations.isInjected(element);
   }
 
   // ── reachability ──────────────────────────────────────────────────────────

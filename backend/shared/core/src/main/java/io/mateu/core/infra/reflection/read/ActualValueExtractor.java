@@ -9,10 +9,8 @@ import static io.mateu.core.infra.reflection.read.FileChecker.isFile;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
 import io.mateu.core.domain.ports.InstanceFactory;
-import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
-import jakarta.inject.Inject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
@@ -28,7 +26,7 @@ public class ActualValueExtractor {
   private static boolean checkInjected(Object viewInstance, String fieldName) {
     Field field = getFieldByName(viewInstance.getClass(), fieldName);
     return field != null
-        && (MetaAnnotations.isPresent(field, Inject.class)
+        && (io.mateu.core.domain.InjectionAnnotations.isInjected(field)
             || Modifier.isFinal(field.getModifiers()));
   }
 
