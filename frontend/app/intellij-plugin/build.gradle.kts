@@ -554,6 +554,31 @@ tasks.register("buildInstaller") {
             check(p.waitFor() == 0) { "command failed: ${cmd.joinToString(" ")}\n$out" }
             return out
         }
+        // notarytool submit --wait dies with the runner's network ("The Internet connection appears to
+        // be offline", 3.0-beta.66 dry runs: twice in a row on the aarch64 runner, after the upload),
+        // although Apple goes on with the submission. So submit once, then WAIT on its id — a failed
+        // wait is retried, never re-submitted — and require status Accepted at the end.
+        fun notarize(file: File, profile: String, dir: File) {
+            val submitted = capture("xcrun", "notarytool", "submit", file.absolutePath, "--keychain-profile", profile,
+                "--output-format", "json", dir = dir)
+            val id = Regex("\"id\"\\s*:\\s*\"([^\"]+)\"").find(submitted)?.groupValues?.get(1)
+                ?: error("notarytool submit gave no submission id:\n$submitted")
+            logger.lifecycle("  submission $id")
+            var last = ""
+            for (attempt in 1..6) {
+                val p = ProcessBuilder("xcrun", "notarytool", "wait", id, "--keychain-profile", profile,
+                    "--timeout", "40m", "--output-format", "json").directory(dir).redirectErrorStream(true).start()
+                last = p.inputStream.readBytes().decodeToString()
+                if (p.waitFor() == 0) break
+                logger.lifecycle("  waiting on $id failed (attempt $attempt), retrying: ${last.takeLast(300)}")
+                Thread.sleep(30_000L * attempt)
+            }
+            val info = capture("xcrun", "notarytool", "info", id, "--keychain-profile", profile, "--output-format", "json", dir = dir)
+            if (!Regex("\"status\"\\s*:\\s*\"Accepted\"").containsMatchIn(info)) {
+                val log = runCatching { capture("xcrun", "notarytool", "log", id, "--keychain-profile", profile, dir = dir) }.getOrDefault("")
+                error("notarization of ${file.name} not accepted:\n$info\n$last\n${log.takeLast(6000)}")
+            }
+        }
         fun onPath(tool: String): Boolean =
             System.getenv("PATH").orEmpty().split(File.pathSeparator).any { File(it, tool).canExecute() }
         val installerDir = layout.buildDirectory.dir("installer").get().asFile
@@ -729,7 +754,7 @@ tasks.register("buildInstaller") {
                 val appZip = File(work, "notarize-app.zip").apply { delete() }
                 run("ditto", "-c", "-k", "--keepParent", app.absolutePath, appZip.absolutePath, dir = work)
                 logger.lifecycle("Notarizing the .app (submitting to Apple — can take a few minutes)…")
-                run("xcrun", "notarytool", "submit", appZip.absolutePath, "--keychain-profile", notaryProfile!!, "--wait", dir = work)
+                notarize(appZip, notaryProfile!!, work)
                 run("xcrun", "stapler", "staple", app.absolutePath, dir = work)
                 appZip.delete()
             }
@@ -747,7 +772,7 @@ tasks.register("buildInstaller") {
 
             if (notarized) {
                 logger.lifecycle("Notarizing the .dmg…")
-                run("xcrun", "notarytool", "submit", dmgOut.absolutePath, "--keychain-profile", notaryProfile!!, "--wait", dir = work)
+                notarize(dmgOut, notaryProfile!!, work)
                 run("xcrun", "stapler", "staple", dmgOut.absolutePath, dir = work)
             }
 
