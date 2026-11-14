@@ -513,6 +513,9 @@ before you plan a launch date.
   renderings of the React Native app are fine for checking flows, but not for the listing.
 - **Category**: usually Business or Productivity.
 
+
+Icons and the launch screen of a `fixed` build (`MATEU_APP_ICON`, `MATEU_ADAPTIVE_ICON`, `MATEU_SPLASH_IMAGE`…) and the desktop equivalent: [your own native app, without forking Mateu](/native/white-label/).
+
 ## Related
 
 - [React Native renderer](/native/react-native/): pointing the app at a backend, the app registry,

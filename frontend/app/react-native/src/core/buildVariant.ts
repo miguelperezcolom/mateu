@@ -11,6 +11,10 @@
  *    (`MATEU_APP_SCHEME`) only carries the sign-in redirect.
  *
  * Name / ids: `MATEU_APP_NAME`, `MATEU_BUNDLE_ID` (iOS bundle identifier AND Android package).
+ * Face (a `fixed` build only — the hub keeps Mateu's): `MATEU_APP_ICON` (iOS, 1024 px PNG),
+ * `MATEU_ADAPTIVE_ICON` (+ `MATEU_ADAPTIVE_ICON_BACKGROUND` colour, `MATEU_MONOCHROME_ICON`) for
+ * Android, `MATEU_SPLASH_IMAGE` (+ `MATEU_SPLASH_BACKGROUND`). Paths are relative to this project or
+ * absolute; whatever is not given keeps app.json's.
  */
 
 export type Variant = 'hub' | 'fixed';
@@ -24,6 +28,39 @@ export interface VariantEnv {
   MATEU_APP_NAME?: string;
   MATEU_BUNDLE_ID?: string;
   MATEU_APP_SCHEME?: string;
+  MATEU_APP_ICON?: string;
+  MATEU_ADAPTIVE_ICON?: string;
+  MATEU_ADAPTIVE_ICON_BACKGROUND?: string;
+  MATEU_MONOCHROME_ICON?: string;
+  MATEU_SPLASH_IMAGE?: string;
+  MATEU_SPLASH_BACKGROUND?: string;
+}
+
+const COLOUR = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+
+/** A white-label build's own icons and splash, over app.json's (pure: the paths are not opened here). */
+export function faceOf(env: VariantEnv): {
+  icon?: string; adaptiveIcon: Record<string, string>; splash: Record<string, string>;
+} {
+  const v = (k: keyof VariantEnv) => (env[k] ?? '').trim();
+  const colour = (k: keyof VariantEnv) => {
+    const c = v(k);
+    if (c && !COLOUR.test(c)) throw new Error(`${k} must be a #rrggbb colour, not '${c}'`);
+    return c;
+  };
+  const image = (k: keyof VariantEnv) => {
+    const p = v(k);
+    if (p && !/\.png$/i.test(p)) throw new Error(`${k} must be a .png image, not '${p}'`);
+    return p;
+  };
+  const adaptiveIcon: Record<string, string> = {};
+  if (image('MATEU_ADAPTIVE_ICON')) adaptiveIcon.foregroundImage = v('MATEU_ADAPTIVE_ICON');
+  if (image('MATEU_MONOCHROME_ICON')) adaptiveIcon.monochromeImage = v('MATEU_MONOCHROME_ICON');
+  if (colour('MATEU_ADAPTIVE_ICON_BACKGROUND')) adaptiveIcon.backgroundColor = v('MATEU_ADAPTIVE_ICON_BACKGROUND');
+  const splash: Record<string, string> = {};
+  if (image('MATEU_SPLASH_IMAGE')) splash.image = v('MATEU_SPLASH_IMAGE');
+  if (colour('MATEU_SPLASH_BACKGROUND')) splash.backgroundColor = v('MATEU_SPLASH_BACKGROUND');
+  return { ...(image('MATEU_APP_ICON') ? { icon: v('MATEU_APP_ICON') } : {}), adaptiveIcon, splash };
 }
 
 /** The slice of the Expo config a variant touches (structural, so this file needs no Expo types). */
@@ -81,19 +118,24 @@ export function applyVariant<C extends object>(input: C, env: VariantEnv): C {
   }
   const { associatedDomains: _domains, ...ios } = config.ios ?? {};
   const { intentFilters: _filters, ...android } = config.android ?? {};
+  const face = faceOf(env);
   const plugins = (config.plugins ?? []).map((p) =>
     Array.isArray(p) && p[0] === 'expo-camera'
       ? ['expo-camera', { ...(p[1] ?? {}), cameraPermission: `${name} uses the camera for the photo fields of its screens.` }]
-      : p,
+      : Array.isArray(p) && p[0] === 'expo-splash-screen'
+        ? ['expo-splash-screen', { ...(p[1] ?? {}), ...face.splash }]
+        : p,
   );
+  const adaptiveIcon = { ...((android as { adaptiveIcon?: Record<string, unknown> }).adaptiveIcon ?? {}), ...face.adaptiveIcon };
 
   return {
     ...config,
     name,
     scheme,
     plugins,
+    ...(face.icon ? { icon: face.icon } : {}),
     ios: { ...ios, infoPlist: iosPlist, ...(bundleId ? { bundleIdentifier: bundleId } : {}) },
-    android: { ...android, ...(bundleId ? { package: bundleId } : {}) },
+    android: { ...android, adaptiveIcon, ...(bundleId ? { package: bundleId } : {}) },
     extra: {
       ...extra,
       mateuFixedUrl: fixedUrl,
