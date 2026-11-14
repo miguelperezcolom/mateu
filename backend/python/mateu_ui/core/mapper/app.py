@@ -225,6 +225,8 @@ class AppMapperMixin(MixinBase):
             header_values=self._header_values(cls, shell),
             live_updates=self._live_updates(cls, shell),
             presence=self._presence(cls, shell),
+            # the header's user menu: the signed-in user, None (omitted) when anonymous
+            user=self.signed_in_user(),
             # OS-level notifications (experimental): opt-in, mirrors AppDto.osNotifications
             os_notifications=bool(getattr(cls, "__mateu_app_os_notifications__", False)),
             idle_session=self._idle_session(cls, shell, mount),

@@ -124,6 +124,7 @@ from .security import (  # noqa: F401
     ReadOnlyUnless,
     SignInProvider,
 )
+from .user_profile import UserProfile, UserProfileSupplier  # noqa: F401
 from .live_header_values import LiveHeaderValues  # noqa: F401
 from .live_notifications import LiveNotifications, NotificationChange  # noqa: F401
 from .inbox_store import InboxStore, InMemoryInboxStore  # noqa: F401
@@ -534,4 +535,6 @@ __all__ = [
     "wizard_labels", "style", "css_classes", "rule",
     "OverlineSupplier", "TitlePlaceholderSupplier", "VisibilitySupplier", "ReadOnlySupplier",
     "RequiredSupplier", "ColspanSupplier", "PostHydrationHandler",
+    # the header's user menu (EXPERIMENTAL; Java's io.mateu.uidl.security.UserProfile[Supplier])
+    "UserProfile", "UserProfileSupplier",
 ]

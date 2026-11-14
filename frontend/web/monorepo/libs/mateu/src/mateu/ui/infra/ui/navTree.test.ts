@@ -14,6 +14,7 @@ import {
     mountRootPath,
     remoteMounts,
     sectionHome,
+    selectionSourceFor,
     unavailableHint,
     withoutHidden,
     withPrefixesFromHome,
@@ -289,5 +290,67 @@ describe('mountRootPath — where the app title takes you', () => {
         expect(mountRootPath('/')).toBe('/')
         expect(mountRootPath(undefined)).toBe('/')
         expect(mountRootPath('https://remote.example/app')).toBe('/')
+    })
+})
+
+/**
+ * Two federated apps holding the same route — the two apps of one service, each with its own
+ * «Concerts» (/concerts), merged under the labels the shell gave them. By route alone both are the
+ * active one; where the screen came from tells them apart.
+ */
+describe('the active entry when two remotes hold the same route', () => {
+    const concerts = (baseUrl: string) => leaf('Concerts', '/concerts', { baseUrl, uriPrefix: '' })
+    const menu = [
+        leaf('Home', ''),
+        group('Catalog', [leaf('Dashboard', '/dashboard', { baseUrl: '/_catalog' }), concerts('/_catalog')]),
+        group('Catalog reports', [concerts('/_catalog-reports')]),
+        leaf('Settings', '/settings'),
+    ]
+    const from = (base: string | undefined, shellBase = '') => ({ base, shellBase })
+
+    it('is the entry of the app the screen was loaded from, at any depth', () => {
+        expect(isActiveFor(menu[1], '/concerts', from('/_catalog-reports'))).toBe(false)
+        expect(isActiveFor(menu[2], '/concerts', from('/_catalog-reports'))).toBe(true)
+        expect(activeTopIndex(menu, '/concerts', from('/_catalog-reports'))).toBe(2)
+        expect(activeTopIndex(menu, '/concerts/new', from('/_catalog'))).toBe(1)
+        expect(activeSection(menu, '/concerts/5/edit', from('/_catalog-reports'))?.label).toBe('Catalog reports')
+    })
+
+    it('a trailing slash does not make it another base', () => {
+        expect(activeTopIndex(menu, '/concerts', from('/_catalog-reports/'))).toBe(2)
+    })
+
+    it('the shell\'s own entries are served from the shell\'s base', () => {
+        expect(activeTopIndex(menu, '/settings', from('', ''))).toBe(3)
+        expect(activeTopIndex(menu, '/settings', from('/console', '/console'))).toBe(3)
+        expect(isActiveFor(menu[3], '/settings', from('/_catalog'))).toBe(false)
+    })
+
+    it('without a base, or with one no entry holding the route is served from, the route alone decides and the first wins', () => {
+        expect(selectionSourceFor(menu, '/concerts', undefined)).toBeUndefined()
+        expect(selectionSourceFor(menu, '/concerts', from(undefined))).toBeUndefined()
+        expect(selectionSourceFor(menu, '/concerts', from('https://elsewhere.example'))).toBeUndefined()
+        expect(selectionSourceFor(menu, '/concerts', from('/_catalog'))).toEqual(from('/_catalog'))
+        expect(activeTopIndex(menu, '/concerts')).toBe(1)
+        expect(activeTopIndex(menu, '/concerts', from('https://elsewhere.example'))).toBe(1)
+    })
+
+    it('the breadcrumb trail and a crumb\'s target go through the app the screen came from', () => {
+        expect(menuTrail(menu, '/concerts/new', from('/_catalog-reports')).crumbs.map(c => c.text))
+            .toEqual(['Catalog reports', 'Concerts'])
+        expect(menuTrail(menu, '/concerts/new', from('/_catalog')).crumbs.map(c => c.text))
+            .toEqual(['Catalog', 'Concerts'])
+        expect(menuTrail(menu, '/concerts').crumbs.map(c => c.text)).toEqual(['Catalog', 'Concerts'])
+        expect(menuEntryFor(menu, '/concerts', from('/_catalog-reports'))?.baseUrl).toBe('/_catalog-reports')
+        expect(menuEntryFor(menu, '/concerts')?.baseUrl).toBe('/_catalog')
+    })
+
+    it('a remote section that has not answered yet is told apart by its base too', () => {
+        const waiting = [
+            mount('Catalog', '/_catalog', { routePrefix: '/catalog' }),
+            mount('Catalog again', '/_catalog-2', { routePrefix: '/catalog' }),
+        ]
+        expect(activeTopIndex(waiting, '/catalog/concerts', from('/_catalog-2'))).toBe(1)
+        expect(activeTopIndex(waiting, '/catalog/concerts')).toBe(0)
     })
 })

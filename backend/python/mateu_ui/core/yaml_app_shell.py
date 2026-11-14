@@ -215,6 +215,7 @@ def app_component(
         header_values=mapper._header_values(_Shell, data_shell),
         live_updates=mapper._live_updates(_Shell, data_shell),
         presence=mapper._presence(_Shell, data_shell),
+        user=mapper.signed_in_user(),
         idle_session=mapper._idle_session(_Shell, data_shell, mount),
         agent_push=mapper.agent_push_enabled,
         required_capabilities=mapper._required_capabilities(

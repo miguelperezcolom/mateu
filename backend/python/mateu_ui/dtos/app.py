@@ -7,7 +7,7 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from pydantic import Field
+from pydantic import Field, model_serializer
 
 from .base import Wire
 
@@ -137,6 +137,9 @@ class AppMetadata(Wire):
     #: (the ``_presence`` app-level action + PresenceChanged commands on the app event stream;
     #: EXPERIMENTAL — mirrors AppDto.presence).
     presence: bool = False
+    #: The signed-in user the header's user menu shows; None — OMITTED from the JSON, as Java/.NET
+    #: do — for an anonymous caller (EXPERIMENTAL — mirrors AppDto.user).
+    user: "UserProfileRecord | None" = None
     #: @app(os_notifications=True): the app opts in to OS-level notifications (a new inbox entry, a
     #: background task that finished, while the app is not in front; EXPERIMENTAL — mirrors
     #: AppDto.osNotifications).
@@ -171,6 +174,32 @@ class AppMetadata(Wire):
     notifications_source: "RestDataSource | None" = None
     notifications_read_source: "RestDataSource | None" = None
     global_search_source: "RestDataSource | None" = None
+
+    @model_serializer(mode="wrap")
+    def _omit_anonymous_user(self, handler):
+        data = handler(self)
+        if isinstance(data, dict) and data.get("user", 0) is None:
+            del data["user"]
+        return data
+
+
+class UserProfileRecord(Wire):
+    """The signed-in user the app's header shows in its user menu: the name, and when known the
+    e-mail and an http(s) picture URL (initials are drawn without one). Display only. ``email`` /
+    ``picture`` are OMITTED from the JSON when absent (mirrors ``UserProfileDto``; EXPERIMENTAL)."""
+
+    name: str
+    email: str | None = None
+    picture: str | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_absent(self, handler):
+        data = handler(self)
+        if isinstance(data, dict):
+            for key in ("email", "picture"):
+                if key in data and data[key] is None:
+                    del data[key]
+        return data
 
 
 class AppContextSelector(Wire):

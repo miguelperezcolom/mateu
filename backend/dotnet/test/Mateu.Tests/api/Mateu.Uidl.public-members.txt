@@ -1240,6 +1240,7 @@ Mateu.Uidl.ITodoList abstract method System.Object OpenTodoItem(System.String)
 Mateu.Uidl.ITranslationsSupplier abstract method System.Collections.Generic.IReadOnlyList<Mateu.Uidl.Translations> Translations()
 Mateu.Uidl.ITranslator abstract method System.String Translate(System.String)
 Mateu.Uidl.ITranslator property System.String Locale { get; }
+Mateu.Uidl.IUserProfileSupplier abstract method Mateu.Uidl.UserProfile Profile(System.Security.Claims.ClaimsPrincipal)
 Mateu.Uidl.IValueGenerator abstract method System.Object Generate()
 Mateu.Uidl.Icon ctor(System.String)
 Mateu.Uidl.Icon property System.String Name { get;init; }
@@ -2425,6 +2426,11 @@ Mateu.Uidl.UserFacingException ctor(System.String)
 Mateu.Uidl.UserFacingException ctor(System.String, System.String)
 Mateu.Uidl.UserFacingException ctor(System.String, System.String, System.Exception)
 Mateu.Uidl.UserFacingException property System.String Title { get; }
+Mateu.Uidl.UserProfile ctor(System.String, System.String = null, System.String = null)
+Mateu.Uidl.UserProfile property System.String Email { get; }
+Mateu.Uidl.UserProfile property System.String Name { get; }
+Mateu.Uidl.UserProfile property System.String Picture { get; }
+Mateu.Uidl.UserProfile static method Mateu.Uidl.UserProfile Named(System.String)
 Mateu.Uidl.ValueMappingAttribute ctor(System.String, System.String)
 Mateu.Uidl.ValueMappingAttribute property System.String From { get; }
 Mateu.Uidl.ValueMappingAttribute property System.String To { get; }

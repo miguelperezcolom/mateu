@@ -129,6 +129,19 @@ test('streamed: the raw bytes go to the upload url with the ticket and the Mateu
   assert.equal(r.headers.Authorization, 'Bearer T');
 });
 
+test('N-10: under a public base path (context path / prefix-stripping proxy) both legs go under it', async () => {
+  const { setPublicBase } = await import('@infra/http/publicBase.ts');
+  setPublicBase('/crm');
+  try {
+    const relative = { ...api, baseUrl: '/crm/admin' };
+    const t = fake([{ status: 404, text: '' }, { status: 200, text: '{"value":"mateu-file:k2","file":{}}' }]);
+    assert.equal(await uploadFile(relative, direct, file, t.transport), 'mateu-file:k2');
+    assert.deepEqual(t.seen.map((r) => r.url), ['/crm/mateu/v3/upload/target', '/crm/mateu/v3/upload']);
+  } finally {
+    setPublicBase('');
+  }
+});
+
 test('a refusal carries the server message', async () => {
   const t = fake([{ status: 413, text: '{"error":"Too large","message":"This file is too large (max 20 MB)."}' }]);
   await assert.rejects(uploadFile(api, streamed, file, t.transport), (e) => e instanceof UploadError && e.status === 413 && e.message === 'This file is too large (max 20 MB).');

@@ -26,6 +26,8 @@ import { announce, buttonA11y } from '../a11y/a11y';
 import { MateuButton } from '../ui/controls';
 import { cardsOf, isCardsGroup } from './menuCards';
 import { canSignOut, signOut } from '../core/auth';
+import { headerAccountControl, signedInUserOf } from '../core/userMenu';
+import { UserMenu } from './UserMenu';
 import { isRuleLeaf, menuLeafEffects, navigableMenuLeaves, type ShellAction } from '../core/shellFlows';
 import { fetchExternalJson } from '../core/restFetch';
 import { contextOptionsOf, markReadVars, notificationsOf, runAppSource, searchHitsOf, type AppSourceHost } from '../core/appSources';
@@ -109,6 +111,8 @@ export interface AppMeta extends ShellExtrasMeta, AgentPushMeta {
   actions?: ShellAction[];
   /** The app's ACTION catalogue: named client-runnable actions, resolved after the owner's. */
   actionCatalogue?: ShellAction[];
+  /** The signed-in user (display only; absent for an anonymous caller) — the drawer's user menu. */
+  user?: { name?: string; email?: string | null; picture?: string | null } | null;
 }
 
 
@@ -917,6 +921,9 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
       await session.pushUnregister?.().catch(() => undefined);
       await (session.signOut ? session.signOut() : signOut());
     })();
+  // the signed-in user (AppDto.user): a menu with Sign out inside it; the bare Sign out otherwise
+  const user = signedInUserOf(appMeta.user);
+  const account = headerAccountControl(user, canOut);
   return (
     <DrawerContentScrollView style={styles.sidebar} contentContainerStyle={styles.sidebarContent}>
       {hub && (
@@ -928,6 +935,7 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
         </View>
       )}
       <PaperText variant="titleLarge" style={styles.sidebarTitle} accessibilityRole="header">{appMeta.title ?? 'Mateu'}</PaperText>
+      {account === 'menu' && user && <UserMenu user={user} onSignOut={canOut ? doSignOut : undefined} />}
       <HeaderValuesView />
       <QuickLaunch meta={appMeta} onLaunch={onLaunch} />
       {appMeta.globalSearchEnabled === true && <GlobalSearchBox appMeta={appMeta} onNavigate={onNavigate} />}
@@ -935,7 +943,7 @@ function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged, o
       <ConnectAiEntry meta={appMeta} />
       <ContextSelectors selectors={appMeta.contextSelectors ?? []} appMeta={appMeta} onChanged={onContextChanged} />
       {renderItems(appMeta.menu ?? [])}
-      {canOut && (
+      {account === 'signOut' && (
         <PaperDrawer.Item label="Sign out" icon="logout" onPress={doSignOut} accessibilityLabel="Sign out" />
       )}
     </DrawerContentScrollView>

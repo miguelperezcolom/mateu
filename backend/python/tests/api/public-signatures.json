@@ -2369,6 +2369,11 @@
      "name",
      "POSITIONAL_OR_KEYWORD",
      true
+    ],
+    [
+     "claims",
+     "POSITIONAL_OR_KEYWORD",
+     true
     ]
    ]
   },
@@ -5480,6 +5485,46 @@
      true
     ]
    ]
+  },
+  "UserProfile": {
+   "class": [
+    [
+     "name",
+     "POSITIONAL_OR_KEYWORD",
+     false
+    ],
+    [
+     "email",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ],
+    [
+     "picture",
+     "POSITIONAL_OR_KEYWORD",
+     true
+    ]
+   ],
+   "members": {
+    "named": [
+     [
+      "name",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
+  },
+  "UserProfileSupplier": {
+   "class": [],
+   "members": {
+    "profile": [
+     [
+      "identity",
+      "POSITIONAL_OR_KEYWORD",
+      false
+     ]
+    ]
+   }
   },
   "Validation": {
    "class": [

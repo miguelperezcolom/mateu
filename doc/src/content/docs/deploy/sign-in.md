@@ -123,8 +123,45 @@ For the whole UI:
 The icon tokens are drawn as a neutral glyph or initial with the label beside it — no trademark
 artwork is shipped.
 
-**Sign out** is a button in the app shell's header. A UI with no header to carry it — no app shell,
-or a `chromeless` one — gets the button in the bottom-left corner of the page instead (web renderer).
+### The user menu
+
+Once someone is signed in, the app shell's header shows **who**: their picture (or their initials),
+and a menu with their name, their e-mail and **Sign out**. The server names the user on the wire
+(`AppDto.user`), from the identity your framework authenticated — never from anything the browser
+sends:
+
+| Shown | Read from the principal (first that has it) |
+|---|---|
+| name | `name`; `given_name` + `family_name`; `preferred_username`; `login` (GitHub); `nickname`; the principal's name |
+| e-mail | `email` |
+| picture | `picture` (OpenID Connect); `avatar_url` (GitHub) — `http(s)` only, else initials |
+
+With Spring's `oauth2Login` these are the logged-in user's attributes (GitHub's user API, an OIDC
+id token); with a resource server, the token's claims. To show something else, register a
+`UserProfileSupplier` bean (Java) — it is asked first, and an empty answer falls back to the
+defaults:
+
+```java
+@Component
+public class Directory implements UserProfileSupplier {
+  public Optional<UserProfile> profile(HttpRequest httpRequest) {
+    return employees.byLogin(httpRequest.getUserPrincipal().getName())
+        .map(e -> new UserProfile(e.fullName(), e.email(), e.photoUrl()));
+  }
+}
+```
+
+C# — an `IUserProfileSupplier` service (`UserProfile? Profile(ClaimsPrincipal user)`, null = the
+defaults); Python — `add_mateu(user_profile_suppliers=[...])`, each a `UserProfileSupplier` whose
+`profile(identity)` returns a `UserProfile` or None. The defaults read `HttpContext.User`'s claims
+(.NET) and the verified claims of the identity your app established (Python).
+
+The user menu is display only: access control keeps reading the identity (roles, groups, scopes,
+permissions), never the profile. An anonymous caller is named nowhere.
+
+A session the server names nobody for still gets the plain **Sign out** button in the header. A UI
+with no header to carry it — no app shell, or a `chromeless` one — gets **Sign out** in the
+bottom-left corner of the page instead (web renderer).
 
 ### Presets
 

@@ -121,7 +121,8 @@ public final class IdentityResolver {
       return List.of();
     }
     try {
-      var found = MateuBeanProvider.getBeans(type);
+      // PrincipalResolvers are application singletons: memoised, not looked up per request
+      var found = MateuBeanProvider.getSingletonBeans(type);
       return found != null ? found : List.of();
     } catch (RuntimeException e) {
       return List.of();

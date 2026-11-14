@@ -295,5 +295,6 @@
   "signInHint": "Connectez-vous pour continuer.",
   "signInWith": "Continuer avec {provider}",
   "signInFailed": "La connexion a échoué. Veuillez réessayer.",
-  "signOut": "Se déconnecter"
+  "signOut": "Se déconnecter",
+  "userMenuOf": "Compte : {name}"
 }

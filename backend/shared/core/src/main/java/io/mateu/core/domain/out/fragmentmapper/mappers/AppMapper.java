@@ -9,7 +9,9 @@ import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 
 import io.mateu.core.domain.out.componentmapper.AppVariants;
 import io.mateu.core.infra.reflection.MetaAnnotations;
+import io.mateu.core.infra.security.UserProfiles;
 import io.mateu.dtos.*;
+import io.mateu.dtos.UserProfileDto;
 import io.mateu.uidl.Capabilities;
 import io.mateu.uidl.annotations.AI;
 import io.mateu.uidl.annotations.Fab;
@@ -118,6 +120,7 @@ public final class AppMapper {
                 AppShellExtrasMapper.osNotifications(app)
                     && io.mateu.core.application.push.Push.available())
             .presence(AppShellExtrasMapper.presence(app))
+            .user(signedInUser(httpRequest))
             .idleSession(AppShellExtrasMapper.idleSession(app))
             .notificationsSource(
                 app.notifications() != null
@@ -191,6 +194,13 @@ public final class AppMapper {
    * (visibility follows server-side state). Each actionId dispatches like a {@code @Fab}: the app
    * class method with that name runs.
    */
+  /** The header's user menu: the signed-in user, or null for an anonymous caller. */
+  private static UserProfileDto signedInUser(HttpRequest httpRequest) {
+    return UserProfiles.of(httpRequest)
+        .map(p -> new UserProfileDto(p.name(), p.email(), p.picture()))
+        .orElse(null);
+  }
+
   private static List<AppHeaderActionDto> getContextActions(AppShell app, HttpRequest httpRequest) {
     return getContextActions(app, httpRequest, "");
   }

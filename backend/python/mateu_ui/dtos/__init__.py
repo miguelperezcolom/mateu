@@ -17,6 +17,7 @@ from .app import (  # noqa: F401
     HeaderValue,
     IdleSession,
     AppMetadata,
+    UserProfileRecord,
 )
 from .layout import (  # noqa: F401
     CardMetadata,

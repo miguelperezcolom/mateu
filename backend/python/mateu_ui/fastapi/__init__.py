@@ -147,7 +147,41 @@ def authenticated_principal(request: Request) -> Identity | None:
         scopes=values(auth, "scopes"),
         permissions=values(user, "permissions"),
         name=_user_name(user),
+        claims=_user_claims(user),
     )
+
+
+#: What a Starlette user object may say about the person (its attributes of these names), read
+#: only to show them in the header's user menu.
+_PROFILE_CLAIMS = (
+    "name", "given_name", "family_name", "preferred_username", "login", "nickname",
+    "email", "picture", "avatar_url",
+)
+
+
+def _user_claims(user: Any) -> dict[str, Any]:
+    """The claims a Starlette user carries: the user itself when it is a mapping, its ``claims``
+    mapping, then its attributes named like the profile claims (``name``, ``email``, ``picture``…)."""
+    claims: dict[str, Any] = {}
+    from collections.abc import Mapping as _Mapping
+
+    if isinstance(user, _Mapping):
+        claims.update({str(k): v for k, v in user.items()})
+    try:
+        own = getattr(user, "claims", None)
+    except Exception:  # noqa: BLE001 - a user object that cannot tell
+        own = None
+    if isinstance(own, _Mapping):
+        for k, v in own.items():
+            claims.setdefault(str(k), v)
+    for attribute in _PROFILE_CLAIMS:
+        try:
+            value = getattr(user, attribute, None)
+        except Exception:  # noqa: BLE001 - e.g. BaseUser's abstract properties
+            value = None
+        if isinstance(value, str):
+            claims.setdefault(attribute, value)
+    return claims
 
 
 def _user_name(user: Any) -> str | None:
@@ -223,6 +257,7 @@ def add_mateu(
     expo_push_url: str | None = None,
     audit_listeners: Sequence[Any] | None = None,
     presence_store: Any | None = None,
+    user_profile_suppliers: Sequence[Any] | None = None,
     file_storages: Sequence[Any] | None = None,
     uploads_secret: str | None = None,
     listing_max_page_size: int | None = None,
@@ -330,6 +365,11 @@ def add_mateu(
       (default: ``MATEU_UPLOADS_MAX_FILES_PER_TICKET``, else 100; a single-file field's: 10).
     - ``presence_store`` (EXPERIMENTAL) — a ``PresenceStore`` keeping record presence
       (``@app(presence=True)``; default: Mateu's bounded in-memory store, per process).
+    - ``user_profile_suppliers`` (EXPERIMENTAL) — :class:`~mateu_ui.uidl.UserProfileSupplier`
+      instances, asked in order how the signed-in user is shown in the header's user menu (the
+      first non-None answer wins). Without one — or when they all answer None — the name, e-mail
+      and picture come from the identity's claims (``name``, ``email``, ``picture``; GitHub's
+      ``avatar_url``), else its name. Nobody is shown for an anonymous caller.
     - ``file_storages`` (EXPERIMENTAL) — ``FileStorage`` instances (or classes, instantiated with no
       arguments) on top of the subclasses found among the sources: a ``FileUpload()`` field then
       streams its file to ``POST /mateu/v3/upload`` and stores a ``mateu-file:`` reference.
@@ -397,6 +437,8 @@ def add_mateu(
         handler.inbox_store = inbox_store
     if presence_store is not None:
         handler.presence_store = presence_store
+    if user_profile_suppliers:
+        handler.mapper.user_profile_suppliers = list(user_profile_suppliers)
     if listing_max_page_size is not None:
         handler.listing_max_page_size = int(listing_max_page_size)
     if uploads_max_files_per_ticket is not None:

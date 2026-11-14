@@ -63,25 +63,7 @@ public final class CallerIdentities {
     if (principal instanceof AuthenticatedPrincipal authenticated) {
       return Optional.of(authenticated.identity());
     }
-    Map<String, Object> claims = new LinkedHashMap<>();
-    Object tokenAttributes = invoke(principal, "getTokenAttributes"); // Spring Security
-    if (tokenAttributes instanceof Map<?, ?> map) {
-      claims.putAll((Map<String, Object>) map);
-    }
-    Object attributes = invoke(principal, "getAttributes"); // Micronaut Security
-    if (attributes instanceof Map<?, ?> map) {
-      map.forEach((k, v) -> claims.putIfAbsent(String.valueOf(k), v));
-    }
-    Object claimNames = invoke(principal, "getClaimNames"); // MicroProfile JWT
-    if (claimNames instanceof Collection<?> names) {
-      for (Object name : names) {
-        Object value = invoke(principal, "getClaim", String.valueOf(name));
-        if (value != null) {
-          claims.putIfAbsent(String.valueOf(name), plain(value));
-        }
-      }
-    }
-    var base = fromClaims(claims);
+    var base = fromClaims(claimsOf(principal));
     Set<String> roles = new LinkedHashSet<>(base.roles());
     Set<String> groups = new LinkedHashSet<>(base.groups());
     Set<String> scopes = new LinkedHashSet<>(base.scopes());
@@ -124,6 +106,52 @@ public final class CallerIdentities {
             List.copyOf(groups),
             List.copyOf(scopes),
             List.copyOf(permissions)));
+  }
+
+  /**
+   * The claims a framework principal carries, read reflectively: Spring Security's token
+   * attributes, Micronaut's attributes, MicroProfile JWT's claims. Empty for any other principal.
+   */
+  @SuppressWarnings("unchecked")
+  static Map<String, Object> claimsOf(Principal principal) {
+    Map<String, Object> claims = new LinkedHashMap<>();
+    Object tokenAttributes = invoke(principal, "getTokenAttributes"); // Spring Security
+    if (tokenAttributes instanceof Map<?, ?> map) {
+      claims.putAll((Map<String, Object>) map);
+    }
+    Object attributes = invoke(principal, "getAttributes"); // Micronaut Security
+    if (attributes instanceof Map<?, ?> map) {
+      map.forEach((k, v) -> claims.putIfAbsent(String.valueOf(k), v));
+    }
+    Object claimNames = invoke(principal, "getClaimNames"); // MicroProfile JWT
+    if (claimNames instanceof Collection<?> names) {
+      for (Object name : names) {
+        Object value = invoke(principal, "getClaim", String.valueOf(name));
+        if (value != null) {
+          claims.putIfAbsent(String.valueOf(name), plain(value));
+        }
+      }
+    }
+    return claims;
+  }
+
+  /**
+   * The attributes of the user a LOGIN established — Spring's OAuth2 login: the token's principal
+   * is an {@code OAuth2User} (GitHub's user API answer, an OIDC id token + userinfo). Kept apart
+   * from {@link #claimsOf}: they describe the person (name, picture), and access control keeps
+   * reading only the token's own claims.
+   */
+  static Map<String, Object> loginAttributesOf(Principal principal) {
+    Object user = invoke(principal, "getPrincipal");
+    if (user == null || user == principal) {
+      return Map.of();
+    }
+    Object attributes = invoke(user, "getAttributes");
+    Map<String, Object> result = new LinkedHashMap<>();
+    if (attributes instanceof Map<?, ?> map) {
+      map.forEach((k, v) -> result.put(String.valueOf(k), v));
+    }
+    return result;
   }
 
   private static boolean isAnonymous(Principal principal) {
