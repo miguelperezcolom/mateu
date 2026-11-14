@@ -239,6 +239,9 @@ class ResponseHelpersMixin(MixinBase):
 
         state = without_locked(type(instance).__qualname__, state, self._locked_by_pieces(instance))
         for f in view_fields(type(instance)):
+            if f.name.startswith("_") and nested_forms.is_nested_form_type(f.type):
+                # a _private object (a service, a client) is never written from the wire (Y6)
+                continue
             # Mass-assignment guard: a field hidden (EyesOnly) or locked (ReadOnlyUnless) for this
             # caller is never written from the wire — it keeps its server-side value.
             if not action_guard.may_write(self.mapper, f, type(instance)):
@@ -262,11 +265,16 @@ class ResponseHelpersMixin(MixinBase):
                 continue
             row_type = ReflectionMapper.grid_row_type(f)
             if row_type is not None and isinstance(state[key], list):
-                # Grid rows arrive as camelCase dicts — rebuild them as typed row objects.
+                # Grid rows arrive as camelCase dicts — rebuild them as typed row objects. When the
+                # row type has a value the caller may not write (or read), each row is laid over
+                # the row it ALREADY holds (matched by id, else by position), so those values
+                # survive the save instead of falling back to the row type's defaults (GA review
+                # 2, Y4: saving a note wiped every line's price).
+                held = self._held_rows(instance, f, row_type)
                 rows = []
-                for raw in state[key]:
+                for i, raw in enumerate(state[key]):
                     if isinstance(raw, dict):
-                        row = row_type()
+                        row = held(i, raw)
                         self.bind_state(row, raw)
                         rows.append(row)
                 setattr(instance, f.name, rows)
@@ -280,6 +288,49 @@ class ResponseHelpersMixin(MixinBase):
             value = self.convert_value(raw, f.type)
             if value is not None:
                 setattr(instance, f.name, value)
+
+    def _protects_anywhere(self, row_type, _depth: int = 0) -> bool:
+        """Whether some field of ``row_type`` — or of a nested object it holds — is one the caller
+        may not write."""
+        if _depth > 8:
+            return False
+        for f in view_fields(row_type):
+            if not action_guard.may_write(self.mapper, f, row_type):
+                return True
+            if nested_forms.is_nested_form_field(f) and self._protects_anywhere(f.type, _depth + 1):
+                return True
+            inner = ReflectionMapper.grid_row_type(f)
+            if inner is not None and inner is not row_type and self._protects_anywhere(inner, _depth + 1):
+                return True
+        return False
+
+    def _held_rows(self, instance, f, row_type):
+        """The row object an incoming grid row ``i`` (``raw``) is bound INTO: a copy of the row the
+        instance already holds — the same ``id`` when the row type has one, else the one at that
+        position — or a fresh one (a row the user added, or a type with nothing protected)."""
+        import copy as _copy
+
+        current = getattr(instance, f.name, None)
+        current = list(current) if isinstance(current, (list, tuple)) else []
+        if not current or not self._protects_anywhere(row_type):
+            return lambda i, raw: row_type()
+        id_field = next((g.name for g in view_fields(row_type) if g.name in ("id", "Id")), None)
+        by_id = {}
+        if id_field is not None:
+            for row in current:
+                value = getattr(row, id_field, None)
+                if value is not None and str(value) != "":
+                    by_id.setdefault(str(value), row)
+
+        def held(i, raw):
+            if id_field is not None:
+                wanted = raw.get(camel_case(id_field), raw.get(id_field))
+                match = by_id.get(str(wanted)) if wanted is not None and str(wanted) != "" else None
+            else:
+                match = current[i] if i < len(current) else None
+            return _copy.deepcopy(match) if match is not None else row_type()
+
+        return held
 
     def _locked_by_pieces(self, instance) -> dict[str, str]:
         """Field id → the business component locking it, for a view that draws its own tree:

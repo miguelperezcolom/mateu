@@ -99,7 +99,7 @@ def expands_past(data: Any, budget: int) -> bool:
 
 
 def parse_text_reporting(
-    text: str | None, partials: PartialRegistry | None = None, field_types=None
+    text: str | None, partials: PartialRegistry | None = None, field_types=None, authorized=None
 ) -> tuple[fluent.Component | None, str | None]:
     """:func:`build_from_yaml`, keeping WHY a definition could not be read (Java's
     ``YamlUidlLoader.parseTextReporting``): ``(component, problem)``. The problem is None when there
@@ -119,6 +119,20 @@ def parse_text_reporting(
         return None, TOO_MANY_NODES
     if isinstance(data, dict) and "layout" not in data and "layoutDelta" in data:
         return None, None
+    if authorized is not None:
+        # as the CALLER may see it, like a served page: the partials inlined as source first, so
+        # their access keys are seen, then every eyesOnly:/readOnlyUnless:/… applied (GA review 2,
+        # Y2: a partial's admin-only text reached any caller of the preview)
+        from . import yaml_access
+
+        if isinstance(data, dict) and data.get("type") == "Partial":
+            # a partial AT the root is a slot of its own: compose inlines partials found in slots
+            data = {"type": "VerticalLayout", "content": [data]}
+        data = (partials or _DEFAULT_PARTIALS).compose(data)
+        if expands_past(data, MAX_NODES):
+            return None, TOO_MANY_NODES
+        if yaml_access.declares_access(data):
+            data = yaml_access.apply(data, authorized).tree
     if isinstance(data, dict) and "layout" in data:
         data = data["layout"]
     problems: list[str] = []

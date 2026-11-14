@@ -43,6 +43,9 @@ or the React Native app with `EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:808
 - A CRUD is a `Crud<T>` overriding `Fetch`, `Get`, `Save` and `Delete` — the `Save`/`Delete`
   defaults REFUSE ("Not implemented"), so a CRUD that writes must override both. The entity's id is
   its `Id` property, or the one marked `[Id]`.
+- **Who chooses the id.** A plain `Id` is technical: the new form has no input for it and `Save`
+  must assign it to a new record (a create saved with a blank id is refused). Mark it
+  `[EditableOnlyWhenCreating]` (as `Product.Id` is) when the user types it.
 - **Actions are declared.** Only a `[Button]`/`[Toolbar]`/`[Action]`/`[Fab]` method, or an action id
   the view itself names (a fluent button, a trigger), runs; any other action id answers 403. An
   action that changes fields re-renders the view by returning `this`.

@@ -126,7 +126,8 @@ class _InvoiceStore(Crud[Invoice]):
         return INVOICES.get(id_)
 
     def save(self, entity):
-        INVOICES[entity.id or "generated"] = entity
+        entity.id = entity.id or "generated"  # the store assigns a new record's id
+        INVOICES[entity.id] = entity
 
 
 @ui("invoices")

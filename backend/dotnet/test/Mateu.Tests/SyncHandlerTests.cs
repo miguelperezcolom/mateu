@@ -242,7 +242,8 @@ public class Things : Crud<Thing>
     public override IEnumerable<Thing> Fetch(string? search) =>
         [new() { Id = "1", Name = "Alpha" }, new() { Id = "2", Name = "Beta" }];
 
-    public override void Save(Thing entity) { }
+    // the store assigns a new record's id (a create never takes it from the client)
+    public override void Save(Thing entity) { if (string.IsNullOrEmpty(entity.Id)) entity.Id = "3"; }
 }
 
 /// <summary>A record that names itself (an overridden ToString), and one that does not.</summary>

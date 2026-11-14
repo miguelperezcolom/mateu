@@ -590,18 +590,30 @@ class SyncHandler(
             refusing = self.routes.refusing_entry(rq.route, self.mapper.authorized)
             if refusing is not None:
                 action_guard.deny(f"route '{refusing.route}' declares access: not satisfied")
-        foreign = self._foreign_bindings_of(rq.server_side_type, route)
-        if foreign is not None:
-            if not any(self.routes.is_reachable(b, self.mapper.authorized) for b in foreign):
+        # The bindings follow the type that RUNS — the one the route resolves when the request names
+        # none, names one nobody registered, or names one the route's own entry overrides — as well
+        # as the one it names (GA review 2, Y3: omitting the type skipped every lock).
+        foreign: list[str] | None = None
+        for name in self._view_model_names(rq):
+            bound = self._foreign_bindings_of(name, route)
+            if bound is None:
+                continue
+            if not any(self.routes.is_reachable(b, self.mapper.authorized) for b in bound):
                 action_guard.deny(
-                    f"{_for_log(rq.server_side_type)} is bound by routes the caller may not reach and "
-                    f"was named at route '{_for_log(route)}', which does not bind it"
+                    f"{_for_log(name)} is bound by routes the caller may not reach and "
+                    f"was reached at route '{_for_log(route)}', which does not bind it"
                 )
-            spec_routes = list(foreign)
+            foreign = (foreign or []) + [b for b in bound if b not in (foreign or [])]
+        own = None
+        if rq.route is not None:
+            own = route if self.yaml_specs.load_spec(route) is not None else self._deepest_spec_prefix(route)
+        if foreign is not None:
+            # the route's own definition still applies: its entry may bind the type that runs
+            spec_routes = list(foreign) + ([own] if own is not None and own not in foreign else [])
         elif rq.route is None:
             return rq
         else:
-            spec_routes = [route if self.yaml_specs.load_spec(route) is not None else self._deepest_spec_prefix(route)]
+            spec_routes = [own]
         # the business components (components.yaml) lock fields too: they are resolved while the
         # tree is mapped, after the view model is bound. STRICT, like a code view: every restricted
         # component of the app is checked, not only the ones this layout names
@@ -660,6 +672,11 @@ class SyncHandler(
                 view_model = spec.model_view if spec is not None else None
             if view_model and view_model.strip() == name:
                 bound.append(entry.route)
+        # a definition file declaring viewModel: itself binds the type at its convention route
+        inline = getattr(self.yaml_specs, "inline_bindings", None)
+        for conv_route in (inline().get(name, ()) if inline is not None else ()):
+            if conv_route not in bound:
+                bound.append(conv_route)
         if not bound:
             return None
         path = str(route or "").split("?", 1)[0]
@@ -677,6 +694,52 @@ class SyncHandler(
             if match is not None:
                 break  # the deepest entry answering a prefix is another type's: foreign
         return bound
+
+    def _view_model_names(self, rq: RunActionRq) -> list[str]:
+        """The view models a request may run, by type name: the one it NAMES (as before), and the
+        one that actually answers — the route's authored entry (which wins over the name, as in
+        dispatch), else the named type when it is known, else whatever the route resolves to (a
+        registered @ui route or one it is a sub-route of, or a convention page's ``viewModel:``).
+        Lookups only: nothing named on the wire is imported."""
+        names: list[str] = []
+
+        def add(name: str | None) -> None:
+            if name and name.strip() and name.strip() not in names:
+                names.append(name.strip())
+
+        named = (rq.server_side_type or "").strip() or None
+        add(named)
+        route = rq.route
+        match = None
+        if route is not None:
+            try:
+                match = self.routes.match(route)
+                if named:
+                    from .. import routed_tabs
+
+                    mount = routed_tabs.mount_of(self.routes, route, named)
+                    if mount is not None:
+                        match = self.routes.match(mount)
+            except Exception:  # noqa: BLE001 - an unmatchable spelling resolves nothing here
+                match = None
+        if match is not None and (match.entry.view_model or "").strip():
+            add(match.entry.view_model)
+            return names
+        if named and self.registry.known_type(named) is not None:
+            return names
+        if route is None:
+            return names
+        resolved = self.registry.resolve(None, route)
+        if resolved is None:
+            by_prefix = self.registry.resolve_by_prefix(route)
+            resolved = by_prefix[0] if by_prefix else None
+        if resolved is not None:
+            add(type_name(resolved))
+            return names
+        spec = self.yaml_specs.load_spec(route)
+        if spec is not None:
+            add(spec.model_view)
+        return names
 
     def _deepest_spec_prefix(self, route: str) -> str:
         """The longest proper prefix of ``route`` an authored entry answers with a definition (the
