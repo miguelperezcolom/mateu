@@ -254,3 +254,28 @@ def test_a_micro_frontend_resolution_is_a_child_span_of_the_request(otel):
     assert child.parent.span_id == request.context.span_id
     assert child.status.status_code is StatusCode.ERROR
     assert child.end_time - child.start_time >= 100_000_000
+
+
+def test_a_crud_record_load_is_measured_under_its_route_template_and_the_crud(otel, client):
+    # "P-002" does not LOOK like an id (short, a letter): the crud's record route says it is one
+    spans, reader = otel
+    spans.clear()
+    ITEMS["P-002"] = _item("P-002", "two bis")
+    try:
+        post(client, "obs-items/P-002", "")
+    finally:
+        ITEMS.pop("P-002", None)
+    (span,) = _mateu_spans(spans, "mateu __load__ ")
+    assert span.attributes["mateu.route"] == "obs-items/P-002"
+    assert span.attributes["mateu.route.template"] == "/obs-items/:id"
+    assert span.name == "mateu __load__ /obs-items/:id"
+    assert span.attributes["mateu.view"].endswith("ObsItems")
+    templates = [
+        p.attributes["mateu.route.template"]
+        for rm in reader.get_metrics_data().resource_metrics
+        for sm in rm.scope_metrics
+        for m in sm.metrics if m.name == "mateu.request.duration"
+        for p in m.data.data_points
+    ]
+    assert "/obs-items/:id" in templates
+    assert not any("P-002" in t for t in templates)

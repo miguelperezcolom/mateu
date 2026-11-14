@@ -425,6 +425,8 @@ class CrudHandlerMixin(MixinBase):
         if suffix == "new":
             return "new", None
         parts = suffix.split("/")
+        # the record the route names: measured as ":id" (observability), whatever it looks like
+        observability.record_segment(parts[0])
         if len(parts) >= 2 and parts[1] == "edit":
             return "edit", parts[0]
         return "view", parts[0]

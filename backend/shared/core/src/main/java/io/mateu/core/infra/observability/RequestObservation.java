@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import org.reactivestreams.Publisher;
 
 /**
  * What is known about ONE Mateu request while it runs, kept on the request (attribute {@value
@@ -28,6 +29,10 @@ public final class RequestObservation {
   volatile String errorType;
   volatile String errorReference;
   volatile String correlationId;
+
+  /** Path segments of {@link #route} that name a record (a crud's {@code /:id}), or empty. */
+  private final java.util.Set<String> recordSegments =
+      java.util.concurrent.ConcurrentHashMap.newKeySet();
 
   /** The telemetry context of the request's span (an OpenTelemetry {@code Context}), or null. */
   volatile Object telemetryContext;
@@ -58,10 +63,58 @@ public final class RequestObservation {
       return;
     }
     Class<?> type = instance.getClass();
+    if (type.getName().startsWith("io.mateu.dtos.") || instance instanceof Publisher<?>) {
+      // what a route handler (a crud's record page) handed over is already the WIRE answer: the
+      // view is still the view model that built it, named by the earlier call
+      return;
+    }
+    if (instance instanceof io.mateu.uidl.interfaces.ComponentTreeSupplier tree) {
+      // a bridge (a capability listing promoted to a crud, an adapted model) is named by the
+      // view model it stands for, as on the wire
+      try {
+        var advertised = tree.serverSideType();
+        if (advertised != null && !advertised.isBlank() && !advertised.contains("$$")) {
+          observation.view = advertised;
+          return;
+        }
+      } catch (RuntimeException ignored) {
+        // named by its class below
+      }
+    }
     if (type.getName().contains("$$") && type.getSuperclass() != null) {
       type = type.getSuperclass();
     }
     observation.view = type.getName();
+  }
+
+  /**
+   * The route names a record by this path segment (a crud's {@code /P-002} or {@code /P-002/edit}):
+   * measured as {@code :id}, whatever it looks like — an id that does not look like one ({@code
+   * P-002}) is still one series per record otherwise.
+   */
+  public static void recordSegment(HttpRequest httpRequest, String segment) {
+    var observation = of(httpRequest);
+    if (observation == null || segment == null) {
+      return;
+    }
+    addRecordSegment(observation, segment);
+  }
+
+  /** The crud's own route words are never a record, whatever a record is called. */
+  private static final java.util.Set<String> ROUTE_WORDS = java.util.Set.of("new", "edit", "view");
+
+  private static void addRecordSegment(RequestObservation observation, String segment) {
+    if (segment.isBlank() || segment.contains("/") || ROUTE_WORDS.contains(segment)) {
+      return;
+    }
+    if (observation.recordSegments.size() < MAX_RECORD_IDS) {
+      observation.recordSegments.add(segment);
+    }
+  }
+
+  /** The route as measured: its template, with the segments known to name a record as ids. */
+  String routeTemplate() {
+    return TelemetryNames.routeTemplate(route, recordSegments);
   }
 
   /** The request ended in a message for the user, a not-found page or a bug. */
@@ -90,6 +143,8 @@ public final class RequestObservation {
       for (var id : ids) {
         if (id != null && observation.recordIds.size() < MAX_RECORD_IDS) {
           observation.recordIds.add(String.valueOf(id));
+          // the record an action acted on, named by the route it ran at (a save at /P-002/edit)
+          addRecordSegment(observation, String.valueOf(id));
         }
       }
     }

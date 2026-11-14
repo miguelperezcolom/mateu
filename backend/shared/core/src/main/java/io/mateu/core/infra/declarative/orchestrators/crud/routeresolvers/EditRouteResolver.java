@@ -16,6 +16,7 @@ public class EditRouteResolver implements CrudOrchestratorRouteResolver {
   public OrchestrationResult resolve(String route, HttpRequest httpRequest, Crud orchestrator) {
     route = route.substring(0, route.lastIndexOf("/edit"));
     var id = route.substring(httpRequest.runActionRq().consumedRoute().length() + 1);
+    io.mateu.core.infra.observability.RequestObservation.recordSegment(httpRequest, id);
     var editor = orchestrator.edit(orchestrator.toId(id), httpRequest);
     httpRequest.setAttribute("selectedItem", editor);
     return new OrchestrationResult(
