@@ -65,6 +65,23 @@ def server_owned(f, creating: bool) -> bool:
     return f.has(GeneratedValue) or (not creating and f.has(EditableOnlyWhenCreating))
 
 
+def record_id_field(record_type) -> str | None:
+    """The field that identifies a record of ``record_type`` the way a listing resolves its rows'
+    ids: the field named ``id``, else the first field (Java's ``CrudAdapterHelper.getIdField``:
+    ``@PrimaryKey``, then ``id``, then the first field — Python has no primary-key marker)."""
+    if record_type is None:
+        return None
+    from mateu_ui.core.reflection import view_fields
+
+    try:
+        fields = view_fields(record_type)
+    except Exception:  # noqa: BLE001 - a type whose hints do not resolve names no key
+        return None
+    if any(f.name == "id" for f in fields):
+        return "id"
+    return fields[0].name if fields else None
+
+
 def is_technical_id(f) -> bool:
     """Whether ``f`` is a crud entity's TECHNICAL id: the field named ``id`` when the entity does
     not let the user choose it — no ``EditableOnlyWhenCreating()`` (the user types it on the

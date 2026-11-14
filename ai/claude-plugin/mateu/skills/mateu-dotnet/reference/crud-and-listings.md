@@ -5,7 +5,7 @@
 ```csharp
 public class Product
 {
-    [Required] public string Id { get; set; } = "";           // the id: `Id`, or mark another property [Id]
+    public string Id { get; set; } = "";                       // the id: `Id`, or mark another property [Id]; the store assigns it
     [Required] public string Name { get; set; } = "";
     [Range(0, double.MaxValue), Money] public double Price { get; set; }
     public ProductStatus Status { get; set; }                  // enum → multi-select filter
@@ -20,10 +20,23 @@ public class Products : Crud<Product>
     public override IEnumerable<Product> Fetch(string? search) =>
         Store.Where(p => string.IsNullOrWhiteSpace(search) || p.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
     public override Product? Get(string id) => Store.FirstOrDefault(p => p.Id == id);
-    public override void Save(Product p) { Store.RemoveAll(x => x.Id == p.Id); Store.Add(p); }   // REQUIRED to write
+    public override void Save(Product p)                       // REQUIRED to write
+    {
+        if (string.IsNullOrEmpty(p.Id)) p.Id = Guid.NewGuid().ToString("N")[..8];   // a NEW record: the store assigns its id
+        Store.RemoveAll(x => x.Id == p.Id);
+        Store.Add(p);
+    }
     public override void Delete(string id) => Store.RemoveAll(p => p.Id == id);                 // REQUIRED to delete
 }
 ```
+
+**Who chooses the id.** A plain `Id` is a *technical* id: the new form has no input for it and a
+create never takes one from the client — the store assigns it in `Save` (above). A create the store
+saves with the id still blank is refused ("The record was saved without an id…"), never answered
+"Saved". When the user should TYPE the id (a product code), mark it
+`[Required, EditableOnlyWhenCreating]`: an input on the new form, read-only afterwards, and a create
+whose id already exists is refused ("A record with this id already exists…"). `[GeneratedValue]`
+marks an id the server fills into the form.
 
 You get the listing (smart search bar; filters derived from the entity — enums multi-select,
 `DateOnly`/`DateTime` ranges, `[RangeFilter]` numeric ranges — applied in memory over `Fetch`),

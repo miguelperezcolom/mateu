@@ -134,10 +134,13 @@ class LayoutMapperMixin(MixinBase):
                 continue
             row_type = self.grid_row_type(f)
             if row_type is not None:
+                # each row as the caller may read it: an EyesOnly cell — or one inside a cell's
+                # object — is not sent (GA review 2, Y5)
                 initial_data[camel_case(f.name)] = [
                     {
-                        camel_case(c.name): _row_cell(getattr(item, c.name, None))
+                        camel_case(c.name): _row_cell(self.readable(getattr(item, c.name, None)))
                         for c in view_fields(row_type)
+                        if self._permitted(c)
                     }
                     for item in (getattr(instance, f.name, None) or [])
                 ]

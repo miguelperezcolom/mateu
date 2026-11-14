@@ -117,6 +117,35 @@ class YamlSpecLoader:
     def invalidate_specs(self) -> None:
         """Dev mode: a spec changed — every parsed definition is read again on next use."""
         self._by_route.clear()
+        self._inline_bindings = None
+
+    _inline_bindings: dict[str, tuple[str, ...]] | None = None
+
+    def inline_bindings(self) -> dict[str, tuple[str, ...]]:
+        """The definition files that declare ``viewModel:`` THEMSELVES, by the view model they
+        name: ``{"app.views.Conv": ("conv",)}`` — the route each answers by convention (its path
+        under the specs directory, without ``.yaml``). A type such a file names is BOUND by it, like
+        a routes.yaml entry binds its ``viewModel:`` (Java's ``YamlUidlLoader.computeBindings``
+        counts inline declarations too). Read once; dev mode's invalidation reads it again."""
+        if self._inline_bindings is not None:
+            return self._inline_bindings
+        found: dict[str, list[str]] = {}
+        root = self._dir
+        try:
+            files = sorted(root.rglob("*.yaml")) if root.is_dir() else []
+        except OSError:
+            files = []
+        for path in files:
+            try:
+                rel = path.relative_to(root).as_posix()
+                data = yaml.safe_load(path.read_text())
+            except (OSError, ValueError, yaml.YAMLError):
+                continue
+            view_model = data.get("viewModel") if isinstance(data, dict) else None
+            if isinstance(view_model, str) and view_model.strip():
+                found.setdefault(view_model.strip(), []).append(rel[: -len(".yaml")])
+        self._inline_bindings = {k: tuple(v) for k, v in found.items()}
+        return self._inline_bindings
 
     def _names_restricted_catalogue_action(self, tree: Any) -> bool:
         catalog = self.action_catalog

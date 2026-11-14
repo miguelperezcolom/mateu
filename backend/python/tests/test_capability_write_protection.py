@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import copy
 import sys
+
+import pytest
 from pathlib import Path
 from typing import Annotated
 
@@ -86,7 +88,11 @@ def test_a_save_starts_from_the_stored_record_and_writes_only_editable_fields():
 
 def test_a_save_for_a_record_that_no_longer_exists_saves_nothing():
     _seed()
-    _run("cap-accounts/gone/edit", "save", {"name": "X"})
+    from mateu_ui.uidl import UserFacingException
+
+    # refused through the error boundary, with Java's and .NET's text (GA round 2, N2)
+    with pytest.raises(UserFacingException, match="no longer exists"):
+        _run("cap-accounts/gone/edit", "save", {"name": "X"})
     assert SAVED == []
 
 

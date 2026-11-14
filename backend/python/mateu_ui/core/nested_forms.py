@@ -107,7 +107,9 @@ def is_nested_form_type(t: Any) -> bool:
 
 
 def is_nested_form_field(f) -> bool:
-    return is_nested_form_type(f.type)
+    # a _private attribute is the view's own plumbing (a service, a client), never a form: drawn
+    # as one it sent the object's values and took the client's (GA review 2, Y6)
+    return not f.name.startswith("_") and is_nested_form_type(f.type)
 
 
 def nested_value(instance, f, create: bool = True):
