@@ -18,7 +18,7 @@ public class Home implements ComponentTreeSupplier {
     Principal principal = httpRequest.getUserPrincipal();
     String who = principal == null ? "nobody (anonymous)" : principal.getName();
     return new VerticalLayout(
-        new Text("title", "Signed in with GitHub", TextContainer.h2),
+        new Text("title", "Signed in", TextContainer.h2),
         new Text("who", "You are " + who + "."),
         new Text("how", "Sign out from the button in the header."));
   }

@@ -90,7 +90,7 @@ version (latest release).
 | `demo-redwood-showcase` | 8597 | The Redwood renderer line. |
 | `explorer` | 8598 | A small Redwood-renderer test harness (not the Mateu Explorer — that is `demo-explorer`). |
 | [`demo-explorer`](demo-explorer) | 8640 | **The Mateu Explorer** (explorer.mateu.io): every component, page template, archetype, behaviour and distributed-UI pattern, live, with the source that renders it. Uses the latest release. |
-| [`demo-sign-in`](demo-sign-in) | 8080 | **Signing in with GitHub**: the `github` sign-in provider (kind `redirect`) with Spring Security's `oauth2Login` owning the login and the session. Needs your own GitHub OAuth app — see its README. |
+| [`demo-sign-in`](demo-sign-in) | 8080 | **Signing in**: GitHub (a `redirect` provider, Spring's `oauth2Login` owns the session; needs your own GitHub OAuth app) or a local Keycloak (profile `keycloak`, :8081 — an `oidc` provider, the Mateu client signs in with PKCE). See its README. |
 | [`demo-vb`](demo-vb) | 9005 | Reference app for the Redwood / Oracle Visual Builder renderer. |
 | [`demo-vb-pms`](demo-vb-pms) | 9010 | An OPERA Cloud-like property management system, written once, rendered by both Redwood and Vaadin. |
 | [`demo-eventconductor`](demo-eventconductor) | 8620–8622 | Using a third-party Mateu UI (EventConductor's workflow console): in-process with `mateu.ui.modules`, and federated into a Java and a YAML shell with `RemoteMenu` / `MicroFrontend`. |
