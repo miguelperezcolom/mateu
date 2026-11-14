@@ -69,6 +69,16 @@ if [[ "$platform" = macos ]]; then
     | grep -F "$target" | head -5)
   if [[ -n "$refused" ]]; then echo "--- the system refused code of the app:"; echo "$refused"; launch_failed=1; fi
 fi
+# Linux: when Mateu never got as far as the hub link, say WHERE the app stands before it is killed —
+# a modal dialog (an agreement, an import prompt) leaves idea.log silent, and only the event thread tells.
+if [[ "$platform" = linux ]] && ! grep -q 'Mateu hub: a link asks to add' "$log" 2> /dev/null; then
+  for p in $(pgrep -f "$target/jbr" 2> /dev/null); do
+    echo "--- event thread of $p"
+    "$target/jbr/bin/jcmd" "$p" Thread.print 2> /dev/null \
+      | awk '/^"AWT-EventQueue/{on=1} on&&/^$/{exit} on' | head -60
+  done
+  echo "--- idea.log (last 40 lines)"; tail -40 "$log" 2> /dev/null || true
+fi
 kill "$pid" 2> /dev/null || true
 # Every process of the app — but not this script, whose own command line names the app too.
 for p in $(pgrep -f "$target" 2> /dev/null); do
