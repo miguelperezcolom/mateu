@@ -45,7 +45,7 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 
 ```java
 public record User(
-        @NotEmpty String id,
+        String id,
         @NotEmpty String name,
         @NotEmpty @Email String email,
         @Stereotype(FieldStereotype.checkbox)
@@ -65,6 +65,9 @@ Key points:
 - `@Lookup` tells Mateu where to find available options and how to display selected values
 - `@Stereotype(checkbox)` renders the field as a checkbox group, not a dropdown
 - `List<String>` means the field holds multiple selected IDs
+- `id` is a technical id: **New** shows no input for it and the store assigns it when it saves a new
+  user (see [Who assigns the id](/java-user-manual/build/entity-interfaces/#who-assigns-the-id)). For
+  an id the user types — a username, a product code — mark it `@EditableOnlyWhenCreating` instead
 
 ---
 
@@ -74,7 +77,7 @@ Key points:
 @Service
 public class UserStore implements CrudStore<User> {
 
-    private static final Map<String, User> db = new HashMap<>();
+    private static final Map<String, User> db = new ConcurrentHashMap<>();
 
     static {
         db.put("1", new User("1", "Miguel", "miguel@example.com", List.of("1", "2")));
@@ -88,8 +91,12 @@ public class UserStore implements CrudStore<User> {
 
     @Override
     public String save(User entity) {
-        db.put(entity.id(), entity);
-        return entity.id();
+        // a new user arrives without an id: the store assigns it
+        var user = entity.id() == null || entity.id().isBlank()
+                ? new User(UUID.randomUUID().toString(), entity.name(), entity.email(), entity.roles())
+                : entity;
+        db.put(user.id(), user);
+        return user.id();
     }
 
     @Override
@@ -104,7 +111,9 @@ public class UserStore implements CrudStore<User> {
 }
 ```
 
-The repository is a `@Service` bean. This allows it to be injected wherever needed.
+The repository is a `@Service` bean. This allows it to be injected wherever needed. Its `save`
+returns the id it stored the user under: a create whose store assigns no id is refused with "The
+record was saved without an id", never reported as saved.
 
 ---
 

@@ -64,6 +64,8 @@ Key points:
 - `@Colspan(2)` makes the `level2` field span the full width when the form has 2 columns
 - `@DetailFormCustomisation(columns = 1, position = FormPosition.modal)` opens the detail editor for a Level2 item in a modal dialog with a 1-column layout
 - `implements Identifiable` is required for CRUD to work
+- `id` carries no annotation, so it is technical: **New** shows no input for it and the store assigns
+  it (see [Who assigns the id](/java-user-manual/build/entity-interfaces/#who-assigns-the-id))
 
 ### Level 2
 
@@ -121,11 +123,33 @@ Each level only needs to declare its fields and its children as a `List<ChildRec
 ```java
 @Service
 public class Level1ViewStore implements CrudStore<Level1View> {
-    // standard CRUD implementation
-    @Override public Optional<Level1View> findById(String id) { ... }
-    @Override public String save(Level1View entity) { ... }
-    @Override public List<Level1View> findAll() { ... }
-    @Override public void deleteAllById(List<String> ids) { ... }
+
+    private final Map<String, Level1View> db = new ConcurrentHashMap<>();
+
+    @Override
+    public Optional<Level1View> findById(String id) {
+        return Optional.ofNullable(db.get(id));
+    }
+
+    @Override
+    public String save(Level1View entity) {
+        // `id` is technical: a new record arrives without one and the store assigns it
+        var record = entity.id() == null || entity.id().isBlank()
+                ? new Level1View(UUID.randomUUID().toString(), entity.name(), entity.level2())
+                : entity;
+        db.put(record.id(), record);
+        return record.id();
+    }
+
+    @Override
+    public List<Level1View> findAll() {
+        return List.copyOf(db.values());
+    }
+
+    @Override
+    public void deleteAllById(List<String> ids) {
+        ids.forEach(db::remove);
+    }
 }
 ```
 

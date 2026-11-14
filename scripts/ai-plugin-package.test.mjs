@@ -76,6 +76,14 @@ test('packaging refuses source overlap, unrelated output and symlink escapes', (
     assert.equal(readFileSync(join(root, 'unrelated/keep.txt'), 'utf8'), 'keep me')
     symlinkSync(join(repoRoot, 'ai/claude-plugin'), join(root, 'link'), 'dir')
     assert.throws(() => packageAntigravityPlugin(join(root, 'link/output')), /symlink ancestor/)
+    // a link to somewhere outside the repository (macOS's /var → /private/var is one) is fine,
+    // but an output that IS a link is never replaced
+    mkdirSync(join(root, 'elsewhere'))
+    symlinkSync(join(root, 'elsewhere'), join(root, 'outside'), 'dir')
+    packageAntigravityPlugin(join(root, 'outside/bundle'))
+    assert.ok(existsSync(join(root, 'elsewhere/bundle/package-info.json')))
+    symlinkSync(join(root, 'elsewhere/bundle'), join(root, 'linked-output'), 'dir')
+    assert.throws(() => packageAntigravityPlugin(join(root, 'linked-output')), /output is a symlink/)
     const source = fixture(t)
     symlinkSync(join(root, 'unrelated/keep.txt'), join(source, 'ai/claude-plugin/mateu/skills/escape.txt'))
     assert.throws(() => packageAntigravityPlugin(join(root, 'bundle'), source), /symlinks are not allowed/)

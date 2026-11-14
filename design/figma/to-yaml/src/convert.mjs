@@ -27,20 +27,44 @@ const CONTAINER_KEY ={ VerticalLayout: 'content', HorizontalLayout: 'content', F
 
 /**
  * A frame name as a file path / route: lower case, Latin accents dropped, every run of what is not a
- * letter or a digit (in ANY script: a Japanese or Cyrillic name keeps its meaning) turned into `-`.
+ * letter, a combining mark or a digit (in ANY script: a Japanese, Cyrillic, Thai or Devanagari name
+ * keeps its meaning — the marks of `สวัสดี` / `हिन्दी` are part of the word) turned into `-`; a
+ * segment longer than {@link MAX_SEGMENT} code points is cut.
  * A `/` nests a folder; empty segments (`/x/`, `a//b`, `..`) are dropped, so a path never starts or
  * ends with `/` and never climbs out of the output folder.
  */
 export function slugify(name) {
+  return slugOf(name, true)
+}
+
+function slugOf(name, capped) {
   const segments = String(name)
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
     .normalize('NFC')
     .toLowerCase()
     .split('/')
-    .map((s) => trimDashes(s.replace(/[^\p{L}\p{N}]+/gu, '-')))
+    .map((s) => trimDashes(s.replace(/[^\p{L}\p{M}\p{N}]+/gu, '-')))
+    .map((s) => (capped ? trimDashes(capSegment(s)) : s))
     .filter(Boolean)
   return segments.join('/') || 'page'
+}
+
+/**
+ * The longest a path segment of a slug gets, in code points: even 60 four-byte characters are 240
+ * bytes of UTF-8, under the 255-byte file-name limit of every file system once `.yaml` is added (a
+ * longer frame name crashed the CLI with ENAMETOOLONG after it had written the earlier files).
+ */
+export const MAX_SEGMENT = 60
+
+function capSegment(segment) {
+  const points = Array.from(segment)
+  return points.length <= MAX_SEGMENT ? segment : points.slice(0, MAX_SEGMENT).join('')
+}
+
+/** True when a name's slug had a segment cut to {@link MAX_SEGMENT}. */
+export function slugWasCapped(name) {
+  return slugOf(name, true) !== slugOf(name, false)
 }
 
 /**
@@ -369,6 +393,7 @@ export class FigmaToYaml {
    */
   pagePath(node) {
     const slug = slugify(node.name)
+    if (slugWasCapped(node.name)) this.warn(node, `the frame name is too long for a file name: written as "${slug}.yaml" (rename the frame to choose another name)`)
     const [first, ...rest] = slug.split('/')
     const authored = rest.length === 0 ? AUTHORED_FILES.has(first) : AUTHORED_FOLDERS.has(first)
     if (!authored) return slug
@@ -757,13 +782,20 @@ export class FigmaToYaml {
     let slug = this.partialSlugs.get(key)
     if (!slug) {
       const base = slugify(key)
+      const items = this.nodes(node.children ?? [])
+      const value = items.length === 1 ? items[0] : { content: items }
+      // two spellings of one name (`Species List` / `species-list`) drawing the same content are the
+      // same partial: one file, one ref — only different content gets its own `-2` file
+      const same = this.partials.get(base)
+      if (same && JSON.stringify(same.value) === JSON.stringify(value)) {
+        this.partialSlugs.set(key, base)
+        return { type: 'Partial', ref: base }
+      }
       slug = base
       const used = new Set(this.partialSlugs.values())
       for (let i = 2; used.has(slug); i++) slug = `${base}-${i}`
       this.partialSlugs.set(key, slug)
       if (slug !== key) this.warn(node, `partial "${key}" is written as partials/${slug}.yaml and referenced as "${slug}"`)
-      const items = this.nodes(node.children ?? [])
-      const value = items.length === 1 ? items[0] : { content: items }
       this.partials.set(slug, { frame: node.name, nodeId: node.id, value })
     }
     return { type: 'Partial', ref: slug }

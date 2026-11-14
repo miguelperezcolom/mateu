@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Build an installable bundle from the canonical skills, without package-manager or network access.
 import { createHash } from 'node:crypto'
-import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
-import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 export const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -51,17 +51,37 @@ export function checkAntigravityPackage(output, repo = repoRoot) {
     return expected
 }
 
+/** [path] with its nearest existing ancestor resolved to its real path (the rest appended as written). */
+function realPathOf(path) {
+    let existing = path
+    const rest = []
+    while (!existsSync(existing) && existing !== dirname(existing)) {
+        rest.unshift(basename(existing))
+        existing = dirname(existing)
+    }
+    return join(realpathSync(existing), ...rest)
+}
+
 export function packageAntigravityPlugin(output, repo = repoRoot) {
     output = resolve(output)
-    const source = resolve(repo, sourcePath)
+    // An output that IS a symlink is refused: replacing it would follow it somewhere else.
+    if (existsSync(output) && lstatSync(output).isSymbolicLink()) throw new Error(`output is a symlink: ${output}`)
+    // Compare REAL paths: a symlinked ancestor (macOS's /var → /private/var, a linked checkout) must
+    // neither be refused for being a link nor turn a build into a source overwrite.
+    const source = realPathOf(resolve(repo, sourcePath))
+    const realOutput = realPathOf(output)
     const within = (parent, child) => {
         const path = relative(parent, child)
         return path === '' || (!isAbsolute(path) && path !== '..' && !path.startsWith(`..${sep}`))
     }
-    if (within(source, output) || within(output, source)) throw new Error('output must not overlap the canonical plugin')
-    // Resolve ancestors too: an output symlink must never turn a build into a source overwrite.
-    for (let parent = output; ; parent = dirname(parent)) {
-        if (existsSync(parent) && lstatSync(parent).isSymbolicLink()) throw new Error(`output has a symlink ancestor: ${parent}`)
+    if (within(source, realOutput) || within(realOutput, source)) throw new Error('output must not overlap the canonical plugin')
+    // A symlinked ancestor pointing INTO the repository is how a build would land among its sources:
+    // refused. A system link (macOS's /var → /private/var, under every temp dir) is not.
+    const realRepo = realPathOf(resolve(repo))
+    for (let parent = dirname(output); ; parent = dirname(parent)) {
+        if (existsSync(parent) && lstatSync(parent).isSymbolicLink() && within(realRepo, realpathSync(parent))) {
+            throw new Error(`output has a symlink ancestor into the repository: ${parent}`)
+        }
         if (parent === dirname(parent)) break
     }
     const files = antigravityFiles(repo)
