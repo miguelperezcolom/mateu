@@ -329,7 +329,8 @@ public final class MicroFrontendServerResolver {
               }
               var call = requestFor(microFrontend);
               // a supplier: cancelling the Mono (the deadline) cancels the call itself
-              return Mono.fromFuture(() -> http.sendWithHeaders(plan.callBaseUrl(), call, headers))
+              return Mono.fromFuture(
+                      () -> cancellable(http.sendWithHeaders(plan.callBaseUrl(), call, headers)))
                   .map(answer -> received(url, callerKey, answer));
             })
         .timeout(Duration.ofMillis(timeoutMs))
@@ -353,6 +354,33 @@ public final class MicroFrontendServerResolver {
                     error instanceof TimeoutException
                         ? degrade(plan, started, Outcome.TIMEOUT, correlationId, null)
                         : degrade(plan, started, Outcome.ERROR, correlationId, messageOf(error))));
+  }
+
+  /**
+   * The call as Reactor should see it: cancelling it (the deadline) cancels the call, and what the
+   * cancelled call does afterwards stays out of sight. The JDK HTTP client fails a cancelled
+   * exchange with a {@code CompletionException(CancellationException)}, which Reactor — the Mono
+   * being cancelled already — reported as "Operator called default onErrorDropped" at ERROR, one
+   * stack trace per fragment cut at its deadline, next to the one line the resolver logs for it.
+   */
+  static <T> java.util.concurrent.CompletableFuture<T> cancellable(
+      java.util.concurrent.CompletableFuture<T> call) {
+    var answer = new java.util.concurrent.CompletableFuture<T>();
+    call.whenComplete(
+        (value, error) -> {
+          if (error != null) {
+            answer.completeExceptionally(error);
+          } else {
+            answer.complete(value);
+          }
+        });
+    answer.whenComplete(
+        (value, error) -> {
+          if (answer.isCancelled()) {
+            call.cancel(true);
+          }
+        });
+    return answer;
   }
 
   private record Answer(UIIncrementDto increment, Outcome outcome, String error) {
