@@ -295,5 +295,6 @@
   "signInHint": "Inicie sessão para continuar.",
   "signInWith": "Continuar com {provider}",
   "signInFailed": "Não foi possível iniciar sessão. Tente novamente.",
-  "signOut": "Terminar sessão"
+  "signOut": "Terminar sessão",
+  "userMenuOf": "Conta: {name}"
 }

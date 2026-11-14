@@ -562,6 +562,21 @@ class AppSession(
     /** Fired when the idle warning signs out — the host resets the app to its root. */
     var onSignedOut: (() -> Unit)? = null
 
+    /** The signed-in user the app shell names (AppDto.user), published by renderApp; null = anonymous. */
+    var appUser: io.mateu.ijp.ui.UserMenu.User? = null
+
+    /** Whether the plugin holds a sign-in for this UI (the host reads its auth; blocking — call it off the EDT). */
+    var signOutAvailable: () -> Boolean = { false }
+
+    /** Ends this UI's sign-in (the host's auth) — the user menu's Sign out; null when the host has none. */
+    var signOutHandler: (() -> Unit)? = null
+
+    /** The user menu's Sign out: the host forgets the session, then the app restarts from its root. */
+    fun requestSignOut() {
+        signOutHandler?.invoke()
+        onSignedOut?.invoke()
+    }
+
     /** Opens an app route (an app shortcut, quick launch) through the host's normal navigation. */
     fun openAppRoute(label: String, route: String) {
         openViewHandler?.invoke(label, route, "", null, null)
