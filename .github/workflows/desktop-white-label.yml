@@ -331,7 +331,7 @@ jobs:
           echo "$PFX" | base64 --decode > "$RUNNER_TEMP/cert.pfx"
           setup=$(ls frontend/app/intellij-plugin/build/installer/*-windows-setup.exe)
           osslsigncode sign -pkcs12 "$RUNNER_TEMP/cert.pfx" -pass "$PFX_PASSWORD" -n "$PRODUCT" \
-            -h sha256 -ts http://timestamp.digicert.com -in "$setup" -out "$setup.signed"
+            -h sha256 -ts https://timestamp.sectigo.com -in "$setup" -out "$setup.signed"
           mv "$setup.signed" "$setup"
           rm "$RUNNER_TEMP/cert.pfx"
           osslsigncode verify -in "$setup" | grep -E 'Signature verification|Subject' || true
