@@ -1,0 +1,19 @@
+# A local Keycloak for the `keycloak` profile: realm `mateu` imported at start (realm-mateu.json),
+# admin console http://localhost:8180 (admin / admin — local development only).
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start-dev --import-realm --http-port=8180
+    ports:
+      - "8180:8180"
+    # Google as an identity provider of the realm ("Sign in with Google" on Keycloak's page): its
+    # Web client id and secret come from ../secrets.properties (git-ignored); without them the
+    # button is there but Google refuses it.
+    env_file:
+      - path: ../secrets.properties
+        required: false
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    volumes:
+      - ./realm-mateu.json:/opt/keycloak/data/import/realm-mateu.json:ro
