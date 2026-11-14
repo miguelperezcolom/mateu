@@ -13182,14 +13182,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  /** Resolves which registry key a target goes to: echo of the initiator; ''/null → host. */
+  /** The page's own content slot as the web renderer names it: the .NET/Python servers up to
+   *  3.0-beta.67 aim an answer to a request with no initiator at it (Java echoes the empty initiator)
+   *  and the web client's expander still does. No surface of ours carries that id. */
+  const MAIN_SLOT_ID = 'ux_main'
+
+  /** Resolves which registry key a target goes to: echo of the initiator; ''/null/'ux_main' → host. */
   const resolveTarget = (contexts, t) => {
     if (t == null || t === '') return HOST_ID
     if (contexts[t]) return t
     // echo of an already registered component id (e.g. SSE answering to the tree's uuid, or an
     // overlay's embedded form, which answers to ITS id)
     const byTreeId = Object.keys(contexts).find((k) => contexts[k].tree?.id === t || contexts[k].surface?.id === t)
-    return byTreeId || t
+    if (byTreeId) return byTreeId
+    // the page's content slot: before, it became an island context nothing paints — a blank screen
+    return t === MAIN_SLOT_ID ? HOST_ID : t
   }
 
   /** Which context a MarkAsClean / MarkAsDirty is about: its target (a context id, or the tree id a

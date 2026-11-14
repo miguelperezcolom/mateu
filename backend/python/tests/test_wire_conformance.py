@@ -1382,7 +1382,8 @@ VOLATILE = {
     "generatedAt",
     "serverSideType",
     "homeServerSideType",
-    "targetComponentId",
+    # NOT targetComponentId: the request's initiator echoed, the same in every server (dropping it
+    # hid the ports' "ux_main" page-load target, which the Redwood renderer painted nowhere)
 }
 
 #: Members whose zero value is NOT their absent value: a renderer reads an absent one as a non-zero

@@ -28,8 +28,10 @@ public class WireConformanceTests
     /// <para><c>homeServerSideType</c> is a server type name exactly like <c>serverSideType</c> (a
     /// Java binary class name vs a CLR full name, by construction never equal); the Java and Python
     /// normalisers do not list it yet — it belongs in theirs too.</para>
+    /// <para>NOT <c>targetComponentId</c>: the request's initiator echoed, the same in every server
+    /// (dropping it hid the ports' "ux_main" page-load target, which Redwood painted nowhere).</para>
     private static readonly HashSet<string> Volatile_ =
-        ["id", "structureHash", "generatedAt", "serverSideType", "homeServerSideType", "targetComponentId"];
+        ["id", "structureHash", "generatedAt", "serverSideType", "homeServerSideType"];
 
     /// <summary>Mirrors the Java and Python normalisers: drop volatile and DEFAULT members, sort
     /// keys. "Absent" and "at its default" are the same thing to a renderer.</summary>

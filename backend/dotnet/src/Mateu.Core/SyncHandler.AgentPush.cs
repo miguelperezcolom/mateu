@@ -70,7 +70,7 @@ internal sealed partial class SyncHandler
         }
         var data = new Dictionary<string, object?> { [AgentPairingKey] = pairing };
         return UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
+            [new UIFragmentDto(rq.InitiatorComponentId ?? "", null, null, data, "Replace", null)]);
     }
 
     private static string Param(RunActionRqDto rq, string name) => StateString(GetState(rq.Parameters, name)) ?? "";

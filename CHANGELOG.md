@@ -39,6 +39,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **The Android APK on the GitHub releases keeps updating from there after an over-the-air update**
   (it has its own update channel, `github`); "Update Mateu" sent it to Google Play.
 
+### Fixed — .NET and Python on the Redwood renderer
+
+- **C# and Python screens render on Redwood.** The shell and menu drew, the content stayed blank:
+  the ports answered a request with no initiator (every page load) at the target `"ux_main"`, where
+  Java echoes the empty initiator, and Redwood treated `"ux_main"` as an island nobody paints. The
+  ports now echo the initiator like Java (a `"ux_main"` placeholder of a command built in code
+  follows it at the end of every answer), Redwood reads `"ux_main"` as the page (so apps on the
+  already-published ports work with the new renderer), and the conformance corpus pins the target
+  in the three runners so it cannot drift again.
+
 ### Fixed — web renderer
 
 - **The route-structure cache is kept per app and per build.** Its entries were keyed by route, so

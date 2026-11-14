@@ -80,7 +80,7 @@ class SearchHandlerMixin(MixinBase):
         return UIIncrement.of(
             fragments=[
                 UIFragment(
-                    target_component_id=rq.initiator_component_id or "ux_main",
+                    target_component_id=self.target(rq),
                     component=dialog,
                     action="Add",
                 )

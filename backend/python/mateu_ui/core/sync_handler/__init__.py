@@ -156,6 +156,38 @@ def without_window_commands(increment):
     return increment.model_copy(update={"commands": kept})
 
 
+#: The placeholder a command built in user code carries (``UICommand.close_modal()``, a flow
+#: ``Step``…) before the answer knows who asked: ``"ux_main"``.
+PLACEHOLDER_TARGET = "ux_main"
+
+
+def aimed_at_the_initiator(increment, initiator: str | None):
+    """The increment with every ``"ux_main"`` placeholder target replaced by the request's
+    initiator, ECHOED as Java does (an empty initiator — a page load — gives an empty target, the
+    page). Applied at the end of every answer, so no producer has to remember it: before, a
+    placeholder that reached the wire unchanged addressed a slot only the web client knows, and
+    the Redwood renderer drew the shell and left the content blank."""
+    target = initiator or ""
+    if increment is None or target == PLACEHOLDER_TARGET:
+        return increment
+    update = {}
+    if increment.fragments and any(f is not None and f.target_component_id == PLACEHOLDER_TARGET
+                                   for f in increment.fragments):
+        update["fragments"] = [
+            f.model_copy(update={"target_component_id": target})
+            if f is not None and f.target_component_id == PLACEHOLDER_TARGET else f
+            for f in increment.fragments
+        ]
+    if increment.commands and any(c is not None and c.target_component_id == PLACEHOLDER_TARGET
+                                  for c in increment.commands):
+        update["commands"] = [
+            c.model_copy(update={"target_component_id": target})
+            if c is not None and c.target_component_id == PLACEHOLDER_TARGET else c
+            for c in increment.commands
+        ]
+    return increment.model_copy(update=update) if update else increment
+
+
 def referenced_rest_source_names(increment) -> tuple[set[str], bool]:
     """The source names a response's components reference by ``ref``, and whether it already
     carries the app's catalogue (an App metadata with ``rest_sources``)."""
@@ -454,6 +486,7 @@ class SyncHandler(
             increment = self.microfrontends.resolve_sync(increment, request)
         if rq.embedded():
             increment = without_window_commands(increment)
+        increment = aimed_at_the_initiator(increment, rq.initiator_component_id)
         return self.store_inbox_messages(increment)
 
     def store_inbox_messages(self, increment: UIIncrement) -> UIIncrement:

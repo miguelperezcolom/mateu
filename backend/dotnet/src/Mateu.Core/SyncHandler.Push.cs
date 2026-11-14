@@ -46,7 +46,7 @@ internal sealed partial class SyncHandler
             ["_push"] = new Dictionary<string, object?> { ["registered"] = registered },
         };
         return UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
+            [new UIFragmentDto(rq.InitiatorComponentId ?? "", null, null, data, "Replace", null)]);
     }
 
     /// <summary>Sends a push to the principal's phones, off the request thread (nothing when push is
