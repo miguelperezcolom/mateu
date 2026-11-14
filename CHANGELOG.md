@@ -17,6 +17,33 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   the production dependency tree (`scripts/third-party-notices.mjs`) and checked in CI; the npm
   package and the Python sdist/wheel carry the licence and the NOTICE too.
 
+### Changed — behaviour (CRUD ids, all three backends)
+
+- **Since 3.0-beta.65 a crud's plain `id` is technical: the store assigns it.** An `id` / `Id`
+  without `EditableOnlyWhenCreating` (or `GeneratedValue`) has no input on the creation form and a
+  create never takes it from the client. A store that keys records by `entity.id` without assigning
+  one saved every new record under the same empty id. Now:
+  - a create the store saved with the id still blank is **refused** with "The record was saved
+    without an id. The store must assign the id of a new record, or the id field must be marked
+    EditableOnlyWhenCreating so the user types it." (Java `AutoCrud`, .NET `Crud<T>`, Python
+    `Crud[T]`) — upgrading apps whose store relied on the typed id: assign it in `save`, or mark the
+    id `EditableOnlyWhenCreating`;
+  - a create whose typed id names a stored record is refused ("A record with this id already
+    exists…") after the edit-permission check, instead of replacing it;
+  - a capability listing's save finds the record by the listing's key (a business code too) and a
+    save of a record that is not stored is refused ("This record no longer exists…"), never run as a
+    creation; in .NET a posted id no longer redirects a capability save, and a crud save at a route
+    naming no stored record is refused instead of inserted.
+  The Python and C# manuals and the AI skills now show stores that assign their ids.
+
+### Security — Python and .NET ports
+
+- **Python**: the locks of a view model bound in `routes.yaml` (or by a definition declaring
+  `viewModel:`) now apply whichever way the request names it — omitting `serverSideType` at the
+  class's own `@ui` route skipped them; `EyesOnly` holds inside nested objects and row lists (crud
+  rows, grid fields in the state); saving a list field keeps the values its rows' protected
+  fields hold.
+
 ### Changed — releases
 
 - **Only the newest release of its line reaches users as an update.** A backport (`v3.0.2` published
