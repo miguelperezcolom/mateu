@@ -223,11 +223,12 @@ public static partial class MateuExtensions
                 // write (the key stays claimed until it ends; a retry joins it).
                 var key = ctx.Request.Headers[IdempotencyKeys.Header].FirstOrDefault();
                 var keyed = IdempotencyKeys.KeyOf(key) is not null;
-                return await IdempotencyKeys.GuardedAsync(CallerOf(ctx), rq.ActionId, key,
+                var caller = CallerOf(ctx);
+                return await IdempotencyKeys.GuardedAsync(caller, rq.ActionId, key,
                     () => handler.HandleAsync(rq, prefix, keyed ? CancellationToken.None : ctx.RequestAborted),
                     view: rq.ServerSideType, route: rq.Route,
                     fingerprint: keyed ? IdempotencyKeys.FingerprintOf(rq.ComponentState, rq.Parameters) : null,
-                    listen: ctx.RequestAborted);
+                    listen: ctx.RequestAborted, share: ShareOf(ctx, caller));
             });
             EndObservation(ctx, observation);
             ctx.Response.ContentType = "application/json";
@@ -734,6 +735,15 @@ public static partial class MateuExtensions
         var options = ctx.RequestServices?.GetService<MateuOptions>();
         var identity = options is not null ? options.Identity(ctx) : ClaimsIdentityMapper.FromUser(ctx);
         return IdempotencyKeys.CallerOf(PrincipalName(ctx), identity);
+    }
+
+    /// <summary>The share a request counts against (<see cref="IdempotencyKeys.ShareOf"/>): the
+    /// caller, and for an anonymous one also its client address.</summary>
+    internal static string ShareOf(HttpContext ctx, string caller)
+    {
+        var options = ctx.RequestServices?.GetService<MateuOptions>();
+        var identity = options is not null ? options.Identity(ctx) : ClaimsIdentityMapper.FromUser(ctx);
+        return IdempotencyKeys.ShareOf(caller, identity, PrincipalName(ctx), ctx.Connection.RemoteIpAddress?.ToString());
     }
 
     /// <summary>The error boundary of the sync endpoint. A denied request answers 403 with an error

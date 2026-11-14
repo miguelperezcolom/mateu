@@ -483,7 +483,15 @@ class RouteRegistry:
         if not any(e.restricts_access() for e in table.routes):
             return None
         normalized = _normalize((path or "").split("?", 1)[0])
-        if not normalized or table.match(normalized) is not None:
+        if not normalized:
+            return None
+        # an authored entry that NAMES its layout is served from that file, not by convention: its
+        # own access: (checked by the caller) is the one that holds. An entry WITHOUT a layout
+        # (pages/:name + viewModel:) is still served by convention from <path>.yaml — which may be
+        # the layout of a restricted route, so it does not stand down (GA round 2, J1 residual on
+        # rc.1; Java's refusingByDefinition)
+        match = table.match(normalized)
+        if match is not None and (match.entry.definition or "").strip():
             return None
         served = _canonical_file(f"{normalized}.yaml")
         for entry in table.routes:
