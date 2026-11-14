@@ -147,13 +147,19 @@ internal sealed partial class ReflectionMapper
 
         var initial = new Dictionary<string, object?> { ["__step"] = current };
         foreach (var (p, _) in stepProps)
+        {
+            // a field hidden from the caller ([EyesOnly] / [Audience] projection) does not leak its
+            // value into the wizard's state either — the rule a form's initialData follows (GA
+            // review 2, D4)
+            if (!Authorized(p.Find<EyesOnlyAttribute>()) || !ForCurrentAudience(p)) continue;
             // Grid (list-of-rows) fields ride as row dicts and scalars keep their JSON type
             // (numbers/booleans as-is, dates ISO, enums by name — the grid-cell convention), so
             // every step field round-trips through the componentState (Java parity: the wizard
             // state is typed, not stringified).
             initial[Naming.CamelCase(p.Name)] = GridRowType(p) is { } rowType
                 ? GridRows(p, rowType, instance)
-                : CellValueOf(p.GetValue(instance));
+                : CellValueOf(ReadableValues.Of(p.GetValue(instance)));
+        }
 
         return new ServerSideComponentDto(
             // the current step's list fields advertise their row-editing actions (Java resolves the
