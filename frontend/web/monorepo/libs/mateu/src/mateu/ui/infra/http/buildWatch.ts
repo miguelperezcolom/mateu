@@ -14,23 +14,13 @@
  */
 import { notify } from '@application/Notifier.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { backendKeyOf } from '@infra/http/backendKey.ts'
 
 export const BUILD_HEADER = 'x-mateu-build'
 
 export type BuildVerdict = 'none' | 'updated' | 'stale'
 
-/** The backend a Mateu URL belongs to: its absolute form up to (excluding) the `/mateu/` segment. */
-export function backendKeyOf(url: string, base?: string): string | undefined {
-    let href = url
-    try {
-        const fallbackBase = base ?? (typeof window !== 'undefined' && window.location ? window.location.href : undefined)
-        href = new URL(url, fallbackBase).href
-    } catch {
-        // not resolvable — keep it as written
-    }
-    const at = href.indexOf('/mateu/')
-    return at < 0 ? undefined : href.substring(0, at)
-}
+export { backendKeyOf }
 
 /** Reads the build off whatever headers object the transport has (axios, fetch, a plain map). */
 export function buildOf(headers: unknown): string | undefined {

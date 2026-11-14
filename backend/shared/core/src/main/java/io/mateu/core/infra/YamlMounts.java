@@ -251,17 +251,20 @@ public final class YamlMounts {
         Pwa.served(
             io.mateu.core.infra.security.SignInProviders.head(
                 OracleCdn.apply(
-                    IndexPage.withoutMarkers(
-                        IndexPage.mountUi(
-                            html,
-                            "<mateu-ui baseUrl=\""
-                                + base
-                                + uiPath(basePath)
-                                + "\" pathPrefix=\""
-                                + base
-                                + "\""
-                                + (base.isEmpty() ? "" : " publicBase=\"" + base + "\"")
-                                + " style=\"width:100%;height:100vh;\"></mateu-ui>"))),
+                    IndexPage.appHead(
+                        IndexPage.withoutMarkers(
+                            IndexPage.mountUi(
+                                html,
+                                "<mateu-ui baseUrl=\""
+                                    + base
+                                    + uiPath(basePath)
+                                    + "\" pathPrefix=\""
+                                    + base
+                                    + "\""
+                                    + (base.isEmpty() ? "" : " publicBase=\"" + base + "\"")
+                                    + " style=\"width:100%;height:100vh;\"></mateu-ui>")),
+                        // which app this page is, for the renderer's client caches
+                        "yaml:" + uiPath(basePath) + "|" + title)),
                 shell == null ? null : shell.mobileApp()),
             base + uiPath(basePath),
             shell,
