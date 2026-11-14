@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
@@ -30,6 +31,41 @@ def _normalize(route: str | None) -> str:
     """Routes are relative to the mount, so a leading or trailing slash carries no meaning."""
     r = (route or "").strip("/")
     return "" if r in ("_empty", "_no_route", "_no_home_route") else r
+
+
+def has_unsafe_segments(route: str | None) -> bool:
+    """Whether ``route`` (its path, before any query) has a ``.`` or ``..`` segment — also
+    percent-encoded — or a backslash: a spelling that names another file than the route says (GA
+    round 2, J1). No real route has one. Mirrors Java's ``YamlUidlLoader.hasUnsafeSegments``."""
+    if not route:
+        return False
+    path = route.split("?", 1)[0]
+    decoded = re.sub("%2e", ".", path, flags=re.IGNORECASE)
+    decoded = re.sub("%2f", "/", decoded, flags=re.IGNORECASE)
+    decoded = re.sub("%5c", lambda _m: "\\", decoded, flags=re.IGNORECASE)
+    if "\\" in decoded or "\0" in decoded:
+        return True
+    return any(segment in (".", "..") for segment in decoded.split("/"))
+
+
+def _definition_file_of(entry) -> str | None:
+    if entry.definition and entry.definition.strip():
+        return entry.definition.strip()
+    route = _normalize(entry.route)
+    return None if not route or ":" in route else f"{route}.yaml"
+
+
+def _canonical_file(file: str) -> str:
+    parts: list[str] = []
+    for segment in file.replace("\\", "/").split("/"):
+        if segment in ("", "."):
+            continue
+        if segment == "..":
+            if parts:
+                parts.pop()
+        else:
+            parts.append(segment)
+    return "/".join(parts).lower()
 
 
 def _prefix(base_path: str, route: str) -> str:
@@ -434,6 +470,32 @@ class RouteRegistry:
                 if entry.restricts_access() and not authorized(entry.access):
                     return entry
             return None
+        return None
+
+    def refusing_by_definition(self, path: str | None, authorized) -> RouteEntry | None:
+        """The authored entry whose ``access:`` refuses ``path`` when the path is served BY
+        CONVENTION (``<path>.yaml``, no authored entry answers it) and that file is an authored
+        entry's definition — its ``layout:``, or the convention file of its own route. Compared
+        without regard to case (a case-insensitive file system serves ``Admin.yaml`` for
+        ``admin.yaml``). A route's access holds for its definition, whatever spelling reaches it
+        (GA round 2, J1; mirrors Java's ``YamlUidlLoader.refusingByDefinition``)."""
+        table = self.authored()
+        if not any(e.restricts_access() for e in table.routes):
+            return None
+        normalized = _normalize((path or "").split("?", 1)[0])
+        if not normalized or table.match(normalized) is not None:
+            return None
+        served = _canonical_file(f"{normalized}.yaml")
+        for entry in table.routes:
+            file = _definition_file_of(entry)
+            if file is None or _canonical_file(file) != served:
+                continue
+            if entry.restricts_access() and not authorized(entry.access):
+                return entry
+            if entry.has_parent():
+                parent = self.refusing_entry(entry.parent, authorized)
+                if parent is not None:
+                    return parent
         return None
 
     def is_reachable(self, path: str | None, authorized) -> bool:

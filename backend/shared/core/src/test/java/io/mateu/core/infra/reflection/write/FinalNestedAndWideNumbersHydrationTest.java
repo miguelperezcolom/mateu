@@ -8,10 +8,11 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /**
- * Two state shapes the JS client and Jackson really produce: a FINAL nested object (a form that
- * owns its sub-form instance) is updated in place from the incoming map rather than replaced, and
- * numbers Jackson reads as Long (beyond int range) or Double land in BigDecimal/float fields
- * instead of silently resetting them.
+ * Two state shapes the JS client and Jackson really produce: a FINAL nested object DECLARED a
+ * sub-form ({@code @Inline} — a form that owns its sub-form instance) is updated in place from the
+ * incoming map rather than replaced — while a final field that is not one (a held service or store)
+ * is never written from client state (GA round 2, J3) — and numbers Jackson reads as Long (beyond
+ * int range) or Double land in BigDecimal/float fields instead of silently resetting them.
  */
 class FinalNestedAndWideNumbersHydrationTest {
 
@@ -21,7 +22,8 @@ class FinalNestedAndWideNumbersHydrationTest {
   }
 
   public static class Form {
-    public final Address address = new Address();
+    @io.mateu.uidl.annotations.Inline public final Address address = new Address();
+    public final Address held = new Address();
     public BigDecimal amount = BigDecimal.ONE;
     public BigDecimal fromFloat = BigDecimal.ONE;
     public float weight = -1;
@@ -45,6 +47,13 @@ class FinalNestedAndWideNumbersHydrationTest {
     assertThat(hydrated.address).isSameAs(before);
     assertThat(hydrated.address.street).isEqualTo("Gran Via 1");
     assertThat(hydrated.address.city).isEqualTo("Madrid");
+  }
+
+  @Test
+  void aFinalFieldThatIsNotADeclaredSubFormIsNeverWritten() {
+    var form = hydrated(Map.of("held", Map.of("street", "Gran Via 1"), "held.city", "Madrid"));
+    assertThat(form.held.street).isEqualTo("old street");
+    assertThat(form.held.city).isEqualTo("old city");
   }
 
   @Test
