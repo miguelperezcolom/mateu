@@ -2617,6 +2617,25 @@ test('GanttPage → oj-sp-data-management-page: the canvas + detail in the defau
   assert.match(page, /on-sp-cancel="\[\[ \$listeners\.headerGoToParent \]\]"/)
 })
 
+test('Spectra fixed-height content areas: our collection fills the area and scrolls itself (a long listing is never cut)', () => {
+  // oj-sp-data-management-page's contents area and oj-sp-collection-detail-page's contents are
+  // overflow:hidden at the page's height (the dm area shrinks while the bottom drawer is open); Spectra
+  // leaves the scrolling to the collection placed there. Without these rules only the first rows of the
+  // museums demo's Loans (dm) and Artists (cd) listings showed and the rest could not be reached.
+  const css = webApp('resources/css/app.css')
+  const page = webApp('flows/main/pages/main-start-page.html')
+  for (const [cls, area] of [['mateu-dm-main', 'mateu-dm-page'], ['mateu-cd-collection', 'mateu-cd-page']]) {
+    assert.match(page, new RegExp(`<div class="${cls}[ "]`), `${cls} is the element Spectra slots`)
+    const rule = css.match(new RegExp(`\\.${area} \\.${cls} \\{[^}]*\\}`))
+    assert.ok(rule, `${cls} has its own rule`)
+    assert.match(rule[0], /height: 100%/, `${cls} fills the area`)
+    assert.match(rule[0], /overflow: auto/, `${cls} scrolls itself`)
+    assert.match(rule[0], /box-sizing: border-box/, `${cls}'s padding stays inside the area`)
+  }
+  // Spectra's own containers are left alone (owner rule: never override Spectra's layout)
+  assert.doesNotMatch(css, /oj-sp-data-management-contents-area\s*\{|oj-sp-collection-detail-contents\s*\{/)
+})
+
 test('CollectionDetail → oj-sp-collection-detail-page: the collection in its default slot, the server-built detail stamped for the selected item', () => {
   const host = realHost('tpl-collection-detail')
   const title = 'Hotel directory'
