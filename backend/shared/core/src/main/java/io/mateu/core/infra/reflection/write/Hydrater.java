@@ -152,9 +152,7 @@ public class Hydrater {
   /** A field the view HOLDS rather than one carrying its state: final, or container-injected. */
   static boolean isHeldReference(Field field) {
     return java.lang.reflect.Modifier.isFinal(field.getModifiers())
-        || io.mateu.core.application.security.WireTypes.isInjected(field)
-        || io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
-            field, jakarta.inject.Inject.class);
+        || io.mateu.core.domain.InjectionAnnotations.isInjected(field);
   }
 
   /** A final, non-injected {@code @Inline} field of an application type: a declared sub-form. */
