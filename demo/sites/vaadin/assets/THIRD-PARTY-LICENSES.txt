@@ -19,104 +19,104 @@ dependency tree — do not edit by hand.
   @polymer/iron-media-query@3.0.1  (BSD-3-Clause)
   @polymer/iron-resizable-behavior@3.0.1  (BSD-3-Clause)
   @polymer/polymer@3.5.2  (BSD-3-Clause)
-  @tiptap/core@3.32.2  (MIT)
-  @tiptap/extension-blockquote@3.32.2  (MIT)
-  @tiptap/extension-bold@3.32.2  (MIT)
-  @tiptap/extension-bullet-list@3.32.2  (MIT)
-  @tiptap/extension-code@3.32.2  (MIT)
-  @tiptap/extension-code-block@3.32.2  (MIT)
-  @tiptap/extension-document@3.32.2  (MIT)
-  @tiptap/extension-dropcursor@3.32.2  (MIT)
-  @tiptap/extension-gapcursor@3.32.2  (MIT)
-  @tiptap/extension-hard-break@3.32.2  (MIT)
-  @tiptap/extension-heading@3.32.2  (MIT)
-  @tiptap/extension-horizontal-rule@3.32.2  (MIT)
-  @tiptap/extension-italic@3.32.2  (MIT)
-  @tiptap/extension-link@3.32.2  (MIT)
-  @tiptap/extension-list@3.32.2  (MIT)
-  @tiptap/extension-list-item@3.32.2  (MIT)
-  @tiptap/extension-list-keymap@3.32.2  (MIT)
-  @tiptap/extension-ordered-list@3.32.2  (MIT)
-  @tiptap/extension-paragraph@3.32.2  (MIT)
-  @tiptap/extension-strike@3.32.2  (MIT)
-  @tiptap/extension-text@3.32.2  (MIT)
-  @tiptap/extension-underline@3.32.2  (MIT)
-  @tiptap/extensions@3.32.2  (MIT)
-  @tiptap/pm@3.32.2  (MIT)
-  @tiptap/starter-kit@3.32.2  (MIT)
+  @tiptap/core@3.32.0  (MIT)
+  @tiptap/extension-blockquote@3.32.0  (MIT)
+  @tiptap/extension-bold@3.32.0  (MIT)
+  @tiptap/extension-bullet-list@3.32.0  (MIT)
+  @tiptap/extension-code@3.32.0  (MIT)
+  @tiptap/extension-code-block@3.32.0  (MIT)
+  @tiptap/extension-document@3.32.0  (MIT)
+  @tiptap/extension-dropcursor@3.32.0  (MIT)
+  @tiptap/extension-gapcursor@3.32.0  (MIT)
+  @tiptap/extension-hard-break@3.32.0  (MIT)
+  @tiptap/extension-heading@3.32.0  (MIT)
+  @tiptap/extension-horizontal-rule@3.32.0  (MIT)
+  @tiptap/extension-italic@3.32.0  (MIT)
+  @tiptap/extension-link@3.32.0  (MIT)
+  @tiptap/extension-list@3.32.0  (MIT)
+  @tiptap/extension-list-item@3.32.0  (MIT)
+  @tiptap/extension-list-keymap@3.32.0  (MIT)
+  @tiptap/extension-ordered-list@3.32.0  (MIT)
+  @tiptap/extension-paragraph@3.32.0  (MIT)
+  @tiptap/extension-strike@3.32.0  (MIT)
+  @tiptap/extension-text@3.32.0  (MIT)
+  @tiptap/extension-underline@3.32.0  (MIT)
+  @tiptap/extensions@3.32.0  (MIT)
+  @tiptap/pm@3.32.0  (MIT)
+  @tiptap/starter-kit@3.32.0  (MIT)
   @types/rbush@4.0.0  (MIT)
   @types/trusted-types@2.0.7  (MIT)
   @vaadin-component-factory/vcf-date-range-picker@6.0.0  (Apache-2.0)
-  @vaadin/a11y-base@25.3.5  (Apache-2.0)
-  @vaadin/accordion@25.3.5  (Apache-2.0)
-  @vaadin/app-layout@25.3.5  (Apache-2.0)
-  @vaadin/avatar@25.3.5  (Apache-2.0)
-  @vaadin/avatar-group@25.3.5  (Apache-2.0)
-  @vaadin/button@25.3.5  (Apache-2.0)
-  @vaadin/card@25.3.5  (Apache-2.0)
-  @vaadin/checkbox@25.3.5  (Apache-2.0)
-  @vaadin/checkbox-group@25.3.5  (Apache-2.0)
-  @vaadin/combo-box@25.3.5  (Apache-2.0)
-  @vaadin/component-base@25.3.5  (Apache-2.0)
-  @vaadin/confirm-dialog@25.3.5  (Apache-2.0)
-  @vaadin/context-menu@25.3.5  (Apache-2.0)
-  @vaadin/custom-field@25.3.5  (Apache-2.0)
-  @vaadin/date-picker@25.3.5  (Apache-2.0)
-  @vaadin/date-time-picker@25.3.5  (Apache-2.0)
-  @vaadin/details@25.3.5  (Apache-2.0)
-  @vaadin/dialog@25.3.5  (Apache-2.0)
-  @vaadin/email-field@25.3.5  (Apache-2.0)
-  @vaadin/field-base@25.3.5  (Apache-2.0)
-  @vaadin/form-layout@25.3.5  (Apache-2.0)
-  @vaadin/grid@25.3.5  (Apache-2.0)
-  @vaadin/horizontal-layout@25.3.5  (Apache-2.0)
-  @vaadin/icon@25.3.5  (Apache-2.0)
-  @vaadin/icons@25.3.5  (Apache-2.0)
-  @vaadin/input-container@25.3.5  (Apache-2.0)
-  @vaadin/integer-field@25.3.5  (Apache-2.0)
-  @vaadin/item@25.3.5  (Apache-2.0)
-  @vaadin/list-box@25.3.5  (Apache-2.0)
-  @vaadin/lit-renderer@25.3.5  (Apache-2.0)
-  @vaadin/markdown@25.3.5  (Apache-2.0)
-  @vaadin/master-detail-layout@25.3.5  (Apache-2.0)
-  @vaadin/menu-bar@25.3.5  (Apache-2.0)
-  @vaadin/message-input@25.3.5  (Apache-2.0)
-  @vaadin/message-list@25.3.5  (Apache-2.0)
-  @vaadin/multi-select-combo-box@25.3.5  (Apache-2.0)
-  @vaadin/notification@25.3.5  (Apache-2.0)
-  @vaadin/number-field@25.3.5  (Apache-2.0)
-  @vaadin/overlay@25.3.5  (Apache-2.0)
-  @vaadin/password-field@25.3.5  (Apache-2.0)
-  @vaadin/popover@25.3.5  (Apache-2.0)
-  @vaadin/progress-bar@25.3.5  (Apache-2.0)
-  @vaadin/radio-group@25.3.5  (Apache-2.0)
-  @vaadin/scroller@25.3.5  (Apache-2.0)
-  @vaadin/select@25.3.5  (Apache-2.0)
-  @vaadin/side-nav@25.3.5  (Apache-2.0)
-  @vaadin/split-layout@25.3.5  (Apache-2.0)
-  @vaadin/tabs@25.3.5  (Apache-2.0)
-  @vaadin/tabsheet@25.3.5  (Apache-2.0)
-  @vaadin/text-area@25.3.5  (Apache-2.0)
-  @vaadin/text-field@25.3.5  (Apache-2.0)
-  @vaadin/time-picker@25.3.5  (Apache-2.0)
-  @vaadin/tooltip@25.3.5  (Apache-2.0)
-  @vaadin/upload@25.3.5  (Apache-2.0)
+  @vaadin/a11y-base@25.3.3  (Apache-2.0)
+  @vaadin/accordion@25.3.3  (Apache-2.0)
+  @vaadin/app-layout@25.3.3  (Apache-2.0)
+  @vaadin/avatar@25.3.3  (Apache-2.0)
+  @vaadin/avatar-group@25.3.3  (Apache-2.0)
+  @vaadin/button@25.3.3  (Apache-2.0)
+  @vaadin/card@25.3.3  (Apache-2.0)
+  @vaadin/checkbox@25.3.3  (Apache-2.0)
+  @vaadin/checkbox-group@25.3.3  (Apache-2.0)
+  @vaadin/combo-box@25.3.3  (Apache-2.0)
+  @vaadin/component-base@25.3.3  (Apache-2.0)
+  @vaadin/confirm-dialog@25.3.3  (Apache-2.0)
+  @vaadin/context-menu@25.3.3  (Apache-2.0)
+  @vaadin/custom-field@25.3.3  (Apache-2.0)
+  @vaadin/date-picker@25.3.3  (Apache-2.0)
+  @vaadin/date-time-picker@25.3.3  (Apache-2.0)
+  @vaadin/details@25.3.3  (Apache-2.0)
+  @vaadin/dialog@25.3.3  (Apache-2.0)
+  @vaadin/email-field@25.3.3  (Apache-2.0)
+  @vaadin/field-base@25.3.3  (Apache-2.0)
+  @vaadin/form-layout@25.3.3  (Apache-2.0)
+  @vaadin/grid@25.3.3  (Apache-2.0)
+  @vaadin/horizontal-layout@25.3.3  (Apache-2.0)
+  @vaadin/icon@25.3.3  (Apache-2.0)
+  @vaadin/icons@25.3.3  (Apache-2.0)
+  @vaadin/input-container@25.3.3  (Apache-2.0)
+  @vaadin/integer-field@25.3.3  (Apache-2.0)
+  @vaadin/item@25.3.3  (Apache-2.0)
+  @vaadin/list-box@25.3.3  (Apache-2.0)
+  @vaadin/lit-renderer@25.3.3  (Apache-2.0)
+  @vaadin/markdown@25.3.3  (Apache-2.0)
+  @vaadin/master-detail-layout@25.3.3  (Apache-2.0)
+  @vaadin/menu-bar@25.3.3  (Apache-2.0)
+  @vaadin/message-input@25.3.3  (Apache-2.0)
+  @vaadin/message-list@25.3.3  (Apache-2.0)
+  @vaadin/multi-select-combo-box@25.3.3  (Apache-2.0)
+  @vaadin/notification@25.3.3  (Apache-2.0)
+  @vaadin/number-field@25.3.3  (Apache-2.0)
+  @vaadin/overlay@25.3.3  (Apache-2.0)
+  @vaadin/password-field@25.3.3  (Apache-2.0)
+  @vaadin/popover@25.3.3  (Apache-2.0)
+  @vaadin/progress-bar@25.3.3  (Apache-2.0)
+  @vaadin/radio-group@25.3.3  (Apache-2.0)
+  @vaadin/scroller@25.3.3  (Apache-2.0)
+  @vaadin/select@25.3.3  (Apache-2.0)
+  @vaadin/side-nav@25.3.3  (Apache-2.0)
+  @vaadin/split-layout@25.3.3  (Apache-2.0)
+  @vaadin/tabs@25.3.3  (Apache-2.0)
+  @vaadin/tabsheet@25.3.3  (Apache-2.0)
+  @vaadin/text-area@25.3.3  (Apache-2.0)
+  @vaadin/text-field@25.3.3  (Apache-2.0)
+  @vaadin/time-picker@25.3.3  (Apache-2.0)
+  @vaadin/tooltip@25.3.3  (Apache-2.0)
+  @vaadin/upload@25.3.3  (Apache-2.0)
   @vaadin/vaadin-control-state-mixin@21.0.5  (Apache-2.0)
   @vaadin/vaadin-development-mode-detector@2.0.7  (Apache-2.0)
-  @vaadin/vaadin-lumo-styles@25.3.5  (Apache-2.0)
-  @vaadin/vaadin-themable-mixin@25.3.5  (Apache-2.0)
+  @vaadin/vaadin-lumo-styles@25.3.3  (Apache-2.0)
+  @vaadin/vaadin-themable-mixin@25.3.3  (Apache-2.0)
   @vaadin/vaadin-usage-statistics@2.1.3  (Apache-2.0)
-  @vaadin/vertical-layout@25.3.5  (Apache-2.0)
-  @vaadin/virtual-list@25.3.5  (Apache-2.0)
+  @vaadin/vertical-layout@25.3.3  (Apache-2.0)
+  @vaadin/virtual-list@25.3.3  (Apache-2.0)
   @webcomponents/shadycss@1.11.2  (BSD-3-Clause)
   @zarrita/storage@0.2.0  (MIT)
   agent-base@6.0.2  (MIT)
   asynckit@0.4.0  (MIT)
-  axios@1.21.0  (MIT)
-  bpmn-js@18.31.1  (SEE LICENSE IN LICENSE)
+  axios@1.20.0  (MIT)
+  bpmn-js@18.31.0  (SEE LICENSE IN LICENSE)
   bpmn-moddle@10.3.1  (MIT)
   call-bind-apply-helpers@1.0.2  (MIT)
-  chart.js@4.6.1  (MIT)
+  chart.js@4.5.1  (MIT)
   chartjs-adapter-date-fns@3.0.0  (MIT)
   clsx@2.1.1  (MIT)
   combined-stream@1.0.8  (MIT)
@@ -151,11 +151,11 @@ dependency tree — do not edit by hand.
   ids@3.0.2  (MIT)
   inherits-browser@0.1.0  (ISC)
   lerc@3.0.0  (Apache-2.0)
-  linkifyjs@4.4.0  (MIT)
+  linkifyjs@4.3.3  (MIT)
   lit@3.3.3  (BSD-3-Clause)
   lit-element@4.2.2  (BSD-3-Clause)
   lit-html@3.3.3  (BSD-3-Clause)
-  marked@18.1.2  (MIT)
+  marked@18.1.1  (MIT)
   math-intrinsics@1.1.0  (MIT)
   mime-db@1.52.0  (MIT)
   mime-types@2.1.35  (MIT)
@@ -418,7 +418,7 @@ Source: https://github.com/Polymer/polymer
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ------------------------------------------------------------------------------
-@tiptap/core@3.32.2
+@tiptap/core@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
@@ -447,172 +447,172 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ------------------------------------------------------------------------------
-@tiptap/extension-blockquote@3.32.2
+@tiptap/extension-blockquote@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-bold@3.32.2
+@tiptap/extension-bold@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-bullet-list@3.32.2
+@tiptap/extension-bullet-list@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-code@3.32.2
+@tiptap/extension-code@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-code-block@3.32.2
+@tiptap/extension-code-block@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-document@3.32.2
+@tiptap/extension-document@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-dropcursor@3.32.2
+@tiptap/extension-dropcursor@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-gapcursor@3.32.2
+@tiptap/extension-gapcursor@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-hard-break@3.32.2
+@tiptap/extension-hard-break@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-heading@3.32.2
+@tiptap/extension-heading@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-horizontal-rule@3.32.2
+@tiptap/extension-horizontal-rule@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-italic@3.32.2
+@tiptap/extension-italic@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-link@3.32.2
+@tiptap/extension-link@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-list@3.32.2
+@tiptap/extension-list@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-list-item@3.32.2
+@tiptap/extension-list-item@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-list-keymap@3.32.2
+@tiptap/extension-list-keymap@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-ordered-list@3.32.2
+@tiptap/extension-ordered-list@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-paragraph@3.32.2
+@tiptap/extension-paragraph@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-strike@3.32.2
+@tiptap/extension-strike@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-text@3.32.2
+@tiptap/extension-text@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extension-underline@3.32.2
+@tiptap/extension-underline@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/extensions@3.32.2
+@tiptap/extensions@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/pm@3.32.2
+@tiptap/pm@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
-@tiptap/starter-kit@3.32.2
+@tiptap/starter-kit@3.32.0
 Licence: MIT
 Source: https://tiptap.dev
 
---- LICENSE.md: the same text as @tiptap/core@3.32.2's LICENSE.md above
+--- LICENSE.md: the same text as @tiptap/core@3.32.0's LICENSE.md above
 
 ------------------------------------------------------------------------------
 @types/rbush@4.0.0
@@ -849,7 +849,7 @@ Source: https://github.com/vaadin-component-factory/vcf-date-range-picker#readme
    limitations under the License.
 
 ------------------------------------------------------------------------------
-@vaadin/a11y-base@25.3.5
+@vaadin/a11y-base@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
@@ -1047,7 +1047,7 @@ Source: https://vaadin.com/components
    limitations under the License.
 
 ------------------------------------------------------------------------------
-@vaadin/accordion@25.3.5
+@vaadin/accordion@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
@@ -1245,35 +1245,35 @@ Source: https://vaadin.com/components
    limitations under the License.
 
 ------------------------------------------------------------------------------
-@vaadin/app-layout@25.3.5
+@vaadin/app-layout@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/avatar@25.3.5
+@vaadin/avatar@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/avatar-group@25.3.5
+@vaadin/avatar-group@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/button@25.3.5
+@vaadin/button@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/card@25.3.5
+@vaadin/card@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
@@ -1471,21 +1471,21 @@ Source: https://vaadin.com/components
    limitations under the License.
 
 ------------------------------------------------------------------------------
-@vaadin/checkbox@25.3.5
+@vaadin/checkbox@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/checkbox-group@25.3.5
+@vaadin/checkbox-group@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/combo-box@25.3.5
+@vaadin/combo-box@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
@@ -1683,14 +1683,14 @@ Source: https://vaadin.com/components
    limitations under the License.
 
 ------------------------------------------------------------------------------
-@vaadin/component-base@25.3.5
+@vaadin/component-base@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/confirm-dialog@25.3.5
+@vaadin/confirm-dialog@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
@@ -1888,28 +1888,28 @@ Source: https://vaadin.com/components
    limitations under the License.
 
 ------------------------------------------------------------------------------
-@vaadin/context-menu@25.3.5
+@vaadin/context-menu@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/combo-box@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/combo-box@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/custom-field@25.3.5
+@vaadin/custom-field@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/date-picker@25.3.5
+@vaadin/date-picker@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/date-time-picker@25.3.5
+@vaadin/date-time-picker@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
@@ -2107,14 +2107,14 @@ Source: https://vaadin.com/components
    limitations under the License.
 
 ------------------------------------------------------------------------------
-@vaadin/details@25.3.5
+@vaadin/details@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/date-time-picker@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/date-time-picker@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/dialog@25.3.5
+@vaadin/dialog@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
@@ -2312,14 +2312,14 @@ Source: https://vaadin.com/components
    limitations under the License.
 
 ------------------------------------------------------------------------------
-@vaadin/email-field@25.3.5
+@vaadin/email-field@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/field-base@25.3.5
+@vaadin/field-base@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
@@ -2517,14 +2517,14 @@ Source: https://vaadin.com/components
    limitations under the License
 
 ------------------------------------------------------------------------------
-@vaadin/form-layout@25.3.5
+@vaadin/form-layout@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/grid@25.3.5
+@vaadin/grid@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
@@ -2722,14 +2722,14 @@ Source: https://vaadin.com/components
    limitations under the License.
 
 ------------------------------------------------------------------------------
-@vaadin/horizontal-layout@25.3.5
+@vaadin/horizontal-layout@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/icon@25.3.5
+@vaadin/icon@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
@@ -2927,56 +2927,56 @@ Source: https://vaadin.com/components
    limitations under the License.
 
 ------------------------------------------------------------------------------
-@vaadin/icons@25.3.5
+@vaadin/icons@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/icons
 
---- LICENSE: the same text as @vaadin/grid@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/grid@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/input-container@25.3.5
+@vaadin/input-container@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/integer-field@25.3.5
+@vaadin/integer-field@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/item@25.3.5
+@vaadin/item@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/dialog@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/dialog@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/list-box@25.3.5
+@vaadin/list-box@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/lit-renderer@25.3.5
+@vaadin/lit-renderer@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/confirm-dialog@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/confirm-dialog@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/markdown@25.3.5
+@vaadin/markdown@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/master-detail-layout@25.3.5
+@vaadin/master-detail-layout@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
@@ -3174,154 +3174,154 @@ Source: https://vaadin.com/components
    limitations under the License.
 
 ------------------------------------------------------------------------------
-@vaadin/menu-bar@25.3.5
+@vaadin/menu-bar@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/date-time-picker@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/date-time-picker@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/message-input@25.3.5
+@vaadin/message-input@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/message-list@25.3.5
+@vaadin/message-list@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/multi-select-combo-box@25.3.5
+@vaadin/multi-select-combo-box@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/confirm-dialog@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/confirm-dialog@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/notification@25.3.5
+@vaadin/notification@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/dialog@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/dialog@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/number-field@25.3.5
+@vaadin/number-field@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/overlay@25.3.5
+@vaadin/overlay@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/dialog@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/dialog@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/password-field@25.3.5
+@vaadin/password-field@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/popover@25.3.5
+@vaadin/popover@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/card@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/card@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/progress-bar@25.3.5
+@vaadin/progress-bar@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/dialog@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/dialog@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/radio-group@25.3.5
+@vaadin/radio-group@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/scroller@25.3.5
+@vaadin/scroller@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/select@25.3.5
+@vaadin/select@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/dialog@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/dialog@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/side-nav@25.3.5
+@vaadin/side-nav@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/a11y-base@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/a11y-base@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/split-layout@25.3.5
+@vaadin/split-layout@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/combo-box@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/combo-box@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/tabs@25.3.5
+@vaadin/tabs@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/dialog@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/dialog@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/tabsheet@25.3.5
+@vaadin/tabsheet@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/dialog@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/dialog@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/text-area@25.3.5
+@vaadin/text-area@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/text-field@25.3.5
+@vaadin/text-field@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/time-picker@25.3.5
+@vaadin/time-picker@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/dialog@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/dialog@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/tooltip@25.3.5
+@vaadin/tooltip@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/confirm-dialog@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/confirm-dialog@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/upload@25.3.5
+@vaadin/upload@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
@@ -3724,7 +3724,7 @@ Source: vaadin/vaadin-development-mode-detector
    limitations under the License.
 
 ------------------------------------------------------------------------------
-@vaadin/vaadin-lumo-styles@25.3.5
+@vaadin/vaadin-lumo-styles@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
@@ -3922,11 +3922,11 @@ Source: https://vaadin.com/components
    limitations under the License.
 
 ------------------------------------------------------------------------------
-@vaadin/vaadin-themable-mixin@25.3.5
+@vaadin/vaadin-themable-mixin@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/elements
 
---- LICENSE: the same text as @vaadin/dialog@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/dialog@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
 @vaadin/vaadin-usage-statistics@2.1.3
@@ -3936,18 +3936,18 @@ Source: https://github.com/vaadin/vaadin-usage-statistics#readme
 --- LICENSE: the same text as @vaadin/vaadin-development-mode-detector@2.0.7's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/vertical-layout@25.3.5
+@vaadin/vertical-layout@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com/components
 
---- LICENSE: the same text as @vaadin/accordion@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/accordion@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
-@vaadin/virtual-list@25.3.5
+@vaadin/virtual-list@25.3.3
 Licence: Apache-2.0
 Source: https://vaadin.com
 
---- LICENSE: the same text as @vaadin/dialog@25.3.5's LICENSE above
+--- LICENSE: the same text as @vaadin/dialog@25.3.3's LICENSE above
 
 ------------------------------------------------------------------------------
 @webcomponents/shadycss@1.11.2
@@ -4042,7 +4042,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ------------------------------------------------------------------------------
-axios@1.21.0
+axios@1.20.0
 Licence: MIT
 Source: https://axios-http.com
 
@@ -4057,7 +4057,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ------------------------------------------------------------------------------
-bpmn-js@18.31.1
+bpmn-js@18.31.0
 Licence: SEE LICENSE IN LICENSE
 Source: https://github.com/bpmn-io/bpmn-js
 
@@ -4146,7 +4146,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ------------------------------------------------------------------------------
-chart.js@4.6.1
+chart.js@4.5.1
 Licence: MIT
 Source: https://www.chartjs.org
 
@@ -5676,7 +5676,7 @@ Source: https://github.com/Esri/lerc
 (The package ships no licence file; its package.json declares Apache-2.0, author Esri <dev_tools@esri.com> (http://developers.arcgis.com).)
 
 ------------------------------------------------------------------------------
-linkifyjs@4.4.0
+linkifyjs@4.3.3
 Licence: MIT
 Source: https://linkify.js.org
 
@@ -5724,7 +5724,7 @@ Source: https://lit.dev/
 --- LICENSE: the same text as @lit/reactive-element@2.1.2's LICENSE above
 
 ------------------------------------------------------------------------------
-marked@18.1.2
+marked@18.1.1
 Licence: MIT
 Source: https://marked.js.org
 
