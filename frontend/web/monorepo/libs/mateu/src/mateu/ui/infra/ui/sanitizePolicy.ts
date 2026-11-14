@@ -27,11 +27,55 @@ export const FORBIDDEN_DATA_TAGS: readonly string[] = [
  * overlay (`position:fixed; inset:0; z-index:9999` + "Session expired — sign in again") — the
  * same phishing the form-control rule refuses, without a form. Everything else in `style` stays.
  */
-const OVERLAY_DECLARATION = /^\s*(position\s*:\s*(fixed|absolute|sticky)\b.*|z-index\s*:.*)$/i
+const DECLARATION = /^\s*([^:]*?)\s*:\s*([\s\S]*?)\s*$/
 
-/** A `style` attribute's value without the overlay-capable declarations. */
-export const withoutOverlayStyles = (style: string): string =>
-    style.split(';').filter((d) => d.trim() !== '' && !OVERLAY_DECLARATION.test(d)).join(';')
+/** CSS comments go: the browser reads `position/**\/:fixed` as `position:fixed` (an unclosed one ends the text). */
+const withoutComments = (css: string): string => css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\*[\s\S]*$/, '')
+
+/** CSS escapes decoded as the browser's tokenizer does (`p\6fsition` IS `position`). */
+const unescaped = (css: string): string => css
+    .replace(/\\([0-9a-fA-F]{1,6})[ \t\n\r\f]?/g, (_, hex: string) => {
+        const cp = parseInt(hex, 16)
+        return cp > 0 && cp <= 0x10ffff && (cp < 0xd800 || cp > 0xdfff) ? String.fromCodePoint(cp) : '�'
+    })
+    .replace(/\\([\s\S])/g, '$1')
+
+/** Whether one declaration can lift content over the page: `z-index`, or a `position` other than
+ *  static/relative — including one hidden behind `var(…)`, whose value is only known at paint. */
+const isOverlayDeclaration = (declaration: string): boolean => {
+    const m = DECLARATION.exec(unescaped(declaration))
+    if (!m) return false
+    const name = m[1].toLowerCase()
+    if (name === 'z-index') return true
+    return name === 'position' && !/^(static|relative)(\s*!\s*important)?$/i.test(m[2])
+}
+
+/**
+ * A `style` attribute's value without the overlay-capable declarations. Read the way the browser
+ * reads it — comments removed, escapes decoded — not as raw text: a per-declaration regex over the
+ * text let `position/**\/:fixed`, `p\6fsition:fixed` and `position:var(--x,fixed)` through (GA
+ * review 2, N-9). In a browser the CSS parser checks the result once more: anything it still reads
+ * as an overlay drops the whole attribute.
+ */
+export const withoutOverlayStyles = (style: string): string => {
+    const kept = withoutComments(style).split(';').filter((d) => d.trim() !== '' && !isOverlayDeclaration(d)).join(';')
+    return parsedAsOverlay(kept) ? '' : kept
+}
+
+/** The browser's own parser (when there is one) still sees a lifting declaration in `css`. */
+const parsedAsOverlay = (css: string): boolean => {
+    if (typeof document === 'undefined' || !css) return false
+    try {
+        const probe = document.createElement('div')
+        probe.setAttribute('style', css)
+        const decl = probe.style
+        if (!decl) return false
+        const position = decl.getPropertyValue('position').trim().toLowerCase()
+        return decl.getPropertyValue('z-index').trim() !== '' || (position !== '' && position !== 'static' && position !== 'relative')
+    } catch {
+        return false
+    }
+}
 
 /** Attributes never rendered from data. */
 export const FORBIDDEN_DATA_ATTRIBUTES: readonly string[] = ['formaction', 'form', 'is']

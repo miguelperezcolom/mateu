@@ -234,5 +234,50 @@
       "detail": { "route": "/orders", "parameters": { "x": 1 }, "consumedRoute": 7, "initialState": { "a": 1 } },
       "expected": { "route": "/orders" }
     }
+  ],
+  "trustedNavigationsDescription": "B1 (GA review 2): an agent's navigation keeps its `baseUrl` only when the UI trusts that origin with the user's credentials — the shell's own backend (`shell`) or a remote the app names (`declared`, e.g. its menu's federated entries). Any other base url is DROPPED (the route opens in the app) and the act of navigating never makes an origin trusted: before, the desktop opened the agent's host with the user's Bearer token. Read by libs/mateu agentEvents.test.ts (trustedNavigationOf), Redwood test-chat-events.mjs (chatEventPlanOf), React Native agentNavigation.conformance.test.ts (trustedNavigationOf) and IntelliJ AgentNavigationConformanceTest (ChatEvents.trustedNavigation).",
+  "trustedNavigations": [
+    {
+      "name": "a foreign absolute base url is dropped",
+      "shell": "https://app.example", "declared": ["https://forms.example"],
+      "detail": { "route": "/x", "baseUrl": "https://attacker.example" },
+      "expected": { "route": "/x" }
+    },
+    {
+      "name": "a protocol-relative base url to another host is dropped",
+      "shell": "https://app.example", "declared": ["https://forms.example"],
+      "detail": { "route": "/x", "baseUrl": "//attacker.example" },
+      "expected": { "route": "/x" }
+    },
+    {
+      "name": "a backslash spelling of another host is dropped",
+      "shell": "https://app.example", "declared": ["https://forms.example"],
+      "detail": { "route": "/x", "baseUrl": "\\\\attacker.example" },
+      "expected": { "route": "/x" }
+    },
+    {
+      "name": "a non-http base url is dropped",
+      "shell": "https://app.example", "declared": ["https://forms.example"],
+      "detail": { "route": "/x", "baseUrl": "javascript:alert(1)" },
+      "expected": { "route": "/x" }
+    },
+    {
+      "name": "the shell's own backend is kept",
+      "shell": "https://app.example", "declared": ["https://forms.example"],
+      "detail": { "route": "/x", "baseUrl": "https://app.example/other" },
+      "expected": { "route": "/x", "baseUrl": "https://app.example/other" }
+    },
+    {
+      "name": "a remote the app names is kept",
+      "shell": "https://app.example", "declared": ["https://forms.example"],
+      "detail": { "route": "/x", "baseUrl": "https://forms.example/fed" },
+      "expected": { "route": "/x", "baseUrl": "https://forms.example/fed" }
+    },
+    {
+      "name": "the same host on another port is another origin",
+      "shell": "https://app.example", "declared": ["https://forms.example"],
+      "detail": { "route": "/x", "baseUrl": "https://app.example:8443" },
+      "expected": { "route": "/x" }
+    }
   ]
 }
