@@ -207,6 +207,28 @@ frontend/app/             ← Native (non-browser) renderers — all speak the s
                             made the entry dead). To drive the running IDE from outside (Wayland: no screen
                             capture), attach a java agent that dispatches MouseEvents on EDT and paints the
                             root pane to PNG (pattern: scratch UiAgent — find the JTree named "Menu")
+                            AGENT MCP (2026-11-14, io.mateu.ijp.mcp): the desktop app's OWN MCP server (NOT JetBrains'
+                            IDE MCP server — leave that alone) so an AI agent operates the open Mateu UIs AS THE USER, on
+                            screen. OFF by default (Settings › Tools › Mateu › "AI agents (MCP)", app-level
+                            DesktopMcpService, mateu-desktop-mcp.xml); JDK HttpServer on 127.0.0.1 ONLY, default port
+                            47821 (+9 fallbacks, then any), path /mcp, JSON-RPC 2024-11-05 like the backends (McpProtocol;
+                            tool errors = isError results). McpRequestGuard: POST, Host 127.0.0.1|localhost:<port>, no
+                            Origin but `null`, Bearer token (32 random bytes, PasswordSafe only, regenerable, never
+                            logged). AgentActivityNotice: sticky "An AI agent is operating …" + Stop (= off) while a call
+                            came in the last 2 min; LiveUi logs tool + route/action ids at INFO, never values. Tools
+                            mateu_list_uis/open_ui/get_menu/navigate/get_screen/set_fields/run_action/open_row/show_screen
+                            + get_guide/list_components/get_component_schema; resources mateu://desktop/{uis,screen,menu}
+                            + mateu://guide|catalog|schema/specs (COPIES under resources/mateu/authoring, pinned
+                            byte-equal by AuthoringResourcesTest — re-copy after regenerating the schemas). LiveUi acts
+                            on the selected MateuVirtualFile's ctx (else activeView) or the overlay in front
+                            (AppSession.overlayViews, registered by AppContext.openOverlay) through putState /
+                            runAction / openMenuEntry on the EDT (invokeLater for actions: a confirmation is modal and
+                            the USER answers it), waits for ServerActivity to go quiet; refuses action ids the screen
+                            does not offer (ScreenSummary.offeredActionIds). ScreenSummary (pure) reads ONLY the wire
+                            (lastContent, state, listingPages ← CrudRenderer.applyData, recentMessages, appMetadata):
+                            client-hidden fields left out, passwords as dots, long text/lists capped + `truncated`.
+                            show_screen = __validate__ (findings back) then AgentEvents render-screen (__preview__).
+                            No backend change. Docs native/desktop-app.md#let-an-ai-agent-operate-the-app-mcp
   vscode-extension/       ← VS Code extension (visual editor host, New Project / New › Mateu wizards, Live Run)
 
 demo/             ← Runnable demo apps (Spring MVC, WebFlux, Micronaut, Quarkus, Helidon).
