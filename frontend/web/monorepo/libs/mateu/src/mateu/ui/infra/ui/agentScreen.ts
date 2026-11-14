@@ -317,8 +317,12 @@ export async function runAction(app: any, owner: HTMLElement, actionId: string,
     if (button && Object.keys(extra).length === 0) {
         button.el.click()
     } else {
+        // the INNERMOST component that claims it (document order lists the outer ones first): a
+        // crud's create/save is advertised by its mediator too, but only the form carries the
+        // typed values in its state
+        const claiming = screen.focusComponents.filter(el => (el.component?.actions ?? []).some((a: any) => a?.id === actionId))
         const from: Element | undefined = button?.el
-            ?? screen.focusComponents.find(el => (el.component?.actions ?? []).some((a: any) => a?.id === actionId))
+            ?? claiming[claiming.length - 1]
             ?? screen.focusComponents[0]
         if (!from) return { error: { code: 'unknownAction', id: actionId } }
         dispatchFrom(from, 'action-requested', { actionId, parameters: extra })

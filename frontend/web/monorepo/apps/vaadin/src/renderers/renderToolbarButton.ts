@@ -6,14 +6,14 @@ import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button"
 import { buttonTheme } from "@infra/ui/mateu-content-header"
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 
-interface VButton { id?: string; iconOnLeft?: string; iconOnRight?: string; disabled?: boolean }
+interface VButton { id?: string; actionId?: string; iconOnLeft?: string; iconOnRight?: string; disabled?: boolean }
 
 /** Vaadin adapter toolbar button (mateu-content-header renderToolbarButton hook) — vaadin-button. */
 export const renderVaadinToolbarButton = (button: unknown, label: string, onClick: () => void): TemplateResult => {
     const b = button as VButton
     return html`
         <vaadin-button
-                data-action-id="${b.id}"
+                data-action-id="${b.id || b.actionId}"
                 theme="${buttonTheme(button as Button) || nothing}"
                 @click="${onClick}"
                 ?disabled="${b.disabled}"

@@ -89,6 +89,26 @@ describe('an agent operating the tab', () => {
         expect(seen.at(-1)).toEqual({ actionId: 'view', parameters: { sku: 'B' } })
     })
 
+    it('an action with no control goes from the INNERMOST component claiming it (the form, not its crud mediator)', async () => {
+        // live test of PR #1209: a crud's `create` is advertised by the mediator AND the form; sent
+        // from the mediator it carried no typed values and the save answered "Cannot be empty"
+        const outer = document.createElement('mateu-component') as unknown as HTMLElement & Record<string, unknown>
+        outer.component = { type: 'ServerSide', id: 'crud', actions: [{ id: 'create' }], children: [] }
+        outer.state = {}
+        const outerSeen: unknown[] = []
+        outer.addEventListener('action-requested', (e) => { if (e.target === outer) outerSeen.push((e as CustomEvent).detail) })
+        document.body.appendChild(outer)
+        const inner = document.createElement('mateu-component') as unknown as HTMLElement & Record<string, unknown>
+        inner.component = { type: 'ServerSide', id: 'form', actions: [{ id: 'create' }], children: [field('name')] }
+        inner.state = { name: 'Ada' }
+        const innerSeen: unknown[] = []
+        inner.addEventListener('action-requested', (e) => innerSeen.push((e as CustomEvent).detail))
+        outer.appendChild(inner)
+        await runAction(undefined, document.body, 'create', undefined, undefined, undefined)
+        expect(innerSeen).toEqual([{ actionId: 'create', parameters: {} }])
+        expect(outerSeen).toEqual([])
+    })
+
     it('a disabled action is refused as such', async () => {
         const { component } = mount()
         ;(component.component as any).children[3].metadata.disabled = true

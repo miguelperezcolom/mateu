@@ -269,6 +269,9 @@ describe('the renderer hooks the shared chrome calls', () => {
         const b = out.querySelector('vaadin-button')!
         expect(b.getAttribute('data-action-id')).toBe('save')
         expect(b.querySelectorAll('vaadin-icon').length).toBe(2)
+        // no id (a crud's Save): stamped with its action id
+        const noId = mountTemplate(renderer.renderToolbarButton({ id: '', actionId: 'create', disabled: false }, 'Save', vi.fn()))
+        expect(noId.querySelector('vaadin-button')!.getAttribute('data-action-id')).toBe('create')
         ;(b as HTMLElement).click()
         expect(onClick).toHaveBeenCalled()
     })
