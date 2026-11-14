@@ -2207,9 +2207,25 @@ oj-c-progress-bar[class*="mateu-tone-"] [role="progressbar"] > div { background-
   padding: 0 1.5rem 1rem;
   box-sizing: border-box;
 }
-/* COLLECTION DETAIL (oj-sp-collection-detail-page): the collection column scrolls with the page */
+/* the data view in Spectra's contents area: that area is a fixed-height, overflow-hidden region (it
+   shrinks while the bottom drawer is open) and Spectra leaves the scrolling to the collection placed
+   in it — so OUR main slot fills the area and scrolls itself. Without it a listing taller than the
+   area was CUT: only the first rows showed and the rest could not be reached. */
+.mateu-dm-page .mateu-dm-main {
+  height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
+}
+/* COLLECTION DETAIL (oj-sp-collection-detail-page): Spectra's contents are overflow-hidden at the
+   page's height and its DETAIL column scrolls itself (the stacker); the COLLECTION column is left to
+   the collection (Spectra's own list view scrolls) — so our collection fills its column and scrolls,
+   or the rows below the fold could not be reached. align-content keeps the wrapped rows at the top. */
 .mateu-cd-page .mateu-cd-collection {
   padding: 1rem 0.5rem 1rem 1.5rem;
+  height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
+  align-content: flex-start;
 }
 .mateu-cd-page .mateu-cd-detail {
   padding-top: 1rem;
