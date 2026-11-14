@@ -39,6 +39,23 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **The Android APK on the GitHub releases keeps updating from there after an over-the-air update**
   (it has its own update channel, `github`); "Update Mateu" sent it to Google Play.
 
+### Fixed — web renderer
+
+- **The route-structure cache is kept per app and per build.** Its entries were keyed by route, so
+  when another Mateu app had been served on the same origin before (`localhost:8095` used by one app,
+  then by the next), the new app painted the old one's screens as the prediction of its own. Their
+  OnLoad triggers and nested route loads named the old app's view types, the server refused them, and
+  every page the old app had visited showed "You are not allowed to do this" (403) until the browser
+  storage was cleared. The served page now carries `<meta name="mateu-app">`, an opaque fingerprint of
+  the `@UI` class, the mount and the Mateu version (Java adapters and YAML mounts). The cache is wiped
+  when a page of another app loads, and a backend's entries are dropped when a response comes from
+  another build than the one they were written under (`X-Mateu-Build`).
+- **A request a cached screen made recovers from a 403/404 on its own.** It drops the cache for that
+  backend, then waits for the server's answer for the route. If that answer keeps the structure, the
+  request is sent once more and only a second failure is reported. If it replaces the structure, the
+  request ends as cancelled, with no toast. The seeded screen's own route load is sent again at once,
+  without the cached structure's ETag.
+
 ## [3.0-beta.64] — 2026-11-13
 
 The offline send queue's known issues announced in beta.62 and beta.63 are fixed here, together with

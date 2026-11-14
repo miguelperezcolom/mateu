@@ -149,4 +149,46 @@ class IndexPageTest {
   void aPageWithoutMarkersIsLeftAlone() {
     assertThat(IndexPage.mountUi("<html></html>", "<x/>")).isEqualTo("<html></html>");
   }
+
+  // The renderer keeps its route-structure cache per app: two apps served one after the other on
+  // the same origin must be told apart before the first request (the 403 on every page the previous
+  // app had visited, because its cached screens named its own view types).
+  @Test
+  void thePageSaysWhichAppItIsWithAnOpaqueFingerprint() {
+    var orders = IndexPage.Spec.of("", "Orders").withUiId("com.acme.orders.OrdersUi");
+    var html = IndexPage.render(VITE_PAGE, orders);
+    var fingerprint = IndexPage.appFingerprint("com.acme.orders.OrdersUi|");
+    assertThat(html)
+        .contains("<meta name=\"mateu-app\" content=\"" + fingerprint + "\">")
+        // opaque: the page does not spell out the class
+        .doesNotContain("com.acme.orders");
+    assertThat(fingerprint).matches("[0-9a-f]{16}");
+    // stable for the same app and mount, so a reload keeps the cache
+    assertThat(IndexPage.render(VITE_PAGE, orders)).isEqualTo(html);
+  }
+
+  @Test
+  void anotherAppOrAnotherMountHasAnotherFingerprint() {
+    var a = IndexPage.render(VITE_PAGE, IndexPage.Spec.of("", "T").withUiId("com.acme.A"));
+    var b = IndexPage.render(VITE_PAGE, IndexPage.Spec.of("", "T").withUiId("com.acme.B"));
+    var nested =
+        IndexPage.render(VITE_PAGE, IndexPage.Spec.of("/admin", "T").withUiId("com.acme.A"));
+    assertThat(metaOf(a)).isNotEqualTo(metaOf(b)).isNotEqualTo(metaOf(nested));
+    // a page whose controller names no UI class still has one (from its mount)
+    assertThat(IndexPage.render(VITE_PAGE, IndexPage.Spec.of("/x", "T")))
+        .contains("name=\"mateu-app\"");
+  }
+
+  @Test
+  void theAppTagIsAddedOnceAndOnlyToAPageWithAHead() {
+    var once = IndexPage.appHead("<html><head></head></html>", "a");
+    assertThat(IndexPage.appHead(once, "b")).isEqualTo(once);
+    assertThat(IndexPage.appHead("<div></div>", "a")).isEqualTo("<div></div>");
+    assertThat(IndexPage.appHead(null, "a")).isNull();
+  }
+
+  private static String metaOf(String html) {
+    var at = html.indexOf("name=\"mateu-app\" content=\"");
+    return html.substring(at, at + 50);
+  }
 }

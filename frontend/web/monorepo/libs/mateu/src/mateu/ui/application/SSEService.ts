@@ -13,7 +13,9 @@ import { RunActionOptions } from "@domain/MateuApiClient";
 import { isStaleResponse, StaleResponse } from "@infra/ui/staleViewGuard.ts";
 import { credentialHeadersFor } from '@infra/http/credentialScope.ts'
 import { rendererHeaders } from '@infra/http/rendererIdentity.ts'
-import { isStaleScreenRefusal, observeMateuResponse, STALE_SCREEN } from '@infra/http/buildWatch.ts'
+import { buildOf, isStaleScreenRefusal, observeMateuResponse, STALE_SCREEN } from '@infra/http/buildWatch.ts'
+import { backendKeyOf } from '@infra/http/backendKey.ts'
+import { noteBackendBuild } from '@infra/routeStructureCache.ts'
 import { isMateuRefusal } from '@infra/http/requestPolicy.ts'
 import { asAnsweredBy } from '@infra/ui/untrustedDefinition.ts'
 import { underPublicBase } from '@infra/http/publicBase.ts'
@@ -149,6 +151,7 @@ export class SSEService implements Service {
                 throw new Error(message)
             }
             observeMateuResponse(sseUrl, response.headers)
+            noteBackendBuild(backendKeyOf(sseUrl), buildOf(response.headers))
             reader = response.body?.pipeThrough(new TextDecoderStream()).getReader()
             if (reader) {
                 let buffer = ''
