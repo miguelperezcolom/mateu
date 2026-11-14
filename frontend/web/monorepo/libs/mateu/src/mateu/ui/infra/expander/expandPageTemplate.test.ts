@@ -21,6 +21,7 @@ import createEditPage from '@infra/expander/__fixtures__/create-edit-page.golden
 import guidedProcessPage from '@infra/expander/__fixtures__/guided-process-page.golden.json'
 import dataManagementPage from '@infra/expander/__fixtures__/data-management-page.golden.json'
 import heroSearchPage from '@infra/expander/__fixtures__/hero-search-page.golden.json'
+import messagePage from '@infra/expander/__fixtures__/message-page.golden.json'
 
 const TEST_RESOURCES = resolve(__dirname, '../../../../../../../../../../backend/shared/core/src/test/resources')
 const authored = (path: string): FluentNode => parse(readFileSync(resolve(TEST_RESOURCES, path), 'utf-8'))
@@ -31,7 +32,7 @@ const withoutGeneratedIds = (node: any): any => {
     if (!node || typeof node !== 'object') return node
     const out: any = {}
     for (const [k, v] of Object.entries(node)) {
-        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && !['welcome', 'dashboard-kpi', 'dashboard-panels'].includes(v) && !v.startsWith('general-overview') && !v.startsWith('collection-detail') && !v.startsWith('foldout') && v !== 'multimedia-banner' && v !== 'advanced-create-edit' && v !== 'guided-process' && !v.startsWith('data-management') && v !== 'summary' && v !== 'notes' && v !== 'hero-search' && node.metadata?.type !== 'FormField') continue
+        if (k === 'id' && typeof v === 'string' && !v.startsWith('item-overview') && !['welcome', 'dashboard-kpi', 'dashboard-panels'].includes(v) && !v.startsWith('general-overview') && !v.startsWith('collection-detail') && !v.startsWith('foldout') && v !== 'multimedia-banner' && v !== 'advanced-create-edit' && v !== 'guided-process' && !v.startsWith('data-management') && v !== 'summary' && v !== 'notes' && v !== 'hero-search' && !v.startsWith('message-') && node.metadata?.type !== 'FormField') continue
         out[k] = withoutGeneratedIds(v)
     }
     return out
@@ -103,6 +104,28 @@ describe('client-side expander — a page template, against the Java golden', ()
         expectSubset(withoutGeneratedIds(wire), goldenComponent(foldoutPage))
         expect(wire.children[0].metadata.type).toBe('FoldoutLayout')
         expect(wire.children[0].metadata.panels.map((p: any) => p.title)).toEqual(['Specifications', 'Crew'])
+    })
+
+    it('the message page: one card over the illustrated background', () => {
+        const wire = expandComponent(authored('specs/ui/message-page.yaml')) as any
+        expectSubset(withoutGeneratedIds(wire), goldenComponent(messagePage))
+        expect(wire.metadata.noHeader).toBe(true)
+        expect(wire.metadata.toolbar).toEqual([])
+        const page = wire.children[0]
+        expect(page.id).toBe('message-page')
+        expect(page.cssClasses).toBe('mateu-message-page mateu-message-page--sienna')
+        expect(page.style).toBe('--mateu-message-page-image: url("/images/dunes.png"); --mateu-message-card-width: 32rem;')
+        const card = page.children[0].metadata.content
+        expect(card.children.map((c: any) => c.id)).toEqual(['message-title', 'message-subtitle', 'message-body', 'message-actions', 'message-footer'])
+    })
+
+    it('the message page drops an image or a width that could escape its CSS', () => {
+        const wire = expandComponent({
+            type: 'Form', title: 'Signed out',
+            template: { type: 'MessagePage', image: 'x"); background: red', width: 'calc(1px)' },
+            content: [],
+        } as unknown as FluentNode) as any
+        expect(wire.children[0].style ?? null).toBeNull()
     })
 
     it('the multimedia content page: the banner over the sections', () => {

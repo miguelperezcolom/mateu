@@ -100,7 +100,7 @@ public final class PageTypeResolver {
     return switch (template.getClass().getSimpleName()) {
       case "CollectionDetailPage", "DataManagementPage" -> PageType.COLLECTION;
       case "DashboardLandingPage" -> PageType.DASHBOARD;
-      case "WelcomePage", "HeroSearchPage" -> PageType.LANDING;
+      case "WelcomePage", "HeroSearchPage", "MessagePage" -> PageType.LANDING;
       case "ItemOverviewPage", "GeneralOverviewPage", "FoldoutPage", "MultimediaContentPage" ->
           PageType.DETAIL;
       case "GuidedProcessPage" -> PageType.PROCESS;

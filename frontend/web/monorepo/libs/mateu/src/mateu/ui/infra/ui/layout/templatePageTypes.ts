@@ -9,6 +9,8 @@ const TEMPLATE_PAGE_TYPES: Record<string, string> = {
     DashboardLandingPage: 'dashboard',
     WelcomePage: 'landing',
     HeroSearchPage: 'landing',
+    MessagePage: 'landing',
+    MessagePage: 'landing',
     ItemOverviewPage: 'detail',
     GeneralOverviewPage: 'detail',
     FoldoutPage: 'detail',
