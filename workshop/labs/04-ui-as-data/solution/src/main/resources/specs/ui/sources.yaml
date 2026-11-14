@@ -1,0 +1,27 @@
+# The REST source catalogue: every endpoint the screens read, named once. Until the API exists the
+# `sample:` answers instead of calling it — only in sample mode (an app run with
+# -Dmateu.sources.mock=true, a bundle built with -Dmateu.bundle.mock=true, and always in the visual
+# editor). Point `url` at your API and drop sample mode to go live.
+# See https://mateu.io/concepts/data-sources/
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.64/backend/shared/uidl/sources-schema.json
+sources:
+  - name: products
+    description: The product catalogue
+    source:
+      url: /api/products
+    sample:
+      - {id: P-001, name: Espresso machine, price: 249.0, stock: 12, status: AVAILABLE}
+      - {id: P-002, name: Coffee grinder, price: 89.5, stock: 30, status: AVAILABLE}
+      - {id: P-003, name: Milk frother, price: 39.9, stock: 0, status: OUT_OF_STOCK}
+      - {id: P-004, name: Pour-over kettle, price: 59.0, stock: 3, status: DISCONTINUED}
+
+  # workshop, lab 04: a real API — https://swapi.mateu.io answers browsers from any origin (CORS),
+  # pages and searches on the server. No `sample:`, so even in sample mode the bundle calls it.
+  - name: planets
+    description: Planets of the Star Wars galaxy
+    source:
+      url: >-
+        https://swapi.mateu.io/api/planets?page=${state.page ?? 0}&size=${state.size ?? 10}&search=${encodeURIComponent(state.searchText
+        ?? '')}
+      itemsPath: content
+    totalPath: totalElements
