@@ -2823,6 +2823,9 @@ class WireConformanceTest {
             ParityConformanceFixtures.FieldDecorations.class,
             ParityConformanceFixtures.ClassRulesForm.class,
             ParityConformanceFixtures.BannerOptionsPage.class);
+    // Like the other backends' runners, no view of the local socket: a relative proxied url fails
+    // before any call, whatever listens on this machine's port 8080 (definition-proxied-bulk).
+    mateu.withoutSelfBaseUrl();
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -3024,7 +3027,7 @@ class WireConformanceTest {
       // the Mateu booted for it alone, as the deployment would (-Dmateu.environment)
       var environment = request.path("environment").asText(null);
       if (environment != null) System.setProperty("mateu.environment", environment);
-      try (var yaml = TestMateu.withUis()) {
+      try (var yaml = TestMateu.withUis().withoutSelfBaseUrl()) {
         return roundTrip(
             yaml.run(
                 io.mateu.dtos.RunActionRqDto.builder()
