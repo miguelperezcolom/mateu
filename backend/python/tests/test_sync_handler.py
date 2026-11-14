@@ -295,6 +295,7 @@ class Things(Crud[Thing]):
 
     def save(self, entity):
         # a write the tests can observe — the default Crud.save refuses (it is not a no-op)
+        entity.id = entity.id or "3"  # the store assigns a new record's id
         self.saved = entity
 
 

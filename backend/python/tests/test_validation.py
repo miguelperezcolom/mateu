@@ -80,6 +80,7 @@ class Members(Crud[Member]):
         return list(STORE)
 
     def save(self, entity):
+        entity.id = entity.id or str(len(STORE) + 1)  # the store assigns a new record's id
         STORE.append(entity)
 
 

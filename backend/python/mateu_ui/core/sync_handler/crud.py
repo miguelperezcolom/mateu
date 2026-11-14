@@ -563,6 +563,10 @@ class CrudHandlerMixin(MixinBase):
         in_drawer = getattr(type(crud), "__mateu_edit_in_drawer__", False)
         try:
             crud.save(entity)
+            if id_ is None and _saved_without_id(crud, entity):
+                # a create the store keyed by no id: every new record lands on the same empty key,
+                # each create replacing the last — said, never answered "Saved" (GA review 2, B-1)
+                raise UserFacingException(STORE_ASSIGNED_NO_ID)
             # the audit trail's "on what": the record saved / created
             observability.record_id(id_ if id_ is not None else _id_of(crud, entity))
         except Exception as failure:  # noqa: BLE001 - shown in the drawer, else re-raised
@@ -849,6 +853,30 @@ def _with_messages_of(refreshed, told):
     """The refreshed listing's increment, carrying the messages the action answered."""
     refreshed.messages = list(refreshed.messages) + list(told.messages)
     return refreshed
+
+
+#: What a create answers when the store saved the new record without an id — the same text in
+#: Java (FilteredAutoCrud.create) and .NET (the crud create).
+STORE_ASSIGNED_NO_ID = (
+    "The record was saved without an id. The store must assign the id of a new record, or the "
+    "id field must be marked EditableOnlyWhenCreating so the user types it."
+)
+
+
+def _saved_without_id(crud, entity) -> bool:
+    """Whether a just-created entity still has a blank id — only when the crud can tell (its
+    ``id_of``, else an ``id`` attribute)."""
+    try:
+        id_of = getattr(crud, "id_of", None)
+        if callable(id_of):
+            value = id_of(entity)
+        elif hasattr(entity, "id"):
+            value = getattr(entity, "id")
+        else:
+            return False
+    except Exception:  # noqa: BLE001 - a crud that cannot tell is not refused
+        return False
+    return value is None or str(value).strip() == ""
 
 
 def _id_of(crud, entity):
