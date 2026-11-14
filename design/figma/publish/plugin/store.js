@@ -96,8 +96,15 @@ export function writeChunked(node, key, text, size = CHUNK) {
   } else {
     let gen = Date.now().toString(36)
     if (before && before.$gen === gen) gen += 'b'
-    parts.forEach((p, i) => node.setPluginData(partKey(key, gen, i + 1), p))
-    node.setPluginData(key, JSON.stringify({ $chunks: parts.length, $gen: gen }))
+    let written = 0
+    try {
+      parts.forEach((p, i) => { node.setPluginData(partKey(key, gen, i + 1), p); written = i + 1 })
+      node.setPluginData(key, JSON.stringify({ $chunks: parts.length, $gen: gen }))
+    } catch (e) {
+      // a write that fails midway leaves no orphan parts behind (the header still names the old ones)
+      for (let i = 1; i <= written; i++) { try { node.setPluginData(partKey(key, gen, i), '') } catch { /* best effort */ } }
+      throw e
+    }
   }
   if (before) for (let i = 1; i <= before.$chunks; i++) node.setPluginData(partKey(key, before.$gen, i), '')
 }

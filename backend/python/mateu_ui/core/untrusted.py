@@ -242,7 +242,7 @@ def neutralize(value: Any) -> Any:
         node = _element(node)
     if node.get("type") == "MicroFrontend" and isinstance(node.get("baseUrl"), str) and _absolute_url(node["baseUrl"]):
         node = {**node, "baseUrl": ""}
-    out = {}
+    out: dict[str, Any] = {}
     for k, v in node.items():
         if (k == "js" and isinstance(v, str)) or k in ("restAction", "restSources"):
             continue
