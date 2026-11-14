@@ -26,6 +26,7 @@ YAML, IA) son los mismos para los tres; solo cambian los labs de código.
 | 2:30 | 30′ | [05 · Agentes de IA por MCP](labs/05-ai-agents/guide.es.md) | Un agente que lee y maneja tus pantallas, y te pone delante una pantalla que ha escrito |
 | 3:00 | 30′ | [06 · Inicio de sesión](labs/06-sign-in/guide.es.md) | Login con Keycloak; un campo que solo ve un responsable |
 | 3:30 | 15′ | Cierre + [07 · Labs extra](labs/07-stretch/guide.es.md) | Por dónde seguir |
+| *extra* | 20′ | [08 · Cada pantalla del CRUD, la suya](labs/08-crud-screens/guide.es.md) | Un alta, un detalle y un editor con campos distintos; el alta ya rellena |
 
 Unas **3 h 45 min** con el descanso. Cada lab tiene **pasos extra opcionales** al final para quien
 acabe antes; saltárselos nunca bloquea el lab siguiente.
@@ -86,6 +87,7 @@ workshop/
     05-ai-agents/             java/ dotnet/ python/
     06-sign-in/               java/ dotnet/ python/ + keycloak/ (fichero compose y realm)
     07-stretch/               solo guía
+    08-crud-screens/          java/ dotnet/ python/ — un lab extra, desde la solución del lab 03
   tools/
     build-labs.mjs            regenera cada start/ y solution/ desde los starters
     steps/                    lo que añade cada lab (el único código de lab escrito a mano)
