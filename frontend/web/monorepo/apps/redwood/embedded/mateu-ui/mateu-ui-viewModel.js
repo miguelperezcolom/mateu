@@ -126,6 +126,12 @@ define([
       this._properties = context.properties;
       this._runtime.watch('app.mateuSelectedNavId', (route) => {
         if (route && this._properties.route !== route) this._properties.route = route;
+        // shell="true": the component scrolls its content itself, so another screen starts at its
+        // top (the standalone app scrolls the window to the top on a navigation; mount.mjs)
+        if (this._config.shell) {
+          const scroller = this._element.querySelector('.mateu-embedded-scroller');
+          if (scroller) scroller.scrollTop = 0;
+        }
       });
     }
 
@@ -215,8 +221,9 @@ define([
       return bridge.navigateEmbedded(this._runtime, Object.assign({}, this._config, { route: current, params: {}, initialState: null }));
     }
 
-    /** shell="true": the component is the page, so it scrolls itself (mateu-ui-embedded.css,
-     *  .mateu-ui-page) and takes the window's height from where it starts. Off: the host scrolls. */
+    /** shell="true": the component is the page, so it scrolls its content itself (mateu-ui-embedded.css,
+     *  .mateu-ui-page: the shell band stays, .mateu-embedded-scroller under it scrolls) and takes the
+     *  window's height from where it starts. Off: the host scrolls. */
     _applyPageMode() {
       const element = this._element;
       const on = !!this._config.shell;

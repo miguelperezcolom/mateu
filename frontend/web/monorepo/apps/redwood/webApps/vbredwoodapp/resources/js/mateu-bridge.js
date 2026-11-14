@@ -19610,7 +19610,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // make-amd.mjs replaces the placeholder with apps/redwood/package.json's version when it writes the
   // bridge; run from the sources (Node tests) it stays a placeholder and reads as 'unknown'.
-  const RENDERER_VERSION_STAMP = "2604.1.3"
+  const RENDERER_VERSION_STAMP = "2604.1.5"
 
   /** The renderer's own version, or 'unknown' when the bridge was not stamped. */
   function rendererVersion(stamp = RENDERER_VERSION_STAMP) {
@@ -25743,15 +25743,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // ── record header FIXED and compact on scroll (OPERA's «business card») ─────────────
   /** Marks the body with mateu-scrolled as soon as the page leaves the header behind: app.css paints the
-   *  compact .mateu-sticky-header band (less air, no strip, with shadow). */
+   *  compact .mateu-sticky-header band (less air, no strip, with shadow). The page is the window, or —
+   *  an embedded <mateu-ui shell="true">, which scrolls its own content — the component's content box
+   *  (.mateu-embedded-scroller): heard in capture, since an element's scroll does not bubble. Any other
+   *  scrolled box (a table, a drawer body) is not the page. */
   function installStickyHeader(win = typeof window !== 'undefined' ? window : null) {
     if (!win || win.__mateuStickyHeader) return
     win.__mateuStickyHeader = true
     let on = false
-    win.addEventListener('scroll', () => {
-      const now = win.scrollY > 48
+    win.addEventListener('scroll', (event) => {
+      const target = event && event.target
+      const box = target && target.classList && target.classList.contains('mateu-embedded-scroller') ? target : null
+      if (target && !box && target !== win && target !== win.document && target !== win.document.documentElement) return
+      const now = (box ? box.scrollTop : win.scrollY) > 48
       if (now !== on) { on = now; win.document.body.classList.toggle('mateu-scrolled', now) }
-    }, { passive: true })
+    }, { passive: true, capture: true })
   }
 
   // ── @OnRowSelected on a GRID field (a list with columns inside a form): a click on a row — or the

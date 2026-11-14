@@ -151,8 +151,10 @@ In shell mode the component **scrolls itself**. A VB app's index stops the page 
 (`.vb-web-applayout-body { overflow-y: hidden }`) and expects the root page's shell to provide the
 scrolling area. When the page holds only `<mateu-ui>`, that area is missing. So with `shell="true"`
 the component fills the height of its container, or the window from where it starts when the
-container has no height. It becomes the scroll container, and the header and menu band stay pinned at
-its top. Drawers, dialogs and popups still open over the page (they live in JET's popup layer).
+container has no height. The header and menu band stay at its top and do not scroll; the content
+under them scrolls, laid out as in the standalone app. Spectra's sticky page and section headers
+therefore stick right below the menu band, never behind it. Drawers, dialogs and
+popups still open over the page (they live in JET's popup layer).
 Without `shell` the component flows in your page, and your page scrolls it.
 
 ### 3. Identity (your app's user on the Mateu backend)

@@ -38,33 +38,50 @@ mateu-ui .mateu-embedded-shell .mateu-embedded-logo {
   display: block;
 }
 
-/* shell="true": the component IS the page (a VB root page holding only <mateu-ui>), so it is its own
- * scroll container. A VB app's index sets `.vb-web-applayout-body { overflow-y: hidden }` and leaves
+/* shell="true": the component IS the page (a VB root page holding only <mateu-ui>), so it scrolls its
+ * content itself. A VB app's index sets `.vb-web-applayout-body { overflow-y: hidden }` and leaves
  * scrolling to the root page's shell; with only <mateu-ui> on that page there is none, and a screen
  * taller than the window was cut. The element fills its container (max-height: 100% when that has a
- * height), else the window from where it starts (--mateu-ui-page-top, measured by the viewModel); the
- * header + menu band stay pinned at its top. Overlays live in JET's popup layer (on <body>), so the
- * scroll container does not clip them. Without shell the host page owns scrolling: none of this. */
+ * height), else the window from where it starts (--mateu-ui-page-top, measured by the viewModel).
+ *
+ * Laid out as the standalone app is: the shell band (Spectra's global header + the menu band) is a
+ * NON-scrolling first row and the content box under it (.mateu-embedded-scroller) is the scroll
+ * container. So every Spectra sticky — the page headers (top: 0), the section headers, the table
+ * column headers, the messages banner — is relative to the CONTENT, right below the band, as in the
+ * standalone app; their offsets are Spectra's and stay so. (With the element itself scrolling and the
+ * band sticky inside it, Spectra's top: 0 meant "under our band": a GeneralOverview's title was hidden
+ * behind it.) Overlays live in JET's popup layer (on <body>), so the scroller does not clip them.
+ * Without shell the host page owns scrolling: none of this. */
 mateu-ui.mateu-ui-page {
-  display: block;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
   height: calc(100vh - var(--mateu-ui-page-top, 0px));
   height: calc(100dvh - var(--mateu-ui-page-top, 0px));
   max-height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  overscroll-behavior: contain;
+  overflow: hidden;
 }
 
 mateu-ui.mateu-ui-page .mateu-ui-root {
-  min-height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 mateu-ui.mateu-ui-page .mateu-embedded-shell {
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 1;
   background-color: var(--oj-core-bg-color-content, #fff);
+}
+
+mateu-ui.mateu-ui-page .mateu-embedded-scroller {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
 }
 
 /* the component owns the window: the busy bar and the FABs go back where the standalone app puts them */

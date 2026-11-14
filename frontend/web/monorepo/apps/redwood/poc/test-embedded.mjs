@@ -391,6 +391,12 @@ test('the view is the content page inside the shell frame, without the router ou
   const view = embeddedViewOf(shell, '<p id="content">page</p>')
   assert.match(view, /<p id="content">page<\/p>/)
   assert.doesNotMatch(view, /oj-vb-content|role="main"/)
+  // the shell band sits OUTSIDE the content box, which holds the whole frame (with shell="true" that
+  // box is the scroll container, so Spectra's stickies are relative to the content, not to the band)
+  const scroller = view.indexOf('<div class="mateu-embedded-scroller">')
+  assert.ok(scroller > 0, 'the content box')
+  assert.ok(view.indexOf('mateu-embedded-shell') < scroller, 'the shell band comes before it')
+  assert.ok(view.indexOf('mateu-error-band') > scroller && view.indexOf('<p id="content">') > scroller, 'the frame and the page inside it')
   assert.throws(() => frameOf('<div></div>'), /@embedded-frame/)
 })
 

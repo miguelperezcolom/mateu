@@ -10,7 +10,9 @@
  * Checks: the listing paints its rows (no binding error, no module that failed to load); a click on a
  * row opens the record inside the component; a base-url typed with a trailing space works; with
  * shell="true" on a page holding only the component (VB's body does not scroll), a screen taller than
- * the window scrolls inside the component, the header + menu band stay pinned and popups still open.
+ * the window scrolls inside the component's content box, the header + menu band stay above it and
+ * popups still open; Spectra's stickies are relative to that box (a GeneralOverview's title is not
+ * under the band, at the top or scrolled).
  *
  * Usage (component built with `npm run build:embedded`, served with `npm run serve:embedded` in
  * apps/redwood; the backend's CORS must allow the harness origin — museums.ec1.mateu.io allows any):
@@ -113,7 +115,7 @@ await ctx.close()
 // ── shell="true": the component draws the App shell — the mount's own header + menu ──────────
 {
   // the owner's window: 705px of viewport, so the screen is taller than the window
-  const sctx = await browser.newContext({ viewport: { width: 1440, height: 705 } })
+  const sctx = await browser.newContext({ viewport: { width: 1512, height: 705 } })
   const spage = await sctx.newPage()
   const serrors = []
   spage.on('pageerror', (e) => serrors.push(e.message))
@@ -157,10 +159,12 @@ await ctx.close()
   check(`shell="true": the menu navigates inside the component (${groupLabel} › ${optionLabel} → ${JSON.stringify(after.route)}, active: ${after.active})`,
     navigated && after.active === groupLabel)
   // the component IS the page: VB's body does not scroll (.vb-web-applayout-body), so a screen taller
-  // than the window scrolls inside <mateu-ui>, and the header + menu band stay visible
+  // than the window scrolls inside <mateu-ui> — in its content box, under the shell band, which does
+  // not scroll — and the header + menu band stay visible
   const scrolled = await spage.evaluate(async () => {
-    const el = document.querySelector('mateu-ui')
-    const before = { scrollHeight: el.scrollHeight, clientHeight: el.clientHeight, height: Math.round(el.getBoundingClientRect().height), window: window.innerHeight }
+    const component = document.querySelector('mateu-ui')
+    const el = component.querySelector('.mateu-embedded-scroller')
+    const before = { scrollHeight: el.scrollHeight, clientHeight: el.clientHeight, height: Math.round(component.getBoundingClientRect().height), window: window.innerHeight }
     el.scrollTop = el.scrollHeight
     await new Promise((r) => setTimeout(r, 400))
     const header = document.querySelector('mateu-ui .mateu-embedded-shell oj-sp-global-header').getBoundingClientRect()
@@ -191,6 +195,58 @@ await ctx.close()
   }, null, { timeout: 10000 }).then((h) => h.jsonValue(), () => null)
   check(`shell="true": scrolled, a popup (the menu group's) opens over the page (${JSON.stringify(popup)})`, !!popup)
   await spage.keyboard.press('Escape')
+
+  // Spectra's stickies (page headers top: 0, section headers, table headers) are relative to the
+  // CONTENT box, under the band — as in the standalone app, where the shell is outside the scroller.
+  // With the band sticky inside a scrolling component, a GeneralOverview's title (Home › «Open SMK» →
+  // museums/2) sat under the band at scrollTop 0.
+  await spage.goto(`${HOST_URL}/vb/?${new URLSearchParams({ baseUrl: BACKEND_URL, route: '', shell: 'true' })}`, { waitUntil: 'domcontentloaded' })
+  await spage.waitForFunction(() => (window.__hostEvents || []).some((e) => e.type === 'mateuReady' || e.type === 'mateuError'), null, { timeout: 120000 }).catch(() => {})
+  const openSmk = spage.locator('mateu-ui .mateu-embedded-scroller').getByText('Open SMK').first()
+  await openSmk.waitFor({ timeout: 30000 }).catch(() => {})
+  await openSmk.scrollIntoViewIfNeeded().catch(() => {})
+  const homeScrolled = await spage.evaluate(() => document.querySelector('mateu-ui .mateu-embedded-scroller').scrollTop)
+  await openSmk.click().catch(() => {})
+  const overview = await spage.waitForFunction(() => {
+    const h = document.querySelector('mateu-ui oj-sp-header-general-overview')
+    return h && h.getBoundingClientRect().height > 0 && h.innerText.trim() ? true : null
+  }, null, { timeout: 30000 }).then(() => true, () => false)
+  await spage.waitForTimeout(2500)
+  const layoutOf = () => spage.evaluate(() => {
+    const scroller = document.querySelector('mateu-ui .mateu-embedded-scroller')
+    const band = document.querySelector('mateu-ui .mateu-embedded-shell').getBoundingClientRect()
+    const box = scroller.getBoundingClientRect()
+    const titleEl = document.querySelector('mateu-ui oj-sp-header-general-overview .oj-sp-header-general-overview-title')
+      || [...document.querySelectorAll('mateu-ui oj-sp-header-general-overview [class*="title"], mateu-ui oj-sp-header-general-overview h1')]
+        .find((e) => e.getBoundingClientRect().height > 0 && e.innerText.trim())
+    const title = titleEl ? titleEl.getBoundingClientRect() : null
+    const hit = title ? document.elementFromPoint(title.left + Math.min(20, title.width / 2), title.top + title.height / 2) : null
+    const atBand = document.elementFromPoint(band.left + band.width / 2, band.bottom - 4)
+    // every sticky Spectra draws, as far as it shows (the scroller clips the rest)
+    const stickies = [...scroller.querySelectorAll('*')].filter((e) => getComputedStyle(e).position === 'sticky')
+      .map((e) => e.getBoundingClientRect()).filter((r) => r.height > 0 && r.bottom > box.top && r.top < box.bottom)
+    return {
+      scrollTop: Math.round(scroller.scrollTop),
+      bandBottom: Math.round(band.bottom), boxTop: Math.round(box.top),
+      title: title && { text: titleEl.innerText.trim().split('\n')[0], top: Math.round(title.top), visible: !!hit && (titleEl.contains(hit) || hit.contains(titleEl)) },
+      bandOnTop: !!atBand && !!atBand.closest('.mateu-embedded-shell'),
+      stickies: stickies.length,
+      stickyUnderBand: stickies.filter((r) => Math.max(r.top, box.top) < band.bottom - 0.5).length,
+    }
+  })
+  const atTop = await layoutOf()
+  console.log('Open SMK (home scrolled ' + Math.round(homeScrolled) + 'px):', JSON.stringify(atTop))
+  check(`shell="true": Home › «Open SMK» opens the GeneralOverview at the top, its title below the band and visible (title "${atTop.title && atTop.title.text}" at ${atTop.title && atTop.title.top}px, band bottom ${atTop.bandBottom}px)`,
+    overview && homeScrolled > 0 && atTop.scrollTop === 0 && atTop.boxTop >= atTop.bandBottom - 0.5
+      && !!atTop.title && atTop.title.top >= atTop.bandBottom && atTop.title.visible)
+  if (shots) await spage.screenshot({ path: join(shots, 'vb2701-shell-overview.png') })
+  await spage.evaluate(() => { const s = document.querySelector('mateu-ui .mateu-embedded-scroller'); s.scrollTop = s.scrollHeight })
+  await spage.waitForTimeout(600)
+  const down = await layoutOf()
+  console.log('scrolled overview:', JSON.stringify(down))
+  check(`shell="true": scrolled down, the band stays on top and no Spectra sticky goes under it (scrolled ${down.scrollTop}px, ${down.stickies} stickies showing)`,
+    down.scrollTop > 0 && down.bandOnTop && down.stickyUnderBand === 0 && down.boxTop >= down.bandBottom - 0.5)
+  if (shots) await spage.screenshot({ path: join(shots, 'vb2701-shell-overview-scrolled.png') })
   check('shell="true": no page errors', !serrors.length, serrors.slice(0, 3).join(' | '))
   if (shots) await spage.screenshot({ path: join(shots, 'vb2701-shell-navigated.png') })
   await sctx.close()
