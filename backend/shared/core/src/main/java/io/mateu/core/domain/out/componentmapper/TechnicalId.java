@@ -5,6 +5,7 @@ import io.mateu.core.infra.reflection.read.AllFieldsProvider;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.PrimaryKey;
+import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
 
 /**
@@ -44,6 +45,28 @@ public final class TechnicalId {
       }
     }
     return id != null && isTechnical(id) ? id.getName() : null;
+  }
+
+  /**
+   * Request attribute naming the class of the record a crud's EDIT form is drawing (set by {@code
+   * CrudFormComponentBuilder}), so the form's own technical id — and only that one, not an {@code
+   * id} of a nested form — can be told apart.
+   */
+  public static final String EDITED_RECORD_CLASS = "mateu.crud.editedRecordClass";
+
+  /**
+   * Whether {@code field} is the technical id of the record a crud's EDIT form draws: shown, but
+   * read-only — an edit saves the record it loaded and never takes the id from the client, so an
+   * editable input only let the user clear it and be told "This record no longer exists".
+   */
+  public static boolean isLockedOnTheEditForm(
+      Field field, Object instance, boolean forCreationForm, HttpRequest httpRequest) {
+    if (forCreationForm || instance == null || httpRequest == null) {
+      return false;
+    }
+    var type = instance instanceof Class<?> c ? c : instance.getClass();
+    return httpRequest.getAttribute(EDITED_RECORD_CLASS) == type
+        && field.getName().equals(of(type));
   }
 
   /** Whether the user does not choose this id field (see the class comment). */

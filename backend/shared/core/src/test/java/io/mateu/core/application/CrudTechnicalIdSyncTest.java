@@ -177,6 +177,30 @@ class CrudTechnicalIdSyncTest {
         .isEqualTo("Water Lilies");
   }
 
+  private static Map<String, Boolean> readOnlyByField(UIIncrementDto increment) {
+    var out = new java.util.LinkedHashMap<String, Boolean>();
+    collectReadOnly(JSON.valueToTree(increment), out);
+    return out;
+  }
+
+  private static void collectReadOnly(JsonNode node, Map<String, Boolean> out) {
+    if (node.isObject() && "FormField".equals(node.path("type").asText())) {
+      out.put(node.path("fieldId").asText(), node.path("readOnly").asBoolean(false));
+    }
+    node.forEach(child -> collectReadOnly(child, out));
+  }
+
+  /**
+   * The edit form shows the technical id but never as an input: an edit saves the record it loaded
+   * and never takes the id from the client, so an editable id only let the user clear it and be
+   * told "This record no longer exists" (found recording the 3.0 videos).
+   */
+  @Test
+  void theEditFormShowsATechnicalIdReadOnly() {
+    var form = run(Artworks.class, "/tid-artworks/a1/edit", "/tid-artworks", "", Map.of());
+    assertThat(readOnlyByField(form)).containsEntry("id", true).containsEntry("title", false);
+  }
+
   @Test
   void anIdTheUserChoosesOnCreateKeepsItsInput() {
     var form = run(Skus.class, "/tid-skus/new", "/tid-skus", "", Map.of());

@@ -21,9 +21,13 @@ internal sealed partial class ReflectionMapper
     }
 
     /// <summary>An [EditableOnlyWhenCreating] property outside a creation form: read-only (Java's
-    /// PageFormBuilder: <c>!forCreationForm &amp;&amp; EditableOnlyWhenCreating</c>).</summary>
+    /// PageFormBuilder: <c>!forCreationForm &amp;&amp; EditableOnlyWhenCreating</c>) — and the
+    /// record's TECHNICAL id on a crud's edit form: shown, never an input (an edit saves the record it
+    /// loaded; an editable id only let the user clear it — Java's
+    /// <c>TechnicalId.isLockedOnTheEditForm</c>).</summary>
     internal static bool LockedOutsideCreation(MemberInfo member) =>
-        member.Find<EditableOnlyWhenCreatingAttribute>() is not null && CrudFormMode.Value != "new";
+        (member.Find<EditableOnlyWhenCreatingAttribute>() is not null && CrudFormMode.Value != "new")
+        || (CrudFormMode.Value == "edit" && IsTechnicalId(member));
 
     /// <summary>Hidden on the crud form being mapped.</summary>
     internal static bool HiddenInCurrentForm(MemberInfo member) => HiddenInForm(member, CrudFormMode.Value);

@@ -278,4 +278,6 @@ def test_a_required_field_the_create_form_hides_is_not_reported_missing():
     with crud_form_mode("new"):
         assert SearchHandlerMixin.required_missing(g, Guest) == []
     with crud_form_mode("edit"):
-        assert SearchHandlerMixin.required_missing(g, Guest) == ["Id"]
+        # the edit form shows the technical id READ-ONLY (it saves the record it loaded), and a
+        # locked field carries no constraint (Java's TechnicalId.isLockedOnTheEditForm)
+        assert SearchHandlerMixin.required_missing(g, Guest) == []
