@@ -46,6 +46,9 @@ JSON-RPC `tools/call` to the backend's own MCP endpoint (which must run with `ma
 | `mateu_push_ui` | Validate a YAML page and show it in a session's content area, a drawer or a dialog |
 | `mateu_navigate` | Navigate a session to a route, like a menu click |
 | `mateu_dispatch_event` | Dispatch a named UI event (`@SubscribeTo`) in a session |
+| `mateu_get_session_screen` | What the user sees in that session (fields, actions, listing rows, an open dialog/drawer…), as the tab describes it |
+| `mateu_set_session_fields` | Type values into the session's fields, exactly as the user editing them |
+| `mateu_run_session_action` | Press an action the session's screen offers, as the user clicking it |
 
 The sidecar identifies itself with `X-Mateu-Agent-Key` (plus the `MATEU_TOKEN` bearer when set), so a
 session paired by this process stays reachable by it. A backend that cannot be reached or answers non-2xx

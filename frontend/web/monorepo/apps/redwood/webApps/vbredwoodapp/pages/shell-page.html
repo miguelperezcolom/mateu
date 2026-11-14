@@ -524,6 +524,15 @@
       </div>
     </oj-dialog>
 
+    <!-- LIVE UI PUSH: while an AI agent reads or operates this screen (a query in the last two
+         minutes), a small non-modal band says so, with Stop: every pairing removed and this tab's
+         channel closed until the user connects an agent again. The bridge (poc/agentPush.mjs
+         paintAgentNotice) shows it and writes its text. -->
+    <div id="mateuAgentOperating" class="mateu-agent-operating" role="status" hidden>
+      <span id="mateuAgentOperatingText"></span>
+      <oj-button id="mateuAgentStop" chroming="outlined"><oj-bind-text value="[[ $application.translations.appBundle.agentStop ]]"></oj-bind-text></oj-button>
+    </div>
+
     <!-- OPEN ON MOBILE (@App(mobileQr)): the QR of https://mateu.io/add?u=<this UI>&r=<this screen>,
          the link as copyable text and a hint; on a phone (or a touch-first device) the link itself
          instead of the QR. oj-dialog moves focus in, keeps it there, gives it back and closes on Esc.

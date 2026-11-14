@@ -61,6 +61,7 @@ public static partial class MateuExtensions
                 options.PushMaxSessionsPerOwner)
             {
                 MaxAnonymousSessionsPerAddress = options.PushMaxAnonymousSessionsPerAddress,
+                AnswerTimeoutMs = options.PushAnswerTimeoutMs,
             }
             : null;
         // ITranslator is optional — register an Mateu.Uidl.ITranslator to enable i18n.
@@ -593,7 +594,7 @@ public static partial class MateuExtensions
                 Caller = Mateu.Core.AgentPush.AgentCaller.From(PrincipalName(ctx),
                     ctx.Request.Headers[Mateu.Core.AgentPush.AgentCaller.AgentKeyHeader].FirstOrDefault()),
             };
-            var response = McpJsonRpc.Handle(message, mcp);
+            var response = await McpJsonRpc.HandleAsync(message, mcp);
             if (response is null)
             {
                 ctx.Response.StatusCode = 202;

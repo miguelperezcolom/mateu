@@ -204,9 +204,16 @@ browser.
 
 ### Pair
 
-A signed-in user's own agent needs no pairing: an MCP caller authenticated as the same principal sees
-that user's sessions in `mateu_list_sessions`. Any other agent — a local Claude Code, the sidecar,
-an anonymous caller — must be **paired**:
+**An agent acts only on the session that launched it.** Being signed in as the same user is not
+enough: an agent reaches a tab only once that tab is **bound** to it, and never the user's other
+tabs, phone or desktop — those answer `Unknown session`, exactly like a session that does not exist.
+There are two bindings:
+
+- **the in-app chat**: a conversation is bound to the tab it was opened in. The tab generates a key
+  for the conversation, binds it to itself (`_agent-bind`) and sends it to the chat backend as
+  `agentKey`; the chat's agent passes it to the MCP endpoint as the `X-Mateu-Agent-Key` header. A new
+  conversation replaces the tab's previous binding;
+- **pairing**, for any other agent — a local Claude Code, the sidecar, an anonymous caller:
 
 1. the user clicks **Connect AI**; the UI shows a one-time code (`K7QF-4MZP`) with a countdown;
 2. the user tells the agent the code; the agent calls `mateu_pair_session {code}`;
@@ -232,14 +239,46 @@ UI's own identity**, so the route guard and the wire-type policy apply again on 
 Whatever the screen does afterwards — its buttons, its REST sources — goes through the same checks
 as any other request.
 
+### See and operate what the user has open
+
+Three more tools let the agent work on the screen the user is **looking at**, in that tab, as the
+user would:
+
+| Tool | What it does |
+|---|---|
+| `mateu_get_session_screen` | What the tab shows: route, window title, page header, fields (id, label, type, value, required, readOnly, error, options), the actions the user can press (id, label, enabled), each listing's current page (rows, search, filters, sort, page, total), an open dialog or drawer (`focus: "overlay"` — it is in front of the page) and the last messages. → `{session, screen}`. |
+| `mateu_set_session_fields` | Type values into fields (`values`: field id → value), exactly as the user editing them: validation, client rules, `OnValueChange` triggers and the unsaved-changes state follow. Only fields shown and editable — any other refuses the whole call and nothing changes. → the screen after the change. |
+| `mateu_run_session_action` | Press an action the screen offers (`actionId`, optional `parameters`; a row action takes `row`, the 0-based index in the listing's `rows`, and `listing` when there are several; `open-row` opens a row, `search` / `nextPage` / `prevPage` drive a listing). It is a click: validation runs, and a confirmation the action asks for is **shown to the user, who answers it**. → the screen once it settled. |
+
+The server cannot know what a tab draws, so it **asks the tab**: it sends a `query` message over
+the agent channel and waits (`mateu.mcp.push.answer-timeout-ms`, default 10 s; .NET
+`MateuOptions.McpPushAnswerTimeoutMs`, Python `add_mateu(mcp_push_answer_timeout_ms=…)`) for the
+tab's answer, sent with its own secret through the app-level `_agent-screen` action. The tab
+describes only what it rendered from the wire: a field the server did not send is not there, one a
+client rule hid is left out, a password is `••••••`, and no token, secret or credential is ever
+included; long texts and lists are capped and named in `truncated`. The shape is the desktop app's
+`mateu_get_screen`, so an agent reads both the same way. A tab that cannot answer says `This client
+does not support reading or operating its screen.`; one that does not answer in time, `Session "…"
+did not answer in time.`
+
+While an agent operates a tab — from its first read until two minutes after the last — the tab
+shows a small non-modal notice, **"An AI agent is operating this screen"**, with **Stop**. Stop
+removes the pairings and closes that tab's channel: no agent reaches it again, the user's own
+included, until the user connects one with **Connect AI**.
+
+These calls count against the same rate limit as the others, and each is logged at INFO **without
+values**: `Mateu agent push: caller=<who> session=<fingerprint> kind=query event=<describe-screen|set-fields|run-action>[ fields=<n>| action=<id>] bytes=<n>`.
+
 ### Security model
 
 - **Off by default**, and only with the MCP endpoint on.
-- **Who may reach a session**: a caller signed in as the session's user, or a caller the session
-  was **paired** to. The caller is its authenticated principal; else the `X-Mateu-Agent-Key` header
-  (what the sidecar sends, ≥ 16 characters); else anonymous — and an anonymous caller only reaches a
-  session it paired, by the opaque handle the pairing answered. Anything else answers `Unknown
-  session` — a session of another user and one that does not exist look the same.
+- **Who may reach a session**: only a caller the session is **bound** to — paired with that tab's
+  code, or the agent of the chat conversation opened in it. Being the session's user is not enough.
+  The caller is the `X-Mateu-Agent-Key` header when present (≥ 16 characters; what the sidecar and
+  the chat's agent send — it wins over the request's principal); else its authenticated principal;
+  else anonymous — and an anonymous caller only reaches a session it paired, by the opaque handle
+  the pairing answered. Anything else answers `Unknown session` on every session tool — another
+  user's session, the same user's other tabs and one that does not exist look the same.
 - **The UI side is pinned**: a session belongs to the secret its tab generated and to the principal
   it registered with; another tab, user or guess cannot take over its stream or ask for its codes.
 - **Limits**: 30 messages per session per minute, 256 KiB per screen, 64 KiB per event detail, 10
@@ -248,7 +287,7 @@ as any other request.
   UI's client address — so one caller cannot fill the registry); a disconnected session is forgotten two
   minutes after its stream ended.
 - **Audit**: every delivery is logged at INFO — `Mateu agent push: caller=<who> session=<fingerprint>
-  kind=<render|navigate|event> … bytes=<n>` — and every pairing too. The session is named by its
+  kind=<render|navigate|event|query> … bytes=<n>` — and every pairing too. The session is named by its
   fingerprint (`s-` + the first 12 hex digits of the handle's SHA-256, the same in Java, .NET and
   Python), never by its handle: the handle is what reaches the session, so it must not sit in a log.
 - In-process: in a cluster, the stream and the MCP call must reach the same node (sticky sessions).
@@ -266,7 +305,8 @@ claude mcp add mateu --env MATEU_BASE_URL=http://localhost:8080 --env MATEU_PUSH
 Open the app, click **Connect AI**, and tell Claude: *"pair with K7QF-4MZP and show me a check-in
 form for Nora Duarte in a drawer"*. It calls `mateu_pair_session`, writes the page (checking it with
 `mateu_validate_uidl`), and `mateu_push_ui` puts it in front of you; *"now take me to her
-booking"* is a `mateu_navigate`.
+booking"* is a `mateu_navigate`; *"fill in her phone and save"* is a `mateu_get_session_screen`, a
+`mateu_set_session_fields` and a `mateu_run_session_action` — and you see it happen.
 
 The wire is specified in [Wire specification → Live UI push](/reference/wire-specification/#live-ui-push)
 and pinned, with the security rules, by `conformance/mcp/push.json`.

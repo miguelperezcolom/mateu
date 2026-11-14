@@ -33,6 +33,8 @@ export const HANDOVER_MS = 200;
 export const BACKGROUND_ACTIONS: ReadonlySet<string> = new Set([
   '_live-updates',
   '_agent-channel',
+  // the answer to an agent's question about the screen: the agent waits for it, not the user
+  '_agent-screen',
   '_presence',
   '_push-register',
   '_push-unregister',

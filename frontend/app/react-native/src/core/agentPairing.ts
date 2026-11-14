@@ -10,6 +10,9 @@
  */
 import { AGENT_PAIR_ACTION, AGENT_UNPAIR_ACTION, agentErrorOf, agentPairingOf, agentsLine, type AgentPushState, type AgentStatus } from './agentPush.ts';
 
+/** How long connecting an agent after a Stop waits for the channel to open again. */
+export const RESUME_WAIT_MS = 5_000;
+
 export type PairingPhase =
   | { name: 'idle' }
   | { name: 'requesting' }
@@ -185,6 +188,13 @@ export class AgentPairingModel {
     this.agentsAtRequest = this.deps.state.status.paired ? this.deps.state.status.agents.length : 0;
     this.set({ name: 'requesting' });
     try {
+      // the user stopped an agent on this screen: connecting one again reopens the channel first
+      // (a pairing needs the session registered by it)
+      if (this.deps.state.stoppedByUser) {
+        this.deps.state.resume();
+        await this.connected(RESUME_WAIT_MS);
+        if (mine !== this.seq) return '';
+      }
       const increment = await this.deps.run(AGENT_PAIR_ACTION);
       if (mine !== this.seq) return '';
       const { found, pairing } = agentPairingOf(increment);
@@ -245,6 +255,24 @@ export class AgentPairingModel {
   reset(): void {
     this.seq++;
     if (this.current.name !== 'idle') this.set({ name: 'idle' });
+  }
+
+  /** Resolves once the channel reports a status (it is open), or after `ms`. */
+  private connected(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      if (this.deps.state.connected) return resolve();
+      let off: () => void = () => {};
+      const timer = setTimeout(() => {
+        off();
+        resolve();
+      }, ms);
+      off = this.deps.state.subscribe(() => {
+        if (!this.deps.state.connected) return;
+        clearTimeout(timer);
+        off();
+        resolve();
+      });
+    });
   }
 
   private statusChanged(): void {

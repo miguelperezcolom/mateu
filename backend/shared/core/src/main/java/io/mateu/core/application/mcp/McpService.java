@@ -554,6 +554,104 @@ public class McpService {
     return delivered(session);
   }
 
+  // ── reading and operating a live screen: the UI answers with what it draws ───────────────
+
+  /** {@code mateu_get_session_screen}. */
+  public ObjectNode sessionScreen(String session, HttpRequestFactory httpRequests) {
+    return ask(
+        session,
+        io.mateu.core.application.agentpush.AgentPush.DESCRIBE_SCREEN_EVENT,
+        new java.util.LinkedHashMap<>(),
+        "",
+        httpRequests);
+  }
+
+  /** {@code mateu_set_session_fields}. */
+  public ObjectNode setSessionFields(
+      String session, JsonNode values, HttpRequestFactory httpRequests) {
+    if (values == null || !values.isObject()) {
+      throw new io.mateu.uidl.UserFacingException("Missing argument \"values\".");
+    }
+    var detail = new java.util.LinkedHashMap<String, Object>();
+    detail.put("values", asObjectMap(values));
+    if (bytes(detail) > io.mateu.core.application.agentpush.AgentPush.MAX_DETAIL_BYTES) {
+      throw new io.mateu.uidl.UserFacingException(
+          io.mateu.core.application.agentpush.AgentPush.DETAIL_TOO_LARGE);
+    }
+    return ask(
+        session,
+        io.mateu.core.application.agentpush.AgentPush.SET_FIELDS_EVENT,
+        detail,
+        "fields=" + values.size(),
+        httpRequests);
+  }
+
+  /** {@code mateu_run_session_action}. */
+  public ObjectNode runSessionAction(
+      String session,
+      String actionId,
+      JsonNode parameters,
+      JsonNode row,
+      String listing,
+      HttpRequestFactory httpRequests) {
+    var detail = new java.util.LinkedHashMap<String, Object>();
+    detail.put("actionId", actionId);
+    if (parameters != null && parameters.isObject()) {
+      detail.put("parameters", asObjectMap(parameters));
+    }
+    if (row != null && !row.isNull()) {
+      if (!row.isIntegralNumber() || row.asLong() < 0 || row.asLong() > Integer.MAX_VALUE) {
+        throw new io.mateu.uidl.UserFacingException(
+            io.mateu.core.application.agentpush.AgentPush.INVALID_ROW);
+      }
+      detail.put("row", row.asInt());
+    }
+    if (listing != null) detail.put("listing", listing);
+    if (bytes(detail) > io.mateu.core.application.agentpush.AgentPush.MAX_DETAIL_BYTES) {
+      throw new io.mateu.uidl.UserFacingException(
+          io.mateu.core.application.agentpush.AgentPush.DETAIL_TOO_LARGE);
+    }
+    return ask(
+        session,
+        io.mateu.core.application.agentpush.AgentPush.RUN_ACTION_EVENT,
+        detail,
+        "action=" + actionId,
+        httpRequests);
+  }
+
+  private ObjectNode ask(
+      String session,
+      String event,
+      Map<String, Object> detail,
+      String what,
+      HttpRequestFactory httpRequests) {
+    var answer =
+        sessions()
+            .request(
+                caller(httpRequests),
+                session,
+                event,
+                detail,
+                what,
+                bytes(detail),
+                java.time.Duration.ofMillis(
+                    io.mateu.core.application.agentpush.AgentPush.answerTimeoutMillis()));
+    if (answer.wasRefused()) {
+      throw new io.mateu.uidl.UserFacingException(
+          io.mateu.core.application.agentpush.AgentPush.refusal(
+              answer.errorCode(), answer.errorId()));
+    }
+    var out = objectMapper.createObjectNode();
+    out.put("session", session);
+    out.set("screen", objectMapper.valueToTree(answer.screen()));
+    return out;
+  }
+
+  private Map<String, Object> asObjectMap(JsonNode node) {
+    return objectMapper.convertValue(
+        node, new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+  }
+
   private void deliver(
       io.mateu.core.application.agentpush.AgentCaller caller,
       String session,

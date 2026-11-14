@@ -8,7 +8,10 @@ Two halves meet here:
   then one increment per message), ``_agent-pair`` (a one-time pairing code) and ``_agent-unpair``,
   all with ``parameters: {sessionId, secret}``;
 - the agent side — the MCP tools ``mateu_list_sessions``, ``mateu_pair_session``,
-  ``mateu_push_ui``, ``mateu_navigate`` and ``mateu_dispatch_event`` (:func:`call_tool`).
+  ``mateu_push_ui``, ``mateu_navigate`` and ``mateu_dispatch_event`` (:func:`call_tool`), and the
+  three that READ and OPERATE the screen the user has open (``mateu_get_session_screen``,
+  ``mateu_set_session_fields``, ``mateu_run_session_action``): the server sends the tab a
+  ``query`` message and waits for its answer, the app-level action ``_agent-screen``.
 
 :class:`AgentSessions` is the in-memory registry both halves share: process-wide for one app
 (``add_mateu`` keeps one per handler), thread-safe (the sync handler runs in Starlette's
@@ -31,6 +34,8 @@ import secrets
 import threading
 import time
 from collections import deque
+from concurrent.futures import Future
+from concurrent.futures import TimeoutError as FutureTimeout
 from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -47,7 +52,11 @@ log = logging.getLogger("mateu.agentpush")
 CHANNEL_ACTION = "_agent-channel"
 PAIR_ACTION = "_agent-pair"
 UNPAIR_ACTION = "_agent-unpair"
-ACTIONS = frozenset({CHANNEL_ACTION, PAIR_ACTION, UNPAIR_ACTION})
+#: The UI's answer to a ``query`` message: ``{sessionId, secret, requestId, screen | error}``.
+SCREEN_ACTION = "_agent-screen"
+#: The in-app chat binds its conversation to the tab that opened it: ``{sessionId, secret, agentKey}``.
+BIND_ACTION = "_agent-bind"
+ACTIONS = frozenset({CHANNEL_ACTION, PAIR_ACTION, UNPAIR_ACTION, SCREEN_ACTION, BIND_ACTION})
 #: The data key ``_agent-pair`` / ``_agent-unpair`` answer under.
 PAIRING_KEY = "_agentPairing"
 #: The wire command every channel message rides on.
@@ -85,6 +94,19 @@ STATUS_EVENT = "mateu-agent-status"
 RENDER_EVENT = "render-screen"
 NAVIGATE_EVENT = "navigation-requested"
 RESERVED_EVENTS = frozenset({RENDER_EVENT, NAVIGATE_EVENT, "close-requested", STATUS_EVENT})
+#: The kind of the messages the UI answers through ``_agent-screen``.
+QUERY_KIND = "query"
+DESCRIBE_SCREEN_EVENT = "describe-screen"
+SET_FIELDS_EVENT = "set-fields"
+RUN_ACTION_EVENT = "run-action"
+#: How long a tool call waits for the UI's answer (``MATEU_MCP_PUSH_ANSWER_TIMEOUT_MS``).
+DEFAULT_ANSWER_TIMEOUT_MS = 10_000
+#: The requests one session may have waiting for its answer at once.
+MAX_PENDING_REQUESTS = 4
+#: The largest screen a UI may answer (UTF-8 bytes of its JSON).
+MAX_SCREEN_BYTES = 262_144
+#: The most characters of a UI-sent id a refusal text carries (Java's ``MAX_LOGGED_DETAIL``).
+MAX_REFUSAL_ID = 200
 
 # ── The texts (push.json "errors" / "reasons") ───────────────────────────────────────────────
 DISABLED = "Live UI push is not enabled."
@@ -96,6 +118,11 @@ TOO_MANY_ATTEMPTS = "Too many pairing attempts; try again in a minute."
 DETAIL_TOO_LARGE = f"The detail is larger than the {MAX_DETAIL_BYTES}-byte limit."
 HAS_ERRORS = "The definition has errors; nothing was sent."
 NOT_A_PAGE = "Only a page (a component, or a layout: envelope) can be pushed."
+UNSUPPORTED = "This client does not support reading or operating its screen."
+FAILED = "The UI could not complete the request."
+SCREEN_TOO_LARGE = f"The screen the UI answered is larger than the {MAX_SCREEN_BYTES}-byte limit."
+INVALID_ROW = "Invalid row: use the 0-based index of a row in the listing's rows."
+INVALID_AGENT_KEY = "The agent key must be between 16 and 256 characters."
 
 #: The MCP tools this module answers (listed only when push is on).
 TOOL_NAMES = (
@@ -104,6 +131,9 @@ TOOL_NAMES = (
     "mateu_push_ui",
     "mateu_navigate",
     "mateu_dispatch_event",
+    "mateu_get_session_screen",
+    "mateu_set_session_fields",
+    "mateu_run_session_action",
 )
 
 _ANONYMOUS_PAIRING = "anonymous"
@@ -115,6 +145,84 @@ def unknown_session(handle: str) -> str:
 
 def not_connected(handle: str) -> str:
     return f'Session "{handle}" is not connected.'
+
+
+def no_answer(handle: str) -> str:
+    return f'Session "{handle}" did not answer in time.'
+
+
+def _refusal_id(value: str | None) -> str:
+    """A UI-sent id as a refusal text carries it: clipped to 200 characters, control characters
+    (and DEL) as ``?`` — Java's ``AgentSessions.logSafe``."""
+    text = (value or "")[:MAX_REFUSAL_ID]
+    return "".join("?" if (ord(c) < 32 or ord(c) == 127) else c for c in text)
+
+
+def refusal(code: str | None, id_: str | None) -> str:
+    """The text of a UI's refusal (README "Reading and operating the screen the user has open")."""
+    what = _refusal_id(id_)
+    if code == "unknownField":
+        return f'Field "{what}" is not on the screen or cannot be edited.'
+    if code == "unknownAction":
+        return f'Action "{what}" is not offered by the screen.'
+    if code == "disabledAction":
+        return f'Action "{what}" is disabled.'
+    if code == "unknownRow":
+        return f"Row {what} is not on the current page of the listing."
+    if code == "unsupported":
+        return UNSUPPORTED
+    if code == "tooLarge":
+        return SCREEN_TOO_LARGE
+    return FAILED
+
+
+@dataclass(frozen=True)
+class Answer:
+    """A UI's answer to a ``query`` message: what it shows (``screen``), or why it could not do what
+    was asked (``error_code`` + the field/action/row it names)."""
+
+    screen: dict[str, Any] | None = None
+    error_code: str | None = None
+    error_id: str | None = None
+
+    @staticmethod
+    def refused(code: str | None, id_: str | None = None) -> "Answer":
+        return Answer(None, code if code is not None else "failed", id_)
+
+    @property
+    def was_refused(self) -> bool:
+        return self.error_code is not None
+
+
+def _json_bytes(value: Any) -> int:
+    return len(json.dumps(value, separators=(",", ":"), ensure_ascii=False).encode("utf-8"))
+
+
+def answer_of(parameters: dict | None) -> Answer:
+    """The answer an ``_agent-screen`` carries, read defensively: ``error: {code, id?}`` is a
+    refusal; ``screen`` larger than :data:`MAX_SCREEN_BYTES` is the refusal ``tooLarge``; neither
+    is ``failed``."""
+    parameters = parameters or {}
+    error = parameters.get("error")
+    if isinstance(error, dict):
+        code = error.get("code")
+        id_ = error.get("id")
+        return Answer.refused(None if code is None else str(code), None if id_ is None else _text(id_))
+    screen = parameters.get("screen")
+    if not isinstance(screen, dict):
+        return Answer.refused("failed")
+    try:
+        if _json_bytes(screen) > MAX_SCREEN_BYTES:
+            return Answer.refused("tooLarge")
+    except (TypeError, ValueError):
+        return Answer.refused("failed")
+    return Answer(screen=screen)
+
+
+def _text(value: Any) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return value if isinstance(value, str) else str(value)
 
 
 def invalid_target(target: str) -> str:
@@ -243,8 +351,10 @@ def message(kind: str, event: str, detail: Any) -> dict[str, Any]:
 # ── Who is calling ───────────────────────────────────────────────────────────────────────────
 @dataclass(frozen=True)
 class Caller:
-    """An MCP caller: ``key`` is ``user:<name>`` for a signed-in principal, ``key:<sha256>`` for an
-    agent key, None for an anonymous caller; ``principal`` is the signed-in name (or None)."""
+    """An MCP caller: ``key`` — what a session is BOUND to — is ``key:<sha256>`` when it sends an
+    agent key (even with a principal: an agent acting for a signed-in user is still that ONE agent),
+    else ``user:<name>`` for a signed-in principal, else None (anonymous); ``principal`` is the
+    signed-in name (or None)."""
 
     key: str | None = None
     principal: str | None = None
@@ -269,13 +379,14 @@ class Caller:
 
     @staticmethod
     def of(principal: str | None, agent_key: str | None = None) -> "Caller":
-        """In order: the authenticated principal, else an agent key of at least 16 characters,
-        else nobody."""
-        if principal and principal.strip():
-            return Caller(key=f"user:{principal}", principal=principal)
+        """In order: an agent key of at least 16 characters (keeping the principal as its label),
+        else the authenticated principal, else nobody."""
+        name = principal if principal and principal.strip() else None
         key = agent_key.strip() if agent_key else ""
         if len(key) >= MIN_AGENT_KEY_LENGTH:
-            return Caller(key=f"key:{_sha256(key)}")
+            return Caller(key=f"key:{_sha256(key)}", principal=name)
+        if name is not None:
+            return Caller(key=f"user:{name}", principal=name)
         return Caller()
 
 
@@ -340,8 +451,12 @@ class _Session:
     pairings: dict[str, str] = field(default_factory=dict)
     #: paired at least once by an anonymous caller (the capability rule)
     capability_paired: bool = False
+    #: the identity the in-app chat bound to this session (``key:<sha256>``), or None
+    chat_key: str | None = None
     code: str | None = None
     sent: deque = field(default_factory=deque)
+    #: requestId → the future its ``query`` message waits on
+    pending: dict[str, Future] = field(default_factory=dict)
 
     @property
     def connected(self) -> bool:
@@ -360,8 +475,10 @@ class AgentSessions:
         now: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
         max_sessions_per_owner: int = DEFAULT_MAX_SESSIONS_PER_OWNER,
         max_anonymous_sessions_per_address: int = DEFAULT_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS,
+        answer_timeout_ms: int = DEFAULT_ANSWER_TIMEOUT_MS,
     ):
         self.rate_per_minute = max(1, int(rate_per_minute))
+        self.answer_timeout_ms = int(answer_timeout_ms) if int(answer_timeout_ms) > 0 else DEFAULT_ANSWER_TIMEOUT_MS
         self.max_sessions = max(1, int(max_sessions))
         self.max_sessions_per_owner = max(1, int(max_sessions_per_owner))
         self.max_anonymous_sessions_per_address = max(1, int(max_anonymous_sessions_per_address))
@@ -446,6 +563,12 @@ class AgentSessions:
                 if session.channel is channel:
                     session.channel = None
                     session.disconnected_at = self._clock()
+                    # nobody is left to answer what was asked
+                    gone = UserFacingException(not_connected(session.handle))
+                    for waiting in session.pending.values():
+                        if not waiting.done():
+                            waiting.set_exception(gone)
+                    session.pending.clear()
 
     def new_code(self, session_id: str, secret: str, principal: str | None) -> tuple[str, int]:
         """A new one-time pairing code for a registered session (the previous unused one dies):
@@ -473,7 +596,38 @@ class AgentSessions:
             self._drop_code(session)
             session.pairings.clear()
             session.capability_paired = False
+            session.chat_key = None
             self._tell(session, self._status(session))
+
+    def bind_chat(self, session_id: str, secret: str, principal: str | None, agent_key: str | None) -> None:
+        """``_agent-bind``: the in-app chat binds its conversation to this tab — the session becomes
+        reachable by the agent sending ``agent_key``, and that agent reaches nothing else through
+        it. A new binding of the session replaces its previous chat binding; a key bound to another
+        session leaves it (one conversation, one tab)."""
+        with self._lock:
+            self._purge()
+            session = self._sessions.get(session_id)
+            if session is None:
+                raise UserFacingException(CHANNEL_REFUSED)
+            self._check_owner(session, secret, principal)
+            raw = agent_key.strip() if isinstance(agent_key, str) else ""
+            if len(raw) < MIN_AGENT_KEY_LENGTH or len(raw) > 256:
+                raise UserFacingException(INVALID_AGENT_KEY)
+            key = f"key:{_sha256(raw)}"
+            for other in self._sessions.values():
+                if other is not session and other.chat_key == key:
+                    other.pairings.pop(key, None)
+                    other.chat_key = None
+                    self._tell(other, self._status(other))
+            if session.chat_key is not None and session.chat_key != key:
+                session.pairings.pop(session.chat_key, None)
+            session.chat_key = key
+            session.pairings[key] = ANONYMOUS_LABEL
+            self._tell(session, self._status(session))
+            log.info(
+                "Mateu agent push: chat bound session=%s (user=%s)",
+                fingerprint(session.handle), session.principal,
+            )
 
     # ── Agent side ──
     def list(self, caller: Caller) -> list[dict[str, Any]]:
@@ -558,6 +712,67 @@ class AgentSessions:
             caller.log_label, fingerprint(handle), data.get("kind"), log_safe(log_detail), size,
         )
 
+    def request(
+        self,
+        caller: Caller,
+        handle: str,
+        event: str,
+        detail: dict[str, Any],
+        what: str = "",
+        timeout_ms: int | None = None,
+    ) -> Answer:
+        """Send a ``query`` message to the session and wait for the UI's answer (``_agent-screen``):
+        visibility, connection, the rate limit (each request counts; more than
+        :data:`MAX_PENDING_REQUESTS` waiting is refused too), then at most ``timeout_ms``. The
+        detail gets a fresh ``requestId`` first. A stream that closes meanwhile fails the wait at
+        once. The wait BLOCKS the calling thread: the MCP endpoint runs it in the threadpool, never
+        on the event loop (the answer arrives as another request on the same server)."""
+        future: Future = Future()
+        size = _json_bytes(detail)
+        with self._lock:
+            self._purge()
+            session = self._addressable(caller, handle)
+            now = self._clock()
+            while session.sent and session.sent[0] <= now - WINDOW_SECONDS:
+                session.sent.popleft()
+            if len(session.sent) >= self.rate_per_minute or len(session.pending) >= MAX_PENDING_REQUESTS:
+                raise UserFacingException(RATE_LIMITED)
+            session.sent.append(now)
+            while True:
+                request_id = secrets.token_urlsafe(18)
+                if request_id not in session.pending:
+                    break
+            session.pending[request_id] = future
+            self._tell(session, message(QUERY_KIND, event, {"requestId": request_id, **(detail or {})}))
+        log.info(
+            "Mateu agent push: caller=%s session=%s kind=%s event=%s%s bytes=%d",
+            caller.log_label, fingerprint(handle), QUERY_KIND, event,
+            (" " + log_safe(what)) if what else "", size,
+        )
+        wait = self.answer_timeout_ms if timeout_ms is None else timeout_ms
+        try:
+            return future.result(timeout=max(1, wait) / 1000.0)
+        except FutureTimeout:
+            raise UserFacingException(no_answer(handle)) from None
+        finally:
+            with self._lock:
+                session.pending.pop(request_id, None)
+
+    def answer(
+        self, session_id: str, secret: str, principal: str | None, request_id: str | None, answer: Answer
+    ) -> None:
+        """The UI's answer to one of its session's waiting requests: the session's secret and
+        principal must match; an unknown, finished or timed-out request id is ignored."""
+        with self._lock:
+            self._purge()
+            session = self._sessions.get(session_id)
+            if session is None:
+                raise UserFacingException(CHANNEL_REFUSED)
+            self._check_owner(session, secret, principal)
+            waiting = session.pending.pop(request_id, None) if request_id is not None else None
+        if waiting is not None and not waiting.done():
+            waiting.set_result(answer)
+
     # ── internals (under the lock) ──
     def _addressable(self, caller: Caller, handle: str) -> _Session:
         session_id = self._by_handle.get(handle)
@@ -570,8 +785,8 @@ class AgentSessions:
 
     @staticmethod
     def _visible(caller: Caller, session: _Session, listing: bool) -> bool:
-        if caller.principal is not None and session.principal == caller.principal:
-            return True
+        # only a caller the session is BOUND to (pairing, the chat): being signed in as the
+        # session's user is not enough — an agent acts on the session that launched it
         if caller.key is not None and caller.key in session.pairings:
             return True
         # the capability rule: a session an ANONYMOUS caller paired is reachable by an anonymous
@@ -708,6 +923,20 @@ def channel_action(
             channel,
             client_address,
         )
+    if action_id == SCREEN_ACTION:
+        request_id = parameters.get("requestId")
+        sessions.answer(
+            session_id,
+            secret,
+            principal,
+            None if request_id is None else _text(request_id),
+            answer_of(parameters),
+        )
+        return {"answered": True}
+    if action_id == BIND_ACTION:
+        agent_key = parameters.get("agentKey")
+        sessions.bind_chat(session_id, secret, principal, agent_key if isinstance(agent_key, str) else None)
+        return {"answered": True}
     if action_id == PAIR_ACTION:
         code, ttl = sessions.new_code(session_id, secret, principal)
         return {"pairing": {"code": code, "expiresInSeconds": ttl}}
@@ -781,11 +1010,51 @@ def call_tool(
             raise UserFacingException(DETAIL_TOO_LARGE)
         sessions.send(caller, handle, message("event", event, event_detail), f"event={event}")
         return {"delivered": True, "session": handle}
+    if name == "mateu_get_session_screen":
+        handle = _required(args, "session")
+        return _ask(sessions, caller, handle, DESCRIBE_SCREEN_EVENT, {}, "")
+    if name == "mateu_set_session_fields":
+        handle = _required(args, "session")
+        values = args.get("values")
+        if not isinstance(values, dict):
+            raise UserFacingException('Missing argument "values".')
+        detail = {"values": values}
+        if _json_bytes(detail) > MAX_DETAIL_BYTES:
+            raise UserFacingException(DETAIL_TOO_LARGE)
+        return _ask(sessions, caller, handle, SET_FIELDS_EVENT, detail, f"fields={len(values)}")
+    if name == "mateu_run_session_action":
+        handle = _required(args, "session")
+        action_id = _required(args, "actionId")
+        detail = {"actionId": action_id}
+        parameters = args.get("parameters")
+        if isinstance(parameters, dict):
+            detail["parameters"] = parameters
+        row = args.get("row")
+        if row is not None:
+            if isinstance(row, bool) or not isinstance(row, int) or row < 0 or row > 2**31 - 1:
+                raise UserFacingException(INVALID_ROW)
+            detail["row"] = row
+        listing = args.get("listing")
+        if isinstance(listing, str):
+            detail["listing"] = listing
+        if _json_bytes(detail) > MAX_DETAIL_BYTES:
+            raise UserFacingException(DETAIL_TOO_LARGE)
+        return _ask(sessions, caller, handle, RUN_ACTION_EVENT, detail, f"action={action_id}")
     raise UserFacingException(f"Unknown tool: {name}")
+
+
+def _ask(
+    sessions: AgentSessions, caller: Caller, handle: str, event: str, detail: dict, what: str
+) -> dict[str, Any]:
+    answer = sessions.request(caller, handle, event, detail, what)
+    if answer.was_refused:
+        raise UserFacingException(refusal(answer.error_code, answer.error_id))
+    return {"session": handle, "screen": answer.screen}
 
 
 __all__ = [
     "ACTIONS",
+    "Answer",
     "AgentChannel",
     "AgentSessions",
     "Caller",

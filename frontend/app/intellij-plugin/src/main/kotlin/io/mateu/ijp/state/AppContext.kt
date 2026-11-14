@@ -376,6 +376,13 @@ class AppContext(val session: AppSession) {
         if (!id.isNullOrBlank()) registry[id] = pane
     }
 
+    /** Listing id → the last page a listing of this view painted (read by the desktop MCP server). */
+    val listingPages: MutableMap<String, JsonNode> = java.util.concurrent.ConcurrentHashMap()
+
+    fun noteListingPage(listingId: String, envelope: JsonNode) {
+        listingPages[listingId.ifBlank { "crud" }] = envelope
+    }
+
     fun registerDataHandler(id: String?, handler: (JsonNode) -> Unit) {
         if (!id.isNullOrBlank()) dataHandlers[id] = handler
     }
@@ -923,6 +930,7 @@ class AppContext(val session: AppSession) {
         // context, the initiator component whose action produced the message.
         for (spec in MessageSpecs.messagesOf(increment)) {
             if (spec.text.isBlank()) continue
+            session.rememberMessage(io.mateu.ijp.mcp.ScreenSummary.Message(spec.variant, spec.title, spec.text))
             // an inbox message while the IDE is not in front: the OS too (@App(osNotifications))
             session.osNotice(OsNotices.Event.InboxMessage(spec))
             val presenter = session.messagePresenter
@@ -1110,6 +1118,9 @@ class AppContext(val session: AppSession) {
      * side of the IDE window (the desktop stand-in for the web's slide-in panel). Esc or the window
      * close button dismiss without saving; the server closes it with `UICommand.closeModal(...)`.
      */
+    /** The child context [overlayBody] built last (the overlay registered for the MCP server). */
+    private var lastOverlayChild: AppContext? = null
+
     /** Overlays opened from an inline Dialog/Drawer node, by id, so a re-render doesn't stack copies. */
     private val inlineOverlaysOpen = HashSet<String>()
 
@@ -1130,6 +1141,7 @@ class AppContext(val session: AppSession) {
     private fun overlayBody(component: JsonNode, state: JsonNode, data: JsonNode): JComponent {
         val meta = component.path("metadata")
         val child = AppContext(session)
+        lastOverlayChild = child
         child.titleConsumer = {}
         val panel = child.newSlot()
         child.contentPane = panel
@@ -1196,6 +1208,13 @@ class AppContext(val session: AppSession) {
             onPeer = { route -> dialog.dispose(); openRoute(route) })
         chromeOf(meta)?.let { dialog.contentPane.add(it, java.awt.BorderLayout.NORTH) }
         dialog.contentPane.add(overlayBody(component, overlayState, data))
+        // what the user sees in front of the page (read by the desktop MCP server)
+        val overlayView = lastOverlayChild?.let { AppSession.OverlayView(it, component) }
+        overlayView?.let { session.overlayViews.add(it) }
+        fun tracked(c: JsonNode) {
+            overlayView?.component = c
+            lastOverlayChild?.let { overlayView?.context = it }
+        }
         val refresh: (JsonNode, JsonNode, JsonNode) -> Boolean = { c, st, d ->
             if (!dialog.isDisplayable) {
                 false
@@ -1206,6 +1225,7 @@ class AppContext(val session: AppSession) {
                 dialog.contentPane.removeAll()
                 chromeOf(c.path("metadata"))?.let { dialog.contentPane.add(it, java.awt.BorderLayout.NORTH) }
                 dialog.contentPane.add(overlayBody(c, overlayState, d))
+                tracked(c)
                 dialog.contentPane.revalidate()
                 dialog.contentPane.repaint()
                 true
@@ -1218,6 +1238,7 @@ class AppContext(val session: AppSession) {
                 dialog.contentPane.removeAll()
                 chromeOf(shown.path("metadata"))?.let { dialog.contentPane.add(it, java.awt.BorderLayout.NORTH) }
                 dialog.contentPane.add(overlayBody(shown, overlayState, data))
+                tracked(shown)
                 dialog.contentPane.revalidate()
                 dialog.contentPane.repaint()
                 OverlayState.closeAfterMillis(st)?.let { ms ->
@@ -1233,6 +1254,7 @@ class AppContext(val session: AppSession) {
         dialog.addWindowListener(object : java.awt.event.WindowAdapter() {
             override fun windowClosed(e: java.awt.event.WindowEvent) {
                 session.removeOverlay(close)
+                overlayView?.let { session.overlayViews.remove(it) }
                 // By value: a newer window under the same id may already have taken the slot.
                 if (key != null) session.openOverlays.remove(key, refresh)
                 if (key != null) session.overlayStateUpdaters.remove(key, updateState)

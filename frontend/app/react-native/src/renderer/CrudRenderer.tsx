@@ -387,6 +387,27 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
       } : {}),
     };
   };
+  // What an agent reading / operating the screen gets of this listing (core/agentScreen.ts): the
+  // page it shows, and its search box, filters, pager and rows — the same functions a touch runs.
+  // The driver calls the LATEST closures (a ref refreshed every render).
+  const agentDriver = React.useRef({ searchText, setSearchText, setFilterValues, doSearch, changePage, handleRowPress, rowOpen });
+  agentDriver.current = { searchText, setSearchText, setFilterValues, doSearch, changePage, handleRowPress, rowOpen };
+  useEffect(() => {
+    const id = (component['id'] as string) || 'crud';
+    controller.noteListing(id, liveData, {
+      searchText: () => agentDriver.current.searchText,
+      setSearchText: (text) => agentDriver.current.setSearchText(text),
+      setFilter: (fieldId, value) => agentDriver.current.setFilterValues((v) => ({ ...v, [fieldId]: value })),
+      search: () => agentDriver.current.doSearch(),
+      changePage: (delta) => agentDriver.current.changePage(delta),
+      openRow: (row) => {
+        if (!agentDriver.current.rowOpen) return false;
+        agentDriver.current.handleRowPress(row);
+        return true;
+      },
+    });
+  }, [component, controller, liveData]);
+
   /** A cell of a row: a display cell gets its own touchable (or swallows the press when it has
    *  nothing to do), so pressing it never reaches the row's open. */
   const renderDisplayCell = (
