@@ -1,5 +1,5 @@
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
-import { menuEntryFor, menuTrail, normRoute, plainText, TrailCrumb } from "./navTree";
+import { menuEntryFor, menuTrail, normRoute, plainText, TrailCrumb, type SelectionSource } from "./navTree";
 import { chromeLanguage, chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
@@ -44,8 +44,8 @@ const recordTitles = new Map<string, string>()
  * page reached from nowhere the menu shows gets no half-guessed trail), and when the trail would be
  * a single crumb — the page title says that already.
  */
-export function autoTrail(menu: MenuOption[] | undefined, path: string, page: PageInfo = {}): Crumb[] {
-    const { crumbs, matched, pending } = menuTrail(menu, path)
+export function autoTrail(menu: MenuOption[] | undefined, path: string, page: PageInfo = {}, source?: SelectionSource): Crumb[] {
+    const { crumbs, matched, pending } = menuTrail(menu, path, source)
     if (!matched) return []
     const trail = [...crumbs]
     if (pending) {
@@ -97,16 +97,21 @@ let owner: unknown
 
 let shellNavigator: ((option: MenuOption, route: string) => void) | undefined
 
+// Where the shell's content came from (navTree.SelectionSource): two remotes may hold the same route.
+let shellSource: (() => SelectionSource | undefined) | undefined
+
 const shellMenuListeners = new Set<() => void>()
 
 export function publishShellMenu(from: unknown, menu: MenuOption[] | undefined, noBreadcrumbs: boolean | undefined,
-                                 navigate?: (option: MenuOption, route: string) => void): void {
+                                 navigate?: (option: MenuOption, route: string) => void,
+                                 source?: () => SelectionSource | undefined): void {
     if (owner && owner !== from && (owner as { isConnected?: boolean }).isConnected !== false) return
     owner = from
     const changed = shellMenu !== menu || shellNoBreadcrumbs !== !!noBreadcrumbs
     shellMenu = menu
     shellNoBreadcrumbs = !!noBreadcrumbs
     shellNavigator = navigate
+    shellSource = source
     // A header already drawn keeps the trail it was drawn with: the remote sections arriving (or
     // failing) is news it has to hear, or a cold load stays with the section alone.
     if (changed) shellMenuListeners.forEach(listener => listener())
@@ -126,7 +131,7 @@ export function onShellMenuChange(listener: () => void): () => void {
  */
 export function navigateLikeMenu(route: string): boolean {
     if (!shellNavigator) return false
-    const option = menuEntryFor(shellMenu, route)
+    const option = menuEntryFor(shellMenu, route, shellSource?.())
     if (!option) return false
     shellNavigator(option, route)
     return true
@@ -134,7 +139,7 @@ export function navigateLikeMenu(route: string): boolean {
 
 export function shellTrail(path: string, page: PageInfo): Crumb[] {
     if (shellNoBreadcrumbs) return []
-    return autoTrail(shellMenu, path, page)
+    return autoTrail(shellMenu, path, page, shellSource?.())
 }
 
 /**
