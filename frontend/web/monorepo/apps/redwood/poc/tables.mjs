@@ -32,7 +32,8 @@ function applyRowTones(doc) {
 function applyRowTonesSoon(frames = 10) {
   if (typeof requestAnimationFrame === 'undefined' || typeof document === 'undefined') return
   let left = frames
-  const tick = () => { applyRowTones(document); if (--left > 0) requestAnimationFrame(tick) }
+  // a frame can come after the page (or a test's DOM) went away
+  const tick = () => { if (typeof document === 'undefined') return; applyRowTones(document); if (--left > 0) requestAnimationFrame(tick) }
   requestAnimationFrame(tick)
 }
 

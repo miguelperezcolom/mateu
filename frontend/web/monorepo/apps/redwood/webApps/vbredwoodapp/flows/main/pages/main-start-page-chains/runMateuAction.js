@@ -440,9 +440,8 @@ define([
       // the wizard: the forward button, its label and the on-screen step (an action keeps it)
       assign(bridge.wizardVarsOf(hostAfter, wizardProjection, summary.actions, { keepStep: true }));
 
-      if (!overlayNow) {
-        $page.variables.mateuDraft = {};
-      }
+      // the typed values survive an overlay closed by CloseModal / a browser-run flow (N-2/N-4)
+      $page.variables.mateuDraft = bridge.pageDraftAfterAction({ draft: $page.variables.mateuDraft, overlayNow, overlayBefore, ranInBrowser: !!clientFlow, hostRepainted, reRendered });
       // island that appeared with the action (e.g. the TaskQueue detail after openGuest):
       // its content is loaded if its context does not exist yet, and it is (re)projected
       const islandsAfter = bridge.collectIslands(hostAfter.tree);

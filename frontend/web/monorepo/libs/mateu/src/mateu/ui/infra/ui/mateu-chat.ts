@@ -3,7 +3,7 @@ import {css, html, LitElement, nothing, PropertyValues} from "lit";
 import {nanoid} from "nanoid";
 import MenuOption, { ListingDescriptor } from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
 import { chatNavigationOf, chatRouteOfClick } from "./chatLinks";
-import { navigateToRoute } from "./rowRoute";
+import { leaveToRoute } from "./rowRoute";
 import {neutralButtonStyles, iconMicrophone, iconRobot} from "./neutralChrome";
 import {projectCurrentScreen} from "./screenContext";
 import {handleSessionExpired} from "@infra/http/sessionGuard.ts";
@@ -618,7 +618,8 @@ export class MateuChat extends LitElement {
         if (navigation) {
             this.dispatchEvent(new CustomEvent('navigation-requested', { detail: navigation, bubbles: true, composed: true }))
         } else {
-            navigateToRoute(this, route)
+            // a link in an answer leaves the screen like any other: unsaved changes ask first (N-8)
+            leaveToRoute(this, route)
         }
     }
 

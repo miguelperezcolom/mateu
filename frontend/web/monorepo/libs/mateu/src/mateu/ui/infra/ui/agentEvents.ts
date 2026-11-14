@@ -1,6 +1,6 @@
 import { isEventClaimed, NAVIGATION_REQUESTED, RENDER_SCREEN, renderScreenRequestOf } from './chatEvents'
 import { renderScreenInShell } from './builtInRenderTarget'
-import { navigateToRoute } from './rowRoute'
+import { leaveToRoute } from './rowRoute'
 import { agentMayDispatch } from './agentEventPolicy'
 import { isTrustedOrigin } from '@infra/http/credentialScope.ts'
 
@@ -98,7 +98,8 @@ export function applyAgentEvent(origin: Element, name: string, detail: unknown, 
             return
         }
         const route = (detail as { route?: unknown } | null)?.route
-        if (typeof route === 'string') navigateToRoute(origin as HTMLElement, route)
+        // no shell to route it: it still leaves the screen, so unsaved changes ask first (N-8)
+        if (typeof route === 'string') leaveToRoute(origin as HTMLElement, route)
         return
     }
     if (name === RENDER_SCREEN && !isEventClaimed(event)) {

@@ -1,5 +1,5 @@
 import { customElement, property, query, state } from "lit/decorators.js";
-import { navigateToRoute } from '@infra/ui/rowRoute.ts'
+import { leaveToRoute } from '@infra/ui/rowRoute.ts'
 import { rowClickTarget, rowOpenOf, RowOpen, RowOpenTarget } from '@infra/ui/rowOpen.ts'
 import { emptyStateTemplate } from "@infra/ui/renderers/emptyStateRenderer.ts";
 import { ifDefined } from "lit/directives/if-defined.js";
@@ -332,7 +332,8 @@ export class MateuTable extends LitElement {
 
     private openRow(target: RowOpenTarget) {
         if (target.kind === 'route') {
-            navigateToRoute(this, target.route)
+            // a row opened by its route leaves the screen: unsaved changes ask first (N-8)
+            leaveToRoute(this, target.route)
             return
         }
         // the same action the row's link runs: the enclosing listing claims it, and

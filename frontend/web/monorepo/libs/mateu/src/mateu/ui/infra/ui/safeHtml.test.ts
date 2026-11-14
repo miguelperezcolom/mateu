@@ -31,6 +31,26 @@ describe('sanitizeHtml (HTML sinks fed with data: header texts, texts, html cell
         expect(out).toContain('Session expired')
     })
 
+    it('N-9: the overlay filter reads the style as the browser does — comments, escapes and var() do not get through', () => {
+        for (const style of [
+            'position/**/:fixed;inset:0;z-index/**/:9999;background:#fff',
+            '/**/position:fixed;inset:0',
+            '/*;*/position:fixed',
+            'p\\6fsition:fixed;inset:0',
+            'position:f\\69xed',
+            'position:var(--x,fixed)',
+            'z\\-index:5',
+            'POSITION : Absolute !important',
+        ]) {
+            const out = sanitizeHtml(`<div style="${style}">x</div>`)
+            const div = new DOMParser().parseFromString(out, 'text/html').querySelector('div')!
+            const kept = div.getAttribute('style') ?? ''
+            expect(kept, style).not.toMatch(/position|z-?\\?-?index|6f|69/i)
+        }
+        // what lifts nothing stays as written
+        expect(sanitizeHtml('<div style="position:relative;color:red">x</div>')).toContain('position:relative;color:red')
+    })
+
     it('keeps an allow-listed custom element (vaadin-icon) but drops its on… attributes', () => {
         const out = sanitizeHtml('<vaadin-icon icon="vaadin:check" onclick="x()"></vaadin-icon>')
         expect(out).toContain('<vaadin-icon icon="vaadin:check">')

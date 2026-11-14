@@ -44,4 +44,45 @@ class AgentNavigationConformanceTest : TestCase() {
         // a rules-only / action-only "navigation" is no place at all
         assertEquals(ChatEvents.Effect.Ignore, ChatEvents.decide("navigation-requested", mapper.readTree("""{"rules":[{"action":"RunJS"}]}"""), { false }))
     }
+
+    /** B1: the `trustedNavigations` cases — a base url survives only for an origin the UI trusts. */
+    fun testEveryTrustedNavigationCase() {
+        val cases = corpus().path("trustedNavigations")
+        assertTrue("the corpus has trusted-navigation cases", cases.size() >= 5)
+        for (c in cases) {
+            val scope = io.mateu.ijp.api.CredentialScope(c.path("shell").asText())
+            scope.declare(c.path("shell").asText(), c.path("declared").map { it.asText() })
+            val got = ChatEvents.trustedNavigation(ChatEvents.agentNavigationFields(c.path("detail")), scope::mayCarryCredentials)
+            assertEquals(c.path("name").asText(), c.path("expected"), got)
+        }
+    }
+
+    /**
+     * B1, end to end: an agent's navigation naming a host the app never named opens the route in the
+     * app — the remote opener is not called, the host does not become trusted, and a session opened
+     * against it would carry no token. A remote the app's MENU names still opens remotely, signed in.
+     */
+    fun testAnAgentNavigationNeverSendsTheTokenToAHostTheAppDoesNotName() {
+        val session = io.mateu.ijp.state.AppSession("https://app.example", tokenProvider = io.mateu.ijp.api.TokenProvider.of("secret"))
+        val remote = mutableListOf<String>()
+        val local = mutableListOf<String?>()
+        session.openRemoteViewHandler = { _, _, _, _, _, base -> remote += base }
+        session.openViewHandler = { _, route, _, _, _ -> local += route }
+
+        io.mateu.ijp.ui.AgentEvents.apply(session, "navigation-requested", mapper.readTree("""{"route":"/x","baseUrl":"https://attacker.example"}"""))
+        assertEquals(emptyList<String>(), remote)
+        assertEquals(listOf<String?>("/x"), local)
+        assertFalse(session.credentials.mayCarryCredentials("https://attacker.example"))
+        // opening a session against it (as a remote opener does) declares nothing, and gets no token
+        val foreign = io.mateu.ijp.ui.remoteSession(session, "https://attacker.example")
+        assertSame(io.mateu.ijp.api.TokenProvider.NONE, foreign.apiClient.tokenProvider)
+        assertFalse(session.credentials.mayCarryCredentials("https://attacker.example"))
+
+        // the app's menu names a remote: the same navigation to IT opens there, with the user's token
+        val menu = mapper.readTree("""[{"label":"Forms","submenus":[{"label":"F","route":"/f","baseUrl":"https://forms.example/fed"}]}]""")
+        io.mateu.ijp.ui.declareRemotes(session, io.mateu.ijp.ui.menuRemotes(menu))
+        io.mateu.ijp.ui.AgentEvents.apply(session, "navigation-requested", mapper.readTree("""{"route":"/f","baseUrl":"https://forms.example/fed"}"""))
+        assertEquals(listOf("https://forms.example/fed"), remote)
+        assertNotSame(io.mateu.ijp.api.TokenProvider.NONE, io.mateu.ijp.ui.remoteSession(session, "https://forms.example/fed").apiClient.tokenProvider)
+    }
 }

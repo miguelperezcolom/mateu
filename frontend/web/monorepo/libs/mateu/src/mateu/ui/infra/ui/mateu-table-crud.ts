@@ -15,7 +15,7 @@ import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from
 import { interpolate, templateResolver } from './interpolation'
 import { fetchExternalPage, fetchExternalRows, pageOf } from '@infra/http/externalOptions.ts'
 import { filterExternalRows, sortExternalRows } from '@infra/http/restRowFilters.ts'
-import { rowRouteFields, navigateToRoute, leaveToRoute } from '@infra/ui/rowRoute.ts'
+import { rowRouteFields, leaveToRoute } from '@infra/ui/rowRoute.ts'
 import { rowOpenTargetOf } from '@infra/ui/rowOpen.ts'
 import { sameSort, sortAfterChange, sortOfGrid } from './gridSort'
 import { isSampled, totalPathOf, viaProxy } from '@infra/http/restSourceCatalogue.ts'
@@ -1242,7 +1242,8 @@ export class MateuTableCrud extends LitElement {
             const target = rowOpenTargetOf(metadata.rowRoute ? { kind: 'route', template: metadata.rowRoute } : undefined,
                 item, this.state, this.data)
             if (target?.kind !== 'route') return false
-            navigateToRoute(this, target.route)
+            // a row opened by its route leaves the screen: unsaved changes ask first (N-8)
+            leaveToRoute(this, target.route)
             return true
         }
 

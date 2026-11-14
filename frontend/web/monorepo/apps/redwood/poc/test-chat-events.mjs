@@ -173,6 +173,23 @@ test('R1: an agent navigation keeps a base url only for the shell\'s own origin 
   }
 })
 
+test('B1: the shared trusted-navigation corpus (a base url only for an origin the UI trusts)', () => {
+  const corpus = JSON.parse(readFileSync(new URL('../../../../../../conformance/client/agent-events.json', import.meta.url), 'utf8'))
+  assert.ok(corpus.trustedNavigations.length >= 5)
+  for (const c of corpus.trustedNavigations) {
+    resetCredentialOrigins()
+    try {
+      trustShellBase(c.shell)
+      trustDeclaredRemoteBases(c.declared)
+      const nav = chatEventPlanOf({ event: 'navigation-requested', detail: c.detail }, regWith()).navigation
+      assert.equal(nav.route, c.expected.route, c.name)
+      assert.equal(nav.baseUrl, c.expected.baseUrl, c.name)
+    } finally {
+      resetCredentialOrigins()
+    }
+  }
+})
+
 test('close-requested closes; any other event goes to the document AND to its subscribers on screen', () => {
   assert.equal(chatEventPlanOf({ event: 'close-requested' }, null).kind, 'close')
   const reg = regWith([{ type: 'OnCustomEvent', eventName: 'booking-made', actionId: 'refresh' }])

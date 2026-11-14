@@ -36,7 +36,7 @@ internal object AgentEvents {
         onError: (String) -> Unit = { notifyError(session, it) },
     ) {
         when (val effect = ChatEvents.decide(event, detail, session::hasSubscriber, session.appMenu)) {
-            is ChatEvents.Effect.Navigate -> session.openMenuEntry(effect.entry)
+            is ChatEvents.Effect.Navigate -> session.openMenuEntry(ChatEvents.trustedNavigation(effect.entry, session.credentials::mayCarryCredentials))
             ChatEvents.Effect.Close -> onClose()
             is ChatEvents.Effect.RenderScreen -> renderScreen(session, effect, host, owner, onError)
             is ChatEvents.Effect.Bus -> session.dispatchEvent(effect.event, effect.detail)
@@ -78,6 +78,8 @@ internal object AgentEvents {
         owner: JComponent?,
     ) {
         val ctx = AppContext(session)
+        // the agent wrote this screen: a base url in it declares no remote (B1)
+        ctx.agentAuthored = true
         ctx.titleConsumer = {}
         val panel = ctx.newSlot()
         ctx.contentPane = panel
