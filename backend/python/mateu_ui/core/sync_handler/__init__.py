@@ -613,7 +613,7 @@ class SyncHandler(
         elif rq.route is None:
             return rq
         else:
-            spec_routes = [own]
+            spec_routes = [own] if own is not None else []
         # the business components (components.yaml) lock fields too: they are resolved while the
         # tree is mapped, after the view model is bound. STRICT, like a code view: every restricted
         # component of the app is checked, not only the ones this layout names
