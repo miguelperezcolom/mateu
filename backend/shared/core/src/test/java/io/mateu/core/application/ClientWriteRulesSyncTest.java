@@ -122,6 +122,12 @@ class ClientWriteRulesSyncTest {
 
     @HiddenInList public String notes;
 
+    /** What the user never edits (GA round 2, N5). */
+    @io.mateu.uidl.annotations.Hidden public String tenant;
+
+    /** What never travels (GA round 2, N4, N5). */
+    @com.fasterxml.jackson.annotation.JsonIgnore public String passwordHash;
+
     public Product() {}
 
     Product(String id, String name, double price, String internal, String category) {
@@ -131,6 +137,8 @@ class ClientWriteRulesSyncTest {
       this.internal = internal;
       this.category = category;
       this.notes = "stored notes";
+      this.tenant = "acme";
+      this.passwordHash = "HASH";
     }
 
     @Override
@@ -472,5 +480,51 @@ class ClientWriteRulesSyncTest {
     assertThat(saved.price).isEqualTo(249.0);
     assertThat(saved.internal).isEqualTo("MANAGER ONLY");
     assertThat(saved.category).isEqualTo("lighting");
+  }
+
+  // ── GA round 2: N3, N4, N5 ──────────────────────────────────────────────────────────────
+
+  @Test
+  void aCreateNamingAStoredIdIsRefusedAndTheRecordIsLeftAlone() {
+    var answer =
+        run(
+            "/cw-products/new",
+            "/cw-products",
+            Products.class,
+            "create",
+            Map.of(),
+            Map.of("initiatorState", Map.of("id", "P-001", "name", "dup")));
+    assertThat(text(answer)).contains("already exists");
+    var stored = product("P-001");
+    assertThat(stored.name).isEqualTo("Lamp");
+    assertThat(stored.internal).isEqualTo("MANAGER ONLY");
+    assertThat(stored.price).isEqualTo(249.0);
+    assertThat(stored.tenant).isEqualTo("acme");
+    assertThat(PRODUCTS).hasSize(1);
+  }
+
+  @Test
+  void anEditKeepsTheFieldsJacksonDoesNotSerialise() {
+    run("/cw-products/P-001/edit", "/cw-products", Products.class, "save", forgedProduct(), null);
+    var stored = product("P-001");
+    assertThat(stored.name).isEqualTo("Lamp 2");
+    assertThat(stored.passwordHash).isEqualTo("HASH");
+    assertThat(stored.tenant).isEqualTo("acme");
+  }
+
+  @Test
+  void aForgedSaveCannotWriteAHiddenOrANeverSentField() {
+    var state = forgedProduct();
+    state.put("tenant", "other");
+    state.put("passwordHash", "X");
+    run("/cw-products/P-001/edit", "/cw-products", Products.class, "save", state, null);
+    var stored = product("P-001");
+    assertThat(stored.name).isEqualTo("Lamp 2");
+    assertThat(stored.tenant).isEqualTo("acme");
+    assertThat(stored.passwordHash).isEqualTo("HASH");
+    // nor through a capability listing's save
+    run("/cw-cap/P-001/edit", "/cw-cap", CapProducts.class, "save", state, null);
+    assertThat(CapProducts.saved.tenant).isEqualTo("acme");
+    assertThat(CapProducts.saved.passwordHash).isNotEqualTo("X");
   }
 }

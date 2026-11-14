@@ -2,6 +2,10 @@ package io.mateu.core.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -124,11 +128,134 @@ class ListingFieldAccessSyncTest {
     }
   }
 
+  // ── nested objects keep Jackson's shape (GA round 2, N1) ─────────────────────────────────
+
+  /** The standard bidirectional JPA idiom: a managed / back reference pair. */
+  public static class Customer {
+    public String name;
+
+    @JsonManagedReference public List<Order> orders = new ArrayList<>();
+  }
+
+  public static class Order {
+    public String id;
+    public String title;
+
+    @JsonBackReference public Customer customer;
+  }
+
+  public static class Address {
+    public String city;
+    public String secret;
+  }
+
+  /** Jackson renames, excludes and computes properties beyond a field-level @JsonIgnore. */
+  public static class Client {
+    @JsonProperty("fullName")
+    public String name;
+
+    @JsonIgnoreProperties("secret")
+    public Address billing;
+
+    @JsonProperty("display")
+    public String getDisplay() {
+      return name + " (" + (billing != null ? billing.city : "") + ")";
+    }
+  }
+
+  /** A nested class that DOES restrict reading — and that Jackson also narrows. */
+  @JsonIgnoreProperties("pin")
+  public static class Card {
+    public String label;
+
+    @EyesOnly(roles = "hr")
+    public String code;
+
+    public String pin;
+
+    @JsonProperty("shown")
+    public String getShown() {
+      return "card " + label;
+    }
+  }
+
+  public static class Invoice implements Identifiable {
+    public String id;
+    public Customer customer;
+    public Client client;
+    public Card card;
+
+    @Override
+    public String id() {
+      return id;
+    }
+  }
+
+  static List<Invoice> invoices() {
+    var customer = new Customer();
+    customer.name = "ACME";
+    var order = new Order();
+    order.id = "o1";
+    order.title = "first";
+    order.customer = customer;
+    customer.orders.add(order);
+    var client = new Client();
+    client.name = "Globex";
+    client.billing = new Address();
+    client.billing.city = "Palma";
+    client.billing.secret = "BILLING-SECRET";
+    var card = new Card();
+    card.label = "gold";
+    card.code = "CARD-SECRET";
+    card.pin = "PIN-SECRET";
+    var invoice = new Invoice();
+    invoice.id = "i1";
+    invoice.customer = customer;
+    invoice.client = client;
+    invoice.card = card;
+    return List.of(invoice);
+  }
+
+  @UI("/acl-invoices")
+  @Title("Invoices")
+  public static class Invoices implements Listing<Invoice> {
+    @Override
+    public ListingData<Invoice> search(SearchRequest request, HttpRequest httpRequest) {
+      return ListingData.from(invoices());
+    }
+  }
+
+  @Test
+  void aBidirectionalGraphInARowIsSerialisedLikeJacksonDoes() {
+    var rows = json(run(Invoices.class, "/acl-invoices", "search", Map.of()));
+    assertThat(rows).contains("ACME", "\"title\":\"first\"");
+  }
+
+  @Test
+  void whatJacksonExcludesOrRenamesInANestedObjectKeepsItsShape() {
+    var rows = json(run(Invoices.class, "/acl-invoices", "search", Map.of()));
+    assertThat(rows)
+        .contains("\"fullName\":\"Globex\"", "\"display\":\"Globex (Palma)\"")
+        .doesNotContain("BILLING-SECRET");
+  }
+
+  @Test
+  void aNestedObjectThatRestrictsReadingGoesThroughJacksonAndTheReadRule() {
+    var rows = json(run(Invoices.class, "/acl-invoices", "search", Map.of()));
+    assertThat(rows)
+        .contains("gold", "\"shown\":\"card gold\"")
+        .doesNotContain("CARD-SECRET")
+        .doesNotContain("PIN-SECRET");
+    assertThat(json(run(Invoices.class, "/acl-invoices", "search", Map.of(), "hr")))
+        .contains("CARD-SECRET")
+        .doesNotContain("PIN-SECRET");
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(Emps.class, EmpsCrud.class);
+    mateu = TestMateu.withUis(Emps.class, EmpsCrud.class, Invoices.class);
   }
 
   @AfterAll

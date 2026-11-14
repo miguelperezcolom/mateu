@@ -116,11 +116,14 @@ public final class ClientWritableFields {
       merged.putAll(baseline);
     }
     merged.putAll(restricted);
-    return FieldAccess.asServer(
-        () ->
-            (T)
-                io.mateu.uidl.interfaces.MateuInstanceFactory.newInstance(
-                    entityClass, merged, httpRequest));
+    T entity =
+        FieldAccess.asServer(
+            () ->
+                (T)
+                    io.mateu.uidl.interfaces.MateuInstanceFactory.newInstance(
+                        entityClass, merged, httpRequest));
+    keepUntravelled(entity, baselineInstance);
+    return entity;
   }
 
   /**
@@ -321,6 +324,58 @@ public final class ClientWritableFields {
     // the posted state is not an edit
     return !FieldAccess.mayWrite(field, rq)
         || PageFormBuilder.isReadOnly(field, baselineInstance, creation, rq)
-        || PageFormBuilder.isHiddenInEditor(field, creation);
+        || PageFormBuilder.isHiddenInEditor(field, creation)
+        // never an input of the form: an unconditional @Hidden (tenant, owner, created-by), or a
+        // field that never travels at all (@JsonIgnore, transient) — a value posted for it is a
+        // forgery, not an edit (GA round 2, N5)
+        || unconditionallyHidden(field)
+        || neverTravels(field);
+  }
+
+  private static boolean unconditionallyHidden(Field field) {
+    var hidden = MetaAnnotations.find(field, io.mateu.uidl.annotations.Hidden.class);
+    return hidden != null && (hidden.value() == null || hidden.value().isBlank());
+  }
+
+  /** A field the state never carries: Jackson does not serialise it, so no form ever shows it. */
+  static boolean neverTravels(Field field) {
+    if (Modifier.isTransient(field.getModifiers())) {
+      return true;
+    }
+    var ignored = MetaAnnotations.find(field, com.fasterxml.jackson.annotation.JsonIgnore.class);
+    return ignored != null && ignored.value();
+  }
+
+  /**
+   * The fields of {@code entity} the state never carries ({@link #neverTravels}) copied from {@code
+   * baselineInstance}: a state-shaped baseline has no entry for them, so the rebuilt entity came
+   * back with their initializers — a secret hash or a lazy collection blanked by every ordinary
+   * edit (GA round 2, N4). A record cannot be changed once built, so it keeps what it was built
+   * with.
+   */
+  private static void keepUntravelled(Object entity, Object baselineInstance) {
+    if (entity == null
+        || baselineInstance == null
+        || entity == baselineInstance
+        || entity.getClass().isRecord()
+        || !entity.getClass().isInstance(baselineInstance)) {
+      return;
+    }
+    for (Field field : getAllFields(entity.getClass())) {
+      var modifiers = field.getModifiers();
+      if (Modifier.isStatic(modifiers)
+          || Modifier.isFinal(modifiers)
+          || io.mateu.core.application.security.WireTypes.isInjected(field)
+          || io.mateu.core.infra.reflection.read.HolderFieldChecker.isNonDataHolder(field)
+          || !neverTravels(field)) {
+        continue;
+      }
+      try {
+        field.setAccessible(true);
+        field.set(entity, field.get(baselineInstance));
+      } catch (ReflectiveOperationException | RuntimeException e) {
+        // not reachable (a module boundary): left as built
+      }
+    }
   }
 }
