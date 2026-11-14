@@ -84,7 +84,7 @@ public class RemoteMenuHandler {
     }
     var cached =
         descriptorCache.get(
-            baseUrl, remoteMenu.route(), httpRequest.getHeaderValue("authorization"));
+            baseUrl, remoteMenu.route(), callerOf(credentials(remoteMenu, httpRequest)));
     return cached == null ? NOT_KNOWN : claim(cached, remoteMenu, route);
   }
 
@@ -207,7 +207,8 @@ public class RemoteMenuHandler {
       // nothing to ask: a static remote claims only what its menu path covers (resolveRemoteMenu)
       return Mono.empty();
     }
-    var authorization = httpRequest.getHeaderValue("authorization");
+    var credentials = credentials(remoteMenu, httpRequest);
+    var caller = callerOf(credentials);
     var baseUrl = absoluteBaseUrl(remoteMenu, httpRequest);
     if (baseUrl == null) {
       return Mono.error(
@@ -218,7 +219,7 @@ public class RemoteMenuHandler {
                   + io.mateu.core.infra.out.RemoteTargets.SELF_BASE_URL));
     }
     // Keyed by the ABSOLUTE url asked, not the declared (maybe relative) one.
-    var cached = descriptorCache.get(baseUrl, remoteMenu.route(), authorization);
+    var cached = descriptorCache.get(baseUrl, remoteMenu.route(), caller);
     if (cached != null) {
       return Mono.just(cached);
     }
@@ -231,7 +232,7 @@ public class RemoteMenuHandler {
             .initiatorComponentId(httpRequest.runActionRq().initiatorComponentId())
             .build();
 
-    return Mono.fromFuture(mateuHttpClient.send(baseUrl, request, authorization))
+    return Mono.fromFuture(sendAsTheCaller(baseUrl, request, credentials))
         .flatMap(
             uiIncrementDto ->
                 Mono.justOrEmpty(
@@ -244,8 +245,71 @@ public class RemoteMenuHandler {
                         .filter(metadata -> metadata instanceof AppDto)
                         .map(metadata -> (AppDto) metadata)
                         .findFirst()))
-        .doOnNext(
-            appDto -> descriptorCache.put(baseUrl, remoteMenu.route(), authorization, appDto));
+        .doOnNext(appDto -> descriptorCache.put(baseUrl, remoteMenu.route(), caller, appDto));
+  }
+
+  /**
+   * Who the shell asks a remote as: the request's {@code Authorization} and, for a RELATIVE remote
+   * only, its {@code Cookie}.
+   *
+   * <p>A relative remote ({@code /_catalog}) lives behind the same front door as the shell — the
+   * browser reaches it at the shell's own origin and sends it these very cookies on every call it
+   * makes there itself. A deployment that signs users in with a cookie (a session, or a signed
+   * single-sign-on cookie every service of the system accepts) has no {@code Authorization} header
+   * to forward, so the remote answered 401 to the shell, no remote claimed the deep link, and a
+   * bookmarked or reloaded remote screen rendered "Page not found" while the menu (asked by the
+   * browser, cookie included) worked. An ABSOLUTE remote is another host: its cookies are not the
+   * shell's to hand over, so it gets the {@code Authorization} header alone, as before.
+   */
+  static java.util.Map<String, String> credentials(RemoteMenu remoteMenu, HttpRequest httpRequest) {
+    var headers = new java.util.LinkedHashMap<String, String>();
+    if (httpRequest == null) {
+      return headers;
+    }
+    var authorization = httpRequest.getHeaderValue("authorization");
+    if (authorization != null && !authorization.isBlank()) {
+      headers.put("Authorization", authorization);
+    }
+    if (isRelative(remoteMenu)) {
+      var cookie = httpRequest.getHeaderValue("cookie");
+      if (cookie != null && !cookie.isBlank()) {
+        headers.put("Cookie", cookie);
+      }
+    }
+    return headers;
+  }
+
+  /** A remote declared without a scheme: resolved against this deployment's own base url. */
+  static boolean isRelative(RemoteMenu remoteMenu) {
+    var baseUrl = remoteMenu == null ? null : remoteMenu.baseUrl();
+    return baseUrl != null && !baseUrl.startsWith("http://") && !baseUrl.startsWith("https://");
+  }
+
+  /**
+   * The caller's identity for the descriptor cache: everything the remote is sent that may make it
+   * answer another menu. Null when anonymous.
+   */
+  static String callerOf(java.util.Map<String, String> credentials) {
+    if (credentials.isEmpty()) {
+      return null;
+    }
+    var authorization = credentials.getOrDefault("Authorization", "");
+    var cookie = credentials.get("Cookie");
+    return cookie == null ? authorization : authorization + "\ncookie:" + cookie;
+  }
+
+  /**
+   * The call with the caller's credentials. With the {@code Authorization} header alone it goes
+   * through {@link MateuHttpClient#send(String, RunActionRqDto, String)}, as it always did, so a
+   * client that only implements that keeps working; a cookie needs {@link
+   * MateuHttpClient#sendWithHeaders}.
+   */
+  private java.util.concurrent.CompletableFuture<io.mateu.dtos.UIIncrementDto> sendAsTheCaller(
+      String baseUrl, RunActionRqDto request, java.util.Map<String, String> credentials) {
+    if (!credentials.containsKey("Cookie")) {
+      return mateuHttpClient.send(baseUrl, request, credentials.get("Authorization"));
+    }
+    return mateuHttpClient.sendWithHeaders(baseUrl, request, credentials);
   }
 
   /**
