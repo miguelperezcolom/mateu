@@ -54,7 +54,9 @@ PAIR_ACTION = "_agent-pair"
 UNPAIR_ACTION = "_agent-unpair"
 #: The UI's answer to a ``query`` message: ``{sessionId, secret, requestId, screen | error}``.
 SCREEN_ACTION = "_agent-screen"
-ACTIONS = frozenset({CHANNEL_ACTION, PAIR_ACTION, UNPAIR_ACTION, SCREEN_ACTION})
+#: The in-app chat binds its conversation to the tab that opened it: ``{sessionId, secret, agentKey}``.
+BIND_ACTION = "_agent-bind"
+ACTIONS = frozenset({CHANNEL_ACTION, PAIR_ACTION, UNPAIR_ACTION, SCREEN_ACTION, BIND_ACTION})
 #: The data key ``_agent-pair`` / ``_agent-unpair`` answer under.
 PAIRING_KEY = "_agentPairing"
 #: The wire command every channel message rides on.
@@ -120,6 +122,7 @@ UNSUPPORTED = "This client does not support reading or operating its screen."
 FAILED = "The UI could not complete the request."
 SCREEN_TOO_LARGE = f"The screen the UI answered is larger than the {MAX_SCREEN_BYTES}-byte limit."
 INVALID_ROW = "Invalid row: use the 0-based index of a row in the listing's rows."
+INVALID_AGENT_KEY = "The agent key must be between 16 and 256 characters."
 
 #: The MCP tools this module answers (listed only when push is on).
 TOOL_NAMES = (
@@ -348,8 +351,10 @@ def message(kind: str, event: str, detail: Any) -> dict[str, Any]:
 # ── Who is calling ───────────────────────────────────────────────────────────────────────────
 @dataclass(frozen=True)
 class Caller:
-    """An MCP caller: ``key`` is ``user:<name>`` for a signed-in principal, ``key:<sha256>`` for an
-    agent key, None for an anonymous caller; ``principal`` is the signed-in name (or None)."""
+    """An MCP caller: ``key`` — what a session is BOUND to — is ``key:<sha256>`` when it sends an
+    agent key (even with a principal: an agent acting for a signed-in user is still that ONE agent),
+    else ``user:<name>`` for a signed-in principal, else None (anonymous); ``principal`` is the
+    signed-in name (or None)."""
 
     key: str | None = None
     principal: str | None = None
@@ -374,13 +379,14 @@ class Caller:
 
     @staticmethod
     def of(principal: str | None, agent_key: str | None = None) -> "Caller":
-        """In order: the authenticated principal, else an agent key of at least 16 characters,
-        else nobody."""
-        if principal and principal.strip():
-            return Caller(key=f"user:{principal}", principal=principal)
+        """In order: an agent key of at least 16 characters (keeping the principal as its label),
+        else the authenticated principal, else nobody."""
+        name = principal if principal and principal.strip() else None
         key = agent_key.strip() if agent_key else ""
         if len(key) >= MIN_AGENT_KEY_LENGTH:
-            return Caller(key=f"key:{_sha256(key)}")
+            return Caller(key=f"key:{_sha256(key)}", principal=name)
+        if name is not None:
+            return Caller(key=f"user:{name}", principal=name)
         return Caller()
 
 
@@ -445,6 +451,8 @@ class _Session:
     pairings: dict[str, str] = field(default_factory=dict)
     #: paired at least once by an anonymous caller (the capability rule)
     capability_paired: bool = False
+    #: the identity the in-app chat bound to this session (``key:<sha256>``), or None
+    chat_key: str | None = None
     code: str | None = None
     sent: deque = field(default_factory=deque)
     #: requestId → the future its ``query`` message waits on
@@ -588,7 +596,38 @@ class AgentSessions:
             self._drop_code(session)
             session.pairings.clear()
             session.capability_paired = False
+            session.chat_key = None
             self._tell(session, self._status(session))
+
+    def bind_chat(self, session_id: str, secret: str, principal: str | None, agent_key: str | None) -> None:
+        """``_agent-bind``: the in-app chat binds its conversation to this tab — the session becomes
+        reachable by the agent sending ``agent_key``, and that agent reaches nothing else through
+        it. A new binding of the session replaces its previous chat binding; a key bound to another
+        session leaves it (one conversation, one tab)."""
+        with self._lock:
+            self._purge()
+            session = self._sessions.get(session_id)
+            if session is None:
+                raise UserFacingException(CHANNEL_REFUSED)
+            self._check_owner(session, secret, principal)
+            raw = agent_key.strip() if isinstance(agent_key, str) else ""
+            if len(raw) < MIN_AGENT_KEY_LENGTH or len(raw) > 256:
+                raise UserFacingException(INVALID_AGENT_KEY)
+            key = f"key:{_sha256(raw)}"
+            for other in self._sessions.values():
+                if other is not session and other.chat_key == key:
+                    other.pairings.pop(key, None)
+                    other.chat_key = None
+                    self._tell(other, self._status(other))
+            if session.chat_key is not None and session.chat_key != key:
+                session.pairings.pop(session.chat_key, None)
+            session.chat_key = key
+            session.pairings[key] = ANONYMOUS_LABEL
+            self._tell(session, self._status(session))
+            log.info(
+                "Mateu agent push: chat bound session=%s (user=%s)",
+                fingerprint(session.handle), session.principal,
+            )
 
     # ── Agent side ──
     def list(self, caller: Caller) -> list[dict[str, Any]]:
@@ -746,8 +785,8 @@ class AgentSessions:
 
     @staticmethod
     def _visible(caller: Caller, session: _Session, listing: bool) -> bool:
-        if caller.principal is not None and session.principal == caller.principal:
-            return True
+        # only a caller the session is BOUND to (pairing, the chat): being signed in as the
+        # session's user is not enough — an agent acts on the session that launched it
         if caller.key is not None and caller.key in session.pairings:
             return True
         # the capability rule: a session an ANONYMOUS caller paired is reachable by an anonymous
@@ -893,6 +932,10 @@ def channel_action(
             None if request_id is None else _text(request_id),
             answer_of(parameters),
         )
+        return {"answered": True}
+    if action_id == BIND_ACTION:
+        agent_key = parameters.get("agentKey")
+        sessions.bind_chat(session_id, secret, principal, agent_key if isinstance(agent_key, str) else None)
         return {"answered": True}
     if action_id == PAIR_ACTION:
         code, ttl = sessions.new_code(session_id, secret, principal)

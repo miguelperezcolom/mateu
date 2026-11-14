@@ -238,6 +238,67 @@ class AgentPushSyncTest {
     }
   }
 
+  /**
+   * The in-app chat binds its conversation to the tab that opened it ({@code _agent-bind}): its
+   * agent — signed in as the same user — reaches that tab and nothing else; the user's other tab
+   * answers "Unknown session" exactly like one that does not exist.
+   */
+  @Test
+  void theChatsAgentReachesOnlyTheTabThatOpenedIt() throws Exception {
+    var tab1 = new CopyOnWriteArrayList<UIIncrementDto>();
+    var tab2 = new CopyOnWriteArrayList<UIIncrementDto>();
+    var other = new java.util.HashMap<String, Object>(ids());
+    other.put("sessionId", "tab-2");
+    other.put("secret", "tab-2-secret");
+    var user = TestIdentities.headersWithRoles("user");
+    var s1 = mateu.stream(rq("_agent-channel", ids()), user).subscribe(tab1::add);
+    var s2 = mateu.stream(rq("_agent-channel", other), user).subscribe(tab2::add);
+    try {
+      await(() -> !pushes(tab1).isEmpty() && !pushes(tab2).isEmpty());
+      var bind = new java.util.HashMap<String, Object>(ids());
+      bind.put("agentKey", "conversation-key-of-tab-1");
+      assertThat(
+              OM.valueToTree(mateu.run(rq("_agent-bind", bind), user)).path("messages").toString())
+          .doesNotContain("Error");
+      // tab-2's handle, through a pairing of its own (anonymous)
+      var code =
+          OM.valueToTree(mateu.run(rq("_agent-pair", other), user))
+              .toString()
+              .replaceAll(".*\"code\":\"([A-Z0-9-]+)\".*", "$1");
+      var mcp = new McpService(mateu.service(), OM);
+      var tab2Handle = call(mcp, null, "mateu_pair_session", Map.of("code", code)).path("session");
+      McpService.HttpRequestFactory chat =
+          rq -> {
+            var request = new FakeHttpRequest(rq);
+            user.forEach(request::withHeader);
+            request.withHeader("X-Mateu-Agent-Key", "conversation-key-of-tab-1");
+            return request;
+          };
+      var listed =
+          OM.readTree(
+              McpJsonRpc.handle(message("mateu_list_sessions", Map.of()), mcp, "", chat, OM)
+                  .path("result")
+                  .path("content")
+                  .path(0)
+                  .path("text")
+                  .asText());
+      assertThat(listed.path("sessions")).hasSize(1);
+      assertThat(listed.path("sessions").path(0).path("route").asText()).isEqualTo("/orders");
+      var refused =
+          McpJsonRpc.handle(
+              message("mateu_navigate", Map.of("session", tab2Handle.asText(), "route", "/")),
+              mcp,
+              "",
+              chat,
+              OM);
+      assertThat(refused.path("result").path("content").path(0).path("text").asText())
+          .isEqualTo("Error: Unknown session \"" + tab2Handle.asText() + "\".");
+    } finally {
+      s1.dispose();
+      s2.dispose();
+    }
+  }
+
   @Test
   void anotherUserCannotTakeOverTheChannelOrAskForItsCode() {
     var received = new CopyOnWriteArrayList<UIIncrementDto>();

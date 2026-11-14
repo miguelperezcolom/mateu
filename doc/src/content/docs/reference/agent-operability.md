@@ -204,9 +204,16 @@ browser.
 
 ### Pair
 
-A signed-in user's own agent needs no pairing: an MCP caller authenticated as the same principal sees
-that user's sessions in `mateu_list_sessions`. Any other agent — a local Claude Code, the sidecar,
-an anonymous caller — must be **paired**:
+**An agent acts only on the session that launched it.** Being signed in as the same user is not
+enough: an agent reaches a tab only once that tab is **bound** to it, and never the user's other
+tabs, phone or desktop — those answer `Unknown session`, exactly like a session that does not exist.
+There are two bindings:
+
+- **the in-app chat**: a conversation is bound to the tab it was opened in. The tab generates a key
+  for the conversation, binds it to itself (`_agent-bind`) and sends it to the chat backend as
+  `agentKey`; the chat's agent passes it to the MCP endpoint as the `X-Mateu-Agent-Key` header. A new
+  conversation replaces the tab's previous binding;
+- **pairing**, for any other agent — a local Claude Code, the sidecar, an anonymous caller:
 
 1. the user clicks **Connect AI**; the UI shows a one-time code (`K7QF-4MZP`) with a countdown;
 2. the user tells the agent the code; the agent calls `mateu_pair_session {code}`;
@@ -265,11 +272,13 @@ values**: `Mateu agent push: caller=<who> session=<fingerprint> kind=query event
 ### Security model
 
 - **Off by default**, and only with the MCP endpoint on.
-- **Who may reach a session**: a caller signed in as the session's user, or a caller the session
-  was **paired** to. The caller is its authenticated principal; else the `X-Mateu-Agent-Key` header
-  (what the sidecar sends, ≥ 16 characters); else anonymous — and an anonymous caller only reaches a
-  session it paired, by the opaque handle the pairing answered. Anything else answers `Unknown
-  session` — a session of another user and one that does not exist look the same.
+- **Who may reach a session**: only a caller the session is **bound** to — paired with that tab's
+  code, or the agent of the chat conversation opened in it. Being the session's user is not enough.
+  The caller is the `X-Mateu-Agent-Key` header when present (≥ 16 characters; what the sidecar and
+  the chat's agent send — it wins over the request's principal); else its authenticated principal;
+  else anonymous — and an anonymous caller only reaches a session it paired, by the opaque handle
+  the pairing answered. Anything else answers `Unknown session` on every session tool — another
+  user's session, the same user's other tabs and one that does not exist look the same.
 - **The UI side is pinned**: a session belongs to the secret its tab generated and to the principal
   it registered with; another tab, user or guess cannot take over its stream or ask for its codes.
 - **Limits**: 30 messages per session per minute, 256 KiB per screen, 64 KiB per event detail, 10

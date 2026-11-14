@@ -102,6 +102,7 @@ class McpPushCorpusTest {
     assertThat(AgentPush.FAILED).isEqualTo(errors.get("failed").asText());
     assertThat(AgentPush.SCREEN_TOO_LARGE).isEqualTo(errors.get("screenTooLarge").asText());
     assertThat(AgentPush.INVALID_ROW).isEqualTo(errors.get("invalidRow").asText());
+    assertThat(AgentPush.INVALID_AGENT_KEY).isEqualTo(errors.get("invalidAgentKey").asText());
     assertThat(AgentPush.refusal("whatever", "x")).isEqualTo(AgentPush.FAILED);
   }
 
@@ -256,6 +257,8 @@ class McpPushCorpusTest {
                   id, (String) AgentSessions.shared().pairingCode(id, s[0], s[1]).get("code"));
           case "unpair" -> AgentSessions.shared().unpair(id, s[0], s[1]);
           case "disconnect" -> channels.get(id).close();
+          case "bind" ->
+              AgentSessions.shared().bindChat(id, s[0], s[1], step.get("agentKey").asText());
           case "answer" -> {
             var scripted = OM.createObjectNode();
             if (step.has("screen")) scripted.set("screen", step.get("screen"));
@@ -288,7 +291,9 @@ class McpPushCorpusTest {
     McpService.HttpRequestFactory requests =
         rq -> {
           var request = new FakeHttpRequest(rq);
-          if (!"anon".equals(as)) {
+          if (as.startsWith("key:")) {
+            request.withHeader(AgentPush.AGENT_KEY_HEADER, as.substring(4));
+          } else if (!"anon".equals(as)) {
             request.withPrincipal(TestIdentities.principal(Map.of("sub", as)));
           }
           return request;
@@ -333,6 +338,7 @@ class McpPushCorpusTest {
             switch (renderer) {
               case "vaadin" -> "ui-1";
               case "redwood" -> "ui-2";
+              case "intellij" -> "ui-4";
               default -> "ui-3";
             };
         handles.put(node.get("session").asText(), id);

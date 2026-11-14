@@ -94,11 +94,15 @@ class Ui:
                 except UserFacingException as refused:  # the adapter's error boundary shows it as written
                     return {"messages": [{"text": refused.message}]}
 
-    def open(self):
+    def open(self, paired=True):
+        """Opens the channel; a signed-in UI is then PAIRED to its user's caller with its own code
+        (being signed in as the session's user is not enough to reach it)."""
         inc = self.run(
             agent_push.CHANNEL_ACTION, self.params(route=self.route, renderer=self.renderer), self.channel
         )
         self.received.extend(c["data"] for c in inc["commands"] if c["type"] == "AgentPush")
+        if paired and self.principal is not None:
+            self.handler.agent_push.pair(Caller.of(self.principal), self.pair()["code"])
         return inc
 
     def pair(self):
@@ -106,6 +110,10 @@ class Ui:
         pairing = inc["fragments"][0]["data"]["_agentPairing"]
         self.code = pairing["code"]
         return pairing
+
+    def bind(self, agent_key):
+        """The chat's ``_agent-bind``: its conversation's agent key bound to this tab."""
+        return self.run(agent_push.BIND_ACTION, self.params(agentKey=agent_key))
 
     def unpair(self):
         return self.run(agent_push.UNPAIR_ACTION, self.params())["fragments"][0]["data"]
@@ -179,6 +187,7 @@ def test_error_texts_are_the_corpus():
     assert agent_push.refusal("whatever", "x") == errors["failed"] == agent_push.FAILED
     assert agent_push.refusal("tooLarge", None) == errors["screenTooLarge"]
     assert agent_push.INVALID_ROW == errors["invalidRow"]
+    assert agent_push.INVALID_AGENT_KEY == errors["invalidAgentKey"]
     assert agent_push.HAS_ERRORS == CORPUS["reasons"]["hasErrors"]
     assert agent_push.NOT_A_PAGE == CORPUS["reasons"]["notAPage"]
 
@@ -228,7 +237,7 @@ def test_the_scripted_scenario():
     uis: dict[str, Ui] = {}
     for s in scenario["sessions"]:
         ui_ = Ui(handler, s["sessionId"], s["secret"], s["principal"], s["route"], s["renderer"])
-        ui_.open()
+        ui_.open(paired=False)
         uis[s["sessionId"]] = ui_
     sessions = handler.agent_push
     handles = {sessions._sessions[sid].handle: sid for sid in uis}
@@ -246,10 +255,18 @@ def test_the_scripted_scenario():
             if step["ui"] == "answer":
                 target.answers.append({k: step[k] for k in ("screen", "error") if k in step})
                 continue
+            if step["ui"] == "bind":
+                answered = target.bind(step["agentKey"])
+                assert "messages" not in answered or not answered["messages"], where
+                continue
             {"pair": target.pair, "unpair": target.unpair, "disconnect": target.disconnect}[step["ui"]]()
         else:
             args = _substituted(step["args"], uis, handle_of)
-            actual = call(handler, principals[step["as"]], step["tool"], args)
+            who = step["as"]
+            if who.startswith("key:"):
+                actual = call(handler, None, step["tool"], args, agent_key=who[4:])
+            else:
+                actual = call(handler, principals[who], step["tool"], args)
             assert _normalised(actual, handles) == step["expect"], where
 
 
@@ -266,10 +283,19 @@ def _sessions(clock, **kw) -> AgentSessions:
     return AgentSessions(clock=clock, now=lambda: datetime(2026, 10, 19, 10, 0, tzinfo=timezone.utc), **kw)
 
 
-def _open(sessions, sid, principal="alice", secret="s3cret", channel=None):
+def _open(sessions, sid, principal="alice", secret="s3cret", channel=None, paired=True):
+    """Opens a session; a signed-in one is then PAIRED to its user's caller with the tab's own code
+    (being signed in as the session's user is not enough to reach it)."""
     channel = channel or AgentChannel(lambda d: None)
     sessions.open_channel(sid, secret, principal, "/r", "vaadin", channel)
+    if paired and principal is not None:
+        _pair_user(sessions, sid, secret, principal)
     return channel
+
+
+def _pair_user(sessions, sid, secret, principal):
+    code, _ = sessions.new_code(sid, secret, principal)
+    sessions.pair(Caller.of(principal), code)
 
 
 ALICE = Caller.of("alice")
@@ -337,7 +363,7 @@ def test_the_rate_limit_is_per_session_per_rolling_minute():
     sessions.send(ALICE, two, data, "event=ping")  # another session has its own budget
     clock.t += 60
     sessions.send(ALICE, one, data, "event=ping")
-    assert len(got) == 4
+    assert len(got) == 5  # the pairing's status + the four messages
 
 
 def test_max_sessions_evicts_a_disconnected_one_else_refuses():
@@ -404,7 +430,10 @@ def test_an_agent_key_identifies_a_caller_without_a_principal():
     keyed = Caller.of(None, "k" * 16)
     assert keyed.key is not None and keyed.key.startswith("key:") and "k" * 16 not in keyed.key
     assert keyed.label == "an agent"
-    assert Caller.of("alice", "k" * 16).key == "user:alice"
+    # an agent key sent by a signed-in agent is what identifies it (that ONE agent)
+    assert Caller.of("alice", "k" * 16).key == keyed.key
+    assert Caller.of("alice", "k" * 16).label == "alice"
+    assert Caller.of("alice").key == "user:alice"
     sessions = _sessions(Clock())
     _open(sessions, "ui-1", principal="carol")
     code, _ = sessions.new_code("ui-1", "s3cret", "carol")
@@ -560,6 +589,24 @@ def _rpc(client, tool, args, user=None, key=None):
     return {"error": text} if result.get("isError") else json.loads(text)
 
 
+CHAT_KEY = "the-chats-conversation-key-1"
+
+
+def _bind_when_registered(client, session_id, user="alice", key=CHAT_KEY):
+    """The in-app chat binds its conversation to the tab (``_agent-bind``) once its channel is open
+    (being signed in as the tab's user is not enough for its agent to reach it)."""
+    import time
+
+    for _ in range(200):
+        rs = client.post("/mateu/v3/sync/_empty", json={
+            "actionId": "_agent-bind", "parameters": {"sessionId": session_id, "secret": "s", "agentKey": key}},
+            headers={"x-test-user": user})
+        if not rs.json().get("messages"):
+            return
+        time.sleep(0.01)
+    raise AssertionError("the tab never registered")
+
+
 def test_a_pushed_message_reaches_an_open_agent_channel_over_the_real_sse_endpoint(monkeypatch):
     from fastapi.testclient import TestClient
 
@@ -570,13 +617,17 @@ def test_a_pushed_message_reaches_an_open_agent_channel_over_the_real_sse_endpoi
     def push_when_registered():
         import time
 
+        _bind_when_registered(client, "tab-1")
+        # alice herself is not bound to it: her own tab is an unknown session to her
+        assert _rpc(client, "mateu_list_sessions", {}, user="alice") == {"sessions": []}
         for _ in range(200):
-            listed = _rpc(client, "mateu_list_sessions", {}, user="alice")
+            listed = _rpc(client, "mateu_list_sessions", {}, user="alice", key=CHAT_KEY)
             if listed.get("sessions"):
                 handle = listed["sessions"][0]["session"]
                 delivered["result"] = _rpc(
                     client, "mateu_push_ui",
-                    {"session": handle, "yaml": "type: Text\ntext: Hi\n", "target": "dialog"}, user="alice",
+                    {"session": handle, "yaml": "type: Text\ntext: Hi\n", "target": "dialog"},
+                    user="alice", key=CHAT_KEY,
                 )
                 return
             time.sleep(0.01)
@@ -596,11 +647,12 @@ def test_a_pushed_message_reaches_an_open_agent_channel_over_the_real_sse_endpoi
                 continue
             inc = json.loads(line[len("data:"):])
             messages += [c["data"] for c in inc["commands"] if c["type"] == "AgentPush"]
-            if len(messages) == 2:
+            if len(messages) == 3:
                 break
     pusher.join(5)
     assert messages[0] == {"kind": "status", "event": "mateu-agent-status", "detail": {"paired": False, "agents": []}}
-    assert messages[1] == {"kind": "render", "event": "render-screen",
+    assert messages[1] == {"kind": "status", "event": "mateu-agent-status", "detail": {"paired": True, "agents": ["an agent"]}}
+    assert messages[2] == {"kind": "render", "event": "render-screen",
                            "detail": {"yaml": "type: Text\ntext: Hi\n", "target": "dialog"}}
     assert delivered["result"]["delivered"] is True
     # the pairing code over the sync endpoint, then an agent key pairs with it
@@ -867,6 +919,7 @@ def test_what_an_agent_sends_cannot_forge_log_lines_and_a_route_is_bounded(caplo
     sessions = _sessions(Clock())
     channel = AgentChannel(lambda d: None)
     sessions.open_channel("ui-1", "s3cret", "alice", "/" + "r" * 2000, "v" * 100, channel)
+    _pair_user(sessions, "ui-1", "s3cret", "alice")
     entry = sessions.list(ALICE)[0]
     assert len(entry["route"]) <= 512
     assert len(entry["renderer"]) <= 32
@@ -903,8 +956,10 @@ def test_an_answer_with_another_secret_or_principal_is_refused_and_an_unknown_re
 
 def test_closing_the_channel_fails_a_waiting_request_at_once():
     sessions = AgentSessions(answer_timeout_ms=5000)
-    channel = AgentChannel(lambda d: threading.Timer(0.05, lambda: sessions.channel_closed(channel)).start())
+    channel = AgentChannel(lambda d: d.get("kind") == "query"
+                           and threading.Timer(0.05, lambda: sessions.channel_closed(channel)).start())
     sessions.open_channel("ui-1", "s3cret", "alice", "", "", channel)
+    _pair_user(sessions, "ui-1", "s3cret", "alice")
     caller = Caller.of("alice")
     handle = sessions.list(caller)[0]["session"]
     import time as clock
@@ -926,6 +981,7 @@ def test_an_oversized_screen_is_too_large_and_an_answer_without_screen_failed():
 def test_no_more_than_four_requests_wait_for_one_session():
     sessions = AgentSessions(answer_timeout_ms=1000)
     sessions.open_channel("ui-1", "s3cret", "alice", "", "", AgentChannel(lambda d: None))
+    _pair_user(sessions, "ui-1", "s3cret", "alice")
     caller = Caller.of("alice")
     handle = sessions.list(caller)[0]["session"]
     started = threading.Barrier(5)
@@ -968,11 +1024,12 @@ def test_the_tab_answers_over_the_real_endpoints_while_the_tool_call_waits(monke
     def ask_when_registered():
         import time
 
+        _bind_when_registered(client, "tab-9")
         for _ in range(200):
-            listed = _rpc(client, "mateu_list_sessions", {}, user="alice")
+            listed = _rpc(client, "mateu_list_sessions", {}, key=CHAT_KEY)
             if listed.get("sessions"):
                 handle = listed["sessions"][0]["session"]
-                result["screen"] = _rpc(client, "mateu_get_session_screen", {"session": handle}, user="alice")
+                result["screen"] = _rpc(client, "mateu_get_session_screen", {"session": handle}, key=CHAT_KEY)
                 result["handle"] = handle
                 return
             time.sleep(0.01)
@@ -1002,3 +1059,75 @@ def test_the_tab_answers_over_the_real_endpoints_while_the_tool_call_waits(monke
     asker.join(5)
     assert result["screen"] == {"session": result["handle"],
                                 "screen": {"route": "/home", "focus": "page", "fields": [], "actions": []}}
+
+
+# ── Only a caller the session is bound to reaches it ───────────────────────────────────────
+def test_two_sessions_of_the_same_user_an_agent_bound_to_one_gets_unknown_session_on_the_other():
+    sessions = _sessions(Clock())
+    _open(sessions, "ui-1", paired=False)
+    _open(sessions, "ui-2", paired=False)
+    # signed in as the sessions' user is not enough
+    assert sessions.list(ALICE) == []
+    _pair_user(sessions, "ui-1", "s3cret", "alice")
+    mine = sessions.list(ALICE)[0]["session"]
+    sessions.bind_chat("ui-2", "s3cret", "alice", CHAT_KEY)
+    chat = Caller.of(None, CHAT_KEY)
+    other = sessions.list(chat)[0]["session"]
+    assert other != mine
+    sessions.send(ALICE, mine, agent_push.message("event", "x", {}), "event=x")
+    sessions.send(chat, other, agent_push.message("event", "x", {}), "event=x")
+    for caller, handle in ((ALICE, other), (chat, mine)):
+        with pytest.raises(UserFacingException) as refused:
+            sessions.send(caller, handle, agent_push.message("event", "x", {}), "event=x")
+        assert refused.value.message == agent_push.unknown_session(handle)
+
+
+def test_every_session_tool_refuses_a_session_not_bound_to_the_caller():
+    handler = _handler()
+    a = Ui(handler, "ui-1", "s", "alice")
+    a.open(paired=False)
+    a.bind(CHAT_KEY)
+    b = Ui(handler, "ui-2", "s", "alice")
+    b.open(paired=False)
+    handle = handler.agent_push._sessions["ui-2"].handle
+    for tool, args in (
+        ("mateu_navigate", {"session": handle, "route": "/"}),
+        ("mateu_push_ui", {"session": handle, "yaml": "type: Text\ntext: Hi\n"}),
+        ("mateu_dispatch_event", {"session": handle, "event": "ping"}),
+        ("mateu_get_session_screen", {"session": handle}),
+        ("mateu_set_session_fields", {"session": handle, "values": {"a": 1}}),
+        ("mateu_run_session_action", {"session": handle, "actionId": "save"}),
+    ):
+        for principal, key in (("alice", None), ("alice", CHAT_KEY), (None, CHAT_KEY)):
+            assert call(handler, principal, tool, args, agent_key=key) == {
+                "error": agent_push.unknown_session(handle)}, (tool, principal, key)
+    assert [e["session"] for e in handler.agent_push.list(Caller.of("alice", CHAT_KEY))] == [
+        handler.agent_push._sessions["ui-1"].handle]
+
+
+def test_the_chat_binds_its_conversation_to_the_tab_that_opened_it_and_only_that_one():
+    sessions = _sessions(Clock())
+    got: list = []
+    _open(sessions, "ui-1", principal=None, channel=AgentChannel(got.append))
+    _open(sessions, "ui-2", principal=None)
+    with pytest.raises(UserFacingException) as refused:
+        sessions.bind_chat("ui-1", "s3cret", None, "short")
+    assert refused.value.message == agent_push.INVALID_AGENT_KEY
+    with pytest.raises(UserFacingException) as refused:
+        sessions.bind_chat("ui-1", "wrong", None, CHAT_KEY)
+    assert refused.value.message == agent_push.CHANNEL_REFUSED
+    sessions.bind_chat("ui-1", "s3cret", None, CHAT_KEY)
+    first = Caller.of(None, CHAT_KEY)
+    assert len(sessions.list(first)) == 1
+    assert got[-1]["detail"] == {"paired": True, "agents": ["an agent"]}
+    # a new conversation in the same tab replaces the binding
+    sessions.bind_chat("ui-1", "s3cret", None, "the-next-conversation-key")
+    assert sessions.list(first) == []
+    # the same key bound to another tab leaves the first one
+    nxt = Caller.of(None, "the-next-conversation-key")
+    sessions.bind_chat("ui-2", "s3cret", None, "the-next-conversation-key")
+    assert len(sessions.list(nxt)) == 1
+    assert got[-1]["detail"] == {"paired": False, "agents": []}
+    # unpairing removes it too
+    sessions.unpair("ui-2", "s3cret", None)
+    assert sessions.list(nxt) == []

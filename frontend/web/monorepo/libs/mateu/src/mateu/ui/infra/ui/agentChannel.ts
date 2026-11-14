@@ -410,6 +410,26 @@ export const stopAgentChannel = async (): Promise<void> => {
 
 setAgentStopHandler(() => stopAgentChannel())
 
+/**
+ * Binds an in-app chat conversation to THIS tab (`_agent-bind`): the agent the chat hands `key` to
+ * reaches this tab's session, and only it. Resolves false when there is nothing to bind (no live UI
+ * push, the user stopped the agents here) or the server refused.
+ */
+export const bindChatConversation = async (key: string): Promise<boolean> => {
+    const t = target
+    if (!t || stopped) return false
+    try {
+        await tabSessionReady()
+        await whenConnected(3_000)
+        const answer = await mateuApiClient.runAction(t.baseUrl, t.route, '', '_agent-bind', 'mateu-agent-channel',
+            undefined, t.serverSideType, {}, { sessionId: sessionId(), secret: channelSecret(), agentKey: key },
+            t.origin as HTMLElement, true) as { messages?: { variant?: string }[] } | undefined
+        return !(answer?.messages ?? []).some(m => m?.variant === 'error')
+    } catch {
+        return false
+    }
+}
+
 /** Whether the user stopped the agents on this tab. */
 export const agentChannelStopped = (): boolean => stopped
 

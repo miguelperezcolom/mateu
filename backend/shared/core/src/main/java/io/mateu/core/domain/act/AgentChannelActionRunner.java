@@ -32,6 +32,8 @@ import reactor.core.publisher.Flux;
  *       stream that its browser went away);
  *   <li>{@value AgentPush#PAIR_ACTION} → {@code Data{_agentPairing: {code, expiresInSeconds}}};
  *   <li>{@value AgentPush#UNPAIR_ACTION} → {@code Data{_agentPairing: null}};
+ *   <li>{@value AgentPush#BIND_ACTION} (+ {@code agentKey}, ≥ 16 characters): the in-app chat binds
+ *       its conversation to this tab → {@code Data{}};
  *   <li>{@value AgentPush#SCREEN_ACTION} (+ {@code requestId}, and {@code screen} or {@code error:
  *       {code, id?}}): the UI's answer to a {@code query} message ({@code describe-screen}, {@code
  *       set-fields}, {@code run-action}) → {@code Data{}}; a screen larger than {@value
@@ -60,7 +62,8 @@ public class AgentChannelActionRunner implements ActionRunner {
     return AgentPush.CHANNEL_ACTION.equals(actionId)
         || AgentPush.PAIR_ACTION.equals(actionId)
         || AgentPush.UNPAIR_ACTION.equals(actionId)
-        || AgentPush.SCREEN_ACTION.equals(actionId);
+        || AgentPush.SCREEN_ACTION.equals(actionId)
+        || AgentPush.BIND_ACTION.equals(actionId);
   }
 
   @Override
@@ -78,6 +81,10 @@ public class AgentChannelActionRunner implements ActionRunner {
       if (AgentPush.PAIR_ACTION.equals(command.actionId())) {
         var code = sessions.pairingCode(sessionId, secret, principal);
         return Flux.just(new Data(Map.of(AgentPush.PAIRING_KEY, code)));
+      }
+      if (AgentPush.BIND_ACTION.equals(command.actionId())) {
+        sessions.bindChat(sessionId, secret, principal, text(parameters, "agentKey"));
+        return Flux.just(new Data(Map.of()));
       }
       if (AgentPush.SCREEN_ACTION.equals(command.actionId())) {
         sessions.answer(

@@ -74,6 +74,15 @@ public class AgentPushTests
                 ("route", route), ("renderer", renderer)));
         }
 
+        /// <summary>Opens a session and pairs it to its signed-in user (see <see cref="PairUser"/>).</summary>
+        public AgentChannel OpenPaired(string sessionId, string secret, string principal, string route = "/",
+            string renderer = "vaadin")
+        {
+            var channel = Open(sessionId, secret, principal, route, renderer);
+            PairUser(sessionId, secret, principal);
+            return channel;
+        }
+
         public UIIncrementDto Ui(string action, string sessionId, string secret, string? principal)
         {
             Principal = principal;
@@ -98,6 +107,29 @@ public class AgentPushTests
                     ActionId = SyncHandler.AgentScreenAction, Route = "", Parameters = parameters,
                 });
             }
+        }
+
+        /// <summary>The chat's <c>_agent-bind</c>: its conversation's agent key bound to this tab.</summary>
+        public UIIncrementDto Bind(string sessionId, string secret, string? principal, string agentKey)
+        {
+            Principal = principal;
+            return Handler.Handle(new RunActionRqDto
+            {
+                ActionId = SyncHandler.AgentBindAction, Route = "",
+                Parameters = new Dictionary<string, object?>
+                {
+                    ["sessionId"] = sessionId, ["secret"] = secret, ["agentKey"] = agentKey,
+                },
+            });
+        }
+
+        /// <summary>Pairs the session to the caller signed in as <paramref name="principal"/>, with the
+        /// tab's own code (being signed in as its user is not enough to reach it).</summary>
+        public AgentCaller PairUser(string sessionId, string secret, string principal)
+        {
+            var caller = AgentCaller.From(principal, null);
+            Sessions.Pair(caller, PairCode(sessionId, secret, principal));
+            return caller;
         }
 
         public string PairCode(string sessionId, string secret, string? principal)
@@ -196,6 +228,7 @@ public class AgentPushTests
         Assert.Equal(AgentSessions.Refusal("whatever", "x"), (string)errors["failed"]!);
         Assert.Equal(AgentSessions.Refusal("tooLarge", null), (string)errors["screenTooLarge"]!);
         Assert.Equal(AgentSessions.InvalidRow, (string)errors["invalidRow"]!);
+        Assert.Equal(AgentSessions.InvalidAgentKey, (string)errors["invalidAgentKey"]!);
         Assert.Equal(AgentSessions.HasErrors, (string)Corpus()["reasons"]!["hasErrors"]!);
         Assert.Equal(AgentSessions.NotAPage, (string)Corpus()["reasons"]!["notAPage"]!);
     }
@@ -251,7 +284,9 @@ public class AgentPushTests
                 }
             }
         }
-        AgentCaller CallerOf(string who) => who == "anon" ? AgentCaller.Anonymous : AgentCaller.From(who, null);
+        AgentCaller CallerOf(string who) => who == "anon" ? AgentCaller.Anonymous
+            : who.StartsWith("key:", StringComparison.Ordinal) ? AgentCaller.From(null, who[4..])
+            : AgentCaller.From(who, null);
 
         JsonNode? Substitute(JsonNode? node) => node switch
         {
@@ -310,6 +345,7 @@ public class AgentPushTests
                     case "pair": codes[id] = f.PairCode(id, secret, principal); break;
                     case "unpair": f.Ui(SyncHandler.AgentUnpairAction, id, secret, principal); break;
                     case "disconnect": f.Sessions.Closed(channels[id]); break;
+                    case "bind": f.Bind(id, secret, principal, (string)s["agentKey"]!); break;
                     case "answer":
                         var scripted = new JsonObject();
                         if (s["screen"] is { } screen) scripted["screen"] = screen.DeepClone();
@@ -399,7 +435,7 @@ public class AgentPushTests
     public void A_disconnected_session_is_forgotten_120_seconds_after_its_stream_ended()
     {
         var f = new Fixture();
-        var channel = f.Open("ui-1", "secret-1", "alice");
+        var channel = f.OpenPaired("ui-1", "secret-1", "alice");
         var handle = channel.Session.Handle;
         var alice = f.Mcp(AgentCaller.From("alice", null));
         f.Sessions.Closed(channel);
@@ -410,7 +446,7 @@ public class AgentPushTests
         Assert.Empty(ToolOk(alice, "mateu_list_sessions", new())["sessions"]!.AsArray());
         Assert.Equal(AgentSessions.UnknownSession(handle), ToolError(alice, "mateu_navigate", new() { ["session"] = handle, ["route"] = "/" }));
         // a reconnection within the grace period keeps the handle
-        var again = f.Open("ui-2", "secret-2", "alice");
+        var again = f.OpenPaired("ui-2", "secret-2", "alice");
         f.Sessions.Closed(again);
         f.Now = f.Now.AddSeconds(60);
         var reopened = f.Open("ui-2", "secret-2", "alice");
@@ -426,20 +462,21 @@ public class AgentPushTests
         var first = f.Open("ui-1", "secret-1", "alice");
         var second = f.Open("ui-1", "secret-1", "alice");
         Assert.True(first.Queue.Reader.Completion.IsCompleted || Drain(first).Count == 1);
+        f.PairUser("ui-1", "secret-1", "alice");
         // the old stream ending does not disconnect the new one
         f.Sessions.Closed(first);
         Assert.True(second.Session.Connected);
         var handle = second.Session.Handle;
         Assert.True(ToolOk(f.Mcp(AgentCaller.From("alice", null)), "mateu_navigate",
             new() { ["session"] = handle, ["route"] = "/x" })["delivered"]!.GetValue<bool>());
-        Assert.Equal(2, Drain(second).Count); // status + navigate
+        Assert.Equal(3, Drain(second).Count); // status + paired + navigate
     }
 
     [Fact]
     public void The_rate_limit_is_per_session_and_per_rolling_minute()
     {
         var f = new Fixture(rate: 3);
-        var handle = f.Open("ui-1", "secret-1", "alice").Session.Handle;
+        var handle = f.OpenPaired("ui-1", "secret-1", "alice").Session.Handle;
         var alice = f.Mcp(AgentCaller.From("alice", null));
         JsonObject Args() => new() { ["session"] = handle, ["event"] = "ping" };
         for (var i = 0; i < 3; i++)
@@ -449,7 +486,7 @@ public class AgentPushTests
         }
         Assert.Equal(AgentSessions.RateLimited, ToolError(alice, "mateu_dispatch_event", Args()));
         // another session has its own budget
-        var other = f.Open("ui-2", "secret-2", "alice").Session.Handle;
+        var other = f.OpenPaired("ui-2", "secret-2", "alice").Session.Handle;
         ToolOk(alice, "mateu_dispatch_event", new() { ["session"] = other, ["event"] = "ping" });
         // the first message leaves the window 60 s after it was sent
         f.Now = f.Now.AddSeconds(30);
@@ -487,15 +524,15 @@ public class AgentPushTests
     public void Max_sessions_per_owner_evicts_that_owners_longest_disconnected_session()
     {
         var f = new Fixture(perOwner: 3);
-        var a = f.Open("ui-1", "s-1", "alice");
-        var b = f.Open("ui-2", "s-2", "alice");
-        f.Open("ui-3", "s-3", "alice");
-        var bob = f.Open("ui-b", "s-b", "bob");
+        var a = f.OpenPaired("ui-1", "s-1", "alice");
+        var b = f.OpenPaired("ui-2", "s-2", "alice");
+        f.OpenPaired("ui-3", "s-3", "alice");
+        var bob = f.OpenPaired("ui-b", "s-b", "bob");
         f.Sessions.Closed(bob);
         f.Sessions.Closed(a);
         f.Now = f.Now.AddSeconds(10);
         f.Sessions.Closed(b);
-        f.Open("ui-4", "s-4", "alice");
+        f.OpenPaired("ui-4", "s-4", "alice");
         var listed = ToolOk(f.Mcp(AgentCaller.From("alice", null)), "mateu_list_sessions", new())["sessions"]!.AsArray();
         var handles = listed.Select(s => (string)s!["session"]!).ToList();
         Assert.DoesNotContain(a.Session.Handle, handles); // the longest-disconnected one went
@@ -680,7 +717,7 @@ public class AgentPushTests
     public void The_senders_check_their_arguments_first()
     {
         var f = new Fixture();
-        var handle = f.Open("ui-1", "secret-1", "alice").Session.Handle;
+        var handle = f.OpenPaired("ui-1", "secret-1", "alice").Session.Handle;
         var alice = f.Mcp(AgentCaller.From("alice", null));
         Assert.Equal("Missing argument \"session\".", ToolError(alice, "mateu_push_ui", new() { ["yaml"] = "type: Text\n" }));
         Assert.Equal("Missing argument \"yaml\".", ToolError(alice, "mateu_push_ui", new() { ["session"] = handle }));
@@ -700,6 +737,67 @@ public class AgentPushTests
         ToolOk(alice, "mateu_navigate", new() { ["session"] = handle, ["route"] = "/r", ["actionId"] = "go" });
         var nav = Drain(f.Sessions.Reachable(AgentCaller.From("alice", null), handle).Current!).Last();
         Same(JsonNode.Parse("""{"kind":"navigate","event":"navigation-requested","detail":{"route":"/r","consumedRoute":"","actionId":"go"}}"""), nav, "navigate");
+    }
+
+    // ── only a caller the session is bound to reaches it ────────────────────────────────────
+
+    [Fact]
+    public void Two_sessions_of_the_same_user_an_agent_bound_to_one_gets_unknown_session_on_the_other()
+    {
+        var f = new Fixture();
+        var mine = f.Open("ui-1", "secret-1", "alice").Session.Handle;
+        var other = f.Open("ui-2", "secret-2", "alice").Session.Handle;
+        var alice = f.Mcp(AgentCaller.From("alice", null));
+        // signed in as the sessions' user is not enough
+        Assert.Empty(ToolOk(alice, "mateu_list_sessions", new())["sessions"]!.AsArray());
+        Assert.Equal(AgentSessions.UnknownSession(mine), ToolError(alice, "mateu_navigate", new() { ["session"] = mine, ["route"] = "/" }));
+        f.PairUser("ui-1", "secret-1", "alice");
+        Assert.Single(ToolOk(alice, "mateu_list_sessions", new())["sessions"]!.AsArray());
+        Assert.True(ToolOk(alice, "mateu_navigate", new() { ["session"] = mine, ["route"] = "/" })["delivered"]!.GetValue<bool>());
+        foreach (var (tool, args) in new (string, JsonObject)[]
+        {
+            ("mateu_navigate", new() { ["session"] = other, ["route"] = "/" }),
+            ("mateu_push_ui", new() { ["session"] = other, ["yaml"] = "type: Text\ntext: Hi\n" }),
+            ("mateu_dispatch_event", new() { ["session"] = other, ["event"] = "ping" }),
+            ("mateu_get_session_screen", new() { ["session"] = other }),
+            ("mateu_set_session_fields", new() { ["session"] = other, ["values"] = new JsonObject { ["a"] = 1 } }),
+            ("mateu_run_session_action", new() { ["session"] = other, ["actionId"] = "save" }),
+        })
+            Assert.Equal(AgentSessions.UnknownSession(other), ToolError(alice, tool, args));
+    }
+
+    [Fact]
+    public void The_chat_binds_its_conversation_to_the_tab_that_opened_it_and_only_that_one()
+    {
+        var f = new Fixture();
+        var ui1 = f.Open("ui-1", "secret-1", "alice");
+        f.Open("ui-2", "secret-2", "alice");
+        Assert.Equal(AgentSessions.InvalidAgentKey, Assert.Throws<UserFacingException>(() =>
+            f.Bind("ui-1", "secret-1", "alice", "short")).Message);
+        Assert.Equal(AgentSessions.ChannelRefused, Assert.Throws<UserFacingException>(() =>
+            f.Bind("ui-1", "wrong", "alice", "a-long-enough-chat-key")).Message);
+        f.Bind("ui-1", "secret-1", "alice", "a-long-enough-chat-key");
+        var first = f.Mcp(AgentCaller.From(null, "a-long-enough-chat-key"));
+        var listed = ToolOk(first, "mateu_list_sessions", new())["sessions"]!.AsArray();
+        Assert.Equal(ui1.Session.Handle, (string)Assert.Single(listed)!["session"]!);
+        // a signed-in agent sending the key is identified by the key
+        Assert.Single(ToolOk(f.Mcp(AgentCaller.From("alice", "a-long-enough-chat-key")), "mateu_list_sessions", new())["sessions"]!.AsArray());
+        Assert.Equal("key:" + AgentSessions.Sha256("a-long-enough-chat-key"), AgentCaller.From("alice", "a-long-enough-chat-key").Id);
+        Assert.Equal("alice", AgentCaller.From("alice", "a-long-enough-chat-key").Label);
+        // a new conversation in the same tab replaces the binding
+        f.Bind("ui-1", "secret-1", "alice", "the-next-conversation-key");
+        Assert.Empty(ToolOk(first, "mateu_list_sessions", new())["sessions"]!.AsArray());
+        // the same key bound to another tab leaves the first one
+        var next = f.Mcp(AgentCaller.From(null, "the-next-conversation-key"));
+        f.Bind("ui-2", "secret-2", "alice", "the-next-conversation-key");
+        Assert.Single(ToolOk(next, "mateu_list_sessions", new())["sessions"]!.AsArray());
+        Assert.Equal(AgentSessions.UnknownSession(ui1.Session.Handle),
+            ToolError(next, "mateu_navigate", new() { ["session"] = ui1.Session.Handle, ["route"] = "/" }));
+        var status = Drain(ui1).Last();
+        Assert.False(status["detail"]!["paired"]!.GetValue<bool>());
+        // unpairing removes it too
+        f.Ui(SyncHandler.AgentUnpairAction, "ui-2", "secret-2", "alice");
+        Assert.Empty(ToolOk(next, "mateu_list_sessions", new())["sessions"]!.AsArray());
     }
 
     // ── over HTTP ────────────────────────────────────────────────────────────────────────────
@@ -845,6 +943,8 @@ public class AgentScreenTests
     {
         var sessions = Sessions();
         var channel = sessions.Open("ui-1", "s3cret", "alice", "/", "vaadin");
+        // being signed in as the session's user is not enough: pair it
+        sessions.Pair(AgentCaller.From("alice", null), sessions.NewPairingCode("ui-1", "s3cret", "alice"));
         var svc = new McpService(new SyncHandler(new MateuRegistry(typeof(AgentScreenTests).Assembly)) { AgentPush = sessions },
             new System.Text.Json.JsonSerializerOptions()) { Push = sessions, Caller = AgentCaller.From("alice", null) };
         var watch = System.Diagnostics.Stopwatch.StartNew();
@@ -862,7 +962,9 @@ public class AgentScreenTests
     {
         var sessions = Sessions();
         var channel = sessions.Open("ui-1", "s3cret", "alice", "/", "vaadin");
-        channel.Queue.Reader.TryRead(out _); // the status
+        // being signed in as the session's user is not enough: pair it
+        sessions.Pair(AgentCaller.From("alice", null), sessions.NewPairingCode("ui-1", "s3cret", "alice"));
+        while (channel.Queue.Reader.TryRead(out _)) { } // the status messages
         var svc = new McpService(new SyncHandler(new MateuRegistry(typeof(AgentScreenTests).Assembly)) { AgentPush = sessions },
             new System.Text.Json.JsonSerializerOptions()) { Push = sessions, Caller = AgentCaller.From("alice", null) };
         var call = McpPushTools.DispatchAsync(svc, sessions, "mateu_run_session_action",
@@ -895,6 +997,8 @@ public class AgentScreenTests
     {
         var sessions = Sessions();
         var channel = sessions.Open("ui-1", "s3cret", "alice", "/", "vaadin");
+        // being signed in as the session's user is not enough: pair it
+        sessions.Pair(AgentCaller.From("alice", null), sessions.NewPairingCode("ui-1", "s3cret", "alice"));
         for (var i = 0; i < AgentSessions.MaxPendingRequests; i++) sessions.Ask(channel.Session, "describe-screen", new JsonObject());
         var refused = Assert.Throws<UserFacingException>(() => sessions.Ask(channel.Session, "describe-screen", new JsonObject()));
         Assert.Equal(AgentSessions.RateLimited, refused.Message);

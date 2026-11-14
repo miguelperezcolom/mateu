@@ -117,6 +117,9 @@ public final class AgentSessions {
     final Map<String, java.util.concurrent.CompletableFuture<Answer>> pending =
         new LinkedHashMap<>();
 
+    /** The identity the in-app chat bound to this session ({@code key:<sha256>}), or null. */
+    String chatKey;
+
     Session(
         String sessionId,
         String handle,
@@ -359,14 +362,63 @@ public final class AgentSessions {
       }
       session.pairings.clear();
       session.capabilityPaired = false;
+      session.chatKey = null;
       send(session, status(session));
     }
     flush(session);
   }
 
+  /**
+   * The in-app chat binds its conversation to this tab: the session becomes reachable by the agent
+   * sending {@code agentKey} — and that agent reaches nothing else through this binding. A new
+   * binding of the session replaces its previous chat binding; a key bound to another session
+   * leaves it (one conversation, one tab).
+   */
+  public void bindChat(String sessionId, String secret, String principal, String agentKey) {
+    Session session;
+    var changed = new ArrayList<Session>();
+    synchronized (this) {
+      sweep(clock.instant());
+      requireIds(sessionId, secret);
+      session = bySessionId.get(sessionId);
+      if (session == null) {
+        throw new UserFacingException(AgentPush.CHANNEL_REFUSED);
+      }
+      owned(session, secret, principal);
+      var raw = agentKey == null ? "" : agentKey.trim();
+      if (raw.length() < AgentCaller.MIN_AGENT_KEY || raw.length() > 256) {
+        throw new UserFacingException(AgentPush.INVALID_AGENT_KEY);
+      }
+      var key = AgentCaller.keyOf(raw);
+      for (var other : bySessionId.values()) {
+        if (other != session && key.equals(other.chatKey)) {
+          other.pairings.remove(key);
+          other.chatKey = null;
+          send(other, status(other));
+          changed.add(other);
+        }
+      }
+      if (session.chatKey != null && !session.chatKey.equals(key)) {
+        session.pairings.remove(session.chatKey);
+      }
+      session.chatKey = key;
+      session.pairings.put(key, AgentCaller.AN_AGENT);
+      send(session, status(session));
+    }
+    flush(session);
+    changed.forEach(this::flush);
+    log.info(
+        "Mateu agent push: chat bound session={} (user={})",
+        fingerprint(session.handle),
+        session.principal);
+  }
+
   // ── the MCP side ──────────────────────────────────────────────────────────────────────────
 
-  /** The sessions the caller may send to, most recently registered first. */
+  /**
+   * The sessions the caller may send to — the ones BOUND to it (pairing, the chat) — most recently
+   * registered first.
+   */
   public synchronized List<Entry> visible(AgentCaller caller) {
     sweep(clock.instant());
     var out = new ArrayList<Session>();
@@ -598,10 +650,12 @@ public final class AgentSessions {
     return session;
   }
 
+  /**
+   * Only a caller the session is explicitly BOUND to — paired with its one-time code, or the agent
+   * its chat conversation handed its key to. Being signed in as the session's user is NOT enough:
+   * an agent acts on the session that launched it, never on the user's other tabs or devices.
+   */
   private static boolean listable(Session session, AgentCaller caller) {
-    if (caller.principal() != null && caller.principal().equals(session.principal)) {
-      return true;
-    }
     return caller.key() != null && session.pairings.containsKey(caller.key());
   }
 

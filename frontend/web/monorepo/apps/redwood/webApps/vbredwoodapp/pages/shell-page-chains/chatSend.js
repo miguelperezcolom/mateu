@@ -48,6 +48,12 @@ define([
         vars.mateuChatSessionId = bridge.uiSessionId();
       }
       const sessionId = vars.mateuChatSessionId;
+      // this conversation's agent key, bound to THIS tab (live UI push): the agent the chat hands it
+      // to acts on this tab only. Bound once; without push (or refused) no key is sent.
+      if (!window.__mateuChatAgentKey) window.__mateuChatAgentKey = bridge.agentRandomToken(32);
+      if (!window.__mateuChatAgentBound) window.__mateuChatAgentBound = bridge.bindChatConversation(window.__mateuChatAgentKey);
+      const agentBound = await window.__mateuChatAgentBound;
+      if (!agentBound) window.__mateuChatAgentBound = undefined;
       const registry = vars.mateuRegistry || {};
       // the menu only on the session's FIRST message: the agent keeps it per session
       const sendMenu = window.__mateuChatMenuSentFor !== sessionId;
@@ -69,6 +75,7 @@ define([
         mcpUrl: vars.mateuChatMcpUrl || undefined,
         menu: window.__mateuShellMenu || (registry.shell && registry.shell.menu) || [],
         sendMenu,
+        agentKey: agentBound ? window.__mateuChatAgentKey : undefined,
       });
 
       const msgs = (vars.mateuChatMessages || []).slice();

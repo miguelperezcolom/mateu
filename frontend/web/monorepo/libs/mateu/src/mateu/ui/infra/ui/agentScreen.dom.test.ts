@@ -20,7 +20,7 @@ const field = (fieldId: string, over: Record<string, unknown> = {}) =>
 
 /** A mateu-component holding a form, with one drawn field element and a Save button. */
 const mount = () => {
-    const component = document.createElement('mateu-component') as HTMLElement & Record<string, unknown>
+    const component = document.createElement('mateu-component') as unknown as HTMLElement & Record<string, unknown>
     component.component = {
         type: 'ServerSide', id: 'form', actions: [{ id: 'save' }, { id: 'recalculate' }],
         children: [field('name'), field('code', { readOnly: true }), field('notes'),
@@ -41,7 +41,7 @@ const mount = () => {
     const clicks: string[] = []
     save.addEventListener('click', () => clicks.push('save'))
     component.appendChild(save)
-    const crud = document.createElement('mateu-table-crud') as HTMLElement & Record<string, unknown>
+    const crud = document.createElement('mateu-table-crud') as unknown as HTMLElement & Record<string, unknown>
     crud.id = 'lines'
     crud.component = (component.component as any).children[4]
     crud.state = {}

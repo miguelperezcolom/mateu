@@ -64,6 +64,13 @@ public final class AgentPush {
    */
   public static final String SCREEN_ACTION = "_agent-screen";
 
+  /**
+   * The in-app chat binds its conversation to the tab that opened it: {@code parameters:
+   * {sessionId, secret, agentKey}} — the chat then hands {@code agentKey} to its agent, which sends
+   * it as {@value #AGENT_KEY_HEADER} and so reaches this session, and only this one.
+   */
+  public static final String BIND_ACTION = "_agent-bind";
+
   /** The data key of the pairing answer. */
   public static final String PAIRING_KEY = "_agentPairing";
 
@@ -226,6 +233,8 @@ public final class AgentPush {
       "Invalid target \"%s\": use content, drawer or dialog.";
   public static final String CHANNEL_REFUSED = "This UI session belongs to another channel.";
   public static final String TOO_MANY_SESSIONS = "Too many live UI sessions; try again later.";
+  public static final String INVALID_AGENT_KEY =
+      "The agent key must be between 16 and 256 characters.";
   public static final String NO_ANSWER = "Session \"%s\" did not answer in time.";
   public static final String UNKNOWN_FIELD =
       "Field \"%s\" is not on the screen or cannot be edited.";

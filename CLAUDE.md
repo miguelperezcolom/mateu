@@ -792,18 +792,24 @@ AND `mateu.mcp.push.enabled` (`AgentPush.enabled()` via `MateuSettings`; .NET `M
 Python `mcp_push=True`, env `MATEU_MCP_PUSH_ENABLED`). Spec + golden: `conformance/mcp/README.md`
 "Live UI push" + `conformance/mcp/push.json` (pushTools byte for byte + a scripted scenario every
 backend runs: Java `McpPushCorpusTest`, .NET `AgentPushTests`, Python `test_mcp_push.py`).
-- UI side = three app-level actions (exempt in `ActionInstanceCreator.isAppLevelAction`), runner
+- UI side = app-level actions (exempt in `ActionInstanceCreator.isAppLevelAction`), runner
   `AgentChannelActionRunner`: `_agent-channel` (SSE, per TAB — no leader election, a push is for one
   tab; status first, 20 s heartbeat, ends after 5 min), `_agent-pair` (one-time code, 300 s),
-  `_agent-unpair`; all with `{sessionId, secret}` — sessionId = the per-tab UI session id, which the
+  `_agent-unpair`, `_agent-bind {agentKey}` (the in-app chat binds its conversation to its tab),
+  `_agent-screen`; all with `{sessionId, secret}` — sessionId = the per-tab UI session id, which the
   chat now sends as its `sessionId` too. Wire: `AppDto.agentPush`, command `AgentPush {kind, event,
   detail}` whose events ARE the chat's catalogue (`render-screen`, `navigation-requested`, custom), so
   every renderer applies a push with the chat's own code (web `agentEvents.applyAgentEvent`, RN
   `core/uiEvents.ts`, IntelliJ `ui/AgentEvents.kt`, Redwood `poc/agentPush.mjs`).
 - Registry `application/agentpush/AgentSessions` (process-wide, in memory, bounded): a session is
-  pinned to its secret's hash + principal; a caller (= principal, else `X-Mateu-Agent-Key` ≥ 16
-  chars, else anonymous) reaches its own user's sessions or ones PAIRED to it; an anonymous pairing
-  makes the opaque handle the capability; anything else = `Unknown session` (indistinguishable).
+  pinned to its secret's hash + principal. **An agent acts ONLY on the session that launched it
+  (owner rule, 2026-11-14)**: a session is reachable only by a caller it is BOUND to — its pairing
+  code, or the chat conversation opened in it (`bindChat`: web `mateu-chat` → `bindChatConversation`,
+  Redwood `chatSend.js`, a random key per conversation sent to the chat backend as `agentKey`, which
+  its agent sends as `X-Mateu-Agent-Key`). Same principal is NOT enough. A caller = `X-Mateu-Agent-Key`
+  ≥ 16 chars FIRST (even with a principal), else principal, else anonymous; an anonymous pairing
+  makes the opaque handle the capability; anything else = `Unknown session` (indistinguishable, every
+  session tool). The desktop app's own local MCP (feat/desktop-mcp) is a different model.
   Caps: 1000 sessions + 20 per owner (principal, else the UI's client address via
   `HttpRequest.getRemoteAddress()`; Helidon MP's Jersey leg cannot tell → `unknown`). Rate limit 30/min/session, 10 failed pairings/min/caller, 120 s grace after disconnect, every
   delivery logged at INFO. `mateu_push_ui` validates through `__validate__` AS THE CALLER first; the

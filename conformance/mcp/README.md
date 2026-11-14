@@ -178,14 +178,16 @@ per-tab `X-Session-Id` (`sessionStorage`), which the chat sends as its `sessionI
 **channel secret** (random, kept with it, sent only on the actions below). The app tells the UI that
 push is on with `AppDto.agentPush: true`; only then does the UI open its channel and show "Connect AI".
 
-Three app-level actions (dispatched like `_live-updates`: the app's `serverSideType`, route = the
+Five app-level actions (dispatched like `_live-updates`: the app's `serverSideType`, route = the
 app's root route, exempt from menu resolution), all with `parameters: {sessionId, secret}`:
 
 | Action | Where | Answer |
 |---|---|---|
 | `_agent-channel` (+ `route`, `renderer`) | the SSE endpoint (`/mateu/v3/sse/…`) | an open-ended stream: a first increment with the session's status, then one increment per message, an empty increment every 20 s, and the end after 5 minutes (the UI reconnects at once) |
 | `_agent-pair` | the sync endpoint | `Data{_agentPairing: {code, expiresInSeconds}}` — a new one-time code (the previous unused one dies) |
-| `_agent-unpair` | the sync endpoint | `Data{_agentPairing: null}` — every pairing of the session removed; the channel is told |
+| `_agent-unpair` | the sync endpoint | `Data{_agentPairing: null}` — every pairing of the session removed (the chat binding included); the channel is told |
+| `_agent-bind` (+ `agentKey`) | the sync endpoint | `Data{}` — the in-app chat binds its conversation to this tab (see "Who may reach a session"); the channel is told (`agents: ["an agent"]`) |
+| `_agent-screen` (+ `requestId`, `screen` \| `error`) | the sync endpoint | `Data{}` — the answer to a `query` message (below) |
 
 Registration: the first `_agent-channel` for a sessionId registers it with the caller's principal
 name (null when anonymous), the secret's SHA-256, the route and the renderer (`vaadin`, `redwood`,
@@ -211,13 +213,29 @@ Each message is an increment carrying ONE command `{type: "AgentPush", data: {ki
 
 ### Who may reach a session
 
-The caller of an MCP tool is identified by, in order: its authenticated principal name (`user:<name>`),
-else the header `X-Mateu-Agent-Key` when ≥ 16 characters (`key:<sha256 of it>` — what the sidecar
-sends), else nobody (anonymous). A session is **visible** to a caller when the caller is signed in
-with the session's principal, or when the session was paired to that caller. A session paired by an
-**anonymous** caller is reachable by an anonymous caller knowing its handle (the handle is the
-capability; it is returned only to whoever paired). Everything else answers `Unknown session "<s>".`
-— a session another user owns and one that does not exist are indistinguishable.
+**An agent acts only on the session that launched it.** A session is reachable ONLY by a caller it
+is explicitly **bound** to — being signed in as the session's user is NOT enough (an agent must not
+reach the same user's other tabs, phone or desktop). Two bindings exist:
+
+- **pairing**: the one-time code shown in that tab (`mateu_pair_session`) binds the session to the
+  caller that pairs;
+- **the in-app chat**: the conversation is bound to the tab that opened it — the tab sends
+  `_agent-bind {sessionId, secret, agentKey}` (a random key per conversation, 16..256 characters,
+  else `The agent key must be between 16 and 256 characters.`), hands `agentKey` to the chat backend
+  in the chat request, and the chat's agent sends it as `X-Mateu-Agent-Key`. A new conversation in
+  the tab replaces the tab's previous chat binding; a key bound to another tab leaves the first one;
+  `_agent-unpair` removes it too.
+
+The caller of an MCP tool is identified by, in order: the header `X-Mateu-Agent-Key` when ≥ 16
+characters (`key:<sha256 of it>` — what the sidecar and the chat's agent send; it wins over a
+principal the same request carries, so an agent acting for a signed-in user is still that ONE agent),
+else its authenticated principal name (`user:<name>`), else nobody (anonymous). A session is
+**visible** to a caller only when one of the bindings above is that caller's identity. A session
+paired by an **anonymous** caller is reachable by an anonymous caller knowing its handle (the handle
+is the capability; it is returned only to whoever paired). Everything else — another user's session,
+the same user's OTHER sessions, one that does not exist — answers `Unknown session "<s>".`,
+indistinguishably, on every session tool (`mateu_push_ui`, `mateu_navigate`, `mateu_dispatch_event`,
+`mateu_get_session_screen`, `mateu_set_session_fields`, `mateu_run_session_action`).
 
 The `session` handle is opaque (≥ 128 random bits, URL-safe), distinct from the UI session id, stable
 while the session is registered. `mateu_list_sessions` lists the visible sessions, most recently

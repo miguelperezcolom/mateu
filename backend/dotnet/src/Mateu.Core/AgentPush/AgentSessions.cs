@@ -8,8 +8,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Mateu.Core.AgentPush;
 
-/// <summary>Who calls an MCP push tool (or a UI action): the authenticated principal name, else the
-/// SHA-256 of an <c>X-Mateu-Agent-Key</c> of at least 16 characters, else nobody (anonymous).</summary>
+/// <summary>Who calls an MCP push tool (or a UI action). Its identity (<see cref="Id"/>) — what a session
+/// is BOUND to — is the SHA-256 of an <c>X-Mateu-Agent-Key</c> of at least 16 characters when one is
+/// sent (even with a principal: an agent acting for a signed-in user is still that ONE agent), else
+/// the authenticated principal name, else nobody (anonymous).</summary>
 internal sealed record AgentCaller(string? Principal, string? KeyHash)
 {
     /// <summary>The header the sidecar sends to identify itself when it has no principal.</summary>
@@ -23,14 +25,14 @@ internal sealed record AgentCaller(string? Principal, string? KeyHash)
     /// <summary>The caller from a principal name (null/blank = none) and the agent-key header.</summary>
     public static AgentCaller From(string? principal, string? agentKey)
     {
-        if (!string.IsNullOrWhiteSpace(principal)) return new AgentCaller(principal, null);
+        var name = string.IsNullOrWhiteSpace(principal) ? null : principal;
         var key = agentKey?.Trim();
-        if (key is { Length: >= MinKeyLength }) return new AgentCaller(null, AgentSessions.Sha256(key));
-        return Anonymous;
+        if (key is { Length: >= MinKeyLength }) return new AgentCaller(name, AgentSessions.Sha256(key));
+        return name is not null ? new AgentCaller(name, null) : Anonymous;
     }
 
     /// <summary><c>user:&lt;name&gt;</c>, <c>key:&lt;sha256&gt;</c>, or null when anonymous.</summary>
-    public string? Id => Principal is not null ? "user:" + Principal : KeyHash is not null ? "key:" + KeyHash : null;
+    public string? Id => KeyHash is not null ? "key:" + KeyHash : Principal is not null ? "user:" + Principal : null;
 
     /// <summary>How the UI names this caller on its "Connect AI" control.</summary>
     public string Label => Principal ?? "an agent";
@@ -107,6 +109,9 @@ internal sealed class AgentSession
     /// handle is the capability).</summary>
     internal List<(string? CallerId, string Label)> Pairings { get; } = [];
 
+    /// <summary>The identity the in-app chat bound to this session (<c>key:&lt;sha256&gt;</c>), or null.</summary>
+    internal string? ChatKey { get; set; }
+
     internal string? PendingCode { get; set; }
     internal DateTimeOffset PendingCodeExpiresAt { get; set; }
     internal Queue<DateTimeOffset> Sent { get; } = new();
@@ -136,6 +141,7 @@ internal sealed class AgentSessions
     public const string Unsupported = "This client does not support reading or operating its screen.";
     public const string Failed = "The UI could not complete the request.";
     public const string ScreenTooLarge = "The screen the UI answered is larger than the 262144-byte limit.";
+    public const string InvalidAgentKey = "The agent key must be between 16 and 256 characters.";
     public const string InvalidRow = "Invalid row: use the 0-based index of a row in the listing's rows.";
 
     public static string NoAnswer(string session) => $"Session \"{session}\" did not answer in time.";
@@ -468,14 +474,46 @@ internal sealed class AgentSessions
         {
             var session = Registered(sessionId, secret, principal);
             session.Pairings.Clear();
+            session.ChatKey = null;
             Deliver(session, StatusIncrement(session));
+        }
+    }
+
+    /// <summary><c>_agent-bind</c>: the in-app chat binds its conversation to this tab — the session
+    /// becomes reachable by the agent sending <paramref name="agentKey"/>, and that agent reaches
+    /// nothing else through it. A new binding of the session replaces its previous chat binding; a
+    /// key bound to another session leaves it (one conversation, one tab).</summary>
+    public void BindChat(string sessionId, string secret, string? principal, string? agentKey)
+    {
+        lock (_lock)
+        {
+            var session = Registered(sessionId, secret, principal);
+            var raw = agentKey?.Trim() ?? "";
+            if (raw.Length < AgentCaller.MinKeyLength || raw.Length > 256)
+                throw new UserFacingException(InvalidAgentKey);
+            var key = "key:" + Sha256(raw);
+            foreach (var other in _byId.Values)
+            {
+                if (other == session || other.ChatKey != key) continue;
+                other.Pairings.RemoveAll(p => p.CallerId == key);
+                other.ChatKey = null;
+                Deliver(other, StatusIncrement(other));
+            }
+            if (session.ChatKey is { } previous && previous != key)
+                session.Pairings.RemoveAll(p => p.CallerId == previous);
+            session.ChatKey = key;
+            if (!session.Pairings.Any(p => p.CallerId == key)) session.Pairings.Add((key, "an agent"));
+            Deliver(session, StatusIncrement(session));
+            MateuLogging.For("Mateu.Mcp").LogInformation(
+                "Mateu agent push: chat bound session={Session} (user={User})",
+                Fingerprint(session.Handle), session.Principal);
         }
     }
 
     // ── the MCP side ──────────────────────────────────────────────────────────────────────────
 
-    /// <summary><c>mateu_list_sessions</c>: the sessions the caller is signed in as, or paired to it,
-    /// most recently registered first. (A session reachable only by its capability is not listed:
+    /// <summary><c>mateu_list_sessions</c>: the sessions BOUND to the caller (pairing, the chat) — being
+    /// signed in as the session's user is not enough — most recently registered first. (A session reachable only by its capability is not listed:
     /// the handle is returned only to whoever paired.)</summary>
     public JsonObject List(AgentCaller caller)
     {
@@ -484,7 +522,7 @@ internal sealed class AgentSessions
             Purge(_clock());
             var list = new JsonArray();
             foreach (var s in _byId.Values.OrderByDescending(s => s.RegisteredOrder))
-                if (Owns(caller, s) || PairedTo(caller, s)) list.Add(Entry(s));
+                if (PairedTo(caller, s)) list.Add(Entry(s));
             return new JsonObject { ["sessions"] = list };
         }
     }
@@ -610,13 +648,11 @@ internal sealed class AgentSessions
         ["paired"] = s.Pairings.Count > 0,
     };
 
-    static bool Owns(AgentCaller caller, AgentSession s) => caller.Principal is not null && caller.Principal == s.Principal;
-
     static bool PairedTo(AgentCaller caller, AgentSession s) =>
         caller.Id is not null && s.Pairings.Any(p => p.CallerId == caller.Id);
 
     static bool Visible(AgentCaller caller, AgentSession s) =>
-        Owns(caller, s) || PairedTo(caller, s) || (caller.Id is null && s.Pairings.Any(p => p.CallerId is null));
+        PairedTo(caller, s) || (caller.Id is null && s.Pairings.Any(p => p.CallerId is null));
 
     AgentSession Registered(string sessionId, string secret, string? principal)
     {

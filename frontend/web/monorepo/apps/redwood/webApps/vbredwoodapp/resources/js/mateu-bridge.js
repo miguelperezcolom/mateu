@@ -33362,7 +33362,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * message (`sendMenu`), the menu. Returns `{ body, shown }`: `shown` is what is painted as the
    * user's message (the text + 📎 the attachments).
    */
-  function chatTurnOf({ message, sessionId, attachments = [], registry, appState, appData, url, screenTitle, currentRoute, mcpUrl, menu, sendMenu, origin }) {
+  function chatTurnOf({ message, sessionId, attachments = [], registry, appState, appData, url, screenTitle, currentRoute, mcpUrl, menu, sendMenu, origin, agentKey }) {
     const text = String(message || '').trim()
     const host = registry && registry.contexts ? registry.contexts.__root__ : null
     const context = {
@@ -33387,6 +33387,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         currentRoute,
       }),
       ...(hasScreen ? { screen } : {}),
+      // the key the tab bound this conversation to (live UI push): the agent acts on this tab only
+      ...(agentKey ? { agentKey } : {}),
     }
     const names = (attachments || []).map((a) => a.name).join(', ')
     const shown = names ? `${text}${text ? '\n\n' : ''}📎 ${names}` : text
@@ -36048,6 +36050,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const AGENT_CHANNEL_ACTION = '_agent-channel'
   const AGENT_PAIR_ACTION = '_agent-pair'
   const AGENT_UNPAIR_ACTION = '_agent-unpair'
+  /** The chat binds its conversation to THIS tab: its agent then reaches this session, and only it. */
+  const AGENT_BIND_ACTION = '_agent-bind'
   /** The tab's answer to a `query` message: {requestId, screen} | {requestId, error: {code, id?}}. */
   const AGENT_SCREEN_ACTION = '_agent-screen'
   /** The largest screen the server takes (UTF-8 bytes of its JSON); a larger one is answered `tooLarge`. */
@@ -36522,6 +36526,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the pairing belongs to the tab, not to the screen on show
     const call = agentUi.sinks && agentUi.sinks.call
     return call ? call(t.base, body) : callMateu(t.base, body, { quiet: true })
+  }
+
+  /**
+   * Binds an in-app chat conversation to this tab (`_agent-bind {agentKey}`): the agent the chat hands
+   * `key` to — it sends it as X-Mateu-Agent-Key — reaches this tab's session and no other, not even
+   * the same user's other tabs. False when there is nothing to bind (no live UI push, the user
+   * stopped the agents here) or the server refused.
+   */
+  async function bindChatConversation(key) {
+    if (!agentUi.target || agentOps.stopped || !key) return false
+    try {
+      const answer = await agentAppAction(AGENT_BIND_ACTION, { agentKey: key })
+      return !agentRefusalOf(answer)
+    } catch (e) {
+      return false
+    }
   }
 
   /** "Connect AI": asks the server for a fresh one-time code (the previous unused one dies). */
@@ -39298,6 +39318,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // live UI push (agentPush.mjs): the tab's UI session (also the chat's sessionId), its channel
     // and the "Connect AI" control
     uiSessionId,
+    bindChatConversation,
+    agentRandomToken,
     installAgentPush,
     syncAgentPush,
     agentControlState,

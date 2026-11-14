@@ -664,6 +664,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // live UI push (agentPush.mjs): the tab's UI session (also the chat's sessionId), its channel
     // and the "Connect AI" control
     uiSessionId,
+    bindChatConversation,
+    agentRandomToken,
     installAgentPush,
     syncAgentPush,
     agentControlState,

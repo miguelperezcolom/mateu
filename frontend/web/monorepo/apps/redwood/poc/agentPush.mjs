@@ -43,6 +43,8 @@ import { HOST_ID, pendingConfirmation } from './reduceContexts.mjs'
 export const AGENT_CHANNEL_ACTION = '_agent-channel'
 export const AGENT_PAIR_ACTION = '_agent-pair'
 export const AGENT_UNPAIR_ACTION = '_agent-unpair'
+/** The chat binds its conversation to THIS tab: its agent then reaches this session, and only it. */
+export const AGENT_BIND_ACTION = '_agent-bind'
 /** The tab's answer to a `query` message: {requestId, screen} | {requestId, error: {code, id?}}. */
 export const AGENT_SCREEN_ACTION = '_agent-screen'
 /** The largest screen the server takes (UTF-8 bytes of its JSON); a larger one is answered `tooLarge`. */
@@ -517,6 +519,22 @@ const agentAppAction = (actionId, extra) => {
   // the pairing belongs to the tab, not to the screen on show
   const call = agentUi.sinks && agentUi.sinks.call
   return call ? call(t.base, body) : callMateu(t.base, body, { quiet: true })
+}
+
+/**
+ * Binds an in-app chat conversation to this tab (`_agent-bind {agentKey}`): the agent the chat hands
+ * `key` to — it sends it as X-Mateu-Agent-Key — reaches this tab's session and no other, not even
+ * the same user's other tabs. False when there is nothing to bind (no live UI push, the user
+ * stopped the agents here) or the server refused.
+ */
+export async function bindChatConversation(key) {
+  if (!agentUi.target || agentOps.stopped || !key) return false
+  try {
+    const answer = await agentAppAction(AGENT_BIND_ACTION, { agentKey: key })
+    return !agentRefusalOf(answer)
+  } catch (e) {
+    return false
+  }
 }
 
 /** "Connect AI": asks the server for a fresh one-time code (the previous unused one dies). */

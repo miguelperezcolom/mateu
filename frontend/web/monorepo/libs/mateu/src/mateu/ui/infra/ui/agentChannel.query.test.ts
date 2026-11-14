@@ -87,6 +87,19 @@ describe('queries on the live UI push channel', () => {
         expect(channel.queryOf({ kind: 'query', event: 'other', detail: { requestId: 'x' } })).toBeNull()
     })
 
+    it('binds a chat conversation to THIS tab with _agent-bind, and only while push is on', async () => {
+        expect(await channel.bindChatConversation('a-conversation-key-0123456789')).toBe(false) // no channel
+        vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(sseResponse([push('status', 'mateu-agent-status', { paired: false, agents: [] })]))))
+        channel.syncAgentChannel(app, '/base', shell)
+        await waitFor(() => channel.agentStatus().connected)
+        expect(await channel.bindChatConversation('a-conversation-key-0123456789')).toBe(true)
+        const [, , , actionId, , , , , parameters] = runAction.mock.calls.at(-1)!
+        expect(actionId).toBe('_agent-bind')
+        expect(parameters).toMatchObject({ agentKey: 'a-conversation-key-0123456789', secret: sessionStorage.getItem(channel.AGENT_SECRET_KEY) })
+        runAction.mockResolvedValueOnce({ messages: [{ variant: 'error', text: 'The agent key must be between 16 and 256 characters.' }] })
+        expect(await channel.bindChatConversation('short')).toBe(false)
+    })
+
     it('Stop unpairs the tab and closes its channel until the user connects an agent again', async () => {
         const fetchMock = vi.fn(() => Promise.resolve(sseResponse([push('status', 'mateu-agent-status', { paired: true, agents: ['an agent'] })])))
         vi.stubGlobal('fetch', fetchMock)

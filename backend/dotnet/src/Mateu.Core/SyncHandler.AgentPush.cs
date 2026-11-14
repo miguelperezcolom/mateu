@@ -22,6 +22,9 @@ internal sealed partial class SyncHandler
     /// <c>{sessionId, secret, requestId, screen | error: {code, id?}}</c> → Data{}.</summary>
     public const string AgentScreenAction = "_agent-screen";
 
+    /// <summary>The in-app chat binds its conversation to this tab: <c>{sessionId, secret, agentKey}</c>.</summary>
+    public const string AgentBindAction = "_agent-bind";
+
     /// <summary>The data key the pairing answer travels under.</summary>
     public const string AgentPairingKey = "_agentPairing";
 
@@ -48,7 +51,8 @@ internal sealed partial class SyncHandler
     }
 
     private static bool IsAgentAction(string? actionId) =>
-        actionId is AgentChannelAction or AgentPairAction or AgentUnpairAction or AgentScreenAction;
+        actionId is AgentChannelAction or AgentPairAction or AgentUnpairAction or AgentScreenAction
+            or AgentBindAction;
 
     /// <summary><c>_agent-pair</c> → Data{_agentPairing: {code, expiresInSeconds}};
     /// <c>_agent-unpair</c> → Data{_agentPairing: null}. A channel asked on the sync endpoint is
@@ -78,6 +82,11 @@ internal sealed partial class SyncHandler
                 return UIIncrementDto.Of(fragments:
                     [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, new Dictionary<string, object?>(), "Replace", null)]);
             }
+            case AgentBindAction:
+                sessions.BindChat(Param(rq, "sessionId"), Param(rq, "secret"), Principal?.Invoke(),
+                    StateString(GetState(rq.Parameters, "agentKey")));
+                return UIIncrementDto.Of(fragments:
+                    [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, new Dictionary<string, object?>(), "Replace", null)]);
             case AgentUnpairAction:
                 sessions.Unpair(Param(rq, "sessionId"), Param(rq, "secret"), Principal?.Invoke());
                 pairing = null;
