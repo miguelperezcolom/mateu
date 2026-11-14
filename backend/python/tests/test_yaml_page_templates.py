@@ -25,6 +25,7 @@ from mateu_ui.core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
 from mateu_ui.uidl import (  # noqa: E402
     DashboardLandingPage,
     ItemOverviewPage,
+    MessagePage,
     TemplateImage,
     WelcomePage,
 )
@@ -49,6 +50,7 @@ FIXTURES = [
     "guided-process-page",
     "data-management-page",
     "hero-search-page",
+    "message-page",
 ]
 
 
@@ -83,7 +85,8 @@ def test_the_template_rides_the_form_metadata_and_its_slots_are_named(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "name", ["welcome-page", "multimedia-page", "data-management-page", "hero-search-page"]
+    "name",
+    ["welcome-page", "multimedia-page", "data-management-page", "hero-search-page", "message-page"],
 )
 def test_a_template_that_owns_the_header_takes_the_title_and_toolbar(tmp_path, name):
     meta = served(tmp_path, name)["metadata"]
@@ -150,6 +153,7 @@ def test_each_template_implies_its_page_type():
     assert page_templates.page_type_of(WelcomePage()) == "landing"
     assert page_templates.page_type_of(ItemOverviewPage()) == "detail"
     assert page_templates.page_type_of(DashboardLandingPage()) == "dashboard"
+    assert page_templates.page_type_of(MessagePage()) == "landing"
     assert page_templates.page_type_of(None) is None
 
 
@@ -162,3 +166,25 @@ def test_a_declared_alt_wins_over_the_page_title_on_the_wire_and_on_the_drawn_im
     assert wire["metadata"]["template"]["photo"]["alt"] == "Luke on Tatooine"
     media = wire["children"][0]["children"][0]["metadata"]["content"]["children"][0]
     assert media["children"][0]["metadata"] == {"type": "Image", "src": "/luke.png", "alt": "Luke on Tatooine"}
+
+
+def test_a_message_page_drops_an_unsafe_image_and_width():
+    # an image that could end the CSS url("…") and a width that is not a plain length are left out
+    # (Java's MessagePage.imageOrNull / widthOrNull); the tone still travels as a class
+    form = fluent.Form(
+        title="Signed out",
+        template=MessagePage(
+            background="ocean", image='/x.png"); color: red', width="calc(100% - 1px)"
+        ),
+    )
+    wire = json.loads(ReflectionMapper().map_component(form).model_dump_json(by_alias=True))
+    assert wire["metadata"]["noHeader"] is True
+    assert wire["metadata"]["template"]["type"] == "MessagePage"
+    (page,) = wire["children"]
+    assert page["id"] == "message-page"
+    assert page["style"] is None
+    assert page["cssClasses"] == "mateu-message-page mateu-message-page--ocean"
+    assert MessagePage(width="32rem; x: y").width_or_null() is None
+    assert MessagePage(width=" 520px ").width_or_null() == "520px"
+    assert MessagePage(image="/images/a b.png").image_or_null() == "/images/a b.png"
+    assert MessagePage(image="/images/\u00f1.png").image_or_null() is None

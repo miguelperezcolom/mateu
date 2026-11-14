@@ -680,6 +680,25 @@ the renderer. In atomic-design terms: Spectra page template = template level, th
   it on), its `searchTemplate` slot = an input-search, its default slot = `@listing-body hs` (the 4th
   copy; the listing page/list band stand aside). New oj-sp components need an import in
   main-start-page.json `imports.components` (make-embedded fails otherwise).
+- **`MessagePage`** (2026-11-14; fields `background` tone, `image`, `width`, slot `footer`): ONE card over a
+  full-bleed illustrated background, no chrome. Server: `message-page` VerticalLayout (class
+  `mateu-message-page[--<tone>]`, own image/width as the custom props `--mateu-message-page-image` /
+  `--mateu-message-card-width` — sanitised by `imageOrNull`/`widthOrNull`) › `message-card` Card ›
+  overline/`message-title` (Text h1)/subtitle, `message-body`, `message-actions` (toolbar), `message-footer`;
+  owns the header; `SeededYamlPage` → EDGE_TO_EDGE. Vaadin: the look is `layout/messagePage.ts`
+  `MESSAGE_PAGE_STYLES` (in mateu-ux + mateu-component styles; Mateu's own CSS illustration, Lumo tokens);
+  `pageOwnsViewport` → mateu-ux dispatches `page-owns-viewport-changed` (content views only) and mateu-app
+  sets `data-page-owns-viewport` → CSS hides the chrome (never re-renders: the content ux must survive);
+  mateu-form renders no header and is the `<main>` when no shell is around. Redwood: Spectra has no
+  component → composed (`templatedMessageOf` → `mateuMsg`): a fixed background layer before the content
+  container, the container IS the card (`mateu-message-card-host`), heading markup above the host atoms,
+  body/actions/footer as host blocks (blockClass-marked); app.css hides the chrome with
+  `body:has(.mateu-message-card-host)`. OWNER RULE: in Redwood, Redwood's guidance decides — the background
+  is REDWOOD'S imagery, never our CSS illustration (that one is Vaadin-only): the welcome look
+  (`welcomeLookOf`, declared tone else the stable hash) → tone colour from Spectra's `--oj-sp-rw-*` palette
+  (the banner loader's dark-<tone> mapping) under the gallery fg+bg pair, or Spectra's themed image
+  (`SPECTRA_THEMED_IMAGE`, placed cover/end like the banner) for a tone without a pair, all through
+  `oracleCdnUrl`; the card is Redwood Neutral 10 (`rgb(var(--oj-palette-neutral-rgb-10))`).
 - The visual editor's tests read `demo/demo-starwars/src/main/resources/specs/ui` as a fixture
   (`mountGraph.test.ts` counts its pages, `yamlPreserve.test.ts` rewrites every file): a new Star Wars
   page or folder moves them.

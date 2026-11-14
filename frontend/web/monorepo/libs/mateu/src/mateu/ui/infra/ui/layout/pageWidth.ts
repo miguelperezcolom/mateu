@@ -6,7 +6,7 @@ import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMeta
 import PageComponent from "@mateu/shared/apiClients/dtos/componentmetadata/PageComponent.ts";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
-import { templatePageType } from "./templatePageTypes.ts";
+import { templatePageType, pageOwnsViewport } from "./templatePageTypes.ts";
 
 export { templatePageType }
 
@@ -154,6 +154,8 @@ export const isAppShell = (component: Component): boolean => {
  */
 export const resolvePageWidth = (component: Component | undefined, opts?: { top?: boolean }): ResolvedPageWidth => {
     if (!component) return 'fixed'
+    // a page that draws the whole viewport (a message page: one card over a full-bleed background)
+    if (pageOwnsViewport(component)) return 'edge'
     const pageType = pageTypeOf(component) ?? (isBareListing(component) ? 'collection' : undefined)
     const declared = wireToMode((component as ServerSideComponent).pageWidth) ?? declaredInTree(component)
     if (declared) return declared === 'edge' && pageType === 'form' ? 'full' : declared

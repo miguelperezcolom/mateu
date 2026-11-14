@@ -1,0 +1,21 @@
+# Fixture for PageTemplateSyncTest (and golden source for the client-side expander,
+# expandPageTemplate.test.ts): a page that fills the Message page template — one card over the
+# illustrated background: the form's title is the card's heading, its content the card's body, its
+# toolbar the card's actions and the footer slot the small links at its foot.
+type: Form
+title: Check your email
+subtitle: We sent a confirmation link to your inbox.
+toolbar:
+  - {type: Button, label: Back to sign in, buttonStyle: primary, actionable: {type: RouteLink, route: sign-in}}
+template:
+  type: MessagePage
+  background: dark-sienna
+  image: /images/dunes.png
+  width: 32rem
+  footer:
+    - {type: Anchor, text: Terms of use, url: /terms}
+    - {type: Anchor, text: Privacy, url: /privacy}
+content:
+  - type: Text
+    container: p
+    text: The link expires in 24 hours. Did not get it? Look in your spam folder.

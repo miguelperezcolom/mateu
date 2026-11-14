@@ -237,6 +237,7 @@ export default defineConfig({
 										{ slug: 'ux-patterns/wizard' },
 										{ slug: 'ux-patterns/dashboard' },
 										{ slug: 'ux-patterns/welcome-page' },
+										{ slug: 'ux-patterns/message-page' },
 										{ slug: 'ux-patterns/workspace' },
 										{ slug: 'ux-patterns/task-centric', label: 'Task-Centric Page' },
 										{ slug: 'ux-patterns/front-office', label: 'Front-Office Screens' },

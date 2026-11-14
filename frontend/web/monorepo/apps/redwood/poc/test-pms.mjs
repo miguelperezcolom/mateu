@@ -23,8 +23,8 @@ import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM, tileLayerOf, OSM_TI
 import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { dashboardOf, dashboardDeclaresLayout, findAllByType, todoListOf, pageSubtitleOf } from './reduceContexts.mjs'
-import { hostContentPlanOf, archetypeVarsOf as archetypeVarsOfForTest, templateOwnsHeader as templateOwnsHeaderForTest } from './pageProjection.mjs'
-import { templatedGeneralOverviewOf, templatedCollectionDetailOf, templatedMultimediaOf, templatedGuidedProcessOf, templatedHeroSearchOf } from './core/overviews.mjs'
+import { hostContentPlanOf, archetypeVarsOf as archetypeVarsOfForTest, templateOwnsHeader as templateOwnsHeaderForTest, templateHostContentOf as templateHostContentOfForTest, pageLayoutOf as pageLayoutOfForTest } from './pageProjection.mjs'
+import { templatedGeneralOverviewOf, templatedCollectionDetailOf, templatedMultimediaOf, templatedGuidedProcessOf, templatedHeroSearchOf, templatedMessageOf } from './core/overviews.mjs'
 import { tocOf } from './toc.mjs'
 import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
@@ -2976,6 +2976,56 @@ test('a page that DECLARES the Multimedia content page → a welcome banner (int
   assert.ok(!JSON.stringify(withRoute).includes('${state.id}'))
   // one section is enough: the template HAS the navigator (the auto rule needs several)
   assert.equal(tocOf(host).on, true)
+})
+
+test('a page that DECLARES the Message page → one card over the illustrated background, the chrome put away', () => {
+  const golden = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    '../../../libs/mateu/src/mateu/ui/infra/expander/__fixtures__/message-page.golden.json'), 'utf-8'))
+  const host = { state: {}, data: {}, tree: golden.fragments[0].component }
+  const msg = templatedMessageOf(host)
+  assert.equal(msg.title, 'Check your email')
+  assert.equal(msg.subtitle, 'We sent a confirmation link to your inbox.')
+  // the tone and the own image (the layer's background), the card's width
+  assert.equal(msg.pageClass, 'mateu-message-page mateu-message-page--sienna mateu-message-page--image')
+  assert.equal(msg.image, 'url("/images/dunes.png")')
+  assert.equal(msg.width, 'min(100%, 32rem)')
+  // the card's body, then its actions and footer links, marked for app.css
+  assert.deepEqual(msg.content.map((b) => b.blockClass.split(' ').pop()), ['mateu-message-body', 'mateu-message-actions', 'mateu-message-footer'])
+  assert.ok(msg.content[1].items[0].isButtons)
+  assert.ok(msg.content[2].items[0].isRow)
+  const archetypes = archetypeVarsOfForTest(host)
+  assert.ok(archetypes.vars.mateuMsg)
+  assert.equal(templateOwnsHeaderForTest(archetypes), true)
+  assert.deepEqual(templateHostContentOfForTest(archetypes, [{ isPlain: true, items: [] }], [], host.tree), msg.content)
+  // the content container IS the card, edge to edge (the background is the page's)
+  const layout = pageLayoutOfForTest({ host })
+  assert.equal(layout.vars.mateuPageHostClass, 'mateu-message-card-host')
+  assert.equal(layout.vars.mateuPageMaxWidth, 'min(100%, 32rem)')
+  assert.equal(layout.pageWidth, 'edgeToEdge')
+  // without an own image: REDWOOD'S imagery — the tone's gallery illustration over its texture
+  // (sienna has a pair), or Spectra's themed image for a tone without one; a page with no tone gets
+  // the welcome's stable look (some dark-<tone> with its pair)
+  const withoutImage = (tree, tone) => {
+    const copy = JSON.parse(JSON.stringify(tree))
+    const walk = (n) => {
+      if (!n || typeof n !== 'object') return
+      if (n.id === 'message-page') { n.style = null; n.cssClasses = 'mateu-message-page' + (tone ? ' mateu-message-page--' + tone : '') }
+      Object.values(n).forEach(walk)
+    }
+    walk(copy)
+    return copy
+  }
+  const sienna = templatedMessageOf({ ...host, tree: withoutImage(host.tree, 'sienna') })
+  assert.equal(sienna.pageClass, 'mateu-message-page mateu-message-page--sienna')
+  assert.match(sienna.image, /^url\("https:\/\/static\.oracle\.com\/cdn\/fnd\/gallery\/.*illust-welcome-banner-fg-04\.png"\), url\(".*illust-welcome-banner-bg-04\.png"\)$/)
+  const slate = templatedMessageOf({ ...host, tree: withoutImage(host.tree, 'slate') })
+  assert.equal(slate.pageClass, 'mateu-message-page mateu-message-page--slate mateu-message-page--themed')
+  assert.match(slate.image, /spectra-ui\/oj-sp\/.*welcome-banner-abstract-1\.png/)
+  const untoned = templatedMessageOf({ ...host, tree: withoutImage(host.tree, null) })
+  assert.match(untoned.pageClass, /^mateu-message-page mateu-message-page--(ocean|pine|plum|sienna|teal)$/)
+  assert.match(untoned.image, /illust-welcome-banner-fg-0\d\.png/)
+  // any other page is not one
+  assert.equal(templatedMessageOf({ state: {}, data: {}, tree: { type: 'ClientSide', metadata: { type: 'Form' }, children: [] } }), null)
 })
 
 test('a page that DECLARES the Advanced create and edit template shows the anchor navigator (forced) unless it has a detail slot', () => {

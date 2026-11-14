@@ -135,3 +135,40 @@ public sealed record HeroSearchPage : IFormTemplate
 {
     public string? BackgroundColor { get; init; }
 }
+
+/// <summary>A message page: one card, centred near the top of a full-bleed illustrated background,
+/// with no app chrome around it — a confirmation, a "check your email", an error, a signed-out page
+/// or a simple entry page. Spectra has no such component; it is composed. The card is filled from the
+/// form: its title is the card's heading, its subtitle and overline the lines around it, its content
+/// the card's body and its toolbar the card's actions; the <see cref="Footer"/> slot is the row of
+/// small links at the card's foot. The template owns the header.</summary>
+public sealed record MessagePage : IFormTemplate
+{
+    /// <summary>A tone of the welcome palette (Spectra's <c>dark-&lt;tone&gt;</c> accepted) tinting the
+    /// illustration; <c>auto</c> or none keeps the default.</summary>
+    public string? Background { get; init; }
+    /// <summary>An own image (a URL) replacing the illustration.</summary>
+    public string? Image { get; init; }
+    /// <summary>The card's width, a CSS length (460px when absent).</summary>
+    public string? Width { get; init; }
+    /// <summary>The row of small links at the card's foot.</summary>
+    public IReadOnlyList<IComponent> Footer { get; init; } = [];
+
+    /// <summary>The own image's URL when it is safe inside a CSS <c>url("…")</c> (no quote,
+    /// parenthesis or backslash could end it), else null.</summary>
+    public string? ImageOrNull()
+    {
+        if (string.IsNullOrWhiteSpace(Image)) return null;
+        var trimmed = Image.Trim();
+        return System.Text.RegularExpressions.Regex.IsMatch(trimmed, @"^[A-Za-z0-9_ \t\n\x0B\f\r/.:%~?&=#+,@-]+\z") ? trimmed : null; // Java's ASCII \w and \s
+    }
+
+    /// <summary>The card's width when it is a plain CSS length (<c>32rem</c>, <c>520px</c>…), else null.</summary>
+    public string? WidthOrNull()
+    {
+        if (string.IsNullOrWhiteSpace(Width)) return null;
+        var trimmed = Width.Trim();
+        return System.Text.RegularExpressions.Regex.IsMatch(trimmed, @"^[0-9]+(\.[0-9]+)?(px|rem|em|ch|vw|%)\z")
+            ? trimmed : null;
+    }
+}

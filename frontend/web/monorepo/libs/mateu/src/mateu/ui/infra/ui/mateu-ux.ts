@@ -24,6 +24,7 @@ import type UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import {applyPreloaded} from "@infra/ui/preloadedIncrement.ts";
 import { embeddingChromeOf, isWindowless } from "@infra/ui/embeddedChrome.ts";
 import {hasWelcomeBanner, isAppShell, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
+import {MESSAGE_PAGE_STYLES, pageOwnsViewport, pageTemplateOf} from "@infra/ui/layout/messagePage.ts";
 import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
 import {dropBackendStructures, getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
 import {cachedLayoutGuard, SeedTracker} from "@infra/http/cachedLayoutRecovery.ts";
@@ -783,6 +784,16 @@ export class MateuUx extends ConnectedElement {
         }
         this.dataset.pageType = pageTypeOf(component) ?? ''
         this.dataset.hasWelcomeBanner = String(hasWelcomeBanner(component))
+        this.dataset.pageTemplate = pageTemplateOf(component) ?? ''
+        // A page that draws the whole viewport itself (a message page) asks the app shell around it
+        // to put its chrome away while it is on screen (mateu-app, data-page-owns-viewport); every
+        // other page a content view shows gives the chrome back.
+        if (top || this.hasAttribute('data-content-view')) {
+            const owns = !isAppShell(component) && pageOwnsViewport(component)
+            this.dispatchEvent(new CustomEvent('page-owns-viewport-changed', {
+                detail: { owns }, bubbles: true, composed: true,
+            }))
+        }
     }
 
     render(): TemplateResult {
@@ -810,7 +821,7 @@ export class MateuUx extends ConnectedElement {
        `
     }
 
-    static styles = [css`
+    static styles = [MESSAGE_PAGE_STYLES, css`
         /* The content ux is a flex COLUMN, not a block — the missing link in the viewport-height
            flex chain (coherence-plan #8): the shell content area is already flex:1;min-height:0, so
            a flex-column ux lets a direct child that declares sizing "fill" (a listing's

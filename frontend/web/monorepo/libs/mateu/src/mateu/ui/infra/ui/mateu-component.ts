@@ -81,6 +81,7 @@ import { isConflictDialogAnswer, isLeaveAction } from '@infra/ui/leaveActions.ts
 import { humanizeFieldId } from '@infra/ui/humanize.ts'
 import { trapFocus, type FocusTrap } from '@infra/a11y/focusTrap.ts'
 import { ISLAND_HOST_STYLE } from '@infra/ui/islandHost.ts'
+import { MESSAGE_PAGE_STYLES } from '@infra/ui/layout/messagePage.ts'
 
 let _pendingInitiatorComponent: MateuComponent | null = null
 
@@ -1413,7 +1414,7 @@ export class MateuComponent extends ComponentElement {
         `
     }
 
-    static styles = [ISLAND_HOST_STYLE, css`
+    static styles = [ISLAND_HOST_STYLE, MESSAGE_PAGE_STYLES, css`
 
         /* Sizing intent (coherence-plan #8), applied via the data-sizing attribute set from
            component.sizing. "fill" grows to take the space its parent (a flex column) leaves and

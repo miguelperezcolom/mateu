@@ -47,6 +47,7 @@ record SeededYamlPage(
     implements ComponentTreeSupplier,
         io.mateu.core.domain.out.componentmapper.DeclaredPageType,
         io.mateu.core.domain.out.componentmapper.DeclaredDirtyGuard,
+        io.mateu.uidl.interfaces.PageWidthSupplier,
         StateSupplier,
         ActionSupplier,
         RestSourceSupplier,
@@ -56,6 +57,18 @@ record SeededYamlPage(
   @Override
   public boolean confirmOnNavigationIfDirty() {
     return layout instanceof io.mateu.uidl.fluent.Form form && form.confirmOnNavigationIfDirty();
+  }
+
+  /**
+   * A message page owns the viewport (its illustrated background is full-bleed): edge to edge.
+   * Every other page leaves the width to inference.
+   */
+  @Override
+  public io.mateu.uidl.annotations.PageWidthStyle pageWidth() {
+    return layout instanceof io.mateu.uidl.fluent.Form form
+            && form.template() instanceof io.mateu.uidl.data.MessagePage
+        ? io.mateu.uidl.annotations.PageWidthStyle.EDGE_TO_EDGE
+        : null;
   }
 
   SeededYamlPage(

@@ -24,6 +24,7 @@ import io.mateu.uidl.data.HorizontalAlignment;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Image;
 import io.mateu.uidl.data.ItemOverviewPage;
+import io.mateu.uidl.data.MessagePage;
 import io.mateu.uidl.data.MetricCard;
 import io.mateu.uidl.data.MultimediaContentPage;
 import io.mateu.uidl.data.ResponsiveGrid;
@@ -33,6 +34,7 @@ import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
 import io.mateu.uidl.data.TemplateImage;
 import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.TextContainer;
 import io.mateu.uidl.data.TextSize;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.data.WelcomePage;
@@ -64,6 +66,7 @@ public final class PageTemplates {
   static final String GUIDED_PROCESS = "GuidedProcessPage";
   static final String DATA_MANAGEMENT = "DataManagementPage";
   static final String HERO_SEARCH = "HeroSearchPage";
+  static final String MESSAGE = "MessagePage";
 
   private PageTemplates() {}
 
@@ -103,6 +106,9 @@ public final class PageTemplates {
     if (form.template() instanceof DataManagementPage dataManagement) {
       return List.of(dataManagement(dataManagement, form));
     }
+    if (form.template() instanceof MessagePage message) {
+      return List.of(message(message, form));
+    }
     return form.content();
   }
 
@@ -114,7 +120,8 @@ public final class PageTemplates {
     return form.template() instanceof WelcomePage
         || form.template() instanceof MultimediaContentPage
         || form.template() instanceof DataManagementPage
-        || form.template() instanceof HeroSearchPage;
+        || form.template() instanceof HeroSearchPage
+        || form.template() instanceof MessagePage;
   }
 
   /** The template's own values, for the wire; {@code null} for a free page. */
@@ -154,6 +161,9 @@ public final class PageTemplates {
     }
     if (template instanceof HeroSearchPage) {
       return new PageTemplateDto(HERO_SEARCH, null, null);
+    }
+    if (template instanceof MessagePage) {
+      return new PageTemplateDto(MESSAGE, null, null);
     }
     return null;
   }
@@ -449,6 +459,96 @@ public final class PageTemplates {
         .spacing(true)
         .horizontalAlignment(HorizontalAlignment.STRETCH)
         .content(page)
+        .build();
+  }
+
+  /**
+   * Message page: the page ({@code message-page}, the full-bleed illustrated background — every
+   * renderer draws it from its classes) holding ONE card ({@code message-card}): the form's
+   * overline, its title as the page's h1, its subtitle, then the form's content ({@code
+   * message-body}), its toolbar ({@code message-actions}) and the template's {@code footer} slot
+   * ({@code message-footer}). The tone travels as a class ({@code mateu-message-page--<tone>}); an
+   * own image and the card's width as custom properties the renderers read.
+   */
+  private static Component message(MessagePage template, Form form) {
+    List<Component> card = new ArrayList<>();
+    if (form.overline() != null && !form.overline().isBlank()) {
+      card.add(messageText("message-overline", form.overline(), TextContainer.p));
+    }
+    if (form.title() != null && !form.title().isBlank()) {
+      card.add(messageText("message-title", form.title(), TextContainer.h1));
+    }
+    if (form.subtitle() != null && !form.subtitle().isBlank()) {
+      card.add(messageText("message-subtitle", form.subtitle(), TextContainer.p));
+    }
+    card.add(
+        VerticalLayout.builder()
+            .id("message-body")
+            .cssClasses("mateu-message-body")
+            .spacing(true)
+            .content(form.content())
+            .build());
+    List<Component> actions = new ArrayList<>();
+    for (var trigger : form.toolbar()) {
+      if (trigger instanceof Component component) actions.add(component);
+    }
+    if (!actions.isEmpty()) {
+      card.add(
+          HorizontalLayout.builder()
+              .id("message-actions")
+              .cssClasses("mateu-message-actions")
+              .spacing(true)
+              .wrap(true)
+              .content(actions)
+              .build());
+    }
+    if (!template.footer().isEmpty()) {
+      card.add(
+          HorizontalLayout.builder()
+              .id("message-footer")
+              .cssClasses("mateu-message-footer")
+              .spacing(true)
+              .wrap(true)
+              .content(template.footer())
+              .build());
+    }
+    String classes = "mateu-message-page";
+    HeroTone tone = template.toneOrNull();
+    if (tone != null) classes += " mateu-message-page--" + tone.name();
+    List<String> style = new ArrayList<>();
+    if (template.imageOrNull() != null) {
+      style.add("--mateu-message-page-image: url(\"" + template.imageOrNull() + "\");");
+    }
+    if (template.widthOrNull() != null) {
+      style.add("--mateu-message-card-width: " + template.widthOrNull() + ";");
+    }
+    return VerticalLayout.builder()
+        .id("message-page")
+        .cssClasses(classes)
+        .style(style.isEmpty() ? null : String.join(" ", style))
+        .content(
+            List.of(
+                Card.builder()
+                    .id("message-card")
+                    .cssClasses("mateu-message-card")
+                    .content(
+                        VerticalLayout.builder()
+                            .id("message-card-content")
+                            .cssClasses("mateu-message-card-content")
+                            .spacing(true)
+                            .content(card)
+                            .build())
+                    .build()))
+        .build();
+  }
+
+  private static Component messageText(String id, String text, TextContainer container) {
+    return Text.builder()
+        .id(id)
+        .text(text)
+        .container(container)
+        .noMargins(true)
+        .cssClasses("mateu-" + id)
         .build();
   }
 

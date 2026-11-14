@@ -246,6 +246,47 @@ class PageTemplateSyncTest {
   }
 
   @Test
+  void aMessagePageIsOneCardOverTheIllustratedBackground() throws Exception {
+    var page = render("message-page");
+    var metadata = page.path("metadata");
+    assertThat(metadata.path("template").path("type").asText()).isEqualTo("MessagePage");
+    // the template owns the page: no header, no toolbar outside the card
+    assertThat(metadata.path("noHeader").asBoolean()).isTrue();
+    assertThat(metadata.path("toolbar")).isEmpty();
+    var background = byId(page, "message-page");
+    assertThat(background.path("cssClasses").asText())
+        .isEqualTo("mateu-message-page mateu-message-page--sienna");
+    assertThat(background.path("style").asText())
+        .isEqualTo(
+            "--mateu-message-page-image: url(\"/images/dunes.png\");"
+                + " --mateu-message-card-width: 32rem;");
+    var card = byId(page, "message-card");
+    assertThat(card.path("metadata").path("type").asText()).isEqualTo("Card");
+    var title = byId(page, "message-title");
+    assertThat(title.path("metadata").path("container").asText()).isEqualTo("h1");
+    assertThat(title.path("metadata").path("text").asText()).isEqualTo("Check your email");
+    assertThat(byId(page, "message-subtitle")).isNotNull();
+    assertThat(byId(page, "message-body").path("children")).hasSize(1);
+    var actions = byId(page, "message-actions");
+    assertThat(actions.path("children").path(0).path("metadata").path("type").asText())
+        .isEqualTo("Button");
+    assertThat(byId(page, "message-footer").path("children")).hasSize(2);
+  }
+
+  @Test
+  void anUnsafeMessagePageImageOrWidthIsDropped() {
+    var template =
+        io.mateu.uidl.data.MessagePage.builder()
+            .image("x\"); background: red; --a: url(\"y")
+            .width("calc(100% - 1px)")
+            .background("chartreuse")
+            .build();
+    assertThat(template.imageOrNull()).isNull();
+    assertThat(template.widthOrNull()).isNull();
+    assertThat(template.toneOrNull()).isNull();
+  }
+
+  @Test
   void anAdvancedCreateEditPageLaysTheDetailAsideTheMainSlot() throws Exception {
     var page = render("create-edit-page");
     assertThat(page.path("metadata").path("template").path("type").asText())

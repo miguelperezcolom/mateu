@@ -1,0 +1,28 @@
+# A MESSAGE PAGE: one card over the illustrated background, no app chrome around it — the
+# confirmation after booking a visit. The form's title is the card's heading, its content the card's
+# body (text with inline links), its toolbar the card's actions and the template's footer the row of
+# small links at its foot.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Check your email
+subtitle: Your visit is almost booked.
+toolbar:
+  - type: Button
+    label: Back to the museums
+    buttonStyle: primary
+    actionable: {type: RouteLink, route: welcome}
+template:
+  type: MessagePage
+  footer:
+    - {type: Anchor, text: Visiting hours, url: /museums}
+    - {type: Anchor, text: Accessibility, url: /welcome}
+    - {type: Anchor, text: Privacy, url: /welcome}
+content:
+  - type: Markdown
+    markdown: >-
+      We sent a confirmation link to your inbox. Open it within 24 hours to confirm the booking —
+      your tickets arrive in a second email.
+  - type: Markdown
+    markdown: >-
+      Did not get it? Look in your spam folder, or [browse the collection](/artworks) while
+      you wait.

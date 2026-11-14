@@ -22,6 +22,7 @@ from mateu_ui.uidl.page_templates import (
     GuidedProcessPage,
     HeroSearchPage,
     ItemOverviewPage,
+    MessagePage,
     MultimediaContentPage,
     TemplateImage,
     WelcomePage,
@@ -40,6 +41,7 @@ _TEMPLATES = (
     GuidedProcessPage,
     DataManagementPage,
     HeroSearchPage,
+    MessagePage,
 )
 
 _BORDER = "1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1))"
@@ -71,6 +73,8 @@ def content_of(form: fluent.Form) -> tuple:
         return (_guided_process(t),)
     if isinstance(t, DataManagementPage):
         return (_data_management(t, form),)
+    if isinstance(t, MessagePage):
+        return (_message(t, form),)
     return content
 
 
@@ -78,7 +82,8 @@ def owns_header(form: fluent.Form) -> bool:
     """Whether the template draws the page's header itself (its title, subtitle and actions live in
     the template's banner): the form then carries no header and no toolbar of its own."""
     return isinstance(
-        form.template, (WelcomePage, MultimediaContentPage, DataManagementPage, HeroSearchPage)
+        form.template,
+        (WelcomePage, MultimediaContentPage, DataManagementPage, HeroSearchPage, MessagePage),
     )
 
 
@@ -104,6 +109,7 @@ def page_type_of(template) -> str | None:
         "DashboardLandingPage": "dashboard",
         "WelcomePage": "landing",
         "HeroSearchPage": "landing",
+        "MessagePage": "landing",
         "ItemOverviewPage": "detail",
         "GeneralOverviewPage": "detail",
         "FoldoutPage": "detail",
@@ -368,4 +374,83 @@ def _data_management(t: DataManagementPage, form: fluent.Form):
         spacing=True,
         horizontal_alignment="STRETCH",
         content=tuple(page),
+    )
+
+
+def _message(t: MessagePage, form: fluent.Form):
+    """Message page: the page (``message-page``, the full-bleed illustrated background — every
+    renderer draws it from its classes) holding ONE card (``message-card``): the form's overline, its
+    title as the page's h1, its subtitle, then the form's content (``message-body``), its toolbar
+    (``message-actions``) and the ``footer`` slot (``message-footer``). The tone travels as a class
+    (``mateu-message-page--<tone>``); an own image and the card's width as custom properties."""
+    card: list = []
+    if _filled(form.overline):
+        card.append(_message_text("message-overline", str(form.overline), "p"))
+    if _filled(form.title):
+        card.append(_message_text("message-title", str(form.title), "h1"))
+    if _filled(form.subtitle):
+        card.append(_message_text("message-subtitle", str(form.subtitle), "p"))
+    card.append(
+        fluent.VerticalLayout(
+            id="message-body",
+            css_classes="mateu-message-body",
+            spacing=True,
+            content=tuple(form.content),
+        )
+    )
+    actions = tuple(c for c in form.toolbar if isinstance(c, fluent.Component))
+    if actions:
+        card.append(
+            fluent.HorizontalLayout(
+                id="message-actions",
+                css_classes="mateu-message-actions",
+                spacing=True,
+                wrap=True,
+                content=actions,
+            )
+        )
+    if t.footer:
+        card.append(
+            fluent.HorizontalLayout(
+                id="message-footer",
+                css_classes="mateu-message-footer",
+                spacing=True,
+                wrap=True,
+                content=tuple(t.footer),
+            )
+        )
+    classes = "mateu-message-page"
+    tone = tone_of(t.background)
+    if tone is not None:
+        classes += " mateu-message-page--" + tone.name
+    style: list[str] = []
+    image = t.image_or_null()
+    if image is not None:
+        style.append(f'--mateu-message-page-image: url("{image}");')
+    width = t.width_or_null()
+    if width is not None:
+        style.append(f"--mateu-message-card-width: {width};")
+    return fluent.VerticalLayout(
+        id="message-page",
+        css_classes=classes,
+        style=" ".join(style) if style else None,
+        content=(
+            fluent.Card(
+                id="message-card",
+                css_classes="mateu-message-card",
+                variants=[],
+                content=fluent.VerticalLayout(
+                    id="message-card-content",
+                    css_classes="mateu-message-card-content",
+                    spacing=True,
+                    content=tuple(card),
+                ),
+            ),
+        ),
+    )
+
+
+def _message_text(id: str, text: str, container: str):
+    return fluent.Text(
+        id=id, text=text, container=container, no_margins=True, css_classes="mateu-" + id
     )

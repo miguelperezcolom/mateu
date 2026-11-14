@@ -2471,3 +2471,68 @@ oj-sp-simple-ui-shell.mateu-chromeless .oj-sp-simple-ui-shell-globalheader { dis
 .mateu-banner-close { border: none; background: transparent; cursor: pointer; font-size: 1rem; line-height: 1; padding: 0.25rem; color: inherit; }
 /* @OnRowSelected grid field (tables.mjs installRowSelection): a row click selects it */
 .mateu-grid-selectable oj-table tbody tr { cursor: pointer; }
+
+/* MESSAGE page (YAML template: MessagePage, overviews.templatedMessageOf): ONE card near the top of a
+   full-bleed illustrated background, with no chrome. Spectra ships no component for it, so it is
+   composed from Redwood's own pieces. The background is a fixed layer (.mateu-message-page,
+   main-start-page.html) painted like Spectra's welcome banner paints itself: the tone's colour from
+   Spectra's palette (--oj-sp-rw-*, the same mapping oj-sp-header-welcome-banner uses for its
+   dark-<tone>) under the gallery illustration and texture (or Spectra's themed image) loaded from
+   Oracle's CDN, bound as the layer's background-image — one illustration anchored top-left at 2560px
+   wide, never scaled to cover; the template's own image replaces it. The content container is the
+   card (.mateu-message-card-host). While it is on screen the shell's global header, subheader,
+   navigator and Ask button are put away. */
+body:has(.mateu-message-card-host) .oj-sp-simple-ui-shell-globalheader,
+body:has(.mateu-message-card-host) #pageContent > nav,
+body:has(.mateu-message-card-host) #mateuNavDrawer > [slot="start"],
+body:has(.mateu-message-card-host) .mateu-sections-overlay,
+body:has(.mateu-message-card-host) .mateu-sections-scrim,
+body:has(.mateu-message-card-host) .oj-sp-rw-chat-icon-cont { display: none !important; }
+.mateu-message-page {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-color: rgb(var(--oj-sp-rw-blue-rgb-100, 34, 126, 158));
+  background-repeat: no-repeat;
+  background-size: max(2560px, 100%) auto;
+  background-position: 0 0;
+}
+/* Spectra's themed image is a whole scene (its own colour, the pebbles on its end side): placed as
+   the welcome banner places it — covering, anchored at the end */
+.mateu-message-page.mateu-message-page--themed { background-size: cover; background-position: 100% 50%; }
+.mateu-message-page--ocean { background-color: rgb(var(--oj-sp-rw-blue-rgb-100, 34, 126, 158)); }
+.mateu-message-page--pine { background-color: rgb(var(--oj-sp-rw-pine-rgb-100, 76, 130, 92)); }
+.mateu-message-page--lilac { background-color: rgb(var(--oj-sp-rw-lilac-rgb-120, 88, 95, 128)); }
+.mateu-message-page--teal { background-color: rgb(var(--oj-sp-rw-teal-rgb-110, 70, 113, 115)); }
+.mateu-message-page--rose { background-color: rgb(var(--oj-sp-rw-rose-rgb-120, 134, 80, 92)); }
+.mateu-message-page--pebble { background-color: rgb(var(--oj-sp-rw-pebble-rgb-110, 100, 106, 115)); }
+.mateu-message-page--slate { background-color: rgb(var(--oj-sp-rw-slate-rgb-110, 96, 108, 109)); }
+.mateu-message-page--plum { background-color: rgb(var(--oj-sp-rw-plum-rgb-110, 121, 96, 135)); }
+.mateu-message-page--sienna { background-color: rgb(var(--oj-sp-rw-sienna-rgb-100, 170, 100, 59)); }
+/* the card: Redwood's Neutral 10 surface (the light #FBF9F8 of Redwood's own sign-in card, not pure
+   white), the small radius, no shadow; 460px wide (the template's width when it declares one, bound
+   as max-width), ~128px from the top — top-anchored, not centred */
+.oj-sp-public-primary-content-container.mateu-message-card-host {
+  position: relative; z-index: 1; box-sizing: border-box;
+  width: calc(100% - 2 * var(--oj-core-spacing-4x, 16px)); max-width: 460px;
+  margin: 128px auto var(--oj-core-spacing-10x, 40px) !important;
+  padding: var(--oj-core-spacing-8x, 32px) var(--oj-core-spacing-6x, 24px) !important;
+  background: rgb(var(--oj-palette-neutral-rgb-10, 251, 249, 248));
+  border-radius: var(--oj-core-border-radius-md, 4px);
+  box-shadow: none; border: none;
+}
+.mateu-message-card-host > oj-bind-if > .oj-sm-padding-12x-horizontal,
+.mateu-message-card-host .oj-sm-padding-12x-horizontal { padding: 0 !important; }
+.mateu-message-head { display: flex; flex-direction: column; gap: var(--oj-core-spacing-2x, 8px); margin-bottom: var(--oj-core-spacing-4x, 16px); }
+.mateu-message-head > * { margin: 0; }
+.mateu-message-title { color: var(--oj-heading-text-color, var(--oj-core-text-color-primary, #161513)); }
+.mateu-message-card-host .mateu-message-actions .mateu-atom-row,
+.mateu-message-card-host .mateu-message-actions { width: 100%; }
+.mateu-message-card-host .mateu-message-actions oj-button { flex: 1 1 100%; }
+.mateu-message-card-host .mateu-message-footer {
+  margin-top: var(--oj-core-spacing-4x, 16px); padding-top: var(--oj-core-spacing-4x, 16px);
+  border-top: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, .12));
+  font-size: var(--oj-typography-body-sm-font-size, 0.875rem);
+}
+.mateu-message-card-host .mateu-message-footer .mateu-atom-row { justify-content: center; gap: var(--oj-core-spacing-4x, 16px); }
+@media (max-width: 600px) {
+  .oj-sp-public-primary-content-container.mateu-message-card-host { margin-top: var(--oj-core-spacing-10x, 40px) !important; padding: var(--oj-core-spacing-6x, 24px) var(--oj-core-spacing-4x, 16px) !important; }
+}

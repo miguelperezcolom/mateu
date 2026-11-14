@@ -108,6 +108,8 @@
      "description": "A hero with calls to action over highlight tiles."},
     {"id": "heroSearch", "label": "Hero Search", "family": "landing", "pageWidth": "fixed", "template": "Mateu Page Hero Search",
      "description": "A centered hero with the search, results as cards below."},
+    {"id": "message", "label": "Message", "family": "landing", "pageWidth": "auto", "template": "Mateu Page Message",
+     "description": "One card over an illustrated background, no app chrome: a confirmation, an error, a signed-out or sign-in page."},
     {"id": "collectionDetail", "label": "Collection Detail", "family": "collection", "pageWidth": "fullWidth", "template": "Mateu Page Collection Detail",
      "description": "A list of items on the left, the selected item's detail on the right."},
     {"id": "generalOverview", "label": "General Overview", "family": "detail", "pageWidth": "fullWidth", "template": "Mateu Page General Overview",

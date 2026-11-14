@@ -23,6 +23,7 @@ const PAGE_OF = {
   ItemOverviewPage: 'ux-patterns/item-overview',
   WelcomePage: 'ux-patterns/welcome-page',
   MultimediaContentPage: 'ux-patterns/multimedia-content',
+  MessagePage: 'ux-patterns/message-page',
   CollectionDetailPage: 'ux-patterns/collection-detail',
   DataManagementPage: 'ux-patterns/data-management',
   FoldoutPage: 'ux-patterns/foldout',

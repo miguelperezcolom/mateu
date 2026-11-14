@@ -17,7 +17,7 @@ public class YamlPageTemplatesTests(ITestOutputHelper output)
         "item-overview-page", "item-overview-photo", "welcome-page", "dashboard-page",
         "general-overview-page", "collection-detail-page", "collection-detail-empty", "foldout-page",
         "multimedia-page", "create-edit-page", "guided-process-page", "data-management-page",
-        "hero-search-page",
+        "hero-search-page", "message-page",
     };
 
     /// <summary>The ONLY wire paths allowed to differ, each with its reason. None is a template gap;
@@ -68,7 +68,7 @@ public class YamlPageTemplatesTests(ITestOutputHelper output)
             [typeof(HeroSearchPage)] = "landing", [typeof(ItemOverviewPage)] = "detail",
             [typeof(GeneralOverviewPage)] = "detail", [typeof(FoldoutPage)] = "detail",
             [typeof(MultimediaContentPage)] = "detail", [typeof(GuidedProcessPage)] = "process",
-            [typeof(AdvancedCreateEditPage)] = "form",
+            [typeof(AdvancedCreateEditPage)] = "form", [typeof(MessagePage)] = "landing",
         };
         var all = typeof(IFormTemplate).Assembly.GetTypes()
             .Where(t => !t.IsAbstract && typeof(IFormTemplate).IsAssignableFrom(t)).ToList();
@@ -116,5 +116,29 @@ public class YamlPageTemplatesTests(ITestOutputHelper output)
         var hero = (Mateu.Dtos.ClientSideComponentDto)dto.Children[0];
         Assert.Equal("welcome", hero.Id);
         Assert.Equal("ocean", ((Mateu.Dtos.HeroSectionMetadataDto)hero.Metadata).Tone);
+    }
+
+    [Fact]
+    public void A_message_page_drops_an_unsafe_image_and_width()
+    {
+        // an image that could end the CSS url("…") and a width that is not a plain length are left
+        // out (Java's MessagePage.imageOrNull / widthOrNull); the tone still travels as a class
+        var form = new Form
+        {
+            Title = "Signed out",
+            Template = new MessagePage { Background = "ocean", Image = "/x.png\"); color: red", Width = "calc(100% - 1px)" },
+        };
+        var dto = (Mateu.Dtos.ClientSideComponentDto)ComponentMapper.Map(form);
+        var meta = (Mateu.Dtos.FormMetadataDto)dto.Metadata;
+        Assert.True(meta.NoHeader);
+        Assert.Equal("MessagePage", meta.Template!.Type);
+        var page = (Mateu.Dtos.ClientSideComponentDto)dto.Children[0];
+        Assert.Equal("message-page", page.Id);
+        Assert.Null(page.Style);
+        Assert.Equal("mateu-message-page mateu-message-page--ocean", page.CssClasses);
+        Assert.Null(new MessagePage { Width = "32rem; x: y" }.WidthOrNull());
+        Assert.Equal("520px", new MessagePage { Width = " 520px " }.WidthOrNull());
+        Assert.Equal("/images/a b.png", new MessagePage { Image = "/images/a b.png" }.ImageOrNull());
+        Assert.Null(new MessagePage { Image = "/images/\u00f1.png" }.ImageOrNull());
     }
 }
