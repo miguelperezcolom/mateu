@@ -554,6 +554,31 @@ tasks.register("buildInstaller") {
             check(p.waitFor() == 0) { "command failed: ${cmd.joinToString(" ")}\n$out" }
             return out
         }
+        // notarytool submit --wait dies with the runner's network ("The Internet connection appears to
+        // be offline", 3.0-beta.66 dry runs: twice in a row on the aarch64 runner, after the upload),
+        // although Apple goes on with the submission. So submit once, then WAIT on its id — a failed
+        // wait is retried, never re-submitted — and require status Accepted at the end.
+        fun notarize(file: File, profile: String, dir: File) {
+            val submitted = capture("xcrun", "notarytool", "submit", file.absolutePath, "--keychain-profile", profile,
+                "--output-format", "json", dir = dir)
+            val id = Regex("\"id\"\\s*:\\s*\"([^\"]+)\"").find(submitted)?.groupValues?.get(1)
+                ?: error("notarytool submit gave no submission id:\n$submitted")
+            logger.lifecycle("  submission $id")
+            var last = ""
+            for (attempt in 1..6) {
+                val p = ProcessBuilder("xcrun", "notarytool", "wait", id, "--keychain-profile", profile,
+                    "--timeout", "40m", "--output-format", "json").directory(dir).redirectErrorStream(true).start()
+                last = p.inputStream.readBytes().decodeToString()
+                if (p.waitFor() == 0) break
+                logger.lifecycle("  waiting on $id failed (attempt $attempt), retrying: ${last.takeLast(300)}")
+                Thread.sleep(30_000L * attempt)
+            }
+            val info = capture("xcrun", "notarytool", "info", id, "--keychain-profile", profile, "--output-format", "json", dir = dir)
+            if (!Regex("\"status\"\\s*:\\s*\"Accepted\"").containsMatchIn(info)) {
+                val log = runCatching { capture("xcrun", "notarytool", "log", id, "--keychain-profile", profile, dir = dir) }.getOrDefault("")
+                error("notarization of ${file.name} not accepted:\n$info\n$last\n${log.takeLast(6000)}")
+            }
+        }
         fun onPath(tool: String): Boolean =
             System.getenv("PATH").orEmpty().split(File.pathSeparator).any { File(it, tool).canExecute() }
         val installerDir = layout.buildDirectory.dir("installer").get().asFile
@@ -715,6 +740,25 @@ tasks.register("buildInstaller") {
             logger.lifecycle(if (signId != null) "Signing with Developer ID (hardened runtime), inside-out…" else "Re-signing (ad-hoc), inside-out…")
             run("bash", File(src, "macos/sign-app.sh").absolutePath, app.absolutePath, signId ?: "-", dir = work)
 
+            val notarized = signId != null && notaryProfile != null
+            if (!notarized && notaryProfile != null)
+                logger.lifecycle("Skipping notarization: -Pmacos.sign.identity is required (an ad-hoc signature can't be notarized).")
+
+            // Notarize and staple the .app BEFORE it goes into the .dmg: a .dmg is a snapshot, so an app
+            // stapled after hdiutil create stays unstapled inside it (3.0-beta.66: the published dmg's app
+            // had no ticket and only passed Gatekeeper online). Then the .dmg is notarized + stapled too,
+            // so both the double-clicked .dmg and the dragged-out .app pass offline. Needs a Developer ID
+            // signature and a notarytool keychain profile (-Pmacos.notarize.profile=<profile>, created
+            // once via `xcrun notarytool store-credentials`).
+            if (notarized) {
+                val appZip = File(work, "notarize-app.zip").apply { delete() }
+                run("ditto", "-c", "-k", "--keepParent", app.absolutePath, appZip.absolutePath, dir = work)
+                logger.lifecycle("Notarizing the .app (submitting to Apple — can take a few minutes)…")
+                notarize(appZip, notaryProfile!!, work)
+                run("xcrun", "stapler", "staple", app.absolutePath, dir = work)
+                appZip.delete()
+            }
+
             // Double-click .dmg: the .app beside a drag-to-/Applications shortcut. Move (not copy) the
             // work .app into the staging dir — same filesystem, so it's free.
             logger.lifecycle("Creating .dmg…")
@@ -726,21 +770,10 @@ tasks.register("buildInstaller") {
             dmgOut.delete()
             run("hdiutil", "create", "-volname", o.product, "-srcfolder", dmgStage.absolutePath, "-ov", "-format", "UDZO", dmgOut.absolutePath, dir = work)
 
-            // Notarize the .dmg and staple the ticket onto both the .dmg and the .app, so Gatekeeper
-            // passes offline (normal double-click, no right-click). Needs a Developer ID signature and
-            // a notarytool keychain profile (-Pmacos.notarize.profile=<profile>, created once via
-            // `xcrun notarytool store-credentials`).
-            val notarized = signId != null && notaryProfile != null
-            when {
-                notarized -> {
-                    logger.lifecycle("Notarizing (submitting to Apple — can take a few minutes)…")
-                    run("xcrun", "notarytool", "submit", dmgOut.absolutePath, "--keychain-profile", notaryProfile!!, "--wait", dir = work)
-                    logger.lifecycle("Stapling the notarization ticket…")
-                    run("xcrun", "stapler", "staple", dmgOut.absolutePath, dir = work)
-                    run("xcrun", "stapler", "staple", stagedApp.absolutePath, dir = work)
-                }
-                notaryProfile != null ->
-                    logger.lifecycle("Skipping notarization: -Pmacos.sign.identity is required (an ad-hoc signature can't be notarized).")
+            if (notarized) {
+                logger.lifecycle("Notarizing the .dmg…")
+                notarize(dmgOut, notaryProfile!!, work)
+                run("xcrun", "stapler", "staple", dmgOut.absolutePath, dir = work)
             }
 
             // Ship the .app and a zip of it — from the staged (possibly stapled) copy.

@@ -31,7 +31,10 @@ import io.mateu.ijp.ui.plain
  */
 class MateuToolbarWidget : ComboBoxAction(), DumbAware {
 
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+    // BGT: update only reads the session, and the first one also reads the launch config (FOCUSED) —
+    // on the EDT that first read (Jackson's start-up) took ~450 ms on the 2026.3 desktop app and the
+    // platform logged a SEVERE "… to call on EDT … Plugin to blame: Mateu" (3.0-beta.66 dry run).
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun update(e: AnActionEvent) {
         val session = e.project?.getUserData(MATEU_SESSION)
