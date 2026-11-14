@@ -9,6 +9,9 @@
  * Checks: /products shows the listing with rows; a click on a row opens the record (its fields).
  */
 import { chromium } from 'playwright'
+import { mkdtempSync } from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 const BASE = (process.env.BASE || 'http://localhost:8080').replace(/\/$/, '')
 const ROW_TEXT = process.env.ROW_TEXT || 'Espresso machine'
@@ -58,7 +61,7 @@ if (rows > 0) {
   check('a row opens the record', opened, `url ${page.url()}; content: ${text.slice(0, 160)}`)
 }
 
-await page.screenshot({ path: process.env.SHOT || '/tmp/ports-redwood-probe.png' })
+await page.screenshot({ path: process.env.SHOT || path.join(mkdtempSync(path.join(os.tmpdir(), 'ports-redwood-')), 'probe.png') })
 await browser.close()
 const failed = results.filter((ok) => !ok).length
 console.log(failed ? `${failed} FAILED` : `ALL ${results.length} PASSED`)

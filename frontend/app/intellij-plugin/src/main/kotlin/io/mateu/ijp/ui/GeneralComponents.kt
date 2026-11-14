@@ -672,6 +672,7 @@ internal fun renderAppPreview(ctx: AppContext, src: String, title: String): JCom
         slot.removeAll()
         when (target) {
             is MountLinks.Target.App -> {
+                if (!ctx.agentAuthored) declareRemotes(ctx.session, listOf(target.baseUrl))
                 val island = newIsland(ctx, remoteSession(ctx.session, target.baseUrl))
                 slot.add(island.contentPane!!, BorderLayout.CENTER)
                 // a fresh load of that app, as the frame's page load is
@@ -850,10 +851,39 @@ fun renderConfirmDialog(r: ComponentRenderer, component: JsonNode, metadata: Jso
  * own backend named it (a DECLARED remote, see CredentialScope); an island a remote named is
  * called anonymously.
  */
-internal fun microFrontendSession(host: AppSession, metadata: JsonNode): AppSession {
+internal fun microFrontendSession(host: AppSession, metadata: JsonNode, declares: Boolean = true): AppSession {
     @Suppress("UNCHECKED_CAST")
     val appState = host.mapper.convertValue(metadata.path("appState"), Map::class.java) as Map<String, Any?>? ?: emptyMap()
+    // the island's base url came in an ANSWER of the host's backend: that backend names it (unless
+    // the screen is one an AGENT wrote — a `__preview__` of its YAML — whose islands name nothing)
+    if (declares) declareRemotes(host, listOf(metadata.text("baseUrl")))
     return remoteSession(host, metadata.text("baseUrl"), appState)
+}
+
+/**
+ * [host]'s backend names these remotes (a menu's federated entries, its home screen mounted from
+ * another backend, an island or app preview of a page it answered): their origins may carry the
+ * user's credentials — only when [host] is a ROOT session ([io.mateu.ijp.api.CredentialScope.declare]).
+ * The ONE place trust is granted; opening a session ([remoteSession]) never grants it (B1).
+ */
+internal fun declareRemotes(host: AppSession, baseUrls: List<String?>) {
+    val resolved = baseUrls.filterNotNull().filter { it.isNotBlank() }
+        .map { io.mateu.ijp.api.Urls.resolve(host.baseUrl, it).trimEnd('/') }
+    if (resolved.isNotEmpty()) host.credentials.declare(host.baseUrl, resolved)
+}
+
+/** The base urls of an app menu's entries (its federated leaves, at any depth). */
+internal fun menuRemotes(menu: JsonNode?): List<String> {
+    val out = mutableListOf<String>()
+    fun walk(items: JsonNode?) {
+        if (items == null || !items.isArray) return
+        for (item in items) {
+            item.path("baseUrl").takeIf { it.isTextual && it.asText().isNotBlank() }?.let { out += it.asText() }
+            walk(item.path("submenus"))
+        }
+    }
+    walk(menu)
+    return out
 }
 
 /**
@@ -866,7 +896,8 @@ internal fun remoteSession(host: AppSession, baseUrl: String?, appState: Map<Str
     // it — taken as it came, every request of the island went to "/fed/mateu/v3/sync/…" with no host
     val base = io.mateu.ijp.api.Urls.resolve(host.baseUrl, baseUrl.orEmpty()).trimEnd('/')
     if (base.isBlank() || base == host.baseUrl.trimEnd('/')) return host
-    host.credentials.declare(host.baseUrl, listOf(base))
+    // it DECLARES nothing (B1): the url may be whatever an agent's navigation wrote — the
+    // credentials go only where the app's backend already named ([declareRemotes])
     val tokens = if (host.credentials.mayCarryCredentials(base)) host.apiClient.tokenProvider
         else io.mateu.ijp.api.TokenProvider.NONE
     return AppSession(base, appState, tokens, sources = host.sources, credentials = host.credentials)
@@ -880,6 +911,7 @@ internal fun remoteSession(host: AppSession, baseUrl: String?, appState: Map<Str
 internal fun newIsland(host: AppContext, session: AppSession): AppContext {
     val island = AppContext(session)
     island.ownsSession = island.session !== host.session
+    island.agentAuthored = host.agentAuthored
     island.titleConsumer = {}
     island.silentErrors = true
     island.embedsApps = true
@@ -911,7 +943,7 @@ internal fun islandFailureText(baseUrl: String, reason: String): String {
  * when the app's backend named it.
  */
 fun renderMicroFrontend(ctx: AppContext, metadata: JsonNode): JComponent {
-    val island = newIsland(ctx, microFrontendSession(ctx.session, metadata))
+    val island = newIsland(ctx, microFrontendSession(ctx.session, metadata, declares = !ctx.agentAuthored))
     // chrome NONE / COMPACT / PAGE: a block of the host page, not a page (embeddedChrome.ts)
     island.embeddedChrome = io.mateu.ijp.state.EmbeddedChrome.of(metadata.text("chrome"))
     val slot = island.contentPane!!
