@@ -59,6 +59,20 @@ object ChatEvents {
     }
 
     /**
+     * An agent's navigation keeps its `baseUrl` only to reach a remote of THIS app — an origin the
+     * session already trusts with the credentials ([mayCarryCredentials]: the app's own backend, a
+     * remote its menu names). Any other base url is dropped and the route opens in the app (B1): an
+     * agent steered by what it read could otherwise name any host, and the desktop sent the user's
+     * token there. The twin of the web's and the phone's `trustedNavigationOf`.
+     */
+    fun trustedNavigation(entry: JsonNode, mayCarryCredentials: (String) -> Boolean): JsonNode {
+        val base = entry.path("baseUrl").takeIf { it.isTextual }?.asText() ?: return entry
+        if (base.isBlank() || mayCarryCredentials(base)) return entry
+        System.err.println("[Mateu] an agent navigation named a base url this app does not trust; opened in the app instead")
+        return (entry.deepCopy<JsonNode>() as ObjectNode).apply { remove("baseUrl") }
+    }
+
+    /**
      * A navigation-requested detail as a menu entry: only its where-to-go fields
      * ([agentNavigationFields]) travel, plus a label for the tab — the matching menu entry's, else the
      * route. No route, nothing to open.
