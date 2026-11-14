@@ -27,7 +27,7 @@ class MateuContextSelectors : ActionGroup(), DumbAware {
 
     private val cache = HashMap<String, SelectorCombo>()
 
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT // only reads the session
 
     override fun update(e: AnActionEvent) {
         val session = e.project?.getUserData(MATEU_SESSION)
@@ -56,7 +56,7 @@ private class SelectorCombo(private val fieldName: String) : ComboBoxAction(), D
         this.selector = selector
     }
 
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT // only reads the session
 
     override fun update(e: AnActionEvent) {
         val s = session
