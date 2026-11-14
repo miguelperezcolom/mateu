@@ -23,8 +23,29 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   IntelliJ / VS Code "New › Mateu" page templates. Demo: `demo-museum` `visit-booked` and `sign-in`.
   Docs `ux-patterns/message-page.md`.
 
+### Fixed — rc.2 web
+
+- A non-root YAML mount keeps its address on Vaadin: a reload no longer lands in another app.
+- The route-structure cache starts empty on a document reached by a plain navigation (a cookie
+  sign-out + sign-in in the same tab painted the previous user's composed values).
+- The visual editor never writes an empty `layout:` over a `layoutDelta:` page it could not
+  hydrate, and editing an anchored node used elsewhere keeps the file's comments.
+- Redwood: a response body that stalls past the ceiling is a timeout (retried for reads, reported);
+  app header actions are sent once however often they are pressed; group rows of a date/amount
+  column are not blank (the audit History dialog).
+- A same-mount micro frontend under a public base path is recognised as the page's own mount.
+
 ### Security
 
+- **A screen an agent wrote loads nothing by itself** (GA review 2, C2). On top of what the
+  untrusted strip already took out (script, triggers, `restAction`), an agent-pushed or
+  chat-rendered screen keeps an inline REST source (`rowsSource`, `optionsSource`, any `…Source`)
+  only as its catalogue `ref`, fetched by GET, loses its own `restSources` catalogue, loads images
+  only from this server or a `data:` url, and has every style that could fetch (`url(`,
+  `image-set(`, a CSS escape…) blanked. Java, .NET, Python, libs/mateu and Redwood, pinned by
+  `conformance/untrusted/cases.json`.
+- **The visual editor's canvases take messages only from the editor's origin**, and the IntelliJ
+  editor page keeps a nonce Content-Security-Policy instead of none (GA review 2, N-5, N-13).
 - **Licence notices travel with every artifact.** Every jar carries `META-INF/LICENSE.txt` and
   `NOTICE`; the web renderer bundle (the `io.mateu:mateu-vaadin` jar, the `mateu-vaadin` npm package,
   the static sites) and the visual editor embedded in the IDE plugins carry `THIRD-PARTY-LICENSES.txt`
