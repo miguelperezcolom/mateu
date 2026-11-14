@@ -44,6 +44,7 @@ import "@vaadin/combo-box";
 import { columnAlign, formatNumberCell } from "@infra/ui/columnAlign.ts";
 import { formatTemporalCell } from "@infra/ui/dateFormat.ts";
 import { uiLocale } from "@infra/ui/uiLocale.ts";
+import { isCellEdit, noteEditStart } from "./inlineCellCommit.ts";
 
 // Per-row cache of lookup labels, keyed by the row object itself so the synthetic "<col>-label"
 // keys never end up on the row that round-trips to the server (the Java row class has no such
@@ -65,10 +66,17 @@ const cacheLabel = (row: object, columnId: string, label: string) => {
 // got it wrong — an empty integer field committed NaN and hung the page.
 const toNumber = (raw: any, integer = false): number | null => numericCommitValue(raw, integer)
 
-// Inline-editing cell: an input bound to the row value. On commit it mutates the row and re-emits the
-// whole grid array as a value-changed so mateu-component updates state[fieldId] (edits then round-trip
-// with the enclosing form's next action). The editor is picked from the column's editorType (derived
-// server-side from the field's real Java type); unknown types fall back to a text field.
+// Inline-editing cell: an input bound to the row value. On commit it mutates the row and either
+// persists it (a listing: `update-row`) or re-emits the whole grid array as a value-changed so
+// mateu-component updates state[fieldId] (a form grid). The editor is picked from the column's
+// editorType (derived server-side from the field's real Java type); unknown types fall back to a
+// text field.
+//
+// vaadin-grid RECYCLES these editors for other rows (a search, a page, a sort): every editor
+// therefore commits on its USER event (`change`) only — never on a value notification, which also
+// fires when the grid binds the next row's value, and used to reach the PREVIOUS row's listener —
+// and only for the row the edit started on and a value that differs from that row's own
+// (inlineCellCommit.ts).
 const renderEditableCell = (
     item: any,
     column: GridColumn,
@@ -76,18 +84,18 @@ const renderEditableCell = (
     state: ComponentState,
 ) => {
     const gridFieldId = (container as any)?.field?.fieldId
-    const commit = (value: any) => {
-        // No-op commits (e.g. vaadin-checkbox firing checked-changed on initialization) must not
-        // dispatch — in a listing every dispatch persists the row.
-        if (item[column.id] === value || (item[column.id] == null && (value === '' || value == null))) {
+    const startEdit = (e: Event) => noteEditStart(e.currentTarget, item)
+    const commit = (e: Event, value: any) => {
+        if (!isCellEdit(e.currentTarget, item, column.id, value)) {
             return
         }
         item[column.id] = value
         if (!gridFieldId) {
             // Not a form grid but a listing (crud) grid: persist the edited row right away via the
-            // crud's update-row action instead of accumulating edits in the form state.
+            // crud's update-row action instead of accumulating edits in the form state. The cell
+            // that changed travels too: the server applies only THAT cell over the stored record.
             container.dispatchEvent(new CustomEvent('action-requested', {
-                detail: { actionId: 'update-row', parameters: { _editedRow: { ...item } } },
+                detail: { actionId: 'update-row', parameters: { _editedRow: { ...item }, _editedField: column.id } },
                 bubbles: true,
                 composed: true,
             }))
@@ -104,6 +112,9 @@ const renderEditableCell = (
             composed: true,
         }))
     }
+    // the value an editor reports, read off the editor itself (a checkbox's `change` comes from its
+    // slotted native input, so e.target is not the editor)
+    const valueOf = (e: Event) => (e.currentTarget as any).value
     const v = item[column.id]
     const s = v == null ? '' : String(v)
     // An in-cell editor has no visible label of its own: name it after its column, or a screen
@@ -111,24 +122,25 @@ const renderEditableCell = (
     const name = column.label ?? column.id
     switch (column.editorType) {
         case 'boolean':
-            return html`<vaadin-checkbox accessible-name="${name}" ?checked=${!!v} @checked-changed=${(e: any) => commit(e.detail.value)}></vaadin-checkbox>`
+            return html`<vaadin-checkbox accessible-name="${name}" ?checked=${!!v} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: Event) => commit(e, !!(e.currentTarget as HTMLInputElement).checked)}></vaadin-checkbox>`
         case 'integer':
-            return html`<vaadin-integer-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(toNumber(e.target.value, true))}></vaadin-integer-field>`
+            return html`<vaadin-integer-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: Event) => commit(e, toNumber(valueOf(e), true))}></vaadin-integer-field>`
         case 'number':
-            return html`<vaadin-number-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(toNumber(e.target.value))}></vaadin-number-field>`
+            return html`<vaadin-number-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: Event) => commit(e, toNumber(valueOf(e)))}></vaadin-number-field>`
         case 'date':
-            return html`<vaadin-date-picker accessible-name="${name}" theme="small" style="width:100%;" .i18n=${datePickerI18n()} .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-picker>`
+            return html`<vaadin-date-picker accessible-name="${name}" theme="small" style="width:100%;" .i18n=${datePickerI18n()} .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: Event) => commit(e, valueOf(e))}></vaadin-date-picker>`
         case 'time':
-            return html`<vaadin-time-picker accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-time-picker>`
+            return html`<vaadin-time-picker accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: Event) => commit(e, valueOf(e))}></vaadin-time-picker>`
         case 'datetime':
-            return html`<vaadin-date-time-picker accessible-name="${name}" theme="small" style="width:100%;" .i18n=${datePickerI18n()} .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-time-picker>`
+            return html`<vaadin-date-time-picker accessible-name="${name}" theme="small" style="width:100%;" .i18n=${datePickerI18n()} .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: Event) => commit(e, valueOf(e))}></vaadin-date-time-picker>`
         case 'select':
             return html`<vaadin-combo-box accessible-name="${name}"
                 theme="small" style="width:100%;"
                 .items=${(column.editorOptions ?? []).map(o => ({ label: o.label, value: String(o.value) }))}
                 item-label-path="label" item-value-path="value"
                 .value=${s}
-                @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-combo-box>`
+                @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit}
+                @change=${(e: Event) => commit(e, valueOf(e))}></vaadin-combo-box>`
         case 'lookup': {
             // Remote search-as-you-type: the combo box's dataProvider dispatches the per-column
             // search action (search-<gridField>-<column>, handled by SearchFieldActionRunner) and
@@ -159,16 +171,18 @@ const renderEditableCell = (
                 item-label-path="label" item-id-path="value"
                 .dataProvider=${dataProvider}
                 .selectedItem=${selected}
-                @selected-item-changed=${(e: any) => {
-                    const it = e.detail.value
+                @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit}
+                @change=${(e: Event) => {
+                    // `change` is the user's pick; selected-item-changed also fires when the grid
+                    // binds another row's item into a recycled combo
+                    const it = (e.currentTarget as any).selectedItem
                     const nv = it ? it.value : null
-                    if (String(nv ?? '') === s) return
-                    if (it) cacheLabel(item, column.id, it.label)
-                    commit(nv)
+                    if (it && isCellEdit(e.currentTarget, item, column.id, nv)) cacheLabel(item, column.id, it.label)
+                    commit(e, nv)
                 }}></vaadin-combo-box>`
         }
         default:
-            return html`<vaadin-text-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(e.target.value)}></vaadin-text-field>`
+            return html`<vaadin-text-field accessible-name="${name}" theme="small" style="width:100%;" .value=${s} @focusin=${startEdit} @pointerdown=${startEdit} @keydown=${startEdit} @change=${(e: Event) => commit(e, valueOf(e))}></vaadin-text-field>`
     }
 }
 

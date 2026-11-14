@@ -13,7 +13,7 @@ class Status(Enum):
     OUT_OF_STOCK = "OUT_OF_STOCK"
 
 class Product:
-    id: Annotated[str, Required()] = ""                 # the id is always the `id` attribute
+    id: str = ""                                        # the id is always the `id` attribute; the store assigns it
     name: Annotated[str, Required()] = ""
     price: Annotated[float, Money(), RangeFilter()] = 0.0   # number-range filter
     status: Status = Status.AVAILABLE                   # multi-select filter
@@ -31,17 +31,22 @@ class Products(Crud[Product]):
     def get(self, id):
         return _STORE.get(id)
 
-    def save(self, entity):                             # REQUIRED: the default silently does nothing
+    def save(self, entity):                             # REQUIRED: the default refuses
+        if not entity.id:                               # a NEW record: the store assigns its id
+            entity.id = f"P-{len(_STORE) + 1:03}"
         _STORE[entity.id] = entity
 
-    def delete(self, id):                               # REQUIRED: the default silently does nothing
+    def delete(self, id):                               # REQUIRED: the default refuses
         _STORE.pop(id, None)
 ```
 
-**Server-generated ids:** leave `id` without `Required()` and assign it in `save` when blank
-(`entity.id = entity.id or f"P-{len(_STORE) + 1:03}"`). The port has no per-context hiding
-(Java's `@HiddenInCreate`), so the Id box still shows, empty, on the new form — say so in its
-label/help or accept it.
+**Who chooses the id.** A plain `id` is a *technical* id: the new form has no input for it and a
+create never takes one from the client — the store assigns it in `save` (above). A create the
+store saves with the id still blank is refused ("The record was saved without an id…"), never
+answered "Saved". When the user should TYPE the id (a product code), mark it
+`Annotated[str, Required(), EditableOnlyWhenCreating()]`: it is an input on the new form, read-only
+afterwards, and a create whose id already exists is refused ("A record with this id already
+exists…"). `GeneratedValue()` marks an id the server fills into the form.
 
 You get the listing (smart search bar; filters derived from the entity, applied in memory over
 `fetch`), detail `/products/{id}`, edit `/products/{id}/edit`, new `/products/new`, delete and

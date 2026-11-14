@@ -115,11 +115,23 @@ class CrudTechnicalIdSyncTest {
     }
   }
 
+  static final List<Artwork> FORGOTTEN = new ArrayList<>();
+
+  /** The pattern the manuals taught before the technical-id rule: keyed by an id nobody assigns. */
+  @UI("/tid-forgetful")
+  @Title("Forgetful")
+  public static class Forgetful extends AutoCrud<Artwork> {
+    @Override
+    public CrudStore<Artwork> store() {
+      return storeOf(FORGOTTEN, a -> {});
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(Artworks.class, Skus.class);
+    mateu = TestMateu.withUis(Artworks.class, Skus.class, Forgetful.class);
   }
 
   @AfterAll
@@ -177,6 +189,30 @@ class CrudTechnicalIdSyncTest {
         .isEqualTo("Water Lilies");
   }
 
+  private static Map<String, Boolean> readOnlyByField(UIIncrementDto increment) {
+    var out = new java.util.LinkedHashMap<String, Boolean>();
+    collectReadOnly(JSON.valueToTree(increment), out);
+    return out;
+  }
+
+  private static void collectReadOnly(JsonNode node, Map<String, Boolean> out) {
+    if (node.isObject() && "FormField".equals(node.path("type").asText())) {
+      out.put(node.path("fieldId").asText(), node.path("readOnly").asBoolean(false));
+    }
+    node.forEach(child -> collectReadOnly(child, out));
+  }
+
+  /**
+   * The edit form shows the technical id but never as an input: an edit saves the record it loaded
+   * and never takes the id from the client, so an editable id only let the user clear it and be
+   * told "This record no longer exists" (found recording the 3.0 videos).
+   */
+  @Test
+  void theEditFormShowsATechnicalIdReadOnly() {
+    var form = run(Artworks.class, "/tid-artworks/a1/edit", "/tid-artworks", "", Map.of());
+    assertThat(readOnlyByField(form)).containsEntry("id", true).containsEntry("title", false);
+  }
+
   @Test
   void anIdTheUserChoosesOnCreateKeepsItsInput() {
     var form = run(Skus.class, "/tid-skus/new", "/tid-skus", "", Map.of());
@@ -188,5 +224,24 @@ class CrudTechnicalIdSyncTest {
         "create",
         Map.of("initiatorState", Map.of("id", "SKU-1", "title", "Lamp")));
     assertThat(SKUS).singleElement().satisfies(s -> assertThat(s.id).isEqualTo("SKU-1"));
+  }
+
+  @Test
+  void aCreateTheStoreSavedWithoutAnIdIsToldSoInsteadOfSaved() {
+    // GA review 2, B-1: every new record landed on the same empty id behind a "Saved" toast
+    FORGOTTEN.clear();
+    var answer =
+        run(
+            Forgetful.class,
+            "/tid-forgetful/new",
+            "/tid-forgetful",
+            "create",
+            Map.of("initiatorState", Map.of("title", "First")));
+    var texts = answer.messages().stream().map(m -> m.text()).toList();
+    assertThat(texts)
+        .contains(
+            "The record was saved without an id. The store must assign the id of a new record, or"
+                + " the id field must be marked EditableOnlyWhenCreating so the user types it.")
+        .doesNotContain("Item saved successfully");
   }
 }

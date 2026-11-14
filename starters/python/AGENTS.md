@@ -44,8 +44,10 @@ or the React Native app with `EXPO_PUBLIC_MATEU_BACKEND_URL=http://localhost:808
   shared data in a module-level store or a service, never in instance attributes you expect to
   survive between requests.
 - A CRUD is a `Crud[T]` implementing `fetch`, `get`, `save` and `delete`. Implement `save` and
-  `delete` for real: their defaults do nothing, so a CRUD without them answers "Saved" and drops
-  the data.
+  `delete` for real: their defaults refuse ("Not implemented").
+- **Who chooses the id.** A plain `id` is technical: the new form has no input for it and `save`
+  must assign it to a new record (a create saved with a blank id is refused). Mark it
+  `EditableOnlyWhenCreating()` (as `Product.id` is) when the user types it.
 - **Actions are declared.** Only a `@button`/`@toolbar`/`@action` method, or an action id the view
   itself names (a fluent button, a trigger), runs; any other action id answers 403. An action that
   changes attributes re-renders the view by returning `self` (returning `None` shows nothing new;

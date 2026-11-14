@@ -71,7 +71,9 @@ using System.ComponentModel.DataAnnotations;
 
 public class Product
 {
-    [Required] public string Id { get; set; } = "";
+    // a product code the user types on create — without [EditableOnlyWhenCreating] the id is
+    // technical: the new form has no input for it and Save must assign it (see "CRUD" below)
+    [Required, EditableOnlyWhenCreating] public string Id { get; set; } = "";
     [Required] public string Name { get; set; } = "";
     [Range(0, double.MaxValue), Money] public double Price { get; set; }
     public ProductStatus Status { get; set; }
@@ -283,7 +285,11 @@ public class Reservations : Crud<Reservation>
         Store.All.Where(r => search is null || r.Locator.Contains(search));
 
     public override Reservation? Get(string id) => Store.ById(id);
-    public override void Save(Reservation r) => Store.Put(r);
+    public override void Save(Reservation r)
+    {
+        if (string.IsNullOrEmpty(r.Id)) r.Id = Guid.NewGuid().ToString("N")[..8];   // a NEW record: the store assigns its id
+        Store.Put(r);
+    }
     public override void Delete(string id) => Store.Remove(id);
 }
 ```
@@ -296,6 +302,15 @@ forgot them can never answer "Saved" and drop the change. A crud that should not
 The record id is the entity's `Id` property; when the key is called something else, mark it
 `[Id]` (`[Id] public string Code { get; set; }`). An entity with neither is refused when the crud
 renders, with that fix in the message.
+
+**Who chooses the id.** A plain `Id` is a *technical* id: the creation form has no input for it and
+a create never takes one from the client — the store assigns it in `Save`, as above. A create the
+store saves with the id still blank (or an empty `Guid`) is refused with "The record was saved
+without an id…" instead of answering "Saved" (every new record would otherwise land on the same
+empty key). When the user should type the id (a product code, a locator), mark it
+`[Required, EditableOnlyWhenCreating]`: it is an input on the new form and read-only afterwards, and
+a create whose id already exists is refused ("A record with this id already exists…").
+`[GeneratedValue]` marks an id the server fills into the creation form.
 
 The listing renders a **smart search bar** whose filters come straight from the entity: enums
 become multi-selects (IN over the picked values), `DateOnly`/`DateTime` properties become from–to

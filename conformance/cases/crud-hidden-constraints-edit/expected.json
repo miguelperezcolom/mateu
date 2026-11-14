@@ -21,6 +21,7 @@
                         "fieldId" : "id",
                         "label" : "Id",
                         "optionsColumns" : 1,
+                        "readOnly" : true,
                         "sliderMax" : 100,
                         "stereotype" : "regular",
                         "type" : "FormField"

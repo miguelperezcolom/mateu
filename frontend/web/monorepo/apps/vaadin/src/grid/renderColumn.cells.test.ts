@@ -51,24 +51,23 @@ afterEach(() => {
 })
 
 describe('inline editors by type', () => {
-    for (const [editorType, tag, event] of [
-        ['number', 'vaadin-number-field', 'change'],
-        ['date', 'vaadin-date-picker', 'value-changed'],
-        ['time', 'vaadin-time-picker', 'value-changed'],
-        ['datetime', 'vaadin-date-time-picker', 'value-changed'],
+    for (const [editorType, tag, value] of [
+        ['number', 'vaadin-number-field', '2.5'],
+        ['date', 'vaadin-date-picker', '2026-10-17'],
+        ['time', 'vaadin-time-picker', '10:30'],
+        ['datetime', 'vaadin-date-time-picker', '2026-10-17T10:30'],
     ] as const) {
-        it(`${editorType}: a ${tag} named after its column, committing the row`, () => {
+        it(`${editorType}: a ${tag} named after its column, committing the row on the user's change`, () => {
             const { el, events } = cell({ id: 1, name: null }, { editable: true, editorType, label: 'When' })
             const editor = el.querySelector(tag) as HTMLElement & { value: string }
             expect(editor.getAttribute('accessible-name')).toBe('When')
-            const value = editorType === 'number' ? '2.5' : '2026-10-17'
-            if (event === 'change') {
-                editor.value = value
-                editor.dispatchEvent(new Event('change'))
-            } else {
-                editor.dispatchEvent(new CustomEvent(event, { detail: { value } }))
-            }
+            editor.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+            editor.value = value
+            // the value notification is not the commit (it also fires when the grid binds a row)
+            expect(events).toEqual([])
+            editor.dispatchEvent(new Event('change'))
             expect(events[0].detail.parameters._editedRow.name).toBe(editorType === 'number' ? 2.5 : value)
+            expect(events[0].detail.parameters._editedField).toBe('name')
         })
     }
 
@@ -87,8 +86,11 @@ describe('inline editors by type', () => {
         search.detail.callback({ fragments: [{ data: { 'lines-name': { content: [{ value: 'c2', label: 'Acme' }], totalElements: 1 } } }] })
         expect(answered).toEqual([[[{ value: 'c2', label: 'Acme' }], 1]])
         // picking the current value again is not an edit; picking another one is
-        combo.dispatchEvent(new CustomEvent('selected-item-changed', { detail: { value: { value: 'c1', label: 'C1' } } }))
-        combo.dispatchEvent(new CustomEvent('selected-item-changed', { detail: { value: { value: 'c2', label: 'Acme' } } }))
+        combo.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+        combo.selectedItem = { value: 'c1', label: 'C1' }
+        combo.dispatchEvent(new Event('change'))
+        combo.selectedItem = { value: 'c2', label: 'Acme' }
+        combo.dispatchEvent(new Event('change'))
         expect(row.name).toBe('c2')
         expect(events.filter(e => e.type === 'value-changed')).toHaveLength(1)
     })

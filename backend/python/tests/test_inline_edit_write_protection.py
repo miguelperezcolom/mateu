@@ -72,6 +72,32 @@ def _update_row(crud, row):
     )
 
 
+def _update_cell(crud, row, edited_field):
+    return SyncHandler(MateuRegistry(MODULE)).handle(
+        RunActionRq(
+            action_id="update-row",
+            server_side_type=type_name(crud),
+            initiator_component_id="c1",
+            parameters={"_editedRow": row, "_editedField": edited_field},
+        )
+    )
+
+
+def test_a_row_naming_its_edited_cell_writes_only_that_cell():
+    """3.0-beta.68: a recycled grid cell sent a row carrying ANOTHER row's values. A request
+    naming the edited cell writes only that cell (Java's aRowNamingItsEditedCellWritesOnlyThatCell)."""
+    _seed()
+    _update_cell(InlineParts, {"id": "p1", "name": "Bolt M8", "units": 999}, "name")
+    assert (_PARTS["p1"].name, _PARTS["p1"].units) == ("Bolt M8", 10)
+
+
+def test_a_named_edited_cell_that_is_not_in_the_row_is_refused():
+    _seed()
+    inc = _update_cell(InlineParts, {"id": "p1", "units": 999}, "name")
+    assert _PARTS["p1"].units == 10
+    assert "the edited cell is not in the edited row" in inc.messages[0].text
+
+
 def test_a_read_only_field_keeps_the_stored_value():
     _seed()
     _update_row(InlineParts, {"id": "p1", "name": "Bolt M8", "code": "HACKED", "units": 12})

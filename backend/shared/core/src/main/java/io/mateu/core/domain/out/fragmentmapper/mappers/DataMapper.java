@@ -116,9 +116,13 @@ public class DataMapper {
             map.put(
                 field.getName(),
                 ((List<?>) value).stream().map(child -> mapItem(child, 0, httpRequest)).toList());
-          } else if (value != null && FieldAccess.isGuarded(value.getClass())) {
-            // a nested object carrying restricted fields: written out as a map, without them
-            map.put(field.getName(), mapPojo(value, httpRequest));
+          } else if (value != null && FieldAccess.restrictsReading(value.getClass())) {
+            // a nested object carrying fields the caller may not be allowed to read: serialised by
+            // Jackson (its references, renames, exclusions and computed properties, exactly as an
+            // unrestricted one is), then narrowed by the read rule. A reflective copy of it
+            // overflowed the stack on a managed/back reference pair and sent what Jackson excluded
+            // (GA round 2, N1).
+            map.put(field.getName(), readableNested(value, httpRequest));
           } else {
             map.put(field.getName(), value);
           }
@@ -126,5 +130,32 @@ public class DataMapper {
       }
     }
     return map;
+  }
+
+  private static final com.fasterxml.jackson.databind.ObjectMapper FALLBACK_MAPPER =
+      new com.fasterxml.jackson.databind.ObjectMapper()
+          .findAndRegisterModules()
+          .disable(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS)
+          .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+  /**
+   * {@code value} as the wire's ObjectMapper writes it, without what the caller may not read: the
+   * shape of the map is the one the value would have had sent as it is.
+   */
+  @SuppressWarnings("unchecked")
+  private static Object readableNested(Object value, HttpRequest httpRequest) {
+    com.fasterxml.jackson.databind.ObjectMapper mapper = null;
+    try {
+      if (io.mateu.uidl.di.MateuBeanProvider.isInitialized()) {
+        mapper =
+            io.mateu.uidl.di.MateuBeanProvider.getSingletonBean(
+                com.fasterxml.jackson.databind.ObjectMapper.class);
+      }
+    } catch (RuntimeException noBean) {
+      // no ObjectMapper in the container: Mateu's own
+    }
+    var serialised =
+        (mapper != null ? mapper : FALLBACK_MAPPER).convertValue(value, java.util.Map.class);
+    return FieldAccess.readable(value.getClass(), (Map<String, Object>) serialised, httpRequest);
   }
 }

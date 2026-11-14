@@ -45,6 +45,12 @@ public class CrudFormComponentBuilder {
     // The creation form and the edit form hide different fields, and the validations that travel
     // with the page are built separately from its content — see ValidationMapper.FOR_CREATION_FORM.
     httpRequest.setAttribute(ValidationMapper.FOR_CREATION_FORM, isCreation);
+    if (!isCreation && editor != null) {
+      // its technical id is shown read-only (TechnicalId.isLockedOnTheEditForm)
+      httpRequest.setAttribute(
+          io.mateu.core.domain.out.componentmapper.TechnicalId.EDITED_RECORD_CLASS,
+          editor.getClass());
+    }
     var buttons = buildToolbar(isCreation, orchestrator, httpRequest);
     // the edit drawer's "Save and next" (CrudDisplay.saveAndNext, the Redwood
     // spPrimaryActionAndNext): saves and moves the drawer on to the next row

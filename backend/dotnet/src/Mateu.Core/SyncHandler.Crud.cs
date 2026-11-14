@@ -356,10 +356,41 @@ internal sealed partial class SyncHandler
 
     // ── Capability listings (IListing + declared capabilities; mirrors Java's CapabilityCrud) ──
 
+    /// <summary>What a create answers when the store saved the new record without an id — the
+    /// same text in Java and Python.</summary>
+    internal const string StoreAssignedNoId =
+        "The record was saved without an id. The store must assign the id of a new record, or the "
+        + "id field must be marked EditableOnlyWhenCreating so the user types it.";
+
+    /// <summary>What a create answers when its id names a stored record — the same text in Java and
+    /// Python.</summary>
+    internal const string RecordAlreadyExists =
+        "A record with this id already exists. Choose another id, or open the record to edit it.";
+
+    /// <summary>Whether a just-created entity still has no id: a null or blank text, or an empty
+    /// Guid (a number is left alone — 0 is a legitimate first id).</summary>
+    private static bool SavedWithoutId(object entity)
+    {
+        var property = EntityIds.PropertyOf(entity.GetType());
+        if (property is null) return false;
+        return property.GetValue(entity) switch
+        {
+            null => true,
+            string text => string.IsNullOrWhiteSpace(text),
+            Guid guid => guid == Guid.Empty,
+            _ => false,
+        };
+    }
+
     private UIIncrementDto CrudSave(object crud, Type crudType, Type element, string? id, RunActionRqDto rq, string baseRoute)
     {
         // Start from the stored entity (so untouched fields survive) and apply the edited fields.
         var stored = id is not null ? crudType.GetMethod("Get")!.Invoke(crud, [id]) : null;
+        // a save at a route naming a record that is not stored edits nothing: refused, never
+        // inserted — a crud with CanCreate => false created records this way (GA round 2, D7; Java's
+        // FilteredAutoCrud, the same text)
+        if (id is not null && stored is null)
+            throw new UserFacingException(RecordNoLongerExists);
         var storedVersion = StoredVersionOf(stored);
         // The edit binds onto a DETACHED copy: an in-memory Get may return the live stored instance
         // by reference, and a refused save (stale version, a missing or broken constraint) must
@@ -373,7 +404,13 @@ internal sealed partial class SyncHandler
         // CrudWriteGate.checkEdit): a crud that does not edit refuses it (403)
         else if (EntityIds.Of(entity) is { Length: > 0 } chosen
                  && crudType.GetMethod("Get")!.Invoke(crud, [chosen]) is not null)
+        {
             EnsureWriteAllowed(crud, crudType, "save");
+            // …and refused even then: built from a creation form, it would REPLACE the record —
+            // every field the user cannot see or write back to its default (GA round 2, N3; Java's
+            // FilteredAutoCrud.create, Python's crud create). A New form creates, it never edits.
+            throw new UserFacingException(RecordAlreadyExists);
+        }
 
         var missing = RequiredMissing(entity, element, creating: id is null);
         if (missing.Count > 0)
@@ -403,6 +440,11 @@ internal sealed partial class SyncHandler
         try
         {
             crudType.GetMethod("Save")!.Invoke(crud, [entity]);
+            // a create the store keyed by no id: every new record lands on the same empty key,
+            // each create replacing the last — said, never answered "Saved" (GA review 2, B-1;
+            // Java's FilteredAutoCrud.create, Python's crud create)
+            if (id is null && SavedWithoutId(entity))
+                throw new UserFacingException(StoreAssignedNoId);
             // the audit trail's "on what": the record saved / created
             Observability.RequestObservation.RecordId(id ?? EntityIds.Of(entity));
         }
@@ -487,6 +529,21 @@ internal sealed partial class SyncHandler
 
         var row = rowEl.EnumerateObject()
             .ToDictionary(prop => prop.Name, prop => (object?)prop.Value);
+        // A request naming the cell the user edited writes ONLY that cell (+ the row's id and
+        // version): the rest of the posted row is the browser's copy of the listing, which a
+        // recycled grid cell once filled with another row's values (Java's
+        // UpdateRowActionHandler.onlyTheEditedCell). An older client naming none keeps its row.
+        var editedFieldRaw = GetState(rq.Parameters, "_editedField");
+        var namesACell = editedFieldRaw is not null and not JsonElement { ValueKind: JsonValueKind.Null };
+        var editedField = namesACell ? StateString(editedFieldRaw) : null;
+        if (namesACell)
+        {
+            if (string.IsNullOrWhiteSpace(editedField) || !row.ContainsKey(editedField))
+                return Error("update-row: the edited cell is not in the edited row");
+            var versionProperty = VersionProperty(element);
+            row = OnlyTheEditedCell(row, editedField, EntityIds.FieldName(element),
+                versionProperty is null ? null : Naming.CamelCase(versionProperty.Name));
+        }
         // The same protection as the editor's save: the row names a STORED record (an unknown id is
         // refused, never inserted), it is laid over that record (the fields it does not carry are
         // kept) and only the fields the user may write are bound (read-only / locked ones keep the
@@ -523,12 +580,27 @@ internal sealed partial class SyncHandler
                 "This row changed while you were editing it. Reload to see the changes or"
                 + " overwrite them with your version.",
                 "search", "update-row",
-                new Dictionary<string, object?> { ["_editedRow"] = rowEl }, rq);
+                editedField is null
+                    ? new Dictionary<string, object?> { ["_editedRow"] = rowEl }
+                    : new Dictionary<string, object?> { ["_editedRow"] = rowEl, ["_editedField"] = editedField },
+                rq);
         BumpVersion(entity);
 
         crudType.GetMethod("Save")!.Invoke(crud, [entity]);
         Observability.RequestObservation.RecordId(id);
         return UIIncrementDto.Of(messages: [new MessageDto("success", "middle", "", "Saved", 3000)]);
+    }
+
+    /// <summary>The cells an inline edit writes when the request names the edited one: that cell,
+    /// plus the row's id and version (they identify and guard the record).</summary>
+    internal static Dictionary<string, object?> OnlyTheEditedCell(
+        Dictionary<string, object?> row, string editedField, string? idField, string? versionField)
+    {
+        var cells = new Dictionary<string, object?>();
+        foreach (var key in new[] { idField, versionField })
+            if (key is not null && row.TryGetValue(key, out var v)) cells[key] = v;
+        cells[editedField] = row[editedField];
+        return cells;
     }
 
     // ── Optimistic locking ([Version], mirrors Java's OptimisticLock) ────────────

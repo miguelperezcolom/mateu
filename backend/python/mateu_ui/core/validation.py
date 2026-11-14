@@ -95,6 +95,10 @@ def editable(mapper, cls, f) -> bool:
 
     if f.has(ReadOnly) or f.has(PlainText):
         return False
+    from .mapper.crud_modes import current_mode, is_technical_id
+
+    if current_mode() == "edit" and is_technical_id(f):
+        return False  # shown read-only on a crud edit form (Java's TechnicalId.isLockedOnTheEditForm)
     if cls is not None and (
         class_flag(cls, "__mateu_read_only__", False) or class_flag(cls, "__mateu_plain_text__", False)
     ):

@@ -63,7 +63,7 @@ it:
 ```python
 from enum import Enum
 from typing import Annotated
-from mateu_ui.uidl import ui, title, app, menu_item, Crud, Required, Money
+from mateu_ui.uidl import ui, title, app, menu_item, Crud, EditableOnlyWhenCreating, Required, Money
 
 
 class ProductStatus(Enum):
@@ -72,7 +72,9 @@ class ProductStatus(Enum):
 
 
 class Product:
-    id: Annotated[str, Required()] = ""
+    # a product code the user types on create — without EditableOnlyWhenCreating() the id is
+    # technical: the new form has no input for it and save() must assign it (see "CRUD" below)
+    id: Annotated[str, Required(), EditableOnlyWhenCreating()] = ""
     name: Annotated[str, Required()] = ""
     price: Annotated[float, Money()] = 0.0
     status: ProductStatus = ProductStatus.AVAILABLE
@@ -309,9 +311,23 @@ class Reservations(Crud[Reservation]):
         return [r for r in store if not search or search in r.locator]
 
     def get(self, id): return store_by_id.get(id)
-    def save(self, entity): store_by_id[entity.id] = entity
+
+    def save(self, entity):
+        if not entity.id:                       # a NEW record: the store assigns its id
+            entity.id = f"R-{len(store_by_id) + 1:04}"
+        store_by_id[entity.id] = entity
+
     def delete(self, id): store_by_id.pop(id, None)
 ```
+
+**Who chooses the id.** A plain `id` is a *technical* id: the creation form has no input for it
+and a create never takes one from the client — the store assigns it in `save`, as above. A create
+the store saves with the id still blank is refused with "The record was saved without an id…"
+instead of answering "Saved" (every new record would otherwise land on the same empty key). When
+the user should type the id (a product code, a locator), mark it
+`Annotated[str, Required(), EditableOnlyWhenCreating()]`: it is an input on the new form and
+read-only afterwards, and a create whose id already exists is refused ("A record with this id
+already exists…"). `GeneratedValue()` marks an id the server fills into the creation form.
 
 `fetch` is the only method you must write, but a crud that writes must also override `save` and
 `delete`: their defaults refuse with a "Not implemented" error naming the override, so a crud that

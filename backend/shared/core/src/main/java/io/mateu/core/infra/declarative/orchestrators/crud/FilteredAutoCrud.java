@@ -283,13 +283,29 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     var entity = toCreatedEntity(httpRequest);
     io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck.enforce(
         entity, httpRequest, true);
-    // the id is the user's to choose on a creation form: one that names a stored record overwrites
-    // it, which is an edit
+    // the id is the user's to choose on a creation form: one that names a stored record would
+    // REPLACE it — built from a creation form, so every field the user cannot see or write would
+    // go back to its default (GA round 2, N3). Refused: a New form creates, it never edits.
     if (storedWith(entity.id()).isPresent()) {
       CrudWriteGate.checkEdit(this);
+      throw new io.mateu.uidl.UserFacingException(
+          "A record with this id already exists. Choose another id, or open the record to edit"
+              + " it.");
     }
-    return store().save(entity);
+    var id = store().save(entity);
+    if ((id == null || id.isBlank()) && (entity.id() == null || entity.id().isBlank())) {
+      // a technical id is never taken from a create: a store that assigns none keys every new
+      // record by the same empty id, each create replacing the last — said, never "saved" (GA
+      // review 2, B-1; the same text in .NET and Python)
+      throw new io.mateu.uidl.UserFacingException(STORE_ASSIGNED_NO_ID);
+    }
+    return id;
   }
+
+  /** What a create answers when the store saved the new record without an id. */
+  static final String STORE_ASSIGNED_NO_ID =
+      "The record was saved without an id. The store must assign the id of a new record, or the"
+          + " id field must be marked EditableOnlyWhenCreating so the user types it.";
 
   private java.util.Optional<T> storedWith(String id) {
     return id == null || id.isBlank() ? java.util.Optional.empty() : store().findById(id);

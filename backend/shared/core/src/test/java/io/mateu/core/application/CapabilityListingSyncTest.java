@@ -115,6 +115,33 @@ class CapabilityListingSyncTest {
     }
   }
 
+  /** A record keyed by a business code, not by a field called id (GA round 2, N2). */
+  public record Booking(
+      String code, String guest, @io.mateu.uidl.annotations.ReadOnly double total) {}
+
+  static final java.util.Map<String, Booking> BOOKINGS =
+      new java.util.concurrent.ConcurrentHashMap<>();
+
+  @UI("/editable-bookings")
+  public static class EditableBookings implements Listing<Booking>, Editable<Booking, String> {
+    @Override
+    public ListingData<Booking> search(SearchRequest request, HttpRequest httpRequest) {
+      return ListingData.from(List.copyOf(BOOKINGS.values()));
+    }
+
+    @Override
+    public Booking edit(String id, HttpRequest httpRequest) {
+      return BOOKINGS.get(id);
+    }
+
+    @Override
+    public String save(HttpRequest httpRequest) {
+      var edited = httpRequest.getComponentState(Booking.class);
+      BOOKINGS.put(edited.code(), edited);
+      return edited.code();
+    }
+  }
+
   @UI("/creatable-books")
   public static class CreatableBooks implements Listing<Book>, Creatable<Book, String> {
     static volatile String lastCreatedTitle;
@@ -247,6 +274,7 @@ class CapabilityListingSyncTest {
             NavigableBooks.class,
             RedirectingBooks.class,
             EditableBooks.class,
+            EditableBookings.class,
             CreatableBooks.class,
             DeletableBooks.class,
             BulkBooks.class,
@@ -552,6 +580,43 @@ class CapabilityListingSyncTest {
         Map.of("id", "b1", "title", "El Quijote (anotado)", "pages", 900),
         null);
     assertThat(EditableBooks.lastSavedTitle).isEqualTo("El Quijote (anotado)");
+  }
+
+  @Test
+  void aDrawerEditKeyedByABusinessCodeKeepsTheReadOnlyFieldsOfTheStoredRecord() {
+    BOOKINGS.clear();
+    BOOKINGS.put("B1", new Booking("B1", "Ana", 300.0));
+    // opened from the row: the drawer's state is the editor, and the listing's route has no id
+    var opened =
+        run(EditableBookings.class, "/editable-bookings", "view", Map.of("code", "B1"), null);
+    assertThat(opened.fragments()).isNotEmpty();
+    run(
+        EditableBookings.class,
+        "/editable-bookings",
+        "save",
+        Map.of("code", "B1", "guest", "Ana Maria", "total", 999.0),
+        null);
+    assertThat(BOOKINGS.get("B1")).isEqualTo(new Booking("B1", "Ana Maria", 300.0));
+    assertThat(BOOKINGS).hasSize(1);
+  }
+
+  @Test
+  void aDrawerSaveOfARecordThatIsNotThereIsRefused() {
+    BOOKINGS.clear();
+    BOOKINGS.put("B1", new Booking("B1", "Ana", 300.0));
+    var answer =
+        com.fasterxml.jackson.databind.json.JsonMapper.builder()
+            .build()
+            .valueToTree(
+                run(
+                    EditableBookings.class,
+                    "/editable-bookings",
+                    "save",
+                    Map.of("code", "B9", "guest", "Nobody", "total", 1.0),
+                    null))
+            .toString();
+    assertThat(answer).contains("no longer exists");
+    assertThat(BOOKINGS).containsOnlyKeys("B1");
   }
 
   // ── + Creatable ───────────────────────────────────────────────────────────
