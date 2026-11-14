@@ -362,6 +362,7 @@ const en = {
     signInWith: 'Continue with {provider}',
     signInFailed: 'Signing in did not work. Please try again.',
     signOut: 'Sign out',
+    userMenuOf: 'Account: {name}',
     // record presence (@App(presence)): who else has this record open
     presenceAnd: ' and ',
     presenceMore: '{names} and {n} more',
@@ -725,6 +726,7 @@ const es: Catalogue = {
     signInWith: 'Continuar con {provider}',
     signInFailed: 'No se ha podido iniciar sesión. Inténtalo de nuevo.',
     signOut: 'Cerrar sesión',
+    userMenuOf: 'Cuenta: {name}',
     presenceAnd: ' y ',
     presenceMore: '{names} y {n} más',
     presenceEditing: '{names} está editando este registro',
@@ -1119,6 +1121,7 @@ const fr: Catalogue = {
     signInWith: 'Continuer avec {provider}',
     signInFailed: 'La connexion a échoué. Veuillez réessayer.',
     signOut: 'Se déconnecter',
+    userMenuOf: 'Compte : {name}',
 }
 
 const de: Catalogue = {
@@ -1479,6 +1482,7 @@ const de: Catalogue = {
     signInWith: 'Weiter mit {provider}',
     signInFailed: 'Die Anmeldung hat nicht funktioniert. Bitte versuchen Sie es erneut.',
     signOut: 'Abmelden',
+    userMenuOf: 'Konto: {name}',
 }
 
 const pt: Catalogue = {
@@ -1839,6 +1843,7 @@ const pt: Catalogue = {
     signInWith: 'Continuar com {provider}',
     signInFailed: 'Não foi possível iniciar sessão. Tente novamente.',
     signOut: 'Terminar sessão',
+    userMenuOf: 'Conta: {name}',
 }
 
 const it: Catalogue = {
@@ -2199,6 +2204,7 @@ const it: Catalogue = {
     signInWith: 'Continua con {provider}',
     signInFailed: 'Accesso non riuscito. Riprova.',
     signOut: 'Esci',
+    userMenuOf: 'Account: {name}',
 }
 
 /** The languages Mateu's chrome speaks. A language outside this list falls back to English. */

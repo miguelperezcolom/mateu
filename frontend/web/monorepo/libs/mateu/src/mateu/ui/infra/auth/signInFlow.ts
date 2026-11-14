@@ -1,4 +1,5 @@
 import { getAuthToken, setAuthToken } from '@infra/http/authToken.ts'
+import { clearStructureCache } from '@infra/routeStructureCache.ts'
 import type { SessionExpiredContext } from '@infra/http/sessionGuard.ts'
 import { resolveSafeUrl } from '@infra/ui/safeNavigate.ts'
 import { safeSessionStorage } from '@infra/safeStorage.ts'
@@ -152,6 +153,8 @@ export const startSignIn = async (provider: SignInProvider, baseUrl: string, ret
     if (provider.type === 'redirect') {
         const target = redirectProviderUrl(provider, returnTo)
         if (!target) return false
+        // a session cookie changes no token: drop what the previous identity cached (its user menu…)
+        clearStructureCache()
         writeAuthSession({ providerId: provider.id, kind: 'redirect' })
         return go(target)
     }
@@ -297,6 +300,7 @@ export const signOut = async (config: SignInConfig, baseUrl: string): Promise<vo
     refreshTimer = undefined
     setAuthToken(null)
     writeAuthSession(null)
+    clearStructureCache()
     const home = oidcRedirectUri(baseUrl, e().href())
     const provider = providerOf(config, session?.providerId)
     if (session?.kind === 'oidc' && provider?.issuer && provider.clientId) {

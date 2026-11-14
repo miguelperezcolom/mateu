@@ -32,6 +32,8 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         session.appMenu = metadata.path("menu")
         session.appTitle = metadata.text("title")
         session.contextSelectors = metadata.path("contextSelectors").takeIf { it.isArray && !it.isEmpty }
+        // the signed-in user (AppDto.user, display only): the user menu at the top of the navigator
+        session.appUser = UserMenu.of(metadata)
         // @HomeRoute coordinates: the standalone landing opens this route (like the web shells)
         session.homeRoute = metadata.text("homeRoute").ifBlank { null }
         session.homeConsumedRoute = metadata.text("homeConsumedRoute")
@@ -71,6 +73,10 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         com.intellij.ide.ActivityTracker.getInstance().inc()
     }
     val sidebar = verticalPanel(4)
+    // The signed-in user (avatar + name → a popup with the e-mail and Sign out), or the bare Sign out.
+    if (r.ctx.appShell) {
+        sidebar.addStacked(userMenuRow(session, session.appUser), 2)
+    }
     // Live header values ("Business date: 12 Oct") at the very top, repainted when they change.
     if (r.ctx.appShell && session.headerValues.isNotEmpty()) {
         sidebar.addStacked(headerValuesPanel(session), 2)

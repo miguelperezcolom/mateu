@@ -12,6 +12,9 @@ import {
 } from './signIn.mjs'
 import { askForReauthentication } from './resilience.mjs'
 import { resetTokenStore } from './authStore.mjs'
+import { accountMenuOf, headerAccountControl, userInitialsOf, userPictureOf } from './userMenu.mjs'
+import { reduceContexts } from './reduceContexts.mjs'
+import { chromeText, FULL_LANGUAGES } from './i18n.mjs'
 
 let passed = 0
 const queue = []
@@ -236,6 +239,56 @@ test('the chooser: a labelled modal dialog, focus on the first provider, Tab sta
   assert.equal(doc.querySelector('[role="alert"]').textContent, 'Signing in did not work.')
   doc.querySelector('.mateu-sign-in').dispatchEvent(new FakeEvent('keydown', { key: 'Escape', bubbles: true }))
   assert.equal(await declinable, null)
+})
+
+// ── the header's user menu (userMenu.mjs, mirror of libs/mateu infra/ui/userMenu.ts) ──────────
+
+test('user menu: up to two initials, the first and the last word, any script', () => {
+  assert.equal(userInitialsOf('Ana María López'), 'AL')
+  assert.equal(userInitialsOf('miguelperezcolom'), 'M')
+  assert.equal(userInitialsOf('ana.lopez@example.com'), 'AL')
+  assert.equal(userInitialsOf('élodie durand'), 'ÉD')
+  assert.equal(userInitialsOf('   '), '?')
+  assert.equal(userInitialsOf('Иван Петров'), 'ИП')
+})
+
+test('user menu: only an http(s) picture is drawn', () => {
+  assert.equal(userPictureOf({ name: 'a', picture: 'https://avatars.example/1' }), 'https://avatars.example/1')
+  assert.equal(userPictureOf({ name: 'a', picture: 'javascript:alert(1)' }), undefined)
+  assert.equal(userPictureOf({ name: 'a', picture: 'data:image/png;base64,AAAA' }), undefined)
+  assert.equal(userPictureOf({ name: 'a' }), undefined)
+})
+
+test('user menu: the menu for a named user, the bare Sign out for an unnamed session, else nothing', () => {
+  assert.equal(headerAccountControl({ name: 'Ana' }, true), 'menu')
+  assert.equal(headerAccountControl({ name: 'Ana' }, false), 'menu')
+  assert.equal(headerAccountControl(undefined, true), 'signOut')
+  assert.equal(headerAccountControl(undefined, false), 'none')
+})
+
+test('user menu: AppDto.user reaches the shell and its projection (Sign out inside when there is a session)', () => {
+  const reg = reduceContexts({ contexts: {}, stack: [], shell: null }, {
+    fragments: [{ component: { type: 'ClientSide', metadata: { type: 'App', title: 'Acme', menu: [],
+      user: { name: 'Ana López', email: 'ana@acme.example', picture: 'javascript:x' } }, children: [] } }],
+  })
+  assert.deepEqual(reg.shell.user, { name: 'Ana López', email: 'ana@acme.example', picture: 'javascript:x' })
+  const menu = accountMenuOf(reg.shell, true, [{ id: 'r0', isText: true, text: 'Hi' }])
+  assert.equal(menu.initials, 'AL')
+  assert.equal(menu.picture, null, 'a non-http picture falls back to the initials')
+  assert.equal(menu.email, 'ana@acme.example')
+  assert.equal(menu.label, 'Account: Ana López')
+  assert.equal(menu.signOut, true)
+  assert.equal(menu.signOutLabel, 'Sign out')
+  assert.equal(menu.rows.length, 1)
+  assert.equal(accountMenuOf(reg.shell, false).signOut, false)
+  assert.equal(accountMenuOf({ user: null }, true), null, 'nobody named: no menu (the bare Sign out instead)')
+  assert.equal(accountMenuOf({ user: { name: '  ' } }, true), null)
+  assert.equal(accountMenuOf(reg.shell, true, null).rows.length, 0)
+})
+
+test('user menu: its label in the six chrome languages', () => {
+  const expected = { en: 'Account: Ana', es: 'Cuenta: Ana', fr: 'Compte : Ana', de: 'Konto: Ana', pt: 'Conta: Ana', it: 'Account: Ana' }
+  for (const lang of FULL_LANGUAGES) assert.equal(chromeText('userMenuOf', { name: 'Ana' }, lang), expected[lang])
 })
 
 for (const { name, fn } of queue) {

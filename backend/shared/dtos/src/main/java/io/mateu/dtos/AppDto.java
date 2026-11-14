@@ -183,7 +183,13 @@ public record AppDto(
      * editing it (the {@code _presence} app-level action + {@code PresenceChanged} commands on the
      * app event stream). False otherwise.
      */
-    boolean presence)
+    boolean presence,
+    /**
+     * The signed-in user, for the header's user menu (avatar or initials, the name, Sign out inside
+     * it): read off the identity the framework authenticated, or an app's {@code
+     * UserProfileSupplier}. Null for an anonymous caller. Display only.
+     */
+    UserProfileDto user)
     implements ComponentMetadataDto {
 
   public AppDto {

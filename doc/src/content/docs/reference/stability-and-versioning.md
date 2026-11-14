@@ -216,7 +216,7 @@ same concepts.
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.todolist` | 1 | 1 | 0 | 0 | 0 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.welcome` | 3 | 1 | 0 | 0 | 2 |
 | `mateu-core (archetypes)` | `io.mateu.core.infra.declarative.orchestrators.wizard` | 2 | 2 | 0 | 0 | 0 |
-| `mateu-dtos` | `io.mateu.dtos` | 259 | 259 | 0 | 0 | 0 |
+| `mateu-dtos` | `io.mateu.dtos` | 260 | 260 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl` | 9 | 5 | 3 | 0 | 1 |
 | `mateu-uidl` | `io.mateu.uidl.annotations` | 174 | 163 | 11 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.audit` | 3 | 0 | 3 | 0 | 0 |
@@ -228,8 +228,8 @@ same concepts.
 | `mateu-uidl` | `io.mateu.uidl.push` | 3 | 0 | 3 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.remote` | 10 | 0 | 10 | 0 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.security` | 6 | 6 | 0 | 0 | 0 |
-| **Total** | | **1023** | **845** | **117** | **0** | **61** |
+| `mateu-uidl` | `io.mateu.uidl.security` | 8 | 6 | 2 | 0 | 0 |
+| **Total** | | **1026** | **846** | **119** | **0** | **61** |
 
 **Experimental types** (the whole type and its members):
 
@@ -241,6 +241,7 @@ same concepts.
 - `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DetailContentSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `FileStorage`, `HeaderValuesSupplier`, `InboxStore`, `KeepAliveHandler`, `PresenceStore`, `PushSender`, `PushTokenStore`, `RecordSwitcherSupplier`, `Restorable`, `TranslationsSupplier`
 - `io.mateu.uidl.push`: `PushMessage`, `PushResult`, `PushToken`
 - `io.mateu.uidl.remote`: `CorrelationIdProvider`, `FragmentCachePolicy`, `FragmentCachePolicySupplier`, `FragmentCacheStore`, `MicroFrontendResolutionEvent`, `MicroFrontendResolutionListener`, `RemoteCatalogSupplier`, `RemoteDescriptor`, `RemoteIdentityStrategy`, `RemoteRegistry`
+- `io.mateu.uidl.security`: `UserProfile`, `UserProfileSupplier`
 
 **Experimental members** of otherwise stable types:
 

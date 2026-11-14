@@ -258,6 +258,10 @@ class MateuProjectService(private val project: Project) : com.intellij.openapi.D
         s.onAppContextChanged = { loadRoot() }
         // The idle warning signed out: back to the app's root, as a fresh start.
         s.onSignedOut = { loadRoot() }
+        // The user menu's Sign out (AppDto.user): this UI's session only — the other UIs keep theirs.
+        val auth = io.mateu.ijp.auth.MateuAuthService.getInstance(project)
+        s.signOutAvailable = { auth.isSignedIn() }
+        s.signOutHandler = { auth.signOut() }
         // Development mode ("Run Mateu App (Live)"): the backend's manifest names its live-reload
         // events — a YAML edit, a HotSwap's reload or a restart re-renders the shell and every open
         // view, like the browser. A production backend names none: nothing is followed.

@@ -291,6 +291,7 @@ export const CHROME_TEXTS = {
     signInWith: 'Continue with {provider}',
     signInFailed: 'Signing in did not work. Please try again.',
     signOut: 'Sign out',
+    userMenuOf: 'Account: {name}',
     // ── task center (tasks.mjs) ──
     tasks: 'Tasks',
     tasksRunning: '{n} running',
@@ -586,6 +587,7 @@ export const CHROME_TEXTS = {
     signInWith: 'Continuar con {provider}',
     signInFailed: 'No se ha podido iniciar sesión. Inténtalo de nuevo.',
     signOut: 'Cerrar sesión',
+    userMenuOf: 'Cuenta: {name}',
     tasks: 'Tareas',
     tasksRunning: '{n} en curso',
     tasksTitle: 'Tareas, {n} en curso',
@@ -916,6 +918,7 @@ export const CHROME_TEXTS = {
     signInWith: 'Continuer avec {provider}',
     signInFailed: 'La connexion a échoué. Veuillez réessayer.',
     signOut: 'Se déconnecter',
+    userMenuOf: 'Compte : {name}',
   },
   de: {
     close: 'Schließen',
@@ -1216,6 +1219,7 @@ export const CHROME_TEXTS = {
     signInWith: 'Weiter mit {provider}',
     signInFailed: 'Die Anmeldung hat nicht funktioniert. Bitte versuchen Sie es erneut.',
     signOut: 'Abmelden',
+    userMenuOf: 'Konto: {name}',
   },
   pt: {
     close: 'Fechar',
@@ -1516,6 +1520,7 @@ export const CHROME_TEXTS = {
     signInWith: 'Continuar com {provider}',
     signInFailed: 'Não foi possível iniciar sessão. Tente novamente.',
     signOut: 'Terminar sessão',
+    userMenuOf: 'Conta: {name}',
   },
   it: {
     close: 'Chiudi',
@@ -1816,6 +1821,7 @@ export const CHROME_TEXTS = {
     signInWith: 'Continua con {provider}',
     signInFailed: 'Accesso non riuscito. Riprova.',
     signOut: 'Esci',
+    userMenuOf: 'Account: {name}',
   },
   // partial languages: only the words they have (the rest falls back to English)
   ca: { selectValue: 'Seleccioneu un valor' },

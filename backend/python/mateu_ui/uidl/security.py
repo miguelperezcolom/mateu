@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, fields
+from collections.abc import Mapping
+from dataclasses import dataclass, field, fields
+from typing import Any
 
 _DIMENSIONS = ("roles", "groups", "scopes", "permissions")
 
@@ -44,13 +46,17 @@ class Identity(_Dimensions):
     """The caller's identity, as the framework adapter resolves it (e.g. from the JWT Bearer
     token): the dimensions EyesOnly/ReadOnlyUnless/DisabledUnless match against. The Python
     analogue of what Java's Authorizer reads. ``name`` is the principal's name (None when
-    unknown): never matched by a gate — it identifies the owner of a live UI session (MCP push)."""
+    unknown): never matched by a gate — it identifies the owner of a live UI session (MCP push).
+    ``claims`` are what the authentication said about the person (``name``, ``email``,
+    ``picture``…), read only to show the signed-in user in the header (``UserProfile``); never
+    matched by a gate, never compared."""
 
     roles: tuple[str, ...] = ()
     groups: tuple[str, ...] = ()
     scopes: tuple[str, ...] = ()
     permissions: tuple[str, ...] = ()
     name: str | None = None
+    claims: Mapping[str, Any] | None = field(default=None, compare=False, repr=False)
 
 
 @dataclass(frozen=True)
