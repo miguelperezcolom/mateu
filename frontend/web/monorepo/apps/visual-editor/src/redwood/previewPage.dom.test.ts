@@ -83,7 +83,7 @@ describe('booting the packaged Redwood app', () => {
 
 describe('Play: the editor is the backend', () => {
     const fromEditor = (data: unknown, source: unknown = window) =>
-        window.dispatchEvent(new MessageEvent('message', { data, source: source as Window }))
+        window.dispatchEvent(new MessageEvent('message', { data, source: source as Window, origin: location.origin }))
 
     // first: every bridge installed patches history for good, so later ones would report too
     it("reports the app's route changes once, and moves the app when the editor navigates", () => {

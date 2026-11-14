@@ -73,6 +73,21 @@ function showProblem(title: string, detail: string) {
 export const isPlayPage = (loc: { search: string } = location): boolean => new URLSearchParams(loc.search).has('play')
 
 /**
+ * Whether a message from the parent frame comes from the EDITOR: this page's own origin (the
+ * editor serves it), a VS Code webview, or the origin the host declared (`__mateuHostOrigin`).
+ * A page that framed this one from anywhere else cannot answer its calls or move it (GA review 2,
+ * N-5) — the same rule as the editor's own listener (host/hostBridge.ts) and Redwood's canvas
+ * (poc/editorPreview.mjs).
+ */
+export function isEditorOrigin(origin: string, win: { location: { origin: string } }): boolean {
+    if (!origin || origin === 'null') return false
+    const declared = (win as { __mateuHostOrigin?: string }).__mateuHostOrigin
+    return origin === win.location.origin
+        || origin.startsWith('vscode-webview:')
+        || (!!declared && origin === declared)
+}
+
+/**
  * PLAY mode: the app runs for real — menu, routes, buttons — and the editor is its backend. Every
  * `/mateu/v3/…` call is posted to the editor (`call`) and answered from the files as edited
  * (`answer`, see model/redwoodPlay.ts); route changes are reported (`route`) so Play's address bar
@@ -116,7 +131,7 @@ export function installPlayBridge(win: Window = window): void {
     win.addEventListener('hashchange', report)
 
     win.addEventListener('message', (e: MessageEvent) => {
-        if (e.source !== win.parent) return
+        if (e.source !== win.parent || !isEditorOrigin(e.origin, win)) return
         const msg = e.data as Record<string, unknown> | null
         if (!msg || typeof msg !== 'object') return
         if (msg[PREVIEW_KEY] === 'answer' && typeof msg.id === 'number') {

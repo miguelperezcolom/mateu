@@ -15,6 +15,7 @@ import {
 import {
   PREVIEW_ROUTE, isEditorPreview, previewAppIncrement, previewLoadIncrement, previewAnswerOf, previewFetch,
   stampNodeIds, nodeIdOfPath, elementOfNodeId, nodeBoxesOf, pressTracker, installEditorPreview, DRAG_THRESHOLD,
+  isEditorOrigin,
 } from './editorPreview.mjs'
 import { flatAtoms } from './reduceContexts.mjs'
 
@@ -405,6 +406,37 @@ test('installed, the frame posts press → pointer → up to the editor, and the
   fire('click', at(10, 20, { buttons: 0 }))
   assert.deepEqual(posted.map((m) => m.mateuPreview), ['press', 'pointer', 'click'])
   assert.equal(posted[2].id, 've-1')
+})
+
+
+test('N-5 (GA review 2): the canvas paints only what the EDITOR posts — never a page that framed it from elsewhere', () => {
+  const win = { location: { origin: 'http://127.0.0.1:8123' }, __mateuHostOrigin: 'https://host.example' }
+  assert.equal(isEditorOrigin('http://127.0.0.1:8123', win), true)
+  assert.equal(isEditorOrigin('vscode-webview://abc', win), true)
+  assert.equal(isEditorOrigin('https://host.example', win), true)
+  assert.equal(isEditorOrigin('https://evil.example', win), false)
+  assert.equal(isEditorOrigin('null', win), false)
+  assert.equal(isEditorOrigin(undefined, win), false)
+  assert.equal(isEditorOrigin('https://host.example', { location: { origin: 'http://x' } }), false)
+  // through the listener: a measure request from a foreign framer gets no answer, the editor's does
+  const listeners = []
+  const posted = []
+  const el = () => ({ children: [], style: {}, classList: { add() {}, toggle() {} }, getAttribute: () => null, hasAttribute: () => false,
+    appendChild(c) { this.children.push(c); return c }, getBoundingClientRect: () => ({ left: 0, top: 0, width: 0, height: 0 }) })
+  const doc = { documentElement: { ...el(), addEventListener() {} }, head: el(), body: el(),
+    createElement: () => el(), getElementById: () => null, querySelector: () => null, querySelectorAll: () => [] }
+  const parent = { postMessage: (m) => posted.push(m) }
+  const frame = { document: doc, fetch: async () => ({}), parent, location: { origin: 'http://127.0.0.1:8123' },
+    MutationObserver: class { observe() {} }, requestAnimationFrame() {}, setTimeout() { return 0 }, clearTimeout() {},
+    addEventListener: (type, fn) => listeners.push({ type, fn }) }
+  installEditorPreview(frame, {})
+  const send = (origin) => listeners.filter((l) => l.type === 'message')
+    .forEach((l) => l.fn({ source: parent, origin, data: { mateuPreview: 'measure' } }))
+  posted.length = 0
+  send('https://evil.example')
+  assert.equal(posted.length, 0)
+  send('http://127.0.0.1:8123')
+  assert.equal(posted.length, 1)
 })
 
 await Promise.all(pending)
