@@ -61,7 +61,7 @@ public class McpService {
       HttpRequestFactory httpRequests) {
     return project(
         sync(
-            content(route, baseUrl, httpRequests).action(actionId, componentState, null),
+            content(route, baseUrl, httpRequests).dispatch(actionId, componentState),
             baseUrl,
             httpRequests));
   }
@@ -121,6 +121,69 @@ public class McpService {
           .parameters(parameters == null ? Map.of() : parameters)
           .build();
     }
+
+    /**
+     * An action the agent picked from the screen, sent where the browser sends it. The screen's own
+     * actions go to the screen. One it marks {@code bubble} — a crud record page's Create / Save,
+     * buttons of the page but methods of the CRUD — the browser re-dispatches to the component that
+     * loaded the page (the crud's mediator), with the page's state as {@code initiatorState}: sent
+     * to the page's own type instead (the entity) it was refused as "no such action". The page's
+     * state (its id, its whereabouts) travels under what the agent typed.
+     */
+    RunActionRqDto dispatch(String actionId, Map<String, Object> componentState) {
+      JsonNode screen = firstServerSide(increment);
+      String loader = request.serverSideType();
+      if (screen == null
+          || !bubbles(screen, actionId)
+          || loader == null
+          || loader.equals(serverSideType)) {
+        return action(actionId, componentState, null);
+      }
+      Map<String, Object> state = new java.util.LinkedHashMap<>(initialStateOf(screen));
+      if (componentState != null) state.putAll(componentState);
+      return RunActionRqDto.builder()
+          .route(request.route())
+          .consumedRoute(request.consumedRoute())
+          .appState(Map.of())
+          .actionId(actionId == null ? "" : actionId)
+          .serverSideType(loader)
+          .componentState(state)
+          .parameters(Map.of("initiatorState", state))
+          .build();
+    }
+
+    /**
+     * The screen lists the action as one its ancestor runs: the browser's mateu-component
+     * re-dispatches it upwards, with the page's state as {@code initiatorState}.
+     */
+    private static boolean bubbles(JsonNode serverSide, String actionId) {
+      for (JsonNode a : serverSide.path("actions")) {
+        if (a.path("id").asText("").equals(actionId)) return a.path("bubble").asBoolean(false);
+      }
+      return false;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> initialStateOf(JsonNode screen) {
+      JsonNode data = screen.path("initialData");
+      if (!data.isObject()) return Map.of();
+      return new ObjectMapper().convertValue(data, Map.class);
+    }
+  }
+
+  /** The first ServerSide node of the answer — the screen it renders — or null. */
+  private static JsonNode firstServerSide(JsonNode increment) {
+    JsonNode[] found = {null};
+    for (JsonNode fragment : increment.path("fragments")) {
+      visit(
+          fragment.path("component"),
+          node -> {
+            if (found[0] == null
+                && "ServerSide".equals(node.path("type").asText(null))
+                && node.hasNonNull("serverSideType")) found[0] = node;
+          });
+    }
+    return found[0];
   }
 
   /** Bounds the shell → content (→ crud mediator → listing) chain; the browser nests no deeper. */
