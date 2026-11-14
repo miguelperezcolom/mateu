@@ -227,6 +227,26 @@ export function embeddedRouteOfLink(anchor, event, baseUrl, hostLocation) {
   return inAppRouteOfLink(anchor, event, location, false, mount)
 }
 
+/**
+ * The navigation a `navigation-requested` asks the COMPONENT for, or null when it is not ours. The
+ * chains dispatch it on the DOCUMENT, where the standalone shell listens (loadMateuShell): the
+ * header's peer arrows (requestPeerNavigation), its go-to-parent (the «Loans» trail), a content
+ * menu's route, a FAB's, the not-found page's way back. Embedded there is no shell listening on
+ * the document — the component listened on its own element only, so those clicks did nothing. It
+ * takes one dispatched on the document itself or from inside its element; one dispatched from
+ * elsewhere in the host page (bubbling up to the document) is the host's. The params are those of
+ * the standalone listener: the route and every menu-click field it carries (chatNavigationOf).
+ */
+export function embeddedNavigationRequestOf(event, element, navigationOf = () => undefined) {
+  const detail = (event && event.detail) || {}
+  if (detail.route == null) return null
+  const target = event.target
+  const onDocument = !target || target.nodeType === 9
+  const inside = !!element && !!target && (target === element || (typeof element.contains === 'function' && element.contains(target)))
+  if (!onDocument && !inside) return null
+  return { event: { detail: { route: detail.route, navigation: navigationOf(detail) } } }
+}
+
 /** Whether a navigation the SCREEN asked for happens inside the component. */
 export function navigatesInside(policy, notCancelled) {
   return policy !== 'host' && notCancelled
@@ -745,6 +765,7 @@ export const EMBEDDED_API = {
   propertyChangeOf,
   navigationRouteOf,
   embeddedRouteOfLink,
+  embeddedNavigationRequestOf,
   assetBaseOf,
   setEmbeddedHost,
   isEmbedded,

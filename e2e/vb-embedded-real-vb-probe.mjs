@@ -12,7 +12,9 @@
  * shell="true" on a page holding only the component (VB's body does not scroll), a screen taller than
  * the window scrolls inside the component's content box, the header + menu band stay above it and
  * popups still open; Spectra's stickies are relative to that box (a GeneralOverview's title is not
- * under the band, at the top or scrolled).
+ * under the band, at the top or scrolled); a record page's header navigates inside the component —
+ * the peer arrows (loans/42 → 43 → 42, with their titles), the trail's «Loans» (go-to-parent) and
+ * More Actions › «Back to Loans» (a RouteLink) open the listing.
  *
  * Usage (component built with `npm run build:embedded`, served with `npm run serve:embedded` in
  * apps/redwood; the backend's CORS must allow the harness origin — museums.ec1.mateu.io allows any):
@@ -250,6 +252,77 @@ await ctx.close()
   check('shell="true": no page errors', !serrors.length, serrors.slice(0, 3).join(' | '))
   if (shots) await spage.screenshot({ path: join(shots, 'vb2701-shell-navigated.png') })
   await sctx.close()
+}
+
+// ── the page header's navigations, inside the component (shell="true", a loan's record page) ──
+// The peer arrows, the go-to-parent of the automatic trail («Loans» above the title) and the
+// toolbar's RouteLink navigate in the standalone app through a document-level listener of its
+// shell; embedded, nobody listened there and the clicks did nothing (no request, no error).
+{
+  const hctx = await browser.newContext({ viewport: { width: 1512, height: 900 } })
+  const hpage = await hctx.newPage()
+  const herrors = []
+  hpage.on('pageerror', (e) => herrors.push(e.message))
+  hpage.on('console', (m) => { if (m.type() === 'error' && !/_currentuser|status of 404 \(Not Found\)|catalogRegistry/.test(m.text())) herrors.push(m.text()) })
+  await hpage.addInitScript(() => {
+    window.__hostEvents = []
+    for (const t of ['mateuReady', 'mateuNavigate', 'mateuTitle', 'mateuError']) document.addEventListener(t, (e) => window.__hostEvents.push({ type: t, detail: e.detail }), true)
+  })
+  const loan = process.env.LOAN || '42'
+  await hpage.goto(`${HOST_URL}/vb/?${new URLSearchParams({ baseUrl: BACKEND_URL, route: 'loans/' + loan, shell: 'true' })}`, { waitUntil: 'domcontentloaded' })
+  await hpage.waitForFunction(() => (window.__hostEvents || []).some((e) => e.type === 'mateuReady' || e.type === 'mateuError'), null, { timeout: 120000 }).catch(() => {})
+  // the screen's title (mateuTitle, what the component reports) once the header shows it too
+  const headerTitle = () => hpage.evaluate(() => {
+    const title = String((((window.__hostEvents || []).filter((e) => e.type === 'mateuTitle').pop() || {}).detail || {}).title || '')
+    const h = document.querySelector('mateu-ui oj-sp-header-general-overview, mateu-ui oj-sp-header-create-edit')
+    return title && h && h.innerText.includes(title) ? title : ''
+  })
+  const lastNav = () => hpage.evaluate(() => ((window.__hostEvents || []).filter((e) => e.type === 'mateuNavigate').pop() || {}).detail)
+  const navCount = () => hpage.evaluate(() => (window.__hostEvents || []).filter((e) => e.type === 'mateuNavigate').length)
+  // a header arrow click: the route it went to, and the title the header shows once it landed
+  const goVia = async (click, route) => {
+    const before = await navCount()
+    const titleBefore = await headerTitle()
+    await click()
+    const ok = await hpage.waitForFunction(([n, route]) => {
+      const navs = (window.__hostEvents || []).filter((e) => e.type === 'mateuNavigate')
+      return navs.length > n && String(navs[navs.length - 1].detail.route).replace(/^\//, '') === route
+    }, [before, route], { timeout: 20000 }).then(() => true, () => false)
+    await hpage.waitForFunction((t) => {
+      const now = String((((window.__hostEvents || []).filter((e) => e.type === 'mateuTitle').pop() || {}).detail || {}).title || '')
+      const h = document.querySelector('mateu-ui oj-sp-header-general-overview, mateu-ui oj-sp-header-create-edit')
+      return now && now !== t && h && h.innerText.includes(now)
+    }, titleBefore, { timeout: 20000 }).catch(() => {})
+    await hpage.waitForTimeout(800)
+    return { ok, nav: await lastNav(), title: await headerTitle() }
+  }
+  await hpage.locator('mateu-ui button[aria-label="Next loan"]').first().waitFor({ timeout: 30000 }).catch(() => {})
+  await hpage.waitForTimeout(1500)
+  const startTitle = await headerTitle()
+  const next = await goVia(() => hpage.locator('mateu-ui button[aria-label="Next loan"]').first().click(), 'loans/' + (Number(loan) + 1))
+  check(`header: the NEXT arrow navigates inside the component (loans/${loan} "${startTitle}" → ${JSON.stringify(next.nav)} "${next.title}")`,
+    next.ok && !!next.title && next.title !== startTitle)
+  const prev = await goVia(() => hpage.locator('mateu-ui button[aria-label="Previous loan"]').first().click(), 'loans/' + loan)
+  check(`header: the PREVIOUS arrow goes back (${JSON.stringify(prev.nav)} "${prev.title}")`, prev.ok && prev.title === startTitle)
+  // the automatic trail's parent («Loans» above the title: Spectra's go-to-parent)
+  const parent = hpage.locator('mateu-ui oj-sp-header-general-overview a').filter({ hasText: /^\s*Loans\s*$/ }).first()
+  const toParent = await goVia(() => parent.click(), 'loans')
+  const listing = await hpage.waitForFunction(() => [...document.querySelectorAll('mateu-ui oj-table tbody tr')]
+    .some((tr) => tr.getBoundingClientRect().height > 0 && tr.querySelectorAll('td').length > 1), null, { timeout: 20000 }).then(() => true, () => false)
+  check(`header: the trail's «Loans» (go-to-parent) opens the listing (${JSON.stringify(toParent.nav)})`, toParent.ok && listing)
+  // the toolbar's RouteLink (More Actions › «Back to Loans»)
+  await hpage.goto(`${HOST_URL}/vb/?${new URLSearchParams({ baseUrl: BACKEND_URL, route: 'loans/' + loan, shell: 'true' })}`, { waitUntil: 'domcontentloaded' })
+  await hpage.waitForFunction(() => (window.__hostEvents || []).some((e) => e.type === 'mateuReady' || e.type === 'mateuError'), null, { timeout: 120000 }).catch(() => {})
+  await hpage.locator('mateu-ui button[aria-label="More Actions"]').first().waitFor({ timeout: 30000 }).catch(() => {})
+  await hpage.waitForTimeout(1500)
+  const back = await goVia(async () => {
+    await hpage.locator('mateu-ui button[aria-label="More Actions"]').first().click()
+    await hpage.locator('oj-option:visible, [role=menuitem]:visible').filter({ hasText: 'Back to Loans' }).first().click({ timeout: 10000 })
+  }, 'loans')
+  check(`header: More Actions › «Back to Loans» (a RouteLink) opens the listing (${JSON.stringify(back.nav)})`, back.ok)
+  check('header navigations: no page errors', !herrors.length, herrors.slice(0, 3).join(' | '))
+  if (shots) await hpage.screenshot({ path: join(shots, 'vb2701-header-nav.png') })
+  await hctx.close()
 }
 
 await browser.close()

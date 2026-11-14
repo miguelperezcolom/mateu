@@ -696,6 +696,10 @@ test('F3: a content button whose action nobody on screen claims is inert, as on 
   // the app's action catalogue claims its ids too
   assert.equal(bridge.contentActionIsClaimed({ contexts: {}, shell: { actionCatalogue: [{ id: 'cat' }] } }, 'cat'), true)
   assert.equal(bridge.contentActionIsClaimed({ contexts: {}, shell: null }, 'cat'), false)
+  // the header's go-to-parent (the automatic trail's «Loans») and peer arrows are the chrome's own
+  for (const id of ['__goToParent', '__peerPrev', '__peerNext', '__notFoundBack']) {
+    assert.equal(bridge.contentActionIsClaimed({ contexts: {}, shell: null }, id), true, id)
+  }
 })
 
 test('N-1: a content button of a form embedded in a drawer/dialog reaches it — the overlay\'s SURFACE claims its actions', async () => {

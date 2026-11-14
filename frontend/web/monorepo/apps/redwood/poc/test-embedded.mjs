@@ -14,7 +14,7 @@ import {
   parseJsonProp, navigationRouteOf, navigatesInside, evalDescriptorValue, evalDescriptorExpression, defaultOfVariable,
   createVbRuntime, embeddedActions, EmbeddedActionChain, setEmbeddedHost, isEmbedded, emitEmbedded, setDocTitle,
   setEmbeddedSeed, takeEmbeddedSeed, CONTENT_INSTALLERS, CONTENT_ACTION_SINKS, NOT_IN_EMBEDDED,
-  installEmbeddedContentRuntime, bootEmbedded, embeddedRouteOfLink, embeddedShellVarsOf, hasDescriptorExpression, descriptorReferencesOf,
+  installEmbeddedContentRuntime, bootEmbedded, embeddedRouteOfLink, embeddedNavigationRequestOf, embeddedShellVarsOf, hasDescriptorExpression, descriptorReferencesOf,
 } from './embedded.mjs'
 import { setHostHeaderProvider, setHostCredentials, hostHeadersFor, cleanHeaders, lastHostHeadersOf } from './hostHeaders.mjs'
 import { fetchWithPolicy, authHeadersOf } from './resilience.mjs'
@@ -222,6 +222,24 @@ test('a content link is resolved against the BACKEND, not the host page', () => 
   assert.equal(embeddedRouteOfLink(a('https://other.com/x'), {}, 'https://erp.acme.com/mateu', host), null)
   assert.equal(embeddedRouteOfLink(a('/orders', { target: '_blank' }), {}, 'http://localhost:9005', host), null)
   assert.equal(embeddedRouteOfLink(a('/orders'), {}, 'http://localhost:9005', host), '/orders')
+})
+
+test('a navigation-requested on the DOCUMENT (the header arrows, go-to-parent) is the component\'s', () => {
+  const inner = { nodeType: 1 }
+  const element = { nodeType: 1, contains: (n) => n === inner }
+  const doc = { nodeType: 9 }
+  const ev = (target, detail) => ({ target, detail })
+  const nav = (d) => (d.baseUrl ? { baseUrl: d.baseUrl } : undefined)
+  assert.deepEqual(embeddedNavigationRequestOf(ev(doc, { route: 'loans/43' }), element, nav),
+    { event: { detail: { route: 'loans/43', navigation: undefined } } }, 'the chains dispatch it on the document')
+  assert.deepEqual(embeddedNavigationRequestOf(ev(inner, { route: '/inbox', baseUrl: '/_inbox' }), element, nav).event.detail,
+    { route: '/inbox', navigation: { baseUrl: '/_inbox' } }, 'from inside: a widget link, with its pod')
+  assert.equal(embeddedNavigationRequestOf(ev({ nodeType: 1 }, { route: 'x' }), element, nav), null, 'elsewhere in the host page: the host\'s')
+  assert.equal(embeddedNavigationRequestOf(ev(doc, {}), element, nav), null, 'no route')
+  // the chains that navigate this way are the content page's: the component takes them (the viewModel listens on the document)
+  const vm = readFileSync(join(here, '..', 'embedded', 'mateu-ui', 'mateu-ui-viewModel.js'), 'utf8')
+  assert.match(vm, /document\.addEventListener\('navigation-requested'/)
+  assert.match(vm, /document\.removeEventListener\('navigation-requested'/)
 })
 
 // ── the runtime for VB's descriptors ──────────────────────────────────────────────────────

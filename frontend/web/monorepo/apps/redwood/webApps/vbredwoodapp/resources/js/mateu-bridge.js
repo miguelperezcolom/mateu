@@ -19617,7 +19617,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // make-amd.mjs replaces the placeholder with apps/redwood/package.json's version when it writes the
   // bridge; run from the sources (Node tests) it stays a placeholder and reads as 'unknown'.
-  const RENDERER_VERSION_STAMP = "2604.1.5"
+  const RENDERER_VERSION_STAMP = "2604.1.7"
 
   /** The renderer's own version, or 'unknown' when the bridge was not stamped. */
   function rendererVersion(stamp = RENDERER_VERSION_STAMP) {
@@ -23404,6 +23404,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * action goes to the server as before. With a `scope` the commands' placeholders are resolved
    * ({@link resolveFlowCommands}) — the page's state with the action's parameters on top of it.
    */
+  /** The reserved ids of the page header's navigations, which runMateuAction answers itself. */
+  const CHROME_NAVIGATION_ACTIONS = Object.freeze(['__goToParent', '__peerPrev', '__peerNext', '__notFoundBack'])
+
   /**
    * Whether a content button's action is CLAIMED by something on screen — a context (page, overlay,
    * island, micro frontend) that advertises it (its actions, a `prefix*` wildcard included, or its
@@ -23414,6 +23417,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function contentActionIsClaimed(reg, actionId) {
     if (!actionId) return false
+    // the header's own navigations (go-to-parent of the automatic trail, the peer arrows, the
+    // not-found page's way back): claimed by the page chrome itself (runMateuAction) — the «Loans»
+    // go-to-parent above a record's title went through here and was dropped as unclaimed
+    if (CHROME_NAVIGATION_ACTIONS.includes(actionId)) return true
     for (const ctx of Object.values((reg && reg.contexts) || {})) {
       if (declaredActionOf(ctx, actionId)) return true
       // an OVERLAY's tree is the ClientSide Drawer/Dialog (no actions): the form it embeds is its
@@ -37182,6 +37189,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return inAppRouteOfLink(anchor, event, location, false, mount)
   }
 
+  /**
+   * The navigation a `navigation-requested` asks the COMPONENT for, or null when it is not ours. The
+   * chains dispatch it on the DOCUMENT, where the standalone shell listens (loadMateuShell): the
+   * header's peer arrows (requestPeerNavigation), its go-to-parent (the «Loans» trail), a content
+   * menu's route, a FAB's, the not-found page's way back. Embedded there is no shell listening on
+   * the document — the component listened on its own element only, so those clicks did nothing. It
+   * takes one dispatched on the document itself or from inside its element; one dispatched from
+   * elsewhere in the host page (bubbling up to the document) is the host's. The params are those of
+   * the standalone listener: the route and every menu-click field it carries (chatNavigationOf).
+   */
+  function embeddedNavigationRequestOf(event, element, navigationOf = () => undefined) {
+    const detail = (event && event.detail) || {}
+    if (detail.route == null) return null
+    const target = event.target
+    const onDocument = !target || target.nodeType === 9
+    const inside = !!element && !!target && (target === element || (typeof element.contains === 'function' && element.contains(target)))
+    if (!onDocument && !inside) return null
+    return { event: { detail: { route: detail.route, navigation: navigationOf(detail) } } }
+  }
+
   /** Whether a navigation the SCREEN asked for happens inside the component. */
   function navigatesInside(policy, notCancelled) {
     return policy !== 'host' && notCancelled
@@ -37700,6 +37727,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     propertyChangeOf,
     navigationRouteOf,
     embeddedRouteOfLink,
+    embeddedNavigationRequestOf,
     assetBaseOf,
     setEmbeddedHost,
     isEmbedded,

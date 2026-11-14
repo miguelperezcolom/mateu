@@ -158,14 +158,19 @@ define([
       // and transport hooks re-pointed at THIS component
       bridge.installEmbeddedContentRuntime(bridge, this._runtime);
       this._onClick = (event) => this._handleLink(event);
+      // navigation-requested: from inside the component (a widget's link) and on the DOCUMENT,
+      // where the chains dispatch it (the header's peer arrows and go-to-parent, a content menu's
+      // route, a FAB) — the standalone shell listens there; embedded, the component does
       this._onNavigationRequested = (event) => {
-        const detail = (event && event.detail) || {};
-        if (detail.route == null) return;
+        const params = bridge.embeddedNavigationRequestOf(event, this._element, bridge.chatNavigationOf);
+        if (!params) return;
         event.stopPropagation();
-        this._runtime.callChain('onMateuNavigate', { event: { detail: { route: detail.route } } });
+        bridge.registerRemoteRoute(params.event.detail.route, event.detail);
+        this._runtime.callChain('onMateuNavigate', params);
       };
       this._element.addEventListener('click', this._onClick);
       this._element.addEventListener('navigation-requested', this._onNavigationRequested);
+      document.addEventListener('navigation-requested', this._onNavigationRequested);
       this._onResize = () => this._applyPageMode();
       window.addEventListener('resize', this._onResize);
       this._applyPageMode();
@@ -178,6 +183,7 @@ define([
     disconnected() {
       this._element.removeEventListener('click', this._onClick);
       this._element.removeEventListener('navigation-requested', this._onNavigationRequested);
+      document.removeEventListener('navigation-requested', this._onNavigationRequested);
       window.removeEventListener('resize', this._onResize);
       if (active === this) {
         active = null;
