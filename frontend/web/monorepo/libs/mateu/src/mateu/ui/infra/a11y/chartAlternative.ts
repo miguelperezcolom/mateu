@@ -4,6 +4,7 @@
  * numbers it draws as a visually-hidden data table. Pure: no DOM, no lit.
  */
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { uiLocale } from '@infra/ui/moneyFormat.ts'
 
 export interface ChartTable {
     /** first header = the category column, then one per series */
@@ -28,6 +29,34 @@ const textOf = (v: unknown): string => {
     return String(v)
 }
 
+const numberFormats = new Map<string, Intl.NumberFormat>()
+
+/**
+ * A charted number as a person reads it: in the UI's locale, without binary-float noise — a sum of
+ * doubles such as 428.09999999999997 reads "428.1" (12 significant digits, then at most 6 decimals).
+ */
+export const chartNumberText = (n: number, locale: string = uiLocale()): string => {
+    if (!Number.isFinite(n)) return String(n)
+    const clean = Number(n.toPrecision(12))
+    let format = numberFormats.get(locale)
+    if (!format) {
+        try {
+            format = new Intl.NumberFormat(locale, { maximumFractionDigits: 6 })
+        } catch {
+            format = new Intl.NumberFormat('en', { maximumFractionDigits: 6 })
+        }
+        numberFormats.set(locale, format)
+    }
+    return format.format(clean)
+}
+
+/** A data cell: numbers formatted (chartNumberText), anything else as written. */
+const valueText = (v: unknown): string => {
+    if (typeof v === 'number') return chartNumberText(v)
+    if (v && typeof v === 'object' && !Array.isArray(v) && 'y' in (v as Record<string, unknown>)) return valueText((v as { y: unknown }).y)
+    return textOf(v)
+}
+
 /** The title chart.js would draw (options.plugins.title.text), if any. */
 export const chartTitleOf = (options: unknown): string | undefined => {
     const title = (options as { plugins?: { title?: { text?: unknown, display?: boolean } } } | undefined)?.plugins?.title
@@ -47,7 +76,7 @@ export function chartAlternativeOf(data: unknown, options?: unknown, type?: stri
     for (let i = 0; i < length; i++) {
         const first = labels[i] !== undefined ? textOf(labels[i])
             : textOf((datasets[0]?.data?.[i] as { x?: unknown } | undefined)?.x ?? i + 1)
-        rows.push([first, ...datasets.map((s) => textOf(s.data?.[i]))])
+        rows.push([first, ...datasets.map((s) => valueText(s.data?.[i]))])
     }
     const titled = chartTitleOf(options)
     const name = titled || (datasets.length ? seriesNames.join(', ') : '') || chromeText('chartUntitled')
@@ -60,7 +89,7 @@ export function trendSummaryOf(heading: string | undefined, values: number[], la
     const name = heading?.trim() || chromeText('chartUntitled')
     if (!values?.length) return name
     const min = Math.min(...values), max = Math.max(...values)
-    const at = (i: number) => (labels[i] ? `${labels[i]} (${values[i]})` : String(values[i]))
+    const at = (i: number) => (labels[i] ? `${labels[i]} (${chartNumberText(values[i])})` : chartNumberText(values[i]))
     return chromeTextf('chartTrend', {
         name, count: values.length, first: at(0), last: at(values.length - 1),
         min: at(values.indexOf(min)), max: at(values.indexOf(max)),

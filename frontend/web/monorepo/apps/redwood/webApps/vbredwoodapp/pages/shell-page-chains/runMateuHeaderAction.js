@@ -45,13 +45,15 @@ define([
         return;
       }
       const base = bridge.mateuBase($application.constants.mateuBaseUrl);
-      const increment = await bridge.callMateu(base, {
+      // a second press while the first is in flight sends nothing (the double-submit slot)
+      const increment = await bridge.callAppHeaderAction(base, {
         route: '',
         actionId,
         componentState: {},
         serverSideType: $application.variables.mateuShellSST || undefined,
         appState: $application.variables.mateuAppState || {},
       });
+      if (bridge.isDuplicateAnswer(increment)) return;
       const reg = bridge.reduceContexts($application.variables.mateuRegistry, increment);
       bridge.applyDomEffects(reg.effects, reg);
       $application.variables.mateuRegistry = reg;

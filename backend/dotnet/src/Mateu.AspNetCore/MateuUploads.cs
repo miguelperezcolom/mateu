@@ -65,15 +65,17 @@ public static partial class MateuExtensions
             await NotAccepted(ctx);
             return;
         }
-        if (!ctx.RequestServices.GetRequiredService<SyncHandler>().Uploads!.Consume(ctx.Request.Headers[FileUploads.TicketHeader].FirstOrDefault(), ticket))
-        {
-            await TooMany(ctx);
-            return;
-        }
+        // a body declared too large is refused BEFORE it counts as one of the ticket's files (Java's
+        // UploadEndpoint order): a refused upload must not use up the ticket
         var length = ctx.Request.ContentLength;
         if (length > ticket.MaxBytes)
         {
             await TooLarge(ctx, ticket.MaxBytes);
+            return;
+        }
+        if (!ctx.RequestServices.GetRequiredService<SyncHandler>().Uploads!.Consume(ctx.Request.Headers[FileUploads.TicketHeader].FirstOrDefault(), ticket))
+        {
+            await TooMany(ctx);
             return;
         }
         // the limit is the ticket's (enforced while streaming), not the server's default body size

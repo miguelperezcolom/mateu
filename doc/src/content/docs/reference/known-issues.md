@@ -55,6 +55,30 @@ verified by component tests, not with assistive technology. The full list, per r
 **Workaround:** most have an author-side mitigation listed there (an action beside a drag-only
 board, no auto-dismissing banners for content users must read).
 
+### A listing whose first load fails shows an empty table
+
+When the source behind a listing answers its first load with an error (a 401, a 404), the table
+stays empty and only the browser console says why, on the Vaadin and Redwood renderers. A failed
+call later on (a search, a page change) does show the service's error.
+
+**Workaround:** give the endpoint a sample (`sample:` on the source) while it does not exist, and
+check the console when a listing stays empty.
+
+### Vaadin: a `${i18n.…}` title of an `@UI` app class is shown untranslated in the shell header
+
+The app class's `@Title("${i18n.x}")` is painted as written in the Vaadin shell header; page titles,
+labels and YAML texts are translated.
+
+**Workaround:** give the app class a literal title, or translate it with a `TitleSupplier`.
+
+### A leaf of a YAML-only remote menu is refused (403)
+
+A `RemoteMenu` pointing at a remote served only from YAML (no Java view class behind its routes)
+sends the shell's own `serverSideType` with the leaf's load, and the remote refuses it.
+
+**Workaround:** embed that remote's screens as a `MicroFrontend`, or serve them from a remote with
+an `@UI` class.
+
 ### Right-to-left languages are not supported
 
 No renderer mirrors its layout for Arabic, Hebrew, Persian or Urdu: nothing sets `dir="rtl"`, and an

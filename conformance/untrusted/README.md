@@ -2,7 +2,10 @@
 
 A screen an AGENT authored (the chat's `render-screen`, a live `AgentPush` of kind `render`) is
 untrusted: an LLM can be steered by the data it reads. Every shell renders it through `__preview__`
-with `_untrusted: true`, and what comes back must hold nothing that can run script in the user's tab.
+with `_untrusted: true`, and what comes back must hold nothing that can run script in the user's tab,
+and nothing that loads by itself from elsewhere: an inline REST source keeps only its catalogue
+`ref` (fetched by GET), the answer's own `restSources` go, an image loads only from this server or
+a `data:` url, and a style that could fetch (`url(`, `image-set(`, a CSS escape…) is blanked.
 
 `cases.json` pins the rules on wire JSON (`input` → `expected`). Five implementations run it:
 

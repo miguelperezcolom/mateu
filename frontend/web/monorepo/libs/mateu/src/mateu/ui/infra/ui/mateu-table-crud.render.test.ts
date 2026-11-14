@@ -74,6 +74,22 @@ describe('mateu-table-crud layouts', () => {
         expect(actions.at(-1)?.actionId).toBe('view')
     })
 
+    it('cards: another row never shows the previous row\'s picture (a new <img> per address)', async () => {
+        const pictured = crud({ gridLayout: 'cards', columns: [col('image', { stereotype: 'image' }), col('label', { identifier: true })] })
+        const { el, root } = await mount(pictured, [{ image: 'https://img.example/rembrandt.jpg', label: 'Rembrandt' }])
+        const before = root.querySelector('.crud-card img') as HTMLImageElement
+        expect(before.getAttribute('src')).toBe('https://img.example/rembrandt.jpg')
+        // a new search: the same card slot, another row
+        el.data = { crud: { page: { pageNumber: 0, pageSize: 10, totalElements: 1, content: [{ image: 'https://img.example/sword.jpg', label: 'Sword' }] } } }
+        await el.updateComplete
+        const after = root.querySelector('.crud-card img') as HTMLImageElement
+        expect(after.getAttribute('src')).toBe('https://img.example/sword.jpg')
+        expect(after.getAttribute('alt')).toBe('Sword')
+        // the reused element kept painting the old bitmap until the new one loaded
+        expect(after).not.toBe(before)
+        expect(before.isConnected).toBe(false)
+    })
+
     it('cards: renders a card per row', async () => {
         const { root } = await mount(crud({ gridLayout: 'cards' }), rows)
         expect(root.textContent).toContain('Ana')

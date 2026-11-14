@@ -43,7 +43,7 @@ import { hoverLinesOf } from './hover.mjs'
 import { draggedIdsOf, dragTypeOfMime } from './dnd.mjs'
 import { dragMimeOf, listingHeaderBlocksOf } from './reduceContexts.mjs'
 import { dayIndexAtX } from './planning.mjs'
-import { nestedListingAtomOf, nestedListingKeyOf, pageListingNodeOf, templateNestsListings, listingBaseOf, selectedRowsOf, rowAsArrived, valueLabelOf, LABEL_CELL_SUFFIX, isDisplayColumn, rowActionIsRows, NO_OPEN_CELL_CLASS, leafColumnsOf } from './core/listing.mjs'
+import { nestedListingAtomOf, nestedListingKeyOf, pageListingNodeOf, templateNestsListings, listingBaseOf, selectedRowsOf, rowAsArrived, valueLabelOf, LABEL_CELL_SUFFIX, isDisplayColumn, rowActionIsRows, NO_OPEN_CELL_CLASS, leafColumnsOf, isRowActionColumn, trailingRowActionColumnCount } from './core/listing.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, rowClickOpensRecord, masterDetailOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
@@ -1590,6 +1590,36 @@ test('gridLayout masterDetail: a click opens the row\'s fields beside the list (
   assert.equal(listingOf(crud({ rowRoute: 'launches/${row.id}' })).masterDetail, false, 'a rowRoute opens its record instead')
   assert.match(webApp('flows/main/pages/main-start-page-chains/mateuRowClicked.js'), /listing\.masterDetail[\s\S]*bridge\.masterDetailOf\(listing, row\)/)
   assert.match(webApp('flows/main/pages/main-start-page.html'), /mateuRowDetail\.fields \|\| \[\]/)
+})
+
+test('row actions stay on screen: the trailing row-action columns are frozen to the end edge', () => {
+  for (const dataType of ['action', 'actionGroup', 'menu']) assert.equal(isRowActionColumn({ dataType }), true, dataType)
+  assert.equal(isRowActionColumn({ stereotype: 'button', actionId: 'approve' }), true)
+  assert.equal(isRowActionColumn({ stereotype: 'button', actionId: 'view' }), false)
+  assert.equal(isRowActionColumn({ dataType: 'string', actionId: 'approve' }), true)
+  assert.equal(isRowActionColumn({ dataType: 'string', actionId: 'view' }), false)
+  assert.equal(isRowActionColumn({ dataType: 'action', editable: true }), false)
+  assert.equal(isRowActionColumn({ type: 'GridGroupColumn' }), false)
+  assert.equal(isRowActionColumn(null), false)
+  assert.equal(trailingRowActionColumnCount([{ dataType: 'string' }, { dataType: 'action' }, { dataType: 'menu' }]), 2)
+  assert.equal(trailingRowActionColumnCount([{ dataType: 'action' }, { dataType: 'string' }]), 0, 'only the trailing run')
+  assert.equal(trailingRowActionColumnCount([{ dataType: 'string' }, { dataType: 'action', frozen: true }]), 0, 'frozen to the start stops it')
+  assert.equal(trailingRowActionColumnCount([{ dataType: 'action' }]), 0, 'only actions: nothing to pin')
+  const listingWith = (columns, extra = {}) => listingOf({ tree: { type: 'ServerSide', id: 's', serverSideType: 'X', children: [node({ type: 'Crud', ...extra, columns })] },
+    data: { crud: { page: { content: [{ _rowNumber: 0, name: 'A' }], totalElements: 1 } } }, state: {} })
+  const l = listingWith([
+    node({ type: 'GridColumn', id: 'name', label: 'Name', dataType: 'string', actionId: 'view', frozen: true }),
+    node({ type: 'GridColumn', id: 'city', label: 'City', dataType: 'string' }),
+    node({ type: 'GridColumn', id: 'note', label: 'Note', dataType: 'string', frozenToEnd: true }),
+    node({ type: 'GridColumn', id: 'ops', label: '', dataType: 'actionGroup' }),
+  ])
+  const edge = (id) => l.columns.find((c) => c.id === id).frozenEdge
+  assert.equal(edge('name'), 'start', 'the wire frozen is honoured')
+  assert.equal(edge('city'), undefined)
+  assert.equal(edge('note'), 'end', 'the wire frozenToEnd is honoured')
+  assert.equal(edge('ops'), 'end', 'the row actions are pinned to the end')
+  const plain = listingWith([node({ type: 'GridColumn', id: 'name', dataType: 'string' }), node({ type: 'GridColumn', id: 'city', dataType: 'string' })])
+  assert.ok(plain.columns.every((c) => c.frozenEdge === undefined), 'no actions, nothing pinned')
 })
 
 test('clic de fila entera (U1): toda la fila abre el registro salvo las celdas con clic propio', () => {

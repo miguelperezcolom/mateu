@@ -141,6 +141,19 @@ public static partial class IdempotencyKeys
             "permissions=" + Joined(identity?.Permissions));
     }
 
+    /// <summary>Whose SHARE of the tables a request counts against (the <c>share</c> of
+    /// <see cref="GuardedAsync"/>): its caller, and for an ANONYMOUS caller (no name) also the
+    /// client address — all anonymous callers were one caller, so one of them could fill the share
+    /// every other anonymous user's keyed retries needed (GA review 2, J7; Java's
+    /// <c>IdempotencyKeys.shareOf</c>). The answers stay scoped by the caller alone, so a retry from
+    /// a new address still replays.</summary>
+    public static string ShareOf(string caller, Identity? identity, string? principalName, string? address)
+    {
+        var name = identity?.Name ?? principalName;
+        if (!string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(address)) return caller;
+        return caller + "\u0004address=" + address;
+    }
+
     /// <summary>Runs <paramref name="run"/> unless <paramref name="caller"/> already sent
     /// <paramref name="key"/> for <paramref name="actionId"/>; then the first answer is replayed
     /// (joined while it is still in flight). <paramref name="caller"/> is any stable text naming the
@@ -148,11 +161,11 @@ public static partial class IdempotencyKeys
     /// are in flight answers a faulted task (<see cref="UserFacingException"/>).</summary>
     public static Task<UIIncrementDto> OnceAsync(
         string? caller, string? actionId, string? key, Func<Task<UIIncrementDto>> run,
-        string? view = null, string? route = null, string? fingerprint = null)
+        string? view = null, string? route = null, string? fingerprint = null, string? share = null)
     {
         if (KeyOf(key) is not { } valid) return run();
         var scoped = Scoped(caller, view, route, actionId, valid);
-        var callerHash = Sha256(caller ?? "");
+        var callerHash = Sha256(share ?? caller ?? "");
         TaskCompletionSource<UIIncrementDto> answer;
         lock (Lock)
         {
@@ -234,10 +247,11 @@ public static partial class IdempotencyKeys
     /// (<see cref="FingerprintOf"/>) tells a retry from another request reusing the key.</para>
     public static async Task<UIIncrementDto> GuardedAsync(
         string? caller, string? actionId, string? key, Func<Task<UIIncrementDto>> run,
-        string? view = null, string? route = null, string? fingerprint = null, CancellationToken listen = default)
+        string? view = null, string? route = null, string? fingerprint = null, CancellationToken listen = default,
+        string? share = null)
     {
         if (KeyOf(key) is not { } valid) return await run().ConfigureAwait(false);
-        var pending = new Pending(Scoped(caller, view, route, actionId, valid), Sha256(caller ?? ""), fingerprint);
+        var pending = new Pending(Scoped(caller, view, route, actionId, valid), Sha256(share ?? caller ?? ""), fingerprint);
         var work = Detached(pending, run);
         // observed even when nobody listens any more (the client left)
         _ = work.ContinueWith(t => _ = t.Exception, CancellationToken.None,

@@ -43,7 +43,7 @@ public abstract class Wizard
 
   @Override
   public Object state(HttpRequest httpRequest) {
-    return WizardStateSerializer.buildState(this);
+    return WizardStateSerializer.buildState(this, httpRequest);
   }
 
   public static void addRowNumber(Class<?> type, Map<String, Object> data) {

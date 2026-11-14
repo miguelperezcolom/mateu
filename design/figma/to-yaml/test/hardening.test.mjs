@@ -72,6 +72,21 @@ test('a partial named in words is written AND referenced by its slug; two alike 
   for (const r of refs) assert.ok(files.some((f) => f.path === `partials/${r}.yaml`), r)
 })
 
+test('two spellings of one partial drawing the same content are one file; different content gets -2', () => {
+  const { files } = converter().convert(
+    fileOf([frame('Home', [frame('partial:Species List', [text('one')]), frame('partial:species-list', [text('one')]), frame('partial:Species-List', [text('other')])])]),
+  )
+  const home = files.find((f) => f.path === 'home.yaml').value
+  assert.deepEqual(home.content.map((c) => c.ref), ['species-list', 'species-list', 'species-list-2'])
+  assert.deepEqual(files.filter((f) => f.partial).map((f) => f.path), ['partials/species-list.yaml', 'partials/species-list-2.yaml'])
+})
+
+test('a frame name too long for a file name is cut, with a warning', () => {
+  const { files, warnings } = converter().convert(fileOf([frame('Orders ' + 'x'.repeat(300), [text('a')])]))
+  assert.ok(files[0].path.length <= 60 + '.yaml'.length)
+  assert.ok(warnings.some((w) => /too long for a file name/.test(w)), warnings.join('\n'))
+})
+
 test('the screens inside a Figma Section are screens, not one page', () => {
   const file = fileOf([{ id: id(), name: 'Flows', type: 'SECTION', children: [frame('Login', [text('a')]), { id: id(), name: 'Inner', type: 'SECTION', children: [frame('Signup', [text('b')])] }] }])
   assert.deepEqual(screensOf(file).map((n) => n.name), ['Login', 'Signup'])

@@ -344,7 +344,7 @@ test('the visual editor\'s canvas: the shell boots with no backend, paints what 
     MutationObserver: class { observe() {} },
     setTimeout, clearTimeout,
   })
-  const send = (msg) => win.dispatchEvent(new FakeEvent('message', { data: msg, source: win.parent }))
+  const send = (msg) => win.dispatchEvent(new FakeEvent('message', { data: msg, source: win.parent, origin: win.location.origin }))
   const draft = (t) => ({ mateuPreview: 'render', fragment: { component: { type: 'ClientSide', metadata: { type: 'Text', text: t, container: 'p' }, children: [] } } })
   try {
     const ctx = newContext()
@@ -1586,6 +1586,66 @@ test('inline editing — a re-stamped cell sends nothing; an edit names the cell
 })
 
 const failed = []
+test('N-14 (GA review 2): a double click on a WRITING app header action sends it once; a read is not held', async () => {
+  const headerChain = chain('pages/shell-page-chains/runMateuHeaderAction.js')
+  let release
+  const gate = new Promise((r) => { release = r })
+  answer((b) => b.actionId === 'closeDay', async () => { await gate; return { commands: [], messages: [], fragments: [] } })
+  const ctx = newContext()
+  ctx.$application.variables.mateuHeaderActions = [{ actionId: 'closeDay', label: 'Close day' }]
+  ctx.$application.variables.mateuShellSST = 'x.App'
+  const a = new headerChain().run(ctx, { actionId: 'closeDay' })
+  const b = new headerChain().run(ctx, { actionId: 'closeDay' })
+  await settle()
+  release()
+  await Promise.allSettled([a, b])
+  assert.equal(sent.filter((x) => x.body.actionId === 'closeDay').length, 1)
+  // done: the slot is free again for the next press
+  await new headerChain().run(ctx, { actionId: 'closeDay' })
+  assert.equal(sent.filter((x) => x.body.actionId === 'closeDay').length, 2)
+  // a read (search-…) is never exclusive
+  const answerOf = () => ({ commands: [], messages: [], fragments: [] })
+  answer((x) => x.actionId === 'search-x', answerOf)
+  await Promise.all([bridge.callAppHeaderAction('http://api', { route: '', actionId: 'search-x' }),
+    bridge.callAppHeaderAction('http://api', { route: '', actionId: 'search-x' })])
+  assert.equal(sent.filter((x) => x.body.actionId === 'search-x').length, 2)
+})
+
+test('N-11 (GA review 2): a read whose BODY stalls past the ceiling is retried and then reported, not a silent throw', async () => {
+  const settles = []
+  bridge.setTransportHooks({ onStart() {}, onSettle: (e) => settles.push(e) })
+  const realFetch = win.fetch
+  const realGlobal = globalThis.fetch
+  let attempts = 0
+  const stalling = async (url, init = {}) => {
+    attempts++
+    return { ok: true, status: 200, headers: { get: () => null },
+      json: () => new Promise((_, rej) => init.signal && init.signal.addEventListener('abort', () => rej(Object.assign(new Error('aborted'), { name: 'AbortError' })))) }
+  }
+  win.fetch = stalling
+  globalThis.fetch = stalling
+  // the ceiling's timer is unref'd (a body nobody reads must not keep a process alive): this keeps
+  // the test's own process up until the read it waits for is cut
+  const keepAlive = setInterval(() => {}, 1000)
+  try {
+    let threw = null
+    try { await bridge.callMateu('http://api', { route: '/slow', actionId: '' }, { timeoutMillis: 30 }) } catch (e) { threw = e }
+    await settle()
+    assert.ok(threw, 'the call fails')
+    assert.ok(attempts > 1, 'an idempotent read is retried: ' + attempts)
+    const failure = settles.map((x) => x && x.failure).find(Boolean)
+    assert.ok(failure && failure.kind === 'timeout', 'reported as a timeout: ' + JSON.stringify(settles))
+    // an answer that arrives whole is read once, inside the policy, and handed on as it came
+    let reads = 0
+    const whole = async () => ({ ok: true, status: 200, headers: { get: () => null }, json: async () => { reads++; return { fragments: [], commands: [], messages: [] } } })
+    win.fetch = whole
+    globalThis.fetch = whole
+    const inc = await bridge.callMateu('http://api', { route: '/ok', actionId: '' })
+    assert.deepEqual(inc.fragments, [])
+    assert.equal(reads, 1)
+  } finally { clearInterval(keepAlive); win.fetch = realFetch; globalThis.fetch = realGlobal; bridge.setTransportHooks(null) }
+})
+
 for (const { name, fn } of queue) {
   reset()
   try {

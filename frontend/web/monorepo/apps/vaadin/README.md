@@ -4,7 +4,9 @@ The Vaadin (Lumo) web renderer of [Mateu](https://mateu.io): the `<mateu-ui>` el
 Mateu UI — a Java, C#, Python or YAML backend, or a static bundle — served on the `/mateu/v3` wire.
 
 The package is a self-contained ES module bundle (Lit, the Vaadin components and Mateu's client are
-inside it), published at the same version as each Mateu release. Every Mateu app that depends on
+inside it), built at the same version as each Mateu release. Check that the version you need is on
+npm (`npm view mateu-vaadin versions`): until the first 3.0 version is published there, the only one
+is `0.0.15`, from before the 3.0 betas — do not use it. Every Mateu app that depends on
 `io.mateu:mateu-vaadin` also serves the same file at `/assets/mateu-vaadin.js`.
 
 ```html

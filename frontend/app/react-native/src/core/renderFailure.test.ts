@@ -13,6 +13,8 @@ test('the fallback speaks the six chrome languages, every text filled', () => {
   }
   assert.equal(renderFailureTexts('es-ES').retry, 'Reintentar');
   assert.equal(renderFailureTexts('xx').retry, 'Try again');
+  assert.equal(renderFailureTexts('es-ES').close, 'Cerrar');
+  assert.equal(renderFailureTexts('xx').close, 'Close');
 });
 
 test('the developer detail names the error in one bounded line', () => {

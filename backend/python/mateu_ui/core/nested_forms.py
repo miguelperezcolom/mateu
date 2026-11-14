@@ -25,7 +25,7 @@ from contextvars import ContextVar
 from datetime import date, datetime, time
 from decimal import Decimal
 from enum import Enum
-from typing import Any, get_origin
+from typing import Any, ClassVar, Final, get_origin
 
 #: The action-id prefix of a nested form's methods (Java's RunMethodActionRunner).
 NESTED_ACTION_PREFIX = "nested-form-action-"
@@ -104,6 +104,15 @@ def is_nested_form_type(t: Any) -> bool:
         return bool(view_fields(t))
     except Exception:  # noqa: BLE001 - a class whose hints do not resolve is no form
         return False
+
+
+def is_held(f) -> bool:
+    """Whether a field is HELD by the view rather than edited through it: ``ClassVar[...]`` or
+    ``Final[...]`` (the Python spelling of Java's ``final`` / an injected field and of a .NET
+    get-only property). It is never sent and never written from the wire — written, the client's
+    value replaced the view's object for the request (GA review 2, Y6)."""
+    t = f.type
+    return t is ClassVar or t is Final or get_origin(t) in (ClassVar, Final)
 
 
 def is_nested_form_field(f) -> bool:

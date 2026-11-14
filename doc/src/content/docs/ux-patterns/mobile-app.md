@@ -90,7 +90,9 @@ comes from and its own app version. You declare nothing for this: the server sen
 
 **Update Mateu** installs an over-the-air update when one is published (the app relaunches on it),
 and otherwise opens the store the app came from — the App Store, Google Play, or the GitHub releases
-page for the APK attached there. The rule is one file, `conformance/client/app-compat.json`, run by
+page for the APK attached there. An APK installed from the releases page before 3.0-beta.65 does
+not know it came from there: after an over-the-air update its **Update Mateu** opens Google Play, so
+reinstall it once from the releases page. The rule is one file, `conformance/client/app-compat.json`, run by
 the phone app and by the desktop app.
 
 ### Where each member comes from

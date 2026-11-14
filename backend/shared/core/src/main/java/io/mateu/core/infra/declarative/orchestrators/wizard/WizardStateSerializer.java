@@ -8,6 +8,8 @@ import static io.mateu.core.infra.reflection.read.HolderFieldChecker.isNonDataHo
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
+import io.mateu.core.domain.FieldAccess;
+import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
@@ -17,19 +19,41 @@ import java.util.stream.Collectors;
 
 final class WizardStateSerializer {
 
-  static Map<String, Object> buildState(Wizard orchestrator) {
+  /**
+   * The wizard's state for {@code httpRequest}'s caller: its own fields, every step as a nested map
+   * (plus the nested values flattened) and the current step flat — WITHOUT the values the caller
+   * may not read ({@code @EyesOnly}), at any depth and in every spelling. A {@code StateSupplier}'s
+   * map skips the reflective state's filter, so this one applies the same rule, {@link
+   * io.mateu.core.domain.FieldAccess#readable}, itself (parity with the .NET/Python fix D4).
+   */
+  static Map<String, Object> buildState(Wizard orchestrator, HttpRequest httpRequest) {
     var step = orchestrator.getStep();
     Class<?> stepClass = step instanceof Class ? (Class<?>) step : step.getClass();
-    var data = toMap(orchestrator);
+    var data = toMap(orchestrator, httpRequest);
     if (!(step instanceof Class)) {
-      data.putAll(toMap(step));
+      var stepState = toMap(step, httpRequest);
+      // Jackson also wrote the current step under "step" (Wizard.getStep()): a property, not a
+      // field, so the field rules above never saw it — it carried the step's hidden values
+      if (data.containsKey("step")) {
+        data.put("step", new java.util.LinkedHashMap<>(stepState));
+      }
+      data.putAll(stepState);
     }
     addRowNumber(stepClass, data);
     return data;
   }
 
   static Map<String, Object> toMap(Object instance) {
+    return toMap(instance, null);
+  }
+
+  static Map<String, Object> toMap(Object instance, HttpRequest httpRequest) {
     var map = fromJson(toJson(instance));
+    // a field the caller may not read travels in no spelling: neither under its own name nor, for
+    // a nested object, as the nested map or the flattened keys built from it below
+    getAllFields(instance.getClass()).stream()
+        .filter(field -> !FieldAccess.mayRead(field, httpRequest))
+        .forEach(field -> map.remove(field.getName()));
     // Callable/Supplier/Component holder fields are UI, not data — drop the entries Jackson
     // produced for them (a lambda serializes as {}) so they never reach the component state.
     // Without this the reflection loop below would even INVOKE the holder and merge the built
@@ -53,7 +77,8 @@ final class WizardStateSerializer {
                     // transient = framework wiring (e.g. the current request), never state: Jackson
                     // already skips it, and so must this nested-object pass
                     && !Modifier.isTransient(field.getModifiers())
-                    && !Modifier.isFinal(field.getModifiers()))
+                    && !Modifier.isFinal(field.getModifiers())
+                    && FieldAccess.mayRead(field, httpRequest))
         .forEach(
             field -> {
               var value = getValue(field, instance);
@@ -62,7 +87,7 @@ final class WizardStateSerializer {
                   map.put(field.getName(), value);
                 } else {
                   var nestedMap =
-                      toMap(value).entrySet().stream()
+                      toMap(value, httpRequest).entrySet().stream()
                           .filter(entry -> entry.getValue() != null)
                           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                   // Replace the Jackson-serialized husk kept under the field name (it still
@@ -86,7 +111,8 @@ final class WizardStateSerializer {
                 }
               }
             });
-    return map;
+    // and what Jackson left as it was (lists of rows, maps of objects) by the same rule
+    return new java.util.LinkedHashMap<>(FieldAccess.readable(instance, map, httpRequest));
   }
 
   static void addRowNumber(Class<?> type, Map<String, Object> data) {

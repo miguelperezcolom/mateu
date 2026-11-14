@@ -93,7 +93,7 @@ file, re-publish, and **accept the library update** in every design file (Figma 
 In your design file, with the library enabled:
 
 - **One top-level frame per page.** Its name becomes the YAML file name: a frame `Order` gives
-  `order.yaml` (letters of any script are kept: `Заказы` gives `заказы.yaml`; a `/` makes a folder).
+  `order.yaml` (letters of any script are kept, with their marks: `Заказы` gives `заказы.yaml`, `สวัสดี` gives `สวัสดี.yaml`; a `/` makes a folder; a name over 60 characters is cut, with a warning).
   A frame whose name starts with `_` is a draft and is skipped. A Figma **Section** only organises
   the canvas: each frame inside it is a page of its own. A frame named like a specs/ui file that is
   not a page — `Routes`, `Sources`, `Project`, `Actions`, `Types`, `Components`, or a frame under
@@ -119,11 +119,18 @@ In your design file, with the library enabled:
   instance gives it a title and a toolbar.
 - **Shared blocks.** A frame named `partial:<name>` is written once to `partials/<slug>.yaml` and
   referenced by that slug from every page that contains it (`partial:Species List` →
-  `partials/species-list.yaml`, `ref: species-list`).
+  `partials/species-list.yaml`, `ref: species-list`). Two spellings of one name (`Species List`,
+  `species-list`) that draw the same content are one partial; different content gets its own
+  `-2` file and a warning.
 - **Switches that are on by default.** A `HorizontalLayout` spaces its items and a `FoldoutPanel`
   opens on its own unless told otherwise; turn on their **`unspaced`** / **`folded`** property to
-  say otherwise (an off switch is never written, so turning `spacing` off does nothing). A library
-  generated before these two properties existed lacks them: run the library plugin again.
+  say otherwise (an off switch is never written, so turning `spacing` off does nothing). These two
+  properties are recent: a kit drawn before them does not have them, and running the library
+  plugin again does not add them to the instances you already placed (it redraws every component,
+  so those instances stay linked to the old ones). Until your kit has them, add them by hand to the
+  `HorizontalLayout` and `FoldoutPanel` components of the kit you publish, or swap an existing
+  instance for a freshly placed one to gain the property. Without them, write `spacing: false` /
+  `open: false` in the generated YAML.
 - **Line breaks.** A Shift+Enter inside a text layer is kept as it is.
 - **Notes.** Hidden layers and layers whose name starts with `#` are never read.
 
@@ -306,9 +313,12 @@ If your network cannot reach `workers.dev`, or you would rather not run a Worker
 zip** and drop it on a Cloudflare Pages project.
 
 Tokens stay on your device (Figma's client storage), never in the Figma file; which site a file
-publishes to stays on your device too. Routes, data and button settings do travel in the file, so
+publishes to stays on your device too. A duplicated (or renamed) file is not given the original's
+site on its own: the panel names the file that published there and offers to update it, else
+publishing creates a new site. Routes, data and button settings do travel in the file, so
 write nothing secret there. When a setting cannot be saved (a file you can only view), the panel says
-so: it lasts until you close the plugin. Name the fields a form sends with letters, digits, `_` and
+so: it lasts until you close the plugin, and where such a file publishes cannot be remembered
+either (each session publishes a new site). Name the fields a form sends with letters, digits, `_` and
 `-` only: another id stops the publish and says which. A source's rows are published as
 `data/<name>.json`, the name made plain (`My list` → `data/my-list.json`).
 ## Check the whole pipeline (end to end)

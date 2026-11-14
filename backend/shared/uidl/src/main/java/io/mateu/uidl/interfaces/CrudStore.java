@@ -214,7 +214,9 @@ public interface CrudStore<T extends Identifiable> {
     var out = new StringBuilder();
     for (Class<?> c = item.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
       for (var f : c.getDeclaredFields()) {
-        if (java.lang.reflect.Modifier.isStatic(f.getModifiers()) || f.isSynthetic()) {
+        if (java.lang.reflect.Modifier.isStatic(f.getModifiers())
+            || f.isSynthetic()
+            || isEyesOnly(f)) {
           continue;
         }
         var t = f.getType();
@@ -237,6 +239,28 @@ public interface CrudStore<T extends Identifiable> {
       }
     }
     return out.toString();
+  }
+
+  /**
+   * Whether {@code field} is restricted to some callers ({@code @EyesOnly}, directly or through a
+   * composed annotation). Its value is never searched by the default text match: the store does not
+   * know the caller, and matching it let anyone test guesses against a column they may not read —
+   * rows came back or not (GA round 2, J6). A row that must be found by such a value for the
+   * callers allowed to see it implements {@link SearchableText}, or the store overrides {@code
+   * find}.
+   */
+  private static boolean isEyesOnly(java.lang.reflect.Field field) {
+    if (field.isAnnotationPresent(io.mateu.uidl.annotations.EyesOnly.class)) {
+      return true;
+    }
+    for (var annotation : field.getAnnotations()) {
+      if (annotation
+          .annotationType()
+          .isAnnotationPresent(io.mateu.uidl.annotations.EyesOnly.class)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

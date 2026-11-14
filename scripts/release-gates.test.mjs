@@ -137,15 +137,22 @@ test('the npm package is built only after e2e passed, with no secret and no writ
     assert.doesNotMatch(build, /secrets\.|id-token: write|contents: write/)
 })
 
-test('the npm publish job runs no third-party code and is skipped without an NPM_TOKEN', () => {
+test('the npm publish job runs no third-party code and is skipped without an NPM_TOKEN or trusted publishing', () => {
     const publish = jobBlock('buid-and-publish.yml', 'npm')
     assert.match(publish, /\n {4}needs: \[npm-build, all\]\n/)
     assert.doesNotMatch(publish, /actions\/checkout|npm ci|npm install|npm run|contents: write/)
     assert.match(publish, /HAS_TOKEN: \$\{\{ secrets\.NPM_TOKEN != '' \}\}/)
+    assert.match(publish, /TRUSTED: \$\{\{ vars\.NPM_TRUSTED_PUBLISHING \}\}/)
+    // a skipped publish is a WARNING: through 3.0-rc.1 a notice hid that npm never got a 3.0 version
+    assert.match(publish, /::warning::npm publish skipped/)
     const steps = publish.split('\n      - ').slice(1).filter((s) => !s.startsWith('name: Choose the credential'))
-    assert.ok(steps.length >= 3)
-    for (const step of steps) assert.match(step, /if: steps\.auth\.outputs\.mode == 'token'/, step.split('\n')[0])
+    assert.ok(steps.length >= 4)
+    for (const step of steps) assert.match(step, /if: steps\.auth\.outputs\.mode (== 'token'|== 'trusted'|!= 'none')/, step.split('\n')[0])
     assert.equal((publish.match(/secrets\.NPM_TOKEN \}\}/g) ?? []).length, 1, 'the token reaches one step only')
+    const tokenStep = steps.find((s) => s.includes('secrets.NPM_TOKEN }}'))
+    assert.match(tokenStep, /if: steps\.auth\.outputs\.mode == 'token'/)
+    // what was published is looked up afterwards: a green run means the version is on npm
+    assert.ok(steps.some((s) => s.startsWith('name: The version is on npm')))
 })
 
 // Provenance and the OIDC token (2026-11, GA): `id-token: write` mints a Sigstore / registry identity

@@ -989,8 +989,10 @@ internal sealed partial class ReflectionMapper
             foreach (var item in items)
             {
                 var row = new Dictionary<string, object?>();
-                foreach (var c in EditableProperties(rowType))
-                    row[Naming.CamelCase(c.Name)] = CellValueOf(c.GetValue(item));
+                // a cell the caller may not read is not in the row, and a nested object in a cell
+                // leaves out what it may not read either (GA review 2, D3)
+                foreach (var c in EditableProperties(rowType).Where(ReadableValues.MayRead))
+                    row[Naming.CamelCase(c.Name)] = CellValueOf(ReadableValues.Of(c.GetValue(item)));
                 rows.Add(row);
             }
         return rows;

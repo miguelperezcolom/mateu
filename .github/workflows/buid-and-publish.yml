@@ -560,6 +560,10 @@ jobs:
           for n in "$RUNNER_TEMP"/nupkgs/*.nupkg; do
             # (a library ships lib/<tfm>/, the mateu-bundle dotnet tool tools/<tfm>/)
             unzip -l "$n" | grep -qE "(lib|tools)/net10.0/" || { echo "::error::$n has no net10.0 build"; exit 1; }
+            # the licence notices at the package root, like every jar and the Python wheel
+            for f in LICENSE.txt NOTICE; do
+              unzip -Z1 "$n" | grep -qx "$f" || { echo "::error::$n does not carry $f"; exit 1; }
+            done
           done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -697,31 +701,57 @@ jobs:
     steps:
       # Whether to publish, decided without putting the token in any environment: the step sees only
       # whether the secret is set (a boolean), never its value.
+      #   - npm trusted publishing (OIDC) — set the repository variable NPM_TRUSTED_PUBLISHING=true
+      #     once the `mateu-vaadin` package on npmjs.com trusts this workflow (Settings › Trusted
+      #     publisher: GitHub Actions, workflow buid-and-publish.yml). PREFERRED, like PyPI: when it is
+      #     set the token (if any) is never used.
+      #   - else the NPM_TOKEN secret (an automation token of the package's owner).
+      # With neither, nothing is published and the run says so as a WARNING: through 3.0-rc.1 every
+      # release skipped npm this way (the registry still ends at 0.0.15), behind a notice nobody saw.
       - name: Choose the credential
         id: auth
         env:
           HAS_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
+          TRUSTED: ${{ vars.NPM_TRUSTED_PUBLISHING }}
         run: |
-          if [ "$HAS_TOKEN" = "true" ]; then echo "mode=token" >> "$GITHUB_OUTPUT"
+          if [ "$TRUSTED" = "true" ]; then echo "mode=trusted" >> "$GITHUB_OUTPUT"
+          elif [ "$HAS_TOKEN" = "true" ]; then echo "mode=token" >> "$GITHUB_OUTPUT"
           else
             echo "mode=none" >> "$GITHUB_OUTPUT"
-            echo "::notice::npm publish skipped — no NPM_TOKEN secret (the package was built and packed)."
+            echo "::warning::npm publish skipped — no NPM_TOKEN secret and NPM_TRUSTED_PUBLISHING is not 'true': mateu-vaadin was built and packed but NOT published."
           fi
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        if: steps.auth.outputs.mode == 'token'
+        if: steps.auth.outputs.mode != 'none'
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        if: steps.auth.outputs.mode == 'token'
+        if: steps.auth.outputs.mode != 'none'
         with:
           name: npm-package
           path: npm
-      - name: Publish to npm
+      - name: Publish to npm (token)
         if: steps.auth.outputs.mode == 'token'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish npm/*.tgz --tag "$(cat npm/dist-tag)" --access public --provenance
+      - name: Publish to npm (trusted publishing)
+        if: steps.auth.outputs.mode == 'trusted'
+        run: |
+          set -euo pipefail
+          # OIDC publishing needs npm 11.5.1 or later (Node 24's own npm); provenance is automatic
+          v="$(npm --version)"
+          if [ "$(printf '%s\n' 11.5.1 "$v" | sort -V | head -1)" != 11.5.1 ]; then
+            echo "::error::npm $v cannot publish with OIDC (needs 11.5.1+)"; exit 1
+          fi
+          npm publish npm/*.tgz --tag "$(cat npm/dist-tag)" --access public
+      - name: The version is on npm
+        if: steps.auth.outputs.mode != 'none'
+        run: |
+          set -euo pipefail
+          name_version="$(tar -xzOf npm/*.tgz package/package.json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const p=JSON.parse(s);console.log(p.name+"@"+p.version)})')"
+          for _ in 1 2 3 4 5 6; do npm view "$name_version" version >/dev/null 2>&1 && exit 0; sleep 20; done
+          echo "::error::$name_version is not on npm after publishing"; exit 1
   # Build provenance (SLSA, Sigstore-signed, stored by GitHub) for what this release distributes:
   # every asset on the GitHub Release, the jars sent to Maven Central, the Python sdist + wheel, the
   # .nupkg files and the VS Code / IntelliJ plugin packages. `gh attestation verify <file> --repo

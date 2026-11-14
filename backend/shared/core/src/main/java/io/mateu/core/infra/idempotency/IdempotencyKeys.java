@@ -229,11 +229,11 @@ public final class IdempotencyKeys {
     if (key == null) {
       return run.get();
     }
-    var caller = sha256(caller(IdentityResolver.resolve(httpRequest)));
+    var caller = sha256(shareOf(httpRequest));
     var scoped = scope(httpRequest, actionId, key);
     var fingerprint = fingerprint(httpRequest);
-    return Flux.defer(
-        () -> {
+    return Flux.deferContextual(
+        context -> {
           var pending = new Pending(scoped, actionId, caller, fingerprint);
           try {
             httpRequest.setAttribute(PENDING, pending);
@@ -247,6 +247,10 @@ public final class IdempotencyKeys {
           // its real outcome (GA review java-core #5).
           var work =
               Flux.defer(run)
+                  // the request's Reactor context (WebFlux security, a reactive transaction,
+                  // tracing) still reaches the handling: subscribed on its own, it saw an empty one
+                  // (GA round 2, N6)
+                  .contextWrite(context)
                   .collectList()
                   .doOnSuccess(increments -> pending.finish(increments, null))
                   .doOnError(
@@ -500,6 +504,27 @@ public final class IdempotencyKeys {
    * The caller's identity, canonical and complete: every dimension an access check may read, each
    * list sorted, so the same grants always give the same text and any change of grants another.
    */
+  /**
+   * Whose SHARE of the tables a request counts against: its caller, and for an anonymous caller
+   * also the client address — all anonymous callers were one caller, so one of them could fill the
+   * share every other anonymous user's keyed retries needed (GA round 2, J7). The answers stay
+   * scoped by the caller alone ({@link #scope}), so a retry from a new address still replays.
+   */
+  private static String shareOf(HttpRequest httpRequest) {
+    var identity = IdentityResolver.resolve(httpRequest);
+    var caller = caller(identity);
+    if (identity.name() != null && !identity.name().isBlank()) {
+      return caller;
+    }
+    String address;
+    try {
+      address = httpRequest.getRemoteAddress();
+    } catch (RuntimeException unknown) {
+      address = null;
+    }
+    return address == null || address.isBlank() ? caller : caller + "\u0004address=" + address;
+  }
+
   static String caller(CallerIdentity identity) {
     return String.join(
         "\u0001",
