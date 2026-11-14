@@ -81,6 +81,10 @@ export function contentActionIsClaimed(reg, actionId) {
   if (!actionId) return false
   for (const ctx of Object.values((reg && reg.contexts) || {})) {
     if (declaredActionOf(ctx, actionId)) return true
+    // an OVERLAY's tree is the ClientSide Drawer/Dialog (no actions): the form it embeds is its
+    // `surface`, a ServerSide of its own with ITS actions (buildOverlay). Missing it made every
+    // content button of a form in a drawer or dialog inert (GA review 2, N-1)
+    if (ctx && ctx.surface && declaredActionOf({ tree: ctx.surface }, actionId)) return true
     if (((ctx && ctx.declaredActions) || []).some((a) => a && a.id === actionId)) return true
   }
   return !!catalogueActionOf(reg && reg.shell, actionId)
@@ -316,6 +320,22 @@ export function pageDirtyAfterAction({ wasDirty, draft, hostBefore, hostAfter, r
   if (markedClean) return false
   const pending = !!draft && typeof draft === 'object' && Object.keys(draft).length > 0
   return !!wasDirty && pending
+}
+
+/**
+ * The page's draft (the values typed and not yet sent) after an action, as runMateuAction leaves
+ * it. An open overlay keeps it (the page is still under it). With no overlay left it used to be
+ * emptied ALWAYS — so an overlay closed by a server's CloseModal, or a flow the browser ran (its
+ * `steps:` reach no server), threw the typed values away: the next Save no longer sent them and the
+ * page stopped counting as dirty, so a menu click (or the flow's own Navigate) asked nothing (GA
+ * review 2, N-2/N-4). Now it is kept unless the action repainted or replaced the host — then the
+ * host's new state is the server's answer to what was sent.
+ */
+export function pageDraftAfterAction({ draft, overlayNow, overlayBefore, ranInBrowser, hostRepainted, reRendered }) {
+  const kept = draft && typeof draft === 'object' ? draft : {}
+  if (overlayNow) return kept
+  if ((overlayBefore || ranInBrowser) && !hostRepainted && !reRendered) return kept
+  return {}
 }
 
 /**
