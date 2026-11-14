@@ -2,7 +2,7 @@
 # to a `layout:` — a definition file next to this one. A record route names in `data:` the source
 # that fetches it; the `:id` of the path reaches that source's url as ${state.id}. No view model on
 # any route: there is no code behind these screens. See https://mateu.io/concepts/routes-and-mounts/
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.64/backend/shared/uidl/routes-schema.json
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.68/backend/shared/uidl/routes-schema.json
 type: Routes
 routes:
   - route: ""
