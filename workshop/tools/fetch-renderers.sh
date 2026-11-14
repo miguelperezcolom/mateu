@@ -15,6 +15,6 @@ mkdir -p renderers
 for r in mateu-vaadin mateu-redwood; do
   url="https://repo1.maven.org/maven2/io/mateu/$r/$version/$r-$version.jar"
   echo "$r $version ← $url"
-  curl -fsSL -o "renderers/$r.jar" "$url"
+  curl -fsSL --proto '=https' --proto-redir '=https' -o "renderers/$r.jar" "$url"
 done
 echo "Done: $(pwd)/renderers"

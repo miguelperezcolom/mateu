@@ -40,7 +40,7 @@ const out = check ? join(work, 'labs') : join(workshop, 'labs')
 
 function generate(name, args) {
   const dir = join(work, 'gen', name)
-  execFileSync('node', [cli, ...args, '--version', version, '--out', dir], { stdio: ['ignore', 'ignore', 'inherit'] })
+  execFileSync(process.execPath, [cli, ...args, '--version', version, '--out', dir], { stdio: ['ignore', 'ignore', 'inherit'] })
   return dir
 }
 
@@ -136,7 +136,7 @@ if (check) {
       lang === 'shared' ? [join(lab, 'start'), join(lab, 'solution')] : [join(lab, lang)])
     for (const rel of rels) {
       try {
-        execFileSync('diff', ['-r', '-x', 'target', '-x', 'bin', '-x', 'obj', '-x', '__pycache__', '-x', '.pytest_cache',
+        execFileSync('/usr/bin/diff', ['-r', '-x', 'target', '-x', 'bin', '-x', 'obj', '-x', '__pycache__', '-x', '.pytest_cache',
           '-x', '.venv', '-x', 'node_modules', join(out, rel), join(committed, rel)], { stdio: 'pipe' })
       } catch (e) {
         diffs.push(`${rel}:\n${e.stdout}`)

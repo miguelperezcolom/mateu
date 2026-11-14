@@ -40,8 +40,8 @@ ul.points li::before{content:"›";position:absolute;left:0;color:var(--azure);f
 .box .h{display:block;font-family:var(--mono);font-weight:700;color:var(--azure);margin-bottom:.4vh;font-size:.95em}.box b{color:var(--amber)}
 .arrow{font-family:var(--mono);color:var(--amber);font-size:clamp(16px,2.4vw,30px)}
 table{border-collapse:collapse;font-size:clamp(11px,1.35vw,17px);width:100%;max-width:62em}
-td{padding:.75vh .8vw;border-bottom:1px solid var(--line);vertical-align:top}
-td.t{font-family:var(--mono);color:var(--amber);white-space:nowrap;width:5.5em}td.d{color:var(--muted);white-space:nowrap;width:3.5em}
+td,th{padding:.75vh .8vw;border-bottom:1px solid var(--line);vertical-align:top;text-align:left;font-weight:inherit}
+th.t{font-family:var(--mono);color:var(--amber);white-space:nowrap;width:5.5em}td.d{color:var(--muted);white-space:nowrap;width:3.5em}
 td.l{font-weight:600}
 .done{font-size:clamp(12px,1.5vw,19px);color:var(--muted);border-left:2px solid var(--good);padding-left:1vw;max-width:60ch}
 .done b{color:var(--good);font-family:var(--mono)}
@@ -142,7 +142,7 @@ def page(t):
     e, h, pts = t["s_rules"]
     s.append(f"<section class='slide'><div class='eyebrow'>{e}</div><h2>{h}</h2><ul class='points'>{''.join(f'<li>{p}</li>' for p in pts)}</ul></section>")
     e, h, rows = t["s_agenda"]
-    trs = "".join(f"<tr><td class='t'>{a}</td><td class='d'>{b}</td><td class='l'>{c}</td></tr>" for a, b, c in rows)
+    trs = "".join(f"<tr><th scope='row' class='t'>{a}</th><td class='d'>{b}</td><td class='l'>{c}</td></tr>" for a, b, c in rows)
     s.append(f"<section class='slide'><div class='eyebrow'>{e}</div><h2>{h}</h2><table>{trs}</table></section>")
     for e, h, pts, done in t["labs"]:
         s.append(f"<section class='slide'><div class='eyebrow'>{e}</div><h2>{h}</h2><ul class='points'>{''.join(f'<li>{p}</li>' for p in pts)}</ul><p class='done'><b>✅ {t['done']}</b> — {done}</p></section>")
