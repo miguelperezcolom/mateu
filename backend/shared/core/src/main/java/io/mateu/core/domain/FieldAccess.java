@@ -101,9 +101,11 @@ public final class FieldAccess {
   // ── the walks ──────────────────────────────────────────────────────────────────────────────
 
   /** One field of a shape: guarded by an access annotation, or holding application objects. */
-  private record Slot(Field field, boolean guarded, Class<?> nested, boolean many, boolean keyed) {
-    Slot(Field field, boolean guarded, Class<?> nested, boolean many) {
-      this(field, guarded, nested, many, false);
+  private record Slot(
+      Field field, boolean guarded, Class<?> nested, boolean many, boolean keyed, boolean dynamic) {
+    /** Whether the field's value is looked into: a declared nested type, or a runtime one. */
+    boolean holdsObjects() {
+      return nested != null || dynamic;
     }
   }
 
@@ -166,12 +168,64 @@ public final class FieldAccess {
           nested = field.getType();
         }
       }
-      if (guarded || nested != null) {
-        slots.put(field.getName(), new Slot(field, guarded, nested, many, keyed));
-        guardedAnywhere |= guarded || nested != null;
+      // a field whose DECLARED type cannot say what it holds (Object, Map<String, List<Pay>>,
+      // List<List<Pay>>, a wildcard, an application interface) is looked into by the RUNTIME
+      // value: by the declared type alone its objects' @EyesOnly fields travelled (GA round 2, J5
+      // residual on rc.1)
+      var dynamic =
+          nested == null
+              && !Modifier.isStatic(field.getModifiers())
+              && !io.mateu.core.infra.reflection.read.HolderFieldChecker.isNonDataHolder(field)
+              && mayHoldObjects(field.getGenericType(), 0);
+      if (guarded || nested != null || dynamic) {
+        slots.put(field.getName(), new Slot(field, guarded, nested, many, keyed, dynamic));
+        guardedAnywhere = true;
       }
     }
     return slots.isEmpty() ? Shape.NONE : new Shape(Map.copyOf(slots), guardedAnywhere);
+  }
+
+  /**
+   * Whether a value of the declared {@code type} may hold application objects that the declared
+   * type does not name: {@code Object}, an application interface, a container (collection, map,
+   * array, Optional) of those or of containers, a raw container, a wildcard or a type variable.
+   */
+  private static boolean mayHoldObjects(java.lang.reflect.Type type, int depth) {
+    if (depth > 4) {
+      return true;
+    }
+    if (type instanceof Class<?> c) {
+      if (c == Object.class) {
+        return true;
+      }
+      if (c.isArray()) {
+        var component = c.getComponentType();
+        return isApplicationType(component) || mayHoldObjects(component, depth + 1);
+      }
+      if (Collection.class.isAssignableFrom(c)
+          || Map.class.isAssignableFrom(c)
+          || java.util.Optional.class.equals(c)) {
+        return c.getTypeParameters().length > 0; // raw: the elements are unknown
+      }
+      return c.isInterface() && isApplicationName(c.getName());
+    }
+    if (type instanceof ParameterizedType parameterized
+        && parameterized.getRawType() instanceof Class<?> raw) {
+      if (!Collection.class.isAssignableFrom(raw)
+          && !Map.class.isAssignableFrom(raw)
+          && !java.util.Optional.class.equals(raw)) {
+        return false;
+      }
+      for (var argument : parameterized.getActualTypeArguments()) {
+        if ((argument instanceof Class<?> c && isApplicationType(c))
+            || mayHoldObjects(argument, depth + 1)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    // a wildcard, a type variable or a generic array
+    return true;
   }
 
   /** The {@code index}-th of the field's {@code arity} type arguments, when it is a plain class. */
@@ -205,7 +259,10 @@ public final class FieldAccess {
         || Collection.class.isAssignableFrom(type)) {
       return false;
     }
-    var name = type.getName();
+    return isApplicationName(type.getName());
+  }
+
+  private static boolean isApplicationName(String name) {
     return !name.startsWith("java.")
         && !name.startsWith("javax.")
         && !name.startsWith("jakarta.")
@@ -323,6 +380,9 @@ public final class FieldAccess {
       if (slot.nested() != null && restrictsReading(slot.nested(), visited)) {
         return true;
       }
+      if (slot.dynamic()) {
+        return true; // what it holds is only known at run time
+      }
     }
     return false;
   }
@@ -356,12 +416,27 @@ public final class FieldAccess {
       }
       Object replacement = entry.getValue();
       var drop = slot.guarded() && !allowed(slot.field(), rq, write);
-      var held = slot.nested() != null ? valueIn(slot.field(), source) : null;
-      if (!drop && dash > 0 && slot.nested() != null && !slot.many() && !slot.keyed()) {
-        // a flattened key of an inline nested form: pay-salary is pay's salary
-        drop =
-            !allowedPath(
-                runtimeType(slot.nested(), held), key.substring(dash + 1), rq, write, depth + 1);
+      var held = slot.holdsObjects() ? valueIn(slot.field(), source) : null;
+      if (!drop && dash > 0 && slot.holdsObjects()) {
+        // a flattened key: pay-salary is pay's salary, record-pay is the record's pay (whose own
+        // value is a nested map), anything-secretNote is the secretNote of what anything holds
+        var rest = key.substring(dash + 1);
+        if (held != null) {
+          var leaf = leafOf(unwrapped(held), rest, rq, write, depth + 1);
+          drop = leaf == REFUSED;
+          if (!drop && leaf != null) {
+            replacement = narrowedByValue(leaf, entry.getValue(), rq, write, depth + 1);
+          }
+        } else if (slot.nested() != null && !slot.many() && !slot.keyed()) {
+          drop = !allowedPath(slot.nested(), rest, rq, write, depth + 1);
+          var leafType = drop ? null : leafTypeOf(slot.nested(), rest, depth + 1);
+          if (leafType != null && entry.getValue() instanceof Map<?, ?> nestedMap) {
+            replacement =
+                walk(leafType, null, (Map<String, Object>) nestedMap, rq, write, depth + 1);
+          }
+        }
+      } else if (!drop && dash < 0 && slot.dynamic()) {
+        replacement = narrowedByValue(held, entry.getValue(), rq, write, depth);
       } else if (!drop && slot.nested() != null && dash < 0) {
         replacement = nestedValue(slot, held, entry.getValue(), rq, write, depth);
       }
@@ -440,6 +515,120 @@ public final class FieldAccess {
       return copy == null ? value : copy;
     }
     return value;
+  }
+
+  /** Marks a flattened path the caller may not read or write. */
+  private static final Object REFUSED = new Object();
+
+  private static Object unwrapped(Object held) {
+    return held instanceof java.util.Optional<?> optional ? optional.orElse(null) : held;
+  }
+
+  /**
+   * The object a flattened {@code path} ({@code pay}, {@code pay-salary}) names inside {@code
+   * held}, by RUNTIME class: {@link #REFUSED} when a field on the way is one the caller may not
+   * read (or write), null when the path leaves the objects (a plain value) or names nothing.
+   */
+  private static Object leafOf(Object held, String path, HttpRequest rq, boolean write, int depth) {
+    if (held == null || depth > MAX_DEPTH || !isApplicationType(held.getClass())) {
+      return null;
+    }
+    var dash = path.indexOf('-');
+    var name = dash > 0 ? path.substring(0, dash) : path;
+    var slot = SHAPES.get(held.getClass()).slots().get(name);
+    if (slot == null) {
+      return null;
+    }
+    if (slot.guarded() && !allowed(slot.field(), rq, write)) {
+      return REFUSED;
+    }
+    if (!slot.holdsObjects()) {
+      return null;
+    }
+    var value = unwrapped(valueIn(slot.field(), held));
+    return dash < 0 ? value : leafOf(value, path.substring(dash + 1), rq, write, depth + 1);
+  }
+
+  /** The declared nested type a flattened {@code path} names inside {@code type}, or null. */
+  private static Class<?> leafTypeOf(Class<?> type, String path, int depth) {
+    if (depth > MAX_DEPTH) {
+      return null;
+    }
+    var dash = path.indexOf('-');
+    var name = dash > 0 ? path.substring(0, dash) : path;
+    var slot = SHAPES.get(type).slots().get(name);
+    if (slot == null || slot.nested() == null || slot.many() || slot.keyed()) {
+      return null;
+    }
+    return dash < 0
+        ? slot.nested()
+        : leafTypeOf(slot.nested(), path.substring(dash + 1), depth + 1);
+  }
+
+  /**
+   * {@code value} (the state-shaped form of {@code held}) narrowed by what {@code held} REALLY
+   * holds, at any depth: an application object's map by its runtime class, a map's values and a
+   * list's (or array's, or set's) items by their own runtime values, so lists of lists, maps of
+   * lists and {@code Object} fields are filtered like a plain nested object (GA round 2, J5).
+   */
+  @SuppressWarnings("unchecked")
+  private static Object narrowedByValue(
+      Object held, Object value, HttpRequest rq, boolean write, int depth) {
+    held = unwrapped(held);
+    if (held == null || value == null || depth > MAX_DEPTH) {
+      return value;
+    }
+    if (value instanceof Map<?, ?> map) {
+      if (held instanceof Map<?, ?> heldMap) {
+        Map<Object, Object> copy = null;
+        for (var entry : map.entrySet()) {
+          var element = elementOf(heldMap, entry.getKey());
+          var narrowed = narrowedByValue(element, entry.getValue(), rq, write, depth + 1);
+          if (narrowed != entry.getValue()) {
+            if (copy == null) {
+              copy = new LinkedHashMap<>(map);
+            }
+            copy.put(entry.getKey(), narrowed);
+          }
+        }
+        return copy == null ? value : copy;
+      }
+      if (isApplicationType(held.getClass())) {
+        return walk(held.getClass(), held, (Map<String, Object>) map, rq, write, depth + 1);
+      }
+      return value;
+    }
+    if (value instanceof List<?> list
+        && (held instanceof Collection<?> || held.getClass().isArray())) {
+      List<Object> copy = null;
+      for (int i = 0; i < list.size(); i++) {
+        var item = list.get(i);
+        var narrowed = narrowedByValue(elementAt(held, i), item, rq, write, depth + 1);
+        if (narrowed != item) {
+          if (copy == null) {
+            copy = new ArrayList<>(list);
+          }
+          copy.set(i, narrowed);
+        }
+      }
+      return copy == null ? value : copy;
+    }
+    return value;
+  }
+
+  /** The value {@code map} holds under {@code key}, also when the state spells the key as text. */
+  private static Object elementOf(Map<?, ?> map, Object key) {
+    var element = map.get(key);
+    if (element != null || key == null) {
+      return element;
+    }
+    var text = String.valueOf(key);
+    for (var entry : map.entrySet()) {
+      if (entry.getKey() != null && String.valueOf(entry.getKey()).equals(text)) {
+        return entry.getValue();
+      }
+    }
+    return null;
   }
 
   /** {@code declared}, or the runtime class of {@code value} when it is a subclass of it. */
