@@ -151,6 +151,11 @@ public class Directory implements UserProfileSupplier {
 }
 ```
 
+C# — an `IUserProfileSupplier` service (`UserProfile? Profile(ClaimsPrincipal user)`, null = the
+defaults); Python — `add_mateu(user_profile_suppliers=[...])`, each a `UserProfileSupplier` whose
+`profile(identity)` returns a `UserProfile` or None. The defaults read `HttpContext.User`'s claims
+(.NET) and the verified claims of the identity your app established (Python).
+
 The user menu is display only: access control keeps reading the identity (roles, groups, scopes,
 permissions), never the profile. An anonymous caller is named nowhere.
 
