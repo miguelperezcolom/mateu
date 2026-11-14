@@ -18,6 +18,7 @@ import {
 import { ListenerSlot } from '@infra/ui/connectionScope.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { icon } from '@infra/ui/renderers/neutralIcon.ts'
+import { mayTakeFocusOnItsOwn } from '@infra/a11y/initialFocus.ts'
 
 /**
  * Smart-search filter bar, after the Redwood Smart Search pattern: ONE search field hosting both
@@ -241,6 +242,24 @@ export class MateuFilterBar extends LitElement {
         saveView(this.viewsScope, { name, values: this.snapshotValues() })
         input.value = ''
         this.requestUpdate()
+    }
+
+    /** The search box took (or declined) its one chance to take the focus. */
+    private autoFocusSettled = false
+
+    protected updated() {
+        // autoFocusOnSearchText: focused by code, never the `autofocus` attribute — that one fires
+        // on a fresh page load (taking the first Tab away from the skip link) and never after an
+        // in-app navigation, where it would help. infra/a11y/initialFocus.ts decides.
+        if (this.autoFocusSettled || !this.metadata?.autoFocusOnSearchText) return
+        const input = this.renderRoot?.querySelector?.('#searchText') as HTMLInputElement | null
+        if (!input) return
+        this.autoFocusSettled = true
+        // two frames: after the page's own route focus (mateu-ux moves it to the new heading in
+        // the next frame), so the search box is where the user lands
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            if (input.isConnected && mayTakeFocusOnItsOwn()) input.focus({ preventScroll: true })
+        }))
     }
 
     protected firstUpdated() {
@@ -556,7 +575,6 @@ export class MateuFilterBar extends LitElement {
                     ${this.metadata?.searchable !== false ? html`
                         <input class="free-text" type="text" id="searchText"
                                placeholder="${chips.length === 0 ? chromeText('search') : ''}"
-                               autofocus="${this.metadata?.autoFocusOnSearchText ? true : nothing}"
                                .value="${this.draftText ?? ''}"
                                @input="${(e: Event) => {
                                    this.draftText = (e.target as HTMLInputElement).value

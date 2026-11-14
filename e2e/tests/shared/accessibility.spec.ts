@@ -85,6 +85,17 @@ test.describe('accessibility — behaviour (what axe cannot see)', () => {
     expect(movedIntoContent).toBe(true);
   });
 
+  test('on a listing too, the first Tab reaches the skip link (the search box does not grab the focus on load)', async ({ page }) => {
+    // A listing asks for its search box to be focused (autoFocusOnSearchText). On a page the
+    // user has just loaded that must not happen: the first Tab belongs to the skip link.
+    await page.goto('/items');
+    await page.waitForSelector('mateu-table-crud, vaadin-grid', { timeout: 15000 }).catch(() => {});
+    await page.waitForTimeout(1500);
+    await page.keyboard.press('Tab');
+    const firstStop = await page.evaluate(() => document.activeElement?.tagName.toLowerCase() ?? '');
+    expect(firstStop).toBe('mateu-skip-link');
+  });
+
   test('the content region is a main landmark', async ({ page }) => {
     await page.goto('/app');
     await settle(page);
