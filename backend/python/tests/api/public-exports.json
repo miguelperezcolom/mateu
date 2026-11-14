@@ -270,6 +270,8 @@
   "UseRadioButtons",
   "UserFacingError",
   "UserFacingException",
+  "UserProfile",
+  "UserProfileSupplier",
   "Validation",
   "ValidationSupplier",
   "Version",

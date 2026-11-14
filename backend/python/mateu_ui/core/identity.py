@@ -45,7 +45,8 @@ def identity_from_claims(claims: dict[str, Any]) -> Identity:
     """Map the claims of a token YOUR APP verified onto an ``Identity`` (mirrors Java's
     ``CallerIdentities.fromClaims``): Keycloak ``realm_access``/``resource_access`` roles plus a
     top-level ``roles``, ``groups``, ``scope``/``scp`` and ``permissions``; the name is
-    ``preferred_username``, else ``sub``."""
+    ``preferred_username``, else ``sub``. The claims ride along (``Identity.claims``) so the
+    header's user menu can show the person's name, e-mail and picture."""
     roles: list[str] = []
     realm = claims.get("realm_access")
     if isinstance(realm, dict):
@@ -64,6 +65,8 @@ def identity_from_claims(claims: dict[str, Any]) -> Identity:
         scopes=tuple(scopes),
         permissions=tuple(_as_list(claims.get("permissions"))),
         name=_name_of(claims),
+        # kept to show the person in the header's user menu (UserProfile), never for access
+        claims=dict(claims),
     )
 
 
