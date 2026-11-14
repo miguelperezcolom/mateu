@@ -429,6 +429,12 @@ If your `@UI` classes live in a separate library module (not in the Spring Boot 
 library also needs `mateu-annotation-processor-indexer`, and the app lists the library in its
 `annotationProcessorPaths` — see [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/).
 
+On Spring Boot, when that library's package is not under your main class's package, tell Spring to
+scan it — `@SpringBootApplication(scanBasePackages = {"com.example.myapp", "com.example.myui"})`, or
+`mateu.ui.modules=com.example.myui` in `application.properties`. The controllers generated for the
+library's screens live in ITS package, and without either the mount answers 404 and its screens
+"Page not found". Do not scan `io.mateu`: Mateu's own beans come with the adapter.
+
 ## Next
 
 - [Your first app, explained](/java-user-manual/start-here/first-app/)
