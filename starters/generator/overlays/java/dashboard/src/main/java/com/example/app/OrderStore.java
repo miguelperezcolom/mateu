@@ -44,7 +44,7 @@ public class OrderStore {
 
   /** What has been earned: the paid and shipped orders. */
   public double revenue() {
-    return orders.stream().filter(OrderStore::earned).mapToDouble(Order::amount).sum();
+    return cents(orders.stream().filter(OrderStore::earned).mapToDouble(Order::amount).sum());
   }
 
   /** {@link #revenue()} per month, for the months of {@link #lastSixMonths()}. */
@@ -54,14 +54,15 @@ public class OrderStore {
     for (int back = 5; back >= 0; back--) {
       var month = today.minusMonths(back);
       result.add(
-          orders.stream()
-              .filter(OrderStore::earned)
-              .filter(
-                  o ->
-                      o.date().getYear() == month.getYear()
-                          && o.date().getMonth() == month.getMonth())
-              .mapToDouble(Order::amount)
-              .sum());
+          cents(
+              orders.stream()
+                  .filter(OrderStore::earned)
+                  .filter(
+                      o ->
+                          o.date().getYear() == month.getYear()
+                              && o.date().getMonth() == month.getMonth())
+                  .mapToDouble(Order::amount)
+                  .sum()));
     }
     return result;
   }
@@ -75,6 +76,11 @@ public class OrderStore {
       result.add(name.charAt(0) + name.substring(1, 3).toLowerCase());
     }
     return result;
+  }
+
+  /** A sum of doubles carries binary noise (428.09999999999997): round it to cents. */
+  private static double cents(double amount) {
+    return Math.round(amount * 100) / 100.0;
   }
 
   private static boolean earned(Order o) {
