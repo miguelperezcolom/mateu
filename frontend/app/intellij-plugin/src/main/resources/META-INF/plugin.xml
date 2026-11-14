@@ -100,6 +100,7 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <internalFileTemplate name="Mateu Page Item Overview"/>
         <internalFileTemplate name="Mateu Page Listing"/>
         <internalFileTemplate name="Mateu Page Matrix Grid"/>
+        <internalFileTemplate name="Mateu Page Message"/>
         <internalFileTemplate name="Mateu Page Planning Board"/>
         <internalFileTemplate name="Mateu Page Smart Search"/>
         <internalFileTemplate name="Mateu Page Todo List"/>

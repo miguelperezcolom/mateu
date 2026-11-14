@@ -866,6 +866,10 @@
       "defaultValue": "",
       "description": "The guided process's current step id (oj-sp-guided-process currentStep, written back by the template)"
     },
+    "mateuMsg": {
+      "type": "any",
+      "description": "A YAML MessagePage (overviews.templatedMessageOf): one card over the illustrated background, no chrome — the background class/image, the card's width, its heading texts and its content blocks (body, actions, footer)"
+    },
     "mateuMmc": {
       "type": "any",
       "description": "A YAML MultimediaContentPage's banner (overviews.templatedMultimediaOf): welcome-style texts, CTAs and look, painted with oj-sp-header-welcome-banner"

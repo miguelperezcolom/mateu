@@ -382,6 +382,7 @@ from .page_templates import (  # noqa: F401
     GuidedProcessStep,
     DataManagementPage,
     HeroSearchPage,
+    MessagePage,
 )
 from .patterns import (  # noqa: F401
     CrudDisplay,
@@ -418,6 +419,7 @@ __all__ = [
     "GuidedProcessStep",
     "DataManagementPage",
     "HeroSearchPage",
+    "MessagePage",
     "Document",
     "DocumentDisposition",
     "Access",

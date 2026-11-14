@@ -158,6 +158,7 @@
   "MenuSupplier",
   "Message",
   "MessageAction",
+  "MessagePage",
   "MessagePersistence",
   "MessageVariant",
   "MicroFrontendResolutionEvent",

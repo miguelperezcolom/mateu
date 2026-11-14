@@ -37,3 +37,4 @@ menu:
       - {type: RouteLink, label: Conservation tasks, route: conservation/tasks, icon: "vaadin:list"}
       - {type: RouteLink, label: Visits, route: visits, icon: "vaadin:chart"}
       - {type: RouteLink, label: Departments, route: departments, icon: "vaadin:sitemap"}
+      - {type: RouteLink, label: Members' sign-in, route: sign-in, icon: "vaadin:sign-in"}

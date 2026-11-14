@@ -352,6 +352,7 @@ Mateu.Uidl.MessageAction
 Mateu.Uidl.MessageInput
 Mateu.Uidl.MessageList
 Mateu.Uidl.MessageListItem
+Mateu.Uidl.MessagePage
 Mateu.Uidl.MessagePersistence
 Mateu.Uidl.MessageVariant
 Mateu.Uidl.Meter

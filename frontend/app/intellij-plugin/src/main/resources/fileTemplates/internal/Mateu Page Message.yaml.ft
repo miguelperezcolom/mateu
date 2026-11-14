@@ -1,0 +1,21 @@
+# Message page: fills the Message page template — one card over a full-bleed illustrated background,
+# with no app chrome around it (a confirmation, a "check your email", an error, a signed-out page).
+# The title is the card's heading, the content its body, the toolbar its actions and the footer the
+# small links at its foot. Only the template's fields and slots are given; its look is the template's.
+type: Form
+pageType: landing
+__PAGE_WIDTH__
+title: __TITLE__
+subtitle: We sent a confirmation link to your inbox.
+toolbar:
+  - {type: Button, label: Back to sign in, buttonStyle: primary, actionable: {type: RouteLink, route: sign-in}}
+template:
+  type: MessagePage
+  background: ocean
+  footer:
+    - {type: Anchor, text: Terms of use, url: /terms}
+    - {type: Anchor, text: Privacy, url: /privacy}
+content:
+  - type: Text
+    container: p
+    text: The link expires in 24 hours. Did not get it? Look in your spam folder.

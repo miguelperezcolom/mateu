@@ -776,6 +776,51 @@ export function templatedGuidedProcessOf(ctx) {
  * results — the page's listing — are painted by the template's slots (the hero node itself is not
  * painted as content).
  */
+/**
+ * A page that DECLARES the Message page template (`template: MessagePage`) → mateuMsg: ONE card over
+ * a full-bleed illustrated background, with no app chrome around it. Spectra ships no component for
+ * it (Oracle's own sign-in and confirmation pages are their own apps), so it is composed: the
+ * background is a fixed layer (app.css `.mateu-message-page`, Mateu's own illustration drawn with
+ * Redwood's palette — or the template's image), the content container is the card
+ * (`mateu-message-card-host`), its heading (overline, h1, subtitle) is drawn above the host atoms,
+ * and the host atoms are the card's body, then its actions and its footer links (blocks marked so
+ * app.css lays them out). Read by id off the server's layout (PageTemplates.message).
+ */
+export function templatedMessageOf(ctx) {
+  if (!declaresTemplate(ctx, 'MessagePage')) return null
+  const page = nodeById(ctx.tree, 'message-page')
+  if (!page) return null
+  const state = (ctx && ctx.state) || {}
+  const textOf = (id) => {
+    const n = nodeById(ctx.tree, id)
+    return n && n.metadata ? interpolate(String(n.metadata.text || ''), state) : ''
+  }
+  const FULL = 'oj-flex-item oj-sm-12'
+  const blocksOf = (nodes, mark) => (islandContentOf({ ...ctx, templateSlot: true, tree: { type: 'ClientSide', id: '_msg',
+    metadata: { type: 'VerticalLayout' }, children: nodes } }) || [])
+    .map((b) => ({ ...b, blockClass: FULL + (mark ? ' ' + mark : '') }))
+  const body = nodeById(ctx.tree, 'message-body')
+  const actions = nodeById(ctx.tree, 'message-actions')
+  const footer = nodeById(ctx.tree, 'message-footer')
+  const classes = String(page.cssClasses || '').split(/\s+/)
+  const tone = (classes.find((c) => c.startsWith('mateu-message-page--')) || '').slice('mateu-message-page--'.length)
+  const style = String(page.style || '')
+  const image = (style.match(/--mateu-message-page-image:\s*url\("([\w\s/.:%~?&=#+,@-]+)"\)/) || [])[1] || ''
+  const width = (style.match(/--mateu-message-card-width:\s*(\d+(?:\.\d+)?(?:px|rem|em|ch|vw|%))/) || [])[1] || ''
+  return {
+    pageClass: 'mateu-message-page' + (WELCOME_TONES.indexOf(tone) >= 0 ? ' mateu-message-page--' + tone : '')
+      + (image ? ' mateu-message-page--image' : ''),
+    image: image ? 'url("' + image + '")' : '',
+    width: width ? 'min(100%, ' + width + ')' : '',
+    overline: textOf('message-overline'),
+    title: textOf('message-title'),
+    subtitle: textOf('message-subtitle'),
+    content: blocksOf((body && body.children) || [], 'mateu-message-body')
+      .concat(actions ? blocksOf([actions], 'mateu-message-actions') : [])
+      .concat(footer ? blocksOf([footer], 'mateu-message-footer') : []),
+  }
+}
+
 export function templatedHeroSearchOf(ctx) {
   if (!declaresTemplate(ctx, 'HeroSearchPage')) return null
   const hero = nodeById(ctx.tree, 'hero-search')

@@ -5865,6 +5865,114 @@
       }
     },
     {
+      "name": "Mateu/Page Templates/MessagePage",
+      "kind": "pageTemplate",
+      "variants": {
+        "background": [
+          "auto",
+          "ocean",
+          "pine",
+          "lilac",
+          "teal",
+          "rose",
+          "pebble",
+          "slate",
+          "plum",
+          "sienna"
+        ]
+      },
+      "props": {
+        "image": "TEXT",
+        "width": "TEXT"
+      },
+      "texts": {
+        "Overline": "overline",
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "col",
+          "items": [
+            {
+              "t": "col",
+              "items": [
+                {
+                  "t": "label",
+                  "text": "Overline"
+                },
+                {
+                  "t": "title",
+                  "text": "Title",
+                  "size": 20
+                },
+                {
+                  "t": "label",
+                  "text": "Subtitle"
+                },
+                {
+                  "t": "slot",
+                  "name": "content",
+                  "h": 100,
+                  "w": 360,
+                  "label": "card body (Text, Anchor, fields)"
+                },
+                {
+                  "t": "slot",
+                  "name": "toolbar",
+                  "h": 36,
+                  "w": 360,
+                  "label": "Button instances (the primary first)"
+                }
+              ],
+              "tint": "#ffffff",
+              "pad": 24
+            },
+            {
+              "t": "slot",
+              "name": "footer",
+              "h": 28,
+              "w": 360,
+              "label": "small links (Anchor instances)"
+            }
+          ],
+          "tint": "#e8edf2",
+          "pad": 32,
+          "center": true
+        }
+      ],
+      "yaml": {
+        "type": "Form",
+        "set": {
+          "template.type": "MessagePage"
+        },
+        "params": {
+          "background": "template.background",
+          "image": "template.image",
+          "width": "template.width"
+        },
+        "defaults": {
+          "background": "auto"
+        },
+        "slots": {
+          "toolbar": {
+            "path": "toolbar",
+            "many": true,
+            "flatten": true
+          },
+          "content": {
+            "path": "content",
+            "many": true
+          },
+          "footer": {
+            "path": "template.footer",
+            "many": true
+          }
+        }
+      }
+    },
+    {
       "name": "Mateu/Page Templates/AdvancedCreateEditPage",
       "kind": "pageTemplate",
       "texts": {

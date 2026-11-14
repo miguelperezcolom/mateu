@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { hasWelcomeBanner, resolvePageWidth } from './pageWidth'
+import { pageOwnsViewport, pageTemplateOf } from './templatePageTypes'
 import Component from '@mateu/shared/apiClients/dtos/Component'
 import ServerSideComponent from '@mateu/shared/apiClients/dtos/ServerSideComponent'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
@@ -165,6 +166,16 @@ describe('resolvePageWidth', () => {
         const collection = clientSide(ComponentMetadataType.Form, { template: { type: 'CollectionDetailPage' } }, [crud({ columns: [plainColumn()] })])
         expect(resolvePageWidth(collection)).toBe('full')
         expect(resolvePageWidth(clientSide(ComponentMetadataType.Form, {}, [clientSide(ComponentMetadataType.Text)]))).toBe('fixed')
+    })
+
+    it('paints a message page edge to edge, bare or in its envelope (it owns the viewport)', () => {
+        const message = clientSide(ComponentMetadataType.Form, { template: { type: 'MessagePage' } }, [clientSide(ComponentMetadataType.VerticalLayout)])
+        expect(resolvePageWidth(message)).toBe('edge')
+        expect(resolvePageWidth(serverSide({ pageType: 'landing' }, [message]))).toBe('edge')
+        expect(pageOwnsViewport(serverSide({}, [message]))).toBe(true)
+        expect(pageTemplateOf(message)).toBe('MessagePage')
+        expect(pageOwnsViewport(clientSide(ComponentMetadataType.Form, { template: { type: 'WelcomePage' } }))).toBe(false)
+        expect(pageOwnsViewport(clientSide(ComponentMetadataType.Text))).toBe(false)
     })
 
     it('paints a foldout detail page edge to edge', () => {

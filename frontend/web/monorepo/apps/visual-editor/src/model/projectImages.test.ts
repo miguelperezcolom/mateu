@@ -39,7 +39,7 @@ describe('which properties hold an image', () => {
         }
         // AppShell logo/favicon, every image/src prop; Form.avatar (a Component) is not one
         expect(found.sort()).toEqual([
-            'AppShell.favicon', 'AppShell.logo', 'Avatar.image', 'Button.image', 'HeroSection.image', 'Image.src', 'OfferCard.image',
+            'AppShell.favicon', 'AppShell.logo', 'Avatar.image', 'Button.image', 'HeroSection.image', 'Image.src', 'MessagePage.image', 'OfferCard.image',
         ])
     })
 

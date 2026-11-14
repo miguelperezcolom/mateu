@@ -24,8 +24,29 @@ export class MateuForm extends MetadataDrivenElement {
     @property()
     appData: ComponentData = {}
 
+    /**
+     * Whether this page is already inside a `main` landmark (an app shell's content area): walks up
+     * through the shadow roots, as `closest` cannot.
+     */
+    private insideMain(): boolean {
+        let node: Node | null = this.parentNode
+        while (node) {
+            if (node instanceof Element && (node.getAttribute('role') === 'main' || node.tagName === 'MAIN')) return true
+            node = node instanceof ShadowRoot ? node.host : node.parentNode
+        }
+        return false
+    }
+
     render(): TemplateResult {
         const metadata = (this.component as ClientSideComponent)?.metadata as Form
+        // A MESSAGE page (MessagePage) owns the viewport: its card IS the page — no header band
+        // (the card carries the h1), no gaps around it; and, standalone (no shell around it), it is
+        // the page's main landmark itself.
+        if ((metadata as { template?: { type?: string } } | undefined)?.template?.type === 'MessagePage') {
+            return this.insideMain()
+                ? html`<div class="message-page-host"><slot></slot></div>`
+                : html`<main class="message-page-host"><slot></slot></main>`
+        }
         return html`
             <div class="mateu-vlayout ${this.component?.cssClasses ?? ''}">
                 <mateu-content-header
@@ -88,6 +109,12 @@ export class MateuForm extends MetadataDrivenElement {
 
         .form-content {
             padding-bottom: 3rem;
+        }
+
+        .message-page-host {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
         }
 
         /* The form's own buttons (Save / Cancel under the fields) keep a clear gap from the last

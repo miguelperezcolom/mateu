@@ -47,3 +47,7 @@ routes:
   - {route: conservation/tasks/:id, definition: task-edit.yaml, data: museum-task}
 
   - {route: visits, definition: visits.yaml}
+
+  # message pages: one card over the illustrated background, no app chrome (MessagePage)
+  - {route: sign-in, definition: sign-in.yaml}
+  - {route: visit-booked, definition: visit-booked.yaml}
