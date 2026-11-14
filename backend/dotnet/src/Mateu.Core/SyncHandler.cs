@@ -386,14 +386,21 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
     private RunActionRqDto GuardBoundType(RunActionRqDto rq)
     {
         if (string.IsNullOrEmpty(rq.ServerSideType)) return rq;
-        var binding = _routes.Authored().Routes.Where(e => e.ViewModel == rq.ServerSideType).ToList();
+        var binding = _routes.Authored().Routes.Where(e => e.ViewModel == rq.ServerSideType)
+            .Select(e => e.Route).ToList();
+        // a definition file declaring viewModel: itself binds the type at its convention route
+        // (GA round 2, D2; Java's computeBindings, Python's inline bindings)
+        var inline = _yaml.InlineBindings().TryGetValue(rq.ServerSideType, out var declaredIn) ? declaredIn : [];
+        foreach (var route in inline) if (!binding.Contains(route)) binding.Add(route);
         if (binding.Count == 0) return rq;
         var plain = !HasDotSegments(rq.Route);
         if (plain && _routes.Match(rq.Route)?.Entry.ViewModel == rq.ServerSideType) return rq;
+        // at (or under) a definition that declares the type: THAT definition's keys
+        if (plain && InlineOwnerOf(rq.Route, inline) is { } owner) return WithRouteKeys(rq, owner);
         if (plain && RoutedTabs.MountOf(_routes, rq.Route, rq.ServerSideType) is { } mount)
         {
             var under = _routes.Match(mount)!.Entry;
-            return WithEntryKeys(rq, under);
+            return WithRouteKeys(rq, under.Route);
         }
         if (plain && registry.Registered(rq.ServerSideType) is { } declared
             && (registry.ResolveByPrefix(rq.Route)?.Type == declared
@@ -401,20 +408,31 @@ internal sealed partial class SyncHandler(MateuRegistry registry, ITranslator? t
             return rq;
         // allowed only when one of the type's OWN routes is reachable for the caller (Java's rule);
         // then the union of every binding entry's keys applies
-        if (!binding.Any(entry => _routes.IsReachable(entry.Route, ActionGuard.Authorized)))
+        if (!binding.Any(route => _routes.IsReachable(route, ActionGuard.Authorized)))
             ActionGuard.Deny($"view {rq.ServerSideType} denied by access: of its routes");
-        foreach (var entry in binding) rq = WithEntryKeys(rq, entry);
+        foreach (var route in binding) rq = WithRouteKeys(rq, route);
         return rq;
     }
 
-    /// <summary><paramref name="rq"/> under the keys of <paramref name="entry"/>'s layout: an action it
-    /// refuses the caller is refused (403), the fields it locks for the caller are dropped.</summary>
-    private RunActionRqDto WithEntryKeys(RunActionRqDto rq, RouteEntry entry)
+    /// <summary>The convention route among <paramref name="inline"/> that <paramref name="route"/>
+    /// is, or is under (the deepest), else null.</summary>
+    private static string? InlineOwnerOf(string? route, IReadOnlyList<string> inline)
     {
-        if (_yaml.LoadSpec(entry.Route) is not { DependsOnRequest: true }) return rq;
-        if (_yaml.LoadSpec(entry.Route, ActionGuard.Authorized, _i18n.Locale) is not { } personal) return rq;
+        var path = MateuRegistry.Normalize(route);
+        return inline
+            .Where(r => path == r || path.StartsWith(r + "/", StringComparison.Ordinal))
+            .OrderByDescending(r => r.Length)
+            .FirstOrDefault();
+    }
+
+    /// <summary><paramref name="rq"/> under the keys of <paramref name="route"/>'s layout: an action it
+    /// refuses the caller is refused (403), the fields it locks for the caller are dropped.</summary>
+    private RunActionRqDto WithRouteKeys(RunActionRqDto rq, string route)
+    {
+        if (_yaml.LoadSpec(route) is not { DependsOnRequest: true }) return rq;
+        if (_yaml.LoadSpec(route, ActionGuard.Authorized, _i18n.Locale) is not { } personal) return rq;
         if (rq.ActionId is { Length: > 0 } actionId && personal.RefusedActions.Contains(actionId))
-            ActionGuard.Deny($"action '{actionId}' denied by access: of route '{entry.Route}'");
+            ActionGuard.Deny($"action '{actionId}' denied by access: of route '{route}'");
         HideInAnswer(personal.HiddenFields);
         return WithoutLocked(rq, personal.LockedFields.ToHashSet());
     }

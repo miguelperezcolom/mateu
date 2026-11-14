@@ -180,7 +180,56 @@ internal sealed class YamlSpecLoader : ISpecsCache
             && (applied is not IDictionary<object, object> a || !a.TryGetValue("layout", out var kept) || kept is null));
 
     /// <summary>Dev mode: a spec changed — every parsed definition is read again on next use.</summary>
-    public void InvalidateSpecs() => _byRoute.Clear();
+    public void InvalidateSpecs()
+    {
+        _byRoute.Clear();
+        _inlineBindings = null;
+    }
+
+    private volatile IReadOnlyDictionary<string, IReadOnlyList<string>>? _inlineBindings;
+
+    /// <summary>The definition files that declare <c>viewModel:</c> THEMSELVES, by the view model
+    /// they name → the convention routes they answer (their path under the specs directory without
+    /// <c>.yaml</c>). A type such a file names is BOUND by it, like a routes.yaml entry binds its
+    /// viewModel (Java's YamlUidlLoader.computeBindings). Read once; dev mode reads it again.</summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> InlineBindings()
+    {
+        if (_inlineBindings is { } known) return known;
+        var found = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        try
+        {
+            if (Directory.Exists(_dir))
+                foreach (var file in Directory.EnumerateFiles(_dir, "*.yaml", SearchOption.AllDirectories)
+                             .OrderBy(f => f, StringComparer.Ordinal))
+                {
+                    try
+                    {
+                        if (YamlComponentBuilder.Deserialize(File.ReadAllText(file)) is IDictionary<object, object> root
+                            && root.TryGetValue("viewModel", out var vm) && vm is string name
+                            && !string.IsNullOrWhiteSpace(name))
+                        {
+                            var relative = Path.GetRelativePath(_dir, file).Replace('\\', '/');
+                            var route = relative[..^".yaml".Length];
+                            (found.TryGetValue(name.Trim(), out var list) ? list : found[name.Trim()] = []).Add(route);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // an unreadable file declares nothing; its own load reports it
+                    }
+                }
+        }
+        catch (IOException)
+        {
+            // a specs directory that cannot be listed binds nothing
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+        var result = found.ToDictionary(kv => kv.Key, kv => (IReadOnlyList<string>)kv.Value, StringComparer.Ordinal);
+        _inlineBindings = result;
+        return result;
+    }
 
     /// <summary>The partial registry this loader resolves refs against. Tests register in code.</summary>
     public PartialRegistry Partials => _partials;
@@ -188,9 +237,23 @@ internal sealed class YamlSpecLoader : ISpecsCache
     /// <summary>The parsed spec for a route (<c>specs/ui/&lt;route&gt;.yaml</c>), or null when there is none.</summary>
     public Spec? LoadSpec(string? route)
     {
-        var spec = _byRoute.GetOrAdd(Normalize(route), Parse);
+        var key = Normalize(route);
+        if (!_byRoute.TryGetValue(key, out var spec))
+        {
+            spec = Parse(key);
+            // the key is the REQUEST's route: past the cap a lookup is answered without being
+            // remembered, so a caller walking made-up routes cannot grow the table without bound
+            // (GA review 2, D9 — the S8 pattern); the deployment's own routes fill it first
+            if (_byRoute.Count < MaxCachedRoutes) spec = _byRoute.GetOrAdd(key, spec);
+        }
         return ReferenceEquals(spec, None) ? null : spec;
     }
+
+    /// <summary>How many routes' lookups (found or not) are remembered.</summary>
+    internal const int MaxCachedRoutes = 4096;
+
+    /// <summary>How many lookups are remembered now. Tests.</summary>
+    internal int CachedRoutes => _byRoute.Count;
 
     private Spec Parse(string normalizedRoute)
     {

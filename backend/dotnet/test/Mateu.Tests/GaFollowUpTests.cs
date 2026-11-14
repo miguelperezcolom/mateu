@@ -86,8 +86,51 @@ public class TidBookings : IListing<TidBooking>, IEditable<TidBooking, string>
     }
 }
 
+/// <summary>D2: a view model a definition file binds by declaring viewModel: itself.</summary>
+[UI("d2-same"), Title("D2")]
+public class D2SameView
+{
+    public double Salary { get; set; } = 100;
+
+    [Button] public Message Pay() => new($"paid {Salary.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+}
+
 public class GaFollowUpTests
 {
+    private static readonly string D2Specs = WriteD2Specs();
+
+    private static string WriteD2Specs()
+    {
+        var dir = Directory.CreateTempSubdirectory("ga-d2-").FullName;
+        File.WriteAllText(Path.Combine(dir, "d2-same.yaml"), $"""
+            viewModel: {typeof(D2SameView).FullName}
+            layout:
+              type: FormField
+              id: salary
+              dataType: number
+              readOnlyUnless: {"{"}roles: [admin]{"}"}
+            """);
+        File.WriteAllText(Path.Combine(dir, "d2-hello.yaml"), "layout: {type: Text, text: Hello}\n");
+        return dir;
+    }
+
+    [Theory]
+    [InlineData("d2-same")]
+    [InlineData("d2-same/x")]
+    [InlineData("nowhere")]
+    [InlineData("d2-hello")]
+    [InlineData("")]
+    public void A_view_model_a_definition_declares_keeps_its_locks_wherever_it_is_named(string route)
+    {
+        var inc = new SyncHandler(new MateuRegistry(typeof(SimpleForm).Assembly), specsDir: D2Specs).Handle(
+            new RunActionRqDto
+            {
+                Route = route, ServerSideType = typeof(D2SameView).FullName, ActionId = "pay",
+                ComponentState = new() { ["salary"] = J(999) },
+            });
+        Assert.Equal("paid 100", Assert.Single(inc.Messages).Text);
+    }
+
     private const string NoLongerExists =
         "This record no longer exists. Reload the list to see the current records.";
 
@@ -151,6 +194,17 @@ public class GaFollowUpTests
             Run(typeof(TidSkus), "tid-skus/NEW-1/edit", "save", new() { ["title"] = J("Inserted") }));
         Assert.Equal(NoLongerExists, refused.Message);
         Assert.Empty(TidSkus.Store);
+    }
+
+    [Fact]
+    public void Made_up_routes_do_not_grow_the_spec_cache_without_bound()
+    {
+        // D9: every request route was cached, misses included
+        var dir = Directory.CreateTempSubdirectory("mateu-d9").FullName;
+        var loader = new YamlSpecLoader(dir);
+        for (var i = 0; i < YamlSpecLoader.MaxCachedRoutes + 500; i++)
+            Assert.Null(loader.LoadSpec($"nowhere-{i}"));
+        Assert.True(loader.CachedRoutes <= YamlSpecLoader.MaxCachedRoutes);
     }
 
     [Fact]
