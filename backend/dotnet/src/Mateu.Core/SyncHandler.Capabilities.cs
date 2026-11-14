@@ -181,9 +181,18 @@ internal sealed partial class SyncHandler
         // laid over the record being edited (Edit(id)), binding only what the editor form let the
         // user write ([ReadOnly] & co. keep the loaded value — the crud editor's WritableOnSave);
         // with no record to name, a fresh editor takes what the form may write
-        var recordId = ParseCrudRoute(baseRoute, rq.Route).Id ?? CapabilityRowId(rq, profile);
-        var editor = (recordId is null ? null : CapabilityEdit(profile, listing, recordId)) ?? New(profile.EditorType);
+        // A save EDITS a record the listing holds: the route's id, else the posted form's own id
+        // (under the editor's key, else the row's the drawer was opened with). With no stored
+        // record to start from it is refused — never run as a creation laid over nothing, which
+        // zeroed every read-only field (GA round 2, N2; Java's CapabilityCrud.save, Python's).
+        var recordId = ParseCrudRoute(baseRoute, rq.Route).Id ?? CapabilityEditedId(rq, profile);
+        var editor = recordId is null ? null : CapabilityEditOrNull(profile, listing, recordId);
+        if (editor is null)
+            throw new UserFacingException(RecordNoLongerExists);
         BindState(editor, ReflectionMapper.WritableOnSave(profile.EditorType, rq.ComponentState, creating: false));
+        // the record saved is the one edited: a posted id never redirects the save to another
+        // record carrying this one's protected values (GA round 2, D6)
+        if (EntityIds.PropertyOf(editor.GetType()) is not null) EntityIds.SetId(editor, recordId!);
         var id = profile.EditableInterface!.GetMethod("Save")!.Invoke(listing, [editor]);
         return CapabilityPersisted(profile, baseRoute, id, rq);
     }
@@ -260,6 +269,42 @@ internal sealed partial class SyncHandler
 
     /// <summary>The record id of a row action, from the action parameters or the component state
     /// (under the row type's camelCased Id property).</summary>
+    /// <summary>What a save answers when the record it edits is not stored — the same text in Java
+    /// and Python.</summary>
+    internal const string RecordNoLongerExists =
+        "This record no longer exists. Reload the list to see the current records.";
+
+    /// <summary>The id of the record a save with no route id edits: the posted form's id under the
+    /// editor's key, else under the row's.</summary>
+    private static string? CapabilityEditedId(RunActionRqDto rq, CapabilityProfile profile)
+    {
+        if (EntityIds.PropertyOf(profile.EditorType) is { } editorId)
+        {
+            var key = char.ToLowerInvariant(editorId.Name[0]) + editorId.Name[1..];
+            if (StateString(GetState(rq.ComponentState, key)) is { Length: > 0 } posted) return posted;
+        }
+        return CapabilityRowId(rq, profile) is { Length: > 0 } row ? row : null;
+    }
+
+    /// <summary>Edit(id), or null when the listing holds no such record (null, or a KeyNotFound /
+    /// InvalidOperation thrown the LINQ-Single way).</summary>
+    private static object? CapabilityEditOrNull(CapabilityProfile profile, object listing, string id)
+    {
+        try
+        {
+            return profile.EditableInterface!.GetMethod("Edit")!.Invoke(listing, [ToId(id, profile.IdType)]);
+        }
+        catch (TargetInvocationException e)
+            when (e.InnerException is KeyNotFoundException or InvalidOperationException)
+        {
+            return null;
+        }
+        catch (FormatException)
+        {
+            return null; // an id that is not even of the listing's id type names no record
+        }
+    }
+
     private static string? CapabilityRowId(RunActionRqDto rq, CapabilityProfile profile)
     {
         var idField = EntityIds.FieldName(profile.RowType);

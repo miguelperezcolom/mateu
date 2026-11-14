@@ -356,10 +356,41 @@ internal sealed partial class SyncHandler
 
     // ── Capability listings (IListing + declared capabilities; mirrors Java's CapabilityCrud) ──
 
+    /// <summary>What a create answers when the store saved the new record without an id — the
+    /// same text in Java and Python.</summary>
+    internal const string StoreAssignedNoId =
+        "The record was saved without an id. The store must assign the id of a new record, or the "
+        + "id field must be marked EditableOnlyWhenCreating so the user types it.";
+
+    /// <summary>What a create answers when its id names a stored record — the same text in Java and
+    /// Python.</summary>
+    internal const string RecordAlreadyExists =
+        "A record with this id already exists. Choose another id, or open the record to edit it.";
+
+    /// <summary>Whether a just-created entity still has no id: a null or blank text, or an empty
+    /// Guid (a number is left alone — 0 is a legitimate first id).</summary>
+    private static bool SavedWithoutId(object entity)
+    {
+        var property = EntityIds.PropertyOf(entity.GetType());
+        if (property is null) return false;
+        return property.GetValue(entity) switch
+        {
+            null => true,
+            string text => string.IsNullOrWhiteSpace(text),
+            Guid guid => guid == Guid.Empty,
+            _ => false,
+        };
+    }
+
     private UIIncrementDto CrudSave(object crud, Type crudType, Type element, string? id, RunActionRqDto rq, string baseRoute)
     {
         // Start from the stored entity (so untouched fields survive) and apply the edited fields.
         var stored = id is not null ? crudType.GetMethod("Get")!.Invoke(crud, [id]) : null;
+        // a save at a route naming a record that is not stored edits nothing: refused, never
+        // inserted — a crud with CanCreate => false created records this way (GA round 2, D7; Java's
+        // FilteredAutoCrud, the same text)
+        if (id is not null && stored is null)
+            throw new UserFacingException(RecordNoLongerExists);
         var storedVersion = StoredVersionOf(stored);
         // The edit binds onto a DETACHED copy: an in-memory Get may return the live stored instance
         // by reference, and a refused save (stale version, a missing or broken constraint) must
@@ -373,7 +404,13 @@ internal sealed partial class SyncHandler
         // CrudWriteGate.checkEdit): a crud that does not edit refuses it (403)
         else if (EntityIds.Of(entity) is { Length: > 0 } chosen
                  && crudType.GetMethod("Get")!.Invoke(crud, [chosen]) is not null)
+        {
             EnsureWriteAllowed(crud, crudType, "save");
+            // …and refused even then: built from a creation form, it would REPLACE the record —
+            // every field the user cannot see or write back to its default (GA round 2, N3; Java's
+            // FilteredAutoCrud.create, Python's crud create). A New form creates, it never edits.
+            throw new UserFacingException(RecordAlreadyExists);
+        }
 
         var missing = RequiredMissing(entity, element, creating: id is null);
         if (missing.Count > 0)
@@ -403,6 +440,11 @@ internal sealed partial class SyncHandler
         try
         {
             crudType.GetMethod("Save")!.Invoke(crud, [entity]);
+            // a create the store keyed by no id: every new record lands on the same empty key,
+            // each create replacing the last — said, never answered "Saved" (GA review 2, B-1;
+            // Java's FilteredAutoCrud.create, Python's crud create)
+            if (id is null && SavedWithoutId(entity))
+                throw new UserFacingException(StoreAssignedNoId);
             // the audit trail's "on what": the record saved / created
             Observability.RequestObservation.RecordId(id ?? EntityIds.Of(entity));
         }

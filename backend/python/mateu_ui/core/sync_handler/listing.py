@@ -31,6 +31,10 @@ from ..mapper import (
     crud_element_type,
     listing_types,
 )
+from mateu_ui.uidl.messages import UserFacingException
+
+from ..mapper.crud_modes import record_id_field
+from ..naming import camel_case
 from ..registry import normalize
 from ._base import MixinBase
 from .crud import _messages_only, _with_messages_of
@@ -109,6 +113,18 @@ class ListingHandlerMixin(MixinBase):
         return method(*args[:arity])
 
     @staticmethod
+    def _keyed_id(rq: RunActionRq, keys: list[str]) -> str | None:
+        """The first id the request carries under one of ``keys`` (parameters first, then the
+        component state; camelCase as the wire spells them)."""
+        for source in (rq.parameters or {}, rq.component_state or {}):
+            for key in keys:
+                for spelling in (camel_case(key), key):
+                    raw = source.get(spelling)
+                    if raw is not None and str(raw) != "":
+                        return str(raw)
+        return None
+
+    @staticmethod
     def _selected_ids(rq: RunActionRq) -> list[str]:
         """The ids of the rows selected in the grid (componentState crud_selected_items)."""
         raw = (rq.component_state or {}).get("crud_selected_items")
@@ -151,12 +167,12 @@ class ListingHandlerMixin(MixinBase):
             return self.listing_bulk_action(view, cls, row_type, rq, aid)
 
         if navigable and aid == "view":
-            row_id = self._row_id(rq)
+            row_id = self._keyed_id(rq, [k for k in (record_id_field(row_type), "id") if k])
             if row_id is not None:
                 return self.navigate(f"{base_route}/{row_id}", None, rq)
         if drawer_editor:
             if aid in ("view", "edit"):
-                row_id = self._row_id(rq)
+                row_id = self._keyed_id(rq, [k for k in (record_id_field(row_type), "id") if k])
                 if row_id is not None:
                     editor = self._invoke(view.edit, row_id, rq)
                     return self.crud_drawer(
@@ -194,12 +210,22 @@ class ListingHandlerMixin(MixinBase):
             # which wrote read-only / hidden / server-owned fields (.NET's and Java's rule)
             from ..mapper.crud_modes import without_hidden_inputs
 
+            # the edited record's id the way the listing resolves its rows' (record_id_field): the
+            # route's, else the posted form's under the editor's key, else under the row's — a
+            # record keyed by a business code used to find none (GA round 2, N2; Java's
+            # CapabilityCrud.save, .NET's CapabilitySave, the same text)
             _, routed_id = self.parse_crud_route(base_route, rq.route)
-            row_id = routed_id if routed_id is not None else self._row_id(rq)
+            keys = [k for k in (record_id_field(editor_type), record_id_field(row_type), "id") if k]
+            row_id = routed_id if routed_id is not None else self._keyed_id(rq, keys)
             editor = self._invoke(view.edit, row_id, rq) if row_id is not None else None
             if editor is None:
-                return self.error("This record no longer exists. Reload the list to see the current rows.")
-            state = {k: v for k, v in (rq.component_state or {}).items() if k != "id"}
+                raise UserFacingException(
+                    "This record no longer exists. Reload the list to see the current records."
+                )
+            # the record saved is the one edited: a posted key never redirects the save to another
+            # record carrying this one's protected values (GA round 2, D6 in .NET, the same here)
+            key_names = set(keys) | {camel_case(k) for k in keys}
+            state = {k: v for k, v in (rq.component_state or {}).items() if k not in key_names}
             self.bind_state(editor, without_hidden_inputs(editor_type or type(editor), state, False))
             idempotency_keys.checkpoint()  # the capability is declared: the write may replay
             saved_id = self._invoke(view.save, editor, rq)

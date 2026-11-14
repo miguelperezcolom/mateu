@@ -52,8 +52,119 @@ public class TidSkus : Crud<TidSku>
     }
 }
 
+/// <summary>The pattern the manuals taught before the technical-id rule: keyed by an id nobody
+/// assigns (GA review 2, B-1).</summary>
+[UI("tid-forgetful"), Title("Forgetful")]
+public class TidForgetful : Crud<TidArtwork>
+{
+    public static readonly Dictionary<string, TidArtwork> Store = [];
+    public override IEnumerable<TidArtwork> Fetch(string? search) => Store.Values;
+    public override TidArtwork? Get(string id) => Store.GetValueOrDefault(id);
+    public override void Save(TidArtwork entity) => Store[entity.Id] = entity;
+}
+
+/// <summary>A record keyed by a business code, edited in a drawer (Editable without Navigable) —
+/// GA round 2, N2/D6.</summary>
+public class TidBooking
+{
+    [Id] public string Code { get; set; } = "";
+    public string Guest { get; set; } = "";
+    [ReadOnly] public double Total { get; set; }
+}
+
+[UI("tid-bookings")]
+public class TidBookings : IListing<TidBooking>, IEditable<TidBooking, string>
+{
+    public static readonly Dictionary<string, TidBooking> Store = [];
+    public ListingData<TidBooking> Search(SearchRequest request) => ListingData.From(Store.Values);
+    public TidBooking Edit(string id) =>
+        Store.TryGetValue(id, out var b) ? new TidBooking { Code = b.Code, Guest = b.Guest, Total = b.Total } : null!;
+    public string Save(TidBooking editor)
+    {
+        Store[editor.Code] = editor;
+        return editor.Code;
+    }
+}
+
 public class GaFollowUpTests
 {
+    private const string NoLongerExists =
+        "This record no longer exists. Reload the list to see the current records.";
+
+    private static void SeedBookings()
+    {
+        TidBookings.Store.Clear();
+        TidBookings.Store["B-1"] = new TidBooking { Code = "B-1", Guest = "Ana", Total = 120 };
+        TidBookings.Store["B-2"] = new TidBooking { Code = "B-2", Guest = "Bob", Total = 80 };
+    }
+
+    [Fact]
+    public void A_drawer_save_finds_a_record_keyed_by_its_code_and_keeps_its_read_only_values()
+    {
+        SeedBookings();
+        Run(typeof(TidBookings), "tid-bookings", "save",
+            new() { ["code"] = J("B-1"), ["guest"] = J("Ana Edited"), ["total"] = J(0) });
+        Assert.Equal(("Ana Edited", 120d), (TidBookings.Store["B-1"].Guest, TidBookings.Store["B-1"].Total));
+        Assert.Equal(2, TidBookings.Store.Count);
+    }
+
+    [Fact]
+    public void A_capability_save_of_a_record_that_is_not_stored_is_refused_not_created()
+    {
+        SeedBookings();
+        var refused = Assert.Throws<UserFacingException>(() => Run(typeof(TidBookings), "tid-bookings", "save",
+            new() { ["code"] = J("B-9"), ["guest"] = J("Nobody"), ["total"] = J(999) }));
+        Assert.Equal(NoLongerExists, refused.Message);
+        Assert.False(TidBookings.Store.ContainsKey("B-9"));
+    }
+
+    [Fact]
+    public void A_capability_save_at_a_record_route_saves_that_record_whatever_id_is_posted()
+    {
+        // D6: the posted id used to redirect the save to another record carrying this one's values
+        SeedBookings();
+        Run(typeof(TidBookings), "tid-bookings/B-1/edit", "save",
+            new() { ["code"] = J("B-2"), ["guest"] = J("Hijack") });
+        Assert.Equal("Bob", TidBookings.Store["B-2"].Guest);
+        Assert.Equal("Hijack", TidBookings.Store["B-1"].Guest);
+    }
+
+    [Fact]
+    public void A_create_whose_typed_id_already_exists_is_refused()
+    {
+        // N3: built from a creation form it would REPLACE the stored record (Java's text)
+        TidSkus.Store.Clear();
+        Run(typeof(TidSkus), "tid-skus/new", "create", new() { ["id"] = J("SKU-1"), ["title"] = J("Lamp") });
+        var refused = Assert.Throws<UserFacingException>(() =>
+            Run(typeof(TidSkus), "tid-skus/new", "create", new() { ["id"] = J("SKU-1"), ["title"] = J("Other") }));
+        Assert.Equal("A record with this id already exists. Choose another id, or open the record to edit it.",
+            refused.Message);
+        Assert.Equal("Lamp", Assert.Single(TidSkus.Store).Title);
+    }
+
+    [Fact]
+    public void A_crud_save_at_a_route_naming_no_stored_record_is_refused_not_inserted()
+    {
+        // D7
+        TidSkus.Store.Clear();
+        var refused = Assert.Throws<UserFacingException>(() =>
+            Run(typeof(TidSkus), "tid-skus/NEW-1/edit", "save", new() { ["title"] = J("Inserted") }));
+        Assert.Equal(NoLongerExists, refused.Message);
+        Assert.Empty(TidSkus.Store);
+    }
+
+    [Fact]
+    public void A_create_the_store_saved_without_an_id_is_told_so_instead_of_saved()
+    {
+        TidForgetful.Store.Clear();
+        var refused = Assert.Throws<UserFacingException>(() =>
+            Run(typeof(TidForgetful), "tid-forgetful/new", "create", new() { ["title"] = J("First") }));
+        Assert.Equal(
+            "The record was saved without an id. The store must assign the id of a new record, or the "
+            + "id field must be marked EditableOnlyWhenCreating so the user types it.",
+            refused.Message);
+    }
+
     private static SyncHandler Handler() => new(new MateuRegistry(typeof(SimpleForm).Assembly));
 
     private static JsonElement J(object v) => JsonSerializer.SerializeToElement(v);

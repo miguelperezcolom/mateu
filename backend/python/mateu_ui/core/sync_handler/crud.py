@@ -542,6 +542,19 @@ class CrudHandlerMixin(MixinBase):
         self.bind_state(entity, without_hidden_inputs(element, rq.component_state, id_ is None))
         if id_ is not None:
             setattr(entity, "id", id_)
+        else:
+            # the id is the user's to choose on a creation form: one that names a STORED record
+            # would REPLACE it — built from a creation form, every field the user cannot see or
+            # write back to its default (GA round 2, N3; Java's FilteredAutoCrud.create, .NET's
+            # crud create). Gated as an edit first (403), then refused: a New form never edits.
+            chosen = _id_of(crud, entity)
+            if chosen is not None and str(chosen).strip() != "" and crud.get(str(chosen)) is not None:
+                crud_type = type(crud)
+                if class_flag(crud_type, "__mateu_read_only__", False) or not _capable(crud, "can_edit"):
+                    from ..action_guard import MateuForbiddenException
+
+                    raise MateuForbiddenException(f"Forbidden: save on {crud_type.__name__}")
+                raise UserFacingException(RECORD_ALREADY_EXISTS)
         # a required field the form does not render is not the user's to fill (Java's
         # ServerConstraintCheck skips @HiddenInCreate / @HiddenInEditor fields)
         # and neither are its Min/Max/Length/Pattern constraints: the form sent no validation for
@@ -854,6 +867,11 @@ def _with_messages_of(refreshed, told):
     refreshed.messages = list(refreshed.messages) + list(told.messages)
     return refreshed
 
+
+#: What a create answers when its id names a stored record — the same text in Java and .NET.
+RECORD_ALREADY_EXISTS = (
+    "A record with this id already exists. Choose another id, or open the record to edit it."
+)
 
 #: What a create answers when the store saved the new record without an id — the same text in
 #: Java (FilteredAutoCrud.create) and .NET (the crud create).
