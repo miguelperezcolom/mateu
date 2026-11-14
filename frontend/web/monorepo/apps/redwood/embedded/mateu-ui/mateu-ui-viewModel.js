@@ -160,6 +160,9 @@ define([
       };
       this._element.addEventListener('click', this._onClick);
       this._element.addEventListener('navigation-requested', this._onNavigationRequested);
+      this._onResize = () => this._applyPageMode();
+      window.addEventListener('resize', this._onResize);
+      this._applyPageMode();
       if (!this._booted) {
         this._booted = true;
         this._boot();
@@ -169,6 +172,7 @@ define([
     disconnected() {
       this._element.removeEventListener('click', this._onClick);
       this._element.removeEventListener('navigation-requested', this._onNavigationRequested);
+      window.removeEventListener('resize', this._onResize);
       if (active === this) {
         active = null;
         bridge.setEmbeddedHost(null);
@@ -180,6 +184,7 @@ define([
       const next = bridge.embeddedConfigOf(this._element);
       const previous = this._config;
       this._config = next;
+      if (context.property === 'shell') this._applyPageMode();
       // our own writeback of `route` (the screen navigated): already on display
       if (!this._booted || context.updatedFrom === 'internal') return;
       // the identity is read on every request: a new token needs no reload
@@ -208,6 +213,20 @@ define([
       const current = this._runtime.$application.variables.mateuSelectedNavId
         || this._runtime.$application.variables.mateuSelectedRoute || '';
       return bridge.navigateEmbedded(this._runtime, Object.assign({}, this._config, { route: current, params: {}, initialState: null }));
+    }
+
+    /** shell="true": the component is the page, so it scrolls itself (mateu-ui-embedded.css,
+     *  .mateu-ui-page) and takes the window's height from where it starts. Off: the host scrolls. */
+    _applyPageMode() {
+      const element = this._element;
+      const on = !!this._config.shell;
+      element.classList.toggle('mateu-ui-page', on);
+      if (!on) {
+        element.style.removeProperty('--mateu-ui-page-top');
+        return;
+      }
+      const top = element.getBoundingClientRect().top + (window.scrollY || 0);
+      element.style.setProperty('--mateu-ui-page-top', Math.max(0, Math.round(top)) + 'px');
     }
 
     _boot() {

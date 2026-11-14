@@ -77,7 +77,7 @@ Download `mateu-ui-<version>.zip` from the [release](https://github.com/miguelpe
   the zip.
 
 It lands under `resources/components/mateu-ui-<version>/` — **the folder name carries the
-version** (`mateu-ui-2604.1.2`), so a newer zip is a new folder next to the old one. Visual Builder
+version** (`mateu-ui-2604.1.3`), so a newer zip is a new folder next to the old one. Visual Builder
 lists the component in the palette (under **Custom**) and adds it to the page's imports when you drop
 it on a page. To add it by hand, use that folder in the page JSON:
 `"imports": {"components": {"mateu-ui": {"path": "resources/components/mateu-ui-<version>/loader"}}}`
@@ -146,6 +146,14 @@ navigation (`mateuNavigate` fires first and can be cancelled). Leave `route` emp
 home. Not drawn yet: every menu variant (`HAMBURGER_MENU`, `MENU_ON_LEFT`, `RAIL`, `TABS`…) is shown as
 that top band, not as a navigator drawer or rail; the `@AppContext` pickers, header actions, the user
 menu, the notification bell, the AI chat and the Ask palette are not part of it.
+
+In shell mode the component **scrolls itself**. A VB app's index stops the page body from scrolling
+(`.vb-web-applayout-body { overflow-y: hidden }`) and expects the root page's shell to provide the
+scrolling area. When the page holds only `<mateu-ui>`, that area is missing. So with `shell="true"`
+the component fills the height of its container, or the window from where it starts when the
+container has no height. It becomes the scroll container, and the header and menu band stay pinned at
+its top. Drawers, dialogs and popups still open over the page (they live in JET's popup layer).
+Without `shell` the component flows in your page, and your page scrolls it.
 
 ### 3. Identity (your app's user on the Mateu backend)
 

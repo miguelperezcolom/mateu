@@ -19610,7 +19610,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // make-amd.mjs replaces the placeholder with apps/redwood/package.json's version when it writes the
   // bridge; run from the sources (Node tests) it stays a placeholder and reads as 'unknown'.
-  const RENDERER_VERSION_STAMP = "2604.1.2"
+  const RENDERER_VERSION_STAMP = "2604.1.3"
 
   /** The renderer's own version, or 'unknown' when the bridge was not stamped. */
   function rendererVersion(stamp = RENDERER_VERSION_STAMP) {

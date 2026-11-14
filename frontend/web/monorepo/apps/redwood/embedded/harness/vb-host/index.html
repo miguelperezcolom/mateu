@@ -13,9 +13,11 @@
     <link rel="stylesheet" href="https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/default/css/redwood/oj-redwood-min.css" id="css" />
     <link rel="stylesheet" href="https://static.oracle.com/cdn/ode/rwdjet/2701.0.3-1/3rdparty/oraclejet-preact/amd/Theme-redwood/theme.css" id="css-theme" />
     <link rel="stylesheet" href="https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/iconfont/ojuxIconFont.min.css" />
-    <style>body { margin: 0; background: var(--oj-core-neutral-30, #f1efed); }</style>
+    <!-- a VB app's index: the body does not scroll — the root page's shell is expected to (with only
+         <mateu-ui shell="true"> on that page, the component has to) -->
+    <style>body { margin: 0; background: var(--oj-core-neutral-30, #f1efed); } .vb-web-applayout-body { overflow-y: hidden; }</style>
   </head>
-  <body class="oj-body">
+  <body class="oj-body vb-web-applayout-body">
     <oj-vb-content config="[[vbApplication]]"></oj-vb-content>
     <script>
       window.vbInitConfig = {

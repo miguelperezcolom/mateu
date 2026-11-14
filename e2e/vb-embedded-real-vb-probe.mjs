@@ -8,7 +8,9 @@
  * 3.0-beta.68 in a real VB app («$functions is not defined», an empty listing).
  *
  * Checks: the listing paints its rows (no binding error, no module that failed to load); a click on a
- * row opens the record inside the component; a base-url typed with a trailing space works.
+ * row opens the record inside the component; a base-url typed with a trailing space works; with
+ * shell="true" on a page holding only the component (VB's body does not scroll), a screen taller than
+ * the window scrolls inside the component, the header + menu band stay pinned and popups still open.
  *
  * Usage (component built with `npm run build:embedded`, served with `npm run serve:embedded` in
  * apps/redwood; the backend's CORS must allow the harness origin — museums.ec1.mateu.io allows any):
@@ -110,7 +112,8 @@ await ctx.close()
 
 // ── shell="true": the component draws the App shell — the mount's own header + menu ──────────
 {
-  const sctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+  // the owner's window: 705px of viewport, so the screen is taller than the window
+  const sctx = await browser.newContext({ viewport: { width: 1440, height: 705 } })
   const spage = await sctx.newPage()
   const serrors = []
   spage.on('pageerror', (e) => serrors.push(e.message))
@@ -153,6 +156,41 @@ await ctx.close()
   }))
   check(`shell="true": the menu navigates inside the component (${groupLabel} › ${optionLabel} → ${JSON.stringify(after.route)}, active: ${after.active})`,
     navigated && after.active === groupLabel)
+  // the component IS the page: VB's body does not scroll (.vb-web-applayout-body), so a screen taller
+  // than the window scrolls inside <mateu-ui>, and the header + menu band stay visible
+  const scrolled = await spage.evaluate(async () => {
+    const el = document.querySelector('mateu-ui')
+    const before = { scrollHeight: el.scrollHeight, clientHeight: el.clientHeight, height: Math.round(el.getBoundingClientRect().height), window: window.innerHeight }
+    el.scrollTop = el.scrollHeight
+    await new Promise((r) => setTimeout(r, 400))
+    const header = document.querySelector('mateu-ui .mateu-embedded-shell oj-sp-global-header').getBoundingClientRect()
+    const band = document.querySelector('mateu-ui .mateu-embedded-shell nav.mateu-subheader').getBoundingClientRect()
+    const atHeader = document.elementFromPoint(header.left + header.width / 2, header.top + header.height / 2)
+    return {
+      ...before,
+      scrollTop: Math.round(el.scrollTop),
+      bodyOverflow: getComputedStyle(document.body).overflowY,
+      headerTop: Math.round(header.top), bandTop: Math.round(band.top), bandBottom: Math.round(band.bottom),
+      headerOnTop: !!atHeader && !!atHeader.closest('.mateu-embedded-shell'),
+    }
+  })
+  console.log('scroll:', JSON.stringify(scrolled))
+  check(`shell="true": a page taller than the window scrolls inside the component (${scrolled.scrollHeight}px in ${scrolled.clientHeight}px, body overflow ${scrolled.bodyOverflow}, scrolled ${scrolled.scrollTop}px)`,
+    scrolled.bodyOverflow === 'hidden' && scrolled.scrollHeight > scrolled.clientHeight && scrolled.scrollTop > 0 && scrolled.height <= scrolled.window)
+  check(`shell="true": scrolled down, the header and the menu band stay at the top (header at ${scrolled.headerTop}px, band ${scrolled.bandTop}–${scrolled.bandBottom}px)`,
+    scrolled.headerTop >= 0 && scrolled.headerTop <= 2 && scrolled.bandBottom <= 160 && scrolled.headerOnTop)
+  if (shots) await spage.screenshot({ path: join(shots, 'vb2701-shell-scrolled.png') })
+  // scrolled, an overlay (the menu group's popup) still opens over the page, not clipped by the component
+  await group.click()
+  const popup = await spage.waitForFunction(() => {
+    const opt = [...document.querySelectorAll('oj-menu oj-option')].find((o) => o.getBoundingClientRect().height > 0)
+    if (!opt) return null
+    const r = opt.getBoundingClientRect()
+    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
+    return hit && opt.contains(hit) ? { top: Math.round(r.top), insideComponent: !!opt.closest('mateu-ui') } : null
+  }, null, { timeout: 10000 }).then((h) => h.jsonValue(), () => null)
+  check(`shell="true": scrolled, a popup (the menu group's) opens over the page (${JSON.stringify(popup)})`, !!popup)
+  await spage.keyboard.press('Escape')
   check('shell="true": no page errors', !serrors.length, serrors.slice(0, 3).join(' | '))
   if (shots) await spage.screenshot({ path: join(shots, 'vb2701-shell-navigated.png') })
   await sctx.close()
