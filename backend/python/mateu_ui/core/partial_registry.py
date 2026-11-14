@@ -60,9 +60,15 @@ class PartialRegistry:
             return _NONE
         if ref in self._registered:
             return self._registered[ref]
-        if ref not in self._by_ref:
-            self._by_ref[ref] = self._from_yaml(ref)
-        return self._by_ref[ref]
+        if ref in self._by_ref:
+            return self._by_ref[ref]
+        nodes = self._from_yaml(ref)
+        # a ref that names nothing is not remembered: refs reach here from request-supplied YAML
+        # (the live preview), and caching every one of them grew the table forever (GA review 2,
+        # Y2); a found partial is a file of the deployment, bounded by what ships
+        if nodes is not _NONE:
+            self._by_ref[ref] = nodes
+        return nodes
 
     @staticmethod
     def candidate_paths(ref: str) -> list[str]:
@@ -85,8 +91,21 @@ class PartialRegistry:
             return ref
         return next((c for c in self.candidate_paths(ref) if (self._dir / c).is_file()), ref)
 
+    def _contained(self, relative: str) -> bool:
+        """Whether ``relative`` names a file UNDER the specs directory — no ``..`` walking out of
+        it, no absolute path, no symlink pointing elsewhere (GA review 2, Y2: a previewed
+        ``ref: ../../x.yaml`` read any file the process could)."""
+        if not relative or "\\" in relative or any(seg == ".." for seg in relative.split("/")):
+            return False
+        try:
+            root = self._dir.resolve()
+            target = (self._dir / relative).resolve()
+        except (OSError, RuntimeError):
+            return False
+        return target != root and root in target.parents and target.is_file()
+
     def _from_yaml(self, ref: str) -> list[Any]:
-        relative = next((c for c in self.candidate_paths(ref) if (self._dir / c).is_file()), None)
+        relative = next((c for c in self.candidate_paths(ref) if self._contained(c)), None)
         if relative is None:
             return _NONE
         path = self._dir / relative

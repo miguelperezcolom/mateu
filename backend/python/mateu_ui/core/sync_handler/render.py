@@ -43,7 +43,9 @@ class RenderHandlerMixin(MixinBase):
         if len(yaml_text.encode("utf-8")) > MAX_YAML_BYTES:
             tree: fluent.Component = fluent.Text(text="The YAML is too large to preview", style="color: red;")
         else:
-            built, problem = parse_text_reporting(yaml_text, field_types=getattr(self, "field_types", None))
+            built, problem = parse_text_reporting(
+                yaml_text, field_types=getattr(self, "field_types", None), authorized=self.mapper.authorized
+            )
             # Say WHY: "invalid" alone sent the author hunting through the whole file.
             tree = built or fluent.Text(
                 text=f"Invalid YAML — {problem}" if problem else "Invalid or empty YAML", style="color: red;"

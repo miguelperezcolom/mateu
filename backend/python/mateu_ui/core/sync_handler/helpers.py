@@ -239,6 +239,9 @@ class ResponseHelpersMixin(MixinBase):
 
         state = without_locked(type(instance).__qualname__, state, self._locked_by_pieces(instance))
         for f in view_fields(type(instance)):
+            if f.name.startswith("_") and nested_forms.is_nested_form_type(f.type):
+                # a _private object (a service, a client) is never written from the wire (Y6)
+                continue
             # Mass-assignment guard: a field hidden (EyesOnly) or locked (ReadOnlyUnless) for this
             # caller is never written from the wire — it keeps its server-side value.
             if not action_guard.may_write(self.mapper, f, type(instance)):
