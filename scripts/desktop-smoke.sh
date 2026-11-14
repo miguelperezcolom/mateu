@@ -21,11 +21,9 @@ target="${2:?the packaged app}"
 out="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/mateu-smoke.out"
 here="$(cd "$(dirname "$0")" && pwd)"
 export MATEU_OPEN_LINK='mateu://add?u=https://smoke-test.mateu.invalid'
-# The 2026.3 base asks a fresh profile to accept JetBrains' user agreement in a MODAL dialog before any
-# plugin starts (seen on the beta.66 dry run: the event thread parked in AgreementUi). A user clicks it;
-# a CI runner cannot, so the smoke marks it accepted for THIS launch only — the JVM reads
-# JAVA_TOOL_OPTIONS itself, nothing in the (signed) bundle changes. The ide-starter does the same.
-export JAVA_TOOL_OPTIONS='-Djb.privacy.policy.text=<!--999.999--> -Djb.consents.confirmation.enabled=false'
+# The 2026.3 base's first-launch user agreement (a MODAL dialog — the event thread parks in AgreementUi)
+# is skipped by the APP itself: desktopVmOptions bakes -Djb.privacy.policy.text into the launcher's
+# vmoptions. The smoke sets nothing, so a build that lost that line hangs here instead of shipping.
 
 case "$platform" in
   macos)
