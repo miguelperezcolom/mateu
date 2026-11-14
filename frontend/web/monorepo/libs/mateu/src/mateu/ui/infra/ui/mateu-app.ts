@@ -22,7 +22,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import { publishShellMenu } from "@infra/ui/breadcrumbTrail.ts";
-import { activeSection, activeTopIndex, isActiveFor, isMount, mountRootPath, sectionHome } from "@infra/ui/navTree.ts";
+import { activeSection, activeTopIndex, isActiveFor, isMount, mountRootPath, sectionHome, selectionSourceFor, type SelectionSource } from "@infra/ui/navTree.ts";
 import { retryUnavailableMenus } from "@infra/ui/remoteMenuRetry.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
@@ -755,7 +755,17 @@ export class MateuApp extends ComponentElement {
         if (!this.selectedRoute) {
             return !!option.selected || (isMount(option) && isActiveFor(option, window.location.pathname))
         }
-        return isActiveFor(option, this.selectedRoute)
+        return isActiveFor(option, this.selectedRoute, this.selectionSource(this.selectedRoute))
+    }
+
+    /**
+     * Where the screen on display came from (navTree.SelectionSource), for the whole menu: two
+     * federated apps can both hold the selected route, and only the one the content was loaded from
+     * is the active one. Undefined when that base names no entry holding the route — route alone.
+     */
+    private selectionSource = (path: string): SelectionSource | undefined => {
+        const app = (this.component as ClientSideComponent | undefined)?.metadata as App | undefined
+        return selectionSourceFor(app?.navMenu ?? app?.menu, path, { base: this.selectedBaseUrl, shellBase: this.baseUrl })
     }
 
     mapItems = (options: MenuOption[], filter: string): MenuBarItem[] => {
@@ -836,7 +846,8 @@ export class MateuApp extends ComponentElement {
         }
         // The longest prefix wins, the home tab never does (it would match everything), and a
         // remote section counts by its prefix before its remote has answered (navTree).
-        const bestIdx = activeTopIndex(menu, norm(this.selectedRoute ?? window.location.pathname))
+        const path = norm(this.selectedRoute ?? window.location.pathname)
+        const bestIdx = activeTopIndex(menu, path, { base: this.selectedBaseUrl, shellBase: this.baseUrl })
         if (!Number.isNaN(bestIdx)) {
             return bestIdx
         }
@@ -855,8 +866,9 @@ export class MateuApp extends ComponentElement {
      */
     activeSectionOf = (menu: MenuOption[] | null | undefined): MenuOption | undefined => {
         if (!menu) return undefined
-        const byRoute = activeSection(menu, window.location.pathname)
-            ?? (this.selectedRoute ? activeSection(menu, this.selectedRoute) : undefined)
+        const from = { base: this.selectedBaseUrl, shellBase: this.baseUrl }
+        const byRoute = activeSection(menu, window.location.pathname, from)
+            ?? (this.selectedRoute ? activeSection(menu, this.selectedRoute, from) : undefined)
         if (byRoute) return byRoute
         const index = this.getSelectedIndex(menu)
         return Number.isNaN(index) ? undefined : menu[index]
@@ -979,7 +991,8 @@ export class MateuApp extends ComponentElement {
                 // still has its trail.
                 publishShellMenu(this, app.navMenu ?? app.menu, app.noBreadcrumbs, (option, route) =>
                     this.selectRoute(option.consumedRoute, route, option.actionId, option.baseUrl,
-                        option.serverSideType, option.uriPrefix))
+                        option.serverSideType, option.uriPrefix),
+                    () => ({ base: this.selectedBaseUrl, shellBase: this.baseUrl }))
                 // The app's REST source catalogue, published for the fetch layer: a surface carries
                 // only a source's name, so the lookup table has to be in place before it fetches.
                 setRestSourceCatalogue(app.restSources)

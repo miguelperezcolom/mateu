@@ -56,6 +56,22 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   request ends as cancelled, with no toast. The seeded screen's own route load is sent again at once,
   without the cached structure's ETag.
 
+### Fixed — federated shells
+
+- **A reloaded or pasted link to a remote screen renders when users sign in with a cookie.** To
+  resolve a deep link the shell asks its remotes for their menus, and it forwarded only the
+  `Authorization` header: a system signed in with a session or single-sign-on cookie (no header)
+  got 401 from every remote, none claimed the route and the page said "Page not found", while the
+  same screen opened fine from the menu. A RELATIVE remote (`new RemoteMenu("/_catalog")`, behind
+  the shell's own front door) now also receives the request's `Cookie` — the browser sends it there
+  itself; an absolute remote (another host) still gets `Authorization` only. The descriptor cache
+  is keyed by both.
+- **One section of the menu band is marked at a time.** Two remotes holding the same route (two
+  apps of one service, each with its own «Concerts» at `/concerts`) were both active, so the band
+  underlined both. The active entry, the active section, the breadcrumb trail and a crumb's target
+  are now told apart by where the screen came from (the remote's base url); when that cannot tell
+  (a fresh load, back/forward), the first one declared is — the one the server mounts.
+
 ## [3.0-beta.64] — 2026-11-13
 
 The offline send queue's known issues announced in beta.62 and beta.63 are fixed here, together with
