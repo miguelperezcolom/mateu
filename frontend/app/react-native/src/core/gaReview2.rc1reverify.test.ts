@@ -1,5 +1,5 @@
-// GA review 2 findings still open on 3.0-rc.1 (React Native) — pinned as `todo`: they report, they
-// do not fail the suite. Drop `todo` once fixed and the assertion holds.
+// GA review 2 findings on 3.0-rc.1 (React Native). B2 is fixed for rc.2; a finding still open is pinned
+// as `todo`: it reports, it does not fail the suite. Drop `todo` once fixed and the assertion holds.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -9,7 +9,7 @@ import { renderFailureTexts } from './renderFailure.ts';
 
 // Native B2: the overlay fallback's Close button is English only (RenderBoundary: closeLabel ?? 'Close',
 // SessionContent passes no label, renderFailure.ts has no `close` text).
-test('GA r2 native B2: the render-failure texts carry a Close label in the six languages', { todo: 'open on rc.1' }, () => {
+test('GA r2 native B2: the render-failure texts carry a Close label in the six languages', () => {
   for (const lang of CHROME_LANGUAGES) {
     const close = (renderFailureTexts(lang) as unknown as Record<string, unknown>)['close'];
     assert.ok(typeof close === 'string' && close.trim().length > 0, lang);
