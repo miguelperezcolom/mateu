@@ -7,6 +7,19 @@ import io.mateu.ijp.api.text
 object ScreenShapes {
     private val CRUD_ONLY = setOf("Crud")
 
+    /**
+     * Whether a root answer carries an app shell — a NAVIGATOR: an `App` anywhere in it that is not
+     * a crud's MEDIATOR. A crud mounted alone (`@UI("/customers") … extends AutoCrud`) answers a
+     * MEDIATOR App with no menu: that is the screen, not a shell. Counted as one, it stayed in the
+     * navigator panel instead of the editor tab a root with no shell opens in (MateuProjectService),
+     * so the MCP server found no view in front and summarised an empty screen.
+     */
+    fun hasAppShell(node: JsonNode): Boolean {
+        val meta = node.path("metadata")
+        if (meta.text("type") == "App" && meta.text("variant") != "MEDIATOR") return true
+        return node.any { it.isContainerNode && hasAppShell(it) }
+    }
+
     /** A bare mediator/app shell: an App, or a ServerSide whose only child is an App. */
     fun isMediatorShell(component: JsonNode): Boolean {
         if (component.path("metadata").text("type") == "App") return true

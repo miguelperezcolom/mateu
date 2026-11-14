@@ -210,9 +210,8 @@ class MateuFocusedModeActivity : ProjectActivity {
      * "Debug" up by id and asserts non-null (RunToolbarTopLevelExecutorActionGroup — an unregistered
      * id made it throw "getAction(...) must not be null" on every toolbar update).
      */
-    private fun disableBuildActions() {
+    internal fun disableBuildActions(am: ActionManager = ActionManager.getInstance()) {
         runCatching {
-            val am = ActionManager.getInstance()
             for (id in BUILD_ACTIONS) if (am.getAction(id) != null) runCatching { am.replaceAction(id, DisabledAction()) }
         }
     }
@@ -344,7 +343,10 @@ class MateuFocusedModeActivity : ProjectActivity {
         )
 
         /** Build and run actions a desktop app has no use for — a key press must not start a compile. */
-        private val BUILD_ACTIONS = listOf("CompileDirty", "CompileProject", "Compile", "MakeModule", "BuildArtifact", "Run", "Debug", "RunClass", "DebugClass")
+        internal val BUILD_ACTIONS = listOf("CompileDirty", "CompileProject", "Compile", "MakeModule", "BuildArtifact", "Run", "Debug", "RunClass", "DebugClass")
+
+        /** The run executors' action ids: looked up by id (and asserted) by the platform, so replaced, never unregistered. */
+        internal val EXECUTOR_ACTIONS = setOf("Run", "Debug")
 
         /** The new-UI header toolbar's groups ([pruneMainToolbar]). */
         private val MAIN_TOOLBAR_GROUPS = listOf("MainToolbarLeft", "MainToolbarCenter", "MainToolbarRight")
