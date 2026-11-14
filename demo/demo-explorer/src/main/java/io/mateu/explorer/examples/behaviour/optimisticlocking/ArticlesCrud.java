@@ -62,7 +62,10 @@ public class ArticlesCrud extends AutoCrud<ArticlesCrud.Article> {
 
       @Override
       public String save(Article article) {
-        ARTICLES.replaceAll(a -> a.id.equals(article.id) ? article : a);
+        // the store assigns the id of a NEW article (the create form does not ask for it)
+        if (article.id == null || article.id.isBlank()) article.id = "A-" + java.util.UUID.randomUUID().toString().substring(0, 8);
+        if (findById(article.id).isPresent()) ARTICLES.replaceAll(a -> a.id.equals(article.id) ? article : a);
+        else ARTICLES.add(article);
         return article.id;
       }
 

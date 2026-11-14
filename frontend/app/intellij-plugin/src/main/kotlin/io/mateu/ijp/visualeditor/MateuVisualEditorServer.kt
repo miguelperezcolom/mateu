@@ -161,6 +161,9 @@ object MateuVisualEditorServer {
             ex.responseHeaders.add("Set-Cookie", "$KEY_NAME=$secret; Path=/; HttpOnly; SameSite=Strict")
         }
         ex.responseHeaders.add("Content-Type", contentType(path))
+        // the editor's pages are framed only by the editor itself (the Redwood canvas in its iframe):
+        // another page cannot frame them and post to them (GA review 2, N-5)
+        if (path.endsWith(".html")) ex.responseHeaders.add("Content-Security-Policy", "frame-ancestors 'self'")
         ex.sendResponseHeaders(200, body.size.toLong())
         ex.responseBody.write(body)
     }
@@ -173,19 +176,27 @@ object MateuVisualEditorServer {
     internal fun injectHostBootstrap(indexHtml: ByteArray): ByteArray {
         // The IDE's theme, so the editor (chrome + Lumo canvas) follows a dark IDE. Read per page load.
         val theme = try { if (com.intellij.ui.JBColor.isBright()) "light" else "dark" } catch (_: Throwable) { "light" }
+        // The bundle carries the standalone (browser-hosted) editor's CSP, which allows no inline
+        // script — this bootstrap is one. It is replaced by the same policy plus a per-page NONCE for
+        // the bootstrap (GA review 2, N-13): with no policy at all, a definition's literal `on…`
+        // attribute in a project file ran in this page, which can post `writeFile` to the IDE. The
+        // IDE's own executeJavaScript is the embedder's, not the page's: no policy applies to it.
+        val nonce = java.util.Base64.getEncoder().encodeToString(ByteArray(18).also { java.security.SecureRandom().nextBytes(it) })
+        val policy = "<meta http-equiv=\"Content-Security-Policy\" " +
+            "content=\"script-src 'self' 'nonce-$nonce'; object-src 'none'; base-uri 'self'\" />"
         val bootstrap = """
-            <script>
+            <script nonce="$nonce">
               window.__mateuTheme = '$theme';
               window.__mateuBaseUrl = '';
               window.__mateuOutbox = [];
               window.__mateuHost = { postMessage: function (m) { window.__mateuOutbox.push(m); }, addEventListener: function () {} };
             </script>
         """.trimIndent()
-        // The bundle carries the standalone (browser-hosted) editor's CSP, which allows no inline
-        // script — this bootstrap is one. JCEF keeps its previous, host-controlled page (no policy).
-        val html = String(indexHtml, Charsets.UTF_8).replace(STANDALONE_CSP, "")
+        val raw = String(indexHtml, Charsets.UTF_8)
+        val html = if (STANDALONE_CSP.containsMatchIn(raw)) raw.replace(STANDALONE_CSP, Regex.escapeReplacement(policy)) else raw
+        val head = if (STANDALONE_CSP.containsMatchIn(raw)) bootstrap else "$policy\n$bootstrap"
         val marker = "<script type=\"module\""
-        val patched = if (html.contains(marker)) html.replaceFirst(marker, "$bootstrap\n    $marker") else bootstrap + html
+        val patched = if (html.contains(marker)) html.replaceFirst(marker, "$head\n    $marker") else head + html
         return patched.toByteArray(Charsets.UTF_8)
     }
 
