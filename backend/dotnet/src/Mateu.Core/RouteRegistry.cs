@@ -205,6 +205,64 @@ internal sealed class RouteRegistry : ISpecsCache
         return null;
     }
 
+    /// <summary>Whether <paramref name="route"/> (its path, before any query) has a <c>.</c> or
+    /// <c>..</c> segment — percent-encoded too — or a backslash: a spelling that names another file
+    /// than the route says (GA round 2, J1). No real route has one. (Mirrors Java's
+    /// YamlUidlLoader.hasUnsafeSegments.)</summary>
+    public static bool HasUnsafeSegments(string? route)
+    {
+        if (string.IsNullOrEmpty(route)) return false;
+        var q = route.IndexOf('?');
+        var path = q >= 0 ? route[..q] : route;
+        var decoded = path.Replace("%2e", ".", StringComparison.OrdinalIgnoreCase)
+            .Replace("%2f", "/", StringComparison.OrdinalIgnoreCase)
+            .Replace("%5c", "\\", StringComparison.OrdinalIgnoreCase);
+        if (decoded.Contains('\\') || decoded.Contains('\0')) return true;
+        return decoded.Split('/').Any(segment => segment is "." or "..");
+    }
+
+    /// <summary>The authored entry whose <c>access:</c> refuses <paramref name="path"/> when the path
+    /// is served BY CONVENTION (<c>&lt;path&gt;.yaml</c>, no authored entry answers it) and that file
+    /// is an authored entry's definition — its <c>layout:</c>, or the convention file of its own
+    /// route. Compared without regard to case (a case-insensitive file system serves
+    /// <c>Admin.yaml</c> for <c>admin.yaml</c>). A route's access holds for its definition, whatever
+    /// spelling reaches it (GA round 2, J1; mirrors Java's YamlUidlLoader.refusingByDefinition).</summary>
+    public RouteEntry? RefusingByDefinition(string? path, Func<Access?, bool> granted)
+    {
+        var table = Authored();
+        if (!table.Routes.Any(r => r.RestrictsAccess())) return null;
+        var normalized = Normalize(path);
+        if (normalized.Length == 0 || table.Match(normalized) is not null) return null;
+        var served = CanonicalFile(normalized + ".yaml");
+        foreach (var entry in table.Routes)
+        {
+            var file = DefinitionFileOf(entry);
+            if (file is null || CanonicalFile(file) != served) continue;
+            if (entry.Access is { } access && !granted(access)) return entry;
+            if (entry.HasParent() && RefusingEntry(entry.Parent, granted) is { } parent) return parent;
+        }
+        return null;
+    }
+
+    private static string? DefinitionFileOf(RouteEntry entry)
+    {
+        if (!string.IsNullOrWhiteSpace(entry.Definition)) return entry.Definition.Trim();
+        var route = Normalize(entry.Route);
+        return route.Length == 0 || route.Contains(':') ? null : route + ".yaml";
+    }
+
+    private static string CanonicalFile(string file)
+    {
+        var parts = new List<string>();
+        foreach (var segment in file.Replace('\\', '/').Split('/'))
+        {
+            if (segment.Length == 0 || segment == ".") continue;
+            if (segment == "..") { if (parts.Count > 0) parts.RemoveAt(parts.Count - 1); }
+            else parts.Add(segment);
+        }
+        return string.Join('/', parts).ToLowerInvariant();
+    }
+
     /// <summary>The authored entry answering <paramref name="path"/> preceded by its <c>Parent</c>
     /// ancestors, outermost first; empty when the table does not know the path. Past a CHILD route
     /// the path is that child's own business (a crud's record, its <c>/new</c>): the leaf is then the

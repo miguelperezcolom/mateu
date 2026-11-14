@@ -73,13 +73,38 @@ export const withoutRemoteImages = (html: string): string => {
     if (typeof document === 'undefined') return html
     const template = document.createElement('template')
     template.innerHTML = html
+    // not only <img> (GA review 2, N-6): media elements, <picture> sources, an SVG <image>/<use>/
+    // <feImage>, the `background`/`poster`/`srcset` attributes and a `url(…)` in an inline style all
+    // fetch with no click. The media go; a <picture> keeps its <img> (judged like any other).
+    for (const el of Array.from(template.content.querySelectorAll('*'))) {
+        const tag = el.localName.toLowerCase()
+        if (REMOTE_MEDIA_TAGS.has(tag)) { el.remove(); continue }
+        if (tag === 'picture') { el.replaceWith(...Array.from(el.childNodes)); continue }
+        if (SVG_FETCHING_TAGS.has(tag) && el.namespaceURI === SVG_NS) {
+            const href = (el.getAttribute('href') ?? el.getAttribute('xlink:href') ?? '').trim()
+            if (!/^(data:|#)/i.test(href) || !href) { el.remove(); continue }
+        }
+        for (const attr of Array.from(el.attributes)) {
+            const name = attr.name.toLowerCase()
+            if (FETCHING_ATTRIBUTES.has(name)) el.removeAttribute(attr.name)
+            else if (name === 'style' && /url\s*\(|image-set|@import|\\/i.test(attr.value)) el.removeAttribute(attr.name)
+        }
+    }
     template.content.querySelectorAll('img').forEach((img) => {
         const src = (img.getAttribute('src') ?? '').trim()
-        if (/^data:/i.test(src) && !img.hasAttribute('srcset')) return
+        if (/^data:/i.test(src)) return
         img.replaceWith(document.createTextNode(img.getAttribute('alt') ?? ''))
     })
     return template.innerHTML
 }
+
+const SVG_NS = 'http://www.w3.org/2000/svg'
+/** Elements that fetch what they name and that a chat answer never needs. */
+const REMOTE_MEDIA_TAGS = new Set(['video', 'audio', 'source', 'track', 'embed', 'object', 'iframe', 'frame', 'link', 'meta', 'base'])
+/** SVG elements that fetch their `href` (a `data:` one or a local `#id` fetches nothing). */
+const SVG_FETCHING_TAGS = new Set(['image', 'use', 'feimage', 'script'])
+/** Attributes that make an element fetch (`srcset` included: it is dropped, so an img's own `src` decides). */
+const FETCHING_ATTRIBUTES = new Set(['background', 'poster', 'srcset', 'lowsrc', 'dynsrc', 'longdesc', 'ping'])
 
 if (typeof customElements !== 'undefined' && !customElements.get('mateu-markdown')) {
     customElements.define('mateu-markdown', MateuMarkdown)

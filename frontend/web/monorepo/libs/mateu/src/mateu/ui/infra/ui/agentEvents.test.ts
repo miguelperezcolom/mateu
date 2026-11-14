@@ -10,14 +10,17 @@ vi.mock('./builtInRenderTarget', () => ({
     },
 }))
 const navigated: string[] = []
-vi.mock('./rowRoute', () => ({ navigateToRoute: (_from: unknown, route: string) => { navigated.push(route) } }))
+vi.mock('./rowRoute', () => ({
+    navigateToRoute: (_from: unknown, route: string) => { navigated.push(route) },
+    leaveToRoute: (_from: unknown, route: string) => { navigated.push(route); return true },
+}))
 
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { applyAgentEvent, navigatingShellOf, trustedNavigationOf } from './agentEvents'
 import { claimEvent } from './chatEvents'
 import { declareAgentEvent } from './agentEventPolicy'
-import { resetCredentialScope, trustDeclaredRemotes } from '@infra/http/credentialScope.ts'
+import { resetCredentialScope, trustDeclaredRemotes, trustRootBaseUrl } from '@infra/http/credentialScope.ts'
 
 /**
  * The ONE place an agent event is applied — the chat's stream and the live UI push channel both
@@ -169,4 +172,22 @@ describe('S7: an agent navigation carries where to go, nothing that runs', () =>
         expect(delivered).toEqual([{ route: '/x' }])
         expect(heard).toEqual([{ route: '/x' }])
     })
+})
+
+describe('B1: an agent navigation keeps a base url only for an origin the UI trusts (shared corpus)', () => {
+    const corpus = JSON.parse(readFileSync(
+        resolve(process.cwd(), '../../../../../conformance/client/agent-events.json'), 'utf8',
+    )) as { trustedNavigations: { name: string, shell: string, declared: string[], detail: unknown, expected: unknown }[] }
+
+    afterEach(() => resetCredentialScope())
+
+    it('has cases', () => expect(corpus.trustedNavigations.length).toBeGreaterThanOrEqual(5))
+    for (const c of corpus.trustedNavigations) {
+        it(c.name, () => {
+            resetCredentialScope()
+            trustRootBaseUrl(c.shell)
+            trustDeclaredRemotes(c.shell, c.declared)
+            expect(trustedNavigationOf(c.detail)).toEqual(c.expected)
+        })
+    }
 })

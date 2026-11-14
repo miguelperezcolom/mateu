@@ -45,3 +45,27 @@ test('S7: a pushed navigation carrying rules and an actionId opens the place and
   // whatever built the navigation, the session never hands an action id on
   assert.equal(trustedNavigationOf(session, { route: '/x', consumedRoute: '', actionId: 'wipe' }).actionId, '');
 });
+
+// B1 (GA review 2): the `trustedNavigations` cases — a base url survives only for an origin the
+// session trusts with the credentials (its backend, a remote its menu names); the desktop, the web
+// and Redwood run the same cases.
+const trusted = JSON.parse(readFileSync(
+  fileURLToPath(new URL('../../../../../conformance/client/agent-events.json', import.meta.url)), 'utf8',
+)) as { trustedNavigations: { name: string; shell: string; declared: string[]; detail: unknown; expected: Record<string, string> }[] };
+
+test('B1: the corpus has trusted-navigation cases', () => assert.ok(trusted.trustedNavigations.length >= 5));
+
+for (const c of trusted.trustedNavigations) {
+  test(`B1 corpus: ${c.name}`, () => {
+    const session = new MateuSession(c.shell, 'sid', {}, null);
+    session.credentials.declare(c.shell, c.declared);
+    const fields = agentNavigationFieldsOf(c.detail) as ChatNavigation;
+    const place = trustedNavigationOf(session, { ...fields, consumedRoute: fields.consumedRoute ?? '' });
+    const { actionId: _a, consumedRoute: _c, ...rest } = place;
+    assert.deepEqual(rest, c.expected);
+    // navigating never makes an origin trusted
+    if (!('baseUrl' in c.expected)) {
+      assert.equal(session.credentials.mayCarryCredentials((c.detail as { baseUrl: string }).baseUrl), false);
+    }
+  });
+}
