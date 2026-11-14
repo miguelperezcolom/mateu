@@ -4,7 +4,7 @@ import { parseSpec } from './model/specYaml'
 import {
     PageDoc, NodePath, PageNode, PageTrigger, TRIGGER_TYPES, SaveShape, parsePage, serializePage, saveShape, hydrate, nodeAt,
     insertAfter, insertChild, insertAt, isContainer, removeAt, reorder, moveNode, updateProp, childAt, splitSeg, withIndex,
-    listOf, insertIntoSlot,
+    listOf, insertIntoSlot, awaitsItsContract,
 } from './model/pageModel'
 import { UnparseableYamlError, writePreservingReport } from './model/yamlPreserve'
 import { EditHistory } from './model/history'
@@ -996,13 +996,16 @@ export class MateuVisualEditor extends LitElement {
         const doc = parsePage(yaml)
         this.doc = doc
         this.refreshContract()
-        if (!doc.modelView) return
-        const fixture = contractFixtureFor(this.previewSource, doc.modelView)
-        if (fixture) { this.doc = hydrate(doc, fixture.fields ?? []); return }
-        fetchInferredFields(this.previewSource.baseUrl, doc.modelView, this).then((fields) => {
+        // a delta bound only through routes.yaml hydrates against the route's view model too (N-3)
+        const vm = doc.modelView ?? (doc.delta ? this.boundViewModel() : undefined)
+        if (!vm) return
+        const bound = doc.modelView ? undefined : vm
+        const fixture = contractFixtureFor(this.previewSource, vm)
+        if (fixture) { this.doc = hydrate(doc, fixture.fields ?? [], bound); return }
+        fetchInferredFields(this.previewSource.baseUrl, vm, this).then((fields) => {
             // Ignore a late response for a document that has since been replaced.
             if (!fields || this.doc !== doc) return
-            this.doc = hydrate(doc, fields)
+            this.doc = hydrate(doc, fields, bound)
         })
     }
 
@@ -1231,6 +1234,13 @@ export class MateuVisualEditor extends LitElement {
 
     /** True (and a notice) while the open file does not load: no edit may be written over it. */
     private refusedWhileInvalid(): boolean {
+        if (this.mode === 'page' && awaitsItsContract(this.doc)) {
+            // the edit is undone on the canvas too: the file keeps its delta as it is (N-3)
+            this.doc = parsePage(this.lastText)
+            this.notice = 'This page follows its view model (layoutDelta): its fields come from the running app, '
+                + 'so it can be edited once they arrive. Start the app (or check its address) and reopen the file.'
+            return true
+        }
         if (!this.parseError) return false
         this.notice = 'The file does not load, so edits are not applied — fix its YAML first.'
         return true
