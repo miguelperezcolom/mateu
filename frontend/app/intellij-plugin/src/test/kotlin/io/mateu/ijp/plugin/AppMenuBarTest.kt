@@ -27,4 +27,21 @@ class AppMenuBarTest : BasePlatformTestCase() {
             assertFalse(ide, ide in ids)
         }
     }
+
+    fun `test a disabled build action keeps its id resolvable - the run widget asserts it is there`() {
+        val am = ActionManager.getInstance()
+        val original = am.getAction("Run") ?: return // not registered on this platform build
+        try {
+            am.replaceAction("Run", MateuFocusedModeActivity.DisabledAction())
+            assertNotNull("the run widget looks Run up by id and asserts non-null", am.getAction("Run"))
+            val presentation = com.intellij.openapi.actionSystem.Presentation()
+            val event = com.intellij.openapi.actionSystem.AnActionEvent.createEvent(
+                com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT, presentation, "test",
+                com.intellij.openapi.actionSystem.ActionUiKind.NONE, null)
+            am.getAction("Run").update(event)
+            assertFalse(presentation.isEnabledAndVisible)
+        } finally {
+            am.replaceAction("Run", original)
+        }
+    }
 }

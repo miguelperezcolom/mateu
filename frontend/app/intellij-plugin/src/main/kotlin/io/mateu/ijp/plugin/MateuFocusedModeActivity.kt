@@ -204,12 +204,26 @@ class MateuFocusedModeActivity : ProjectActivity {
         }
     }
 
-    /** The IDE's build/run actions go away (their shortcuts with them): nothing to compile here. */
+    /**
+     * The IDE's build/run actions do nothing (their shortcuts with them): nothing to compile here.
+     * REPLACED by a disabled action, never unregistered: the platform's run widget looks "Run" and
+     * "Debug" up by id and asserts non-null (RunToolbarTopLevelExecutorActionGroup — an unregistered
+     * id made it throw "getAction(...) must not be null" on every toolbar update).
+     */
     private fun disableBuildActions() {
         runCatching {
             val am = ActionManager.getInstance()
-            for (id in BUILD_ACTIONS) if (am.getAction(id) != null) runCatching { am.unregisterAction(id) }
+            for (id in BUILD_ACTIONS) if (am.getAction(id) != null) runCatching { am.replaceAction(id, DisabledAction()) }
         }
+    }
+
+    /** What a build/run action becomes in the desktop app: present for whoever looks it up, never enabled. */
+    internal class DisabledAction : com.intellij.openapi.actionSystem.AnAction() {
+        override fun getActionUpdateThread() = com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
+        override fun update(e: com.intellij.openapi.actionSystem.AnActionEvent) {
+            e.presentation.isEnabledAndVisible = false
+        }
+        override fun actionPerformed(e: com.intellij.openapi.actionSystem.AnActionEvent) = Unit
     }
 
     /**
