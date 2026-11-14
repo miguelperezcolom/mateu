@@ -15394,8 +15394,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           || { value: key, count: rows.filter((r) => keyOf(r) === key).length, aggregates: {} }
         const groupRow = { _rowNumber: '__mateuGroup:' + i + ':' + key, _group: true, _tone: 'group' }
         for (const c of cols) {
-          groupRow[c.id] = c.id === labelCol ? g.value + ' (' + g.count + ')'
+          // a date / date-time group reads like its cells (the UI's locale), not as the raw ISO value
+          const value = typeof g.value === 'string' && /^(date|dateTime|time)$/.test(c.dataType || '')
+            ? temporalText(g.value, c.dataType) : g.value
+          groupRow[c.id] = c.id === labelCol ? value + ' (' + g.count + ')'
             : c.aggregate ? formatAggregate((g.aggregates || {})[c.id], c) : ''
+          // a column that paints its LABEL cell (a date, an amount, an enum — listing.mjs
+          // labelCellRows) reads <id>__labelCell: without it the group row was blank there (the
+          // audit History dialog grouped by its `when`, Explorer N5)
+          groupRow[c.id + '__labelCell'] = groupRow[c.id]
         }
         out.push(groupRow)
         last = key
