@@ -71,6 +71,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   expander and Java alike): it dispatches nothing, where it used to send an id made from its label
   that no handler claimed. The Java fluent `Button` keeps its label→id convention.
 
+### Fixed — npm publishing
+
+- **`mateu-vaadin` was never published at a 3.0 version.** The release workflow built and packed it
+  at every release since 3.0-beta.58 but skipped the publish for lack of an `NPM_TOKEN` secret,
+  behind a notice: the registry still ends at `0.0.15`. The publish job now also takes npm trusted
+  publishing (repository variable `NPM_TRUSTED_PUBLISHING=true`, preferred), says a skipped publish
+  as a warning, and checks that the version is on npm after publishing. The docs no longer promise
+  the npm package until a 3.0 version is there (`embedded-ui.md`). The client library `mateu`
+  (libs/mateu) is not an npm package: it is bundled inside `mateu-vaadin`.
+
 ### Fixed — React Native
 
 - **The overlay fallback's "Close" speaks the UI's language** (`renderFailure.ts` gained `close` in
