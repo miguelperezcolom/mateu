@@ -6,7 +6,10 @@ vi.mock('./builtInRenderTarget', () => ({
     renderScreenInShell: (_origin: unknown, request: unknown) => { rendered.push(request); return Promise.resolve() },
 }))
 const navigated: string[] = []
-vi.mock('./rowRoute', () => ({ navigateToRoute: (_from: unknown, route: string) => { navigated.push(route) } }))
+vi.mock('./rowRoute', () => ({
+    navigateToRoute: (_from: unknown, route: string) => { navigated.push(route) },
+    leaveToRoute: (_from: unknown, route: string) => { navigated.push(route); return true },
+}))
 
 import './mateu-chat'
 import type { MateuChat } from './mateu-chat'
