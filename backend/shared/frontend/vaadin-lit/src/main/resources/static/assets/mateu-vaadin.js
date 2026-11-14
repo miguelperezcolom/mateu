@@ -1,5 +1,5 @@
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./vendor-ol.js","./rolldown-runtime.js","./marked.esm.js","./vendor.js","./mateu-chat.js","./vendor-lit.js","./rowRoute.js","./chromeTexts.js","./authToken.js","./dirtyGuard.js","./safeNavigate.js","./neutralChrome.js","./mateu-workflow.js","./mateu-form-editor.js","./mateu-planning-board.js","./mateu-gantt.js","./mateu-matrix-grid.js","./mateu-signature-pad.js","./mateu-camera-capture.js","./mateu-task-center.js","./announcer.js","./reattach.js","./vendor-chartjs.js","./vendor-diagrams.js","./signInFlow.js","./vendor-vaadin.js","./mateu-sign-out-corner.js","./mateu-agent-connect-dialog.js","./mateu-mobile-qr-dialog.js","./vendor-editor.js","./vcf-date-range-picker.js"])))=>i.map(i=>d[i]);
-/* mateu sources 59f0a36a22bd8703 */
+/* mateu sources 376e6d5c2fc4a6c0 */
 import{t as e}from"./rolldown-runtime.js";import{B as t,C as n,O as r,R as i,S as a,T as o,V as s,_ as c,b as l,g as u,h as d,m as f,v as p,y as m}from"./vendor-vaadin.js";import{C as h,E as g,S as _,T as v,_ as y,a as b,f as ee,g as te,h as ne,i as x,j as re,k as S,l as ie,n as ae,o as C,p as w,r as T,s as oe,t as se,v as ce,x as E}from"./vendor-lit.js";import{$ as le,A as ue,B as de,C as fe,Ct as pe,D as me,Dt as he,E as ge,Et as _e,F as ve,G as ye,H as be,I as xe,J as Se,K as Ce,L as we,M as Te,N as Ee,O as De,P as Oe,Q as ke,R as Ae,S as je,St as Me,T as Ne,Tt as Pe,U as Fe,V as Ie,W as Le,X as Re,Y as ze,Z as Be,_ as Ve,_t as He,a as Ue,at as We,b as Ge,bt as Ke,c as qe,ct as Je,d as Ye,dt as Xe,et as Ze,f as Qe,ft as $e,g as et,gt as tt,h as nt,ht as rt,i as it,it as at,j as ot,k as st,l as ct,lt,m as ut,mt as dt,n as ft,nt as pt,o as mt,ot as ht,p as D,pt as gt,q as _t,r as vt,rt as yt,s as bt,st as xt,t as St,tt as Ct,u as wt,ut as Tt,v as Et,vt as Dt,w as Ot,wt as O,x as kt,xt as At,y as jt,yt as Mt,z as Nt}from"./rowRoute.js";import{i as k,n as Pt,r as A,t as Ft}from"./chromeTexts.js";import{i as j,n as It,o as Lt}from"./vendor.js";import{_ as Rt,a as zt,d as Bt,f as Vt,g as M,h as Ht,l as Ut,m as Wt,o as Gt,p as Kt,r as qt,s as Jt,t as Yt,u as Xt}from"./authToken.js";import{n as Zt,t as Qt}from"./announcer.js";import{i as $t,n as en,r as tn,t as N}from"./dirtyGuard.js";import{a as nn,i as rn,n as P,o as an,r as on,t as sn}from"./safeNavigate.js";(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),t.credentials=e.crossOrigin===`use-credentials`?`include`:e.crossOrigin===`anonymous`?`omit`:`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})();var cn=window.Vaadin=window.Vaadin||{},ln=cn.suppressPostFinalizeStylesWarning;cn.suppressPostFinalizeStylesWarning=!0;try{i(`vaadin-card`,S`
         :host(.mateu-section) {
           --vaadin-card-border-width: 0 !important;
@@ -8435,10 +8435,10 @@ ${t}
             color: var(--lumo-primary-text-color, #1a5fb4);
             font-weight: 600; line-height: 1;
         }
-        .initials.sm { font-size: 0.8rem; }
-        .initials.lg { font-size: 1rem; }
+        .initials.sm { font-size: var(--lumo-font-size-xs, 0.8rem); }
+        .initials.lg { font-size: var(--lumo-font-size-m, 1rem); }
         .menu {
-            position: absolute; top: calc(100% + 4px); right: 0; min-width: 15rem; max-width: 20rem;
+            position: absolute; top: calc(100% + var(--lumo-space-xs, 4px)); right: 0; min-width: 15rem; max-width: 20rem;
             background: var(--lumo-base-color, #fff);
             color: var(--lumo-body-text-color, #1f2a37);
             border: 1px solid var(--lumo-contrast-20pct, rgba(0, 0, 0, 0.15));

@@ -129,10 +129,10 @@ export class MateuUserMenu extends LitElement {
             color: var(--lumo-primary-text-color, #1a5fb4);
             font-weight: 600; line-height: 1;
         }
-        .initials.sm { font-size: 0.8rem; }
-        .initials.lg { font-size: 1rem; }
+        .initials.sm { font-size: var(--lumo-font-size-xs, 0.8rem); }
+        .initials.lg { font-size: var(--lumo-font-size-m, 1rem); }
         .menu {
-            position: absolute; top: calc(100% + 4px); right: 0; min-width: 15rem; max-width: 20rem;
+            position: absolute; top: calc(100% + var(--lumo-space-xs, 4px)); right: 0; min-width: 15rem; max-width: 20rem;
             background: var(--lumo-base-color, #fff);
             color: var(--lumo-body-text-color, #1f2a37);
             border: 1px solid var(--lumo-contrast-20pct, rgba(0, 0, 0, 0.15));
