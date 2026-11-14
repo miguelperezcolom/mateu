@@ -6,6 +6,12 @@ services:
     command: start-dev --import-realm --http-port=8180
     ports:
       - "8180:8180"
+    # Google as an identity provider of the realm ("Sign in with Google" on Keycloak's page): its
+    # Web client id and secret come from ../secrets.properties (git-ignored); without them the
+    # button is there but Google refuses it.
+    env_file:
+      - path: ../secrets.properties
+        required: false
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin

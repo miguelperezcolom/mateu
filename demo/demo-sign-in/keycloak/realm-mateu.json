@@ -11,7 +11,8 @@
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
       "redirectUris": [
-        "http://localhost:8081/*"
+        "http://localhost:8081/*",
+        "http://127.0.0.1/*"
       ],
       "webOrigins": [
         "http://localhost:8081"
@@ -48,6 +49,21 @@
         "staff",
         "default-roles-mateu"
       ]
+    }
+  ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "providerId": "google",
+      "enabled": true,
+      "trustEmail": true,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${GOOGLE_CLIENT_ID:}",
+        "clientSecret": "${GOOGLE_CLIENT_SECRET:}",
+        "syncMode": "IMPORT",
+        "defaultScope": "openid profile email"
+      }
     }
   ]
 }
