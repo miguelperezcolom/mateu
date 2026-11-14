@@ -1014,16 +1014,24 @@ def test_no_more_than_four_requests_wait_for_one_session():
 
 def test_the_tab_answers_over_the_real_endpoints_while_the_tool_call_waits(monkeypatch):
     """The MCP call waits in the threadpool, never on the event loop: the tab's _agent-screen
-    answer, another request on the same server, gets through while it waits."""
+    answer, another request on the same server, gets through while it waits.
+
+    The tab learns the request id from the registry rather than from the stream it reads: the
+    TestClient of Starlette < 0.37 (the lowest FastAPI this package supports) BUFFERS a response
+    until it ends, so a tab answering what it READ would only answer once its channel had closed
+    (and the waiting call had failed with "not connected"). The stream is still checked to carry
+    the query."""
+    import time
+
     from fastapi.testclient import TestClient
 
     api, handler = _api(monkeypatch, mcp=True, mcp_push=True, identity_provider=None)
     client = TestClient(api)
     result: dict = {}
+    answered = threading.Event()
+    screen = {"route": "/home", "focus": "page", "fields": [], "actions": []}
 
     def ask_when_registered():
-        import time
-
         _bind_when_registered(client, "tab-9")
         for _ in range(200):
             listed = _rpc(client, "mateu_list_sessions", {}, key=CHAT_KEY)
@@ -1034,8 +1042,25 @@ def test_the_tab_answers_over_the_real_endpoints_while_the_tool_call_waits(monke
                 return
             time.sleep(0.01)
 
+    def answer_when_asked():
+        for _ in range(500):
+            session = handler.agent_push._sessions.get("tab-9")
+            waiting = list(session.pending) if session is not None else []
+            if waiting:
+                rs = client.post("/mateu/v3/sync/_empty", json={
+                    "actionId": "_agent-screen",
+                    "parameters": {"sessionId": "tab-9", "secret": "s", "requestId": waiting[0], "screen": screen}},
+                    headers={"x-test-user": "alice"})
+                result["answer_status"] = rs.status_code
+                answered.set()
+                return
+            time.sleep(0.005)
+
     asker = threading.Thread(target=ask_when_registered)
+    answerer = threading.Thread(target=answer_when_asked)
     asker.start()
+    answerer.start()
+    queries: list = []
     with client.stream(
         "POST", "/mateu/v3/sse/_empty",
         json={"actionId": "_agent-channel", "route": "", "componentState": {},
@@ -1046,19 +1071,16 @@ def test_the_tab_answers_over_the_real_endpoints_while_the_tool_call_waits(monke
             if not line.startswith("data:"):
                 continue
             inc = json.loads(line[len("data:"):])
-            queries = [c["data"] for c in inc["commands"] if c["type"] == "AgentPush" and c["data"]["kind"] == "query"]
+            queries += [c["data"] for c in inc["commands"] if c["type"] == "AgentPush" and c["data"]["kind"] == "query"]
             if queries:
-                answered = client.post("/mateu/v3/sync/_empty", json={
-                    "actionId": "_agent-screen",
-                    "parameters": {"sessionId": "tab-9", "secret": "s",
-                                   "requestId": queries[0]["detail"]["requestId"],
-                                   "screen": {"route": "/home", "focus": "page", "fields": [], "actions": []}}},
-                    headers={"x-test-user": "alice"})
-                assert answered.status_code == 200
+                # keep the channel open until the tab has answered
+                assert answered.wait(5)
                 break
     asker.join(5)
-    assert result["screen"] == {"session": result["handle"],
-                                "screen": {"route": "/home", "focus": "page", "fields": [], "actions": []}}
+    answerer.join(5)
+    assert queries, "the tab's channel never carried the query"
+    assert result["answer_status"] == 200
+    assert result["screen"] == {"session": result["handle"], "screen": screen}
 
 
 # ── Only a caller the session is bound to reaches it ───────────────────────────────────────
