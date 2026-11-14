@@ -62,6 +62,7 @@ A `fixed` build without a base URL or registry coordinates fails. Passing either
 | `-Pmateu.baseUrl`, `-Pmateu.registryUrl` + `-Pmateu.appId` | The UI a `fixed` app is bound to |
 | `-Pmateu.updateUrl` | The update feed (below); empty or `none` = no updates |
 | `-Pmateu.bundleId` | macOS bundle identifier (default `io.mateu.desktop`, or `io.mateu.desktop.<name>`) |
+| `-Pmateu.icon.macos`, `-Pmateu.icon.windows`, `-Pmateu.icon.linux` | Your icons: `.icns`, `.ico`, a square `.png` (default Mateu's) — see [your own native app](/native/white-label/) |
 | `-Pinstaller.ideVersion` | Another IntelliJ IDEA Open Source release to build on (default `2026.3`); its SHA-256 is read from that release |
 | `-Pinstaller.ideArchive` | A local IntelliJ archive (`.dmg`, `.tar.gz` or `.win.zip`) instead of downloading it |
 
@@ -347,6 +348,9 @@ A product of your own is a `fixed` build with your name, and usually your own fe
 - Leave `mateu.updateUrl` unset and the app follows **Mateu's** releases; for a product you ship on
   your own schedule, publish your own feed (built with `desktopUpdateFeed`) or pass `none`.
 - A `fixed` app does not register `mateu://`: links meant for the hub keep opening the hub.
+
+Your icons, signing and a GitHub workflow that builds all of it from **your** repository, with no
+fork and no clone: [your own native app, without forking Mateu](/native/white-label/).
 
 ## Releases
 

@@ -8,6 +8,8 @@
 #
 #   scripts/desktop-smoke.sh macos <path to Mateu.app>
 #   scripts/desktop-smoke.sh linux <unpacked linux bundle dir>   (run it under Xvfb: no display on CI)
+# A white-label `fixed` app (desktop-white-label.yml) has no hub and claims no links: with
+# MATEU_SMOKE_VARIANT=fixed it passes on the plugin's self-check and no Mateu error instead.
 # (Windows: the smoke-windows job of desktop.yml does the same in PowerShell, with the same log check.)
 #
 # The link is handed over through MATEU_OPEN_LINK (MateuProjectService): the hub handles it like one the
@@ -20,7 +22,15 @@ platform="${1:?macos|linux}"
 target="${2:?the packaged app}"
 out="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/mateu-smoke.out"
 here="$(cd "$(dirname "$0")" && pwd)"
-export MATEU_OPEN_LINK='mateu://add?u=https://smoke-test.mateu.invalid'
+variant="${MATEU_SMOKE_VARIANT:-hub}"
+if [[ "$variant" = hub ]]; then
+  export MATEU_OPEN_LINK='mateu://add?u=https://smoke-test.mateu.invalid'
+  ready='Mateu hub: a link asks to add'
+  checks=(--hub --link)
+else
+  ready='Mateu self-check: OK'
+  checks=()
+fi
 # The 2026.3 base's first-launch user agreement (a MODAL dialog — the event thread parks in AgreementUi)
 # is skipped by the APP itself: desktopVmOptions bakes -Djb.privacy.policy.text into the launcher's
 # vmoptions. The smoke sets nothing, so a build that lost that line hangs here instead of shipping.
@@ -60,7 +70,7 @@ launch_failed=0
 for _ in $(seq 1 48); do
   sleep 5
   # done: the link reached the hub (the last step), or Mateu already failed in a way the check reports
-  grep -Eq 'Mateu hub: a link asks to add|Mateu self-check FAILED|Plugin to blame: Mateu' "$log" 2> /dev/null && break
+  grep -Eq "$ready|Mateu self-check FAILED|Plugin to blame: Mateu" "$log" 2> /dev/null && break
   if grep -Eq "$LAUNCH_FAILURE" "$out" 2> /dev/null; then launch_failed=1; break; fi
   # macOS: $pid IS the IDE (the wrapper execs the native launcher, which runs the JVM in-process)
   if [[ "$platform" = macos ]] && ! kill -0 "$pid" 2> /dev/null; then launch_failed=1; break; fi
@@ -74,7 +84,7 @@ if [[ "$platform" = macos ]]; then
 fi
 # Linux: when Mateu never got as far as the hub link, say WHERE the app stands before it is killed —
 # a modal dialog (an agreement, an import prompt) leaves idea.log silent, and only the event thread tells.
-if ! grep -q 'Mateu hub: a link asks to add' "$log" 2> /dev/null; then
+if ! grep -q "$ready" "$log" 2> /dev/null; then
   if [[ "$platform" = macos ]]; then jcmd="$target/Contents/jbr/Contents/Home/bin/jcmd"; procs=$pid
   else jcmd="$target/jbr/bin/jcmd"; procs=$(pgrep -f "$target/jbr" 2> /dev/null); fi
   for p in $procs; do
@@ -92,8 +102,9 @@ done
 
 echo "--- idea.log (selected)"
 grep -E 'IDE: |Loaded custom plugins|Mateu self-check|Mateu hub|io\.mateu|ERROR|SEVERE' "$log" 2> /dev/null | head -60 || true
-if [[ "$launch_failed" = 0 ]] && node "$here/desktop-log-check.mjs" "$log" --hub --link; then
-  msg="✅ $platform: $(grep -m1 -o 'IDE: .*' "$log") — Mateu loaded, hub up, link handled, no Mateu error ($target)"
+if [[ "$launch_failed" = 0 ]] && node "$here/desktop-log-check.mjs" "$log" ${checks[@]+"${checks[@]}"}; then
+  if [[ "$variant" = hub ]]; then what='hub up, link handled'; else what='self-check passed'; fi
+  msg="✅ $platform: $(grep -m1 -o 'IDE: .*' "$log") — Mateu loaded, $what, no Mateu error ($target)"
   echo "$msg"
   [[ -n "${GITHUB_STEP_SUMMARY:-}" ]] && echo "$msg" >> "$GITHUB_STEP_SUMMARY"
   exit 0

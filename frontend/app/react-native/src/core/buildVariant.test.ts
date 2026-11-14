@@ -89,3 +89,34 @@ test('the boot mode: a developer run, then the fixed UI, then the registry, else
   });
   assert.deepEqual(bootModeOf({}, false, {}), { kind: 'hub' });
 });
+
+test('a fixed build takes its own icons and splash; what it does not give keeps app.json', () => {
+  const config = appJson();
+  config.icon = './assets/icon.png';
+  config.android = { ...config.android, adaptiveIcon: { foregroundImage: './assets/adaptive-icon.png', backgroundColor: '#ffffff' } };
+  config.plugins = [...(config.plugins ?? []), ['expo-splash-screen', { image: './assets/splash.png', backgroundColor: '#ffffff', imageWidth: 200 }]];
+  const fixed = applyVariant(config, {
+    MATEU_VARIANT: 'fixed',
+    MATEU_FIXED_URL: 'https://crm.acme.com',
+    MATEU_APP_ICON: '../branding/acme-icon.png',
+    MATEU_ADAPTIVE_ICON: '/abs/acme-foreground.png',
+    MATEU_ADAPTIVE_ICON_BACKGROUND: '#0A2540',
+    MATEU_SPLASH_IMAGE: '../branding/acme-splash.png',
+  });
+  assert.equal(fixed.icon, '../branding/acme-icon.png');
+  assert.deepEqual(fixed.android?.adaptiveIcon, { foregroundImage: '/abs/acme-foreground.png', backgroundColor: '#0A2540' });
+  assert.deepEqual(fixed.plugins?.[2], ['expo-splash-screen', { image: '../branding/acme-splash.png', backgroundColor: '#ffffff', imageWidth: 200 }]);
+});
+
+test('the hub keeps Mateu’s face whatever the icon variables say', () => {
+  const config = appJson();
+  config.icon = './assets/icon.png';
+  const hub = applyVariant(config, { MATEU_APP_ICON: '/abs/other.png' });
+  assert.equal(hub.icon, './assets/icon.png');
+});
+
+test('a white-label icon is a png and a background a #rrggbb colour', () => {
+  const env = { MATEU_VARIANT: 'fixed', MATEU_FIXED_URL: 'https://crm.acme.com' };
+  assert.throws(() => applyVariant(appJson(), { ...env, MATEU_APP_ICON: 'acme.jpg' }), /MATEU_APP_ICON must be a \.png/);
+  assert.throws(() => applyVariant(appJson(), { ...env, MATEU_SPLASH_BACKGROUND: 'navy' }), /MATEU_SPLASH_BACKGROUND must be a #rrggbb/);
+});

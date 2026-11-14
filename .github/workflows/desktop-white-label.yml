@@ -1,0 +1,405 @@
+# Your own desktop app built from a Mateu release — your name, your icons, your UI — WITHOUT forking
+# Mateu: call this workflow from YOUR repository. It checks out Mateu at the release you name, runs
+# its `buildInstaller` with your options and hands the installers back as artifacts of YOUR run.
+# It publishes nothing anywhere; attach the files to your own release if you want.
+#
+#   jobs:
+#     desktop:
+#       uses: miguelperezcolom/mateu/.github/workflows/desktop-white-label.yml@v3.0-beta.67
+#       with:
+#         mateu-version: v3.0-beta.67            # the same release as the @ref above
+#         product-name: Acme Admin
+#         base-url: https://admin.acme.com       # the UI the app opens (or registry-url + app-id)
+#         icon-macos: branding/acme.icns         # paths in YOUR repository (optional)
+#         icon-windows: branding/acme.ico
+#         icon-linux: branding/acme-1024.png
+#       secrets: inherit                         # optional signing secrets, see below
+#
+# Artifacts: <slug>-desktop-macos-aarch64, -macos-intel, -windows, -linux (the slug comes from the
+# product name: "Acme Admin" → acme-admin-desktop-<version>-….dmg / -windows-setup.exe / ….tar.gz).
+# Every installer is smoke-tested before it is handed over: macOS (Apple silicon) and Linux launched
+# here, Windows on windows-latest — the plugin's self-check must pass and no error may be Mateu's.
+#
+# Optional secrets, all YOURS — without them the macOS app is signed ad-hoc and the Windows setup is
+# unsigned (Gatekeeper / SmartScreen warn on first run):
+#   MACOS_CERTIFICATE_P12 (base64 of a Developer ID Application .p12), MACOS_CERTIFICATE_PASSWORD,
+#   MACOS_SIGN_IDENTITY ("Developer ID Application: Name (TEAMID)")
+#   MACOS_NOTARY_APPLE_ID, MACOS_NOTARY_TEAM_ID, MACOS_NOTARY_PASSWORD (app-specific) — to notarize too
+#   WINDOWS_CERTIFICATE_PFX (base64 of a code-signing .pfx), WINDOWS_CERTIFICATE_PASSWORD — signs the
+#     setup .exe (osslsigncode, RFC 3161 timestamp); JetBrains' own binaries keep JetBrains' signature
+#
+# Needs a Mateu release that has the white-label icon options (3.0-beta.67 or later).
+# Guide: https://mateu.io/native/white-label/ (doc/src/content/docs/native/white-label.md).
+
+name: Desktop app (white label)
+
+on:
+  workflow_call:
+    inputs:
+      mateu-version:
+        description: The Mateu release tag to build from (e.g. v3.0-beta.67)
+        type: string
+        required: true
+      product-name:
+        description: The app's name — window title, .app name, shortcuts, install folder, file names
+        type: string
+        required: true
+      variant:
+        description: fixed (bound to one UI, the usual white-label app) or hub (the user's own list of UIs)
+        type: string
+        default: fixed
+      base-url:
+        description: The UI a fixed app opens (or give registry-url + app-id)
+        type: string
+        default: ''
+      registry-url:
+        type: string
+        default: ''
+      app-id:
+        type: string
+        default: ''
+      update-url:
+        description: Your update feed (mateu-desktop-update.json), or empty for no automatic updates
+        type: string
+        default: ''
+      bundle-id:
+        description: macOS bundle identifier (default derived from the name)
+        type: string
+        default: ''
+      icon-macos:
+        description: .icns in YOUR repository
+        type: string
+        default: ''
+      icon-windows:
+        description: .ico in YOUR repository
+        type: string
+        default: ''
+      icon-linux:
+        description: .png in YOUR repository (square, 512 px or more)
+        type: string
+        default: ''
+      platforms:
+        description: Comma-separated subset of macos-aarch64, macos-intel, windows, linux
+        type: string
+        default: macos-aarch64,macos-intel,windows,linux
+    secrets:
+      MACOS_CERTIFICATE_P12:
+        required: false
+      MACOS_CERTIFICATE_PASSWORD:
+        required: false
+      MACOS_SIGN_IDENTITY:
+        required: false
+      MACOS_NOTARY_APPLE_ID:
+        required: false
+      MACOS_NOTARY_TEAM_ID:
+        required: false
+      MACOS_NOTARY_PASSWORD:
+        required: false
+      WINDOWS_CERTIFICATE_PFX:
+        required: false
+      WINDOWS_CERTIFICATE_PASSWORD:
+        required: false
+
+permissions:
+  contents: read
+
+env:
+  TAG: ${{ inputs.mateu-version }}
+  # Mateu's own sources, next to the caller's checkout (its icons)
+  MATEU_DIR: ${{ github.workspace }}/mateu
+  APP_DIR: ${{ github.workspace }}/app
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      macos: ${{ steps.plan.outputs.macos }}
+      linux-windows: ${{ steps.plan.outputs.linux-windows }}
+      windows: ${{ steps.plan.outputs.windows }}
+    steps:
+      - id: plan
+        env:
+          PLATFORMS: ${{ inputs.platforms }}
+          VARIANT: ${{ inputs.variant }}
+          BASE_URL: ${{ inputs.base-url }}
+          REGISTRY_URL: ${{ inputs.registry-url }}
+          APP_ID: ${{ inputs.app-id }}
+        run: |
+          set -euo pipefail
+          case "$VARIANT" in hub|fixed) ;; *) echo "::error::variant must be hub or fixed, not '$VARIANT'"; exit 1 ;; esac
+          if [ "$VARIANT" = fixed ] && [ -z "$BASE_URL" ] && { [ -z "$REGISTRY_URL" ] || [ -z "$APP_ID" ]; }; then
+            echo "::error::a fixed app is bound to one UI: give base-url, or registry-url + app-id"; exit 1
+          fi
+          mac='[]'; lw='[]'
+          for p in $(echo "$PLATFORMS" | tr ',' ' '); do
+            case "$p" in
+              macos-aarch64) mac=$(jq -c '. + ["aarch64"]' <<< "$mac") ;;
+              macos-intel)   mac=$(jq -c '. + ["intel"]' <<< "$mac") ;;
+              windows|linux) lw=$(jq -c --arg p "$p" '. + [$p]' <<< "$lw") ;;
+              *) echo "::error::unknown platform '$p' (macos-aarch64, macos-intel, windows, linux)"; exit 1 ;;
+            esac
+          done
+          { echo "macos=$mac"; echo "linux-windows=$lw"; echo "windows=$(jq -r 'index("windows") != null' <<< "$lw")"; } >> "$GITHUB_OUTPUT"
+
+  macos:
+    needs: plan
+    if: needs.plan.outputs.macos != '[]'
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ${{ fromJSON(needs.plan.outputs.macos) }}
+    env:
+      HAS_SIGNING: ${{ secrets.MACOS_CERTIFICATE_P12 != '' && secrets.MACOS_SIGN_IDENTITY != '' }}
+      HAS_NOTARY: ${{ secrets.MACOS_NOTARY_APPLE_ID != '' && secrets.MACOS_NOTARY_TEAM_ID != '' && secrets.MACOS_NOTARY_PASSWORD != '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: app
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: miguelperezcolom/mateu
+          ref: ${{ inputs.mateu-version }}
+          path: mateu
+          persist-credentials: false
+      - name: Derive the versions from the tag
+        working-directory: mateu
+        run: scripts/plugin-versions.sh "$TAG" >> "$GITHUB_ENV"
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: 21
+          distribution: zulu
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Install Mateu's monorepo dependencies
+        working-directory: mateu
+        run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-visual-editor --include-workspace-root --ignore-scripts
+      - name: Set the plugin version from the tag
+        working-directory: mateu
+        run: cd frontend/app/intellij-plugin && perl -pi -e 's/^version = ".*"/version = "$ENV{INTELLIJ_VERSION}"/' build.gradle.kts
+      - name: Import your Developer ID certificate
+        if: env.HAS_SIGNING == 'true'
+        env:
+          P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          P12_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+          echo "$P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "$P12_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
+          existing=()
+          while IFS= read -r k; do existing+=("$(echo "$k" | sed -e 's/^[[:space:]]*"//' -e 's/"$//')"); done < <(security list-keychains -d user)
+          security list-keychains -d user -s "$KEYCHAIN" "${existing[@]}"
+          rm "$RUNNER_TEMP/cert.p12"
+      - name: Store your notarization credentials
+        if: env.HAS_SIGNING == 'true' && env.HAS_NOTARY == 'true'
+        env:
+          APPLE_ID: ${{ secrets.MACOS_NOTARY_APPLE_ID }}
+          TEAM_ID: ${{ secrets.MACOS_NOTARY_TEAM_ID }}
+          APP_PASSWORD: ${{ secrets.MACOS_NOTARY_PASSWORD }}
+        run: xcrun notarytool store-credentials white-label-notary --apple-id "$APPLE_ID" --team-id "$TEAM_ID" --password "$APP_PASSWORD"
+      - name: Build the app
+        working-directory: mateu
+        env:
+          ARCH: ${{ matrix.arch }}
+          SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
+          PRODUCT: ${{ inputs.product-name }}
+          VARIANT: ${{ inputs.variant }}
+          BASE_URL: ${{ inputs.base-url }}
+          REGISTRY_URL: ${{ inputs.registry-url }}
+          APP_ID: ${{ inputs.app-id }}
+          UPDATE_URL: ${{ inputs.update-url }}
+          BUNDLE_ID: ${{ inputs.bundle-id }}
+          ICON: ${{ inputs.icon-macos }}
+        run: |
+          args=(-Pinstaller.platform=macos "-Pinstaller.arch=$ARCH" "-Pmateu.productName=$PRODUCT" "-Pmateu.variant=$VARIANT" "-Pmateu.updateUrl=$UPDATE_URL")
+          [ -n "$BASE_URL" ] && args+=("-Pmateu.baseUrl=$BASE_URL")
+          [ -n "$REGISTRY_URL" ] && args+=("-Pmateu.registryUrl=$REGISTRY_URL" "-Pmateu.appId=$APP_ID")
+          [ -n "$BUNDLE_ID" ] && args+=("-Pmateu.bundleId=$BUNDLE_ID")
+          [ -n "$ICON" ] && args+=("-Pmateu.icon.macos=$APP_DIR/$ICON")
+          if [ "$HAS_SIGNING" = "true" ]; then args+=("-Pmacos.sign.identity=$SIGN_IDENTITY"); fi
+          if [ "$HAS_SIGNING" = "true" ] && [ "$HAS_NOTARY" = "true" ]; then args+=(-Pmacos.notarize.profile=white-label-notary); fi
+          scripts/intellij-gradle.sh buildInstaller "${args[@]}" --console=plain
+      - name: Check and smoke-test what is handed over
+        working-directory: mateu
+        env:
+          ARCH: ${{ matrix.arch }}
+          MATEU_SMOKE_VARIANT: ${{ inputs.variant }}
+        run: |
+          set -euo pipefail
+          dir=frontend/app/intellij-plugin/build/installer
+          zip=$(ls "$dir"/*-desktop-*-macos-"$ARCH".zip)
+          mkdir -p "$RUNNER_TEMP/published"
+          ditto -x -k "$zip" "$RUNNER_TEMP/published"
+          app=$(ls -d "$RUNNER_TEMP"/published/*.app)
+          scripts/macos-signature-check.sh "$app"
+          node scripts/intellij-class-visibility.mjs "$app/Contents" "$(find "$app/Contents/Resources/mateu-plugin" -mindepth 1 -maxdepth 1 -type d | head -1)"
+          # only Apple silicon runs on this runner
+          if [ "$ARCH" = aarch64 ]; then scripts/desktop-smoke.sh macos "$app"; fi
+      - name: The slug of the file names
+        env:
+          PRODUCT: ${{ inputs.product-name }}
+        run: echo "SLUG=$(printf '%s' "$PRODUCT" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: ${{ env.SLUG }}-desktop-macos-${{ matrix.arch }}
+          path: |
+            mateu/frontend/app/intellij-plugin/build/installer/*-desktop-*-macos-${{ matrix.arch }}.dmg
+            mateu/frontend/app/intellij-plugin/build/installer/*-desktop-*-macos-${{ matrix.arch }}.zip
+          if-no-files-found: error
+          compression-level: 0
+
+  linux-windows:
+    needs: plan
+    if: needs.plan.outputs.linux-windows != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(needs.plan.outputs.linux-windows) }}
+    env:
+      HAS_WINDOWS_SIGNING: ${{ secrets.WINDOWS_CERTIFICATE_PFX != '' }}
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL \
+            /usr/share/swift /usr/local/share/boost /usr/local/.ghcup /opt/microsoft /opt/google /usr/local/share/chromium
+          df -h /
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: app
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: miguelperezcolom/mateu
+          ref: ${{ inputs.mateu-version }}
+          path: mateu
+          persist-credentials: false
+      - name: Derive the versions from the tag
+        working-directory: mateu
+        run: scripts/plugin-versions.sh "$TAG" >> "$GITHUB_ENV"
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: 21
+          distribution: zulu
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Install Mateu's monorepo dependencies
+        working-directory: mateu
+        run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-visual-editor --include-workspace-root --ignore-scripts
+      - name: Install NSIS (the Windows setup) and osslsigncode
+        if: matrix.platform == 'windows'
+        run: sudo apt-get update -q && sudo apt-get install -y -q nsis osslsigncode
+      - name: Set the plugin version from the tag
+        working-directory: mateu
+        run: cd frontend/app/intellij-plugin && perl -pi -e 's/^version = ".*"/version = "$ENV{INTELLIJ_VERSION}"/' build.gradle.kts
+      - name: Build the app
+        working-directory: mateu
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          PRODUCT: ${{ inputs.product-name }}
+          VARIANT: ${{ inputs.variant }}
+          BASE_URL: ${{ inputs.base-url }}
+          REGISTRY_URL: ${{ inputs.registry-url }}
+          APP_ID: ${{ inputs.app-id }}
+          UPDATE_URL: ${{ inputs.update-url }}
+          ICON_WINDOWS: ${{ inputs.icon-windows }}
+          ICON_LINUX: ${{ inputs.icon-linux }}
+        run: |
+          args=("-Pinstaller.platform=$PLATFORM" "-Pmateu.productName=$PRODUCT" "-Pmateu.variant=$VARIANT" "-Pmateu.updateUrl=$UPDATE_URL")
+          [ -n "$BASE_URL" ] && args+=("-Pmateu.baseUrl=$BASE_URL")
+          [ -n "$REGISTRY_URL" ] && args+=("-Pmateu.registryUrl=$REGISTRY_URL" "-Pmateu.appId=$APP_ID")
+          [ "$PLATFORM" = windows ] && [ -n "$ICON_WINDOWS" ] && args+=("-Pmateu.icon.windows=$APP_DIR/$ICON_WINDOWS")
+          [ "$PLATFORM" = linux ] && [ -n "$ICON_LINUX" ] && args+=("-Pmateu.icon.linux=$APP_DIR/$ICON_LINUX")
+          scripts/intellij-gradle.sh buildInstaller "${args[@]}" --console=plain
+      - name: Sign the Windows setup with your certificate
+        if: matrix.platform == 'windows' && env.HAS_WINDOWS_SIGNING == 'true'
+        working-directory: mateu
+        env:
+          PFX: ${{ secrets.WINDOWS_CERTIFICATE_PFX }}
+          PFX_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          PRODUCT: ${{ inputs.product-name }}
+        run: |
+          set -euo pipefail
+          echo "$PFX" | base64 --decode > "$RUNNER_TEMP/cert.pfx"
+          setup=$(ls frontend/app/intellij-plugin/build/installer/*-windows-setup.exe)
+          osslsigncode sign -pkcs12 "$RUNNER_TEMP/cert.pfx" -pass "$PFX_PASSWORD" -n "$PRODUCT" \
+            -h sha256 -ts http://timestamp.digicert.com -in "$setup" -out "$setup.signed"
+          mv "$setup.signed" "$setup"
+          rm "$RUNNER_TEMP/cert.pfx"
+          osslsigncode verify -in "$setup" | grep -E 'Signature verification|Subject' || true
+      - name: Smoke test — launch the Linux app under Xvfb
+        if: matrix.platform == 'linux'
+        working-directory: mateu
+        env:
+          MATEU_SMOKE_VARIANT: ${{ inputs.variant }}
+        run: |
+          sudo apt-get install -y -q xvfb > /dev/null
+          mkdir -p "$RUNNER_TEMP/smoke"
+          tar -xzf frontend/app/intellij-plugin/build/installer/*-desktop-*-linux.tar.gz -C "$RUNNER_TEMP/smoke"
+          root=$(ls -d "$RUNNER_TEMP"/smoke/*/)
+          node scripts/intellij-class-visibility.mjs "$root" "$(find "${root}data/plugins" -mindepth 1 -maxdepth 1 -type d | head -1)"
+          scripts/desktop-smoke.sh linux "$root"
+      - name: The slug of the file names
+        env:
+          PRODUCT: ${{ inputs.product-name }}
+        run: echo "SLUG=$(printf '%s' "$PRODUCT" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: ${{ env.SLUG }}-desktop-${{ matrix.platform }}
+          path: |
+            mateu/frontend/app/intellij-plugin/build/installer/*-desktop-*-linux.tar.gz
+            mateu/frontend/app/intellij-plugin/build/installer/*-desktop-*-windows-setup.exe
+            mateu/frontend/app/intellij-plugin/build/installer/*-desktop-*-windows.zip
+          if-no-files-found: error
+          compression-level: 0
+
+  smoke-windows:
+    needs: [plan, linux-windows]
+    if: needs.plan.outputs.windows == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: miguelperezcolom/mateu
+          ref: ${{ inputs.mateu-version }}
+          persist-credentials: false
+          sparse-checkout: scripts
+      - name: The slug of the file names
+        shell: bash
+        env:
+          PRODUCT: ${{ inputs.product-name }}
+        run: echo "SLUG=$(printf '%s' "$PRODUCT" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')" >> "$GITHUB_ENV"
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ env.SLUG }}-desktop-windows
+          path: ${{ runner.temp }}\pkg
+      - name: JetBrains' Authenticode is intact and the app starts
+        shell: pwsh
+        env:
+          VARIANT: ${{ inputs.variant }}
+        run: |
+          $zip = Get-ChildItem "$env:RUNNER_TEMP\pkg\*-windows.zip" | Select-Object -First 1
+          Expand-Archive $zip.FullName -DestinationPath "$env:RUNNER_TEMP\app"
+          $root = (Get-ChildItem "$env:RUNNER_TEMP\app" -Directory | Select-Object -First 1).FullName
+          $sig = Get-AuthenticodeSignature "$root\bin\idea64.exe"
+          if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notlike '*JetBrains*') { throw "idea64.exe is not JetBrains-signed any more" }
+          if ($env:VARIANT -eq 'hub') { $env:MATEU_OPEN_LINK = 'mateu://add?u=https://smoke-test.mateu.invalid'; $ready = 'Mateu hub: a link asks to add'; $checks = @('--hub', '--link') }
+          else { $ready = 'Mateu self-check: OK'; $checks = @() }
+          $p = Start-Process -FilePath "$root\mateu.bat" -PassThru -WindowStyle Hidden
+          $log = "$root\data\log\idea.log"
+          for ($i = 0; $i -lt 48; $i++) { Start-Sleep 5; if ((Test-Path $log) -and (Select-String -Path $log -Pattern "$ready|Mateu self-check FAILED|Plugin to blame: Mateu" -Quiet)) { break } }
+          Start-Sleep 20
+          Get-Process | Where-Object { $_.Path -like "$root*" } | Stop-Process -Force -ErrorAction SilentlyContinue
+          Select-String -Path $log -Pattern 'IDE: |Loaded custom plugins|Mateu self-check|Mateu hub|io\.mateu|ERROR|SEVERE' | Select-Object -First 60 | ForEach-Object { $_.Line }
+          node scripts/desktop-log-check.mjs $log @checks
+          if ($LASTEXITCODE -ne 0) { throw "the app started but Mateu does not work (see the errors above)" }
+          "✅ windows: Mateu loaded, idea64.exe JetBrains-signed" | Tee-Object -Append $env:GITHUB_STEP_SUMMARY
