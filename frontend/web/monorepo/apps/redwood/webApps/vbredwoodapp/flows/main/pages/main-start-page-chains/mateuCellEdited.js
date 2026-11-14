@@ -56,7 +56,9 @@ define([
       try {
         await Actions.callChain(context, {
           chain: 'runMateuAction',
-          params: { actionId: 'update-row', parameters: { _editedRow: edited } },
+          // _editedField: the server writes only THIS cell over the stored record (the rest of the
+          // row is the listing's copy — UpdateRowActionHandler.onlyTheEditedCell)
+          params: { actionId: 'update-row', parameters: { _editedRow: edited, _editedField: col.field } },
         });
       } catch (e) {
         bridge.forgetEditedRows(); // not saved: the server's row is the truth again

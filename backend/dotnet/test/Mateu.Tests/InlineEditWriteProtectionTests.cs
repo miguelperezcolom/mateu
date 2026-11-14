@@ -75,6 +75,38 @@ public class InlineEditWriteProtectionTests
         Assert.Equal("error", Assert.Single(inc.Messages).Variant);
     }
 
+    static UIIncrementDto UpdateCell<TCrud>(object row, string editedField) => Handler().Handle(new RunActionRqDto
+    {
+        ActionId = "update-row",
+        ServerSideType = typeof(TCrud).FullName,
+        Parameters = new()
+        {
+            ["_editedRow"] = JsonSerializer.SerializeToElement(row),
+            ["_editedField"] = JsonSerializer.SerializeToElement(editedField),
+        },
+    });
+
+    /// <summary>3.0-beta.68: a recycled grid cell sent a row carrying ANOTHER row's values. A
+    /// request naming the edited cell writes only that cell (Java's
+    /// aRowNamingItsEditedCellWritesOnlyThatCell).</summary>
+    [Fact]
+    public void A_row_naming_its_edited_cell_writes_only_that_cell()
+    {
+        Seed();
+        UpdateCell<Nm11InlineParts>(new { id = "p1", name = "Bolt M8", units = 999 }, "name");
+        Assert.Equal("Bolt M8", Nm11PartsBase.Store["p1"].Name);
+        Assert.Equal(10, Nm11PartsBase.Store["p1"].Units);
+    }
+
+    [Fact]
+    public void A_named_edited_cell_that_is_not_in_the_row_is_refused()
+    {
+        Seed();
+        var inc = UpdateCell<Nm11InlineParts>(new { id = "p1", units = 999 }, "name");
+        Assert.Equal(10, Nm11PartsBase.Store["p1"].Units);
+        Assert.Contains("the edited cell is not in the edited row", Assert.Single(inc.Messages).Text);
+    }
+
     [Fact]
     public void A_row_carrying_only_some_columns_keeps_the_other_fields()
     {

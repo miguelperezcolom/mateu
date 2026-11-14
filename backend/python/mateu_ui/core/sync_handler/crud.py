@@ -53,6 +53,15 @@ from ._common import (
 SAVE_AND_NEXT = "save-and-next"
 
 
+def only_the_edited_cell(row: dict, edited_field: str, id_field: str | None, version_key: str | None) -> dict:
+    """The cells an inline edit writes when the request names the edited one: that cell, plus
+    the row's id and version (they identify and guard the record) — Java's
+    UpdateRowActionHandler.onlyTheEditedCell."""
+    cells = {k: row[k] for k in (id_field, version_key) if k is not None and k in row}
+    cells[edited_field] = row[edited_field]
+    return cells
+
+
 #: Stamped on both conflict-dialog buttons: the action they re-dispatch answers by closing the
 #: dialog too (Java's OptimisticLock.FROM_CONFLICT_DIALOG). Without it the dialog stayed open.
 FROM_CONFLICT_DIALOG = "_conflictDialog"
@@ -691,6 +700,19 @@ class CrudHandlerMixin(MixinBase):
         row = (rq.parameters or {}).get("_editedRow")
         if not isinstance(row, dict):
             return self.error("update-row requires an _editedRow parameter")
+        # A request naming the cell the user edited writes ONLY that cell (+ the row's id and
+        # version): the rest of the posted row is the browser's copy of the listing, which a
+        # recycled grid cell once filled with another row's values (Java's
+        # UpdateRowActionHandler.onlyTheEditedCell). An older client naming none keeps its row.
+        edited_field = (rq.parameters or {}).get("_editedField")
+        posted_row = row
+        if edited_field is not None:
+            if not isinstance(edited_field, str) or not edited_field.strip() or edited_field not in row:
+                return self.error("update-row: the edited cell is not in the edited row")
+            versioned = version_field(element)
+            row = only_the_edited_cell(
+                row, edited_field, "id", camel_case(versioned.name) if versioned is not None else None
+            )
         # The same protection as the editor's save: the row names a STORED record (an unknown id is
         # refused, never inserted), it is laid over a detached copy of that record (the fields it
         # does not carry are kept) and a ReadOnly() column's posted value never reaches the entity.
@@ -748,7 +770,9 @@ class CrudHandlerMixin(MixinBase):
                         "search",
                         "update-row",
                         rq,
-                        {"_editedRow": row},
+                        {"_editedRow": posted_row}
+                        if edited_field is None
+                        else {"_editedRow": posted_row, "_editedField": edited_field},
                     )
                 # the row is saved FROM the stored version (on an overwrite too): the client's copy
                 # only answered "did you see the latest?" -- a crafted version ahead of the stored
