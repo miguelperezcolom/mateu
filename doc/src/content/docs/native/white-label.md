@@ -38,9 +38,9 @@ on: workflow_dispatch
 
 jobs:
   desktop:
-    uses: miguelperezcolom/mateu/.github/workflows/desktop-white-label.yml@v3.0-beta.67
+    uses: miguelperezcolom/mateu/.github/workflows/desktop-white-label.yml@v3.0.0
     with:
-      mateu-version: v3.0-beta.67        # the same release as the @ref above
+      mateu-version: v3.0.0             # the same release as the @ref above (an rc tag, e.g. v3.0-rc.1, works for trying it)
       product-name: Acme Admin
       base-url: https://admin.acme.example
       icon-macos: branding/acme.icns     # paths in YOUR repository
@@ -59,7 +59,7 @@ The artifacts are named after the product's slug — `acme-admin-desktop-macos-a
 
 | Input | Meaning |
 |---|---|
-| `mateu-version` | The Mateu release to build from (required). It needs the icon options: 3.0-beta.67 or later |
+| `mateu-version` | The Mateu release to build from (required). It needs the icon options: 3.0.0 or later (or a 3.0 rc) |
 | `product-name` | The app's name (required): window title, `.app`, shortcuts, install folder, file names |
 | `variant` | `fixed` (default) or `hub` — a hub of your own, with your name |
 | `base-url` / `registry-url` + `app-id` | The UI a `fixed` app opens |
