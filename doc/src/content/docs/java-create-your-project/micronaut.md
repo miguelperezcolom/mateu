@@ -146,6 +146,16 @@ public class HelloWorld {
 When you run your micronaut application, you will find your ui at [http://localhost:8080](http://localhost:8080) (for the code above) as expected:
 
 
+### UI classes in a separate module
+
+The `@UI` classes may also live in a framework-agnostic module (only `mateu-uidl`, compiled with
+`mateu-annotation-processor-indexer`), with the Micronaut app holding nothing but its `Application`
+class. Put that UI module on the app's `annotationProcessorPaths` too (besides the regular
+dependency), next to Micronaut's own processors and `mateu-annotation-processor-micronaut`: Mateu
+reads the module's index there and generates the controllers early enough for Micronaut's processor
+to turn them into beans in the same compilation. (Up to 3.0-beta they were generated in javac's last
+round, which no processor sees, and such an app answered 404 on every mount.)
+
 An empty class renders an empty page. For a complete project on this runtime — a model, a store and
 a full CRUD, with this exact build setup — copy the [`starters/micronaut`](https://github.com/miguelperezcolom/mateu/tree/master/starters/micronaut) project; CI
 compiles and boots it on every change.

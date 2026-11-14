@@ -66,6 +66,18 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **The Android APK on the GitHub releases keeps updating from there after an over-the-air update**
   (it has its own update channel, `github`); "Update Mateu" sent it to Google Play.
 
+### Fixed — Micronaut app with its UI only in a UI module
+
+- **A Micronaut app whose `@UI` classes live only in a separate UI module serves them.** The
+  controllers of an indexed mount (`META-INF/mateu/ui-registrations` read from the processor path)
+  were generated in javac's LAST round, which no processor sees, so Micronaut's bean-definition
+  processor never registered them and the app answered 404 on `/` (an `@UI`/`@App` class in the app
+  module itself hid it: that path generates in the first round). They are now generated the first
+  time the companion processor runs, and never twice when the plain processor already did
+  (an `@App`-only source used to generate every indexed mount a second time). Pinned by
+  `UiModuleOnlyAppTest` (Micronaut: a real two-step build in a forked javac, then the page is
+  served) and `IndexedMountsCompileTest`.
+
 ### Fixed — .NET and Python on the Redwood renderer
 
 - **C# and Python screens render on Redwood.** The shell and menu drew, the content stayed blank:
