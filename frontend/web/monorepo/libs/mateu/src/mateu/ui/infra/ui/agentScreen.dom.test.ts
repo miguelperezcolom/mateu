@@ -121,4 +121,93 @@ describe('an agent operating the tab', () => {
         await runAction(app, document.body, 'help', undefined, undefined, undefined)
         expect(headerActions).toEqual(['help'])
     })
+
+    it('the errors and the rule-set attributes the component holds reach the summary', () => {
+        const { component } = mount()
+        component.data = { errors: { name: ['', 'Too short'], notes: 'Required', _component: ['x'], code: [] }, 'notes.disabled': 'true' }
+        component.state = { ...(component.state as object), 'code.hidden': true }
+        const screen = (describeScreen(undefined) as { screen: Record<string, any> }).screen
+        expect(screen.errors).toEqual({ name: 'Too short', notes: 'Required' })
+        expect(screen.fields.map((f: any) => f.id)).toEqual(['name', 'notes'])
+        expect(screen.fields[1].readOnly).toBe(true)
+    })
+
+    it('a listing: its search text written to its own state, then searched and paged as its controls do', async () => {
+        const { crud } = mount()
+        ;(crud.component as any).metadata.searchable = true
+        const searched: unknown[] = []
+        const paged: number[] = []
+        crud.handleSearchRequested = () => searched.push(true)
+        crud.pageChanged = (e: CustomEvent) => paged.push(e.detail.page)
+        await setFields(undefined, { searchText: 'ab' })
+        expect(crud.state).toEqual({ searchText: 'ab' })
+        await runAction(undefined, document.body, 'search', undefined, undefined, 'lines')
+        expect(searched).toEqual([true])
+        await runAction(undefined, document.body, 'nextPage', undefined, undefined, undefined)
+        expect(paged).toEqual([1])
+        crud.state = { page: 2 }
+        await runAction(undefined, document.body, 'prevPage', undefined, undefined, undefined)
+        expect(paged).toEqual([1, 1])
+        crud.state = { page: 0 }
+        expect(await runAction(undefined, document.body, 'prevPage', undefined, undefined, undefined)).toEqual({ error: { code: 'disabledAction', id: 'prevPage' } })
+        expect(await runAction(undefined, document.body, 'search', undefined, undefined, 'nope')).toEqual({ error: { code: 'unknownAction', id: 'search' } })
+    })
+
+    it('a row action goes from the listing with the row; open-row needs a row; a route row navigates', async () => {
+        const { crud } = mount()
+        const meta = (crud.component as any).metadata
+        meta.columns.push({ metadata: { id: 'print', label: 'Print', actionId: 'print' } })
+        const seen: any[] = []
+        crud.addEventListener('action-requested', (e) => seen.push((e as CustomEvent).detail))
+        await runAction(undefined, document.body, 'print', { copies: 2 }, 0, undefined)
+        expect(seen.at(-1)).toEqual({ actionId: 'print', parameters: { copies: 2, _clickedRow: { sku: 'A' } } })
+        expect(await runAction(undefined, document.body, 'open-row', undefined, undefined, undefined)).toEqual({ error: { code: 'unknownRow', id: '' } })
+        meta.rowRoute = 'lines/${row.sku}'
+        const routes: any[] = []
+        crud.addEventListener('route-changed', (e) => routes.push((e as CustomEvent).detail))
+        await runAction(undefined, document.body, 'open-row', undefined, 1, 'lines')
+        expect(routes.length).toBe(1)
+        expect(JSON.stringify(routes[0])).toContain('lines/B')
+    })
+
+    it('an open dialog is in front: its fields and actions are the ones offered; a closed one is not', async () => {
+        const { component } = mount()
+        const closed = document.createElement('mateu-drawer') as unknown as HTMLElement & Record<string, unknown>
+        closed.opened = false
+        document.body.appendChild(closed)
+        expect((describeScreen(undefined) as any).screen.focus).toBe('page')
+        const dialog = document.createElement('mateu-dialog') as unknown as HTMLElement & Record<string, unknown>
+        dialog.component = { metadata: { type: 'Dialog', title: 'Sure?', content: { type: 'ServerSide', children: [field('reason')] } } }
+        dialog.state = { reason: 'because' }
+        document.body.appendChild(dialog)
+        const screen = (describeScreen(undefined) as any).screen
+        expect(screen.focus).toBe('overlay')
+        expect(screen.overlay.fields).toEqual([{ id: 'reason', label: 'reason', type: 'string', value: 'because' }])
+        // the page's field is behind it, and its Save too
+        expect(await setFields(undefined, { name: 'x' })).toEqual({ error: { code: 'unknownField', id: 'name' } })
+        expect(await runAction(undefined, document.body, 'save', undefined, undefined, undefined)).toEqual({ error: { code: 'unknownAction', id: 'save' } })
+        // a component rendered inside the dialog is described by its own view
+        const inner = document.createElement('mateu-component') as unknown as HTMLElement & Record<string, unknown>
+        inner.component = { type: 'ServerSide', id: 'in', actions: [{ id: 'confirm' }], children: [field('why')] }
+        inner.state = { why: 'w' }
+        const got: unknown[] = []
+        inner.addEventListener('action-requested', (e) => got.push((e as CustomEvent).detail))
+        dialog.appendChild(inner)
+        expect((describeScreen(undefined) as any).screen.overlay.fields.map((f: any) => f.id)).toEqual(['why'])
+        await runAction(undefined, document.body, 'confirm', undefined, undefined, undefined)
+        expect(got).toEqual([{ actionId: 'confirm', parameters: {} }])
+        expect(component).toBeTruthy()
+    })
+})
+
+describe('waiting for the screen to settle', () => {
+    it('waits while calls are in flight, and gives up at its limit', async () => {
+        const { settled } = await import('./agentScreen')
+        let calls = 3
+        const started = Date.now()
+        await settled(2_000, () => (calls-- > 0 ? 1 : 0))
+        expect(calls).toBeLessThan(0)
+        await settled(150, () => 1)
+        expect(Date.now() - started).toBeLessThan(3_000)
+    })
 })

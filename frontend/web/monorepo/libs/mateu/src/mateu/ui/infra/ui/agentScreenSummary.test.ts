@@ -147,3 +147,172 @@ describe('the screen summary', () => {
         expect(offers(summary, 'docs')).toBe(true)
     })
 })
+
+describe('the screen summary, the rest of what a screen can show', () => {
+    it('the header extras, the breadcrumbs, button groups and links', () => {
+        const summary = buildScreenSummary({
+            route: '/r',
+            views: [{
+                content: {
+                    type: 'ServerSide', id: 'c', children: [{
+                        type: 'ClientSide', metadata: {
+                            type: 'Form', title: 'T', overline: 'Over ${state.n}', timestamp: 'Last updated today',
+                            badges: [{ text: 'Open' }, { label: 'VIP' }],
+                            kpis: [{ title: 'Total', text: '${state.n} €' }],
+                            breadcrumbs: [{ text: 'Home', link: '/' }, { text: 'Here' }],
+                            actions: [{ id: 'other' }, { id: 'bulk*' }],
+                        },
+                        children: [
+                            button('', 'More', { children: [button('a', 'A'), { metadata: { actionId: 'b', label: 'B' } }] }),
+                            button('', 'Go', { route: '/elsewhere' }),
+                            button('approve', 'Approve', { rowsSelectedRequired: true }),
+                            button('', 'Nothing'),
+                            button('approve', 'Approve'),
+                            field('country', { optionsSource: { ref: 'countries' }, stereotype: 'regular', description: 'Pick one' }),
+                            field('blob', {}),
+                            field('pw', { dataType: 'password' }),
+                        ],
+                    }],
+                },
+                state: { n: 3, blob: { a: { b: { c: { d: { e: 1 } } } }, f: () => 1, list: Array.from({ length: 60 }, (_, i) => i) }, pw: '' },
+            }],
+            messages: [{ variant: 'error', title: 'Oops', text: 'Broken' }],
+        })
+        expect(summary.header).toEqual({
+            title: 'T', overline: 'Over 3', timestamp: 'Last updated today',
+            badges: ['Open', 'VIP'], kpis: [{ title: 'Total', value: '3 €' }],
+        })
+        expect(summary.breadcrumbs).toEqual([{ label: 'Home', route: '/' }, { label: 'Here' }])
+        expect(summary.actions).toEqual([
+            { id: 'More', label: 'More', enabled: true, children: [{ id: 'a', label: 'A', enabled: true }, { id: 'b', label: 'B', enabled: true }] },
+            { id: '/elsewhere', label: 'Go', enabled: true, navigatesTo: '/elsewhere' },
+            { id: 'approve', label: 'Approve', enabled: true, needsSelectedRows: true },
+        ])
+        expect(summary.otherActionIds).toEqual(['other'])
+        const fields = summary.fields as Record<string, any>[]
+        expect(fields[0]).toEqual({ id: 'country', label: 'COUNTRY', type: 'string', help: 'Pick one', value: null, optionsFrom: 'a source the renderer fetches' })
+        expect(fields[1].value.f).toBeNull()
+        expect(fields[1].value.a.b.c).toEqual({ d: '{…}' })
+        expect(fields[1].value.list).toHaveLength(50)
+        expect(fields[2].value).toBe('')
+        expect(summary.messages).toEqual([{ variant: 'error', title: 'Oops', text: 'Broken' }])
+        expect(summary.truncated).toEqual(['fields.blob'])
+        expect(offeredAction(summary, 'b')?.label).toBe('B')
+        expect(offeredAction(summary, 'nope')).toBeUndefined()
+    })
+
+    it('a listing: filters, sort, cells that are objects or labelled values, and what a row offers', () => {
+        const summary = buildScreenSummary({
+            route: '/l',
+            views: [{
+                content: {
+                    type: 'ServerSide', id: 'c', children: [{
+                        type: 'ClientSide', id: 'orders', metadata: {
+                            type: 'Crud', title: 'Orders of ${state.who}', rowsSelectionEnabled: true, rowRoute: 'orders/${row.id}',
+                            columns: [
+                                { metadata: { id: 'status', label: 'Status' } },
+                                { metadata: { id: 'kind', label: 'Kind', valueLabels: { A: 'Alpha' } } },
+                                { id: 'link', label: 'Print', actionId: 'print' },
+                                { metadata: { id: 'acts', label: 'Actions', dataType: 'actionGroup' } },
+                                { metadata: { id: 'one', label: 'One', dataType: 'action' } },
+                            ],
+                            filters: [
+                                { metadata: { fieldId: 'q', dataType: 'string' } },
+                                { fieldId: 'date', label: 'Date', dataType: 'dateRange' },
+                                { fieldId: 'kind', label: 'Kind', dataType: 'string', options: [{ value: 'A', label: 'Alpha' }] },
+                            ],
+                            toolbar: [button('new', 'New')],
+                        },
+                    }],
+                },
+                listings: {
+                    orders: {
+                        state: { who: 'Ana', q: 'x', date_from: '2026-01-01', date_to: '2026-02-01', sort: [{ field: 'status' }] },
+                        page: {
+                            content: [
+                                { status: { message: 'Paid', type: 'success' }, kind: 'A', link: 'p', acts: { actions: [{ methodNameInCrud: 'refund', label: 'Refund' }, { methodNameInCrud: 'refund' }] }, one: { methodNameInCrud: 'cancel' } },
+                                { status: { nothing: {} }, kind: 'B', one: 'not an action' },
+                                null,
+                            ],
+                        },
+                    },
+                },
+            }],
+        })
+        const l = (summary.listings as Record<string, any>[])[0]
+        expect(l.title).toBe('Orders of Ana')
+        expect(l.filters).toEqual([
+            { id: 'q', label: 'q', type: 'string', value: 'x' },
+            { id: 'date', label: 'Date', type: 'dateRange', from: '2026-01-01', to: '2026-02-01' },
+            { id: 'kind', label: 'Kind', type: 'string', options: [{ value: 'A', label: 'Alpha' }] },
+        ])
+        expect(l.sort).toEqual([{ field: 'status' }])
+        expect(l.page).toBe(0)
+        expect(l.pageSize).toBe(3)
+        expect(l.totalElements).toBeUndefined()
+        expect(l.rows[0]).toMatchObject({ status: 'Paid', kind: 'Alpha', link: 'p' })
+        expect(l.rows[1].status).toEqual({ nothing: {} })
+        expect(l.rows[1].kind).toBe('B')
+        expect(l.rows[2]).toEqual({})
+        expect(l.rowActions).toEqual([
+            { id: 'open-row', label: 'Open' },
+            { id: 'print', label: 'Print' },
+            { id: 'action-on-row-refund', label: 'Refund' },
+            { id: 'action-on-row-cancel', label: 'cancel' },
+        ])
+        expect(l.rowsSelectable).toBe(true)
+        expect(offeredAction(summary, 'action-on-row-refund')?.label).toBe('Refund')
+        expect(offeredAction(summary, 'new')?.label).toBe('New')
+        expect([...editableIds(summary)].sort()).toEqual(['date', 'kind', 'q'])
+    })
+
+    it('a listing fed by a REST source offers no search or paging; one without a page offers only search', () => {
+        const crud = (id: string, over: Record<string, unknown>) => ({ type: 'ClientSide', id, metadata: { type: 'Crud', columns: [], ...over } })
+        const summary = buildScreenSummary({
+            route: '/l',
+            views: [{
+                content: { type: 'ServerSide', children: [crud('a', { rowsSource: { ref: 'people' } }), crud('b', {})] },
+                listings: { a: { page: { content: [{ name: 'Luke', _hidden: 1 }], totalElements: 1 } } },
+            }],
+        })
+        const [a, b] = summary.listings as Record<string, any>[]
+        expect(a.rows).toEqual([{ name: 'Luke' }])
+        expect(a.rowsFrom).toContain('REST source')
+        expect(a.builtInActions).toBeUndefined()
+        expect(b.builtInActions).toEqual(['search'])
+        expect(b.rows).toEqual([])
+    })
+
+    it('caps how many fields and actions it lists, and a user given as plain text', () => {
+        const many = Array.from({ length: 205 }, (_, i) => field('f' + i))
+        const buttons = Array.from({ length: 205 }, (_, i) => button('b' + i, 'B' + i))
+        const summary = buildScreenSummary({ route: '/', views: [{ content: { type: 'ServerSide', children: [...many, ...buttons] } }], app: { user: 'ana' } })
+        expect((summary.fields as unknown[]).length).toBe(200)
+        expect((summary.actions as unknown[]).length).toBe(200)
+        expect(summary.truncated).toEqual(['actions', 'fields'])
+        expect(summary.user).toBe('ana')
+    })
+
+    it('an overlay with its own header and footer, a subtitle, and an app with many context options', () => {
+        const options = Array.from({ length: 55 }, (_, i) => ({ value: 'h' + i, label: 'H' + i }))
+        const summary = buildScreenSummary({
+            route: '/',
+            views: [],
+            overlay: {
+                component: { metadata: { type: 'Dialog', title: 'Confirm', subtitle: 'For ${state.who}', header: button('help', 'Help'), footer: button('ok', 'OK') } },
+                views: [{ content: null, state: { who: 'Ana' } }],
+            },
+            app: { contextSelectors: [{ fieldName: 'hotel', options }], user: 42 },
+        })
+        const overlay = summary.overlay as Record<string, any>
+        expect(overlay).toMatchObject({ kind: 'dialog', title: 'Confirm', subtitle: 'For Ana' })
+        expect(overlay.actions.map((a: any) => a.id)).toEqual(['help', 'ok'])
+        expect(summary.user).toBeUndefined()
+        const ctx = (summary.appContext as Record<string, any>[])[0]
+        expect(ctx).toMatchObject({ field: 'hotel', label: 'hotel', value: '' })
+        expect(ctx.options).toHaveLength(50)
+        expect(summary.truncated).toEqual(['appContext.hotel.options'])
+        // an overlay with no component at all
+        expect((buildScreenSummary({ route: '/', views: [], overlay: { component: undefined, views: [] } }).overlay as any).kind).toBe('overlay')
+    })
+})
