@@ -421,7 +421,11 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
     // of them apply. Without it, sending another route (or none) with the same serverSideType
     // walked past the access: and the field locks of the routes that bind it.
     var specs = new java.util.ArrayList<String>();
-    var foreign = foreignBindingsOf(command.serverSideType(), path);
+    // the type that RUNS: the one the request names, else the one its route resolves to — deciding
+    // from the wire name alone let a request that names none skip the union of locks at the bound
+    // class's own @UI route (GA round 2, J4)
+    var runningType = typeThatRuns(command);
+    var foreign = foreignBindingsOf(runningType, path);
     if (foreign != null) {
       if (foreign.stream().noneMatch(bound -> routeRegistry.isReachable(bound, httpRequest))) {
         log.warn(
@@ -475,8 +479,8 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
       // ...and what they hide from the caller is not SENT in the view model's state either: the
       // layout leaves the field out, its value travelled in the state all the same
       var type =
-          command.serverSideType() != null && !command.serverSideType().isBlank()
-              ? command.serverSideType().trim()
+          runningType != null && !runningType.isBlank()
+              ? runningType.trim()
               : loadSpec(path) != null ? loadSpec(path).modelView() : null;
       if (type != null) {
         httpRequest.setAttribute(
@@ -485,6 +489,37 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
       }
     }
     return anySpec ? withoutLockedByPieces(narrowed, path, lockedByPieces) : narrowed;
+  }
+
+  /**
+   * The view model the request will run: the {@code serverSideType} it names, else — only when
+   * authored routes bind any view model, the only case the answer matters — the class its route
+   * resolves to. Null when neither names one.
+   */
+  private String typeThatRuns(RunActionCommand command) {
+    var named = command.serverSideType();
+    if (named != null && !named.isBlank()) {
+      return named;
+    }
+    if (bindings().isEmpty() || command.route() == null) {
+      return named;
+    }
+    try {
+      var resolver =
+          io.mateu.uidl.di.MateuBeanProvider.getSingletonBean(
+              io.mateu.core.application.RoutedClassResolver.class);
+      if (resolver == null) {
+        return named;
+      }
+      return resolver
+          .resolve(command.route(), command)
+          .map(io.mateu.core.application.ResolvedRoute::resolvedClass)
+          .map(Class::getName)
+          .orElse(named);
+    } catch (RuntimeException | LinkageError e) {
+      log.debug("Could not resolve the type of route {}: {}", command.route(), e.toString());
+      return named;
+    }
   }
 
   /**

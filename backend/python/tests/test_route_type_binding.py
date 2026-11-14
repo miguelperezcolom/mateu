@@ -171,3 +171,15 @@ def test_a_field_the_layout_hides_is_not_sent_in_the_view_models_state(tmp_path)
 
     assert '"salary"' not in load(())
     assert '"salary"' in load(("admin",))
+
+
+@pytest.mark.parametrize("server_side_type", [None, "", "no.such.Type"])
+def test_the_locks_hold_at_the_types_own_route_whatever_type_the_request_names(tmp_path, server_side_type):
+    """GA round 2, J4 / Y3a: the bindings are decided from the type that RUNS (resolved from the
+    route when the request names none, or a name nobody registered), not from the wire name."""
+    h = handler(specs(tmp_path))
+    increment = h.handle(RunActionRq(
+        route="/payroll-code", server_side_type=server_side_type, action_id="pay",
+        component_state={"salary": 999},
+    ))
+    assert " ".join(m.text for m in increment.messages) == "paid 100.0"

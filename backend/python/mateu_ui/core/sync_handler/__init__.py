@@ -599,7 +599,10 @@ class SyncHandler(
                 refusing = self.routes.refusing_by_definition(rq.route, self.mapper.authorized)
             if refusing is not None:
                 action_guard.deny(f"route '{refusing.route}' declares access: not satisfied")
-        foreign = self._foreign_bindings_of(rq.server_side_type, route)
+        # the type that RUNS: the one the request names, else the one its route resolves to —
+        # deciding from the wire name alone let a request naming none (or a garbage name) skip the
+        # union of locks at the bound class's own @ui route (GA round 2, J4 / Y3a)
+        foreign = self._foreign_bindings_of(self._type_that_runs(rq), route)
         if foreign is not None:
             if not any(self.routes.is_reachable(b, self.mapper.authorized) for b in foreign):
                 action_guard.deny(
@@ -653,6 +656,15 @@ class SyncHandler(
             yaml_hidden.set(frozenset(hidden_fields))
         narrowed = self._without_locked(rq, locked)
         return self._without_locked_by_pieces(narrowed, by_pieces) if any_spec else narrowed
+
+    def _type_that_runs(self, rq: RunActionRq) -> str | None:
+        """The view model the request will run: the registered type it names, else the one its
+        route resolves to (Java's ``YamlUidlLoader.typeThatRuns``)."""
+        try:
+            cls = self.registry.resolve(rq.server_side_type, rq.route)
+        except Exception:  # noqa: BLE001 - a lookup failure decides nothing
+            cls = None
+        return type_name(cls) if cls is not None else rq.server_side_type
 
     def _foreign_bindings_of(self, name: str | None, route: str) -> list[str] | None:
         """The authored routes binding view model ``name`` when the request names it at ``route``,
