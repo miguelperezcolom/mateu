@@ -58,6 +58,8 @@ REST APIs directly, as named in the [data source catalogue](/concepts/data-sourc
 - [App Store and Google Play](/deploy/mobile-app-stores/) — making your UI available in the Mateu
   mobile app, or publishing your own branded app.
 - [Standalone desktop app](/mateu-about/standalone-desktop/).
+- [Build a local tool with a UI](/deploy/local-tool/) — "a CLI with a UI": a command starts the app
+  on the user's machine, opens the browser on it, and Quit stops it.
 
 ## Composing several UIs
 

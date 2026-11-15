@@ -1,0 +1,5 @@
+#!/bin/sh
+# Run the tool like any command: put this script (and the jar) on your PATH.
+#   local-tool            inspects the current directory
+#   local-tool ~/Downloads
+exec java -jar "$(dirname "$0")/../target/local-tool.jar" "$@"
