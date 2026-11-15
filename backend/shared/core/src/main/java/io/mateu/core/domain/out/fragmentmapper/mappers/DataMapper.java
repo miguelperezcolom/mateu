@@ -156,6 +156,6 @@ public class DataMapper {
     }
     var serialised =
         (mapper != null ? mapper : FALLBACK_MAPPER).convertValue(value, java.util.Map.class);
-    return FieldAccess.readable(value.getClass(), (Map<String, Object>) serialised, httpRequest);
+    return FieldAccess.readable(value, (Map<String, Object>) serialised, httpRequest);
   }
 }

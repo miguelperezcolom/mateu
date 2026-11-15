@@ -473,6 +473,7 @@ of each type and fail on a placeholder — not a string match on the source.
 | Idle-session warning (countdown, stay / sign out, activity shared across tabs) | ✅ | ✅ | ✅ (IDE activity; one session) | ✅ (touches; background counts as idle) |
 | Row tones (`@RowStatus`) | ✅ | ✅ | — | — |
 | Embedded chrome of a `MicroFrontend` (`chrome` NONE/COMPACT/PAGE: the island sends `embeddedChrome` and drops its own title/favicon/history commands and header) | ✅ | ✅ | ✅ | ✅ |
+| A route clicked inside a `MicroFrontend` of ANOTHER mount of the same app is that mount's (a browser load of it) | ✅ | ✅ | — (not checked; resolved against the host) | — (resolved against the host: "Page not found") |
 | Banner close button and timeout (`@Banner(closeable, timeoutSeconds)` → `BannerDto.hasCloseButton`/`timeoutSeconds`) | ✅ | 🟡 the banners of an embedded island's page; the page header's own banners have neither | ✅ | ✅ |
 | Labels aside (`FormLayoutDto.labelsAside`, inferred or `@FormLayout(labelsAside)`) | ✅ | ✅ (`label-edge="start"`) | ✅ | N/A by design (an outlined field carries its label; see [phone layouts](#react-native-phone-layouts)) |
 | Select a grid row by keyboard (`@OnRowSelected(shortcut)` → `FormFieldDto.rowSelectionShortcut`) | ✅ | ✅ (top row and keypad digits) | — | N/A (no hardware-key model) |

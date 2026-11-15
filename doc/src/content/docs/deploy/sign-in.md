@@ -393,7 +393,9 @@ Set `continue-param=false` when the login page should not receive `continue=`.
 
 ## The framework side
 
-The pages and assets of the UI can stay public — the client needs to load them to show the chooser —
+The pages and assets of the UI can stay public — the client needs to load them to show the chooser,
+and so must the files it reads at boot under the Mateu path: the PWA (`<baseUrl>/mateu/v3/pwa/**`)
+and the UI manifest (`<baseUrl>/mateu/v3/manifest`, where the apps learn how to sign in) —
 while the Mateu API (`<baseUrl>/mateu/v3/**`) requires an authenticated caller and answers **401**
 (not a redirect) to one that is not: that 401 is what makes a client sign in (and, with
 `login-on-start=false`, the only thing that does).
@@ -432,8 +434,8 @@ spring.security.oauth2.client.registration.github.client-secret=${GITHUB_SECRET}
 
 It serves `/oauth2/authorization/<registration>` — exactly the presets' url. After the login Spring
 sends the browser to the last request it REFUSED, and with Mateu that is never a page (the page is
-open) but one of its calls — a sync POST, the PWA manifest: without the request cache below the user
-ends up looking at `/mateu/v3/pwa/manifest.webmanifest?continue` instead of the app. With it the user
+open) but one of its calls — a sync POST: without the request cache below the user ends up looking
+at that call's answer instead of the app. With it the user
 lands on the root (`defaultSuccessUrl` changes it; Spring does not read the `continue=` the client
 adds).
 
@@ -442,7 +444,13 @@ adds).
 ```java
 @Bean
 SecurityFilterChain security(HttpSecurity http) throws Exception {
-  RequestMatcher api = request -> request.getRequestURI().contains("/mateu/v3/");
+  // the Mateu API — but not the files it reads at boot, before anybody signed in (the PWA's
+  // manifest, worker and register script; the UI manifest)
+  RequestMatcher api = request -> {
+    String uri = request.getRequestURI();
+    return uri.contains("/mateu/v3/")
+        && !uri.contains("/mateu/v3/pwa/") && !uri.endsWith("/mateu/v3/manifest");
+  };
   // after the login, back to a page — never to the Mateu call that was refused
   HttpSessionRequestCache pagesOnly = new HttpSessionRequestCache();
   pagesOnly.setRequestMatcher(request -> !api.matches(request));
@@ -473,6 +481,9 @@ quarkus.oidc.auth-server-url=https://sso.example.com/realms/acme
 quarkus.oidc.application-type=service
 quarkus.http.auth.permission.api.paths=/mateu/v3/*
 quarkus.http.auth.permission.api.policy=authenticated
+# read at boot, before anybody signed in: the PWA files and the UI manifest
+quarkus.http.auth.permission.boot.paths=/mateu/v3/pwa/*,/mateu/v3/manifest
+quarkus.http.auth.permission.boot.policy=permit
 ```
 
 Several issuers: OIDC multi-tenancy (`quarkus.oidc.<tenant>.auth-server-url` + a
@@ -598,7 +609,13 @@ server.servlet.session.cookie.same-site=lax
 ```java
 @Bean
 SecurityFilterChain security(HttpSecurity http) throws Exception {
-  RequestMatcher api = request -> request.getRequestURI().contains("/mateu/v3/");
+  // the Mateu API — but not the files it reads at boot, before anybody signed in (the PWA's
+  // manifest, worker and register script; the UI manifest)
+  RequestMatcher api = request -> {
+    String uri = request.getRequestURI();
+    return uri.contains("/mateu/v3/")
+        && !uri.contains("/mateu/v3/pwa/") && !uri.endsWith("/mateu/v3/manifest");
+  };
   // after the login, back to a page — never to the Mateu call that was refused
   HttpSessionRequestCache pagesOnly = new HttpSessionRequestCache();
   pagesOnly.setRequestMatcher(request -> !api.matches(request));

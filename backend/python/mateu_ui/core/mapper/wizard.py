@@ -20,7 +20,7 @@ from mateu_ui.dtos import (
 )
 from mateu_ui.uidl import Draftable, Step
 
-from .. import form_columns_inference, labels_aside_inference
+from .. import form_columns_inference, labels_aside_inference, nested_forms
 from ..naming import (
     camel_case,
     humanize,
@@ -348,6 +348,11 @@ class WizardMapperMixin(MixinBase):
 
         initial: dict[str, Any] = {"__step": current}
         for f, _ in step_fields:
+            # a field hidden from the caller (EyesOnly / Audience) does not leak its value into the
+            # wizard's state either — the rule a form's state follows (GA review 2, .NET D4, the
+            # same gap here); a row cell or a nested value it may not read neither
+            if not self._permitted(f):
+                continue
             # Grid (list-of-rows) fields ride as row dicts and scalars keep their JSON type
             # (numbers/booleans as-is, dates ISO, enums by name — the grid-cell convention), so
             # every step field round-trips through the componentState (Java parity: the wizard
@@ -355,12 +360,16 @@ class WizardMapperMixin(MixinBase):
             row_type = self.grid_row_type(f)
             if row_type is not None:
                 initial[camel_case(f.name)] = [
-                    {camel_case(c.name): _row_cell(getattr(item, c.name, None))
-                     for c in view_fields(row_type)}
+                    {camel_case(c.name): self.readable(_row_cell(getattr(item, c.name, None)))
+                     for c in view_fields(row_type) if self._permitted(c)}
                     for item in (getattr(instance, f.name, None) or [])
                 ]
             else:
-                initial[camel_case(f.name)] = _field_value(getattr(instance, f.name, None))
+                value = getattr(instance, f.name, None)
+                initial[camel_case(f.name)] = (
+                    self.readable(value) if isinstance(value, (list, tuple, set, frozenset, dict))
+                    or nested_forms.is_nested_form_type(type(value)) else _field_value(value)
+                )
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[layout],
             # a wizard is a component tree in Java: the tree envelope's default container style

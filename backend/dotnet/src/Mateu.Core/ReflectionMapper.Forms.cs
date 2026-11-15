@@ -782,7 +782,7 @@ internal sealed partial class ReflectionMapper
             }
             data[Naming.CamelCase(p.Name)] = GridRowType(p) is { } rowType
                 ? GridRows(p, rowType, instance)
-                : InitialValueOf(p.GetValue(instance));
+                : InitialValueOf(ReadableValues.Of(p.GetValue(instance)));
         }
         return data;
     }

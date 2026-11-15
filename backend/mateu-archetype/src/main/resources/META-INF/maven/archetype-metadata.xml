@@ -7,6 +7,11 @@
                       xsi:schemaLocation="https://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.1.0 https://maven.apache.org/xsd/archetype-descriptor-1.1.0.xsd"
                       name="mateu-archetype">
   <requiredProperties>
+    <!-- The generated project's own version: what -Dversion asks for, else the starters' (and the IDE
+         generators') 1.0.0-SNAPSHOT instead of the archetype plugin's 1.0-SNAPSHOT. -->
+    <requiredProperty key="version">
+      <defaultValue>1.0.0-SNAPSHOT</defaultValue>
+    </requiredProperty>
     <!-- code: @UI classes on Spring Boot (MVC) · yaml: no UI code, specs/ui served by Spring Boot ·
          static: specs/ui bundled into static files, no backend -->
     <requiredProperty key="authoring">

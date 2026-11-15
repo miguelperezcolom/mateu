@@ -14,15 +14,17 @@ export interface RenderFailureTexts {
   title: string;
   detail: string;
   retry: string;
+  /** The overlay fallback's second button: closing the drawer/dialog that failed to draw. */
+  close: string;
 }
 
 const TEXTS: Record<ChromeLanguage, RenderFailureTexts> = {
-  en: { title: 'This part could not be shown', detail: 'Something on this screen could not be drawn.', retry: 'Try again' },
-  es: { title: 'No se ha podido mostrar esta parte', detail: 'Algo de esta pantalla no se ha podido dibujar.', retry: 'Reintentar' },
-  fr: { title: "Cette partie n'a pas pu être affichée", detail: "Un élément de cet écran n'a pas pu être dessiné.", retry: 'Réessayer' },
-  de: { title: 'Dieser Teil konnte nicht angezeigt werden', detail: 'Etwas auf diesem Bildschirm konnte nicht dargestellt werden.', retry: 'Erneut versuchen' },
-  pt: { title: 'Não foi possível mostrar esta parte', detail: 'Algo neste ecrã não pôde ser desenhado.', retry: 'Tentar novamente' },
-  it: { title: 'Impossibile mostrare questa parte', detail: 'Qualcosa in questa schermata non è stato disegnato.', retry: 'Riprova' },
+  en: { title: 'This part could not be shown', detail: 'Something on this screen could not be drawn.', retry: 'Try again', close: 'Close' },
+  es: { title: 'No se ha podido mostrar esta parte', detail: 'Algo de esta pantalla no se ha podido dibujar.', retry: 'Reintentar', close: 'Cerrar' },
+  fr: { title: "Cette partie n'a pas pu être affichée", detail: "Un élément de cet écran n'a pas pu être dessiné.", retry: 'Réessayer', close: 'Fermer' },
+  de: { title: 'Dieser Teil konnte nicht angezeigt werden', detail: 'Etwas auf diesem Bildschirm konnte nicht dargestellt werden.', retry: 'Erneut versuchen', close: 'Schließen' },
+  pt: { title: 'Não foi possível mostrar esta parte', detail: 'Algo neste ecrã não pôde ser desenhado.', retry: 'Tentar novamente', close: 'Fechar' },
+  it: { title: 'Impossibile mostrare questa parte', detail: 'Qualcosa in questa schermata non è stato disegnato.', retry: 'Riprova', close: 'Chiudi' },
 };
 
 /** The texts of a render failure in the UI's chrome language. */

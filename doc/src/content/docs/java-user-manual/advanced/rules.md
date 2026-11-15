@@ -149,7 +149,7 @@ Rules compose naturally:
 
 ```java
 public record Grupo(
-    @NotEmpty String id,
+    @EditableOnlyWhenCreating @NotEmpty String id,
     @NotEmpty String nombre,
     @Status(defaultStatus = StatusType.NONE, mappings = {
         @StatusMapping(from = "si", to = StatusType.SUCCESS),
@@ -169,6 +169,9 @@ public record Grupo(
 - `email` is only visible when `nombre` has a value
 - `status` shows as a colored badge
 - `main` shows as `si!!!` or `no!!!!` in the UI
+- `id` is typed by the user on **New** and read-only afterwards (`@EditableOnlyWhenCreating`); without
+  it the id is technical and the store must assign it — see
+  [Who assigns the id](/java-user-manual/build/entity-interfaces/#who-assigns-the-id)
 
 ---
 

@@ -23,9 +23,10 @@ final class FormViewSerializer {
         .forEach(field -> map.remove(field.getName()));
     // ...and so are the dependencies the view HOLDS — an injected field, or a final one typed by
     // an interface or abstract class (a service, a store port): Jackson serialised them through the
-    // view's getters, sending the bean's readable properties to the browser (GA round 2, J3). A
-    // final field of a concrete type stays: an immutable entity's constructor reads it back from
-    // this map (a crud save's baseline), and the client can no longer write it either way.
+    // view's getters, sending the bean's readable properties to the browser (GA round 2, J3); so
+    // is a final field of a concrete bean type, or any final object field of a routed view (see
+    // isHeldDependency). Another final field of a concrete type stays: an immutable entity's
+    // constructor reads it back from this map (a crud save's baseline).
     getAllFields(instance.getClass()).stream()
         .filter(field -> isHeldDependency(instance.getClass(), field))
         .forEach(field -> map.remove(field.getName()));
@@ -89,15 +90,99 @@ final class FormViewSerializer {
    * A dependency the view HOLDS rather than state it carries — an injected field, or a final one
    * typed by an interface or abstract class (a service, a store port): Jackson serialised them
    * through the view's getters, sending the bean's readable properties to the browser (GA round 2,
-   * J3). A final field of a concrete type stays: an immutable entity's constructor reads it back
-   * from this map (a crud save's baseline), and the client can no longer write it either way.
+   * J3) — and a final field of a concrete bean type, or any final object field of a routed view
+   * ({@link #holdsAConcreteBean}). Any other final field of a concrete type stays: an immutable
+   * entity's constructor reads it back from this map (a crud save's baseline), and the client can
+   * no longer write it either way.
    */
   static boolean isHeldDependency(Class<?> owner, java.lang.reflect.Field field) {
     if (owner.isRecord() || Modifier.isStatic(field.getModifiers())) {
       return false;
     }
     return io.mateu.core.application.security.WireTypes.isInjected(field)
-        || (Modifier.isFinal(field.getModifiers()) && holdsAnObject(field));
+        || (Modifier.isFinal(field.getModifiers())
+            && (holdsAnObject(field) || holdsAConcreteBean(owner, field)));
+  }
+
+  /**
+   * A final field of a CONCRETE class that is a dependency, not a value: the constructor-injection
+   * idiom ({@code private final OrderService service} + Lombok {@code @Getter}) sent the service's
+   * readable properties to the browser (GA round 2, J3 read side, still open on rc.1). It is one
+   * when the field's type carries a bean stereotype or scope (Spring
+   * {@code @Service}/{@code @Component}/{@code @Repository}…, CDI/Micronaut scopes, {@code @Named},
+   * {@code @Singleton}, {@code @ConfigurationProperties}, directly or as a meta-annotation), or
+   * when the field lives in a ROUTED view ({@code @UI}): Mateu builds a view per request from its
+   * constructor and initialisers, never from this map, so a final field of a view never needs to
+   * travel — whereas an immutable entity's final value objects do (a crud save rebuilds it from its
+   * map).
+   */
+  private static boolean holdsAConcreteBean(Class<?> owner, java.lang.reflect.Field field) {
+    var type = field.getType();
+    if (type.isInterface()
+        || type.isPrimitive()
+        || type.isRecord()
+        || isBasic(type)
+        || type.isEnum()
+        || type.isArray()
+        || Collection.class.isAssignableFrom(type)
+        || Map.class.isAssignableFrom(type)
+        || isNonDataHolder(field)) {
+      return false;
+    }
+    return owner.isAnnotationPresent(io.mateu.uidl.annotations.UI.class) || BEAN_TYPES.get(type);
+  }
+
+  /** Simple names of the annotations that make a class a container-managed bean. */
+  private static final java.util.Set<String> BEAN_ANNOTATIONS =
+      java.util.Set.of(
+          "Component",
+          "Service",
+          "Repository",
+          "Controller",
+          "RestController",
+          "Configuration",
+          "ConfigurationProperties",
+          "Named",
+          "Singleton",
+          "ApplicationScoped",
+          "RequestScoped",
+          "SessionScoped",
+          "Dependent",
+          "Prototype",
+          "Context",
+          "Bean",
+          "Factory",
+          "Stateless",
+          "Stateful");
+
+  private static final ClassValue<Boolean> BEAN_TYPES =
+      new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> type) {
+          for (var c = type; c != null && c != Object.class; c = c.getSuperclass()) {
+            if (annotatedAsBean(c, new java.util.HashSet<>())) {
+              return true;
+            }
+          }
+          return false;
+        }
+      };
+
+  private static boolean annotatedAsBean(
+      java.lang.reflect.AnnotatedElement element, java.util.Set<Class<?>> seen) {
+    for (var annotation : element.getAnnotations()) {
+      var annotationType = annotation.annotationType();
+      if (BEAN_ANNOTATIONS.contains(annotationType.getSimpleName())) {
+        return true;
+      }
+      var name = annotationType.getName();
+      if (!name.startsWith("java.")
+          && seen.add(annotationType)
+          && annotatedAsBean(annotationType, seen)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** A field typed by an interface or abstract class that is not a value, a collection or a map. */

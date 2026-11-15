@@ -23,8 +23,29 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   IntelliJ / VS Code "New › Mateu" page templates. Demo: `demo-museum` `visit-booked` and `sign-in`.
   Docs `ux-patterns/message-page.md`.
 
+### Fixed — rc.2 web
+
+- A non-root YAML mount keeps its address on Vaadin: a reload no longer lands in another app.
+- The route-structure cache starts empty on a document reached by a plain navigation (a cookie
+  sign-out + sign-in in the same tab painted the previous user's composed values).
+- The visual editor never writes an empty `layout:` over a `layoutDelta:` page it could not
+  hydrate, and editing an anchored node used elsewhere keeps the file's comments.
+- Redwood: a response body that stalls past the ceiling is a timeout (retried for reads, reported);
+  app header actions are sent once however often they are pressed; group rows of a date/amount
+  column are not blank (the audit History dialog).
+- A same-mount micro frontend under a public base path is recognised as the page's own mount.
+
 ### Security
 
+- **A screen an agent wrote loads nothing by itself** (GA review 2, C2). On top of what the
+  untrusted strip already took out (script, triggers, `restAction`), an agent-pushed or
+  chat-rendered screen keeps an inline REST source (`rowsSource`, `optionsSource`, any `…Source`)
+  only as its catalogue `ref`, fetched by GET, loses its own `restSources` catalogue, loads images
+  only from this server or a `data:` url, and has every style that could fetch (`url(`,
+  `image-set(`, a CSS escape…) blanked. Java, .NET, Python, libs/mateu and Redwood, pinned by
+  `conformance/untrusted/cases.json`.
+- **The visual editor's canvases take messages only from the editor's origin**, and the IntelliJ
+  editor page keeps a nonce Content-Security-Policy instead of none (GA review 2, N-5, N-13).
 - **Licence notices travel with every artifact.** Every jar carries `META-INF/LICENSE.txt` and
   `NOTICE`; the web renderer bundle (the `io.mateu:mateu-vaadin` jar, the `mateu-vaadin` npm package,
   the static sites) and the visual editor embedded in the IDE plugins carry `THIRD-PARTY-LICENSES.txt`
@@ -50,6 +71,57 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
     creation; in .NET a posted id no longer redirects a capability save, and a crud save at a route
     naming no stored record is refused instead of inserted.
   The Python and C# manuals and the AI skills now show stores that assign their ids.
+
+### Changed — limits and inert buttons (since 3.0-beta.65)
+
+- **A listing page holds at most `mateu.listing.max-page-size` rows (default 500).** A search or an
+  export asking for more gets that many; a size of 0 or less means the maximum; a negative page is
+  page 0; a sort or a filter by a field the caller may not read is dropped (Java; the ports cap the
+  size the same way).
+- **Idempotency keys are shared out per caller.** One caller holds at most
+  `mateu.idempotency.max-entries-per-caller` (default 100) of the remembered answers
+  (`mateu.idempotency.max-entries`, default 2000, in all); beyond that a NEW key is refused with
+  "Too many pending requests". A key sent again with a different request body is refused
+  ("Idempotency key reused") instead of answering the first request's result. The handling runs
+  detached: a client that leaves neither stops the action nor frees its key.
+- **An upload ticket sends a bounded number of files**: 10 for a single-file field (a replaced file
+  counts), `mateu.uploads.max-files-per-ticket` (default 100) for a multiple one; beyond that the
+  upload endpoint answers 429 "Too many uploads". The count is a bound on one ticket, not a storage
+  quota: a quota belongs to the app's `FileStorage`.
+- **A YAML `Button` with no `actionId` and no `actionable` is inert** (.NET, Python, the browser
+  expander and Java alike): it dispatches nothing, where it used to send an id made from its label
+  that no handler claimed. The Java fluent `Button` keeps its label→id convention.
+
+### Fixed — npm publishing
+
+- **`mateu-vaadin` was never published at a 3.0 version.** The release workflow built and packed it
+  at every release since 3.0-beta.58 but skipped the publish for lack of an `NPM_TOKEN` secret,
+  behind a notice: the registry still ends at `0.0.15`. The publish job now also takes npm trusted
+  publishing (repository variable `NPM_TRUSTED_PUBLISHING=true`, preferred), says a skipped publish
+  as a warning, and checks that the version is on npm after publishing. The docs no longer promise
+  the npm package until a 3.0 version is there (`embedded-ui.md`). The client library `mateu`
+  (libs/mateu) is not an npm package: it is bundled inside `mateu-vaadin`.
+
+### Fixed — Figma
+
+- **A text that looks like a number, a time or a date is written quoted** (`1.`, `+.inf`, `0b101`,
+  `12:30`, `2026-11-13`): Java read `1.` as `1.0` and failed the page on `+.inf`, Python read `12:30`
+  as 750. Slugs keep the combining marks of Thai, Devanagari… and a long frame name is cut (it
+  crashed the CLI). Mateu Publish offers — never applies — the original's site to a duplicated or
+  renamed file, and its chunked settings are written atomically.
+
+### Fixed — React Native
+
+- **The overlay fallback's "Close" speaks the UI's language** (`renderFailure.ts` gained `close` in
+  the six chrome languages; the drawer/dialog that failed to draw said "Reintentar" beside "Close").
+
+### Upgrade note — Android APK from the GitHub releases
+
+- **An APK installed from the GitHub releases page before 3.0-beta.65 must be reinstalled once
+  from the releases page.** Those binaries listen on the `production` update channel, so after an
+  over-the-air update their "Update Mateu" opens Google Play instead of the releases page; no update
+  can reach them to change that. An APK from 3.0-beta.65 on (and every store install) is not
+  affected.
 
 ### Security — Python and .NET ports
 

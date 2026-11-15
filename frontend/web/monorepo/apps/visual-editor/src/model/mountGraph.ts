@@ -2,6 +2,7 @@ import { parseSpec } from './specYaml'
 import type { ProjectFile } from './projectIndex'
 import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
 import { isMountYaml } from './mountModel'
+import { environmentName, parseTranslationsFile } from './translationsModel'
 
 /**
  * The mount as a MAP of screens: one node per route, and an arrow wherever a screen can take you to
@@ -77,7 +78,7 @@ export function buildMountGraph(files: ProjectFile[]): MountGraph {
 
 type RouteRows = ReturnType<typeof flattenRoutes>
 
-/** The mount's route table (flattened) and its other files parsed, by path — sources, the action catalogue and the mount descriptor left out. */
+/** The mount's route table (flattened) and its other files parsed, by path — every authored kind that is not a page (sources, actions, project settings, types, translations, environments, the component catalogue) and the mount descriptor left out. */
 function readMount(files: ProjectFile[]): { byPath: Map<string, unknown>; routeRows: RouteRows } {
     const byPath = new Map<string, unknown>()
     const routeRows: RouteRows = []
@@ -86,7 +87,7 @@ function readMount(files: ProjectFile[]): { byPath: Map<string, unknown>; routeR
         if (!path || isMountYaml(f.content)) continue
         if (isRoutesYaml(f.content)) { routeRows.push(...flattenRoutes(parseRoutes(f.content).routes)); continue }
         const parsed = parseObject(f.content)
-        if (parsed && !isSourcesDoc(parsed) && parsed.type !== 'Actions') byPath.set(path, parsed)
+        if (parsed && !isNotAPage(path, f.content, parsed)) byPath.set(path, parsed)
     }
     return { byPath, routeRows }
 }
@@ -102,6 +103,16 @@ function parseObject(text: string): Record<string, unknown> | undefined {
 
 function isSourcesDoc(o: Record<string, unknown>): boolean {
     return o.type === 'Sources' || (!o.type && Array.isArray(o.sources))
+}
+
+/** The authored kinds under specs/ui that are settings or catalogues, never a screen of the mount. */
+const NOT_PAGE_TYPES = new Set(['Sources', 'Actions', 'Project', 'Types', 'Components', 'Translations', 'Environment'])
+
+/** Whether a file is one of those kinds — by its `type:`, or by the shape/folder an untyped one is recognised by. */
+function isNotAPage(path: string, content: string, o: Record<string, unknown>): boolean {
+    if (typeof o.type === 'string') return NOT_PAGE_TYPES.has(o.type)
+    if (isSourcesDoc(o) || Array.isArray(o.types) || Array.isArray(o.components)) return true
+    return !!parseTranslationsFile(path, content) || !!environmentName(path, content)
 }
 
 /** A screen per route (the first entry wins for a route listed twice), then the pages no route serves. */

@@ -159,7 +159,7 @@ Redwood web, **RN** = React Native, **D** = Desktop.
 | **1.2.5 Audio Description (Prerecorded)** | N/A | N/A | N/A | N/A | No media components. |
 | **1.3.4 Orientation** | S | S | S | S | No renderer locks orientation (the mobile app declares `orientation: default`); phone widths switch to a one-column layout. |
 | **1.3.5 Identify Input Purpose** | S | P | P | N/A | A field declares its purpose with `@Autocomplete("given-name")` (.NET `[Autocomplete]`, Python `Autocomplete()`, YAML/fluent `FormField.autocomplete`); an editable email field gets `email` without it. The token travels as `FormFieldDto.autocomplete` from all three backends and the browser expander. Vaadin: on the text, email, password, textarea and number fields [unit]. Redwood: copied from the host's `data-autocomplete` onto the native input (`installInputPurpose`) — tested on a fake DOM, not in a live page. React Native: `autoComplete` + iOS `textContentType` (mapping tested; not run on a device). Other purposes are the author's to declare. Desktop: no platform equivalent. |
-| **1.4.3 Contrast (Minimum)** | S | S | P | P | Web: axe measures contrast on every gated route with 0 violations [axe]; Redwood's dark-header actions were fixed from 1.33:1 to the inverse text colour [axe]. RN: colours come from Material 3 tonal tokens (light and dark) but are not measured by a tool. Desktop: the IDE theme draws most text; Mateu's own tones (status chips) are not measured. Colours the author sets (`@Style`, badge colours, `Element` content) are the author's. |
+| **1.4.3 Contrast (Minimum)** | P | P | P | P | Web: axe measures contrast on every gated route with 0 violations [axe], but the Explorer pass still finds the contrast failures listed in [Known gaps](#known-gaps-in-one-list) (item 6); Redwood's dark-header actions were fixed from 1.33:1 to the inverse text colour [axe]. RN: colours come from Material 3 tonal tokens (light and dark) but are not measured by a tool. Desktop: the IDE theme draws most text; Mateu's own tones (status chips) are not measured. Colours the author sets (`@Style`, badge colours, `Element` content) are the author's. |
 | **1.4.4 Resize Text** | S | S | S | P | Web: rem-based themes, browser zoom to 200 % works. RN: system font scaling is not disabled anywhere. Desktop: follows the IDE's font settings; fixed-size Swing panels were not tested at large sizes. |
 | **1.4.5 Images of Text** | S | S | S | S | Mateu renders text as text. |
 | **1.4.10 Reflow** | P | P | S | N/A | Forms, shells and listings adapt to narrow widths (zone columns wrap below 20rem, the listing box no longer forces 30rem). Data grids, gantt, planning boards and matrix grids scroll horizontally — allowed for two-dimensional content. **Not measured** at 320 CSS px. Desktop: window-based, not web reflow. |
@@ -206,10 +206,11 @@ What Mateu can change and has not, at this version:
      on `mateu-rich-text-field`, `link-in-text-block`, the foldout page's `aria-allowed-attr` and
      target size;
    - contrast below 4.5:1 on the record-merge "(empty)" text, the form editor's type badge, the
-     task-queue chip and the calendar's day label;
-   - Vaadin: the `VirtualList` scrollable region has no tab stop, a `@TitlePlaceholder` page with
-     no title leaves `document.title` empty, and the item overview's photo (`TemplateImage`) has no
-     alt text to give its `<img>`.
+     task-queue chip and the calendar's day label, and on the calendar page's clickable event chip
+     (Vaadin, 3.73:1) and event time (Redwood, 2.71:1);
+   - Vaadin: the `VirtualList` scrollable region has no tab stop, and a `@TitlePlaceholder` page
+     with no title leaves `document.title` empty. (The item overview's photo now has alt text:
+     `TemplateImage.alt`, defaulting to the page title.)
 
 And two that only upstream can change: the `vaadin-tabs` and `oj-navigation-list` role-children
 findings (4.1.2).

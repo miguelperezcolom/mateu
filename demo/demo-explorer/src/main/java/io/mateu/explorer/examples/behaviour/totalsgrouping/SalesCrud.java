@@ -78,7 +78,10 @@ public class SalesCrud extends AutoCrud<SalesCrud.Sale> {
 
       @Override
       public String save(Sale sale) {
-        SALES.replaceAll(s -> s.id.equals(sale.id) ? sale : s);
+        // the store assigns the id of a NEW sale (the create form does not ask for it)
+        if (sale.id == null || sale.id.isBlank()) sale.id = "S-" + java.util.UUID.randomUUID().toString().substring(0, 8);
+        if (findById(sale.id).isPresent()) SALES.replaceAll(s -> s.id.equals(sale.id) ? sale : s);
+        else SALES.add(sale);
         return sale.id;
       }
 

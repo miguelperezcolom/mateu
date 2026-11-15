@@ -11,7 +11,13 @@
 //  - a javascript:/vbscript: url anywhere is blanked;
 //  - nothing runs without a click and nothing posts elsewhere: triggers are emptied and no
 //    restAction is kept;
-//  - a MicroFrontend does not load from another server (its absolute baseUrl is dropped).
+//  - a MicroFrontend does not load from another server (its absolute baseUrl is dropped);
+//  - nothing loads by itself from elsewhere (GA review 2, C2): an inline REST source (any
+//    `…Source`) keeps only its catalogue ref and fetches by GET — without a ref it goes —, the
+//    answer's own restSources catalogue goes, an image (src, srcset, image, avatar, logo, favicon,
+//    tileUrl, poster, background, xlink:href) loads only from this server or a data: url, and a
+//    style that could load something (url(, image(, image-set(, cross-fade(, src(, a CSS escape) is
+//    blanked — a style rule computed by an expression goes too.
 // The backend applies the same rules (`__preview__` with `_untrusted`); this is the renderer's own
 // line for an older backend. Works on wire JSON and returns a sanitised COPY.
 // (Every top-level name is prefixed: make-amd.mjs puts all modules in ONE scope.)
@@ -22,6 +28,10 @@ const UNTRUSTED_URL_ATTRIBUTES = new Set(['href', 'src', 'xlink:href', 'action',
   'data', 'cite', 'ping', 'srcset', 'manifest', 'codebase', 'longdesc', 'usemap', 'icon'])
 const UNTRUSTED_SAFE_SCHEMES = new Set(['http', 'https', 'mailto', 'tel'])
 const UNTRUSTED_CODE_COMMANDS = new Set(['AddContentToHead', 'AddContentToBody'])
+const UNTRUSTED_LOADING_KEYS = new Set(['src', 'srcset', 'image', 'avatar', 'logo', 'favicon', 'tileurl', 'poster',
+  'background', 'xlink:href'])
+const UNTRUSTED_LOADING_CSS = ['url(', 'image(', 'image-set(', 'cross-fade(', 'src(', '\\']
+const UNTRUSTED_SOURCE_REQUEST_KEYS = new Set(['url', 'method', 'headers', 'body', 'proxy'])
 
 // eslint-disable-next-line no-control-regex
 const untrustedCleanedUrl = (value) => value.replace(/[\t\n\r]/g, '').replace(/^[\u0000- ]+/, '')
@@ -42,8 +52,38 @@ const untrustedSafeUrl = (value) => {
 const untrustedAbsoluteUrl = (value) =>
   !!untrustedSchemeOf(value) || untrustedCleanedUrl(value).replace(/\\/g, '/').startsWith('//')
 const untrustedIsObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v)
+// a url the browser would fetch from elsewhere: any scheme but data:, or //host (a backslash spelling
+// included); a srcset lists several, so any scheme, // or backslash in it counts
+const untrustedLoadsFromElsewhere = (key, value) => {
+  if (key === 'srcset') return /[:\\]|\/\//.test(value)
+  const scheme = untrustedSchemeOf(value)
+  return scheme ? scheme !== 'data' : untrustedCleanedUrl(value).replace(/\\/g, '/').startsWith('//')
+}
+export const isUntrustedLoadingStyle = (value) => {
+  const lower = value.toLowerCase()
+  return UNTRUSTED_LOADING_CSS.some((f) => lower.includes(f))
+}
+// a rule that sets a style the strip cannot check (an expression) or one that could fetch
+const untrustedLoadingStyleRule = (v) => {
+  const setsStyle = v.action === 'SetStyle' || (v.action === 'SetAttributeValue' && v.fieldAttribute === 'style')
+  if (!setsStyle) return false
+  if (typeof v.expression === 'string' && v.expression.trim() !== '') return true
+  return typeof v.value === 'string' && isUntrustedLoadingStyle(v.value)
+}
 const untrustedIsCode = (v) =>
-  untrustedIsObject(v) && (v.action === 'RunJS' || (typeof v.type === 'string' && UNTRUSTED_CODE_COMMANDS.has(v.type)))
+  untrustedIsObject(v) && (v.action === 'RunJS' || (typeof v.type === 'string' && UNTRUSTED_CODE_COMMANDS.has(v.type))
+    || untrustedLoadingStyleRule(v))
+// an inline REST source as an untrusted screen may keep it: its catalogue ref, fetched by GET, and
+// how to read the answer; nothing of where it goes or what it sends (undefined: it goes)
+function untrustedSource(value) {
+  if (typeof value.ref !== 'string' || value.ref.trim() === '') return undefined
+  const out = {}
+  for (const [key, v] of Object.entries(value)) {
+    if (!UNTRUSTED_SOURCE_REQUEST_KEYS.has(key)) out[key] = untrustedWalk(v)
+  }
+  return { ...out, method: 'GET' }
+}
+const untrustedIsSourceKey = (key) => key.length > 'Source'.length && key.endsWith('Source')
 
 function untrustedElement(node) {
   const name = typeof node.name === 'string' ? node.name.trim().toLowerCase() : ''
@@ -72,7 +112,18 @@ function untrustedWalk(value) {
   }
   const out = {}
   for (const [key, v] of Object.entries(node)) {
-    if ((key === 'js' && typeof v === 'string') || key === 'restAction') continue
+    if ((key === 'js' && typeof v === 'string') || key === 'restAction' || key === 'restSources') continue
+    if (untrustedIsSourceKey(key) && untrustedIsObject(v)) {
+      const kept = untrustedSource(v)
+      if (kept) out[key] = kept
+      continue
+    }
+    const k = key.toLowerCase()
+    if (typeof v === 'string' && ((UNTRUSTED_LOADING_KEYS.has(k) && untrustedLoadsFromElsewhere(k, v))
+      || (k.endsWith('style') && isUntrustedLoadingStyle(v)))) {
+      out[key] = ''
+      continue
+    }
     // nothing runs without a click: an OnLoad/OnValueChange/AutoSave trigger fires by itself
     out[key] = key === 'triggers' && Array.isArray(v) ? [] : untrustedWalk(v)
   }

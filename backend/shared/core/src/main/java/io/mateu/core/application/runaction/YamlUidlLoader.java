@@ -557,8 +557,18 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
     var table = routeRegistry.authored();
     if (path == null
         || path.isEmpty()
-        || table.routes().stream().noneMatch(io.mateu.uidl.data.RouteEntry::restrictsAccess)
-        || table.match(path).isPresent()) {
+        || table.routes().stream().noneMatch(io.mateu.uidl.data.RouteEntry::restrictsAccess)) {
+      return null;
+    }
+    // an authored entry that NAMES its layout is served from that file, not by convention: its own
+    // access: (checked by the caller) is the one that holds. An entry WITHOUT a layout (pages/:name
+    // + viewModel:) is still served by convention from specs/ui/<path>.yaml — which may be the
+    // layout of a restricted route (GA round 2, J1 residual on rc.1), so it does not stand down.
+    if (table
+        .match(path)
+        .map(match -> match.entry().definition())
+        .filter(definition -> definition != null && !definition.isBlank())
+        .isPresent()) {
       return null;
     }
     var served = canonicalFile("specs/ui/" + path + ".yaml");

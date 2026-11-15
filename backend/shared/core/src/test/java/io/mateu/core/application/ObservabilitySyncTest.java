@@ -184,6 +184,8 @@ class ObservabilitySyncTest {
 
   @BeforeEach
   void clear() {
+    // the series cap is per process and every other suite fills it: start from an empty table
+    io.mateu.core.infra.observability.TelemetryTestSupport.resetSeries();
     EVENTS.clear();
     SPANS.reset();
     ITEMS.clear();
