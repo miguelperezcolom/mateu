@@ -60,6 +60,17 @@ content page and it runs the same action chains, so a screen looks and behaves t
 </dependency>
 ```
 
+It replaces `mateu-vaadin`; the screens stay the same. The renderer's files are on the classpath
+under `static/_redwood/` and are requested at `/_redwood/*`. Spring Boot, Quarkus and Micronaut
+serve them with the setup their starters already have. **Helidon MP** maps one static folder in
+`microprofile-config.properties`, so point it at Redwood's instead of `/assets` (see
+[Helidon MP](/java-create-your-project/helidon/)):
+
+```properties
+server.static.classpath.context=/_redwood
+server.static.classpath.location=/static/_redwood
+```
+
 ## Embed Mateu screens in an existing Visual Builder app
 
 Use this when the shell already exists — a Fusion extension, a VB app your team owns — and some of
