@@ -86,8 +86,29 @@ jobs:
         run: cd frontend/app/intellij-plugin && sed -i 's/^version = ".*"/version = "'"$INTELLIJ_VERSION"'"/' build.gradle.kts
       # Never publish what the Plugin Verifier rejects (compatibility with the IDE lines listed in
       # build.gradle.kts pluginVerification, internal or removed API usage, descriptor problems).
+      # The same transient `ClosedFileSystemException` (IntelliJ's plugin-structure reader on a zip
+      # filesystem Gradle closed) hits here too, while resolving the IDE's bundled plugins — it shows
+      # up as "Could not find bundled plugin with ID: 'com.intellij.java'" (v3.0-rc.2 failed twice on
+      # it). Retry ONLY that failure, with a fresh daemon; a real test or verifier failure fails at once.
       - name: Verify the plugin
-        run: cd frontend/app/intellij-plugin && ./gradlew test verifyPlugin --no-daemon --console=plain
+        run: |
+          cd frontend/app/intellij-plugin
+          for attempt in 1 2 3; do
+            echo "::group::test verifyPlugin attempt $attempt"
+            set +e
+            ./gradlew test verifyPlugin --no-daemon --console=plain 2>&1 | tee /tmp/verify.log
+            rc=${PIPESTATUS[0]}
+            set -e
+            echo "::endgroup::"
+            [ "$rc" = "0" ] && exit 0
+            if ! grep -qE "ClosedFileSystemException|Could not find bundled plugin with ID" /tmp/verify.log; then
+              echo "test/verifyPlugin failed (not the transient zip-filesystem error) — not retrying."; exit "$rc"
+            fi
+            echo "attempt $attempt hit the transient zip-filesystem error; stopping the daemon and retrying…"
+            ./gradlew --stop || true
+            sleep 15
+          done
+          echo "test/verifyPlugin failed after 3 attempts."; exit 1
       # `publishPlugin` intermittently dies with a transient Gradle `ClosedFileSystemException` during
       # the build phase (before the upload), so retry a few times — with a fresh daemon each attempt —
       # instead of needing a manual re-run. If a prior attempt actually uploaded (so the marketplace
