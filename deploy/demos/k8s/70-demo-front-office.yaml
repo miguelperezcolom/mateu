@@ -10,6 +10,9 @@ metadata:
   labels: { app: demo-front-office }
 spec:
   replicas: 1
+  # the nodes' memory requests sit at 93-97%: a surge pod cannot be scheduled, so replace in place
+  strategy:
+    rollingUpdate: { maxSurge: 0, maxUnavailable: 1 }
   selector:
     matchLabels: { app: demo-front-office }
   template:
@@ -26,7 +29,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: app
-          image: miguelperezcolom/demo-front-office:3.0-beta.64-20261113
+          image: miguelperezcolom/demo-front-office:3.0.0-20261115
           env:
             - { name: SERVER_PORT, value: "8594" }
             - { name: SPRING_H2_CONSOLE_ENABLED, value: "false" }
