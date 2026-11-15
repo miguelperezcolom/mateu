@@ -298,6 +298,10 @@ The three approaches are the same model at three altitudes:
 - **`AutoCrud<T>`** — when a single entity backed by a `CrudStore` is the right model for every screen. Fastest path to a full CRUD; subtract what you don't want.
 - **`Crud`** — when the view, editor, creation form, filters, and rows must be genuinely different types.
 
+Not sure which one? [Customise each screen](/java-user-manual/build/customizing-crud-and-listings/#5-customise-each-screen-creation-form-detail-editor) walks the same CRUD through the three levels —
+annotations per screen, `creationForm`/`view`/`edit` overrides, and a class per screen with `Crud` or
+these capabilities — with a decision table.
+
 ---
 
 ## Also on `Listing`

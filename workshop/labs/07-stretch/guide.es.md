@@ -48,3 +48,8 @@ MCP, para que un agente maneje las UIs que tienes abiertas en ella.
 Despliega el `target/mateu-bundle` del lab 04 en cualquier hosting estático con https (Netlify drop,
 GitHub Pages con fallback de SPA, S3…) y añade su dirección en la app Mateu: el móvil dibuja la misma
 UI estática de forma nativa. (La app de escritorio no abre bundles estáticos.)
+
+## G. Cada pantalla del CRUD, la suya
+
+Haz que el alta, el detalle y el editor de Products muestren campos distintos, y que el alta empiece
+rellena: [lab 08](../08-crud-screens/guide.es.md) (20′, desde la solución del lab 03).

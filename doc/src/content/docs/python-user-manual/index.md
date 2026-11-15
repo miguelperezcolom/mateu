@@ -391,6 +391,144 @@ list on the left, the selected item's detail re-rendered in place on the right) 
 `GeneralOverview` (a record context switcher over the selected record's overview). Both are built
 on the fluent `FormField` primitive — a live field you can compose into any fluent tree.
 
+## Customise each screen: creation form, detail, editor
+
+A crud is four screens — the listing (`/customers`), the creation form (`/customers/new`), the
+record's read-only detail (`/customers/C-001`) and the editor (`/customers/C-001/edit`) — and by
+default they all show the entity's fields. Java has three levels to make them differ; this port has
+two of them:
+
+| You want… | Level | How in Python |
+|---|---|---|
+| A field not shown on one screen | 1 | `HiddenInCreate()`, `HiddenInView()`, `HiddenInEditor()`, `HiddenInList()` in the `Annotated[...]` |
+| A code the user types once, then never changes | 1 | `EditableOnlyWhenCreating()` |
+| A field shown but never typed (set by the store) | 1 | `ReadOnly()` (+ `HiddenInCreate()` when New should not show it) |
+| A field only some users may change, or see | 1 | `ReadOnlyUnless(roles=[…])`, `EyesOnly(roles=[…])` |
+| No New, no Edit | 1 | override `can_create()` / `can_edit()`, or `display()` |
+| New starts filled in | 2 | the entity's **class defaults** — see below |
+| A value computed when a record is opened | 2 | override `get(id)` — it serves the detail **and** the editor |
+| Different classes per screen | 3 | `Listing[Row]` + `Navigable` / `Editable` / `Creatable` / `Deletable` |
+
+**Level 1 — same fields, different per screen:**
+
+```python
+from datetime import date
+from typing import Annotated
+
+from mateu_ui.uidl import (Crud, EditableOnlyWhenCreating, HiddenInCreate, HiddenInEditor,
+                           HiddenInList, HiddenInView, ReadOnly, ReadOnlyUnless, Required, title, ui)
+
+
+class Customer:
+    id: Annotated[str, Required(), EditableOnlyWhenCreating()] = ""   # typed on New, read-only afterwards
+    name: Annotated[str, Required()] = ""
+    email: str = ""
+    customer_since: Annotated[str, HiddenInCreate(), ReadOnly()] = ""  # set by the store, never typed
+    internal_notes: Annotated[str, HiddenInList(), HiddenInView()] = ""  # only on the two forms
+    credit_limit: Annotated[float, ReadOnlyUnless(roles=["manager"])] = 1000.0  # only a manager changes it
+    open_orders: Annotated[int, HiddenInCreate(), HiddenInEditor(), HiddenInList()] = 0  # only on the detail
+
+
+STORE: dict[str, Customer] = {}
+
+
+def open_orders_of(customer_id: str) -> int:
+    return 0   # e.g. a query to the orders service
+
+
+@ui("customers")
+@title("Customers")
+class Customers(Crud[Customer]):
+    def fetch(self, search):
+        return list(STORE.values())
+
+    def get(self, id):
+        return STORE.get(id)
+
+    def save(self, entity):
+        if not entity.customer_since:                 # New does not show it
+            entity.customer_since = date.today().isoformat()
+        STORE[entity.id] = entity
+
+    def delete(self, id):
+        STORE.pop(id, None)
+```
+
+New shows `id`, `name`, `email`, `internalNotes` and `creditLimit` (read-only but for a manager);
+the detail `id`, `name`, `email`, `customerSince`, `creditLimit` and `openOrders`; the editor the
+same as New plus `customerSince`, with `id` and `customerSince` read-only. What a form does not let
+the user write is never taken from the browser on save.
+
+**Level 2 — same class, other content.** The crud builds New from `Customer()`, and the detail and
+the editor from `get(id)`. So the creation form's defaults are the class defaults
+(`credit_limit = 1000.0` above), and a value computed when a record is opened goes in `get`:
+
+```python
+@ui("customers")
+@title("Customers")
+class Customers(Crud[Customer]):
+    # …fetch, save and delete as above
+    def get(self, id):
+        customer = STORE.get(id)
+        if customer is not None:
+            customer.open_orders = open_orders_of(id)   # computed when the record is opened
+        return customer
+```
+
+:::caution[Not per screen in this port]
+Java's `AutoCrud` has one method per screen (`creationForm`, `view`, `edit`); `Crud[T]` has none, so
+the creation form cannot compute its values (a next free code, say) and the detail and the editor
+always show the same object. Use level 3 for that.
+:::
+
+**Level 3 — a class per screen.** Declare the capabilities one by one and give each screen its own
+class. Here a detail and a creation form of their own — the next code already filled in — and no
+editor at all (no Edit button, no `/edit` route):
+
+```python
+from mateu_ui.uidl import Creatable, Listing, ListingData, Navigable, SearchRequest
+
+
+class CustomerCard:
+    name: str = ""
+    email: str = ""
+    activity: str = ""
+
+
+class NewCustomer:
+    id: Annotated[str, Required(), EditableOnlyWhenCreating()] = ""
+    name: Annotated[str, Required()] = ""
+
+
+@ui("directory")
+@title("Customers")
+class CustomerDirectory(Listing[Customer], Navigable[CustomerCard, str], Creatable[NewCustomer, str]):
+    def search(self, request: SearchRequest, http=None):
+        return ListingData.of(list(STORE.values()))
+
+    def view(self, id, http=None):
+        c = STORE[id]
+        card = CustomerCard()
+        card.name, card.email, card.activity = c.name, c.email, f"customer since {c.customer_since}"
+        return card
+
+    def creation_form(self, http=None):
+        form = NewCustomer()
+        form.id = f"C-{len(STORE) + 1:03}"   # the next free code
+        return form
+
+    def create(self, form, http=None):
+        customer = Customer()
+        customer.id, customer.name = form.id, form.name
+        customer.customer_since = date.today().isoformat()
+        STORE[customer.id] = customer
+        return customer.id
+```
+
+Add `Editable[Editor, str]` (`edit(id)` + `save(editor)`) for an editor class of its own and
+`Deletable[str]` for Delete. The Java guide walks the same example through the three levels:
+[Customise each screen](/java-user-manual/build/customizing-crud-and-listings/#5-customise-each-screen-creation-form-detail-editor).
+
 ## Listings & capabilities
 
 When you don't want the whole CRUD pack, subclass `Listing` — one method — and grow the page by

@@ -128,7 +128,7 @@ The write operations are simply never invoked for a read-only `AutoCrud`.
 | `getCreationForm` | Instantiates a new T |
 | `deleteAllById` | Delegates to `store().deleteAllById()` |
 
-For most use cases `store()` is the only method you need to implement. To push search, filtering, sorting and pagination to the database, override [`CrudStore.find(...)`](/java-ui-definition/interfaces/crud-store/#the-find-method) — `AutoCrud` calls it automatically. To customise other operations (pre-populated creation forms, etc.) override the public hooks `fetchRows()`, `buildNamedView()`, or `buildCreationForm()` directly in your subclass — see [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/).
+For most use cases `store()` is the only method you need to implement. To push search, filtering, sorting and pagination to the database, override [`CrudStore.find(...)`](/java-ui-definition/interfaces/crud-store/#the-find-method) — `AutoCrud` calls it automatically. To customise other operations (pre-populated creation forms, etc.) override `creationForm(httpRequest)`, `view(id, httpRequest)` or `edit(id, httpRequest)` — one per screen, see [Customise each screen](/java-user-manual/build/customizing-crud-and-listings/#5-customise-each-screen-creation-form-detail-editor) — or the public hooks `fetchRows()`, `buildNamedView()`, or `buildCreationForm()` directly in your subclass — see [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/).
 
 ---
 
@@ -137,9 +137,11 @@ For most use cases `store()` is the only method you need to implement. To push s
 `AutoCrud<T>` uses `T` for every screen, which means:
 
 - The filter bar shows the same fields as the grid rows.
-- The edit form shows the same fields as the detail view (the detail's content can still differ — see
-  [The record page](/java-user-manual/build/customizing-crud-and-listings/#the-record-page)).
-- The create form is identical to the edit form.
+- The edit form, the detail and the create form start from the same fields — but each screen can
+  still show its own subset (`@HiddenInCreate`, `@HiddenInView`, `@HiddenInEditor`,
+  `@EditableOnlyWhenCreating`) and its own values (override `creationForm`, `view`, `edit`): see
+  [Customise each screen](/java-user-manual/build/customizing-crud-and-listings/#5-customise-each-screen-creation-form-detail-editor). The detail's content can also be replaced altogether — see
+  [The record page](/java-user-manual/build/customizing-crud-and-listings/#the-record-page).
 
 When this is too restrictive, move to:
 

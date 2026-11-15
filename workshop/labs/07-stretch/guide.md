@@ -47,3 +47,8 @@ an MCP server, so an agent can operate the UIs you have open in it.
 Deploy lab 04's `target/mateu-bundle` to any https static host (Netlify drop, GitHub Pages with an
 SPA fallback, S3…) and add its address in the Mateu app: the phone draws the same static UI natively.
 (The desktop app does not open static bundles.)
+
+## G. Each CRUD screen its own
+
+Make the creation form, the detail and the editor of Products show different fields, and New start
+filled in: [lab 08](../08-crud-screens/guide.md) (20′, from lab 03's solution).
