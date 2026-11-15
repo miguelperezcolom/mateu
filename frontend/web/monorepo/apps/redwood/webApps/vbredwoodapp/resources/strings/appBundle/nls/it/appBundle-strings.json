@@ -112,6 +112,8 @@
   "screenChanged": "Questa schermata è cambiata da quando l'hai aperta. Ricarica per continuare.",
   "errSecurityRefused": "Il livello di sicurezza del server ha rifiutato questa richiesta prima che l'applicazione potesse gestirla (per esempio la sua protezione CSRF). Se succede ancora, avvisa l'amministratore.",
   "errNotFound": "Non è più disponibile. Potrebbe essere stato spostato o eliminato.",
+  "embeddedPlaceholderHint": "Imposta l'URL di base del backend (e la route) per mostrare una schermata di Mateu.",
+  "embeddedPlaceholderFailed": "Impossibile caricare la schermata: {reason}",
   "errClient": "La richiesta è stata rifiutata.",
   "errClientStatus": "La richiesta è stata rifiutata (errore {status}).",
   "errUnknown": "Qualcosa è andato storto. Riprova.",

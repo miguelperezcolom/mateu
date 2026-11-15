@@ -15,7 +15,9 @@ import {
   createVbRuntime, embeddedActions, EmbeddedActionChain, setEmbeddedHost, isEmbedded, emitEmbedded, setDocTitle,
   setEmbeddedSeed, takeEmbeddedSeed, CONTENT_INSTALLERS, CONTENT_ACTION_SINKS, NOT_IN_EMBEDDED,
   installEmbeddedContentRuntime, bootEmbedded, embeddedRouteOfLink, embeddedNavigationRequestOf, embeddedShellVarsOf, hasDescriptorExpression, descriptorReferencesOf,
+  isVbDesignTime, isVbDesignerPage, VB_RUNTIME_ENVIRONMENT_CLASS, embeddedStartOf, embeddedPlaceholderVarsOf, startEmbedded,
 } from './embedded.mjs'
+import { CHROME_TEXTS, FULL_LANGUAGES } from './i18n.mjs'
 import { setHostHeaderProvider, setHostCredentials, hostHeadersFor, cleanHeaders, lastHostHeadersOf } from './hostHeaders.mjs'
 import { fetchWithPolicy, authHeadersOf } from './resilience.mjs'
 import {
@@ -467,7 +469,7 @@ test('the view is the content page inside the shell frame, without the router ou
   assert.doesNotMatch(view, /oj-vb-content|role="main"/)
   // the shell band sits OUTSIDE the content box, which holds the whole frame (with shell="true" that
   // box is the scroll container, so Spectra's stickies are relative to the content, not to the band)
-  const scroller = view.indexOf('<div class="mateu-embedded-scroller">')
+  const scroller = view.indexOf('<div class="mateu-embedded-scroller"')
   assert.ok(scroller > 0, 'the content box')
   assert.ok(view.indexOf('mateu-embedded-shell') < scroller, 'the shell band comes before it')
   assert.ok(view.indexOf('mateu-error-band') > scroller && view.indexOf('<p id="content">') > scroller, 'the frame and the page inside it')
@@ -643,6 +645,154 @@ test('base-url and route typed with spaces (a VB Properties pane) are trimmed', 
   assert.equal(c.baseUrl, 'https://museums.ec1.mateu.io')
   assert.equal(c.route, 'artworks')
   assert.equal(embeddedConfigOf({ baseUrl: '  https://x.io/mateu/ \n' }).baseUrl, 'https://x.io/mateu')
+})
+
+// ── design time: the Visual Builder designer ──────────────────────────────────────────────
+
+const designerCanvas = { search: '?vbdt:editModeComChannelUrl=https%3A%2F%2Fvb.example.com%2Fic%2Fbuilder%2Fdesign%2Fx&vbdt:editModeComChannelClass=vbdt%2Fx', pathname: '/ic/builder/rt/app/1.0/webApps/web/', origin: 'https://vb.example.com' }
+const designerPath = { search: '', pathname: '/ic/builder/design/app/1.0/preview/webApps/web/', origin: 'https://vb.example.com' }
+const runningPage = { search: '?x=1', pathname: '/host/index.html', origin: 'https://erp.acme.com' }
+
+test('design time: the VB designer is told by its vbdt: parameters (or its /ic/builder/design/ path)', () => {
+  assert.equal(isVbDesignTime(designerCanvas), true)
+  assert.equal(isVbDesignTime({ search: '?vbdt%3ApreferExtensionVersion=1' }), true, 'an encoded key counts')
+  assert.equal(isVbDesignTime({ search: '?route=vbdt' }), false, 'a VALUE named vbdt does not')
+  assert.equal(isVbDesignTime(runningPage), false)
+  assert.equal(isVbDesignTime(null), false)
+  assert.equal(isVbDesignerPage(designerPath), true)
+  assert.equal(isVbDesignerPage(runningPage), false)
+  assert.equal(isVbDesignerPage(undefined), false)
+})
+
+test("design time survives VB's router dropping the vbdt: parameters: the runtime's environment class is the designer's", () => {
+  const envWith = (mapped, own) => ({
+    requirejs: { s: { contexts: { _: { config: { map: { '*': mapped ? { vbRuntimeEnvironmentClass: mapped } : {} } } } } } },
+    vbInitConfig: own ? { RUNTIME_ENV_CLASS: own } : {},
+  })
+  const rewritten = { search: '?baseUrl=%20', pathname: '/ic/builder/rt/app/live/webApps/web/' }
+  assert.equal(isVbDesignTime(rewritten, envWith('vbdt/designerEnvironment')), true)
+  assert.equal(isVbDesignTime(rewritten, envWith(VB_RUNTIME_ENVIRONMENT_CLASS)), false, 'the runtime\'s own class')
+  assert.equal(isVbDesignTime(rewritten, envWith('acme/env', 'acme/env')), false, 'an app\'s own RUNTIME_ENV_CLASS is not the designer')
+  assert.equal(isVbDesignTime(rewritten, envWith(null)), false, 'no mapping: not VB')
+  assert.equal(isVbDesignTime(rewritten, {}), false, 'a plain JET page')
+  assert.equal(isVbDesignTime(rewritten, undefined), false)
+  assert.deepEqual(embeddedStartOf(embeddedConfigOf({}), rewritten, envWith('vbdt/designerEnvironment')), { start: 'placeholder' })
+})
+
+test('the start rule: a base-url boots; none boots on the page\'s origin, except in the designer (placeholder)', () => {
+  const none = embeddedConfigOf({ baseUrl: '   ' })
+  const some = embeddedConfigOf({ baseUrl: 'https://erp.acme.com/mateu' })
+  assert.deepEqual(embeddedStartOf(none, designerCanvas), { start: 'placeholder' })
+  assert.deepEqual(embeddedStartOf(none, designerPath), { start: 'placeholder' })
+  assert.deepEqual(embeddedStartOf(none, runningPage), { start: 'boot' }, 'a real same-origin deployment still calls its origin')
+  assert.deepEqual(embeddedStartOf(some, designerCanvas), { start: 'boot' })
+  assert.deepEqual(embeddedStartOf(some, runningPage), { start: 'boot' })
+  assert.deepEqual(embeddedStartOf(undefined, undefined), { start: 'boot' })
+  assert.equal(embeddedPlaceholderVarsOf('').mateuEmbeddedPlaceholderDetail, '')
+  assert.equal(embeddedPlaceholderVarsOf('Not found').mateuEmbeddedPlaceholderDetail, 'Could not load the screen: Not found')
+})
+
+/** A bridge stand-in for startEmbedded/bootEmbedded: records what it is asked, fails on demand. */
+function fakeBridge(failWith) {
+  const asked = []
+  return {
+    asked,
+    bootstrapShell: async (base) => {
+      asked.push(['bootstrapShell', base])
+      if (failWith) throw failWith
+      return { fragments: [] }
+    },
+    bootstrapHasApp: () => true,
+    setMountWithoutApp: () => {},
+    reduceContexts: () => ({ contexts: {}, stack: [], shell: null }),
+    shellNavOf: () => ({ homeRoute: '/home', menuTree: [] }),
+    routeUnderMount: (r) => r,
+  }
+}
+const startRuntime = () => {
+  const chains = []
+  const rt = createVbRuntime({
+    app: { variables: { ...EMBEDDED_VARIABLES, mateuLastError: { type: 'string' }, mateuAppState: { type: 'object' }, mateuRegistry: { type: 'object' }, mateuShellSST: { type: 'string' }, mateuHomeRoute: { type: 'string' } } },
+    pages: [], observable, adpFactory,
+    chains: { onMateuNavigate: class { run(ctx, params) { chains.push(params.event.detail.route) } } },
+  })
+  return { rt, chains }
+}
+
+test('designer + no base-url: NO request, the placeholder; a base-url set later boots and hides it', async () => {
+  const b = fakeBridge()
+  const { rt, chains } = startRuntime()
+  const decision = await startEmbedded(b, rt, embeddedConfigOf({ baseUrl: '' }), designerCanvas)
+  assert.equal(decision.start, 'placeholder')
+  assert.deepEqual(b.asked, [], 'nothing is called')
+  assert.deepEqual(chains, [])
+  assert.equal(rt.$application.variables.mateuEmbeddedPlaceholder, true)
+  assert.equal(rt.$application.variables.mateuEmbeddedPlaceholderDetail, '')
+  await startEmbedded(b, rt, embeddedConfigOf({ baseUrl: 'https://erp.acme.com/mateu' }), designerCanvas)
+  assert.deepEqual(b.asked, [['bootstrapShell', 'https://erp.acme.com/mateu']])
+  assert.deepEqual(chains, ['/home'])
+  assert.equal(rt.$application.variables.mateuEmbeddedPlaceholder, false)
+})
+
+test('a running page with no base-url still calls its own origin (same-origin deployments)', async () => {
+  const b = fakeBridge()
+  const { rt, chains } = startRuntime()
+  const decision = await startEmbedded(b, rt, embeddedConfigOf({}), runningPage)
+  assert.equal(decision.start, 'boot')
+  assert.deepEqual(b.asked, [['bootstrapShell', '']])
+  assert.deepEqual(chains, ['/home'])
+  assert.equal(rt.$application.variables.mateuEmbeddedPlaceholder, false)
+})
+
+test('designer + a base-url that fails: the placeholder with the reason, not the error band; at run time it throws', async () => {
+  const failure = Object.assign(new Error('x'), { failure: { kind: 'notFound', message: 'This is no longer available.', status: 404 } })
+  const { rt } = startRuntime()
+  await startEmbedded(fakeBridge(failure), rt, embeddedConfigOf({ baseUrl: 'https://wrong.example.com' }), designerCanvas)
+  assert.equal(rt.$application.variables.mateuEmbeddedPlaceholder, true)
+  assert.equal(rt.$application.variables.mateuEmbeddedPlaceholderDetail, 'Could not load the screen: This is no longer available.')
+  assert.equal(rt.$application.variables.mateuLastError, '')
+  // a failure without a classified reason still says something
+  await startEmbedded(fakeBridge(new Error('boom')), rt, embeddedConfigOf({ baseUrl: 'https://wrong.example.com' }), designerPath)
+  assert.equal(rt.$application.variables.mateuEmbeddedPlaceholderDetail, 'Could not load the screen: boom')
+  // a stale boot (a newer one took over) is not a failure to show
+  await assert.rejects(startEmbedded(fakeBridge({ stale: true }), rt, embeddedConfigOf({ baseUrl: 'https://x.io' }), designerCanvas))
+  // run time: reported as always (the component's mateuError), no placeholder
+  const run = startRuntime().rt
+  await assert.rejects(startEmbedded(fakeBridge(failure), run, embeddedConfigOf({ baseUrl: 'https://wrong.example.com' }), runningPage))
+  assert.equal(run.$application.variables.mateuEmbeddedPlaceholder, false)
+})
+
+test('a request that fails in the designer feeds the placeholder through the transport hooks; at run time the error band', async () => {
+  let hooks = null
+  const b = { setTransportHooks: (h) => { hooks = h } }
+  const { rt } = startRuntime()
+  const vars = rt.$application.variables
+  installEmbeddedContentRuntime(b, rt)
+  await startEmbedded(fakeBridge(), rt, embeddedConfigOf({ baseUrl: 'https://erp.acme.com/mateu' }), designerCanvas)
+  hooks.onSettle({ failure: { kind: 'notFound', message: 'Gone' } })
+  assert.equal(vars.mateuEmbeddedPlaceholder, true)
+  assert.equal(vars.mateuEmbeddedPlaceholderDetail, 'Could not load the screen: Gone')
+  assert.equal(vars.mateuLastError, '')
+  await startEmbedded(fakeBridge(), rt, embeddedConfigOf({ baseUrl: 'https://erp.acme.com/mateu' }), runningPage)
+  hooks.onSettle({ failure: { kind: 'notFound', message: 'Gone' } })
+  assert.equal(vars.mateuEmbeddedPlaceholder, false)
+  assert.equal(vars.mateuLastError, 'Gone')
+  hooks.onSettle({ failure: { kind: 'cancelled', message: 'x' } })
+  assert.equal(vars.mateuLastError, 'Gone')
+})
+
+test('the view carries the placeholder (chrome text, six languages) and hides the frame while it shows', () => {
+  const view = componentFiles().files['mateu-ui-view.html']
+  assert.ok(view.includes('class="mateu-embedded-placeholder"'))
+  assert.ok(view.includes('$mateuApplication.translations.appBundle.embeddedPlaceholderHint'))
+  assert.ok(view.includes('<div class="mateu-embedded-scroller" :hidden="[[ $mateuApplication.variables.mateuEmbeddedPlaceholder ]]">'))
+  assert.ok(view.indexOf('mateu-embedded-placeholder') < view.indexOf('mateu-embedded-scroller'))
+  assert.ok(EMBEDDED_VARIABLES.mateuEmbeddedPlaceholder && EMBEDDED_VARIABLES.mateuEmbeddedPlaceholderDetail)
+  for (const lang of FULL_LANGUAGES) {
+    assert.ok(CHROME_TEXTS[lang].embeddedPlaceholderHint, lang + ' hint')
+    assert.ok(CHROME_TEXTS[lang].embeddedPlaceholderFailed.includes('{reason}'), lang + ' failure')
+  }
+  assert.ok(componentFiles().files['mateu-ui-styles.css'].includes('mateu-ui .mateu-embedded-placeholder {'))
 })
 
 // ── the REAL bridge and chains on the embedded runtime ────────────────────────────────────

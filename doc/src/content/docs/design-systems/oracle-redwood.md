@@ -100,7 +100,7 @@ it on a page. To add it by hand, use that folder in the page JSON:
 
 | Property (attribute) | Type | What it does |
 |---|---|---|
-| `baseUrl` (`base-url`) | string | The Mateu UI mount: its API is `<baseUrl>/mateu/v3/…`. Empty = the page's own origin. |
+| `baseUrl` (`base-url`) | string | The Mateu UI mount: its API is `<baseUrl>/mateu/v3/…`. Empty = the page's own origin — except in the Visual Builder designer (see *Design time* below). |
 | `route` | string | The Mateu route, relative to the mount (`orders`, `orders/:id`). Empty = the app's home. **Written back** when the screen navigates inside the component — bind it with `{{ }}` to follow it. |
 | `params` | object | Fills the route's `:placeholders`; the rest travel as the query (a listing opens filtered by them). |
 | `initialState` (`initial-state`) | object | The component state the first load of the screen is sent with (a form opens pre-filled). |
@@ -113,6 +113,18 @@ it on a page. To add it by hand, use that folder in the page JSON:
 | `shell` | boolean | Draws the Mateu UI's **App shell** inside the component: Spectra's global header with the app's logo, and the app's title and menu as a band under it; navigation stays inside the component. For a page that is *only* the Mateu UI (e.g. a VB root page holding just `<mateu-ui base-url="…">`). Off (the default) inside a page that has a shell of its own. See below. |
 
 `base-url` and `route` are trimmed: a space typed in the Properties pane does no harm.
+
+**Design time.** When the page is Visual Builder's **designer** — VB's runtime booted in its edit
+mode (the canvas opens the page with `vbdt:` query parameters; VB then maps its runtime environment
+to the designer's class, which the component reads, because VB's router drops those parameters from
+the URL), or the page is served under `/ic/builder/design/` — the component never calls the page's
+own origin: that origin is Visual Builder, not a Mateu backend. Until `base-url` is set it makes **no request** and shows a light box
+with its name and "Set the Backend base URL (and Route) to show a Mateu screen." (in the page's
+language: English, Spanish, French, German, Portuguese or Italian). Once `base-url` is set it loads
+the screen; if that request fails in the designer (a wrong or unreachable URL) the box stays, with
+the reason, instead of Mateu's error band. At run time (preview, a published app, a plain JET page)
+nothing of this applies: an empty `base-url` means the page's own origin, for a VB app served next
+to its Mateu backend or behind the same proxy, and a failure shows the usual error band.
 
 Changing `route`, `params` or `initialState` opens that screen; `appContext` reloads the current
 one; `baseUrl`/`withCredentials`/`shell` start over; a new `token`/`headers`/`headersProvider` is simply used
@@ -250,8 +262,9 @@ Not inside the Visual Builder designer. In a VB instance:
    the `mateu-session-expired` event fires.
 8. On a page holding only `<mateu-ui base-url="…" shell="true">` (no `route`): the app's header,
    title and menu show; choosing a menu entry opens its screen inside the component.
-9. Design time: the component should render (or show an empty box) in the designer canvas without
-   breaking the page — it only calls the backend when it has a reachable `base-url`.
+9. Design time: dropped on a page in the designer, before `base-url` is set, the component shows
+   its placeholder box ("Set the Backend base URL…") and makes no request; with a wrong `base-url`
+   the box says why the screen could not load; with a good one the screen shows on the canvas.
 
 ## Characteristics
 
