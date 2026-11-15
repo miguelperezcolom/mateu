@@ -77,6 +77,10 @@ def hides_the_page(source: Any, applied: Any) -> bool:
     )
 
 
+#: How many routes' lookups (found or not) are remembered (.NET ``YamlSpecLoader.MaxCachedRoutes``).
+MAX_CACHED_ROUTES = 4096
+
+
 class YamlSpecLoader:
     def __init__(
         self,
@@ -243,9 +247,15 @@ class YamlSpecLoader:
 
     def load_spec(self, route: str | None) -> Spec | None:
         key = _normalize(route)
-        if key not in self._by_route:
-            self._by_route[key] = self._parse(key)
-        return self._by_route[key]
+        if key in self._by_route:
+            return self._by_route[key]
+        spec = self._parse(key)
+        # the key is the REQUEST's route: past the cap a lookup is answered without being
+        # remembered, so a caller walking made-up routes cannot grow the table without bound (GA
+        # review 2, the .NET D9 rule — the deployment's own routes fill it first)
+        if len(self._by_route) < MAX_CACHED_ROUTES:
+            self._by_route[key] = spec
+        return spec
 
     def _parse(self, normalized_route: str) -> Spec | None:
         match = self._registry.match(normalized_route)

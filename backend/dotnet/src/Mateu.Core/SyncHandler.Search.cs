@@ -137,8 +137,15 @@ internal sealed partial class SyncHandler
         var groups = found.GetType().GetProperty("Groups")?.GetValue(found) as IReadOnlyList<GroupSummary>;
         if (groups is not { Count: > 0 }) groups = GroupSummaries.Synthesize(content, rowType);
         groups = GroupSummaries.ApplyVisibility(listing, groups);
+        // a [GroupBy] column the caller may not read is no grouping for this caller: its groups
+        // are its values (GA review 2, D5); nor is an aggregate of a hidden column sent
+        var hidden = ReflectionMapper.EditableProperties(rowType)
+            .Where(p => !ReadableValues.MayRead(p)).Select(p => Naming.CamelCase(p.Name)).ToHashSet();
+        if (GroupSummaries.GroupByProperty(rowType) is { } groupBy && !ReadableValues.MayRead(groupBy)) groups = null;
         if (found.GetType().GetProperty("Aggregates")?.GetValue(found) is IReadOnlyDictionary<string, object?> aggregates)
-            extras["aggregates"] = aggregates;
+            extras["aggregates"] = hidden.Count == 0
+                ? aggregates
+                : aggregates.Where(a => !hidden.Contains(a.Key)).ToDictionary(a => a.Key, a => a.Value);
         if (groups is { Count: > 0 })
             extras["groups"] = groups.Select(g =>
             {
@@ -146,7 +153,9 @@ internal sealed partial class SyncHandler
                 {
                     ["value"] = g.Value,
                     ["count"] = g.Count,
-                    ["aggregates"] = g.Aggregates ?? new Dictionary<string, object?>(),
+                    ["aggregates"] = g.Aggregates is null ? new Dictionary<string, object?>()
+                        : hidden.Count == 0 ? g.Aggregates
+                        : g.Aggregates.Where(a => !hidden.Contains(a.Key)).ToDictionary(a => a.Key, a => a.Value),
                 };
                 if (g.HiddenActions is { Count: > 0 }) group["hiddenActions"] = g.HiddenActions;
                 return group;
@@ -335,7 +344,9 @@ internal sealed partial class SyncHandler
             var text = "" + (value?.ToString() ?? "null");
             return p.FindAll<ValueMappingAttribute>().FirstOrDefault(m => m.From == text)?.To ?? mapped.DefaultValue;
         }
-        return CellValue(value);
+        // a nested object (or a list / map of them) leaves out what the caller may not read
+        // (GA review 2, D5: a nested cell went out raw, hidden values included)
+        return CellValue(ReadableValues.Of(value));
     }
 
     private static UIIncrementDto CrudSearch(object instance, Type element, RunActionRqDto rq)

@@ -512,7 +512,7 @@ test('YAML wiring: the VB chains navigate on a switcher/header route and load so
   assert.match(webApp('pages/shell-page.html'), /<oj-option :value="\[\[ \$current\.data\.actionId \|\| \$current\.data\.route \]\]">/)
   const ha = webApp('pages/shell-page-chains/runMateuHeaderAction.js')
   assert.match(ha, /bridge\.headerActionRouteOf\(\$application\.variables\.mateuHeaderActions/)
-  assert.ok(ha.indexOf("chain: 'onMateuNavigate'") < ha.indexOf('bridge.callMateu'))
+  assert.ok(ha.indexOf("chain: 'onMateuNavigate'") < ha.indexOf('bridge.callAppHeaderAction'))
   // the selectors' options are loaded before the shell nav is built, proxied through _appsource
   const boot = webApp('pages/shell-page-chains/loadMateuShell.js')
   assert.ok(boot.indexOf('bridge.loadContextSelectorOptions') > 0)

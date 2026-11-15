@@ -50,7 +50,17 @@ import { isListingOwnLoad } from '@infra/http/localRequests.ts';
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { showsPreSearch } from '@infra/ui/listingPreSearch.ts'
 import { renderComponent } from '@infra/ui/renderers/renderComponent.ts'
+import { keyed } from 'lit/directives/keyed.js'
 
+/**
+ * A card's picture, one <img> per address: re-rendered with another row (a new search, the next
+ * page) a reused element only changed its src, and the browser kept painting the PREVIOUS row's
+ * picture under the new label until the new one arrived — seconds on a slow image host.
+ */
+const cardImage = (src: unknown, alt: string) => {
+    const url = src == null ? '' : String(src)
+    return keyed(url, html`<img src="${url}" alt="${alt}" style="width: 100%; max-height: 160px; object-fit: cover; border-radius: var(--lumo-border-radius-m, 8px);" />`)
+}
 
 
 /**
@@ -1417,7 +1427,7 @@ export class MateuTableCrud extends LitElement {
                                 ? dispatchRowAction(e, 'action-on-row-select', item)
                                 : handleCardClick(e.target as HTMLElement, 'view', item))}"
                         >
-                            ${imageCols.length ? html`<img src="${item[imageCols[0].id] ?? ''}" alt="${titleCol ? String(item[titleCol.id] ?? '') : ''}" style="width: 100%; max-height: 160px; object-fit: cover; border-radius: var(--lumo-border-radius-m, 8px);" />` : nothing}
+                            ${imageCols.length ? cardImage(item[imageCols[0].id], titleCol ? String(item[titleCol.id] ?? '') : '') : nothing}
                             ${titleCol ? html`<div class="crud-card-title">${item[titleCol.id] ?? ''}</div>` : nothing}
                             <div style="display: flex; flex-direction: column; gap: var(--lumo-space-xs); padding: var(--lumo-space-s) 0;">
                                 ${dataCols.map(col => html`

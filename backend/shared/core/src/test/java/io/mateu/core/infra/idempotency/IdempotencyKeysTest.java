@@ -259,6 +259,69 @@ class IdempotencyKeysTest {
     assertThat(runs.get()).isEqualTo(1);
   }
 
+  /** GA round 2, J7: anonymous callers from different addresses do not share one share. */
+  @Test
+  void anonymousCallersFromDifferentAddressesHaveTheirOwnShares() {
+    System.setProperty(PER_CALLER, "1");
+    var runs = new AtomicInteger();
+    Sinks.One<UIIncrementDto> gate = Sinks.one();
+    var first =
+        IdempotencyKeys.once(
+                anonymousFrom("key-anon-0001", "10.0.0.1"), "save", () -> blocked(runs, gate))
+            .collectList()
+            .toFuture();
+    // the same address: its share is full
+    Throwable refusal = null;
+    try {
+      IdempotencyKeys.once(anonymousFrom("key-anon-0002", "10.0.0.1"), "save", () -> answered(runs))
+          .collectList()
+          .block();
+    } catch (RuntimeException e) {
+      refusal = e;
+    }
+    assertThat(refusal).isInstanceOf(UserFacingException.class);
+    // another anonymous user is admitted
+    IdempotencyKeys.once(anonymousFrom("key-anon-0003", "10.0.0.2"), "save", () -> answered(runs))
+        .collectList()
+        .block();
+    gate.tryEmitValue(UIIncrementDto.builder().build());
+    first.join();
+    assertThat(runs.get()).isEqualTo(2);
+  }
+
+  /** GA round 2, N6: the detached run still sees the request's Reactor context. */
+  @Test
+  void theDetachedRunSeesTheRequestsReactorContext() {
+    var seen =
+        IdempotencyKeys.once(
+                request("key-ctx0-0001"),
+                "save",
+                () ->
+                    Flux.deferContextual(
+                        context ->
+                            Flux.just(
+                                UIIncrementDto.builder()
+                                    .appData(Map.of("seen", context.getOrDefault("who", "none")))
+                                    .build())))
+            .contextWrite(reactor.util.context.Context.of("who", "ana"))
+            .collectList()
+            .block();
+    assertThat(seen).hasSize(1);
+    assertThat(seen.get(0).appData()).isEqualTo(Map.of("seen", "ana"));
+  }
+
+  private static FakeHttpRequest anonymousFrom(String key, String address) {
+    var request =
+        new FakeHttpRequest(RunActionRqDto.builder().actionId("save").build()) {
+          @Override
+          public String getRemoteAddress() {
+            return address;
+          }
+        };
+    request.withHeader(IdempotencyKeys.HEADER, key);
+    return request;
+  }
+
   private static Flux<UIIncrementDto> blocked(AtomicInteger runs, Sinks.One<UIIncrementDto> gate) {
     runs.incrementAndGet();
     return gate.asMono().flux();

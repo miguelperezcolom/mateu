@@ -5,7 +5,7 @@
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
 type: Form
 title: Search the collections
-subtitle: An artist, a title, a museum, a city, a culture — "Rembrandt", "armour", "Copenhagen", "Japan"
+subtitle: An artist, a title, a museum, a city, a culture — "Rembrandt", "sword", "Copenhagen", "Japan"
 template:
   type: HeroSearchPage
   backgroundColor: dark-pine

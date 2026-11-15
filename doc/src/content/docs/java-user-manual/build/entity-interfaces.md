@@ -55,6 +55,58 @@ public class Product implements Identifiable {
 }
 ```
 
+### Who assigns the id
+
+An entity's id is one of two kinds, and the creation form follows it:
+
+- **A technical id** — a field named `id` (or marked `@PrimaryKey`) with nothing else on it, like the
+  `Product` above. **New** shows no input for it, a create never takes it from the browser, and the
+  **store assigns it** when it saves a new record. `save` returns the id it stored the record under:
+  a store that assigns none is refused with "The record was saved without an id", never reported as
+  saved. A JPA `@GeneratedValue` id is technical too: the database assigns it.
+- **An id the user types** — a product code, a username, an ISO country code. Mark it
+  `@EditableOnlyWhenCreating`: **New** shows the input, and afterwards it is read-only. A create
+  naming an id that is already stored is refused ("A record with this id already exists"), never
+  run as an edit.
+
+A store for a technical id assigns it when the record arrives without one:
+
+```java
+public class ProductStore implements CrudStore<Product> {
+
+    private final Map<String, Product> db = new ConcurrentHashMap<>();
+
+    @Override
+    public String save(Product entity) {
+        var product = entity.id() == null || entity.id().isBlank()
+                ? new Product(UUID.randomUUID().toString(), entity.name(), entity.price(), entity.status())
+                : entity;
+        db.put(product.id(), product);
+        return product.id();
+    }
+
+    @Override
+    public Optional<Product> findById(String id) { return Optional.ofNullable(db.get(id)); }
+
+    @Override
+    public List<Product> findAll() { return List.copyOf(db.values()); }
+
+    @Override
+    public void deleteAllById(List<String> ids) { ids.forEach(db::remove); }
+}
+```
+
+And an id the user types needs only the annotation (the store keys by it as it comes):
+
+```java
+public record Product(
+    @EditableOnlyWhenCreating @NotEmpty String id,
+    String name,
+    BigDecimal price,
+    ProductStatus status
+) implements Identifiable {}
+```
+
 ### On a row DTO
 
 Row DTOs shown in a grid also benefit from `Identifiable`. Mark the id field with `@PrimaryKey` so Mateu knows which column to use as the row identifier:

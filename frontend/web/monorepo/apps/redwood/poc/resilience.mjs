@@ -411,6 +411,17 @@ export async function fetchDirect(url, init, options = {}) {
 
 const BODY_READERS = new Set(['json', 'text', 'arrayBuffer', 'blob', 'formData'])
 
+/** `res` whose body was already read as `value`: its `json()` answers that value. */
+function withParsedJson(res, value) {
+  return new Proxy(res, {
+    get(target, prop) {
+      if (prop === 'json') return () => Promise.resolve(value)
+      const v = Reflect.get(target, prop, target)
+      return typeof v === 'function' ? v.bind(target) : v
+    },
+  })
+}
+
 /** `res` whose body readers stop the request's timer when they settle, and whose read cut by our
  *  timeout carries `__mateuTimedOut` like the request itself would. Everything else is `res`'s. */
 function bodyBoundBy(res, done, timedOut) {
@@ -604,8 +615,12 @@ export async function fetchWithPolicy(url, init, options = {}) {
       reportAppUpdated(noteResponseBuild(url, buildOfHeaders(res.headers), { ok: true }))
       // `readsPastStale`: a stream only knows what it is at its first event (runMateuActionSse)
       if (isViewStale(view) && !options.readsPastStale) dropStale()
+      // `readsJson`: the BODY is part of the request (N-11) — read here, a body that stalls past
+      // the ceiling is a timeout like any other: classified, retried when that is safe, reported;
+      // read by the caller after the hooks settled, it failed in silence 60 s later
+      const answer = options.readsJson ? withParsedJson(res, await res.json()) : res
       notifyUnlessQuiet('onSettle', { actionId, failure: null })
-      return res
+      return answer
     } catch (error) {
       if (isStaleResponse(error)) throw error
       // its screen is gone: no reauthenticating, no retrying, no band

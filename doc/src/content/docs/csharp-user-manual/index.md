@@ -746,8 +746,14 @@ the host configures (JWT bearer, cookies, Windows) applies as is:
 The gates hold on every path a request can take, not only on what is drawn:
 
 - an `[EyesOnly]` property of a **listing row** is neither a column nor a value in the rows (nor a
-  sort, filter or totals key) for a caller who may not see it; inside a **nested form** the
-  attributes hold at every level;
+  sort, filter or totals key) for a caller who may not see it; inside a **nested form**, a
+  **grid field's rows**, a **wizard's state** and a **nested object in a listing cell** the
+  attributes hold at every level, and a `[GroupBy]` column the caller may not read gives no groups;
+- a **settable** class-typed property of a view is a nested form: it is drawn, its values travel in
+  the state and the client edits them (bound into the view's own copy, never into a shared default
+  object). An object the view only **holds** — a service, an HTTP client, its configuration — is a
+  get-only property (`public Svc Svc { get; } = …`), a field or a non-public member: never sent,
+  never written;
 - a **proxied** `[RestAction]`/`[RestOptions]` is refused (403) by `__restfetch__` when its method's
   `[EyesOnly]`/`[DisabledUnless]` (or its property's `[EyesOnly]`) refuses the caller — the server
   never makes, with your secrets, a call the caller could not trigger;

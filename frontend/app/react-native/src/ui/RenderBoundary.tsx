@@ -73,7 +73,7 @@ export class RenderBoundary extends React.Component<Props, State> {
         <Text style={styles.detail}>{texts.detail}</Text>
         {detail ? <Text style={styles.technical}>{detail}</Text> : null}
         <MateuButton label={texts.retry} buttonStyle="primary" icon="refresh" onPress={this.retry} />
-        {this.props.onClose ? <MateuButton label={this.props.closeLabel ?? 'Close'} icon="close" onPress={this.props.onClose} /> : null}
+        {this.props.onClose ? <MateuButton label={this.props.closeLabel ?? texts.close} icon="close" onPress={this.props.onClose} /> : null}
       </View>
     );
   }

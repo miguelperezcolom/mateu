@@ -8,7 +8,6 @@ import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
-import jakarta.inject.Inject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -78,7 +77,7 @@ public final class AllEditableFieldsProvider {
   }
 
   private static boolean isNotInjected(Field field) {
-    if (MetaAnnotations.isPresent(field, Inject.class)) {
+    if (io.mateu.core.domain.InjectionAnnotations.isInjected(field)) {
       return false;
     }
     if (!field.getDeclaringClass().isRecord() && Modifier.isFinal(field.getModifiers())) {

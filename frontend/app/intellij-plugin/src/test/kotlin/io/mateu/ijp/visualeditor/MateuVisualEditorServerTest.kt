@@ -36,7 +36,7 @@ class MateuVisualEditorServerTest {
     }
 
     @Test
-    fun dropsTheStandaloneCspWhoseNoInlineScriptRuleWouldBlockTheBootstrap() {
+    fun replacesTheStandaloneCspWithOneThatLetsOnlyTheNoncedBootstrapRunInline() {
         val bundle = """
             <html><head>
             <meta http-equiv="Content-Security-Policy" data-mateu-standalone-csp
@@ -44,8 +44,14 @@ class MateuVisualEditorServerTest {
             <script type="module" src="./assets/index-abc.js"></script></head><body></body></html>
         """.trimIndent()
         val html = String(MateuVisualEditorServer.injectHostBootstrap(bundle.toByteArray()), Charsets.UTF_8)
-        assertFalse("standalone CSP removed", html.contains("data-mateu-standalone-csp"))
+        assertFalse("standalone CSP replaced", html.contains("data-mateu-standalone-csp"))
         assertTrue("bootstrap before module", html.indexOf("window.__mateuHost") in 0 until html.indexOf("<script type=\"module\""))
+        // a policy is still there (N-13): inline script runs only with this page's nonce
+        val nonce = Regex("'nonce-([A-Za-z0-9+/=]+)'").find(html)?.groupValues?.get(1)
+        assertTrue("a nonce policy", nonce != null && html.contains("script-src 'self' 'nonce-$nonce'; object-src 'none'"))
+        assertTrue("the bootstrap carries it", html.contains("<script nonce=\"$nonce\">"))
+        val again = String(MateuVisualEditorServer.injectHostBootstrap(bundle.toByteArray()), Charsets.UTF_8)
+        assertFalse("a fresh nonce per page", again.contains("'nonce-$nonce'"))
     }
 
     @Test

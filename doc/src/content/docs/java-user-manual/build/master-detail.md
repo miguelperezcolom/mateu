@@ -69,7 +69,7 @@ routes:
 public class Steps extends AutoCrud<ProcessStep> {
     @Override
     public CrudStore<ProcessStep> store() {
-        return new StepStore(); // your CrudStore<ProcessStep>
+        return new StepStore(); // your CrudStore<ProcessStep>; its save assigns a new step's id
     }
 
     String processId;
@@ -93,6 +93,9 @@ record ProcessStep(
     String name
 ) implements Identifiable {}
 ```
+
+`id` is technical: the store assigns it when it saves a new step (see
+[Who assigns the id](/java-user-manual/build/entity-interfaces/#who-assigns-the-id)).
 
 ---
 

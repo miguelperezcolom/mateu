@@ -161,6 +161,8 @@ Enter on a focused row opens it too, and a navigable row shows a pointer cursor.
 
 A table whose rows expand a `@Details` panel on click keeps that click for expanding; the record then opens from its id link.
 
+**Row actions stay on screen.** The per-row actions column (`ColumnAction` / `ColumnActionGroup`, a menu or button column) comes last; when it is the trailing column, it is pinned to the table's end edge by default (Vaadin `frozen-to-end`, Redwood `oj-table` `frozenEdge: 'end'`). On a listing wider than the window the other columns scroll sideways under it, so you never have to scroll to act on a row. A column frozen to the start stops this, and a listing with no other columns pins nothing.
+
 ### The technical id is not a column
 
 Once the whole row opens the record, the id column has no job left — it was the link — and a

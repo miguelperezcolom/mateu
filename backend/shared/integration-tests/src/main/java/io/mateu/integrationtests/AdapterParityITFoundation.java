@@ -1615,7 +1615,11 @@ public class AdapterParityITFoundation {
           .then()
           .statusCode(200)
           .header("Content-Type", startsWith("text/html"))
-          .body(containsString("<mateu-ui baseUrl=\"" + YAML_MOUNT + "\""))
+          // the pathPrefix is the mount too: with "" the client wrote /page back to the address
+          // bar for /yaml-parity/page, and a reload landed in another app (GA review 2, N1)
+          .body(
+              containsString(
+                  "<mateu-ui baseUrl=\"" + YAML_MOUNT + "\" pathPrefix=\"" + YAML_MOUNT + "\""))
           .body(containsString("<title>" + YAML_MOUNT_TITLE + "</title>"));
     }
     // a data fetch under the mount is not a deep link: no index page for it

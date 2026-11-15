@@ -879,6 +879,15 @@ test('totals: money as money, counts as whole numbers; the footer names the tota
   assert.deepEqual(out.filter((r) => r._group).map((r) => [r.status, r.total]), [['OPEN (2)', '3,00'], [' (1)', '']], 'a group the server did not list is counted here')
   assert.equal(out.length, 5)
   assert.equal(groupedRows(rows, { columns: [] }, {}), rows)
+  // Explorer N5: a group of a column that paints its LABEL cell (a date-time) is not blank there,
+  // and reads like the column's cells
+  const byWhen = { groupBy: 'when', columns: [{ metadata: { id: 'when', dataType: 'dateTime' } }, { metadata: { id: 'field' } }] }
+  const whenRows = labelCellRows([{ when: '2026-11-02T10:30:00', field: 'price' }, { when: '2026-11-02T10:30:00', field: 'name' }], byWhen.columns)
+  const head = groupedRows(whenRows, byWhen, { groups: [{ value: '2026-11-02T10:30:00', count: 2, aggregates: {} }] })[0]
+  assert.equal(head._group, true)
+  assert.equal(head['when' + LABEL_CELL_SUFFIX], head.when)
+  assert.ok(/\(2\)$/.test(head.when) && !head.when.startsWith('2026-11-02T'), head.when)
+  assert.equal(head['when' + LABEL_CELL_SUFFIX], whenRows[0]['when' + LABEL_CELL_SUFFIX] + ' (2)')
   assert.equal(rowToneOf({ s: { type: 'ERROR' } }, 's'), 'danger')
   assert.equal(rowToneOf({ s: { value: 'pink' } }, 's'), null)
   assert.equal(rowToneOf({ s: null }, 's'), null)

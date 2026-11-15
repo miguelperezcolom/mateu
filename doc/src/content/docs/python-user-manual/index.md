@@ -218,6 +218,12 @@ add_mateu(
   `appState["audience"]` — any caller can send any value. Tailor screens with it; hide data with
   `EyesOnly`. Like Java and .NET, an `@audience` action is therefore never refused at invocation;
   an `Audience()` row field is left out of listing columns AND row data, like an `EyesOnly` one.
+- **Nested forms and held objects.** A public annotated attribute holding a data object is a
+  nested form: it is drawn, its values travel in the state and the client edits them (bound into
+  the view's own copy, never into a shared class-level default). An object the view only **holds**
+  — a service, an HTTP client, its configuration — is spelled `_name`, `ClassVar[...]` or
+  `Final[...]`: never sent, never written. `EyesOnly` holds inside nested objects, grid rows and a
+  wizard's state too.
 - **Bounded by default.** A listing page asks for at most 500 rows (`listing_max_page_size` /
   `MATEU_LISTING_MAX_PAGE_SIZE`); an upload ticket sends 10 files for a single-file field and
   `uploads_max_files_per_ticket` / `MATEU_UPLOADS_MAX_FILES_PER_TICKET` (100) for a multiple one

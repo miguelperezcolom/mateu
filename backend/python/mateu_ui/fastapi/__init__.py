@@ -599,14 +599,18 @@ def add_mateu(
             # would pass: a refused request is never answered from memory.
             def keyed_run():
                 identity = handler.mapper.identity_provider() if handler.mapper.identity_provider else None
+                caller = idempotency_keys.caller_of(identity)
                 return idempotency_keys.guarded(
-                    idempotency_keys.caller_of(identity),
+                    caller,
                     rq.action_id,
                     request.headers.get(idempotency_keys.HEADER),
                     lambda: handler.handle(rq, mateu_request.base_url),
                     view=rq.server_side_type,
                     route=rq.route,
                     fingerprint=idempotency_keys.fingerprint_of(rq.component_state, rq.parameters),
+                    share=idempotency_keys.share_of(
+                        caller, identity, request.client.host if request.client else None
+                    ),
                 )
 
             # A keyed run is DETACHED from the caller: it runs in a worker thread that a client

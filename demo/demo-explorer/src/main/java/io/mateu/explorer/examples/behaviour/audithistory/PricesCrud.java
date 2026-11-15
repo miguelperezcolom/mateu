@@ -85,8 +85,14 @@ public class PricesCrud extends AutoCrud<PricesCrud.Product> implements Auditabl
 
       @Override
       public String save(Product product) {
-        findById(product.id).ifPresent(before -> record(before, product));
-        PRODUCTS.replaceAll(p -> p.id.equals(product.id) ? product : p);
+        // the store assigns the id of a NEW product (the create form does not ask for it)
+        if (product.id == null || product.id.isBlank()) {
+          product.id = "P-" + java.util.UUID.randomUUID().toString().substring(0, 8);
+        }
+        var before = findById(product.id);
+        before.ifPresent(b -> record(b, product));
+        if (before.isPresent()) PRODUCTS.replaceAll(p -> p.id.equals(product.id) ? product : p);
+        else PRODUCTS.add(product);
         return product.id;
       }
 

@@ -11358,6 +11358,28 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return false
   }
 
+  /**
+   * Row actions stay on screen (mirror of libs/mateu rowActionColumns.ts): a column whose cells are
+   * the row's own actions — action / action group / menu columns, a button column, a column with its
+   * own action other than the row-open `view` — and the number of them, counted from the end, that
+   * are frozen to the table's end edge. Only the trailing run; a column frozen to the start stops it;
+   * a listing made only of actions pins nothing.
+   */
+  function isRowActionColumn(c) {
+    if (!c || c.type === 'GridGroupColumn' || c.editable) return false
+    if (c.dataType === 'action' || c.dataType === 'actionGroup' || c.dataType === 'menu') return true
+    if (c.stereotype === 'button') return c.actionId !== 'view'
+    return !!c.actionId && c.actionId !== 'view'
+  }
+  function trailingRowActionColumnCount(columns) {
+    let count = 0
+    for (let i = columns.length - 1; i >= 0; i--) {
+      if (!isRowActionColumn(columns[i]) || columns[i].frozen) break
+      count++
+    }
+    return count === columns.length ? 0 : count
+  }
+
   /** What a click inside the table must never turn into a row open: a control (button, link,
    *  input, the selection checkbox, an editor) or a cell of a display column. */
   const ROW_CLICK_EXCLUDED = '.' + NO_OPEN_CELL_CLASS + ', [data-method], oj-button, oj-c-button, button, a, input, select, textarea, label, '
@@ -11564,8 +11586,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // WHOLE-ROW CLICK: a cell with its own click (editor, buttons, link, menu, component,
       // column with its own action) carries the class mateuRowClicked respects — see isDisplayColumn
       if (isDisplayColumn(c)) def.className = (def.className ? def.className + ' ' : '') + NO_OPEN_CELL_CLASS
+      // a column the wire freezes keeps its edge (GridColumn.frozen / frozenToEnd)
+      if (c.frozen) def.frozenEdge = 'start'
+      else if (c.frozenToEnd) def.frozenEdge = 'end'
       return def
-    }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : [])
+    })
+    // ROW ACTIONS STAY ON SCREEN: the trailing row-action columns are frozen to the end edge, so on
+    // a wide listing they are not past the horizontal scroll (libs/mateu rowActionColumns.ts, same
+    // rule). Not with extra lines: their column is the last one.
+    const pinnedActions = lines.extra.length ? 0 : trailingRowActionColumnCount(tableColumns.map((col) => col.metadata || col))
+    pinnedActions && columns.forEach((def, i) => { if (i >= columns.length - pinnedActions) def.frozenEdge = 'end' })
+    if (lines.extra.length) columns.push(ROW_LINES_COLUMN)
     const navigable = (md.columns || []).some((col, i) => i === 0 && (col.metadata || col).actionId === 'view')
     // a click on a row DOES something (mateuRowClicked): it opens its route, its record or its detail.
     // Only then does the row invite the click (the hand cursor, ROWS_OPEN_CLASS); a plain list does not
@@ -15394,8 +15425,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           || { value: key, count: rows.filter((r) => keyOf(r) === key).length, aggregates: {} }
         const groupRow = { _rowNumber: '__mateuGroup:' + i + ':' + key, _group: true, _tone: 'group' }
         for (const c of cols) {
-          groupRow[c.id] = c.id === labelCol ? g.value + ' (' + g.count + ')'
+          // a date / date-time group reads like its cells (the UI's locale), not as the raw ISO value
+          const value = typeof g.value === 'string' && /^(date|dateTime|time)$/.test(c.dataType || '')
+            ? temporalText(g.value, c.dataType) : g.value
+          groupRow[c.id] = c.id === labelCol ? value + ' (' + g.count + ')'
             : c.aggregate ? formatAggregate((g.aggregates || {})[c.id], c) : ''
+          // a column that paints its LABEL cell (a date, an amount, an enum — listing.mjs
+          // labelCellRows) reads <id>__labelCell: without it the group row was blank there (the
+          // audit History dialog grouped by its `when`, Explorer N5)
+          groupRow[c.id + '__labelCell'] = groupRow[c.id]
         }
         out.push(groupRow)
         last = key
@@ -18738,6 +18776,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const BODY_READERS = new Set(['json', 'text', 'arrayBuffer', 'blob', 'formData'])
 
+  /** `res` whose body was already read as `value`: its `json()` answers that value. */
+  function withParsedJson(res, value) {
+    return new Proxy(res, {
+      get(target, prop) {
+        if (prop === 'json') return () => Promise.resolve(value)
+        const v = Reflect.get(target, prop, target)
+        return typeof v === 'function' ? v.bind(target) : v
+      },
+    })
+  }
+
   /** `res` whose body readers stop the request's timer when they settle, and whose read cut by our
    *  timeout carries `__mateuTimedOut` like the request itself would. Everything else is `res`'s. */
   function bodyBoundBy(res, done, timedOut) {
@@ -18931,8 +18980,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         reportAppUpdated(noteResponseBuild(url, buildOfHeaders(res.headers), { ok: true }))
         // `readsPastStale`: a stream only knows what it is at its first event (runMateuActionSse)
         if (isViewStale(view) && !options.readsPastStale) dropStale()
+        // `readsJson`: the BODY is part of the request (N-11) — read here, a body that stalls past
+        // the ceiling is a timeout like any other: classified, retried when that is safe, reported;
+        // read by the caller after the hooks settled, it failed in silence 60 s later
+        const answer = options.readsJson ? withParsedJson(res, await res.json()) : res
         notifyUnlessQuiet('onSettle', { actionId, failure: null })
-        return res
+        return answer
       } catch (error) {
         if (isStaleResponse(error)) throw error
         // its screen is gone: no reauthenticating, no retrying, no band
@@ -30704,7 +30757,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         ...body,
         route: bare ? `/${bare}` : '',
       }),
-    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, local: options.local, view })
+    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, local: options.local, view, readsJson: true })
     // R1: an origin the shell does not trust (an agent-named base, a remote's own remote) answers
     // through the untrusted strip: what it sends cannot run code in this tab
     const increment = answeredBy(base, await res.json())
@@ -30715,6 +30768,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the body takes time too: whatever arrives after the screen changed is not applied either
     if (isViewStale(view)) throw staleResponseError(body.actionId)
     return increment
+  }
+
+  /**
+   * An app header action (AppActionsSupplier), dispatched app-level. A write goes once however often
+   * it is pressed while it is in flight (N-14, GA review 2): the same double-submit slot as a content
+   * action (runMateuAction); a second press answers duplicateAnswer() and the chain stops there.
+   */
+  async function callAppHeaderAction(base, body, options = {}) {
+    const exclusive = !isIdempotentAction(body && body.actionId, options.idempotent)
+    const key = pendingActions.key('__app-header__', body && body.actionId)
+    if (exclusive && !pendingActions.begin(key)) return duplicateAnswer()
+    try {
+      return await callMateu(base, body, options)
+    } finally {
+      if (exclusive) pendingActions.end(key)
+    }
   }
 
   // Who hears every answer callMateu gets (the live UI push summary keeps the last messages,
@@ -30752,7 +30821,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator,
           ...(appState && typeof appState === 'object' && Object.keys(appState).length ? { appState } : {}),
         }),
-      }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
+      }, fallback ? { actionId: '__load__', quiet: true, isolated: true, readsJson: true } : { actionId: '__load__', readsJson: true })
       const increment = await res.json()
       observeWireVersion(increment)
       adoptReferencedSources(increment)
@@ -32791,7 +32860,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   //  - a javascript:/vbscript: url anywhere is blanked;
   //  - nothing runs without a click and nothing posts elsewhere: triggers are emptied and no
   //    restAction is kept;
-  //  - a MicroFrontend does not load from another server (its absolute baseUrl is dropped).
+  //  - a MicroFrontend does not load from another server (its absolute baseUrl is dropped);
+  //  - nothing loads by itself from elsewhere (GA review 2, C2): an inline REST source (any
+  //    `…Source`) keeps only its catalogue ref and fetches by GET — without a ref it goes —, the
+  //    answer's own restSources catalogue goes, an image (src, srcset, image, avatar, logo, favicon,
+  //    tileUrl, poster, background, xlink:href) loads only from this server or a data: url, and a
+  //    style that could load something (url(, image(, image-set(, cross-fade(, src(, a CSS escape) is
+  //    blanked — a style rule computed by an expression goes too.
   // The backend applies the same rules (`__preview__` with `_untrusted`); this is the renderer's own
   // line for an older backend. Works on wire JSON and returns a sanitised COPY.
   // (Every top-level name is prefixed: make-amd.mjs puts all modules in ONE scope.)
@@ -32802,6 +32877,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'data', 'cite', 'ping', 'srcset', 'manifest', 'codebase', 'longdesc', 'usemap', 'icon'])
   const UNTRUSTED_SAFE_SCHEMES = new Set(['http', 'https', 'mailto', 'tel'])
   const UNTRUSTED_CODE_COMMANDS = new Set(['AddContentToHead', 'AddContentToBody'])
+  const UNTRUSTED_LOADING_KEYS = new Set(['src', 'srcset', 'image', 'avatar', 'logo', 'favicon', 'tileurl', 'poster',
+    'background', 'xlink:href'])
+  const UNTRUSTED_LOADING_CSS = ['url(', 'image(', 'image-set(', 'cross-fade(', 'src(', '\\']
+  const UNTRUSTED_SOURCE_REQUEST_KEYS = new Set(['url', 'method', 'headers', 'body', 'proxy'])
 
   // eslint-disable-next-line no-control-regex
   const untrustedCleanedUrl = (value) => value.replace(/[\t\n\r]/g, '').replace(/^[\u0000- ]+/, '')
@@ -32822,8 +32901,38 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const untrustedAbsoluteUrl = (value) =>
     !!untrustedSchemeOf(value) || untrustedCleanedUrl(value).replace(/\\/g, '/').startsWith('//')
   const untrustedIsObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v)
+  // a url the browser would fetch from elsewhere: any scheme but data:, or //host (a backslash spelling
+  // included); a srcset lists several, so any scheme, // or backslash in it counts
+  const untrustedLoadsFromElsewhere = (key, value) => {
+    if (key === 'srcset') return /[:\\]|\/\//.test(value)
+    const scheme = untrustedSchemeOf(value)
+    return scheme ? scheme !== 'data' : untrustedCleanedUrl(value).replace(/\\/g, '/').startsWith('//')
+  }
+  const isUntrustedLoadingStyle = (value) => {
+    const lower = value.toLowerCase()
+    return UNTRUSTED_LOADING_CSS.some((f) => lower.includes(f))
+  }
+  // a rule that sets a style the strip cannot check (an expression) or one that could fetch
+  const untrustedLoadingStyleRule = (v) => {
+    const setsStyle = v.action === 'SetStyle' || (v.action === 'SetAttributeValue' && v.fieldAttribute === 'style')
+    if (!setsStyle) return false
+    if (typeof v.expression === 'string' && v.expression.trim() !== '') return true
+    return typeof v.value === 'string' && isUntrustedLoadingStyle(v.value)
+  }
   const untrustedIsCode = (v) =>
-    untrustedIsObject(v) && (v.action === 'RunJS' || (typeof v.type === 'string' && UNTRUSTED_CODE_COMMANDS.has(v.type)))
+    untrustedIsObject(v) && (v.action === 'RunJS' || (typeof v.type === 'string' && UNTRUSTED_CODE_COMMANDS.has(v.type))
+      || untrustedLoadingStyleRule(v))
+  // an inline REST source as an untrusted screen may keep it: its catalogue ref, fetched by GET, and
+  // how to read the answer; nothing of where it goes or what it sends (undefined: it goes)
+  function untrustedSource(value) {
+    if (typeof value.ref !== 'string' || value.ref.trim() === '') return undefined
+    const out = {}
+    for (const [key, v] of Object.entries(value)) {
+      if (!UNTRUSTED_SOURCE_REQUEST_KEYS.has(key)) out[key] = untrustedWalk(v)
+    }
+    return { ...out, method: 'GET' }
+  }
+  const untrustedIsSourceKey = (key) => key.length > 'Source'.length && key.endsWith('Source')
 
   function untrustedElement(node) {
     const name = typeof node.name === 'string' ? node.name.trim().toLowerCase() : ''
@@ -32852,7 +32961,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     const out = {}
     for (const [key, v] of Object.entries(node)) {
-      if ((key === 'js' && typeof v === 'string') || key === 'restAction') continue
+      if ((key === 'js' && typeof v === 'string') || key === 'restAction' || key === 'restSources') continue
+      if (untrustedIsSourceKey(key) && untrustedIsObject(v)) {
+        const kept = untrustedSource(v)
+        if (kept) out[key] = kept
+        continue
+      }
+      const k = key.toLowerCase()
+      if (typeof v === 'string' && ((UNTRUSTED_LOADING_KEYS.has(k) && untrustedLoadsFromElsewhere(k, v))
+        || (k.endsWith('style') && isUntrustedLoadingStyle(v)))) {
+        out[key] = ''
+        continue
+      }
       // nothing runs without a click: an OnLoad/OnValueChange/AutoSave trigger fires by itself
       out[key] = key === 'triggers' && Array.isArray(v) ? [] : untrustedWalk(v)
     }
@@ -37919,6 +38039,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /**
+   * Whether a message from the parent frame comes from the EDITOR: the page's own origin (the
+   * editor serves this page), a VS Code webview, or the origin the host declared
+   * (`__mateuHostOrigin`). A page that framed this one from anywhere else cannot paint into it
+   * (GA review 2, N-5): a fragment drawn here is the author's, where a literal `on…` attribute runs.
+   */
+  function isEditorOrigin(origin, win) {
+    if (typeof origin !== 'string' || !origin || origin === 'null') return false
+    const own = win && win.location && win.location.origin
+    return origin === own
+      || origin.startsWith('vscode-webview:')
+      || (!!(win && win.__mateuHostOrigin) && origin === win.__mateuHostOrigin)
+  }
+
   function installEditorPreview(win, opts = {}) {
     const doc = win.document
     const post = (msg) => { try { win.parent.postMessage({ [PREVIEW_MESSAGE_KEY]: msg.kind, ...msg }, '*') } catch (e) { /* no parent */ } }
@@ -38033,7 +38167,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
     // ── the protocol ──
     win.addEventListener('message', (e) => {
-      if (e.source !== win.parent) return
+      if (e.source !== win.parent || !isEditorOrigin(e.origin, win)) return
       const msg = e.data
       if (!msg || typeof msg !== 'object') return
       const kind = msg[PREVIEW_MESSAGE_KEY]
@@ -39501,6 +39635,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     sameFoldoutStructure,
     wizardOf,
     callMateu,
+    callAppHeaderAction,
     // the mount of the packaged app (<mateu-ui baseUrl>): API base and route ↔ browser path
     initMount,
     // the Bearer token cookie is scoped to the mount (authStore.mjs)

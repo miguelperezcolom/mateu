@@ -297,6 +297,20 @@ export function pressTracker(threshold = DRAG_THRESHOLD) {
   }
 }
 
+/**
+ * Whether a message from the parent frame comes from the EDITOR: the page's own origin (the
+ * editor serves this page), a VS Code webview, or the origin the host declared
+ * (`__mateuHostOrigin`). A page that framed this one from anywhere else cannot paint into it
+ * (GA review 2, N-5): a fragment drawn here is the author's, where a literal `on…` attribute runs.
+ */
+export function isEditorOrigin(origin, win) {
+  if (typeof origin !== 'string' || !origin || origin === 'null') return false
+  const own = win && win.location && win.location.origin
+  return origin === own
+    || origin.startsWith('vscode-webview:')
+    || (!!(win && win.__mateuHostOrigin) && origin === win.__mateuHostOrigin)
+}
+
 export function installEditorPreview(win, opts = {}) {
   const doc = win.document
   const post = (msg) => { try { win.parent.postMessage({ [PREVIEW_MESSAGE_KEY]: msg.kind, ...msg }, '*') } catch (e) { /* no parent */ } }
@@ -411,7 +425,7 @@ export function installEditorPreview(win, opts = {}) {
 
   // ── the protocol ──
   win.addEventListener('message', (e) => {
-    if (e.source !== win.parent) return
+    if (e.source !== win.parent || !isEditorOrigin(e.origin, win)) return
     const msg = e.data
     if (!msg || typeof msg !== 'object') return
     const kind = msg[PREVIEW_MESSAGE_KEY]

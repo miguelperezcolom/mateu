@@ -260,6 +260,32 @@ describe('mateu-table: rows', () => {
         expect(setDraggedItemsCount).toHaveBeenCalledWith(2)
     })
 
+    it('the trailing row-action column is frozen to the end; data columns and selection are not', async () => {
+        const { cols } = await mount({ rowsSelectionEnabled: true, columns: [
+            column({ id: 'name', label: 'Name', actionId: 'view' }),
+            column({ id: 'status', label: 'Status' }),
+            column({ id: 'actions', label: '', dataType: 'actionGroup' }),
+        ] })
+        const byPath = (path: string) => cols().find(c => c.getAttribute('path') === path)!
+        expect(byPath('actions').hasAttribute('frozen-to-end')).toBe(true)
+        expect(byPath('name').hasAttribute('frozen-to-end')).toBe(false)
+        expect(byPath('status').hasAttribute('frozen-to-end')).toBe(false)
+        expect(cols()[0].tagName.toLowerCase()).toBe('vaadin-grid-selection-column')
+    })
+
+    it('the detail toggle drawn after pinned row actions is pinned too, so it stays last', async () => {
+        const { cols } = await mount({ useButtonForDetail: true, detailPath: 'detail', columns: [
+            column({ id: 'name', label: 'Name' }),
+            column({ id: 'actions', label: '', dataType: 'action' }),
+        ] })
+        expect(cols().filter(c => c.tagName.toLowerCase() === 'vaadin-grid-column').at(-1)!.hasAttribute('frozen-to-end')).toBe(true)
+    })
+
+    it('a listing without row actions pins nothing', async () => {
+        const { cols } = await mount(NAVIGABLE)
+        expect(cols().some(c => c.hasAttribute('frozen-to-end'))).toBe(false)
+    })
+
     it('a column carrying a tooltipPath shows the row field as tooltip', async () => {
         const { t } = await mount({ columns: [column({ id: 'name', tooltipPath: 'status' })] })
         const tooltip = t.shadowRoot!.querySelector('vaadin-tooltip') as any

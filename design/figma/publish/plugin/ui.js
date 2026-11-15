@@ -24,7 +24,7 @@ const el = (tag, props = {}, ...kids) => {
 const field = (label, input) => el('div', {}, el('label', { textContent: label }), input)
 const input = (value, onInput, props = {}) => el('input', { value: value ?? '', oninput: (e) => onInput(e.target.value), ...props })
 
-let files, warnings, config, secrets, target
+let files, warnings, config, secrets, target, offeredTarget, targetRemembered
 const saveConfig = () => post({ type: 'save-config', config })
 const saveSecrets = () => post({ type: 'save-secrets', secrets })
 const saveTarget = () => {
@@ -91,6 +91,28 @@ function newSite() {
 function drawTarget() {
   targetLine.textContent = targetDescription(target)
   const controls = []
+  if (!targetRemembered) {
+    controls.push(el('div', { className: 'hint', textContent: 'You can only view this file, so where it publishes cannot be remembered: each session publishes to a new site.' }))
+  }
+  if (offeredTarget && !target.netlifySiteId && !target.cfProject) {
+    // a duplicate of a published file (or the file renamed) carries the original's id: the site it
+    // published to is offered, never applied on its own
+    const site = offeredTarget.netlifyUrl ?? offeredTarget.cfUrl ?? offeredTarget.cfProject ?? `site ${offeredTarget.netlifySiteId ?? offeredTarget.netlifySite}`
+    controls.push(
+      el('div', { className: 'hint', textContent: `The file "${offeredTarget.fileName}" published to ${site}. This file is a copy of it or was renamed, so publishing now creates a new site, unless this file is the one published there.` }),
+      el('button', {
+        className: 'secondary',
+        textContent: `This file is the one on ${site}: update it`,
+        onclick: () => {
+          const { fileName, ...offered } = offeredTarget
+          Object.assign(target, offered)
+          offeredTarget = undefined
+          saveTarget()
+          render()
+        },
+      }),
+    )
+  }
   if (target.host === 'netlify' && target.netlifySiteId) {
     controls.push(el('button', { className: 'secondary', textContent: 'Publish as a new site instead', onclick: newSite }))
   } else if (target.host === 'netlify' && secrets.legacyNetlifySiteId) {
@@ -228,6 +250,8 @@ onmessage = ({ data }) => {
     }
     secrets = m.secrets ?? {}
     target = m.target ?? {}
+    offeredTarget = m.offeredTarget
+    targetRemembered = m.targetRemembered !== false
     config = merge(defaultConfig(files, m.name), m.config)
     render()
   } catch (e) {

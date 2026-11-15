@@ -82,6 +82,13 @@ internal sealed partial class SyncHandler
                 continue;
             }
             if (!state.TryGetValue(key, out var raw) || raw is null) continue;
+            if (ReflectionMapper.GridRowType(p) is { } rowType && Protects(rowType)
+                && raw is JsonElement { ValueKind: JsonValueKind.Array } rows
+                && BindRows(instance, p, rowType, rows) is { } bound)
+            {
+                p.SetValue(instance, bound);
+                continue;
+            }
             if (IsCleared(raw, p.PropertyType))
             {
                 // A cleared input clears the property (Java's FieldValueConverter): keeping the
@@ -97,6 +104,74 @@ internal sealed partial class SyncHandler
         }
     }
 
+    /// <summary>Whether some property of <paramref name="rowType"/> — or of an object it holds — is
+    /// one this caller may not write (or read).</summary>
+    private static bool Protects(Type rowType, int depth = 0)
+    {
+        if (depth > 8) return false;
+        foreach (var p in ReflectionMapper.EditableProperties(rowType))
+        {
+            if (!ActionGuard.MayWrite(p)) return true;
+            if (ReflectionMapper.IsNestedFormPropertyType(p) && Protects(p.PropertyType, depth + 1)) return true;
+            if (ReflectionMapper.GridRowType(p) is { } inner && inner != rowType && Protects(inner, depth + 1)) return true;
+        }
+        return false;
+    }
+
+    /// <summary>A grid field's incoming rows bound one by one, each laid over the row the instance
+    /// ALREADY holds — the same id when the row type has one, else the one at that position — so a
+    /// cell the caller may not write keeps its value instead of taking the client's (or falling to
+    /// the row type's default). A row the user added starts fresh. Deserialised whole, the list
+    /// wrote every cell, [ReadOnlyUnless] and [EyesOnly] ones included (GA review 2, D3; Python's
+    /// <c>_held_rows</c>, Java's FieldAccess walk over lists).</summary>
+    private static object? BindRows(object instance, PropertyInfo p, Type rowType, JsonElement rows)
+    {
+        var current = (p.GetValue(instance) as System.Collections.IEnumerable)?.Cast<object>().ToList() ?? [];
+        var idProperty = EntityIds.PropertyOf(rowType);
+        var byId = new Dictionary<string, object>();
+        if (idProperty is not null)
+            foreach (var row in current)
+                if (idProperty.GetValue(row)?.ToString() is { Length: > 0 } id) byId.TryAdd(id, row);
+        var bound = (System.Collections.IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(rowType))!;
+        var i = 0;
+        foreach (var raw in rows.EnumerateArray())
+        {
+            var position = i++;
+            if (AsStateMap(raw) is not { } map) continue;
+            object? held = null;
+            if (idProperty is not null)
+            {
+                var wanted = map.TryGetValue(Naming.CamelCase(idProperty.Name), out var v) && v is JsonElement el
+                    ? (el.ValueKind == JsonValueKind.String ? el.GetString() : el.ToString())
+                    : null;
+                if (wanted is { Length: > 0 }) byId.TryGetValue(wanted, out held);
+            }
+            else if (position < current.Count) held = current[position];
+            var row = held is not null && rowType.IsInstanceOfType(held) ? Copy(held) : Activator.CreateInstance(rowType);
+            if (row is null) continue;
+            BindState(row, map);
+            bound.Add(row);
+        }
+        var target = p.PropertyType;
+        if (target.IsArray)
+        {
+            var array = Array.CreateInstance(rowType, bound.Count);
+            bound.CopyTo(array, 0);
+            return array;
+        }
+        if (target.IsAssignableFrom(bound.GetType())) return bound;
+        // a collection type a List cannot stand for: nothing written, the server's rows stay
+        MateuLogging.For("Mateu.State").LogWarning(
+            "Grid rows of {Property} not bound: {Type} has protected cells and is no List or array", p.Name, target.Name);
+        return p.GetValue(instance);
+    }
+
+    private static readonly MethodInfo MemberwiseCloneMethod =
+        typeof(object).GetMethod("MemberwiseClone", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+    /// <summary>A shallow copy the binding writes into, never the object itself (it may be shared).</summary>
+    private static object Copy(object value) => MemberwiseCloneMethod.Invoke(value, null)!;
+
     private static void BindNested(object instance, PropertyInfo p, string key, IDictionary<string, object?> state)
     {
         var prefix = key + "-";
@@ -104,7 +179,10 @@ internal sealed partial class SyncHandler
             .ToDictionary(kv => kv.Key[prefix.Length..], kv => kv.Value);
         var nested = state.TryGetValue(key, out var raw) ? AsStateMap(raw) : null;
         if (nested is null && flattened.Count == 0) return;
-        var target = p.GetValue(instance) ?? Activator.CreateInstance(p.PropertyType)!;
+        // bound into a copy the instance then owns: the object it holds may be shared (a static
+        // default, the stored row a grid row was laid over) — binding into it wrote one caller's
+        // values for every other (GA review 2, D8 / Python Y6). Each level copies its own.
+        var target = p.GetValue(instance) is { } held ? Copy(held) : Activator.CreateInstance(p.PropertyType)!;
         if (nested is not null) BindState(target, nested);
         if (flattened.Count > 0) BindState(target, flattened);
         p.SetValue(instance, target);

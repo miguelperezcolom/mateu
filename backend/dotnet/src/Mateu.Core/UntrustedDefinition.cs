@@ -25,7 +25,14 @@ namespace Mateu.Core;
 ///   <item>nothing runs without a click and nothing posts elsewhere: <c>triggers</c> are emptied and
 ///   no <c>restAction</c> is kept;</item>
 ///   <item>a <c>MicroFrontend</c> does not load from another server (its absolute <c>baseUrl</c> is
-///   dropped).</item>
+///   dropped);</item>
+///   <item>nothing loads by itself from elsewhere (GA review 2, C2): an inline REST source (any
+///   <c>…Source</c>) keeps only its catalogue <c>ref</c> and fetches by GET — without a ref it goes —,
+///   the answer's own <c>restSources</c> catalogue goes, an image (<c>src</c>, <c>srcset</c>,
+///   <c>image</c>, <c>avatar</c>, <c>logo</c>, <c>favicon</c>, <c>tileUrl</c>, <c>poster</c>,
+///   <c>background</c>, <c>xlink:href</c>) loads only from this server or a <c>data:</c> url, and a
+///   style that could load something (<c>url(</c>, <c>image(</c>, <c>image-set(</c>, <c>cross-fade(</c>,
+///   <c>src(</c>, a CSS escape) is blanked — a style rule computed by an expression goes too.</item>
 /// </list>
 /// Same rules in Java, Python and the web renderers; shared cases:
 /// <c>conformance/untrusted/cases.json</c>.
@@ -47,6 +54,12 @@ internal static class UntrustedDefinition
     ];
     static readonly HashSet<string> SafeSchemes = ["http", "https", "mailto", "tel"];
     static readonly HashSet<string> CodeCommands = ["AddContentToHead", "AddContentToBody"];
+    static readonly HashSet<string> LoadingKeys =
+    [
+        "src", "srcset", "image", "avatar", "logo", "favicon", "tileurl", "poster", "background", "xlink:href",
+    ];
+    static readonly string[] LoadingCss = ["url(", "image(", "image-set(", "cross-fade(", "src(", "\\"];
+    static readonly HashSet<string> SourceRequestKeys = ["url", "method", "headers", "body", "proxy"];
     static readonly Regex Scheme = new("^([a-zA-Z][a-zA-Z0-9+.-]*):", RegexOptions.Compiled);
 
     static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
@@ -105,7 +118,17 @@ internal static class UntrustedDefinition
                 var out_ = new JsonObject();
                 foreach (var (key, v) in node)
                 {
-                    if ((key == "js" && TextOf(v) is not null) || key == "restAction") continue;
+                    if ((key == "js" && TextOf(v) is not null) || key is "restAction" or "restSources") continue;
+                    if (IsSourceKey(key) && v is JsonObject sourceNode)
+                    {
+                        if (Source(sourceNode) is { } kept) out_[key] = kept;
+                        continue;
+                    }
+                    if (TextOf(v) is { } text && LoadsSomething(key, text))
+                    {
+                        out_[key] = "";
+                        continue;
+                    }
                     // nothing runs without a click: an OnLoad/OnValueChange/AutoSave trigger fires by itself
                     out_[key] = key == "triggers" && v is JsonArray ? new JsonArray() : Neutralize(v);
                 }
@@ -201,7 +224,58 @@ internal static class UntrustedDefinition
     }
 
     static bool IsCode(JsonNode? item) =>
-        item is JsonObject o && (TextOf(o["action"]) == "RunJS" || (TextOf(o["type"]) is { } t && CodeCommands.Contains(t)));
+        item is JsonObject o && (TextOf(o["action"]) == "RunJS"
+            || (TextOf(o["type"]) is { } t && CodeCommands.Contains(t))
+            || IsLoadingStyleRule(o));
+
+    /// <summary>A rule that sets a style the strip cannot check (an expression) or one that could fetch.</summary>
+    static bool IsLoadingStyleRule(JsonObject rule)
+    {
+        var action = TextOf(rule["action"]);
+        var setsStyle = action == "SetStyle" || (action == "SetAttributeValue" && TextOf(rule["fieldAttribute"]) == "style");
+        if (!setsStyle) return false;
+        if (TextOf(rule["expression"]) is { } expression && !string.IsNullOrWhiteSpace(expression)) return true;
+        return TextOf(rule["value"]) is { } value && IsLoadingStyle(value);
+    }
+
+    /// <summary>A style that could fetch something.</summary>
+    internal static bool IsLoadingStyle(string value)
+    {
+        var lower = value.ToLowerInvariant();
+        return LoadingCss.Any(f => lower.Contains(f, StringComparison.Ordinal));
+    }
+
+    static bool IsSourceKey(string key) => key.Length > "Source".Length && key.EndsWith("Source", StringComparison.Ordinal);
+
+    /// <summary>An inline REST source as an untrusted screen may keep it: its catalogue <c>ref</c>, fetched
+    /// by GET, and how to read the answer; nothing of where it goes or what it sends. Null: it goes.</summary>
+    static JsonObject? Source(JsonObject value)
+    {
+        if (TextOf(value["ref"]) is not { } reference || string.IsNullOrWhiteSpace(reference)) return null;
+        var out_ = new JsonObject();
+        foreach (var (key, v) in value)
+            if (!SourceRequestKeys.Contains(key)) out_[key] = Neutralize(v);
+        out_["method"] = "GET";
+        return out_;
+    }
+
+    /// <summary>An image key holding a url from elsewhere, or a style key holding a style that fetches.</summary>
+    static bool LoadsSomething(string key, string value)
+    {
+        var k = key.ToLowerInvariant();
+        if (LoadingKeys.Contains(k) && LoadsFromElsewhere(k, value)) return true;
+        return k.EndsWith("style", StringComparison.Ordinal) && IsLoadingStyle(value);
+    }
+
+    // a url the browser would fetch from elsewhere: any scheme but data:, or //host (a backslash
+    // spelling included); a srcset lists several, so any scheme, // or backslash in it counts
+    static bool LoadsFromElsewhere(string key, string value)
+    {
+        if (key == "srcset") return value.Contains(':') || value.Contains('\\') || value.Contains("//", StringComparison.Ordinal);
+        return SchemeOf(value) is { } scheme
+            ? scheme != "data"
+            : Cleaned(value).Replace('\\', '/').StartsWith("//", StringComparison.Ordinal);
+    }
 
     /// <summary>A url as a browser reads its scheme: tabs/newlines removed, leading controls/spaces dropped.</summary>
     static string Cleaned(string value)

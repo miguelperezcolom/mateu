@@ -2,7 +2,7 @@
 // building, uploading) happens in the UI iframe, the only side with network access. What is kept
 // where is plugin/store.js; every failure is told to the panel, never swallowed.
 import { serialize } from './serialize.js'
-import { CONFIG, FILE_ID, SECRETS, TARGET, messageOf, onlyTarget, onlyTokens, readChunked, splitSecrets, writeChunked } from './store.js'
+import { CONFIG, FILE_ID, SECRETS, TARGET, fileMarkOf, messageOf, onlyTokens, readChunked, splitSecrets, storedTarget, targetFor, writeChunked } from './store.js'
 
 // hidden layers are never content: the converter would skip them anyway
 figma.skipInvisibleInstanceChildren = true
@@ -23,13 +23,15 @@ function fileId() {
     try {
       figma.root.setPluginData(FILE_ID, id)
     } catch {
-      // view-only: remembered until the plugin closes
+      // view-only: remembered until the plugin closes, and the panel says so
+      remembered = false
     }
   }
   return id
 }
 
 let targetKey
+let remembered = true
 
 async function ready() {
   await figma.loadAllPagesAsync()
@@ -43,8 +45,8 @@ async function ready() {
   }
   targetKey = TARGET + fileId()
   const { secrets, legacyTarget } = splitSecrets((await figma.clientStorage.getAsync(SECRETS)) ?? {})
-  const target = (await figma.clientStorage.getAsync(targetKey)) ?? legacyTarget
-  post({ type: 'document', name: figma.root.name, file, config, secrets, target })
+  const { target, offered } = targetFor(await figma.clientStorage.getAsync(targetKey), fileMarkOf(figma.root))
+  post({ type: 'document', name: figma.root.name, file, config, secrets, target: target ?? legacyTarget, offeredTarget: offered, targetRemembered: remembered })
 }
 
 /** Each part saved on its own, so one failing (a view-only file, a size limit) loses nothing else. */
@@ -67,7 +69,7 @@ figma.ui.onmessage = async (m) => {
   } else if (m.type === 'save-secrets') {
     await save('tokens', () => figma.clientStorage.setAsync(SECRETS, onlyTokens(m.secrets)))
   } else if (m.type === 'save-target') {
-    await save('target', () => figma.clientStorage.setAsync(targetKey, onlyTarget(m.target)))
+    await save('target', () => figma.clientStorage.setAsync(targetKey, storedTarget(m.target, fileMarkOf(figma.root))))
   } else if (m.type === 'save-config') {
     await save('settings', () => writeChunked(figma.root, CONFIG, JSON.stringify(m.config)))
   } else if (m.type === 'open') {

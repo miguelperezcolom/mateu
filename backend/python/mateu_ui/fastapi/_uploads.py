@@ -124,11 +124,13 @@ def add_upload_endpoints(
         content_type = (request.headers.get("content-type") or "").strip() or "application/octet-stream"
         if not accepts(claims.accept, name, content_type):
             return _not_accepted()
-        if not uploads_of().consume(request.headers.get(TICKET_HEADER) or "", claims):
-            return _too_many()
+        # a body declared too large is refused BEFORE it counts as one of the ticket's files (Java's
+        # UploadEndpoint order): a refused upload must not use up the ticket
         declared = _content_length(request)
         if declared > claims.max_bytes:
             return _too_large(claims.max_bytes)
+        if not uploads_of().consume(request.headers.get(TICKET_HEADER) or "", claims):
+            return _too_many()
         received = 0
 
         async def limited():

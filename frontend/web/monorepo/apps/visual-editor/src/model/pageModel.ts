@@ -38,6 +38,11 @@ export interface PageDoc {
      */
     inferred?: InferredField[]
     /**
+     * The view model a delta page is bound to through the ROUTE graph (routes.yaml), when the file
+     * declares no `viewModel:` — what it was hydrated against. Never written to the file.
+     */
+    boundModel?: string
+    /**
      * A PARTIAL authored as a top-level `content:` list of components (no single root) — a reusable
      * fragment, inlined wherever a `Partial ref` names it. For editing it is wrapped in a synthetic
      * `VerticalLayout` (a tree needs a root and the backend preview needs a `type`); {@link
@@ -247,7 +252,10 @@ export function serializePage(doc: PageDoc): string {
     }
     const envelope: Record<string, unknown> = {}
     if (doc.modelView) envelope.viewModel = doc.modelView
-    const delta = expressibleDelta(doc)
+    // A delta not hydrated yet (no contract: the app is not running, or it never answered) has
+    // nothing on the canvas it could be rebuilt from: it is written back exactly as it was read,
+    // never as an empty `layout:` over it (GA review 2, N-3) — the editor refuses edits meanwhile.
+    const delta = doc.delta && !doc.inferred ? doc.delta : expressibleDelta(doc)
     if (delta) {
         // An empty delta still writes the key: `layoutDelta: {}` says "a human looked and changed
         // nothing", which is different from a page that was never edited — and, unlike `layout:`,
@@ -265,7 +273,8 @@ export function serializePage(doc: PageDoc): string {
 
 /** What {@link serializePage} will write, and therefore what the edit costs. */
 export function saveShape(doc: PageDoc): SaveShape {
-    if (!doc.modelView) return 'static'
+    if (doc.delta && !doc.inferred) return 'delta'
+    if (!(doc.modelView ?? doc.boundModel)) return 'static'
     return expressibleDelta(doc) ? 'delta' : 'snapshot'
 }
 
@@ -279,7 +288,7 @@ export function saveShape(doc: PageDoc): SaveShape {
  * known fields, the honest answer is a snapshot.
  */
 function expressibleDelta(doc: PageDoc): LayoutDelta | null {
-    if (!doc.inferred || !doc.modelView) return null
+    if (!doc.inferred || !(doc.modelView ?? doc.boundModel)) return null
     const inferredIds = doc.inferred.map((f) => f.id)
     const root = doc.layout
     if (root.type !== 'FormLayout' && root.type !== 'VerticalLayout') return null
@@ -319,8 +328,8 @@ const DELTA_PROPS = new Set(['id', 'label', 'colspan'])
  * Called once the `__contract__` response arrives. A page whose model the server cannot resolve
  * keeps working exactly as before; it simply never gains the delta option.
  */
-export function hydrate(doc: PageDoc, inferred: InferredField[]): PageDoc {
-    const hydrated: PageDoc = { ...doc, inferred }
+export function hydrate(doc: PageDoc, inferred: InferredField[], boundModel?: string): PageDoc {
+    const hydrated: PageDoc = { ...doc, inferred, ...(boundModel && !doc.modelView ? { boundModel } : {}) }
     if (!doc.delta) return hydrated
     const ids = applyDelta(inferred.map((f) => f.id), doc.delta)
     hydrated.layout = {
@@ -663,3 +672,11 @@ function stamp(node: PageNode, path: NodePath): void {
 /** Components whose `id` is a data binding, not a DOM handle. */
 const SEMANTIC_ID = new Set(['FormField', 'GridColumn', 'GridGroupColumn'])
 const COLUMN_TYPES = new Set(['GridColumn', 'GridGroupColumn'])
+
+/**
+ * True while the page is a `layoutDelta:` whose fields have not arrived (no contract yet): there
+ * is nothing on the canvas an edit could be written from (GA review 2, N-3).
+ */
+export function awaitsItsContract(doc: PageDoc | undefined): boolean {
+    return !!doc && !!doc.delta && !doc.inferred
+}

@@ -15,7 +15,14 @@
  *  - a `javascript:`/`vbscript:` url anywhere is blanked;
  *  - nothing runs without a click and nothing posts elsewhere: `triggers` are emptied and no
  *    `restAction` is kept;
- *  - a `MicroFrontend` does not load from another server (its absolute `baseUrl` is dropped).
+ *  - a `MicroFrontend` does not load from another server (its absolute `baseUrl` is dropped);
+ *  - nothing loads by itself from elsewhere (GA review 2, C2): an inline REST source (`rowsSource`,
+ *    `optionsSource`, any `…Source`) keeps only its catalogue `ref` and fetches by GET — without a
+ *    ref it goes —, the answer's own `restSources` catalogue goes (a ref resolves against the
+ *    app's), an image (`src`, `srcset`, `image`, `avatar`, `logo`, `favicon`, `tileUrl`, `poster`,
+ *    `background`, `xlink:href`) loads only from this server or a `data:` url, and a style that
+ *    could load something (`url(`, `image(`, `image-set(`, `cross-fade(`, `src(`, a CSS escape) is
+ *    blanked — a style rule computed by an expression goes too.
  *
  * Everything else renders as authored. The SAME rules run on the server (`__preview__` with
  * `_untrusted`: Java, .NET, Python) and in the Redwood renderer (poc/untrusted.mjs); the shared
@@ -33,6 +40,13 @@ const URL_ATTRIBUTES = new Set(['href', 'src', 'xlink:href', 'action', 'formacti
     'data', 'cite', 'ping', 'srcset', 'manifest', 'codebase', 'longdesc', 'usemap', 'icon'])
 const SAFE_SCHEMES = new Set(['http', 'https', 'mailto', 'tel'])
 const CODE_COMMANDS = new Set(['AddContentToHead', 'AddContentToBody'])
+/** Keys whose value the browser fetches by itself (an image, a poster, map tiles). */
+const LOADING_KEYS = new Set(['src', 'srcset', 'image', 'avatar', 'logo', 'favicon', 'tileurl', 'poster',
+    'background', 'xlink:href'])
+/** What a style may not carry: a CSS function that fetches, or an escape that could spell one. */
+const LOADING_CSS = ['url(', 'image(', 'image-set(', 'cross-fade(', 'src(', '\\']
+/** What an inline source keeps nothing of: where it goes and what it sends. */
+const SOURCE_REQUEST_KEYS = new Set(['url', 'method', 'headers', 'body', 'proxy'])
 
 /** A url as a browser reads its scheme: tabs/newlines removed, leading controls and spaces dropped. */
 // eslint-disable-next-line no-control-regex
@@ -57,6 +71,22 @@ const isSafeUrl = (value: string): boolean => {
 const isAbsoluteUrl = (value: string): boolean =>
     !!schemeOf(value) || cleanedUrl(value).replace(/\\/g, '/').startsWith('//')
 
+/** A url the browser would fetch from elsewhere: any scheme but `data:`, or `//host` (a backslash
+ *  spelling included). A `srcset` lists several, so any scheme, `//` or backslash in it counts. */
+const loadsFromElsewhere = (key: string, value: string): boolean => {
+    if (key === 'srcset') return /[:\\]|\/\//.test(value)
+    const scheme = schemeOf(value)
+    return scheme ? scheme !== 'data' : cleanedUrl(value).replace(/\\/g, '/').startsWith('//')
+}
+
+/** A style that could fetch something. */
+export const isLoadingStyle = (value: string): boolean => {
+    const lower = value.toLowerCase()
+    return LOADING_CSS.some(f => lower.includes(f))
+}
+
+const isStyleKey = (key: string): boolean => key.toLowerCase().endsWith('style')
+
 type Json = unknown
 type JsonObject = Record<string, Json>
 
@@ -64,7 +94,29 @@ const isObject = (v: Json): v is JsonObject => !!v && typeof v === 'object' && !
 
 /** An object an untrusted definition loses entirely from the list holding it. */
 const isCode = (v: Json): boolean =>
-    isObject(v) && (v.action === 'RunJS' || (typeof v.type === 'string' && CODE_COMMANDS.has(v.type)))
+    isObject(v) && (v.action === 'RunJS' || (typeof v.type === 'string' && CODE_COMMANDS.has(v.type))
+        || isLoadingStyleRule(v))
+
+/** A rule that sets a style the strip cannot check (an expression) or one that could fetch. */
+const isLoadingStyleRule = (v: JsonObject): boolean => {
+    const setsStyle = v.action === 'SetStyle' || (v.action === 'SetAttributeValue' && v.fieldAttribute === 'style')
+    if (!setsStyle) return false
+    if (typeof v.expression === 'string' && v.expression.trim() !== '') return true
+    return typeof v.value === 'string' && isLoadingStyle(v.value)
+}
+
+/** An inline REST source as an untrusted screen may keep it: its catalogue `ref`, fetched by GET,
+ *  and how to read the answer; nothing of where it goes or what it sends. Undefined: it goes. */
+const source = (value: JsonObject): JsonObject | undefined => {
+    if (typeof value.ref !== 'string' || value.ref.trim() === '') return undefined
+    const out: JsonObject = {}
+    for (const [key, v] of Object.entries(value)) {
+        if (!SOURCE_REQUEST_KEYS.has(key)) out[key] = walk(v)
+    }
+    return { ...out, method: 'GET' }
+}
+
+const isSourceKey = (key: string): boolean => key.length > 'Source'.length && key.endsWith('Source')
 
 const element = (node: JsonObject): JsonObject => {
     const name = typeof node.name === 'string' ? node.name.trim().toLowerCase() : ''
@@ -95,7 +147,17 @@ const walk = (value: Json): Json => {
     }
     const out: JsonObject = {}
     for (const [key, v] of Object.entries(node)) {
-        if ((key === 'js' && typeof v === 'string') || key === 'restAction') continue
+        if ((key === 'js' && typeof v === 'string') || key === 'restAction' || key === 'restSources') continue
+        if (isSourceKey(key) && isObject(v)) {
+            const kept = source(v)
+            if (kept) out[key] = kept
+            continue
+        }
+        if (typeof v === 'string' && ((LOADING_KEYS.has(key.toLowerCase()) && loadsFromElsewhere(key.toLowerCase(), v))
+            || (isStyleKey(key) && isLoadingStyle(v)))) {
+            out[key] = ''
+            continue
+        }
         // nothing runs without a click: an OnLoad/OnValueChange/AutoSave trigger fires by itself
         out[key] = key === 'triggers' && Array.isArray(v) ? [] : walk(v)
     }
