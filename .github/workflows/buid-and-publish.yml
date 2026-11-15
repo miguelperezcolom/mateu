@@ -734,7 +734,7 @@ jobs:
         if: steps.auth.outputs.mode == 'token'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish npm/*.tgz --tag "$(cat npm/dist-tag)" --access public --provenance
+        run: npm publish ./npm/*.tgz --tag "$(cat npm/dist-tag)" --access public --provenance
       - name: Publish to npm (trusted publishing)
         if: steps.auth.outputs.mode == 'trusted'
         run: |
@@ -744,7 +744,7 @@ jobs:
           if [ "$(printf '%s\n' 11.5.1 "$v" | sort -V | head -1)" != 11.5.1 ]; then
             echo "::error::npm $v cannot publish with OIDC (needs 11.5.1+)"; exit 1
           fi
-          npm publish npm/*.tgz --tag "$(cat npm/dist-tag)" --access public
+          npm publish ./npm/*.tgz --tag "$(cat npm/dist-tag)" --access public
       - name: The version is on npm
         if: steps.auth.outputs.mode != 'none'
         run: |
