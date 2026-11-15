@@ -267,15 +267,14 @@ app.MapMateu(); // with MATEU_UI=<the mateu-vaadin jar> it also serves the web p
 await app.StartAsync();
 var url = app.Urls.First() + "/?t=" + token; // the real port, chosen by the OS
 Console.WriteLine($"Local tool running at {url}");
-try
-{
-    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-}
-catch (Exception)
-{
-    Console.WriteLine("(Open the address above in your browser.)");
-}
+OpenBrowser(url);
 await app.WaitForShutdownAsync();
+
+static void OpenBrowser(string url)
+{
+    try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); }
+    catch (Exception) { Console.WriteLine("(Open the address above in your browser.)"); }
+}
 
 static bool Same(string a, string b) =>
     CryptographicOperations.FixedTimeEquals(System.Text.Encoding.UTF8.GetBytes(a), System.Text.Encoding.UTF8.GetBytes(b));
