@@ -113,6 +113,12 @@ const LABS = {
     dotnet: [['dotnet', ['01', '03']], ['dotnet', ['01', '03', '06']]],
     python: [['python', ['01', '03']], ['python', ['01', '03', '06']]],
   },
+  // a stretch lab: from lab 03's solution, each CRUD screen made to differ
+  '08-crud-screens': {
+    java: [['java', ['01', '03']], ['java', ['01', '03', '08']]],
+    dotnet: [['dotnet', ['01', '03']], ['dotnet', ['01', '03', '08']]],
+    python: [['python', ['01', '03']], ['python', ['01', '03', '08']]],
+  },
 }
 
 for (const [lab, langs] of Object.entries(LABS)) {

@@ -147,7 +147,11 @@ public record Product(
 - `@HiddenInList`
 - `@HiddenInView`
 - `@HiddenInEditor`
+- `@HiddenInCreate`
 - `@ReadOnly` — on a field: makes that field read-only in forms
+
+Which screen each one affects, and the other two ways to make the screens differ, are in
+[Customise each screen](#5-customise-each-screen-creation-form-detail-editor).
 
 ---
 
@@ -171,7 +175,260 @@ Mateu uses standard validation annotations:
 
 ---
 
-# 5. Improve list rendering
+# 5. Customise each screen: creation form, detail, editor
+
+A CRUD is four screens: the **listing** (`/customers`), the **creation form** (`/customers/new`),
+the **detail** — the record's read-only page (`/customers/C-001`) — and the **editor**
+(`/customers/C-001/edit`). By default they all show the entity's fields. You can make them differ
+at three levels; stay at the lowest one that does the job.
+
+| You want… | Level | How |
+|---|---|---|
+| A field not shown on one screen | 1 | `@HiddenInCreate`, `@HiddenInView`, `@HiddenInEditor`, `@HiddenInList` on the field |
+| A code the user types once, then never changes | 1 | `@EditableOnlyWhenCreating` |
+| A field shown but never typed (set by the store) | 1 | `@ReadOnly` on the field (+ `@HiddenInCreate` when New should not show it) |
+| A field only some users may change, or see | 1 | `@ReadOnlyUnless(roles = …)`, `@EyesOnly(roles = …)` |
+| No New, no Edit at all | 1 | `@NotCreatable`, `@NotEditable` on the CRUD class |
+| New starts filled in (next code, default values) | 2 | override `creationForm(HttpRequest)` |
+| A value computed for the detail, or for the editor | 2 | override `view(id, HttpRequest)` / `edit(id, HttpRequest)` |
+| The creation form, the detail and the editor with different fields and types | 3 | extend `Crud<View, Editor, CreationForm, Filters, Row, IdType>` |
+| Some of the screens only (a detail and a New, no editor) | 3 | `Listing<Row>` + `Navigable` / `Editable` / `Creatable` / `Deletable` |
+
+### Level 1 — same fields, different per screen
+
+Annotate the entity's fields. One record serves the four screens, each showing its own subset:
+
+```java
+public record Customer(
+    @EditableOnlyWhenCreating @NotEmpty String id,        // typed on New, read-only afterwards
+    @NotEmpty String name,
+    String email,
+    @HiddenInCreate @ReadOnly LocalDate customerSince,    // set by the store, never typed
+    @HiddenInList @HiddenInView String internalNotes,     // only on the two forms
+    @ReadOnlyUnless(roles = "manager") double creditLimit, // only a manager changes it
+    @HiddenInCreate @HiddenInEditor @HiddenInList int openOrders) // only on the detail
+    implements Identifiable {}
+```
+
+```java
+@UI("/customers")
+@Title("Customers")
+public class Customers extends AutoCrud<Customer> {
+
+    @Inject CustomerStore customers;
+
+    @Override
+    public CrudStore<Customer> store() {
+        return customers;
+    }
+}
+```
+
+What each screen shows:
+
+| Field | Listing | New | Detail | Editor |
+|---|---|---|---|---|
+| `id` | — ¹ | input | ✓ | read-only |
+| `name`, `email` | ✓ | input | ✓ | input |
+| `customerSince` | ✓ | — | ✓ | read-only |
+| `internalNotes` | — | input | — | input |
+| `creditLimit` | ✓ | read-only ² | ✓ | read-only ² |
+| `openOrders` | — | — | ✓ | — |
+
+¹ A listing whose rows open the record leaves out the column of the row's declared id
+([why](/java-user-manual/build/capability-listings/#the-technical-id-is-not-a-column)); put
+`@Label("Code")` on it to keep it. ² An input for a user with the `manager` role.
+
+What the forms do not let the user write is never taken from the browser: a create starts the
+hidden and read-only fields from a fresh instance — so the store fills `customerSince` in when it is
+missing — and an edit keeps the stored values of `customerSince`, `openOrders` and (for anyone but a
+manager) `creditLimit`. The annotations are the visibility rules of the form *and* of the save.
+
+- `@HiddenInEditor` hides a field on the editor only — the creation form has its own
+  `@HiddenInCreate`; put both on a field that only the detail and the listing show.
+- `@EyesOnly(roles = "…")` hides a field on every screen, listing included, from everyone else.
+- On the CRUD class, `@NotCreatable` and `@NotEditable` drop the New and Edit screens altogether
+  (see [Restrict capabilities](#2-restrict-capabilities)).
+
+### Level 2 — same class, other content
+
+`AutoCrud` builds each screen's object with an overridable method: `creationForm(httpRequest)` for
+New, `view(id, httpRequest)` for the detail and `edit(id, httpRequest)` for the editor. Override
+them to fill in or compute values — they return the entity type, so the fields are still the
+entity's (level 1 still decides which ones each screen shows):
+
+```java
+@UI("/customers")
+@Title("Customers")
+public class Customers extends AutoCrud<Customer> {
+
+    @Inject CustomerStore customers;
+
+    @Override
+    public CrudStore<Customer> store() {
+        return customers;
+    }
+
+    /** New: the next free code and a starting credit limit. */
+    @Override
+    public Customer creationForm(HttpRequest httpRequest) {
+        return new Customer(customers.nextId(), "", null, null, null, 1000, 0);
+    }
+
+    /** The detail: a value computed only for this screen. */
+    @Override
+    public Customer view(String id, HttpRequest httpRequest) {
+        return super.view(id, httpRequest).withOpenOrders(customers.openOrdersOf(id));
+    }
+
+    /** The editor: proposes an e-mail when the record has none. */
+    @Override
+    public Customer edit(String id, HttpRequest httpRequest) {
+        var customer = super.edit(id, httpRequest);
+        return customer.email() != null
+            ? customer
+            : customer.withEmail(customer.name().toLowerCase().replace(' ', '.') + "@example.com");
+    }
+}
+```
+
+(`withOpenOrders` and `withEmail` are two one-line copy methods on the record.)
+
+:::caution[A prefilled value is a proposal, not a rule]
+`creationForm()` fills the form in; the create then saves what the user may write. A value on a field
+the user may **not** change — read-only for them or hidden on New — is not taken back from the
+browser: the create starts it from a fresh instance. Above, the 1000 credit limit is saved for a
+manager, who may edit it, and is `0` for anyone else. A default that must hold whoever creates the
+record belongs to the store (as `customerSince` does) or to your `create` logic.
+:::
+
+### Level 3 — a different class per screen
+
+When the screens need genuinely different fields — a two-field creation form, a detail made of
+computed text, an editor that shows only what may change — give each screen its own class with
+`Crud<View, Editor, CreationForm, Filters, Row, IdType>`:
+
+```java
+public record NewCustomer(@EditableOnlyWhenCreating @NotEmpty String id, @NotEmpty String name) {}
+
+public record CustomerCard(String name, String email, LocalDate customerSince, String activity) {}
+
+public record CustomerEditor(@ReadOnly String id, @NotEmpty String name, String email) {}
+
+public record CustomerFilters(String email) {}
+```
+
+```java
+@UI("/customers")
+@Title("Customers")
+public class CustomerAccounts
+    extends Crud<CustomerCard, CustomerEditor, NewCustomer, CustomerFilters, Customer, String> {
+
+    @Inject CustomerStore customers;
+
+    @Override
+    public ListingData<Customer> search(SearchRequest request, HttpRequest httpRequest) {
+        return ListingData.from(customers.findAll());
+    }
+
+    @Override
+    public CustomerCard view(String id, HttpRequest httpRequest) {
+        var c = customers.findById(id).orElseThrow();
+        return new CustomerCard(
+            c.name(), c.email(), c.customerSince(), customers.openOrdersOf(id) + " open orders");
+    }
+
+    @Override
+    public CustomerEditor edit(String id, HttpRequest httpRequest) {
+        var c = customers.findById(id).orElseThrow();
+        return new CustomerEditor(c.id(), c.name(), c.email());
+    }
+
+    @Override
+    public NewCustomer creationForm(HttpRequest httpRequest) {
+        return new NewCustomer(customers.nextId(), "");
+    }
+
+    @Override
+    public String save(HttpRequest httpRequest) {
+        var editor = httpRequest.getComponentState(CustomerEditor.class);
+        var c = customers.findById(editor.id()).orElseThrow();
+        customers.save(new Customer(c.id(), editor.name(), editor.email(), c.customerSince(),
+            c.internalNotes(), c.creditLimit(), c.openOrders()));
+        return editor.id();
+    }
+
+    @Override
+    public String create(HttpRequest httpRequest) {
+        var form = httpRequest.getComponentState(NewCustomer.class);
+        return customers.save(new Customer(form.id(), form.name(), null, null, null, 0, 0));
+    }
+
+    @Override
+    public void deleteAllById(List<String> ids, HttpRequest httpRequest) {
+        customers.deleteAllById(ids);
+    }
+}
+```
+
+New shows `id` and `name` (the next code already filled in), the detail shows the card — name,
+e-mail, customer since and "3 open orders" — and the editor `id` (read-only), `name` and `email`.
+Saving the editor writes back only those, so the credit limit and the notes keep their stored
+values. See [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/).
+
+When you want *some* of the screens only, skip `Crud` and declare the capabilities one by one — here
+a detail and a creation form of their own, and no editor (no Edit button, no `/edit` route):
+
+```java
+@UI("/directory")
+@Title("Customers")
+public class CustomerDirectory
+    implements Listing<Customer>, Navigable<CustomerCard, String>, Creatable<NewCustomer, String> {
+
+    @Inject CustomerStore customers;
+
+    @Override
+    public ListingData<Customer> search(SearchRequest request, HttpRequest httpRequest) {
+        return ListingData.from(customers.findAll());
+    }
+
+    @Override
+    public CustomerCard view(String id, HttpRequest httpRequest) {
+        var c = customers.findById(id).orElseThrow();
+        return new CustomerCard(c.name(), c.email(), c.customerSince(), "");
+    }
+
+    @Override
+    public NewCustomer creationForm(HttpRequest httpRequest) {
+        return new NewCustomer(customers.nextId(), "");
+    }
+
+    @Override
+    public String create(HttpRequest httpRequest) {
+        var form = httpRequest.getComponentState(NewCustomer.class);
+        return customers.save(new Customer(form.id(), form.name(), null, null, null, 0, 0));
+    }
+}
+```
+
+`Editable<Editor, Id>` adds the editor (in a drawer over the listing when the class is not also
+`Navigable`) and `Deletable<Id>` the Delete button — see
+[Listings and capabilities](/java-user-manual/build/capability-listings/).
+
+:::tip[Test what each screen shows]
+These examples are pinned by a [UI test](/quality/testing-your-uis/) with `mateu-test`: it opens
+New, a record's detail and its editor and checks the fields each one shows —
+`assertFalse(mateu.open("/customers").button("New").press().hasField("customerSince"))`. Do the
+same for your own CRUDs: the screens are derived, so a test is the cheapest way to see them.
+:::
+
+C# and Python: the same three levels, with what each port supports, are in the
+[C# manual](/csharp-user-manual/#customise-each-screen-creation-form-detail-editor) and the
+[Python manual](/python-user-manual/#customise-each-screen-creation-form-detail-editor).
+
+---
+
+# 6. Improve list rendering
 
 ## Status as badge
 
@@ -242,7 +499,7 @@ This is the simplest way to localise or rephrase the CRUD chrome without touchin
 
 ---
 
-# 6. Customize forms
+# 7. Customize forms
 
 ## Layout
 
@@ -335,7 +592,7 @@ in view mode.
 
 ---
 
-# 7. Add actions
+# 8. Add actions
 
 ## Page-level action
 
@@ -360,7 +617,7 @@ public Object discount() {
 
 ---
 
-# 8. Customize list behavior
+# 9. Customize list behavior
 
 Override `fetchRows()` directly on your `AutoCrud` subclass to control how the listing is populated — push filtering to the database, sort server-side, or apply pagination:
 
@@ -399,7 +656,7 @@ Typical customizations:
 
 ---
 
-# 9. When the model is not enough
+# 10. When the model is not enough
 
 Use:
 
@@ -418,7 +675,7 @@ Callable<?> stats = () -> new HorizontalLayout(
 
 ---
 
-# 10. Anti-patterns
+# 11. Anti-patterns
 
 ## Overusing custom pages
 
@@ -432,17 +689,18 @@ When your Java backend serves the UI, logic lives on the server: keep logic, val
 
 ---
 
-# 11. Summary
+# 12. Summary
 
 Customization in Mateu follows this progression:
 
-1. Model (annotations)
+1. Model (annotations — per screen with `@HiddenIn*`, `@EditableOnlyWhenCreating`)
 2. Capability restrictions (`@ReadOnly`, `@NotNavigable`, `@NotCreatable`, `@NotEditable`, `@NotDeletable`)
-3. Validation
-4. Layout
-5. Actions
-6. Adapter
-7. Custom UI (Callable / Route)
+3. Per-screen content (`creationForm` / `view` / `edit`, then a class per screen)
+4. Validation
+5. Layout
+6. Actions
+7. Adapter
+8. Custom UI (Callable / Route)
 
 Stay in the model as long as possible.
 

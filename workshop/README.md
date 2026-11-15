@@ -26,6 +26,7 @@ the three tracks; only the code labs differ.
 | 2:30 | 30′ | [05 · AI agents over MCP](labs/05-ai-agents/guide.md) | An agent that reads and operates your screens, and pushes a screen it wrote onto your open UI |
 | 3:00 | 30′ | [06 · Sign-in](labs/06-sign-in/guide.md) | Sign-in with Keycloak; a field only a manager sees |
 | 3:30 | 15′ | Wrap-up + [07 · Stretch labs](labs/07-stretch/guide.md) | Where to go next |
+| *stretch* | 20′ | [08 · Each CRUD screen its own](labs/08-crud-screens/guide.md) | A creation form, a detail and an editor that show different fields; New filled in |
 
 About **3 h 45 min** with the break. Each lab has **optional stretch steps** at the end for those who
 finish early; skipping them never blocks the next lab.
@@ -86,6 +87,7 @@ workshop/
     05-ai-agents/             java/ dotnet/ python/
     06-sign-in/               java/ dotnet/ python/ + keycloak/ (compose file and realm)
     07-stretch/               guide only
+    08-crud-screens/          java/ dotnet/ python/ — a stretch lab, from lab 03's solution
   tools/
     build-labs.mjs            regenerates every start/ and solution/ from the starters
     steps/                    what each lab adds (the only hand-written lab code)
