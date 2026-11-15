@@ -7,8 +7,8 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Mateu.NET, the same release as the Java artifacts (3.0-beta.N is 3.0.0-beta.N on NuGet). -->
-    <PackageReference Include="Mateu.AspNetCore" Version="3.0.0-beta.64" />
-    <PackageReference Include="Mateu.Uidl" Version="3.0.0-beta.64" />
+    <PackageReference Include="Mateu.AspNetCore" Version="3.0.0-rc.2" />
+    <PackageReference Include="Mateu.Uidl" Version="3.0.0-rc.2" />
   </ItemGroup>
   <ItemGroup>
     <!-- Workshop, lab 03: the tests live in their own project next to the app; keep them out of it. -->

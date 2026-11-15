@@ -38,7 +38,7 @@ de Oracle.
 
 ![Products en el renderer Redwood](img/redwood-products.png)
 
-> **Hueco conocido en 3.0-beta.64 — C# y Python en Redwood.** Lo comprobamos con los tres backends:
+> **Hueco conocido en 3.0-rc.2 — C# y Python en Redwood.** Lo comprobamos con los tres backends:
 > en **Java** se dibujan todas las pantallas (arriba). En **C# y Python** se dibujan el shell de
 > Redwood, el menú y los títulos, pero **el contenido de las pantallas queda vacío** (la misma app en
 > Vaadin va bien). Si estás en esos itinerarios, mira Redwood con la solución Java de un compañero, o

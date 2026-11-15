@@ -16,11 +16,11 @@ Choose: authoring **Code**, runtime **Spring Boot (MVC)** / **.NET** / **Python*
 template **Back office: Product CRUD**, artifact **`workshop`**, package `com.example.workshop`.
 
 Java only, without an IDE:
-`mvn archetype:generate -DarchetypeGroupId=io.mateu -DarchetypeArtifactId=mateu-archetype -DarchetypeVersion=3.0-beta.64 -DgroupId=com.example -DartifactId=workshop -Dpackage=com.example.workshop`
+`mvn archetype:generate -DarchetypeGroupId=io.mateu -DarchetypeArtifactId=mateu-archetype -DarchetypeVersion=3.0-rc.2 -DgroupId=com.example -DartifactId=workshop -Dpackage=com.example.workshop`
 
 > **Short on time or no plugin?** Open `labs/01-first-app/<your track>/start/`: it is exactly what
 > the wizard generates. (The wizards write the newest Mateu release; the labs are verified on
-> 3.0-beta.64, which `start/` pins. If anything differs, carry on from `start/`.)
+> 3.0-rc.2, which `start/` pins. If anything differs, carry on from `start/`.)
 
 Look around — it is small:
 
