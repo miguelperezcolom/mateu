@@ -43,12 +43,6 @@
             <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
-        <!-- The generated controllers use Lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
     </dependencies>
 
     <build>
@@ -58,14 +52,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <!-- REQUIRED: the Mateu annotation processor generates one Spring WebFlux controller
-                         per @UI class. List every processor you use here (Lombok too): once
+                         per @UI class. List every processor you use here (Lombok too, if you add it): once
                          annotationProcessorPaths is set, nothing else on the classpath runs. -->
                     <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
                         <path>
                             <groupId>io.mateu</groupId>
                             <artifactId>mateu-annotation-processor-webflux</artifactId>
@@ -78,6 +67,8 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <!-- Your code and the generated controllers do not need Lombok, but Mateu's jars
+                         still bring it in transitively: keep it out of the runnable jar. -->
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

@@ -52,7 +52,7 @@ mvn package                  # target/*.jar
   `findAll`, `deleteAllById`; override `find(searchText, filters, pageable)` to page in the
   database). The entity implements `Identifiable`.
 - **The annotation processor is mandatory.** `mateu-annotation-processor-webflux` must stay in
-  `maven-compiler-plugin` → `annotationProcessorPaths` (next to Lombok). Without it no controller
+  `maven-compiler-plugin` → `annotationProcessorPaths`. Without it no controller
   is generated and every route answers 404.
 - Do not add `io.mateu` to `scanBasePackages`: Mateu's beans come with its adapter jar as an
   auto-configuration. Keep your `@UI` classes inside the package `Application` scans.

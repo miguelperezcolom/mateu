@@ -50,7 +50,7 @@ mvn package && java -jar target/quarkus-app/quarkus-run.jar
   `findAll`, `deleteAllById`; override `find(searchText, filters, pageable)` to page in the
   database). The entity implements `Identifiable`.
 - **The annotation processor is mandatory.** `mateu-annotation-processor-quarkus` must stay in
-  `maven-compiler-plugin` → `annotationProcessorPaths` (next to Lombok). Without it no controller
+  `maven-compiler-plugin` → `annotationProcessorPaths`. Without it no controller
   is generated and every route answers 404.
 - Keep `quarkus-rest-jackson` (Mateu's wire is Jackson-serialised).
 - Do not hand-write controllers, REST endpoints for the UI, or frontend code — declare the model.

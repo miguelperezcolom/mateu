@@ -19,7 +19,6 @@
     <description>Minimal Mateu app on Helidon MP: an app shell, a home page and a CRUD over a record.</description>
 
     <properties>
-        <lombok.version>1.18.40</lombok.version>
         <!-- The latest Mateu release on Maven Central. To build against your local checkout instead,
              install the backend (cd backend && mvn install -DskipTests) and pass
              -Dmateu.version=0.0.1-MATEU -->
@@ -65,13 +64,6 @@
             <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
-        <!-- The generated controllers use Lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-            <optional>true</optional>
-        </dependency>
     </dependencies>
 
     <build>
@@ -101,11 +93,6 @@
                     <!-- REQUIRED: the Mateu annotation processor generates one JAX-RS resource and
                          one route resolver per @UI class. List every processor you use here. -->
                     <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
                         <path>
                             <groupId>io.mateu</groupId>
                             <artifactId>mateu-annotation-processor-helidon-mp</artifactId>
