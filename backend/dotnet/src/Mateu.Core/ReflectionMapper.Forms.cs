@@ -247,9 +247,21 @@ internal sealed partial class ReflectionMapper
         // Zone widths become grid tracks; stackBelow collapses the row to one column on narrow
         // containers (mirrors Java's flushZonedRow — the old flex-wrap point was ~20rem/column).
         return new ClientSideComponentDto(
-            new ResponsiveGridMetadataDto(string.Join(" ", tracks), null, null, "40rem"), null, columns,
+            new ResponsiveGridMetadataDto(string.Join(" ", ProportionalZoneTracks(tracks)), null, null, "40rem"), null, columns,
             "width: 100%; align-items: start;", null, null);
     }
+
+    private static readonly System.Text.RegularExpressions.Regex PercentageTrack =
+        new(@"^\d*\.?\d+%$");
+
+    /// <summary>A row whose zones are ALL percentages ("62% 38%") is a ratio: the tracks become
+    /// "62fr 38fr", sharing what the column gap leaves — as percentages they added up to 100% PLUS
+    /// the gap and the last column was clipped. Any other row keeps its tracks (mirrors Java's
+    /// SectionFormRenderer.proportional).</summary>
+    internal static List<string> ProportionalZoneTracks(List<string> tracks) =>
+        tracks.Count > 0 && tracks.All(t => PercentageTrack.IsMatch(t))
+            ? tracks.Select(t => t[..^1] + "fr").ToList()
+            : tracks;
 
     // Groups consecutive fields sharing the same [Tab] name into the tabs of a single TabLayout.
     // Developer-declared tabs always carry the alternative group semantics; they are adaptable

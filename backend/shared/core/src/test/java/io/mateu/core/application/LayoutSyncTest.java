@@ -122,6 +122,17 @@ class LayoutSyncTest {
   }
 
   @SuppressWarnings("unused")
+  @UI("/layout/zones-full")
+  @Zones({@Zone(name = "list", width = "62%"), @Zone(name = "card", width = "38%")})
+  public static class ZonesFullWidthPage {
+    @Section(value = "Lista", zone = "list")
+    String a = "a";
+
+    @Section(value = "Ficha", zone = "card")
+    String b = "b";
+  }
+
+  @SuppressWarnings("unused")
   @UI("/layout/zones-untitled")
   @Zones({@Zone(name = "left", width = "60%"), @Zone(name = "right", width = "40%")})
   public static class ZonesUntitledPage {
@@ -314,6 +325,7 @@ class LayoutSyncTest {
             SectionColumnsPage.class,
             ZonesPage.class,
             ZonesUntitledPage.class,
+            ZonesFullWidthPage.class,
             ZonesBandedPage.class,
             TabsPage.class,
             FoldedPage.class,
@@ -428,6 +440,16 @@ class LayoutSyncTest {
     // behaviour).
     var grid = (ResponsiveGridDto) row.metadata();
     assertThat(grid.gridTemplateColumns()).isEqualTo("60% 40% 1fr");
+    assertThat(grid.stackBelow()).isEqualTo("40rem");
+  }
+
+  @Test
+  void percentageZonesThatFillTheRowShareWhatTheGapLeaves() {
+    var page = page(mateu.sync("/layout/zones-full"));
+    var grid = (ResponsiveGridDto) ((ClientSideComponentDto) page.children().get(0)).metadata();
+    // 62% + 38% + the column gap is wider than the page: as fr tracks the two columns keep their
+    // ratio and fit exactly beside the gap (nothing clipped, no sideways scroll).
+    assertThat(grid.gridTemplateColumns()).isEqualTo("62fr 38fr");
     assertThat(grid.stackBelow()).isEqualTo("40rem");
   }
 

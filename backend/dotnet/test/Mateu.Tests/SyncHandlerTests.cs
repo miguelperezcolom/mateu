@@ -1928,6 +1928,18 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void Percentage_zones_that_fill_the_row_share_what_the_gap_leaves()
+    {
+        // 62% + 38% + the column gap overflowed the page: as fr tracks they keep the ratio and fit.
+        Assert.Equal(new[] { "62fr", "38fr" }, Mateu.Core.ReflectionMapper.ProportionalZoneTracks(["62%", "38%"]));
+        Assert.Equal(new[] { "33.3fr", "33.3fr", "33.4fr" },
+            Mateu.Core.ReflectionMapper.ProportionalZoneTracks(["33.3%", "33.3%", "33.4%"]));
+        // any other track keeps the row as declared
+        Assert.Equal(new[] { "64%", "36%", "1fr" }, Mateu.Core.ReflectionMapper.ProportionalZoneTracks(["64%", "36%", "1fr"]));
+        Assert.Equal(new[] { "20rem", "1fr" }, Mateu.Core.ReflectionMapper.ProportionalZoneTracks(["20rem", "1fr"]));
+    }
+
+    [Fact]
     public void List_of_rows_property_renders_as_a_grid_form_field()
     {
         var json = Render(Handler().Handle(new RunActionRqDto { Route = "checkin", ConsumedRoute = "checkin" }));
