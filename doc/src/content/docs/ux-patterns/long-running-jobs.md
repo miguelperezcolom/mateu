@@ -42,6 +42,21 @@ streaming. The two concerns are independent:
 | Stream many updates vs one response | return a `Flux<?>` (auto-enables `sse`) — or `@Action(sse = true)` |
 | Show the busy indicator vs fire-and-forget | `@Action(background = …)` |
 
+**.NET and Python** infer it from the `LongTaskRun` return type the same way. In .NET the
+method's declared type is enough. Python only knows what the method is *annotated* to return, so
+annotate it `-> LongTaskRun`; a method without that annotation needs `@action_options(sse=True)`:
+
+```python
+from mateu_ui.uidl import LongTask, LongTaskRun, button
+
+@button
+def reindex(self) -> LongTaskRun:          # advertised with sse: the progress streams
+    return LongTask.create("Reindexing").with_progress_bar().run(work)
+```
+
+In both ports `sse` cannot be switched off for a method that returns a `LongTaskRun`: an
+`[ActionOptions]` / `@action_options` without `sse` keeps the inferred streaming.
+
 ---
 
 ## `LongTask` — a task the user can follow

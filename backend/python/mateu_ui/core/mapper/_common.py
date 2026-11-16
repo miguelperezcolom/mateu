@@ -253,15 +253,43 @@ def with_action_options(action: Action, cls, action_id: str) -> Action:
     The action id is the camel-cased method name, so the declaring method is found by matching
     that back. Without a declaration the safe defaults ride: the client's own timeout, and no
     self-retry (after a timeout the client cannot know whether the server applied the action).
+
+    A method declared ``-> LongTaskRun`` streams its progress, so the action is advertised with
+    ``sse`` (.NET's WithActionOptions reads the LongTaskRun return type, Java the Flux one).
+    Python only knows the DECLARED return type: an unannotated method needs
+    ``@action_options(sse=True)``.
     """
+    if any(camel_case(name) == action_id and returns_long_task_run(fn)
+           for name, fn in methods_with(cls, "__call__")):
+        action = action.model_copy(update={"sse": True})
     for name, fn in methods_with(cls, "__mateu_action_options__"):
         if camel_case(name) != action_id:
             continue
         timeout_millis, idempotent = fn.__mateu_action_options__
         update: dict = {"timeout_millis": timeout_millis, "idempotent": idempotent}
         update.update(_action_extras(getattr(fn, "__mateu_action_extras__", None)))
+        # like .NET (`action.Sse || options.Sse`): `sse=False` is the decorator's default, so it
+        # cannot switch off the streaming a LongTaskRun return type asks for
+        update["sse"] = bool(action.sse) or bool(update.get("sse"))
         return action.model_copy(update=update)
     return action
+
+
+def returns_long_task_run(fn) -> bool:
+    """Whether ``fn`` declares ``-> LongTaskRun`` (resolved, or by its spelling when the
+    annotation cannot be resolved). An unannotated method says nothing."""
+    from mateu_ui.uidl.progress import LongTaskRun
+
+    if fn is None:
+        return False
+    try:
+        hints = get_type_hints(fn)
+    except Exception:  # noqa: BLE001 - an unresolvable annotation: fall back to its spelling
+        hints = {}
+    returned = hints.get("return", getattr(fn, "__annotations__", {}).get("return"))
+    if returned is LongTaskRun:
+        return True
+    return isinstance(returned, str) and returned.split(".")[-1].strip("'\" ") == "LongTaskRun"
 
 
 def _action_extras(extras: dict | None) -> dict:

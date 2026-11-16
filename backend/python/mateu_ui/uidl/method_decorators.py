@@ -246,8 +246,9 @@ def action_options(
     processed it, so marking a create idempotent risks a silent duplicate.
 
     The keyword-only knobs are the rest of Java's ``@Action``: ``background`` (no busy veil / no
-    double-submit lock), ``sse`` (the client calls the streaming endpoint — needed when the action
-    returns a ``LongTask``), ``href`` (the button navigates there), ``js`` (client JavaScript, only
+    double-submit lock), ``sse`` (the client calls the streaming endpoint — inferred for a method
+    annotated ``-> LongTaskRun``, needed for an unannotated one returning a ``LongTask``; ``False``
+    never switches the inferred streaming off),``href`` (the button navigates there), ``js`` (client JavaScript, only
     run when the page opts into RunJS), ``custom_event`` / ``custom_event_detail`` (a browser
     custom event dispatched instead of a server call) and the ``confirmation_*`` texts of the
     confirmation dialog, shown when ``confirmation_required`` (the client asks before sending).
