@@ -63,7 +63,7 @@ final class RestSourceCatalogMapper {
    * that maps a component directly — and an app rendering without its catalogue is a far better
    * outcome than one that will not render at all.
    */
-  private static RestSourceCatalog catalogue() {
+  static RestSourceCatalog catalogue() {
     try {
       var registry = MateuBeanProvider.getSingletonBean(RestSourceRegistry.class);
       return registry == null ? RestSourceCatalog.empty() : registry.catalog();
