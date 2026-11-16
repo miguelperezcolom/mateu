@@ -37,6 +37,7 @@ import { FileDownloadData, handleFileDownload, printPage } from '@infra/ui/docum
 import { setServerWindowTitle } from '@infra/ui/windowTitle.ts'
 import { literalText } from '@infra/ui/interpolation.ts'
 import { isSuppressedWindowCommand } from '@infra/ui/embeddedChrome.ts'
+import { carryOverRecentMessages, reloadsThePage } from '@infra/notify/messageCarryOver.ts'
 
 export default abstract class ConnectedElement extends LitElement {
 
@@ -293,7 +294,12 @@ export default abstract class ConnectedElement extends LitElement {
             // navigate-to-requested path does (mateu-ui). A new tab (cross-origin) leaves nothing.
             if (destination) {
                 const resolved = resolveSafeUrl(destination)
-                if (resolved?.sameOrigin) dirtyGuard.markClean()
+                if (resolved?.sameOrigin) {
+                    dirtyGuard.markClean()
+                    // the load throws the page away, and with it the toast this same answer just
+                    // showed ("Ticket created"): the next page shows it once it booted
+                    if (reloadsThePage(resolved.href, window.location.href)) carryOverRecentMessages()
+                }
                 // server-sent: only http(s)/relative, same-origin here, cross-origin in a new tab
                 safeNavigate(destination)
             }

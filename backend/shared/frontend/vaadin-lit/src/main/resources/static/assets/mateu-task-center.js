@@ -1,29 +1,29 @@
 
-import{S as e,T as t,i as n,k as r,o as i,x as a}from"./vendor-lit.js";import{A as o,_ as s,d as c,f as l,g as u,h as d,l as f,m as p,nn as m,o as h,p as g,q as _,r as v,u as y,v as b,y as x}from"./globalCommands.js";import{i as S,r as C}from"./chromeTexts.js";import{t as w}from"./dirtyGuard.js";import{F as T,H as E,U as D,_ as O,g as k,h as A,z as j}from"./mateu-vaadin.js";var M=`_progress-cancel`,N=async e=>{let t=s.find(e);if(!t)return;let n=t.origin??{};try{let t=await _.runAction(n.baseUrl??``,n.route||`_no_route`,``,M,`mateu-task-center`,void 0,n.serverSideType??``,{},{taskId:e},n.initiator??document.body,!0);for(let e of t?.commands??[])v(e,n)}catch{m({text:C(`taskCancelFailed`),variant:`error`},document.body)}},P=e=>{let t=s.find(e);t?.origin?.retry&&(s.dismiss(e),t.origin.retry())},F=(e,t)=>{let n=s.find(e)?.origin?.initiator;if(n?.isConnected)return x(t,n);if(t.route){let e=h();return!e||!w.confirmLeave()?!1:(o(e,t.route),!0)}return console.debug?.(`mateu: the screen that started the task is gone; its action cannot run there`,t.actionId),!1},I=(e,t)=>{if(typeof e!=`number`||!Number.isFinite(e)||e<=0)return null;if(e<60)return C(`taskEtaUnderMinute`,t);if(e<3600){let n=Math.max(1,Math.round(e/60));if(n<60)return S(`taskEtaMinutes`,{n},t)}return S(`taskEtaHours`,{n:Math.max(1,Math.round(e/3600))},t)},L=class extends a{constructor(...e){super(...e),this.tasks=s.state,this.listOpen=!1,this.now=Date.now(),this.announced=new Map}connectedCallback(){super.connectedCallback(),this.unsubscribe=s.subscribe(e=>this.onTasks(e)),this.onTasks(s.state),this.unsubscribeOs=k(()=>this.requestUpdate())}disconnectedCallback(){super.disconnectedCallback(),this.unsubscribe?.(),this.unsubscribe=void 0,this.unsubscribeOs?.(),this.unsubscribeOs=void 0,clearInterval(this.ticker),this.ticker=void 0,clearTimeout(this.closer),this.releaseTrap()}onTasks(e){this.tasks=e,this.now=Date.now();for(let t of e.entries)this.announceChange(t);let t=y(e).running>0;t&&!this.ticker?this.ticker=setInterval(()=>{this.now=Date.now()},1e3):!t&&this.ticker&&(clearInterval(this.ticker),this.ticker=void 0),this.scheduleAutoClose()}announceChange(e){let t=e.progress.taskId,n=e.progress.state??`running`;if(this.announced.get(t)===n)return;this.announced.set(t,n);let r=e.progress.title||C(`tasks`);E(S(n===`running`?`taskStarted`:n===`done`?`taskFinishedAnnounce`:n===`failed`?`taskFailedAnnounce`:`taskCancelledAnnounce`,{title:r}),{politeness:`polite`})}scheduleAutoClose(){clearTimeout(this.closer);let e=this.tasks.entries.filter(e=>e.progress.blocking&&g(e.progress)&&e.finishedAt!==void 0&&(e.progress.closeAfterSeconds??0)>0).map(e=>e.finishedAt+e.progress.closeAfterSeconds*1e3-Date.now()).filter(e=>e>0);e.length>0&&(this.closer=setTimeout(()=>{this.now=Date.now(),this.scheduleAutoClose()},Math.min(...e)+20))}updated(e){let t=f(this.tasks,this.now),n=this.renderRoot.querySelector(`.modal`);t&&n?this.trappedTask===t.progress.taskId?this.trap?.refresh():(this.releaseTrap(),this.trappedTask=t.progress.taskId,this.trap=T(n)):this.releaseTrap()}releaseTrap(){this.trap?.release(),this.trap=void 0,this.trappedTask=void 0}stateLabel(e){switch(e.progress.state){case`done`:return C(`taskDone`);case`failed`:return C(`taskFailed`);case`cancelled`:return C(`taskCancelled`);default:return C(`taskRunning`)}}renderBar(n){let r=n.progress,i=d(r),a=g(r)&&i===void 0?100:i,o=u(r),s=[r.text,o?S(`taskStepCount`,o):null].filter(Boolean).join(` · `);return t`
+import{S as e,T as t,i as n,k as r,o as i,x as a}from"./vendor-lit.js";import{A as o,Z as s,_ as c,d as l,f as u,g as d,h as f,l as p,m,o as h,on as g,p as _,r as v,u as y,v as b,y as x}from"./globalCommands.js";import{i as S,r as C}from"./chromeTexts.js";import{t as w}from"./dirtyGuard.js";import{F as T,H as E,U as D,_ as O,g as k,h as A,z as j}from"./mateu-vaadin.js";var M=`_progress-cancel`,N=async e=>{let t=c.find(e);if(!t)return;let n=t.origin??{};try{let t=await s.runAction(n.baseUrl??``,n.route||`_no_route`,``,M,`mateu-task-center`,void 0,n.serverSideType??``,{},{taskId:e},n.initiator??document.body,!0);for(let e of t?.commands??[])v(e,n)}catch{g({text:C(`taskCancelFailed`),variant:`error`},document.body)}},P=e=>{let t=c.find(e);t?.origin?.retry&&(c.dismiss(e),t.origin.retry())},F=(e,t)=>{let n=c.find(e)?.origin?.initiator;if(n?.isConnected)return x(t,n);if(t.route){let e=h();return!e||!w.confirmLeave()?!1:(o(e,t.route),!0)}return console.debug?.(`mateu: the screen that started the task is gone; its action cannot run there`,t.actionId),!1},I=(e,t)=>{if(typeof e!=`number`||!Number.isFinite(e)||e<=0)return null;if(e<60)return C(`taskEtaUnderMinute`,t);if(e<3600){let n=Math.max(1,Math.round(e/60));if(n<60)return S(`taskEtaMinutes`,{n},t)}return S(`taskEtaHours`,{n:Math.max(1,Math.round(e/3600))},t)},L=class extends a{constructor(...e){super(...e),this.tasks=c.state,this.listOpen=!1,this.now=Date.now(),this.announced=new Map}connectedCallback(){super.connectedCallback(),this.unsubscribe=c.subscribe(e=>this.onTasks(e)),this.onTasks(c.state),this.unsubscribeOs=k(()=>this.requestUpdate())}disconnectedCallback(){super.disconnectedCallback(),this.unsubscribe?.(),this.unsubscribe=void 0,this.unsubscribeOs?.(),this.unsubscribeOs=void 0,clearInterval(this.ticker),this.ticker=void 0,clearTimeout(this.closer),this.releaseTrap()}onTasks(e){this.tasks=e,this.now=Date.now();for(let t of e.entries)this.announceChange(t);let t=y(e).running>0;t&&!this.ticker?this.ticker=setInterval(()=>{this.now=Date.now()},1e3):!t&&this.ticker&&(clearInterval(this.ticker),this.ticker=void 0),this.scheduleAutoClose()}announceChange(e){let t=e.progress.taskId,n=e.progress.state??`running`;if(this.announced.get(t)===n)return;this.announced.set(t,n);let r=e.progress.title||C(`tasks`);E(S(n===`running`?`taskStarted`:n===`done`?`taskFinishedAnnounce`:n===`failed`?`taskFailedAnnounce`:`taskCancelledAnnounce`,{title:r}),{politeness:`polite`})}scheduleAutoClose(){clearTimeout(this.closer);let e=this.tasks.entries.filter(e=>e.progress.blocking&&_(e.progress)&&e.finishedAt!==void 0&&(e.progress.closeAfterSeconds??0)>0).map(e=>e.finishedAt+e.progress.closeAfterSeconds*1e3-Date.now()).filter(e=>e>0);e.length>0&&(this.closer=setTimeout(()=>{this.now=Date.now(),this.scheduleAutoClose()},Math.min(...e)+20))}updated(e){let t=p(this.tasks,this.now),n=this.renderRoot.querySelector(`.modal`);t&&n?this.trappedTask===t.progress.taskId?this.trap?.refresh():(this.releaseTrap(),this.trappedTask=t.progress.taskId,this.trap=T(n)):this.releaseTrap()}releaseTrap(){this.trap?.release(),this.trap=void 0,this.trappedTask=void 0}stateLabel(e){switch(e.progress.state){case`done`:return C(`taskDone`);case`failed`:return C(`taskFailed`);case`cancelled`:return C(`taskCancelled`);default:return C(`taskRunning`)}}renderBar(n){let r=n.progress,i=f(r),a=_(r)&&i===void 0?100:i,o=d(r),s=[r.text,o?S(`taskStepCount`,o):null].filter(Boolean).join(` · `);return t`
             <div class="bar ${a===void 0?`bar--indeterminate`:``} bar--${r.state??`running`}"
                  role="progressbar" aria-label="${r.title||C(`progress`)}"
                  aria-valuemin="0" aria-valuemax="100"
                  aria-valuenow="${a===void 0?e:a}"
                  aria-valuetext="${s||e}">
                 <div class="bar-fill" style="${a===void 0?``:`width: ${a}%`}"></div>
-            </div>`}renderMeta(n){let r=u(n.progress),i=g(n.progress)?null:I(n.progress.etaSeconds);return t`
+            </div>`}renderMeta(n){let r=d(n.progress),i=_(n.progress)?null:I(n.progress.etaSeconds);return t`
             <div class="meta">
                 ${r?t`<span>${S(`taskStepCount`,r)}</span>`:e}
-                <span>${S(`taskElapsed`,{time:l(c(n,this.now))})}</span>
+                <span>${S(`taskElapsed`,{time:u(l(n,this.now))})}</span>
                 ${i?t`<span class="eta">${i}</span>`:e}
                 <span class="state state--${n.progress.state??`running`}">${this.stateLabel(n)}</span>
-            </div>`}renderButtons(n,r){let i=n.progress,a=i.taskId;return g(i)?t`
+            </div>`}renderButtons(n,r){let i=n.progress,a=i.taskId;return _(i)?t`
             <div class="buttons">
                 ${(i.resultActions??[]).map((e,n)=>t`
                     <button class="btn ${n===0||e.style===`primary`?`btn--primary`:``}"
-                            @click="${()=>{F(a,e)&&s.dismiss(a)}}">${b(e)}</button>`)}
+                            @click="${()=>{F(a,e)&&c.dismiss(a)}}">${b(e)}</button>`)}
                 ${i.state===`failed`&&i.retryable&&n.origin?.retry?t`
                     <button class="btn btn--primary" @click="${()=>P(a)}">${C(`retry`)}</button>`:e}
-                <button class="btn" @click="${()=>s.dismiss(a)}">${C(r?`close`:`dismiss`)}</button>
+                <button class="btn" @click="${()=>c.dismiss(a)}">${C(r?`close`:`dismiss`)}</button>
             </div>`:t`
                 <div class="buttons">
                     ${r&&i.backgroundable?t`
-                        <button class="btn" @click="${()=>s.moveToBackground(a)}">${C(`taskBackground`)}</button>`:e}
+                        <button class="btn" @click="${()=>c.moveToBackground(a)}">${C(`taskBackground`)}</button>`:e}
                     ${i.cancellable?t`
                         <button class="btn" @click="${()=>void N(a)}">${C(`cancel`)}</button>`:e}
                 </div>`}renderTask(n,r){let i=n.progress;return t`
@@ -43,14 +43,14 @@ import{S as e,T as t,i as n,k as r,o as i,x as a}from"./vendor-lit.js";import{A 
                 <div class="list-head">
                     <span class="list-title">${C(`tasks`)}</span>
                     ${y(this.tasks).finished>0?t`
-                        <button class="link" @click="${()=>s.clearFinished()}">${C(`tasksClearFinished`)}</button>`:e}
+                        <button class="link" @click="${()=>c.clearFinished()}">${C(`tasksClearFinished`)}</button>`:e}
                     <button class="icon" aria-label="${C(`close`)}" @click="${()=>{this.listOpen=!1}}">✕</button>
                 </div>
                 ${n.length===0?t`<div class="empty">${C(`tasksNone`)}</div>`:e}
                 ${n.map(e=>this.renderTask(e,!1))}
                 ${A()?t`
                     <button class="link os-notify" @click="${()=>void O()}">${C(`osNotificationsEnable`)}</button>`:e}
-            </div>`}render(){let n=f(this.tasks,this.now),r=p(this.tasks).filter(e=>e!==n),i=y(this.tasks),a=r.length>0;return t`
+            </div>`}render(){let n=p(this.tasks,this.now),r=m(this.tasks).filter(e=>e!==n),i=y(this.tasks),a=r.length>0;return t`
             ${n?this.renderModal(n):e}
             ${a?t`
                 <div class="dock">

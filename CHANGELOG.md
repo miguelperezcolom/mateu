@@ -8,6 +8,23 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed — a toast survives the page load a server navigation causes
+
+- **An action that answers a message AND navigates no longer loses the message** — e.g.
+  `List.of(Message.success("Ticket created"), URI.create("/tickets"))` in Java, or
+  `new object[] { Message.Success("…"), "/tickets" }` in C#. A server `NavigateTo` is a full page
+  load by design in every backend (the target may be another mount of the origin, which the
+  browser cannot tell apart from its own on a root mount), so the toast was drawn and thrown away
+  with the page. The web client now keeps the messages that answer just showed in this tab's
+  sessionStorage right before the load and the next page shows them once it booted
+  (`infra/notify/messageCarryOver.ts`; text only — an action of the message belonged to the screen
+  the load destroyed; stale after 30 s; a `#fragment` move carries nothing). Not ported to Redwood.
+
+### Docs
+
+- The C# manual, the `mateu-dotnet` skill and the .NET READMEs install `Mateu.AspNetCore` without
+  `--prerelease` now that 3.0.0 is released.
+
 ### Added — message page
 
 - **`MessagePage`, a page template for a page that stands on its own** — a confirmation, "check

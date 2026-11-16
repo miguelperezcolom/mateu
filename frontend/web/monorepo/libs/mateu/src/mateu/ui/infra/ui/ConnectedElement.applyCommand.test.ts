@@ -83,6 +83,31 @@ describe('ConnectedElement.applyCommand', () => {
         }
     })
 
+    it('a server NavigateTo carries the toast its answer just showed over the page load', async () => {
+        // "Ticket created" + NavigateTo /tickets: the load threw the toast away before anyone saw it
+        const { noteShownMessage, takeCarriedMessages, resetCarryOver } = await import('@infra/notify/messageCarryOver')
+        resetCarryOver()
+        sessionStorage.clear()
+        const assign = vi.fn()
+        const location = window.location
+        Object.defineProperty(window, 'location', { configurable: true, value: { ...location, href: location.href, origin: location.origin, assign } })
+        try {
+            noteShownMessage({ title: '', text: 'Ticket created', position: 'bottomEnd', variant: 'success', duration: 3000 })
+            el.applyCommand(cmd('NavigateTo', '/tickets'))
+            expect(assign).toHaveBeenCalled()
+            expect(takeCarriedMessages().map((m) => m.text)).toEqual(['Ticket created'])
+            // a cross-origin URL opens a new tab: this page (and its toast) stays, nothing is carried
+            vi.spyOn(window, 'open').mockImplementation(() => null)
+            noteShownMessage({ title: '', text: 'Sent', position: 'bottomEnd', variant: 'success', duration: 3000 })
+            el.applyCommand(cmd('NavigateTo', 'https://other.example/x'))
+            expect(takeCarriedMessages()).toEqual([])
+        } finally {
+            Object.defineProperty(window, 'location', { configurable: true, value: location })
+            resetCarryOver()
+            sessionStorage.clear()
+        }
+    })
+
     it('NavigateTo opens a cross-origin URL in a new tab without an opener', () => {
         const open = vi.spyOn(window, 'open').mockImplementation(() => null)
         el.applyCommand(cmd('NavigateTo', 'https://other.example/x'))
