@@ -83,8 +83,19 @@ public abstract class MultiView
     return _componentRoute;
   }
 
+  /**
+   * The views this orchestrator builds (a crud's listing, its forms, their columns and options) are
+   * built HERE, while the route is handled — before the response is mapped — so they need the app's
+   * translator as the context too: outside it their titles, labels and enum options reached the
+   * wire untranslated while the plain pages and the menu around them were translated.
+   */
   @Override
   public Object handleRoute(String route, HttpRequest httpRequest) {
+    return io.mateu.core.domain.out.componentmapper.TranslatorContext.within(
+        httpRequest, () -> handleRouteInContext(route, httpRequest));
+  }
+
+  private Object handleRouteInContext(String route, HttpRequest httpRequest) {
     log.debug("route is {}, action is {}", route, httpRequest.runActionRq().actionId());
     try {
 

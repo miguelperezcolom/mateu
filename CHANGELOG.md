@@ -23,6 +23,24 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   IntelliJ / VS Code "New › Mateu" page templates. Demo: `demo-museum` `visit-booked` and `sign-in`.
   Docs `ux-patterns/message-page.md`.
 
+### Fixed — translations and plain text
+
+- An `AutoCrud` speaks the app's language: its title, the window title, the listing's column
+  headers, its forms' labels and their enum options now go through the app's `Translator`, like a
+  plain page's. The crud builds its views while it handles the route, which ran outside the
+  translator context, so a `Translator` mapping `Name` → `Bezeichnung` was called and the crud
+  still said "Name".
+- A `Welcome` page's overridden `heroTitle()` / `heroSubtitle()` / `heroOverline()` (and its
+  `@Panel` tile titles) go through the translator: `${i18n.home.title}` showed the key. Python's
+  `Welcome` too.
+- A class-level `@PlainText` covers `Amount` fields too: they rendered as an editable currency +
+  number pair, while a field-level `@PlainText` showed them as formatted money.
+- Python: with the app's own `Translator`, a text that IS a key of the YAML translation files is
+  still looked up there (only `${i18n.…}` was) — the same as .NET.
+- The listing pager's "N items" is in the UI's language on Vaadin (chromeTexts, six languages,
+  singular for one), React Native (caption and buttons) and the IntelliJ plugin (caption), which
+  were English too. Redwood already had it.
+
 ### Fixed — rc.2 web
 
 - A non-root YAML mount keeps its address on Vaadin: a reload no longer lands in another app.

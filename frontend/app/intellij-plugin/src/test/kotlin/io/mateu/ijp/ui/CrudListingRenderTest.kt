@@ -29,10 +29,13 @@ class CrudListingRenderTest : BasePlatformTestCase() {
     override fun setUp() {
         super.setUp()
         server = StubMateuServer()
+        // the pager's caption is in the UI's language: pin English, or it is the machine's
+        MoneyValues.setAppLocale("en")
     }
 
     override fun tearDown() {
         try {
+            MoneyValues.setAppLocale(null)
             server.close()
         } finally {
             super.tearDown()

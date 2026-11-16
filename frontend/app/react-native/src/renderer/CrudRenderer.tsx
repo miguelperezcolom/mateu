@@ -1,4 +1,6 @@
 import { bodyRepeatsBar } from '../core/barTitle';
+import { uiLocale } from '../core/money';
+import { pagingTexts } from '../core/pagingTexts';
 import React, { useEffect, useState } from 'react';
 import { Alert, FlatList, Modal, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Image } from './BackendImage';
@@ -1000,11 +1002,11 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
       {totalElements > pageSize && pageSize > 0 && (
         <View style={styles.paginationBar} onLayout={(e) => setPaginationHeight(e.nativeEvent.layout.height)}>
-          <IconButton icon="chevron-left" mode="outlined" accessibilityLabel="Previous page" disabled={!hasPrevious || restLoading} onPress={() => hasPrevious && changePage(-1)} />
+          <IconButton icon="chevron-left" mode="outlined" accessibilityLabel={pagingTexts(uiLocale()).previous} disabled={!hasPrevious || restLoading} onPress={() => hasPrevious && changePage(-1)} />
           <PaperText variant="bodyMedium" style={styles.paginationInfo}>
-            Page {pageNumber + 1} of {totalPages} · {totalElements} total
+            {pagingTexts(uiLocale()).caption(pageNumber + 1, totalPages, totalElements)}
           </PaperText>
-          <IconButton icon="chevron-right" mode="outlined" accessibilityLabel="Next page" disabled={!hasNext || restLoading} onPress={() => hasNext && changePage(1)} />
+          <IconButton icon="chevron-right" mode="outlined" accessibilityLabel={pagingTexts(uiLocale()).next} disabled={!hasNext || restLoading} onPress={() => hasNext && changePage(1)} />
         </View>
       )}
 
