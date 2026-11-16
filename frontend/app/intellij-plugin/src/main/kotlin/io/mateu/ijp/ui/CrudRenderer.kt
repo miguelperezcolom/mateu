@@ -694,9 +694,26 @@ private val NUMERIC_TYPES = setOf("integer", "int", "long", "number", "double", 
 internal fun isNumericColumn(dataType: String, stereotype: String): Boolean =
     dataType in NUMERIC_TYPES || stereotype == "money" || stereotype == "currency"
 
-/** The pager's caption: "Page 1 of 20 · 200 items" (it used to carry leading spaces as its gap). */
-internal fun pagerText(pageNumber: Int, totalPages: Int, total: Long): String =
-    "Page ${pageNumber + 1} of $totalPages · $total ${if (total == 1L) "item" else "items"}"
+/**
+ * The pager's caption: "Page 1 of 20 · 200 items" (it used to carry leading spaces as its gap), in
+ * the UI's language ([ChromeLanguage]: the app's locale, else the IDE's).
+ */
+internal fun pagerText(
+    pageNumber: Int,
+    totalPages: Int,
+    total: Long,
+    locale: java.util.Locale? = MoneyValues.uiLocale(),
+): String = ChromeLanguage.pick(locale, PAGER_CAPTIONS)(pageNumber + 1, totalPages, total)
+
+/** page, pages, total → caption, per language (the singular for exactly one item). */
+private val PAGER_CAPTIONS: Map<String, (Int, Int, Long) -> String> = mapOf(
+    "en" to { p, n, t -> "Page $p of $n · ${if (t == 1L) "1 item" else "$t items"}" },
+    "es" to { p, n, t -> "Página $p de $n · ${if (t == 1L) "1 elemento" else "$t elementos"}" },
+    "fr" to { p, n, t -> "Page $p sur $n · ${if (t == 1L) "1 élément" else "$t éléments"}" },
+    "de" to { p, n, t -> "Seite $p von $n · ${if (t == 1L) "1 Eintrag" else "$t Einträge"}" },
+    "pt" to { p, n, t -> "Página $p de $n · ${if (t == 1L) "1 item" else "$t itens"}" },
+    "it" to { p, n, t -> "Pagina $p di $n · ${if (t == 1L) "1 elemento" else "$t elementi"}" },
+)
 
 /**
  * A pager button the IntelliJ way: a square icon button (the L&F's 72 px minimum made "‹ Prev" a

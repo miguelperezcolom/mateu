@@ -79,8 +79,14 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
     return super.supportsAction(actionId);
   }
 
+  /** Answers built here (a drawer's form, a re-rendered listing) speak the app's language. */
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest) {
+    return io.mateu.core.domain.out.componentmapper.TranslatorContext.within(
+        httpRequest, () -> handleActionInContext(actionId, httpRequest));
+  }
+
+  private Object handleActionInContext(String actionId, HttpRequest httpRequest) {
     for (CrudOrchestratorActionHandler actionHandler : actionHandlers) {
       if (actionHandler.supports(actionId, httpRequest, this)) {
         var output = actionHandler.handleAction(actionId, httpRequest, this);

@@ -81,9 +81,11 @@ public class FormViewModel
 
   public String title() {
     if (MetaAnnotations.isPresent(this.getClass(), Title.class)) {
-      return MetaAnnotations.find(this.getClass(), Title.class).value();
+      return io.mateu.core.domain.out.componentmapper.TranslatorContext.translate(
+          MetaAnnotations.find(this.getClass(), Title.class).value());
     }
-    return toUpperCaseFirst(getClass().getSimpleName());
+    return io.mateu.core.domain.out.componentmapper.TranslatorContext.translate(
+        toUpperCaseFirst(getClass().getSimpleName()));
   }
 
   private List<UserTrigger> createToolbar(HttpRequest httpRequest) {

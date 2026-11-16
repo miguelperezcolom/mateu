@@ -104,14 +104,14 @@ class CrudFeaturesRenderTest : RenderTestCase() {
         val ctx = crudContext()
         val c = crud(ctx, """{"type":"Crud","columns":[{"metadata":{"id":"name","label":"Name"}}]}""",
             """{"page":{"content":[{"name":"a"}],"totalElements":25,"pageNumber":1,"pageSize":10}}""")
-        assertTrue(texts(c).contains("Page 2 of 3 · 25 items"))
+        assertTrue(texts(c).contains("Página 2 de 3 · 25 elementos"))
         assertTrue(pagerButton(c, "Previous page").isEnabled)
         pagerButton(c, "Next page").doClick()
         pagerButton(c, "Previous page").doClick()
         awaitRequests(2)
         assertEquals(listOf("nextPage", "prevPage"), server.actionIds())
         ctx.applyIncrement(json("""{"fragments":[{"targetComponentId":"crud1","data":{"page":{"content":[],"totalElements":0}}}]}"""))
-        assertTrue(texts(c).contains("Page 1 of 1 · 0 items"))
+        assertTrue(texts(c).contains("Página 1 de 1 · 0 elementos"))
         assertFalse(pagerButton(c, "Next page").isEnabled)
     }
 

@@ -75,8 +75,8 @@ public final class WelcomeComposer {
         tiles.add(
             DashboardPanel.builder()
                 .id(field.getName())
-                .title(!panel.title().isEmpty() ? panel.title() : getLabel(field))
-                .subtitle(!panel.subtitle().isEmpty() ? panel.subtitle() : null)
+                .title(!panel.title().isEmpty() ? translate(panel.title()) : getLabel(field))
+                .subtitle(!panel.subtitle().isEmpty() ? translate(panel.subtitle()) : null)
                 .colSpan(panel.colSpan())
                 .rowSpan(panel.rowSpan())
                 .content(component)
@@ -89,11 +89,13 @@ public final class WelcomeComposer {
     content.add(
         HeroSection.builder()
             .id("hero")
-            .title(heroTitle)
-            .subtitle(heroSubtitle)
+            // in the app's language: an overridden heroTitle() ("${i18n.home.title}", or a key)
+            // is the page's own text and goes through its translator like a @Title would
+            .title(translate(heroTitle))
+            .subtitle(translate(heroSubtitle))
             .image(heroImage)
             .tone(heroTone)
-            .overline(heroOverline)
+            .overline(translate(heroOverline))
             .centered(true)
             .content(ctas)
             .build());
@@ -114,4 +116,8 @@ public final class WelcomeComposer {
   }
 
   private WelcomeComposer() {}
+
+  private static String translate(String text) {
+    return io.mateu.core.domain.out.componentmapper.TranslatorContext.translate(text);
+  }
 }

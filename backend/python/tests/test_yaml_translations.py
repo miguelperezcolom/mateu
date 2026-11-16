@@ -12,12 +12,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
+from mateu_ui.core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
 from mateu_ui.core.request_context import MateuRequest, bound_request  # noqa: E402
 from mateu_ui.core.route_registry import RouteRegistry  # noqa: E402
 from mateu_ui.core.translations import TranslationRegistry  # noqa: E402
 from mateu_ui.core.yaml_spec_loader import YamlSpecLoader  # noqa: E402
-from mateu_ui.uidl import Translations, TranslationsSupplier  # noqa: E402
+from mateu_ui.uidl import Translations, TranslationsSupplier, Translator, Welcome, ui  # noqa: E402
 
 
 class CodeMessages(TranslationsSupplier):
@@ -100,3 +100,39 @@ def test_a_view_label_resolves_i18n_through_the_mapper(tmp_path):
     with bound_request(MateuRequest(headers={"accept-language": "es"})):
         assert h.mapper.T("${i18n.orders.title}") == "Pedidos"
         assert h.mapper.T("orders.title") == "Pedidos"  # a text that IS a key, no app translator
+
+
+class Shouting(Translator):
+    def translate(self, key: str) -> str:
+        return key.upper() if key == "hello" else key
+
+
+def test_with_an_app_translator_a_key_is_still_looked_up_in_the_catalogue(tmp_path):
+    directory = specs(tmp_path)
+    h = SyncHandler(
+        MateuRegistry(MODULE), translator=Shouting(), translations=TranslationRegistry(str(directory))
+    )
+    with bound_request(MateuRequest(headers={"accept-language": "es"})):
+        assert h.mapper.T("orders.title") == "Pedidos"  # a key: the catalogue answers, as in .NET
+        assert h.mapper.T("${i18n.orders.title}") == "Pedidos"
+        assert h.mapper.T("hello") == "HELLO"  # the app's translator still runs first
+        assert h.mapper.T("Not a key") == "Not a key"
+
+
+@ui("/translated-welcome")
+class TranslatedWelcome(Welcome):
+    def hero_title(self):
+        return "${i18n.orders.title}"
+
+    def hero_subtitle(self):
+        return "orders.title"
+
+
+def test_a_welcome_hero_goes_through_the_translator(tmp_path):
+    directory = specs(tmp_path)
+    h = SyncHandler(MateuRegistry(MODULE), translations=TranslationRegistry(str(directory)))
+    with bound_request(MateuRequest(headers={"accept-language": "es"})):
+        inc = h.handle(RunActionRq(route="/translated-welcome", server_side_type=type_name(TranslatedWelcome)))
+    text = json.dumps(inc.model_dump(by_alias=True, mode="json"))
+    assert '"title": "Pedidos"' in text and '"subtitle": "Pedidos"' in text
+    assert "${i18n" not in text
