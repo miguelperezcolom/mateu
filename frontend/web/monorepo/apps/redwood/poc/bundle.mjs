@@ -36,7 +36,9 @@ const normRoute = (s) => (s || '').replace(/^\/+/, '').replace(/\/+$/, '')
  *  parameterised matches, the most specific — matching must not depend on declaration order.
  *  Mirrors the server's RouteTable.match and the web's bundleStore. */
 function matchRouteEntry(path) {
-  const target = normRoute(path === '_no_route' ? '' : path)
+  // a query string is not part of the path: left on, `orders/pending?x=1` ended in a segment no
+  // literal route equals and `orders/:id` swallowed it (the server's RouteTable.match strips it too)
+  const target = normRoute(path === '_no_route' ? '' : String(path ?? '').split(/[?#]/)[0])
   const targetSegments = target === '' ? [] : target.split('/')
   let best
   for (const entry of routeEntries) {

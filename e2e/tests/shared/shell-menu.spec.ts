@@ -134,6 +134,36 @@ test.describe('Shell routes from routes.yaml (/shell)', () => {
     await expect(page.getByText('status=pending').first()).toBeVisible();
   });
 
+  test('a query string does not hand a pinned route to its :param neighbour', async ({ page }) => {
+    // orders/:id sits next to orders/pending: the query used to end the last segment
+    // (pending?status=archived), so the shell typed the content with the :id screen
+    await page.goto('/shell/orders/pending?status=archived');
+    await page.getByRole('button', { name: 'Show status' }).click();
+    await expect(page.getByText('status=pending').first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Which order' })).toHaveCount(0);
+
+    await page.goto('/shell/orders/42');
+    await page.getByRole('button', { name: 'Which order' }).click();
+    await expect(page.getByText('order 42').first()).toBeVisible();
+  });
+
+  test('only the most specific menu entry is the active one', async ({ page }) => {
+    // «Open orders» (/shell/orders) is a prefix of «Pending orders» (/shell/orders/pending)
+    await page.goto('/shell/orders/pending');
+    await expect(menuItem(page, 'Pending orders')).toHaveClass(/mateu-nav-active/);
+    await expect(menuItem(page, 'Open orders')).not.toHaveClass(/mateu-nav-active/);
+
+    await page.goto('/shell/probe');
+    await menuItem(page, 'Pending orders').click();
+    await expect(page).toHaveURL(/\/shell\/orders\/pending$/);
+    await expect(menuItem(page, 'Pending orders')).toHaveClass(/mateu-nav-active/);
+    await expect(menuItem(page, 'Open orders')).not.toHaveClass(/mateu-nav-active/);
+
+    // a record below «Open orders» with no entry of its own keeps it active
+    await page.goto('/shell/orders/42');
+    await expect(menuItem(page, 'Open orders')).toHaveClass(/mateu-nav-active/);
+  });
+
   test('a default param seeds the route and the query overrides it', async ({ page }) => {
     await page.goto('/shell/orders');
     await page.getByRole('button', { name: 'Show status' }).click();
@@ -151,6 +181,16 @@ test.describe('Shell routes from routes.yaml (/shell)', () => {
     await page.getByRole('button', { name: 'Which customer' }).click();
     await expect(page.getByText('orders of 7').first()).toBeVisible();
     expect(problems).toEqual([]);
+  });
+
+  test('a child tab of the record master goes to its own address under the mount', async ({ page }) => {
+    // under a non-root mount the tab used to push /shell/customers/7/customers/7/notes
+    await page.goto('/shell/customers/7');
+    await page.getByRole('tab', { name: 'Customer notes' }).click();
+    await expect(page).toHaveURL(/\/shell\/customers\/7\/notes$/);
+    await expect(page.getByRole('button', { name: 'Which customer notes' })).toBeVisible();
+    await page.getByRole('tab', { name: 'Customer orders' }).click();
+    await expect(page).toHaveURL(/\/shell\/customers\/7\/orders$/);
   });
 
   test('a deep link to a child tab lands inside the master and survives a reload', async ({ page }) => {

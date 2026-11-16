@@ -30,6 +30,33 @@ export const nextHistoryUrl = (
 }
 
 /**
+ * The path a menu entry's route takes once the route its app was reached at (`consumedRoute`) is
+ * taken off — the part the app's own `uriPrefix` is put in front of again.
+ *
+ * <p>`pathname` is the entry's route under the page's mount (`/shop/customers/7/notes`), `mountPath`
+ * the mount (`/shop`, or '' / '/' at the root) and `consumedRoute` mount-relative
+ * (`/customers/7`). The consumed route has to be looked for BELOW the mount: compared with the whole
+ * pathname it was found only on the root mount, so a record master's tab under `/shop` kept it and
+ * got it a second time from the uriPrefix (`/shop/customers/7/customers/7/notes`). Undefined when
+ * `pathname` does not run through `consumedRoute` (nothing to take off).
+ */
+export const pathBelowConsumedRoute = (
+    pathname: string,
+    mountPath: string | undefined,
+    consumedRoute: string | undefined,
+): string | undefined => {
+    if (!consumedRoute) return undefined
+    let mount = mountPath ?? ''
+    while (mount.endsWith('/')) mount = mount.slice(0, -1)
+    const underMount = !!mount && (pathname === mount || pathname.startsWith(mount + '/'))
+    const inner = underMount ? pathname.substring(mount.length) : pathname
+    if (inner.startsWith(consumedRoute)) return (underMount ? mount : '') + (inner.substring(consumedRoute.length) || '/')
+    // a consumed route spelt WITH the mount is taken off as it is (the only case this handled before)
+    if (pathname.startsWith(consumedRoute)) return pathname.substring(consumedRoute.length) || '/'
+    return undefined
+}
+
+/**
  * Whether a back/forward (popstate) lands on a DIFFERENT screen from the one shown, so the whole
  * tree has to be rebuilt as on a fresh load rather than refreshed in place.
  *
