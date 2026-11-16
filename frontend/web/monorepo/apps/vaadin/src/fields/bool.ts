@@ -28,7 +28,7 @@ export function renderBoolField(host: MateuField, _fieldId: string, value: Field
         // A plain checkbox carries its label at its side (the standard affordance), not
         // floating above like an input label.
         return html `
-            <vaadin-checkbox
+            <vaadin-checkbox ?disabled="${host.field.disabled}"
                     id="${host.field.fieldId}"
                     label="${label}"
                     .helperText="${host.helperText()}"

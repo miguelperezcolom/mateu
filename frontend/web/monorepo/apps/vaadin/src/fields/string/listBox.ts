@@ -19,7 +19,7 @@ export function renderListBoxField(host: MateuField, value: FieldValue, label: F
                     .helperText="${host.helperText()}"
                     data-colspan="${host.field.colspan}"
             >
-        <vaadin-list-box
+        <vaadin-list-box ?disabled="${host.field.disabled}"
                 id="${host.field.fieldId}"
                 aria-label="${host.field.label || host.field.fieldId}"
                 selected="${ifDefined(host.selectedIndex(value))}"
@@ -56,7 +56,7 @@ export function renderListBoxField(host: MateuField, value: FieldValue, label: F
                 .helperText="${host.helperText()}"
                 data-colspan="${host.field.colspan}"
         >
-        <vaadin-list-box
+        <vaadin-list-box ?disabled="${host.field.disabled}"
                 id="${host.field.fieldId}"
                 aria-label="${host.field.label || host.field.fieldId}"
                 selected="${ifDefined(host.selectedIndex(value))}"

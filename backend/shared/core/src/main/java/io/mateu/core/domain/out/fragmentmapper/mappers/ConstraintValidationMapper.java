@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Negative;
 import jakarta.validation.constraints.NegativeOrZero;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -135,6 +136,14 @@ final class ConstraintValidationMapper {
               .message(notEmptyMessage(MetaAnnotations.find(field, NotEmpty.class)))
               .build());
     }
+    if (MetaAnnotations.isPresent(field, NotBlank.class)) {
+      validations.add(
+          Validation.builder()
+              .fieldId(prefix + field.getName())
+              .condition(notBlank(prefix + field.getName()))
+              .message(notBlankMessage(MetaAnnotations.find(field, NotBlank.class)))
+              .build());
+    }
     if (MetaAnnotations.isPresent(field, NotNull.class)) {
       validations.add(
           Validation.builder()
@@ -212,6 +221,17 @@ final class ConstraintValidationMapper {
         + ".length === undefined || "
         + ref
         + ".length > 0)";
+  }
+
+  /**
+   * The condition of a {@code @NotBlank} field: a required value ({@link #required}) holding at
+   * least one character that is not whitespace — so {@code " "} is refused like {@code ""}. A
+   * regexp rather than {@code .trim()}: every renderer's evaluator runs a regexp literal, and a
+   * value that is not text (which {@code @NotBlank} does not apply to) still passes, as {@code "0"}
+   * does.
+   */
+  static String notBlank(String key) {
+    return required(key) + " && /\\S/.test(state['" + key + "'])";
   }
 
   /**
@@ -359,6 +379,14 @@ final class ConstraintValidationMapper {
         annotation
             .message()
             .replace("{jakarta.validation.constraints.NotEmpty.message}", cannotBeEmpty()));
+  }
+
+  static String notBlankMessage(NotBlank annotation) {
+    return message(
+        annotation,
+        annotation
+            .message()
+            .replace("{jakarta.validation.constraints.NotBlank.message}", cannotBeEmpty()));
   }
 
   static String notNullMessage(NotNull annotation) {

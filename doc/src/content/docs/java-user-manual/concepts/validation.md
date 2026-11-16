@@ -44,11 +44,31 @@ Mateu uses these annotations to:
 - prevent form submission when validation fails
 - keep backend and UI validation consistent with a single source of truth
 
+### The constraints Mateu reads
+
+Mateu reads these Bean Validation constraints, and only these: `@NotNull`, `@NotEmpty`,
+`@NotBlank`, `@Size`, `@Min`, `@Max`, `@Pattern`, `@Email`, `@Positive`, `@PositiveOrZero`,
+`@Negative`, `@NegativeOrZero`, `@DecimalMin` and `@DecimalMax`. Each one becomes a condition the
+browser checks, and the server checks the same thing again before it runs the action, with the same
+message. They are read the way Bean Validation reads them:
+
+- `@NotNull` and `@NotEmpty` need a value. `0` and `false` count as values. An empty input, a
+  missing value and an empty list do not.
+- `@NotBlank` also refuses text that is only whitespace: `"   "` fails, `" Ana "` passes.
+- An empty optional value passes every bound (`@Min`, `@Max`, `@Size`, `@Pattern`, `@Email`, the
+  sign and decimal bounds). Add `@NotNull` to require it.
+
+Any other constraint, such as `@Past`, `@Future` or a custom one, is not checked in the browser or
+before an action runs. See [Custom validators](#custom-validators).
+
 ---
 
 ## Triggering validation from an action
 
-By default, actions run regardless of validation state. To require valid input before an action executes, use `@Action(validationRequired = true)`:
+A `@Button` or `@Toolbar` action, and a CRUD save, check the form before they run. Any other action
+runs whatever the form holds, unless you ask for the check with `@Action(validationRequired = true)`.
+`@Action(validationRequired = false)` turns the check off for a button, for example a "Save draft"
+button:
 
 ```java
 @Button
@@ -60,6 +80,8 @@ public URI create() {
 ```
 
 If any field fails validation, the method is not called. Errors appear next to the affected fields.
+The server checks too, so a request that skips the browser's check is refused with the same
+messages.
 
 ---
 
@@ -113,11 +135,28 @@ With Mateu, validation is defined once in Java and applied in both places. There
 
 ## Custom validators
 
-Standard Bean Validation custom constraints work as expected. Any `@Constraint` annotation on a field is picked up automatically.
+A custom Bean Validation constraint (your own `@Constraint` annotation) is **not** picked up. Mateu
+does not run a Bean Validation provider on a view's form: it reads only the constraints listed
+[above](#the-constraints-mateu-reads), so a `@ValidProductName` is neither checked in the browser
+nor before the action runs. The one exception is a CRUD record edited in a drawer
+(`editInDrawer()`): its save runs the full validator, custom constraints included.
+
+To check a rule of your own:
+
+- If it can be written as an expression over the form, use `@Validation` on the class. The browser
+  checks it. See [Validation annotations](/java-ui-definition/annotations/validation/).
+- If it needs the server, check it in the action and refuse with a `UserFacingException`. Its
+  message is shown to the user as written:
 
 ```java
-@ValidProductName   // custom constraint
-String name;
+@Button
+public Message save() {
+    if (!productNames.isValid(name)) {
+        throw new UserFacingException("Invalid product name", "Use letters, digits and spaces only");
+    }
+    productRepository.rename(id, name);
+    return new Message("Saved");
+}
 ```
 
 ---

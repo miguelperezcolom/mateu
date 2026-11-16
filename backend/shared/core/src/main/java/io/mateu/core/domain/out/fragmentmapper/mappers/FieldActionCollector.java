@@ -260,6 +260,7 @@ final class FieldActionCollector {
 
   private static boolean hasValidationConstraint(Field field) {
     return MetaAnnotations.isPresent(field, NotEmpty.class)
+        || MetaAnnotations.isPresent(field, jakarta.validation.constraints.NotBlank.class)
         || MetaAnnotations.isPresent(field, NotNull.class)
         || MetaAnnotations.isPresent(field, Min.class)
         || MetaAnnotations.isPresent(field, Max.class)

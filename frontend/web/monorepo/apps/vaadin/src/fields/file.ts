@@ -22,7 +22,7 @@ export function renderFileField(host: MateuField, _fieldId: string, value: Field
                     .helperText="${host.helperText()}"
                     data-colspan="${host.field.colspan}"
             >
-                <vaadin-upload
+                <vaadin-upload ?disabled="${host.field.disabled}"
                         target="/upload"
                         .files="${files}"
                         @upload-success="${host.fileUploaded}"

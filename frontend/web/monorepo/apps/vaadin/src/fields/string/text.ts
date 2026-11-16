@@ -25,7 +25,7 @@ export function renderRichTextField(host: MateuField, value: FieldValue, label: 
 export function renderTextareaField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
     return html`
-        <vaadin-text-area
+        <vaadin-text-area ?disabled="${host.field.disabled}"
                 placeholder="${host.field?.placeholder ?? nothing}"
                 autocomplete="${host.field?.autocomplete ?? nothing}"
                 id="${host.field.fieldId}"
@@ -45,7 +45,7 @@ export function renderTextareaField(host: MateuField, value: FieldValue, label: 
 export function renderEmailField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
     return html`
-        <vaadin-email-field
+        <vaadin-email-field ?disabled="${host.field.disabled}"
                 placeholder="${host.field?.placeholder ?? nothing}"
                 autocomplete="${host.field?.autocomplete ?? nothing}"
                 id="${host.field.fieldId}"
@@ -63,7 +63,7 @@ export function renderEmailField(host: MateuField, value: FieldValue, label: Fie
 export function renderPasswordField(host: MateuField, value: FieldValue, label: FieldLabel): TemplateResult {
     if (!host.field) return html``
     return html`
-        <vaadin-password-field
+        <vaadin-password-field ?disabled="${host.field.disabled}"
                 placeholder="${host.field?.placeholder ?? nothing}"
                 autocomplete="${host.field?.autocomplete ?? nothing}"
                 id="${host.field.fieldId}"

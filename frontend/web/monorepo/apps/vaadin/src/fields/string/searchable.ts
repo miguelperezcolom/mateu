@@ -43,7 +43,7 @@ export function renderSearchableField(host: MateuField, value: FieldValue, label
                 data-colspan="${host.field.colspan}"
         >
             <vaadin-horizontal-layout theme="spacing" style="--lumo-space-m: 0.33rem;">
-                <vaadin-text-field style="width: 4rem;" accessible-name="${(host.field.label ?? host.field.fieldId) + ' — ' + chromeText('code')}" @change="${searchCode}" value="${value}"></vaadin-text-field>
+                <vaadin-text-field ?disabled="${host.field.disabled}" style="width: 4rem;" accessible-name="${(host.field.label ?? host.field.fieldId) + ' — ' + chromeText('code')}" @change="${searchCode}" value="${value}"></vaadin-text-field>
                 <vaadin-text-field readonly="" accessible-name="${host.field.label ?? host.field.fieldId}" value="${host.data[host.field.fieldId + '-label']}"></vaadin-text-field>
                 <vaadin-button theme="icon" aria-label="${chromeText('search')}" @click="${search}"><vaadin-icon icon="lumo:search"></vaadin-icon></vaadin-button>
             </vaadin-horizontal-layout>

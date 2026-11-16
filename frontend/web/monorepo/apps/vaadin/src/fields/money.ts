@@ -32,6 +32,7 @@ export function renderMoneyField(host: MateuField, _fieldId: string, value: Fiel
                     .helperText="${host.helperText()}"
                     ?autofocus="${host.field.wantsFocus}"
                     ?required="${host.field.required || nothing}"
+                    ?disabled="${host.field.disabled}"
                     data-colspan="${host.field.colspan}"
         ></mateu-money-field>`
 }

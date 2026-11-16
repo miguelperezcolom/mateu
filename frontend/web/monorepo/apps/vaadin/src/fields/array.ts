@@ -62,7 +62,7 @@ export function renderArrayField(host: MateuField, _fieldId: string, value: Fiel
                             .helperText="${host.helperText()}"
                             data-colspan="${host.field.colspan}"
                     >
-                <vaadin-list-box multiple
+                <vaadin-list-box ?disabled="${host.field.disabled}" multiple
                                  .selectedValues="${ifDefined(host.selectedIndexes(value))}"
                                  @selected-values-changed="${host.listItemsSelected}"
                         id="${host.field.fieldId}"
@@ -82,7 +82,7 @@ export function renderArrayField(host: MateuField, _fieldId: string, value: Fiel
                         .helperText="${host.helperText()}"
                         data-colspan="${host.field.colspan}"
                 >
-                <vaadin-list-box multiple
+                <vaadin-list-box ?disabled="${host.field.disabled}" multiple
                                  .selectedValues="${ifDefined(host.selectedIndexes(value))}"
                                  @selected-values-changed="${host.listItemsSelected}"
                                  ?autofocus="${host.field.wantsFocus}"
@@ -102,7 +102,7 @@ export function renderArrayField(host: MateuField, _fieldId: string, value: Fiel
                 const dataProvider = host.remoteComboDataProvider(coords.action)
 
                 return html`
-                    <vaadin-multi-select-combo-box
+                    <vaadin-multi-select-combo-box ?disabled="${host.field.disabled}"
                             placeholder="${host.field?.placeholder ?? nothing}"
                         label="${label}"
                         item-label-path="label"
@@ -125,7 +125,7 @@ export function renderArrayField(host: MateuField, _fieldId: string, value: Fiel
             // inline options, or a REST source's (it used to be read by the select only)
             const options = host.field.optionsSource ? sourcedOptions(host) : host.field.options
             return html`
-                <vaadin-multi-select-combo-box
+                <vaadin-multi-select-combo-box ?disabled="${host.field.disabled}"
                         placeholder="${host.field?.placeholder ?? nothing}"
                         label="${label}"
                         item-label-path="label"
@@ -150,7 +150,7 @@ export function renderArrayField(host: MateuField, _fieldId: string, value: Fiel
             host.requestRemoteOptions(coords.action)
 
             return html`
-                <vaadin-checkbox-group
+                <vaadin-checkbox-group ?disabled="${host.field.disabled}"
                     id="${host.field.fieldId}"
                     label="${label}"
                     theme="vertical"
@@ -176,7 +176,7 @@ export function renderArrayField(host: MateuField, _fieldId: string, value: Fiel
         // values as strings, since a checkbox's value is one (an id list [5, 11] checked nothing)
         const options = host.field.optionsSource ? sourcedOptions(host) : host.field.options
         return html `
-            <vaadin-checkbox-group
+            <vaadin-checkbox-group ?disabled="${host.field.disabled}"
                     id="${host.field.fieldId}"
                     label="${label}"
                     @value-changed="${selectValuesChanged(host, options)}"

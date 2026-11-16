@@ -134,11 +134,21 @@ class ServerSideValidationSyncTest {
     }
   }
 
+  @UI("/server-validation-blank")
+  public static class Named {
+    @jakarta.validation.constraints.NotBlank String name;
+
+    @Button
+    Message save() {
+      return new Message("saved");
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(Booking.class, Members.class, Sized.class);
+    mateu = TestMateu.withUis(Booking.class, Members.class, Sized.class, Named.class);
   }
 
   @AfterAll
@@ -276,5 +286,47 @@ class ServerSideValidationSyncTest {
     create.put("name", "Bob");
     persist("/server-validation-members/new", "create", create);
     assertThat(MEMBERS).extracting(m -> m.name).containsExactly("Ann", "Bob");
+  }
+
+  private static UIIncrementDto runNamed(Map<String, Object> state) {
+    return mateu.run(
+        RunActionRqDto.builder()
+            .route("/server-validation-blank")
+            .actionId("save")
+            .serverSideType(Named.class.getName())
+            .componentState(state)
+            .initiatorComponentId("app")
+            .build());
+  }
+
+  /**
+   * {@code @NotBlank} is checked on both legs like {@code @NotEmpty}, with "blank" meaning empty
+   * after trimming: the field used to be marked required and checked by nobody, so the action ran
+   * with " " or with no value at all.
+   */
+  @Test
+  void aBlankValueBreaksNotBlankOnBothLegs() {
+    for (var state :
+        List.<Map<String, Object>>of(
+            new HashMap<>(),
+            new HashMap<>(Map.of("name", "")),
+            new HashMap<>(Map.of("name", "   ")))) {
+      var refused = message(runNamed(state));
+      assertThat(refused.title()).as(state.toString()).isEqualTo("There are validation errors");
+      assertThat(refused.text()).contains("• Name: Cannot be empty");
+    }
+    assertThat(message(runNamed(new HashMap<>(Map.of("name", " Ana ")))).text()).isEqualTo("saved");
+
+    var component =
+        (io.mateu.dtos.ServerSideComponentDto)
+            mateu.sync("/server-validation-blank").fragments().get(0).component();
+    assertThat(component.validations())
+        .extracting(io.mateu.dtos.ValidationDto::condition)
+        .containsExactly(
+            "state['name'] != null && state['name'] !== '' && (state['name'].length === undefined"
+                + " || state['name'].length > 0) && /\\S/.test(state['name'])");
+    assertThat(component.validations())
+        .extracting(io.mateu.dtos.ValidationDto::message)
+        .containsExactly("Cannot be empty");
   }
 }
