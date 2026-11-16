@@ -153,6 +153,7 @@ define([
       const isSse = bridge.isSseAction(host, id);
       let reg = before;
       const allEvents = [];
+      let listingRefreshedInPlace = false; // a bus event re-ran the listing's search (delete, Undo)
       const allToasts = [];
       // did any increment REPAINT the host? (any non-Add fragment: Replace/State/data;
       // Adds are overlays — opening a drawer does not touch the host). Signal for the foldout
@@ -274,6 +275,7 @@ define([
       for (const busEvent of allEvents) {
         const hostNow = reg.contexts[bridge.HOST_ID];
         for (const triggerActionId of bridge.followUpActionsOf(hostNow, busEvent)) {
+          if (triggerActionId === 'search') listingRefreshedInPlace = true;
           const refresh = await bridge.runMateuAction(base, hostNow, route, triggerActionId, // a listing: its own query, same page
             bridge.followUpStateOf(hostNow, triggerActionId, busEvent.detail, { searchText: $application.variables.mateuLastSearchText,
               filters: $application.variables.mateuFilterValues, sort: $application.variables.mateuListingSort }),
@@ -380,6 +382,10 @@ define([
       const listingSummary = bridge.listingOf(hostAfter);
       changed.mateuListing = listingSummary;
       changed.mateuListingRows = listingSummary ? listingSummary.rows : [];
+      if (listingRefreshedInPlace) { // nothing stays checked: the table's keys are positions
+        bridge.clearTableSelection(document.getElementById('mateuTable'));
+        changed.mateuListingSelection = bridge.selectionOfKeySet(null);
+      }
 
       // foldout REMOUNT: the bindings inside oj-sp-foldout-panel do not re-bind
       // the application variables (CSP evaluator gotcha) — null → tick → new projection

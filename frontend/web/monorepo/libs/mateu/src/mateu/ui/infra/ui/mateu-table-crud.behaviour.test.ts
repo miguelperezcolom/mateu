@@ -208,6 +208,44 @@ describe('the crud header and toolbar', () => {
         expect(actions().at(-1)).toMatchObject({ actionId: 'delete', parameters: { crud_selected_items: [rows[1]] } })
     })
 
+    it('rows refreshed in place (a delete, its Undo) drop the selection of a row that is gone', async () => {
+        const three = [{ id: 'A1', customer: 'Ana', _rowNumber: 0 }, { id: 'B2', customer: 'Bob', _rowNumber: 1 },
+            { id: 'C3', customer: 'Cid', _rowNumber: 2 }]
+        const { el, root } = await mount(crud({ toolbar: [{ id: 'del', actionId: 'delete', label: 'Delete', rowsSelectedRequired: true }] }), three)
+        const button = () => root.querySelector('[data-action-id="del"]') as HTMLButtonElement
+        el.state = { ...el.state, idFieldForRow: 'id', crud_selected_items: [three[1]] }
+        await el.updateComplete
+        expect(button().disabled).toBe(false)
+        const heard: string[] = []
+        el.addEventListener('mateu-selection-changed', () => heard.push('changed'))
+        // the listing-changed search answers the rows without B2: C3 moved into its position
+        const afterDelete = [{ id: 'A1', customer: 'Ana', _rowNumber: 0 }, { id: 'C3', customer: 'Cid', _rowNumber: 1 }]
+        el.data = { crud: { page: { pageNumber: 0, pageSize: 10, totalElements: 2, content: afterDelete } } }
+        await el.updateComplete
+        expect(el.state.crud_selected_items).toEqual([])
+        expect(button().disabled).toBe(true)
+        expect(heard).toEqual(['changed'])
+        // the component around re-binds its own (stale) copy of the selection: still nothing selected
+        el.state = { ...el.state, crud_selected_items: [three[1]] }
+        await el.updateComplete
+        expect(el.state.crud_selected_items).toEqual([])
+        // the Undo brings B2 back: it is not selected again
+        el.data = { crud: { page: { pageNumber: 0, pageSize: 10, totalElements: 3, content: three.map(r => ({ ...r })) } } }
+        await el.updateComplete
+        expect(el.state.crud_selected_items).toEqual([])
+    })
+
+    it('rows refreshed in place keep the selection of a row that is still there', async () => {
+        const { el } = await mount(crud(), rows)
+        el.state = { ...el.state, idFieldForRow: 'id', crud_selected_items: [rows[0]] }
+        await el.updateComplete
+        const fresh = rows.map(r => ({ ...r }))
+        el.data = { crud: { page: { pageNumber: 0, pageSize: 10, totalElements: 2, content: fresh } } }
+        await el.updateComplete
+        expect(el.state.crud_selected_items).toHaveLength(1)
+        expect(el.state.crud_selected_items[0]).toBe(fresh[0])
+    })
+
     it('an older server: the selection gate is read off the enclosing component\'s advertised action', async () => {
         const host = document.createElement('mateu-component') as HTMLElement & { component?: unknown }
         host.component = { actions: [{ id: 'archive', rowsSelectedRequired: true }] }

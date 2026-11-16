@@ -199,3 +199,57 @@ def test_a_field_the_listing_does_not_show_takes_nothing_from_the_row():
     _seed_accounts()
     _update_row(InlineAccounts, {"id": "u1", "name": "Ann C", "internalCode": "forged", "version": 1})
     assert (_ACCOUNTS["u1"].name, _ACCOUNTS["u1"].internal_code) == ("Ann C", "IC-1")
+
+
+# ── an inline editor only where an edit takes the value ─────────────────────────────────────
+
+from mateu_ui.uidl import EditableOnlyWhenCreating, Label  # noqa: E402
+
+
+class Volume:
+    id: str = ""
+    title: str = ""
+    isbn: Annotated[str, Label("ISBN"), EditableOnlyWhenCreating()] = ""
+    revision: Annotated[int, Version()] = 0
+
+
+@ui("inline-volumes")
+@title("Volumes")
+@inline_editing
+class InlineVolumes(Crud[Volume]):
+    def fetch(self, search):
+        v = Volume()
+        v.id, v.title, v.isbn = "v1", "Earthsea", "978-0-553-26250-9"
+        return [v]
+
+
+def _columns_of(inc) -> dict:
+    import json
+
+    columns: dict = {}
+
+    def walk(node):
+        if isinstance(node, dict):
+            if node.get("type") == "GridColumn" and "id" in node:
+                columns[node["id"]] = node
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    walk(json.loads(inc.model_dump_json(by_alias=True)))
+    return columns
+
+
+def test_create_only_id_and_version_columns_are_not_inline_editors():
+    """An EditableOnlyWhenCreating() cell accepted typing that the update-row save then dropped:
+    the edit was silently lost. Those columns (and the id and the Version()) are plain text; the
+    other data columns stay editors (Java's InlineEditingLockedColumnsSyncTest)."""
+    inc = SyncHandler(MateuRegistry(MODULE)).handle(
+        RunActionRq(route="inline-volumes", consumed_route="inline-volumes")
+    )
+    columns = _columns_of(inc)
+    assert columns["title"]["editable"] is True
+    assert columns["isbn"]["editable"] is False and columns["isbn"].get("editorType") is None
+    assert columns["revision"]["editable"] is False

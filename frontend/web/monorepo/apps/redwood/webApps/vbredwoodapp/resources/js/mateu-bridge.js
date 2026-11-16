@@ -11818,6 +11818,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { all: false, keys: values, except: [] }
   }
 
+  /**
+   * Unchecks every row of the listing's oj-table, for a listing refreshed IN PLACE (a delete, its
+   * Undo, a row action: the search a bus event runs). The table keys its rows by position
+   * (_rowNumber) and keeps its selection across a data change, so the row that moved into a deleted
+   * one's place showed checked — and was what the next Delete sent — and the restored row came back
+   * checked after the Undo. Returns whether something was checked.
+   */
+  function clearTableSelection(table) {
+    const current = table && table.selected
+    const row = current && current.row
+    if (!row || typeof row.clear !== 'function') return false
+    const was = selectionOfKeySet(row)
+    if (!was.all && !was.keys.length) return false
+    table.selected = Object.assign({}, current, { row: row.clear() })
+    return true
+  }
+
   /** The checked rows, resolved against the CURRENT rows by their key (_rowNumber). What is
    *  sent is the row as it arrived: the precomputed badge of the @Status columns does not travel. */
   function selectedRowsOf(rows, selection) {
@@ -39597,6 +39614,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     listingSortOf,
     // selección de filas del listing → crud_selected_items de las acciones del host
     selectionOfKeySet,
+    // a listing refreshed in place (delete, Undo) unchecks its rows: the keys are positions
+    clearTableSelection,
     // the rows marked on a listing nested in a page's content (nestedListingSelected chain)
     setNestedSelection,
     toggleSelectionKey,

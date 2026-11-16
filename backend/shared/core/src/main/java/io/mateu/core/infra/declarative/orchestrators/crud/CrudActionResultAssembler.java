@@ -33,8 +33,10 @@ final class CrudActionResultAssembler {
                   ? result.targetComponentId()
                   : httpRequest.runActionRq().initiatorComponentId()));
     }
-    list.add(
-        UICommand.pushStateToHistory(orchestrator.pathForHistory(result.route(), httpRequest)));
+    if (!refreshesTheListingInPlace(result)) {
+      list.add(
+          UICommand.pushStateToHistory(orchestrator.pathForHistory(result.route(), httpRequest)));
+    }
     var actionId = httpRequest.runActionRq().actionId();
     if ("save".equals(actionId) || "create".equals(actionId)) {
       // After a successful save the form no longer has unsaved changes, so reset the
@@ -54,5 +56,22 @@ final class CrudActionResultAssembler {
           UICommand.runAction("search", "ux_" + initiatorId.replaceAll("_app", "") + "_cs_list"));
     }
     return list;
+  }
+
+  /**
+   * An answer from the listing that only refreshes its rows ({@link
+   * CrudActionResult#listingChanged}: a delete, its Undo, a row/bulk action) leaves the browser's
+   * address as it is. Pushing the listing's bare path there dropped the query string — the search
+   * text, filters, page and sort the listing keeps in it — so the listing saw its URL move, started
+   * over from the now empty query and searched again without them: a delete on a listing searched
+   * for "le guin" answered every row while the "le guin" chip was still on screen.
+   */
+  static boolean refreshesTheListingInPlace(CrudActionResult result) {
+    return result.commands().stream()
+        .anyMatch(
+            command ->
+                command.type() == io.mateu.uidl.data.UICommandType.DispatchEvent
+                    && command.data() instanceof io.mateu.uidl.fluent.CustomEvent event
+                    && Crud.LISTING_CHANGED_EVENT.equals(event.eventName()));
   }
 }

@@ -53,6 +53,19 @@ internal sealed partial class ReflectionMapper
         && property.Find<EditableOnlyWhenCreatingAttribute>() is null
         && property.Find<GeneratedValueAttribute>() is null;
 
+    /// <summary>Whether a column of an [InlineEditing] listing may be an editor. A row edited in
+    /// place is an EDIT of a stored record, so what an edit never takes from the client stays plain
+    /// text: [ReadOnly], [EditableOnlyWhenCreating] (the cell accepted typing the update-row save
+    /// then dropped — the edit was silently lost), the record's id ([Id], else <c>Id</c>),
+    /// [GeneratedValue] and the optimistic-lock [Version] (Java's
+    /// <c>ListingColumnBuilder.isEditableInARow</c>, Python's <c>editable_in_a_row</c>).</summary>
+    internal static bool EditableInARow(PropertyInfo property, Type element) =>
+        property.Find<ReadOnlyAttribute>() is null
+        && property.Find<EditableOnlyWhenCreatingAttribute>() is null
+        && property.Find<GeneratedValueAttribute>() is null
+        && property.Find<VersionAttribute>() is null
+        && EntityIds.PropertyOf(element)?.Name != property.Name;
+
     /// <summary>Not a column of a listing, a grid field or an export.</summary>
     internal static bool HiddenInList(MemberInfo member) => member.Find<HiddenInListAttribute>() is not null;
 

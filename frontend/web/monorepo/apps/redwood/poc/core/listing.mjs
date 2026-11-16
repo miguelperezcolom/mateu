@@ -711,6 +711,23 @@ export function selectionOfKeySet(keySet) {
   return { all: false, keys: values, except: [] }
 }
 
+/**
+ * Unchecks every row of the listing's oj-table, for a listing refreshed IN PLACE (a delete, its
+ * Undo, a row action: the search a bus event runs). The table keys its rows by position
+ * (_rowNumber) and keeps its selection across a data change, so the row that moved into a deleted
+ * one's place showed checked — and was what the next Delete sent — and the restored row came back
+ * checked after the Undo. Returns whether something was checked.
+ */
+export function clearTableSelection(table) {
+  const current = table && table.selected
+  const row = current && current.row
+  if (!row || typeof row.clear !== 'function') return false
+  const was = selectionOfKeySet(row)
+  if (!was.all && !was.keys.length) return false
+  table.selected = Object.assign({}, current, { row: row.clear() })
+  return true
+}
+
 /** The checked rows, resolved against the CURRENT rows by their key (_rowNumber). What is
  *  sent is the row as it arrived: the precomputed badge of the @Status columns does not travel. */
 export function selectedRowsOf(rows, selection) {

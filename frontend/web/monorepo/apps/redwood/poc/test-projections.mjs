@@ -13,7 +13,7 @@ import {
   confirmOpenOf, confirmDialogAtomOf, returnedConfirmDialogsOf, workflowAtomOf, formEditorFieldsOf,
   componentHtmlOf, gridPageOf, autoFitColClass, carouselPagerAtomOf, progressBarAtomOf, customComponentAtomOf,
   registerCustomComponent, setDataProviderFactory, toneOf, cssColorOf,
-  targetPageOf, listingSearchStateOf, listingSortOf, selectionOfKeySet, selectedRowsOf, rowAsArrived, lineValueText,
+  targetPageOf, listingSearchStateOf, listingSortOf, selectionOfKeySet, clearTableSelection, selectedRowsOf, rowAsArrived, lineValueText,
   rowLinesSplit, rowLinesRows, statusTypeOfTone, statusTypeOfValue, humanizeConstant, filterDescriptorOf, filterChipsOf,
   navTargetOf, queryFiltersOf, splitListingQuery, listingQueryOf, listingUrlOf, listingUrlPagingOf, multiValuesOf,
   smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters, suggestionFiltersProviderOf,
@@ -417,6 +417,25 @@ test('a «select all» selection is everything but the unchecked rows; the rows 
   assert.deepEqual(selectedRowsOf(rows, { all: false, keys: ['r2'], except: [] })[0].status, 'Closed', 'a plain word without raw is its message')
   assert.deepEqual(selectedRowsOf(rows, null), [])
   assert.equal(rowAsArrived(null), null)
+})
+
+test('a listing refreshed in place (delete, Undo) unchecks its rows: the table keys them by position', () => {
+  const keySet = (values, all = false) => ({
+    isAddAll: () => all, values: () => new Set(values), deletedValues: () => new Set(),
+    clear: () => keySet([]),
+  })
+  const table = { selected: { row: keySet([1]), column: 'cols' } }
+  assert.equal(clearTableSelection(table), true)
+  assert.deepEqual(selectionOfKeySet(table.selected.row), { all: false, keys: [], except: [] })
+  assert.equal(table.selected.column, 'cols', 'only the rows are unchecked')
+  const untouched = { selected: { row: keySet([]) } }
+  const before = untouched.selected
+  assert.equal(clearTableSelection(untouched), false, 'nothing checked: the table is left alone')
+  assert.equal(untouched.selected, before)
+  const everything = { selected: { row: keySet([], true) } }
+  assert.equal(clearTableSelection(everything), true)
+  assert.equal(clearTableSelection(null), false)
+  assert.equal(clearTableSelection({}), false)
 })
 
 test('a row\'s extra lines (@Line): columns split by line, values as text (lists, money, states, yes/no)', () => {

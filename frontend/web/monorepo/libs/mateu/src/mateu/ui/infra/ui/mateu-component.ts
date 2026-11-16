@@ -78,6 +78,7 @@ import { runJs } from '@infra/ui/runJs.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { dirtyGuard, enclosingOverlay } from '@infra/ui/dirtyGuard.ts'
 import { isConflictDialogAnswer, isLeaveAction } from '@infra/ui/leaveActions.ts'
+import { hasSelection } from '@infra/ui/selectionGate.ts'
 import { humanizeFieldId } from '@infra/ui/humanize.ts'
 import { trapFocus, type FocusTrap } from '@infra/a11y/focusTrap.ts'
 import { ISLAND_HOST_STYLE } from '@infra/ui/islandHost.ts'
@@ -1063,7 +1064,14 @@ export class MateuComponent extends ComponentElement {
                 // IS the search this component's OnLoad trigger was going to fire, with the same
                 // state — so the trigger counts as fired instead of repeating it (onLoadTimes.ts).
                 standInForOnLoad((this.component as ServerSideComponent)?.triggers, 'search')
-            } else if (!this.state.size) {
+            } else if (hasSelection(this.state.crud_selected_items)) {
+                // A search this component runs by itself (the listing-changed event of a delete or
+                // its Undo) brings other rows: the selection it absorbed for the delete is not
+                // theirs. Kept, it travelled back down to the listing and the restored row came back
+                // selected after the Undo (the listing's own searches already start with none).
+                this.state = { ...this.state, crud_selected_items: [] }
+            }
+            if (!searchState && !this.state.size) {
                 // the page the route asked for (?page=N travels in the state) is kept: resetting it
                 // here made a deep link to page 2 answer page 1
                 this.state = { ...this.state, size: 10, page: this.state.page ?? 0, sort: [] }

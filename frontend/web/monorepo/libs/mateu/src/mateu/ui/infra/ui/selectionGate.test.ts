@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hasSelection, requiresSelection, withSelectionGate } from './selectionGate'
+import { hasSelection, requiresSelection, sameSelection, selectionStillOnScreen, withSelectionGate } from './selectionGate'
 
 describe('selectionGate', () => {
     it('reads the guard off the button itself', () => {
@@ -40,5 +40,48 @@ describe('selectionGate', () => {
     it('never re-enables a button the server disabled', () => {
         const button = { actionId: 'cancel', rowsSelectedRequired: true, disabled: true }
         expect(withSelectionGate(button, [{ id: 1 }]).disabled).toBe(true)
+    })
+
+    describe('selectionStillOnScreen (a listing refreshed in place)', () => {
+        const a = { id: 'A', _rowNumber: 0 }
+        const b = { id: 'B', _rowNumber: 1 }
+        const c = { id: 'C', _rowNumber: 2 }
+
+        it('drops a deleted row, so the row that takes its place is not selected', () => {
+            // B deleted: C is now row 1 — a selection kept by position would select it
+            const after = [a, { id: 'C', _rowNumber: 1 }]
+            expect(selectionStillOnScreen([b], after, 'id')).toEqual([])
+        })
+
+        it('keeps a row that is still there, as the row object now on screen', () => {
+            const fresh = { id: 'B', _rowNumber: 0 }
+            const kept = selectionStillOnScreen([b], [fresh, c], 'id')
+            expect(kept).toHaveLength(1)
+            expect(kept[0]).toBe(fresh)
+        })
+
+        it('keeps a selected row object that is itself on screen, even without an id', () => {
+            const row = { name: 'no id' }
+            expect(selectionStillOnScreen([row], [row], 'id')).toEqual([row])
+        })
+
+        it('drops what it cannot match, and an empty selection stays empty', () => {
+            expect(selectionStillOnScreen([{ name: 'x' }], [{ name: 'x' }], 'id')).toEqual([])
+            expect(selectionStillOnScreen([b], [a, b], undefined)).toEqual([b])
+            expect(selectionStillOnScreen([{ id: 'B' }], [a, b], undefined)).toEqual([])
+            expect(selectionStillOnScreen([], [a], 'id')).toEqual([])
+            expect(selectionStillOnScreen(undefined, [a], 'id')).toEqual([])
+        })
+
+        it('matches ids across JSON types (7 and "7")', () => {
+            const row = { id: 7 }
+            expect(selectionStillOnScreen([{ id: '7' }], [row], 'id')).toEqual([row])
+        })
+
+        it('sameSelection compares the row objects', () => {
+            expect(sameSelection([a, b], [a, b])).toBe(true)
+            expect(sameSelection([a], [{ ...a }])).toBe(false)
+            expect(sameSelection(undefined, [])).toBe(true)
+        })
     })
 })

@@ -22,7 +22,9 @@ wildcard imports of both packages fail with "reference is ambiguous" — see
 [Java imports](/reference/java-imports/).
 :::
 
-Annotate the `AutoCrud` class itself with `@InlineEditing`. Every data column becomes an editable input in place (a field marked `@ReadOnly` stays display-only), and **each committed cell persists its row immediately** through `CrudStore.save(...)` — no explicit save button.
+Annotate the `AutoCrud` class itself with `@InlineEditing`. Every data column becomes an editable input in place, and **each committed cell persists its row immediately** through `CrudStore.save(...)` — no explicit save button.
+
+A row edited in place is an edit of a stored record, so a column whose value an edit never takes stays plain text: `@ReadOnly`, `@EditableOnlyWhenCreating` (typed once, on the creation form), the record's id (`@PrimaryKey`, else a field named `id`), a `@GeneratedValue` and the optimistic-lock `@Version`.
 
 ```java
 @UI("/stock")
