@@ -1462,7 +1462,8 @@ def test_micro_frontend_component_mounts_a_remote_island():
     assert '"type": "MicroFrontend"' in j
     assert '"baseUrl": "https://billing.example.com"' in j
     assert '"route": "/invoices"' in j
-    assert '"consumedRoute": "_empty"' in j
+    # not declared: null, as in Java — the renderer loads it with "" (a content load)
+    assert '"consumedRoute": null' in j
 
 
 def test_app_metadata_carries_the_sse_chat_url():

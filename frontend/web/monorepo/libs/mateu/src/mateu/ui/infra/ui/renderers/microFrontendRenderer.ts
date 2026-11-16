@@ -23,6 +23,17 @@ export const microFrontendUxId = (metadata: MicroFrontend): string =>
         .join('|')
         .replace(/[^a-zA-Z0-9]/g, '_')
 
+/**
+ * The consumed route the island's loads carry: the declared one, else "" — a CONTENT load. Never
+ * absent: a missing consumed route reaches the server as a FRESH load ("_empty"), which a remote APP
+ * answers with its shell aimed at the route, and that shell, painted inside the island, loads
+ * "_empty" + route and gets another shell, forever. The host resolving the island (resolve = SERVER)
+ * asks the remote with the same value (MicroFrontendServerResolver.consumedRouteOf), so the answer it
+ * embeds is the one this island would have fetched itself.
+ */
+export const microFrontendConsumedRoute = (metadata: MicroFrontend): string =>
+    metadata.consumedRoute ?? ''
+
 export const renderMicroFrontend = (component: ClientSideComponent) => {
     const metadata = component.metadata as MicroFrontend
 
@@ -30,7 +41,7 @@ export const renderMicroFrontend = (component: ClientSideComponent) => {
         <mateu-api-caller inline-failures>
         <mateu-ux baseUrl="${metadata.baseUrl}"
                   route="${metadata.route}"
-                  consumedRoute="${metadata.consumedRoute}"
+                  consumedRoute="${microFrontendConsumedRoute(metadata)}"
                   id="${microFrontendUxId(metadata)}"
                   serverSideType="${metadata.serverSideType}"
                   .appState="${metadata.appState}"

@@ -5,6 +5,7 @@ import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.NotCreatable;
 import io.mateu.uidl.annotations.NotDeletable;
 import io.mateu.uidl.annotations.NotEditable;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The ONE server-side answer to "may this crud create / edit / delete right now", consulted by
@@ -22,6 +23,7 @@ import io.mateu.uidl.annotations.NotEditable;
  * one WARN, like an action the view does not advertise.
  */
 @io.mateu.uidl.annotations.Internal
+@Slf4j
 public final class CrudWriteGate {
 
   private CrudWriteGate() {}
@@ -94,7 +96,18 @@ public final class CrudWriteGate {
   }
 
   private static MateuForbiddenException refused(String what, Crud<?, ?, ?, ?, ?, ?> crud) {
+    // like a refused action (ActionMethods.refused): a crafted request anyone can repeat, so a WARN
+    // with no stack trace, never an ERROR
+    log.warn(
+        "Refused {} on {}: the crud does not let the user {}",
+        what,
+        crud == null ? "?" : crud.getClass().getName(),
+        what);
     return new MateuForbiddenException(
-        what + ": " + crud.getClass().getName() + " does not let the user " + what);
+        what
+            + ": "
+            + (crud == null ? "?" : crud.getClass().getName())
+            + " does not let the user "
+            + what);
   }
 }

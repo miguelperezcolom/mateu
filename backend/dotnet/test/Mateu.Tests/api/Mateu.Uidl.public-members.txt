@@ -1652,6 +1652,7 @@ Mateu.Uidl.MicroFrontend property System.Int32? TimeoutMs { get;init; }
 Mateu.Uidl.MicroFrontend property System.Object AppState { get;init; }
 Mateu.Uidl.MicroFrontend property System.String ActionId { get;init; }
 Mateu.Uidl.MicroFrontend property System.String BaseUrl { get;init; }
+Mateu.Uidl.MicroFrontend property System.String ConsumedRoute { get;init; }
 Mateu.Uidl.MicroFrontend property System.String Route { get;init; }
 Mateu.Uidl.MicroFrontend property System.String ServerSideType { get;init; }
 Mateu.Uidl.MicroFrontendResolutionEvent ctor(System.String, System.String, System.String, System.Int64, Mateu.Uidl.MicroFrontendResolutionOutcome, System.String, System.String, System.String)

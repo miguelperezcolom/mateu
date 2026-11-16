@@ -31,7 +31,7 @@ MicroFrontend.builder()
 |---|---|---|---|
 | `baseUrl` | String | — | Base URL of the remote Mateu UI |
 | `route` | String | — | Route within the remote app to load |
-| `consumedRoute` | String | — | Route prefix consumed by the host page |
+| `consumedRoute` | String | — (none: the island loads its `route` as content) | Route prefix consumed by the host page. Optional with both `CLIENT` and `SERVER` |
 | `style` | String | — | Inline CSS |
 | `cssClasses` | String | — | CSS class names |
 | `resolve` | `Resolve` | `CLIENT` | Who asks the remote for the first paint: the renderer (`CLIENT`) or the host while it builds the view (`SERVER`). Experimental |
@@ -108,6 +108,10 @@ MicroFrontend.builder()
     .timeoutMs(150)
     .build()
 ```
+
+The host asks the remote exactly what the renderer would have asked: the same route, type and
+action, and — with no `consumedRoute` — a content load of the route (when the remote is an app with
+a shell, the island gets the page, not the remote's whole app).
 
 It never makes the screen worse than resolving in the client:
 

@@ -7,18 +7,23 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import io.mateu.core.application.microfrontends.MicroFrontendSettings;
 import io.mateu.core.infra.WireMapper;
+import io.mateu.core.testutil.FakeHttpRequest;
 import io.mateu.core.testutil.TestMateu;
+import io.mateu.dtos.AppDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.FragmentCacheDto;
 import io.mateu.dtos.MessageDto;
 import io.mateu.dtos.MicroFrontendDto;
 import io.mateu.dtos.RunActionRqDto;
+import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.TextContainerDto;
 import io.mateu.dtos.TextDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.ContentSlot;
+import io.mateu.uidl.annotations.Menu;
+import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.EmbeddedChrome;
 import io.mateu.uidl.data.MicroFrontend;
@@ -127,7 +132,11 @@ class MicroFrontendServerResolutionSyncTest {
             SlotPage.class,
             DeadSlotPage.class,
             EmbeddedServer.class,
-            EmbeddedSlow.class);
+            EmbeddedSlow.class,
+            SalesHome.class,
+            SalesIsland.class,
+            SalesIslandAsDocumented.class,
+            ConsumedIsland.class);
     // warm up: the first resolution pays the cold start (JIT, Jackson's metadata, the first
     // connection); each test clears what it reads
     mateu.sync("/mfe-fast");
@@ -158,9 +167,15 @@ class MicroFrontendServerResolutionSyncTest {
     }
     var request = WIRE.readValue(exchange.getRequestBody(), RunActionRqDto.class);
     if (request.embeddedChrome() != null) headers.put("embeddedChrome", request.embeddedChrome());
+    headers.put("consumedRoute", String.valueOf(request.consumedRoute()));
     REQUESTS.add(headers);
     var remoteName = path.substring(1, path.indexOf('/', 1));
     PATH_HITS.merge(remoteName, 1, Integer::sum);
+    if ("sales".equals(remoteName)) {
+      // a REAL Mateu app (an app shell with a menu), served by the same core
+      reply(exchange, 200, json(asTheSalesApp(request)));
+      return;
+    }
     try {
       switch (remoteName) {
         case "slow" -> neverInTime();
@@ -221,6 +236,20 @@ class MicroFrontendServerResolutionSyncTest {
             UIFragmentActionDto.Replace,
             null);
     reply(exchange, 200, json(increment(fragment, policy)));
+  }
+
+  /** What the /sales mount's generated controller does with the request. */
+  static UIIncrementDto asTheSalesApp(RunActionRqDto request) {
+    var httpRequest = new FakeHttpRequest(request).withAttribute("baseUrl", "/sales");
+    httpRequest.setAttribute("uiId", SalesHome.class.getName());
+    try {
+      return mateu
+          .service()
+          .runAction(SalesHome.class.getName(), request, "/sales", httpRequest)
+          .blockFirst();
+    } catch (Throwable t) {
+      throw new IllegalStateException(t);
+    }
   }
 
   static void neverInTime() throws InterruptedException {
@@ -292,6 +321,7 @@ class MicroFrontendServerResolutionSyncTest {
               "cachenone")) {
         all.add(new RemoteDescriptor(name, base + "/" + name, IN_TIME, null));
       }
+      all.add(new RemoteDescriptor("sales", base + "/sales", IN_TIME, null));
       all.add(new RemoteDescriptor("anon", base + "/anon", IN_TIME, RemoteIdentityStrategy.NONE));
       all.add(new RemoteDescriptor("exchanged", base + "/exchanged", IN_TIME, "exchange"));
       // a path on this server, as content-hub is deployed
@@ -380,6 +410,63 @@ class MicroFrontendServerResolutionSyncTest {
               .resolve(Resolve.SERVER)
               .timeoutMs(150)
               .chrome(EmbeddedChrome.PAGE)
+              .build());
+    }
+  }
+
+  @Title("Next shipment")
+  public static class NextShipment {
+    String when = "tomorrow";
+  }
+
+  /**
+   * A remote that is an APP: a fresh load ("_empty") answers its shell, a content load the page.
+   */
+  @UI("/sales")
+  @Title("Sales")
+  public static class SalesHome {
+    @Menu NextShipment nextShipment;
+  }
+
+  /** The island of the report: SERVER, and no consumed route. */
+  @UI("/mfe-sales")
+  public static class SalesIsland extends Page {
+    List<Component> parts() {
+      return List.of(
+          MicroFrontend.builder()
+              .baseUrl(base + "/sales")
+              .route("/nextShipment")
+              .serverSideType(SalesHome.class.getName())
+              .resolve(Resolve.SERVER)
+              .timeoutMs(IN_TIME)
+              .build());
+    }
+  }
+
+  /** The same island as the docs write it: base url + route, nothing else. */
+  @UI("/mfe-sales-as-documented")
+  public static class SalesIslandAsDocumented extends Page {
+    List<Component> parts() {
+      return List.of(
+          MicroFrontend.builder()
+              .baseUrl(base + "/sales")
+              .route("/nextShipment")
+              .resolve(Resolve.SERVER)
+              .timeoutMs(IN_TIME)
+              .build());
+    }
+  }
+
+  @UI("/mfe-consumed")
+  public static class ConsumedIsland extends Page {
+    List<Component> parts() {
+      return List.of(
+          MicroFrontend.builder()
+              .baseUrl(base + "/fast")
+              .route("/widget")
+              .consumedRoute("/orders")
+              .resolve(Resolve.SERVER)
+              .timeoutMs(IN_TIME)
               .build());
     }
   }
@@ -587,6 +674,38 @@ class MicroFrontendServerResolutionSyncTest {
             c ->
                 io.mateu.core.application.runaction.EmbeddedWindowCommands.WINDOW_COMMANDS.contains(
                     c.type()));
+  }
+
+  @Test
+  void anIslandWithoutAConsumedRouteIsAskedForItsContentLikeTheBrowserAsksIt() {
+    // the renderer loads an island with consumedRoute "" (resolve = CLIENT): the host asks the same
+    // load. A null went out as a FRESH load, an app answered its SHELL aimed at the route and the
+    // shell, painted in the island, loaded "_empty/.../nextShipment" forever.
+    var microFrontend = onlyMicroFrontend(load("/mfe-sales"));
+    assertThat(microFrontend.resolved()).as("resolved by the host").isNotNull();
+    assertThat(all(microFrontend.resolved(), AppDto.class))
+        .as("the remote app's shell instead of its content")
+        .isEmpty();
+    assertThat(all(microFrontend.resolved(), ServerSideComponentDto.class))
+        .extracting(ServerSideComponentDto::serverSideType)
+        .contains(NextShipment.class.getName());
+    assertThat(REQUESTS).extracting(r -> r.get("consumedRoute")).containsExactly("");
+  }
+
+  @Test
+  void theDocumentedServerIslandPaintsTheRemoteAppsContent() {
+    var microFrontend = onlyMicroFrontend(load("/mfe-sales-as-documented"));
+    assertThat(microFrontend.resolved()).as("resolved by the host").isNotNull();
+    assertThat(all(microFrontend.resolved(), AppDto.class)).isEmpty();
+    assertThat(all(microFrontend.resolved(), ServerSideComponentDto.class))
+        .extracting(ServerSideComponentDto::serverSideType)
+        .contains(NextShipment.class.getName());
+  }
+
+  @Test
+  void aDeclaredConsumedRouteIsAskedAsDeclared() {
+    onlyMicroFrontend(load("/mfe-consumed"));
+    assertThat(REQUESTS).extracting(r -> r.get("consumedRoute")).containsExactly("/orders");
   }
 
   @Test
