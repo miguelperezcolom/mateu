@@ -312,7 +312,7 @@ test('the Examples workflow runs the archetype integration test against the reac
 test('the .nupkg files as built are attached to the release', () => {
     assert.deepEqual(needsOf('buid-and-publish.yml', 'nuget-attach'), ['nuget-pack'])
     assert.match(jobBlock('buid-and-publish.yml', 'nuget-attach'), /gh release upload "\$TAG" nupkgs\/\*\.nupkg/)
-    const doc = readFileSync(new URL('../doc/src/content/docs/reference/verify-downloads.md', import.meta.url), 'utf8')
+    const doc = readFileSync(new URL('../doc/src/content/docs/reference/verify-downloads.mdx', import.meta.url), 'utf8')
     assert.doesNotMatch(doc, /download the package\s+from nuget\.org first/)
     assert.match(doc, /gh release download v3\.0\.0 --repo miguelperezcolom\/mateu --pattern 'Mateu\.\*\.nupkg'/)
 })
