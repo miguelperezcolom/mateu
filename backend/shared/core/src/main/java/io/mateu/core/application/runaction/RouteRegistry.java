@@ -728,7 +728,12 @@ public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
     // for its OWN @UI classes — only the jars it depends on do —, so its @UI("/shop") was missing
     // here and a valid `basePath: /shop` was reported as matching no mount. The generated
     // controllers (every adapter) and the routed-class providers name every mount served.
-    known.addAll(registeredMounts());
+    // Asked only when a basePath is still unknown: listing the controllers instantiates them, and
+    // on Helidon MP (Jersey + Weld) doing that while the container starts bound a controller to
+    // the injection manager of an earlier container in the same JVM (every later request: 500).
+    if (!known.containsAll(declared)) {
+      known.addAll(registeredMounts());
+    }
     for (var basePath : declared) {
       if (!known.contains(basePath)) {
         log.error(
