@@ -3,6 +3,8 @@ title: "Testing your UIs"
 description: "Test a Mateu UI the way a user uses it — open a route, read the fields, buttons and rows, type, press, follow navigation — with no browser and no server, in Java, C# or Python."
 ---
 
+import YouTube from '../../../components/YouTube.astro';
+
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Unit tests of your view models cover the logic of an action ([Testing](/java-user-manual/advanced/testing/)).
@@ -10,6 +12,8 @@ They do not tell you what the user **sees**: that the listing really shows four 
 button of a new product creates it, that a field an admin may edit is read-only for everybody else.
 For that, Mateu ships a **test harness**: it runs Mateu in your test's process, opens a route the way
 a renderer does and lets the test read the screen and act on it.
+
+<YouTube id="euDXMgYaRGE" title="Mateu deep dives: Testing your UIs" />
 
 - **No browser, no server, no port.** The harness calls the same entry point the `/mateu/v3/sync`
   endpoint calls; a test runs in milliseconds.
