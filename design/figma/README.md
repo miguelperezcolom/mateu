@@ -34,7 +34,11 @@ unbound, empty TEXT config prop). So a TEXT prop drives the characters of a mute
 layer (row `#props`) and defaults to its own NAME (`fieldId`), which the converter reads as unset
 (as it still reads an empty value from older files); a BOOLEAN prop drives the visibility of
 `#flag:<prop>` (row `#flags`, hidden by default). `planPublishProblems` pins it over the whole
-contract; the self-test checks the built components (`publishProblems`).
+contract; the self-test checks the built components (`publishProblems`). A hugging auto-layout
+frame whose children are all hidden keeps its last size instead of collapsing (a new frame: 100×100),
+so the generator shrinks the `#flags` row to a hairline before it hugs; a library built before that
+(2026-11) left a 100 px gap under every component with a BOOLEAN prop — fix it in place with the
+plugin's **Repair: collapse empty marker rows** (never by regenerating), then publish the update.
 - `sketch` — the compact draw spec the plugin renders (visual only, never read back).
 - `java` / `csharp` / `python` — the construct each component maps to, for the generators.
 - `yaml` — what the component becomes in a specs/ui file (`to-yaml/`): its YAML `type` (or a

@@ -470,11 +470,18 @@ const MARKER_INK = '#b0b0b0';
  * (one muted `#prop:<prop>` text per TEXT prop, showing its value — its name until set) and
  * `#flags` (one `#flag:<prop>` text per BOOLEAN prop, shown only while it is on). They exist so
  * every property drives a layer — the condition for Figma to publish the component.
+ *
+ * A hugging auto-layout frame whose children are ALL hidden does not collapse: Figma keeps the
+ * size it last had — for a new frame, createFrame's 100×100. The `#flags` row starts with every
+ * flag hidden, so it left a 100 px gap under every component with a BOOLEAN prop (a TextField
+ * dropped into a slot came out 202 px tall until `required` was switched on). The row is shrunk
+ * to a hairline BEFORE it hugs, so that is the size it keeps while nothing in it is visible.
  */
 function addMarkerRows(comp: ComponentNode, properties: PropertyPlan[]) {
   const row = (name: string, items: PropertyPlan[], visible: boolean) => {
     if (items.length === 0) return;
     const f = frameNode({ dir: 'HORIZONTAL', gap: 6, name });
+    if (!visible) collapseEmptyRow(f);
     for (const p of items) {
       const t = textNode(p.param, { size: 9, color: MARKER_INK, name: p.layer });
       t.visible = visible;
@@ -484,6 +491,41 @@ function addMarkerRows(comp: ComponentNode, properties: PropertyPlan[]) {
   };
   row(PROPS_ROW, properties.filter((p) => p.marker && p.type === 'TEXT'), true);
   row(FLAGS_ROW, properties.filter((p) => p.marker && p.type === 'BOOLEAN'), false);
+}
+
+/** Shrinks a hugging row to a hairline; it keeps that size while all its children are hidden. */
+function collapseEmptyRow(f: FrameNode) {
+  f.resize(1, 0.01);
+  f.primaryAxisSizingMode = 'AUTO';
+  f.counterAxisSizingMode = 'AUTO';
+}
+
+/** Marker rows (`#flags`, `#props`) with nothing visible that still take room in their component. */
+function stuckMarkerRows(root: BaseNode & ChildrenMixin): FrameNode[] {
+  return findAll(root, (n) => n.type === 'FRAME' && (n.name === FLAGS_ROW || n.name === PROPS_ROW)
+    && (n as FrameNode).children.length > 0
+    && (n as FrameNode).children.every((c) => !c.visible)
+    && (n as FrameNode).height > 1) as FrameNode[];
+}
+
+/**
+ * "Repair: collapse empty marker rows" — fixes a library built before the hairline rule in place,
+ * without regenerating it (regenerating gives every component a new identity and breaks the files
+ * that use the published library). Run it in the library file, then publish the library update.
+ */
+async function repairMarkerRows() {
+  await figma.loadAllPagesAsync();
+  let fixed = 0;
+  for (const page of figma.root.children) {
+    for (const f of stuckMarkerRows(page)) {
+      try { collapseEmptyRow(f); fixed++; } catch (e) { /* a locked or instance layer: skip it */ }
+    }
+  }
+  figma.notify(fixed > 0
+    ? `Collapsed ${fixed} empty marker rows. Publish the library update so the files using it get the fix.`
+    : 'No empty marker rows to collapse.', { timeout: 10000 });
+  console.log('Mateu marker-row repair', JSON.stringify({ fixed }));
+  figma.closePlugin();
 }
 
 function dropMarkers(variants: ComponentNode[], p: PropertyPlan) {
@@ -1043,4 +1085,5 @@ function contractEntry(name: string): Entry {
 
 if (figma.command === 'selftest') runSelfTest();
 else if (figma.command === 'samples') runSampleScreens();
+else if (figma.command === 'repair-marker-rows') repairMarkerRows();
 else buildLibrary();

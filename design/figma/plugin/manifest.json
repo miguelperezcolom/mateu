@@ -11,6 +11,8 @@
     { "separator": true },
     { "name": "Mateu Library Self-test", "command": "selftest" },
     { "separator": true },
-    { "name": "Mateu Sample Screens", "command": "samples" }
+    { "name": "Mateu Sample Screens", "command": "samples" },
+    { "separator": true },
+    { "name": "Repair: collapse empty marker rows", "command": "repair-marker-rows" }
   ]
 }
