@@ -651,7 +651,7 @@ public final class Screen {
       case "PushStateToHistory" -> {
         var route = str(command.data());
         if (!route.isBlank()) {
-          location = route;
+          location = addressOf(route, frame.consumedRoute);
         }
       }
       case "CloseModal" -> {
@@ -673,6 +673,23 @@ public final class Screen {
         // MarkAsDirty, MarkAsClean, DispatchEvent, Announce…: nothing to draw without a browser
       }
     }
+  }
+
+  /**
+   * The address a {@code PushStateToHistory} leaves in the browser's bar, composed like {@code
+   * mateu-ux.routeChangedListener}: a mediator's internal push ({@code /P-005} from a crud's record
+   * view) is relative to the consumed route of the ux showing it ({@code /products}).
+   */
+  static String addressOf(String pushed, String consumedRoute) {
+    if ((pushed.isEmpty() || pushed.startsWith("/"))
+        && consumedRoute != null
+        && !consumedRoute.isEmpty()
+        && !consumedRoute.equals("_empty")
+        && consumedRoute.startsWith("/")
+        && !pushed.startsWith(consumedRoute)) {
+      return consumedRoute + pushed;
+    }
+    return pushed;
   }
 
   private void navigateKeepingMessages(String route) {

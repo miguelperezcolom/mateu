@@ -134,6 +134,19 @@ def _s(value: Any) -> str:
     return "" if value is None else str(value)
 
 
+def _address_of(pushed: str, consumed_route: str) -> str:
+    """The address a ``PushStateToHistory`` leaves in the browser's bar, composed like
+    ``mateu-ux.routeChangedListener``: a mediator's internal push (``/P-005`` from a crud's record
+    view) is relative to the consumed route of the ux showing it (``/products``)."""
+    if ((pushed == "" or pushed.startswith("/"))
+            and consumed_route
+            and consumed_route != "_empty"
+            and consumed_route.startswith("/")
+            and not pushed.startswith(consumed_route)):
+        return consumed_route + pushed
+    return pushed
+
+
 def _collect(root: Any, accept: Callable[[dict], bool]) -> list[dict]:
     out: list[dict] = []
     seen: set[int] = set()
@@ -521,7 +534,7 @@ class Screen:
                 self._go_to(target)
         elif command.type == "PushStateToHistory":
             if _s(command.data):
-                self.route = _s(command.data)
+                self.route = _address_of(_s(command.data), frame.consumed_route)
         elif command.type == "CloseModal":
             if len(self._frames) > 1:
                 self._frames.remove(frame if frame in self._frames and frame is not self._frames[0] else self._frames[-1])

@@ -77,6 +77,7 @@ class MateuTestTest {
     screen.field("status").set("Available");
     screen.button("Save").press();
     assertTrue(store.findById("P-005").isPresent(), "saved in the store");
+    assertEquals("/products/P-005", screen.route());
     assertEquals("Kettle", store.findById("P-005").get().name());
   }
 
@@ -99,9 +100,12 @@ class MateuTestTest {
   void aCrudEditsARecord() {
     var screen = mateu.open("/products");
     screen.listing().row("Coffee grinder").open();
+    assertEquals("/products/P-002", screen.route());
     screen.button("Edit").press();
+    assertEquals("/products/P-002/edit", screen.route());
     screen.field("name").set("Burr grinder");
     screen.button("Save").press();
+    assertEquals("/products/P-002", screen.route());
     assertEquals("Burr grinder", store.findById("P-002").get().name());
   }
 

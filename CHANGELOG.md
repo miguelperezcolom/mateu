@@ -23,6 +23,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   IntelliJ / VS Code "New › Mateu" page templates. Demo: `demo-museum` `visit-booked` and `sign-in`.
   Docs `ux-patterns/message-page.md`.
 
+### Fixed — test harness
+
+- `Screen.route()` (`io.mateu:mateu-test`) keeps a CRUD's prefix after Save or Edit: a crud's
+  record view pushes `/P-100` / `/P-003/edit` relative to the screen showing it, and the harness
+  now composes it like the browser does (`mateu-ux`), giving `/products/P-100` and
+  `/products/P-003/edit` instead of the bare push. Same rule in the .NET
+  (`Mateu.AspNetCore.Testing`, `MateuScreen.Route`) and Python (`mateu_ui.testing`, `screen.route`)
+  harnesses.
+
 ### Fixed — rc.2 web
 
 - A non-root YAML mount keeps its address on Vaadin: a reload no longer lands in another app.
