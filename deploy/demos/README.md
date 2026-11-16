@@ -64,6 +64,10 @@ metaspace ~100–115 MB, and the C2 JIT's code cache + arenas cost ~60 MB more t
 - Requests follow measured use (+ margin): REST services 288Mi, UI apps 224Mi, Explorer remotes
   176Mi; limits keep head-room for a heap that fills (416–448Mi, Explorer 512Mi).
 
+The nodes' memory REQUESTS sit at 93–97 %, so a rolling update's surge pod cannot be scheduled
+(`Insufficient memory`, the rollout hangs with the new pod Pending). Every demo deployment therefore
+rolls with `maxSurge: 0, maxUnavailable: 1`: the old pod goes first, a minute of downtime per redeploy.
+
 Result (2026-11-09): the JVM pods went from 183–333 MiB to ~140–250 MiB each. Re-check after an
 image upgrade with `kubectl top pods`, and the services' `/actuator/prometheus` (`jvm_memory_*`).
 
@@ -81,7 +85,7 @@ Check certificates: `$K -n mateu-demos get certificate,challenge`.
 
 ## The Mateu Explorer (`explorer.mateu.io`)
 `demo/demo-explorer` + the five remotes of its *Distributed UIs* area, all in `k8s/70-demo-explorer.yaml`.
-Live on **3.0-beta.54** since 2026-11-09 (tag `3.0-beta.54-explorer-20261109`); redeploy at rc.1.
+Live on **3.0.0** since 2026-11-15 (tag `3.0.0-explorer-20261115`).
 
 | deployment | image | host | requests / limits |
 |---|---|---|---|

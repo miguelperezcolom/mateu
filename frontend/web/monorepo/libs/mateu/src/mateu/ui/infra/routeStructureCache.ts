@@ -79,6 +79,42 @@ export const isStructureCacheEnabled = (): boolean => enabled
 // what older releases left in localStorage (values of composed pages included) goes
 try { localStorage.removeItem(KEY) } catch { /* unavailable */ }
 
+/**
+ * How this document was reached ('navigate' | 'reload' | 'back_forward' | 'prerender'), or
+ * undefined when the browser does not say.
+ */
+export const documentNavigationType = (): string | undefined => {
+    try {
+        const entry = performance.getEntriesByType?.('navigation')?.[0] as { type?: string } | undefined
+        return entry?.type
+    } catch {
+        return undefined
+    }
+}
+
+// N-7 (GA review 2): a composed page carries its values in the STRUCTURE, and nothing in the key
+// says WHO saw it. A cookie sign-out followed by another user's sign-in in the same tab fires none
+// of the wipes (no 401, no token change, no idle sign-out) — but it always ARRIVES as a fresh
+// navigation (the login form posts and redirects here). So what this tab kept predicts a reload or
+// a back/forward of the same session only: a document reached by a plain navigation starts with
+// none of it. (A typed url or a link from elsewhere loses its instant first paint; the server's
+// answer is the same.)
+const freshNavigation = (): boolean => {
+    const type = documentNavigationType()
+    return type === 'navigate' || type === 'prerender'
+}
+let freshChecked = false
+const dropWhatAnotherSessionLeft = (): void => {
+    if (freshChecked) return
+    freshChecked = true
+    if (!freshNavigation()) return
+    try {
+        sessionStorage.removeItem(KEY)
+    } catch {
+        // unavailable: there is nothing to drop
+    }
+}
+
 const NS_KEY = 'mateu-route-structure-cache-ns'
 
 /** The page's app and the last build seen of every backend, persisted with the entries. */
@@ -193,6 +229,7 @@ export const dropBackendStructures = (baseUrl: string | undefined): void => {
 }
 
 const readAll = (): Store => {
+    dropWhatAnotherSessionLeft()
     try {
         return JSON.parse(sessionStorage.getItem(KEY) ?? '{}') as Store
     } catch {
@@ -318,6 +355,7 @@ export const putCachedStructure = (key: string, component: Component, hash?: str
 export const clearStructureCache = (): void => {
     inMemory.clear()
     namespaces = undefined
+    freshChecked = true
     try {
         sessionStorage.removeItem(KEY)
         sessionStorage.removeItem(NS_KEY)

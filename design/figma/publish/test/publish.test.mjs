@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { FigmaToYaml } from '../../to-yaml/src/convert.mjs'
 import { loadContract, loadSchema } from '../../to-yaml/src/load.mjs'
 import { buildManifest, dataPaths, defaultConfig, proposedRows, routePattern, siteFiles, stampIndex } from '../src/site.mjs'
-import { CONFIG, onlyTarget, onlyTokens, readChunked, splitSecrets, writeChunked } from '../plugin/store.js'
+import { CONFIG, onlyTarget, onlyTokens, readChunked, splitSecrets, splitText, targetFor, writeChunked } from '../plugin/store.js'
 import { targetDescription } from '../plugin/target.js'
 import { crc32, zip } from '../src/zip.mjs'
 import { pagesHash, publishCloudflare, publishNetlify } from '../src/hosts.mjs'
@@ -268,13 +268,12 @@ test('tokens are kept for the user, the site for the file; an old shared site id
 })
 
 /** A Figma double for the plugin's sandbox half: one file, this user's clientStorage. */
-function figmaDouble({ fileKey, storage, readOnly = false, throwOn }) {
-  const data = new Map()
+function figmaDouble({ fileKey, storage, readOnly = false, throwOn, name = fileKey, data = new Map() }) {
   const sent = []
   const double = {
     fileKey,
     root: {
-      name: fileKey,
+      name,
       children: [],
       getPluginData: (k) => data.get(k) ?? '',
       setPluginData: (k, v) => {
@@ -315,7 +314,7 @@ test('the plugin keeps one site per file: publishing file B never targets file A
   await runPlugin(b.double)
   const docB = b.sent.find((m) => m.type === 'document')
   assert.ok(!docB.target.netlifySiteId, JSON.stringify(docB.target))
-  assert.deepEqual(storage.get('mateu-publish-target:A'), { host: 'netlify', netlifySiteId: 'site-a', netlifyUrl: 'https://a.netlify.app' })
+  assert.deepEqual(storage.get('mateu-publish-target:A'), { host: 'netlify', netlifySiteId: 'site-a', netlifyUrl: 'https://a.netlify.app', $file: { name: 'A', page: '' } })
   assert.deepEqual(storage.get('mateu-publish-secrets'), { netlifyToken: 'T' })
   delete globalThis.figma
 })
@@ -383,4 +382,55 @@ test('the pinned renderer lists a digest for its index and every file, and nothi
   const renderer = JSON.parse(readFileSync(new URL('../src/renderer.json', import.meta.url), 'utf8'))
   assert.deepEqual(Object.keys(renderer.digests).sort(), [renderer.index, ...renderer.files].sort())
   for (const d of Object.values(renderer.digests)) assert.match(d, /^[0-9a-f]{64}$/)
+})
+
+test('a duplicated file (same plugin-data id) is only OFFERED the original\'s site; the original keeps it', async () => {
+  const storage = new Map()
+  const a = figmaDouble({ fileKey: undefined, name: 'Museum', storage })
+  const onA = await runPlugin(a.double)
+  await onA({ type: 'save-target', target: { host: 'netlify', netlifySiteId: 'site-a', netlifyUrl: 'https://a.netlify.app' } })
+
+  const copy = figmaDouble({ fileKey: undefined, name: 'Museum (Copy)', storage, data: new Map(a.data) })
+  await runPlugin(copy.double)
+  const doc = copy.sent.find((m) => m.type === 'document')
+  assert.deepEqual(doc.target, { host: 'netlify' })
+  assert.equal(doc.offeredTarget.netlifySiteId, 'site-a')
+  assert.equal(doc.offeredTarget.fileName, 'Museum')
+
+  const again = figmaDouble({ fileKey: undefined, name: 'Museum', storage, data: new Map(a.data) })
+  await runPlugin(again.double)
+  const same = again.sent.find((m) => m.type === 'document')
+  assert.equal(same.target.netlifySiteId, 'site-a')
+  assert.equal(same.offeredTarget, undefined)
+  delete globalThis.figma
+})
+
+test('a target saved by a version that kept no file mark is applied as before', () => {
+  assert.deepEqual(targetFor({ host: 'netlify', netlifySiteId: 's' }, { name: 'x', page: '' }).target, { host: 'netlify', netlifySiteId: 's' })
+  assert.deepEqual(targetFor(undefined, { name: 'x', page: '' }), { target: undefined, offered: undefined })
+})
+
+test('a view-only file tells the panel that where it publishes cannot be remembered', async () => {
+  const { double, sent } = figmaDouble({ fileKey: undefined, name: 'V', storage: new Map(), readOnly: true })
+  await runPlugin(double)
+  assert.equal(sent.find((m) => m.type === 'document').targetRemembered, false)
+  delete globalThis.figma
+})
+
+test('chunked settings: a write that fails midway leaves the previous text; a pair is never cut', () => {
+  const node = { data: new Map(), getPluginData(k) { return this.data.get(k) ?? '' }, setPluginData(k, v) { if (v === '') this.data.delete(k); else this.data.set(k, v) } }
+  const first = 'a'.repeat(25)
+  writeChunked(node, CONFIG, first, 10)
+  let writes = 0
+  const failing = { ...node, data: node.data, getPluginData: node.getPluginData, setPluginData(k, v) { if (++writes === 2) throw new Error('limit'); node.setPluginData.call(this, k, v) } }
+  assert.throws(() => writeChunked(failing, CONFIG, 'b'.repeat(40), 10), /limit/)
+  assert.equal(readChunked(node, CONFIG), first)
+  const emoji = 'x'.repeat(9) + '😀' + 'y'.repeat(5)
+  const parts = splitText(emoji, 10)
+  assert.equal(parts.join(''), emoji)
+  for (const p of parts) assert.ok(!/[\ud800-\udbff]$/.test(p) && !/^[\udc00-\udfff]/.test(p), JSON.stringify(parts))
+  writeChunked(node, CONFIG, emoji, 10)
+  assert.equal(readChunked(node, CONFIG), emoji)
+  writeChunked(node, CONFIG, 'small', 10)
+  assert.deepEqual([...node.data.keys()], [CONFIG])
 })

@@ -1,1 +1,1 @@
-mateu-ui[server]==3.0.0b51
+mateu-ui[server]==3.0.0

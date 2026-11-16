@@ -242,11 +242,13 @@ public final class YamlMounts {
     html = PublicBase.rewrite(html, base);
     // A nested mount's API lives at its ABSOLUTE path (/back-office/mateu/v3/…). A bare
     // "back-office" is resolved by the browser against the page, so /back-office/x posted to
-    // /back-office/back-office/mateu/… and every page of a nested YAML mount answered 404. The
-    // route stays the whole browser path (pathPrefix ""): a YAML mount's routes are matched with
-    // the mount on them.
-    // Under a public base the browser path carries it in front: it is the pathPrefix the client
-    // strips, so the route is still the path the mount's routes are matched with.
+    // /back-office/back-office/mateu/… and every page of a nested YAML mount answered 404.
+    // The pathPrefix is the mount too, as on an @UI page: the client reads the route below the
+    // mount (/back-office/x → /x, which the mount's endpoint answers) and writes the address bar
+    // back as pathPrefix + route. With pathPrefix "" a direct load of /back-office/x rewrote the
+    // address bar to /x, and a reload landed in another app (GA review 2, Explorer N1). A route
+    // the server spells with the mount on it (a shell's homeRoute /back-office/page) is the same
+    // place: the client strips the prefix before writing it back.
     return IndexPage.devHead(
         Pwa.served(
             io.mateu.core.infra.security.SignInProviders.head(
@@ -260,6 +262,7 @@ public final class YamlMounts {
                                     + uiPath(basePath)
                                     + "\" pathPrefix=\""
                                     + base
+                                    + uiPath(basePath)
                                     + "\""
                                     + (base.isEmpty() ? "" : " publicBase=\"" + base + "\"")
                                     + " style=\"width:100%;height:100vh;\"></mateu-ui>")),

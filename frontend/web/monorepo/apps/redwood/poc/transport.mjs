@@ -74,7 +74,7 @@ export async function callMateu(base, body, options = {}) {
       ...body,
       route: bare ? `/${bare}` : '',
     }),
-  }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, local: options.local, view })
+  }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, local: options.local, view, readsJson: true })
   // R1: an origin the shell does not trust (an agent-named base, a remote's own remote) answers
   // through the untrusted strip: what it sends cannot run code in this tab
   const increment = answeredBy(base, await res.json())
@@ -85,6 +85,22 @@ export async function callMateu(base, body, options = {}) {
   // the body takes time too: whatever arrives after the screen changed is not applied either
   if (isViewStale(view)) throw staleResponseError(body.actionId)
   return increment
+}
+
+/**
+ * An app header action (AppActionsSupplier), dispatched app-level. A write goes once however often
+ * it is pressed while it is in flight (N-14, GA review 2): the same double-submit slot as a content
+ * action (runMateuAction); a second press answers duplicateAnswer() and the chain stops there.
+ */
+export async function callAppHeaderAction(base, body, options = {}) {
+  const exclusive = !isIdempotentAction(body && body.actionId, options.idempotent)
+  const key = pendingActions.key('__app-header__', body && body.actionId)
+  if (exclusive && !pendingActions.begin(key)) return duplicateAnswer()
+  try {
+    return await callMateu(base, body, options)
+  } finally {
+    if (exclusive) pendingActions.end(key)
+  }
 }
 
 // Who hears every answer callMateu gets (the live UI push summary keeps the last messages,
@@ -122,7 +138,7 @@ export async function bootstrapShell(base, initiator = 'shell', appState = null)
         route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator,
         ...(appState && typeof appState === 'object' && Object.keys(appState).length ? { appState } : {}),
       }),
-    }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
+    }, fallback ? { actionId: '__load__', quiet: true, isolated: true, readsJson: true } : { actionId: '__load__', readsJson: true })
     const increment = await res.json()
     observeWireVersion(increment)
     adoptReferencedSources(increment)

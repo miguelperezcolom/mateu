@@ -92,6 +92,16 @@ server.static.classpath.context=/assets
 server.static.classpath.location=/static/assets
 ```
 
+With the **Oracle Redwood** renderer (`mateu-redwood` instead of `mateu-vaadin`) the files live
+under `/static/_redwood/*` and are requested at `/_redwood/*`, so the mapping changes. With the
+`/assets` mapping above every Redwood file answers 404 and the page stays blank:
+
+```properties
+# Serve the Redwood renderer's files. Mount it under /_redwood ONLY, for the same reason.
+server.static.classpath.context=/_redwood
+server.static.classpath.location=/static/_redwood
+```
+
 Make sure `src/main/resources/META-INF/beans.xml` exists (a Helidon starter includes one) so Weld/Jersey discover the generated controllers:
 
 ```xml

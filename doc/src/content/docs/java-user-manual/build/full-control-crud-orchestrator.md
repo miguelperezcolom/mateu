@@ -224,7 +224,7 @@ All capability annotations available on `AutoCrud<T>` also work on `Crud`:
 | `FilteredAutoCrud<Filters,T>` | Filters | T | ✓ (or `@ReadOnly`) | — |
 | `Crud<V,E,C,F,R,Id>` | F | R | ✓ (or `@ReadOnly`) | ✓ |
 
-Move to `Crud` only when the view, editor, or creation forms must differ from each other or from the row model. The simpler variants cover most real-world cases. And when you don't want the *whole* pack, don't extend `Crud` at all — implement `Listing<Row>` plus just the [capability interfaces](/java-user-manual/build/capability-listings/) you need.
+Move to `Crud` only when the view, editor, or creation forms must differ from each other or from the row model. Before you do, check whether a per-screen annotation (`@HiddenInCreate`, `@HiddenInEditor`…) or a `creationForm`/`view`/`edit` override on an `AutoCrud` is enough — [Customise each screen](/java-user-manual/build/customizing-crud-and-listings/#5-customise-each-screen-creation-form-detail-editor) compares the three levels. The simpler variants cover most real-world cases. And when you don't want the *whole* pack, don't extend `Crud` at all — implement `Listing<Row>` plus just the [capability interfaces](/java-user-manual/build/capability-listings/) you need.
 
 ---
 

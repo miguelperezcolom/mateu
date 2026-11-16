@@ -9,10 +9,11 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Two state shapes the JS client and Jackson really produce: a FINAL nested object DECLARED a
- * sub-form ({@code @Inline} — a form that owns its sub-form instance) is updated in place from the
- * incoming map rather than replaced — while a final field that is not one (a held service or store)
- * is never written from client state (GA round 2, J3) — and numbers Jackson reads as Long (beyond
- * int range) or Double land in BigDecimal/float fields instead of silently resetting them.
+ * sub-form ({@code @Inline} — a form that owns its sub-form instance) takes the incoming map in its
+ * own copy of that instance, never in the object the field held (it may be shared — parity D8/Y6) —
+ * while a final field that is not one (a held service or store) is never written from client state
+ * (GA round 2, J3) — and numbers Jackson reads as Long (beyond int range) or Double land in
+ * BigDecimal/float fields instead of silently resetting them.
  */
 class FinalNestedAndWideNumbersHydrationTest {
 
@@ -35,7 +36,7 @@ class FinalNestedAndWideNumbersHydrationTest {
   }
 
   @Test
-  void aFinalNestedObjectIsUpdatedInPlace() {
+  void aFinalNestedObjectIsBoundIntoItsOwnCopy() {
     var form = new Form();
     var before = form.address;
     var hydrated =
@@ -44,9 +45,11 @@ class FinalNestedAndWideNumbersHydrationTest {
             new HashMap<>(Map.of("address", Map.of("street", "Gran Via 1", "city", "Madrid"))),
             null,
             null);
-    assertThat(hydrated.address).isSameAs(before);
+    assertThat(hydrated.address).isNotSameAs(before);
     assertThat(hydrated.address.street).isEqualTo("Gran Via 1");
     assertThat(hydrated.address.city).isEqualTo("Madrid");
+    assertThat(before.street).isEqualTo("old street");
+    assertThat(before.city).isEqualTo("old city");
   }
 
   @Test

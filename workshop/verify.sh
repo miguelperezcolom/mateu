@@ -43,7 +43,7 @@ projects() { # lab language → the start/solution dirs present
 # 1. Java: compile, run the UI tests (mateu-test), package.
 if want java; then
   if command -v mvn >/dev/null; then
-    for lab in 01-first-app 02-renderers 03-test-like-a-user 05-ai-agents 06-sign-in; do
+    for lab in 01-first-app 02-renderers 03-test-like-a-user 05-ai-agents 06-sign-in 08-crud-screens; do
       for p in $(projects $lab java); do run "java $p" "$p" mvn -B -q verify; done
     done
   else skip java "mvn not found"; fi
@@ -62,7 +62,7 @@ fi
 # 3. C#: build the app; run the UI tests (Mateu.AspNetCore.Testing) where the lab has them.
 if want dotnet; then
   if command -v dotnet >/dev/null && dotnet --list-sdks | grep -q '^10\.'; then
-    for lab in 01-first-app 03-test-like-a-user 05-ai-agents 06-sign-in; do
+    for lab in 01-first-app 03-test-like-a-user 05-ai-agents 06-sign-in 08-crud-screens; do
       for p in $(projects $lab dotnet); do
         if [[ -d $p/Workshop.Tests ]]; then run "dotnet $p" "$p" dotnet test Workshop.Tests -nologo -v q
         else run "dotnet $p" "$p" dotnet build -nologo -v q; fi
@@ -76,7 +76,7 @@ if want python; then
   py=$(command -v python3 || true)
   if [[ -n $py ]] && "$py" -c 'import sys; sys.exit(sys.version_info < (3, 11))'; then
     venvs=$(mktemp -d)
-    for lab in 01-first-app 03-test-like-a-user 05-ai-agents 06-sign-in; do
+    for lab in 01-first-app 03-test-like-a-user 05-ai-agents 06-sign-in 08-crud-screens; do
       for p in $(projects $lab python); do
         v="$venvs/$(echo "$p" | tr '/' '_')"
         run "python $p" "$p" bash -c "'$py' -m venv '$v' && '$v/bin/pip' install -q -r requirements.txt && '$v/bin/python' -m pytest -q -p no:cacheprovider"

@@ -73,7 +73,10 @@ public class StockCrud extends AutoCrud<StockCrud.Item> {
 
       @Override
       public String save(Item item) {
-        ITEMS.replaceAll(i -> i.sku.equals(item.sku) ? item : i);
+        // the store assigns the id of a NEW item (the create form does not ask for it)
+        if (item.sku == null || item.sku.isBlank()) item.sku = "SKU-" + java.util.UUID.randomUUID().toString().substring(0, 8);
+        if (findById(item.sku).isPresent()) ITEMS.replaceAll(i -> i.sku.equals(item.sku) ? item : i);
+        else ITEMS.add(item);
         return item.sku;
       }
 

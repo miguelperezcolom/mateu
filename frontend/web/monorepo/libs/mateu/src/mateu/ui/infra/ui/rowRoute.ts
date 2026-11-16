@@ -2,6 +2,7 @@ import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import { interpolate } from './interpolation.ts'
 import { safeNavigate } from './safeNavigate.ts'
 import { routeTargetUrl } from './navigationUrl.ts'
+import { underPublicBase } from '@infra/http/publicBase.ts'
 
 /**
  * A listing's `rowRoute`: where a row click goes.
@@ -112,7 +113,10 @@ export function embeddingMountOf(from: Element): string | undefined {
     if (!ui || !ux) return undefined
     const base = ux.baseUrl ?? ux.getAttribute('baseurl') ?? ux.getAttribute('baseUrl') ?? undefined
     if (!base || !base.startsWith('/') || base.startsWith('//') || base.startsWith('/\\')) return undefined
-    return samePath(base, ui.baseUrl ?? ui.getAttribute('baseurl')) ? undefined : base
+    // under a public base the page's mount is spelled with it (/crm/admin) and the island's as the
+    // server names it (/admin): both are compared as the browser sees them (GA review 2, N-14)
+    const pageBase = ui.baseUrl ?? ui.getAttribute('baseurl')
+    return samePath(underPublicBase(base), underPublicBase(pageBase)) ? undefined : base
 }
 
 const closestAcrossShadows = (from: Element, selector: string): Element | undefined => {

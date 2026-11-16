@@ -34,6 +34,12 @@ server, not "no server" — everything runs on the user's machine, but the UI is
 web page served over loopback HTTP. The rest of this page covers this web-shell
 setup; for the native path see [Desktop & Mobile](/native/).
 
+:::tip[The full recipe]
+[Build a local tool with a UI](/deploy/local-tool/) walks through it end to end — a free port, a
+Quit button, and the hardening a tool that touches the user's files should have (loopback only, a
+one-time launch token, a Host check, idle shutdown) — in Java, C# and Python, with a runnable demo.
+:::
+
 ## Web shell: the two ingredients
 
 1. **Serve the renderer from the app itself.** Add a renderer dependency so the

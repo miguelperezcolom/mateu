@@ -513,6 +513,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     sameFoldoutStructure,
     wizardOf,
     callMateu,
+    callAppHeaderAction,
     // the mount of the packaged app (<mateu-ui baseUrl>): API base and route ↔ browser path
     initMount,
     // the Bearer token cookie is scoped to the mount (authStore.mjs)

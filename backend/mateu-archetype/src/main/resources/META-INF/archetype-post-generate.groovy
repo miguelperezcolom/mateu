@@ -31,6 +31,8 @@ String template = props.getProperty('template', 'default')
 String sample = template != 'default' ? template : (authoring == 'code' ? props.getProperty('sample', 'crud') : null)
 String groupId = request.groupId
 String artifactId = request.artifactId
+// the project's own version (-Dversion): the starters' poms all say 1.0.0-SNAPSHOT
+String projectVersion = request.version ?: '1.0.0-SNAPSHOT'
 String pkg = props.getProperty("package") ?: request.getPackage() ?: groupId
 
 def gen = root.resolve('generator')
@@ -119,6 +121,12 @@ walk(root).findAll { !isDir(it) }.each { f ->
         String to = expand(r.to)
         // a closure replacement is literal: no `$`/`\` group syntax to quote
         out = r.regex ? out.replaceAll(r.regex) { to } : out.replace(expand(r.from), to)
+    }
+    if (f == root.resolve('pom.xml')) {
+        // the project's <version>, the first one after its own <artifactId> (never the parent's)
+        out = out.replaceFirst('<artifactId>\\Q' + artifactId + '\\E</artifactId>(\\s*)<version>[^<]*</version>') { all, ws ->
+            "<artifactId>${artifactId}</artifactId>${ws}<version>${projectVersion}</version>"
+        }
     }
     if (out != text) nioFiles.writeString(f, out)
 }

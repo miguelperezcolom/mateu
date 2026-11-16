@@ -221,7 +221,14 @@ class AppHandlerMixin(MixinBase):
                 return False
         owner = self.registry.resolve(None, path) or (self.registry.resolve_by_prefix(path) or (None,))[0]
         if view and view.strip():
-            named = self.registry.known_type(view.strip())
+            wanted = view.strip()
+            named = self.registry.known_type(wanted)
+            if named is None and any(e.view_model == wanted for e in self.routes.authored().routes):
+                # a view model bound only by routes.yaml that THIS process has not imported yet
+                # (another worker served the page): safe to import — an authored entry binds
+                # exactly this name (GA review 2, B-3; .NET scans its assemblies, so it never had
+                # the gap)
+                named = self.registry.authored_type(wanted)
             if named is None:
                 return False  # no type the app exposes: nothing to learn about
         else:

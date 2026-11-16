@@ -361,6 +361,132 @@ list on the left, the selected item's detail re-rendered in place on the right) 
 `GeneralOverview<TRow>` (a record context switcher over the selected record's overview). Both are
 built on the fluent `FormField` primitive — a live field you can compose into any fluent tree.
 
+## Customise each screen: creation form, detail, editor
+
+A crud is four screens — the listing (`/customers`), the creation form (`/customers/new`), the
+record's read-only detail (`/customers/C-001`) and the editor (`/customers/C-001/edit`) — and by
+default they all show the entity's properties. Java has three levels to make them differ; this port
+has two of them:
+
+| You want… | Level | How in C# |
+|---|---|---|
+| A property not shown on one screen | 1 | `[HiddenInCreate]`, `[HiddenInView]`, `[HiddenInEditor]`, `[HiddenInList]` |
+| A code the user types once, then never changes | 1 | `[EditableOnlyWhenCreating]` |
+| A property shown but never typed (set by the store) | 1 | `[ReadOnly]` (+ `[HiddenInCreate]` when New should not show it) |
+| A property only some users may change, or see | 1 | `[ReadOnlyUnless(Roles = …)]`, `[EyesOnly(Roles = …)]` |
+| No New, no Edit | 1 | override `CanCreate` / `CanEdit` (no `[NotCreatable]` attributes here) |
+| New starts filled in | 2 | **property initializers** of the entity — see below |
+| A value computed when a record is opened | 2 | override `Get(id)` — it serves the detail **and** the editor |
+| Different classes per screen | 3 | `IListing<TRow>` + `INavigable` / `IEditable` / `ICreatable` / `IDeletable` |
+
+**Level 1 — same properties, different per screen:**
+
+```csharp
+public class Customer
+{
+    [Required, EditableOnlyWhenCreating] public string Id { get; set; } = "";   // typed on New, read-only afterwards
+    [Required] public string Name { get; set; } = "";
+    public string? Email { get; set; }
+    [HiddenInCreate, ReadOnly] public DateOnly? CustomerSince { get; set; }     // set by the store, never typed
+    [HiddenInList, HiddenInView] public string? InternalNotes { get; set; }     // only on the two forms
+    [ReadOnlyUnless(Roles = ["manager"])] public double CreditLimit { get; set; } = 1000;  // only a manager changes it
+    [HiddenInCreate, HiddenInEditor, HiddenInList] public int OpenOrders { get; set; }     // only on the detail
+}
+
+public static class CustomerStore   // your data; a static list keeps the example short
+{
+    public static readonly List<Customer> All = [];
+    public static int OpenOrdersOf(string customerId) => 0;   // e.g. a query to the orders service
+}
+
+[UI("customers"), Title("Customers")]
+public class Customers : Crud<Customer>
+{
+    public override IEnumerable<Customer> Fetch(string? search) => CustomerStore.All;
+    public override Customer? Get(string id) => CustomerStore.All.FirstOrDefault(c => c.Id == id);
+    public override void Save(Customer customer)
+    {
+        customer.CustomerSince ??= DateOnly.FromDateTime(DateTime.Today);   // New does not show it
+        CustomerStore.All.RemoveAll(c => c.Id == customer.Id);
+        CustomerStore.All.Add(customer);
+    }
+    public override void Delete(string id) => CustomerStore.All.RemoveAll(c => c.Id == id);
+}
+```
+
+New shows `Id`, `Name`, `Email`, `InternalNotes` and `CreditLimit` (read-only but for a manager); the
+detail `Id`, `Name`, `Email`, `CustomerSince`, `CreditLimit` and `OpenOrders`; the editor the same
+as New plus `CustomerSince`, with `Id` and `CustomerSince` read-only. What a form does not let the
+user write is never taken from the browser on save.
+
+**Level 2 — same class, other content.** The crud builds New from `new T()`, and the detail and the
+editor from `Get(id)`. So the creation form's defaults are the entity's property initializers
+(`CreditLimit = 1000` above), and a value computed when a record is opened goes in `Get`:
+
+```csharp
+[UI("customers"), Title("Customers")]
+public class Customers : Crud<Customer>
+{
+    // …Fetch, Save and Delete as above
+    public override Customer? Get(string id)
+    {
+        var customer = CustomerStore.All.FirstOrDefault(c => c.Id == id);
+        if (customer is not null) customer.OpenOrders = CustomerStore.OpenOrdersOf(id);
+        return customer;
+    }
+}
+```
+
+:::caution[Not per screen in this port]
+Java's `AutoCrud` has one method per screen (`creationForm`, `view`, `edit`). `Crud<T>` declares
+`CreationForm()`, `View(id)` and `Edit(id)` too — they come from the capability interfaces it
+implements — but the crud's screens do **not** call them in this release: an override changes
+nothing on `/new`, `/{id}` or `/{id}/edit`. Use the initializers and `Get` as above, or level 3.
+:::
+
+**Level 3 — a class per screen.** Implement the capabilities one by one and give each screen its own
+type. Here a detail and a creation form of their own — the next code already filled in — and no
+editor at all (no Edit button, no `/edit` route):
+
+```csharp
+public class CustomerCard
+{
+    public string Name { get; set; } = "";
+    public string? Email { get; set; }
+    public string Activity { get; set; } = "";
+}
+
+public class NewCustomer
+{
+    [Required, EditableOnlyWhenCreating] public string Id { get; set; } = "";
+    [Required] public string Name { get; set; } = "";
+}
+
+[UI("directory"), Title("Customers")]
+public class CustomerDirectory : IListing<Customer>, INavigable<CustomerCard, string>, ICreatable<NewCustomer, string>
+{
+    public ListingData<Customer> Search(SearchRequest request) => ListingData<Customer>.From(CustomerStore.All);
+
+    public CustomerCard View(string id)
+    {
+        var c = CustomerStore.All.First(c => c.Id == id);
+        return new() { Name = c.Name, Email = c.Email, Activity = $"customer since {c.CustomerSince}" };
+    }
+
+    public NewCustomer CreationForm() => new() { Id = $"C-{CustomerStore.All.Count + 1:000}" };   // the next free code
+
+    public string Create(NewCustomer form)
+    {
+        CustomerStore.All.Add(new() { Id = form.Id, Name = form.Name, CustomerSince = DateOnly.FromDateTime(DateTime.Today) });
+        return form.Id;
+    }
+}
+```
+
+Add `IEditable<TEditor, string>` (`Edit(id)` + `Save(editor)`) for an editor class of its own and
+`IDeletable<string>` for Delete. The Java guide walks the same example through the three levels:
+[Customise each screen](/java-user-manual/build/customizing-crud-and-listings/#5-customise-each-screen-creation-form-detail-editor).
+
 ## Listings & capabilities
 
 When you don't want the whole CRUD pack, implement `IListing<TRow>` — one method — and grow the
@@ -620,8 +746,14 @@ the host configures (JWT bearer, cookies, Windows) applies as is:
 The gates hold on every path a request can take, not only on what is drawn:
 
 - an `[EyesOnly]` property of a **listing row** is neither a column nor a value in the rows (nor a
-  sort, filter or totals key) for a caller who may not see it; inside a **nested form** the
-  attributes hold at every level;
+  sort, filter or totals key) for a caller who may not see it; inside a **nested form**, a
+  **grid field's rows**, a **wizard's state** and a **nested object in a listing cell** the
+  attributes hold at every level, and a `[GroupBy]` column the caller may not read gives no groups;
+- a **settable** class-typed property of a view is a nested form: it is drawn, its values travel in
+  the state and the client edits them (bound into the view's own copy, never into a shared default
+  object). An object the view only **holds** — a service, an HTTP client, its configuration — is a
+  get-only property (`public Svc Svc { get; } = …`), a field or a non-public member: never sent,
+  never written;
 - a **proxied** `[RestAction]`/`[RestOptions]` is refused (403) by `__restfetch__` when its method's
   `[EyesOnly]`/`[DisabledUnless]` (or its property's `[EyesOnly]`) refuses the caller — the server
   never makes, with your secrets, a call the caller could not trigger;

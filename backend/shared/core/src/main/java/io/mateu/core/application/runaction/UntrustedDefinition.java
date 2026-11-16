@@ -32,7 +32,15 @@ import java.util.regex.Pattern;
  *   <li>nothing runs without a click and nothing posts elsewhere: {@code triggers} are emptied and
  *       no {@code restAction} is kept;
  *   <li>a {@code MicroFrontend} does not load from another server (its absolute {@code baseUrl} is
- *       dropped).
+ *       dropped);
+ *   <li>nothing loads by itself from elsewhere (GA review 2, C2): an inline REST source (any {@code
+ *       …Source}) keeps only its catalogue {@code ref} and fetches by GET — without a ref it goes
+ *       —, the answer's own {@code restSources} catalogue goes, an image ({@code src}, {@code
+ *       srcset}, {@code image}, {@code avatar}, {@code logo}, {@code favicon}, {@code tileUrl},
+ *       {@code poster}, {@code background}, {@code xlink:href}) loads only from this server or a
+ *       {@code data:} url, and a style that could load something ({@code url(}, {@code image(},
+ *       {@code image-set(}, {@code cross-fade(}, {@code src(}, a CSS escape) is blanked — a style
+ *       rule computed by an expression goes too.
  * </ul>
  *
  * <p>The same rules run in .NET, Python and in every web renderer (libs/mateu
@@ -81,6 +89,22 @@ public final class UntrustedDefinition {
           "icon");
   private static final Set<String> SAFE_SCHEMES = Set.of("http", "https", "mailto", "tel");
   private static final Set<String> CODE_COMMANDS = Set.of("AddContentToHead", "AddContentToBody");
+  private static final Set<String> LOADING_KEYS =
+      Set.of(
+          "src",
+          "srcset",
+          "image",
+          "avatar",
+          "logo",
+          "favicon",
+          "tileurl",
+          "poster",
+          "background",
+          "xlink:href");
+  private static final java.util.List<String> LOADING_CSS =
+      java.util.List.of("url(", "image(", "image-set(", "cross-fade(", "src(", "\\");
+  private static final Set<String> SOURCE_REQUEST_KEYS =
+      Set.of("url", "method", "headers", "body", "proxy");
   private static final Pattern SCHEME = Pattern.compile("^([a-zA-Z][a-zA-Z0-9+.-]*):");
 
   private UntrustedDefinition() {}
@@ -132,7 +156,17 @@ public final class UntrustedDefinition {
     while (fields.hasNext()) {
       var entry = fields.next();
       if ("js".equals(entry.getKey()) && entry.getValue().isTextual()) continue;
-      if ("restAction".equals(entry.getKey())) continue;
+      if ("restAction".equals(entry.getKey()) || "restSources".equals(entry.getKey())) continue;
+      if (isSourceKey(entry.getKey()) && entry.getValue().isObject()) {
+        var kept = source(entry.getValue());
+        if (kept != null) out.set(entry.getKey(), kept);
+        continue;
+      }
+      if (entry.getValue().isTextual()
+          && loadsSomething(entry.getKey(), entry.getValue().asText())) {
+        out.put(entry.getKey(), "");
+        continue;
+      }
       // nothing runs without a click: an OnLoad/OnValueChange/AutoSave trigger fires by itself
       if ("triggers".equals(entry.getKey()) && entry.getValue().isArray()) {
         out.set(entry.getKey(), JsonNodeFactory.instance.arrayNode());
@@ -246,7 +280,73 @@ public final class UntrustedDefinition {
   private static boolean isCode(JsonNode item) {
     if (item == null || !item.isObject()) return false;
     if ("RunJS".equals(item.path("action").asText(null))) return true;
+    if (isLoadingStyleRule(item)) return true;
     return item.path("type").isTextual() && CODE_COMMANDS.contains(item.get("type").asText());
+  }
+
+  /** A rule that sets a style the strip cannot check (an expression) or one that could fetch. */
+  private static boolean isLoadingStyleRule(JsonNode rule) {
+    String action = rule.path("action").isTextual() ? rule.get("action").asText() : null;
+    boolean setsStyle =
+        "SetStyle".equals(action)
+            || ("SetAttributeValue".equals(action)
+                && "style".equals(rule.path("fieldAttribute").asText(null)));
+    if (!setsStyle) return false;
+    var expression = rule.get("expression");
+    if (expression != null && expression.isTextual() && !expression.asText().isBlank()) return true;
+    var value = rule.get("value");
+    return value != null && value.isTextual() && isLoadingStyle(value.asText());
+  }
+
+  /** A style that could fetch something. */
+  static boolean isLoadingStyle(String value) {
+    String lower = value.toLowerCase(Locale.ROOT);
+    return LOADING_CSS.stream().anyMatch(lower::contains);
+  }
+
+  private static boolean isSourceKey(String key) {
+    return key.length() > "Source".length() && key.endsWith("Source");
+  }
+
+  /**
+   * An inline REST source as an untrusted screen may keep it: its catalogue {@code ref}, fetched by
+   * GET, and how to read the answer; nothing of where it goes or what it sends. Null: it goes.
+   */
+  private static ObjectNode source(JsonNode value) {
+    var ref = value.get("ref");
+    if (ref == null || !ref.isTextual() || ref.asText().isBlank()) return null;
+    ObjectNode out = JsonNodeFactory.instance.objectNode();
+    var fields = value.fields();
+    while (fields.hasNext()) {
+      var entry = fields.next();
+      if (!SOURCE_REQUEST_KEYS.contains(entry.getKey())) {
+        out.set(entry.getKey(), neutralize(entry.getValue()));
+      }
+    }
+    out.put("method", "GET");
+    return out;
+  }
+
+  /** An image key holding a url from elsewhere, or a style key holding a style that fetches. */
+  private static boolean loadsSomething(String key, String value) {
+    String k = key.toLowerCase(Locale.ROOT);
+    if (LOADING_KEYS.contains(k) && loadsFromElsewhere(k, value)) return true;
+    return k.endsWith("style") && isLoadingStyle(value);
+  }
+
+  /**
+   * A url the browser would fetch from elsewhere: any scheme but {@code data:}, or {@code //host}
+   * (a backslash spelling included). A {@code srcset} lists several, so any scheme, {@code //} or
+   * backslash in it counts.
+   */
+  private static boolean loadsFromElsewhere(String key, String value) {
+    if ("srcset".equals(key)) {
+      return value.contains(":") || value.contains("\\") || value.contains("//");
+    }
+    String scheme = schemeOf(value);
+    return scheme != null
+        ? !"data".equals(scheme)
+        : cleaned(value).replace('\\', '/').startsWith("//");
   }
 
   /**

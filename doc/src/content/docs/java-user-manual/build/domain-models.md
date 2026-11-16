@@ -111,7 +111,7 @@ public class UsersPage extends AutoCrud<User> {
 public class UserStore implements CrudStore<User> {
     // connects to your actual persistence layer
     @Override public Optional<User> findById(String id) { ... }
-    @Override public String save(User user) { ... }
+    @Override public String save(User user) { ... } // assigns a new user's id, returns it
     @Override public List<User> findAll() { ... }
     @Override public void deleteAllById(List<String> ids) { ... }
 }

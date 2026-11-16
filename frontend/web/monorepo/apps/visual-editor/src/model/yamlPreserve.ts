@@ -167,7 +167,8 @@ function merge(node: Node | null | undefined, value: unknown, doc: Document, tra
             //    in the new list, it did not move elsewhere
             if (j < 0 && isPlainObject(v) && i < old.length && !used.has(i) && (isMap(old[i]) || isAlias(old[i]))
                 && (oldJson[i] as Plain)?.type === v.type
-                && (identity(oldJson[i]) === identity(v) || !newIds.has(identity(oldJson[i])))) j = i
+                && (identity(oldJson[i]) === identity(v) || !newIds.has(identity(oldJson[i]))
+                    || onlyItsAliasesKeepTheName(old, value, i, oldJson))) j = i
             // 4. a scalar list edited in place
             if (j < 0 && i < old.length && !used.has(i) && isScalar(old[i]) && !isPlainObject(v) && !Array.isArray(v)) j = i
             if (j >= 0) {
@@ -194,6 +195,21 @@ function merge(node: Node | null | undefined, value: unknown, doc: Document, tra
     if (node && deepEqual(toJs(node, doc), value)) return node
     track.structural = true
     return doc.createNode(value) as Node
+}
+
+/**
+ * Whether the old name of item `i` lives on in the new list only at uses of `i`'s OWN anchor
+ * (`&save` edited at `i`, `*save` unchanged elsewhere): then it was edited in place, not moved —
+ * the anchor keeps its node, and an alias use that no longer means it becomes its own copy (the
+ * alias branch of merge). Read as a move, the anchored node was replaced, the alias stopped
+ * resolving and the whole file was written from its data (GA review 2, N-12).
+ */
+function onlyItsAliasesKeepTheName(old: Node[], value: unknown[], i: number, oldJson: unknown[]): boolean {
+    const anchor = (old[i] as { anchor?: string }).anchor
+    if (!anchor) return false
+    const name = identity(oldJson[i])
+    return value.every((v, k) => k === i || identity(v) !== name
+        || (k < old.length && isAlias(old[k]) && (old[k] as { source?: string }).source === anchor))
 }
 
 /** A `<<` key (the merge key — a Symbol once merges are enabled — or its plain spelling). */

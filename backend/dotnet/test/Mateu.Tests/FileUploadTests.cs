@@ -364,6 +364,20 @@ public class FileUploadEndpointTests
         Assert.Contains("Too many uploads", await refused.Content.ReadAsStringAsync());
     }
 
+    [Fact] // GA review 2 (minor, Python + .NET): a 413 by the declared size burned one of the uses
+    public async Task An_upload_refused_by_its_declared_size_does_not_use_up_the_ticket()
+    {
+        await using var host = await Boot(new InMemoryFileStorage());
+        var ticket = (await AttributesOf(host.Http, "contract"))["uploadTicket"];
+        using (var tooLarge = await host.Http.SendAsync(Upload(ticket, new byte[21])))
+            Assert.Equal(HttpStatusCode.RequestEntityTooLarge, tooLarge.StatusCode);
+        for (var i = 0; i < FileUploads.SingleFileUses; i++)
+        {
+            using var ok = await host.Http.SendAsync(Upload(ticket, Encoding.ASCII.GetBytes("%PDF-1.7")));
+            Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
+        }
+    }
+
     [Fact]
     public async Task An_upload_without_a_valid_ticket_of_this_caller_is_refused()
     {

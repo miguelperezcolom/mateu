@@ -45,6 +45,20 @@ describe('buildMountGraph', () => {
         expect(kinds).toEqual({ '': 'shell', orders: 'page', 'orders/:id': 'page', help: 'page', legacy: 'viewModel', 'file:draft.yaml': 'unrouted' })
         expect(g.start).toBe('')
     })
+    it('draws no settings or catalogue file as a page (project, types, translations, environments…)', () => {
+        const more = buildMountGraph([
+            ...files,
+            f('project.yaml', 'type: Project\nrenderer: redwood\n'),
+            f('actions.yaml', 'type: Actions\nactions: []\n'),
+            f('types.yaml', 'type: Types\ntypes: []\n'),
+            f('components.yaml', 'components: []\n'),
+            f('translations/es.yaml', 'messages:\n  hello: Hola\n'),
+            f('i18n-en.yaml', 'type: Translations\nlocale: en\nmessages: {}\n'),
+            f('environments/prod.yaml', 'sources: {}\n'),
+            f('staging.yaml', 'type: Environment\nname: staging\n'),
+        ])
+        expect(more.screens.map((s) => s.id)).toEqual(g.screens.map((s) => s.id))
+    })
     it('keeps a page\'s title, without its template placeholders', () => {
         expect(g.screens.find((s) => s.id === 'orders/:id')?.title).toBe('Order …')
     })

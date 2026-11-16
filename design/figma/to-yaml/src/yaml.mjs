@@ -4,7 +4,11 @@
 // supported — strings, numbers, booleans, null, arrays and plain objects.
 
 const RESERVED = /^(true|false|yes|no|on|off|null|~|y|n)$/i
-const NUMERIC = /^[-+]?(\d[\d_]*)?(\.\d+)?([eE][-+]?\d+)?$|^0x|^0o|^\.inf$|^\.nan$/i
+// Anything a YAML 1.1 or 1.2 reader may type instead of keeping as a string: ints and floats in
+// every base and spelling (`1.`, `0b101`, `0x1f`, `1_000`), signed infinities and NaN, sexagesimals
+// (`12:30` is 750 in PyYAML) and dates / timestamps (`2026-11-13`). Erring on the side of quoting is
+// harmless: a quoted scalar always reads back as the same string.
+const NUMERIC = /^[-+]?\.(inf|nan)$|^[-+]?[0-9.][0-9a-fA-FxXoObB_.:+\-eEtTzZ ]*$/i
 
 /**
  * What a plain scalar cannot hold: the line breaks YAML 1.1 knows besides `\n` (CR, NEL, LINE and

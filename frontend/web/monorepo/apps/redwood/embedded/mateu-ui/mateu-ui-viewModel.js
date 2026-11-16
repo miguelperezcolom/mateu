@@ -205,6 +205,11 @@ define([
         return;
       }
       const change = bridge.propertyChangeOf(previous, next);
+      // the designer without a base-url: nothing is called — a route typed first changes nothing
+      if (this._placeholder()) {
+        if (change === 'boot') this._boot();
+        return;
+      }
       if (change === 'boot') {
         this._boot();
       } else if (change === 'context') {
@@ -217,11 +222,13 @@ define([
 
     /** Method: open a route inside the component. */
     navigate(route, params) {
+      if (this._placeholder()) return Promise.resolve();
       return bridge.navigateEmbedded(this._runtime, Object.assign({}, this._config, { route: route || '', params: params || {}, initialState: null }));
     }
 
     /** Method: reload the screen on display. */
     reload() {
+      if (this._placeholder()) return Promise.resolve();
       const current = this._runtime.$application.variables.mateuSelectedNavId
         || this._runtime.$application.variables.mateuSelectedRoute || '';
       return bridge.navigateEmbedded(this._runtime, Object.assign({}, this._config, { route: current, params: {}, initialState: null }));
@@ -242,8 +249,15 @@ define([
       element.style.setProperty('--mateu-ui-page-top', Math.max(0, Math.round(top)) + 'px');
     }
 
+    /** Whether the component must not call any backend now (the designer, no base-url yet). */
+    _placeholder() {
+      return bridge.embeddedStartOf(this._config, window.location, window).start === 'placeholder';
+    }
+
+    /** Starts over: no request and a placeholder when the designer has no base-url yet (or a request
+     *  failed there), else the backend's App and the route (embedded.mjs startEmbedded). */
     _boot() {
-      return bridge.bootEmbedded(bridge, this._runtime, this._config).catch((e) => this._failed(e));
+      return bridge.startEmbedded(bridge, this._runtime, this._config, window.location, window).catch((e) => this._failed(e));
     }
 
     _failed(e) {
