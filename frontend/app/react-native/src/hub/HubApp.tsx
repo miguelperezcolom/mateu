@@ -13,7 +13,7 @@ import { clearListingPrefsOf } from '../renderer/persistedScopes';
 import { ScreenSnapshots } from '../core/screenSnapshots';
 import { bundleKey } from './bundleCache';
 import { fileBundleStore } from './bundleFileStore';
-import { DEMO_BASE_URL, type HubEntry } from './uiStore';
+import { DEMO_BASE_URL, healthNotice, type HubEntry } from './uiStore';
 import { AddScreen } from './ui/AddScreen';
 import { confirmDialog } from './ui/common';
 import { ConfirmAddScreen, ConfirmImportScreen } from './ui/ConfirmScreens';
@@ -75,6 +75,8 @@ export function HubApp() {
   }, []);
 
   const open = useCallback((entry: HubEntry, route?: string) => {
+    // an entry whose address is no longer accepted stays listed (removable) but never opens
+    if (entry.invalid) return;
     setSessions((s) => {
       const existing = s.find((x) => x.id === entry.id);
       if (!existing) return [...s, { id: entry.id, route: route ?? '', generation: 0 }];
@@ -209,7 +211,7 @@ export function HubApp() {
     if (!loaded || !pendingPush.current) return;
     const { ui, route } = pendingPush.current;
     pendingPush.current = null;
-    const entry = (entries ?? []).find((e) => sameUi(e.baseUrl, ui));
+    const entry = (entries ?? []).find((e) => !e.invalid && sameUi(e.baseUrl, ui));
     if (entry) void openLinked(entry, route ?? undefined);
   }, [loaded, pushTick, entries, openLinked]);
 
@@ -220,7 +222,10 @@ export function HubApp() {
       'Remove',
       true,
     );
-    if (!ok) return;
+    if (ok) await removeConfirmed(entry);
+  };
+
+  const removeConfirmed = async (entry: HubEntry) => {
     // the phone stops receiving its pushes (core/remotePush.ts): through the running session if
     // it is open, else with what was recorded when the token was registered
     const live = liveSessions.current.get(entry.id);
@@ -238,6 +243,16 @@ export function HubApp() {
     void clearListingPrefsOf(metaStore, entry.baseUrl);
     if (entry.manifest?.bundle) void fileBundleStore.remove(bundleKey(entry.baseUrl, entry.manifest.bundle));
     announce(`${entry.name} removed`);
+  };
+
+  const explainInvalid = async (entry: HubEntry) => {
+    const ok = await confirmDialog(
+      `${entry.name} can't be opened`,
+      `Its address (${entry.baseUrl}) is no longer accepted: ${entry.invalid} Remove it from your list?`,
+      'Remove',
+      true,
+    );
+    if (ok) await removeConfirmed(entry);
   };
 
   const addConfirmed = async (baseUrl: string, manifest: UiManifest, route?: string) => {
@@ -262,7 +277,8 @@ export function HubApp() {
             entries={entries}
             openIds={sessions.map((s) => s.id)}
             pending={pending}
-            onOpen={(e) => open(e)}
+            notice={healthNotice(uiStore.health())}
+            onOpen={(e) => (e.invalid ? void explainInvalid(e) : open(e))}
             onAdd={(mode) => setScreen({ name: 'add', mode })}
             onAddDemo={() => setScreen({ name: 'confirm', baseUrl: DEMO_BASE_URL })}
             onRemove={(e) => void remove(e)}
@@ -331,7 +347,7 @@ export function HubApp() {
       {screen.name !== 'ui' && <View style={styles.front}>{front}</View>}
       <Switcher
         visible={switcherOpen}
-        entries={entries}
+        entries={entries.filter((e) => !e.invalid)}
         activeId={activeId}
         onPick={(e) => open(e)}
         onHome={goHome}
