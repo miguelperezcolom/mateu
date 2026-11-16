@@ -232,6 +232,7 @@ def add_mateu(
     mcp_push_answer_timeout_ms: int | None = None,
     build_id: str | None = None,
     oracle_cdn_url: str | None = None,
+    locale: str | None = None,
     public_base_path: str | None = None,
     remotes: Sequence[Any] | None = None,
     default_timeout_ms: int | None = None,
@@ -319,6 +320,11 @@ def add_mateu(
       never bundles Oracle's files; it only re-points the URLs of the page it serves (only with
       ``ui``). Default: the ``MATEU_ORACLE_CDN_URL`` env var; blank = off; a value that is not an
       absolute http(s) URL, or carries a quote, ``<``, ``>`` or whitespace, is ignored with a warning.
+    - ``locale`` — pins the UI language for every request: a BCP 47 tag (``"es"``, ``"pt-BR"``).
+      Mateu's own texts and ``AppMetadata.locale`` (``<html lang>``, the client chrome, money
+      formatting) use it instead of the browser's ``Accept-Language``; the app's own
+      ``Translator.locale()`` still wins. Default: the ``MATEU_LOCALE`` env var; unset = the browser
+      decides. An invalid value is ignored with a warning. Java: ``mateu.locale``.
     - ``public_base_path`` — the prefix a reverse proxy strips in front of the app (``"/crm"``: the
       proxy serves it at ``https://host/crm/`` and forwards ``/x``), so the served page writes its
       assets, its API base and its PWA links under it. Default: the ``MATEU_PUBLIC_BASE_PATH`` env
@@ -502,6 +508,12 @@ def add_mateu(
     # Version skew (X-Mateu-Build / X-Mateu-Renderer): added AFTER the CORS middleware, so it wraps it
     # and also stamps the responses CORS answers (and exposes the header on a CORS the app added).
     skew = version_skew.VersionSkew(registry.registered_types, configured=build_id)
+    # The app's pinned UI language (process-wide, like the registry): checked now, so an invalid
+    # value warns at startup.
+    from mateu_ui.core import pinned_locale
+
+    pinned_locale.configure(locale)
+    pinned_locale.pinned()
     app.add_middleware(version_skew.VersionSkewMiddleware, skew=skew)
 
     prefix = base_url.rstrip("/")

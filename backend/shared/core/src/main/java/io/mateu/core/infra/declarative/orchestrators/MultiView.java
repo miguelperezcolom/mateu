@@ -83,8 +83,19 @@ public abstract class MultiView
     return _componentRoute;
   }
 
+  /**
+   * The views this orchestrator builds (a crud's listing, its forms, their columns and options) are
+   * built HERE, while the route is handled — before the response is mapped — so they need the app's
+   * translator as the context too: outside it their titles, labels and enum options reached the
+   * wire untranslated while the plain pages and the menu around them were translated.
+   */
   @Override
   public Object handleRoute(String route, HttpRequest httpRequest) {
+    return io.mateu.core.domain.out.componentmapper.TranslatorContext.within(
+        httpRequest, () -> handleRouteInContext(route, httpRequest));
+  }
+
+  private Object handleRouteInContext(String route, HttpRequest httpRequest) {
     log.debug("route is {}, action is {}", route, httpRequest.runActionRq().actionId());
     try {
 
@@ -257,7 +268,14 @@ public abstract class MultiView
             .withConfirmOnNavigationIfDirty(viewName.equals("edit") || viewName.equals("new"))
             .withPageType(pageTypeOfView(viewName, modelView));
     if (RoutedPage.tracks(viewName)) {
-      dto = dto.withInitialData(RoutedPage.stamp(dto.initialData(), pageId, consumedRoute));
+      // the record shown: the resolver that rendered it says so, else (a page re-rendered by one
+      // of its own buttons) the page's state already did
+      var recordId =
+          httpRequest.getAttribute(RoutedPage.RECORD_ATTRIBUTE) instanceof String id
+              ? id
+              : RoutedPage.recordId(httpRequest);
+      dto =
+          dto.withInitialData(RoutedPage.stamp(dto.initialData(), pageId, consumedRoute, recordId));
     }
     return dto;
   }

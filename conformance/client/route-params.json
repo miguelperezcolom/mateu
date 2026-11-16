@@ -159,6 +159,21 @@
       "syncPath": "items/g1/9",
       "increment": { "fragments": [{ "state": {}, "data": {} }] },
       "expected": { "fragments": [{ "state": { "group": "g1", "id": "9" }, "data": { "group": "g1", "id": "9" } }] }
+    },
+    {
+      "name": "a literal route beats its :param neighbour, whatever the declaration order",
+      "routes": [{ "route": "orders/:id" }, { "route": "orders/pending", "fixedParams": { "status": "pending" } }],
+      "syncPath": "orders/pending",
+      "increment": { "fragments": [{ "state": {}, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "status": "pending" }, "data": { "status": "pending" } }] }
+    },
+    {
+      "name": "a query string on the path does not hand a literal route to its :param neighbour",
+      "routes": [{ "route": "orders/:id" }, { "route": "orders/pending", "fixedParams": { "status": "pending" } }],
+      "syncPath": "orders/pending?status=archived",
+      "query": { "status": "archived" },
+      "increment": { "fragments": [{ "state": {}, "data": {} }] },
+      "expected": { "fragments": [{ "state": { "status": "pending" }, "data": { "status": "pending" } }] }
     }
   ],
   "syncPaths": [

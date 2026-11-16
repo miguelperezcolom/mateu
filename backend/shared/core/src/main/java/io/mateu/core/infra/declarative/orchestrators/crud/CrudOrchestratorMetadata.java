@@ -20,11 +20,14 @@ final class CrudOrchestratorMetadata {
     return MetaAnnotations.isPresent(orchestrator.viewClass(), ReadOnly.class);
   }
 
+  /** The crud's title in the app's language (its translator, like a plain page's title). */
   static String title(Crud<?, ?, ?, ?, ?, ?> orchestrator) {
     if (MetaAnnotations.isPresent(orchestrator.metadataSource(), Title.class)) {
-      return MetaAnnotations.find(orchestrator.metadataSource(), Title.class).value();
+      return io.mateu.core.domain.out.componentmapper.TranslatorContext.translate(
+          MetaAnnotations.find(orchestrator.metadataSource(), Title.class).value());
     }
-    return toUpperCaseFirst(orchestrator.metadataSource().getSimpleName());
+    return io.mateu.core.domain.out.componentmapper.TranslatorContext.translate(
+        toUpperCaseFirst(orchestrator.metadataSource().getSimpleName()));
   }
 
   static String getStyleForList(Crud<?, ?, ?, ?, ?, ?> orchestrator, List<GridContent> columns) {

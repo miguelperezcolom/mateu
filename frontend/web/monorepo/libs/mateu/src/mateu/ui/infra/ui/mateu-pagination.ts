@@ -1,7 +1,7 @@
 import { customElement, property } from "lit/decorators.js";
 import { css, html, LitElement, nothing } from "lit";
 import { computePagination } from "./pagination";
-import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 @customElement('mateu-pagination')
 export class MateuPagination extends LitElement {
@@ -44,7 +44,7 @@ export class MateuPagination extends LitElement {
                         @click="${() => this.dispatch(totalPages! - 1)}" data-testid="page-last">»</button>
                     <span class="separator"></span>
                 ` : nothing}
-                <span class="total-count">${this.totalElements} item${this.totalElements === 1 ? '' : 's'}</span>
+                <span class="total-count">${this.totalElements === 1 ? chromeText('paginationTotalOne') : chromeTextf('paginationTotal', { count: this.totalElements })}</span>
                 <slot></slot>
             </div>
         `

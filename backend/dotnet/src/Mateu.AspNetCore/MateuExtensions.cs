@@ -68,6 +68,11 @@ public static partial class MateuExtensions
         services.AddSingleton(sp =>
         {
             MateuLogging.UseLoggerFactory(sp.GetService<ILoggerFactory>());
+            // The app's pinned UI language (MateuOptions.Locale / MATEU_LOCALE; Java: mateu.locale):
+            // resolved once — an invalid value is ignored with one warning.
+            var pinnedLocale = PinnedLocale.Resolve(options.Locale, out var localeRejected);
+            if (localeRejected is not null)
+                sp.GetService<ILoggerFactory>()?.CreateLogger("Mateu").LogWarning("{Message}", localeRejected);
             var accessor = sp.GetRequiredService<IHttpContextAccessor>();
             var secretsProvider = sp.GetService<ISecretsProvider>();
             Func<string, string?>? secrets = options.Secrets
@@ -91,11 +96,11 @@ public static partial class MateuExtensions
                 restSources: options.Environment is { } environment
                     ? new RestSourceRegistry(registry, environment: environment)
                     : null,
-                // The request's locale (first Accept-Language tag): the UI language when the app's
-                // ITranslator names none, and what ${i18n.…} expressions resolve for.
-                locale: () => accessor.HttpContext is { } ctx
-                    ? TranslationRegistry.AcceptLanguage(ctx.Request.Headers.AcceptLanguage.ToString())
-                    : null)
+                // The request's locale (the pinned MateuOptions.Locale, else the first Accept-Language
+                // tag): the UI language when the app's ITranslator names none, and what ${i18n.…}
+                // expressions resolve for.
+                locale: () => PinnedLocale.Of(pinnedLocale,
+                    accessor.HttpContext?.Request.Headers.AcceptLanguage.ToString()))
             {
                 MockSources = options.MockSources,
                 // the sidecar's authoring tools call __validate__ over the sync endpoint of an

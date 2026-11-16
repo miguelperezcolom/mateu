@@ -46,7 +46,14 @@ internal sealed record RouteTable(IReadOnlyList<RouteEntry> Routes)
     /// matches the most specific wins, so matching does not depend on declaration order.</summary>
     public RouteMatch? Match(string? path)
     {
-        var target = RouteRegistry.Normalize(path);
+        // a query string or fragment is not part of the path: left on, orders/pending?x=1 was
+        // swallowed by orders/:id (Java's RouteTable.match strips it too)
+        var bare = path;
+        var query = bare?.IndexOf('?') ?? -1;
+        if (query >= 0) bare = bare![..query];
+        var fragment = bare?.IndexOf('#') ?? -1;
+        if (fragment >= 0) bare = bare![..fragment];
+        var target = RouteRegistry.Normalize(bare);
         var targetSegments = target.Length == 0 ? Array.Empty<string>() : target.Split('/');
         RouteMatch? best = null;
         foreach (var entry in Routes)

@@ -428,6 +428,35 @@ class ServerWriteGatesSyncTest {
   }
 
   @Test
+  void aRefusedWriteLeavesOneWarnLikeARefusedAction() {
+    var logger =
+        (ch.qos.logback.classic.Logger)
+            org.slf4j.LoggerFactory.getLogger(
+                io.mateu.core.infra.declarative.orchestrators.crud.CrudWriteGate.class);
+    var logs =
+        new ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent>();
+    logs.start();
+    logger.addAppender(logs);
+    try {
+      assertThat(
+              refused(() -> run("/gates-readonly", ReadOnlyCrud.class, "delete", selecting("2"))))
+          .isTrue();
+    } finally {
+      logger.detachAppender(logs);
+    }
+    assertThat(logs.list)
+        .singleElement()
+        .satisfies(
+            e -> {
+              assertThat(e.getLevel()).isEqualTo(ch.qos.logback.classic.Level.WARN);
+              assertThat(e.getFormattedMessage())
+                  .contains("Refused delete")
+                  .contains(ReadOnlyCrud.class.getName());
+              assertThat(e.getThrowableProxy()).as("no stack trace").isNull();
+            });
+  }
+
+  @Test
   void displayTogglesAreRefusedIfForced() {
     assertThat(refused(() -> run("/gates-display", DisplayCrud.class, "delete", selecting("2"))))
         .isTrue();

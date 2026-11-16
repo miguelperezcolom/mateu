@@ -426,9 +426,14 @@ class ReflectionMapper(
 
             s = self.translations.interpolate(s, locale_of(self))
         if self.translator:
-            return self.translator.translate(s)
-        # No app translator: the catalogue acts as the default one — a text that IS a key there
-        # takes its message (Java's DefaultTranslator).
+            s = self.translator.translate(s)
+            if self.translations is not None and isinstance(s, str) and "i18n." in s:
+                from ..translations import locale_of
+
+                s = self.translations.interpolate(s, locale_of(self))
+        # Then the catalogue, with or without an app translator (.NET's CatalogueTranslator): a
+        # text that IS a key there takes its message (Java's DefaultTranslator) — an app's own
+        # translator used to switch this lookup off.
         if self.translations is not None and isinstance(s, str) and self.translations.has_translations():
             from ..translations import locale_of
 

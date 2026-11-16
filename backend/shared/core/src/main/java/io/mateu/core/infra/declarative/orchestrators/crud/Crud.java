@@ -79,8 +79,14 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
     return super.supportsAction(actionId);
   }
 
+  /** Answers built here (a drawer's form, a re-rendered listing) speak the app's language. */
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest) {
+    return io.mateu.core.domain.out.componentmapper.TranslatorContext.within(
+        httpRequest, () -> handleActionInContext(actionId, httpRequest));
+  }
+
+  private Object handleActionInContext(String actionId, HttpRequest httpRequest) {
     for (CrudOrchestratorActionHandler actionHandler : actionHandlers) {
       if (actionHandler.supports(actionId, httpRequest, this)) {
         var output = actionHandler.handleAction(actionId, httpRequest, this);
@@ -283,8 +289,16 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
     return true;
   }
 
+  /**
+   * Whether the listing's rows carry a selection box. Only when something uses the selection: the
+   * Delete button, a bulk {@code @ListToolbarButton} or dragging rows ({@code @DragRows}) — an
+   * {@code @NotDeletable} crud with none of them used to show checkboxes that did nothing.
+   */
   public boolean selectionEnabled() {
-    return true;
+    return CrudWriteGate.mayDelete(this)
+        || ListingSummarySpec.dragTypeOf(metadataSource()) != null
+        || getAllMethods(behaviourSource().getClass()).stream()
+            .anyMatch(method -> MetaAnnotations.isPresent(method, ListToolbarButton.class));
   }
 
   public String newLabel() {

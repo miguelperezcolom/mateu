@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 
-@Builder
+@Builder(toBuilder = true)
 public record MenuOptionDto(
     MenuTypeDto type,
     String icon,

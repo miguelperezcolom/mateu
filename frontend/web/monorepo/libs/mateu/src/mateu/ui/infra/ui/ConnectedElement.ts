@@ -37,6 +37,7 @@ import { FileDownloadData, handleFileDownload, printPage } from '@infra/ui/docum
 import { setServerWindowTitle } from '@infra/ui/windowTitle.ts'
 import { literalText } from '@infra/ui/interpolation.ts'
 import { isSuppressedWindowCommand } from '@infra/ui/embeddedChrome.ts'
+import { carryOverRecentMessages, reloadsThePage } from '@infra/notify/messageCarryOver.ts'
 
 export default abstract class ConnectedElement extends LitElement {
 
@@ -293,7 +294,12 @@ export default abstract class ConnectedElement extends LitElement {
             // navigate-to-requested path does (mateu-ui). A new tab (cross-origin) leaves nothing.
             if (destination) {
                 const resolved = resolveSafeUrl(destination)
-                if (resolved?.sameOrigin) dirtyGuard.markClean()
+                if (resolved?.sameOrigin) {
+                    dirtyGuard.markClean()
+                    // the load throws the page away, and with it the toast this same answer just
+                    // showed ("Ticket created"): the next page shows it once it booted
+                    if (reloadsThePage(resolved.href, window.location.href)) carryOverRecentMessages()
+                }
                 // server-sent: only http(s)/relative, same-origin here, cross-origin in a new tab
                 safeNavigate(destination)
             }
@@ -451,8 +457,13 @@ export default abstract class ConnectedElement extends LitElement {
         // order, so the last one in DOM order is the top of the stack. On shells that render to
         // light DOM (no shadow root) the overlay is a plain descendant, so
         // fall back to querying the element itself.
-        const overlays = (this.shadowRoot ?? this).querySelectorAll('mateu-dialog, mateu-drawer')
-        if (overlays && overlays.length > 0) {
+        // An overlay already closing stays in the DOM through its fade/slide-out (and until its
+        // owner splices it out), so it is no longer part of the stack: two CloseModal commands in
+        // one answer (the optimistic-lock dialog's Overwrite over an edit drawer: one for the
+        // dialog, one for the drawer) closed the dialog twice and left the drawer open.
+        const overlays = Array.from((this.shadowRoot ?? this).querySelectorAll('mateu-dialog, mateu-drawer'))
+            .filter(overlay => !(overlay as unknown as { closing?: boolean }).closing)
+        if (overlays.length > 0) {
             // close() also splices the overlay's component out of the owner's declarative
             // children (by identity — see ComponentElement.removeSelfFromOwnerChildren), so a
             // later re-render doesn't resurrect a closed husk that would block the page and

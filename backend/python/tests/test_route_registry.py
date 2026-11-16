@@ -102,6 +102,15 @@ def test_a_static_route_is_not_swallowed_by_its_parameterised_sibling():
     assert registry().match("orders/42").entry.view_model.endswith("OrderDetail")
 
 
+def test_a_query_string_does_not_hand_a_static_route_to_its_parameterised_sibling():
+    # orders/new?x=1 used to end in the segment new?x=1, which no literal route equals
+    assert registry().match("orders/new?status=archived").entry.view_model.endswith("NewOrder")
+    assert registry().match("/orders/new#top").entry.view_model.endswith("NewOrder")
+    match = registry().match("orders/42?tab=lines")
+    assert match.entry.view_model.endswith("OrderDetail")
+    assert match.path_params == {"id": "42"}
+
+
 def test_a_route_can_have_a_definition_and_no_view_model():
     entry = registry().match("about").entry
     assert entry.definition == "about.yaml"

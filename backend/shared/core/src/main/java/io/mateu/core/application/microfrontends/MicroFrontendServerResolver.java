@@ -556,7 +556,11 @@ public final class MicroFrontendServerResolver {
     return RunActionRqDto.builder()
         .actionId(microFrontend.actionId() != null ? microFrontend.actionId() : "")
         .route(microFrontend.route() != null ? microFrontend.route() : "")
-        .consumedRoute(microFrontend.consumedRoute())
+        // what the renderer sends when the island loads on its own (resolve = CLIENT): no consumed
+        // route is "" — a CONTENT load. A null would reach the remote as a FRESH load ("_empty"),
+        // which an app answers with its shell aimed at the route; painted in the island, that
+        // shell loaded "_empty" + route, got another shell, and the browser looped forever
+        .consumedRoute(consumedRouteOf(microFrontend))
         .serverSideType(microFrontend.serverSideType())
         .appState(mapOf(microFrontend.appState()))
         .componentState(Map.of())
@@ -565,6 +569,13 @@ public final class MicroFrontendServerResolver {
         // sends no window commands at all (the host strips them from the first paint anyway)
         .embeddedChrome(microFrontend.embedded() ? microFrontend.chrome() : null)
         .build();
+  }
+
+  /**
+   * The consumed route an island's first load carries: the declared one, else "" (the client's).
+   */
+  static String consumedRouteOf(MicroFrontendDto microFrontend) {
+    return microFrontend.consumedRoute() == null ? "" : microFrontend.consumedRoute();
   }
 
   @SuppressWarnings("unchecked")
@@ -590,7 +601,8 @@ public final class MicroFrontendServerResolver {
   private String suffixOf(MicroFrontendDto microFrontend) {
     var parts = new ArrayList<String>();
     if (microFrontend.serverSideType() != null) parts.add("type=" + microFrontend.serverSideType());
-    if (microFrontend.consumedRoute() != null)
+    // null and "" are the same load (requestFor), so they are the same fragment
+    if (!consumedRouteOf(microFrontend).isEmpty())
       parts.add("consumed=" + microFrontend.consumedRoute());
     if (microFrontend.actionId() != null && !microFrontend.actionId().isBlank()) {
       parts.add("action=" + microFrontend.actionId());

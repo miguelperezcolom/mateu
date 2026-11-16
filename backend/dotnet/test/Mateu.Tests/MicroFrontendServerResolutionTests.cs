@@ -55,6 +55,12 @@ public class MfeFastServer : IComponentTreeSupplier
     public IComponent Component() => MfeRemote.Page(MfeRemote.Server("fast", MfeRemote.InTime));
 }
 
+[UI("mfe-consumed")]
+public class MfeConsumedServer : IComponentTreeSupplier
+{
+    public IComponent Component() => MfeRemote.Page(MfeRemote.Server("fast", MfeRemote.InTime) with { ConsumedRoute = "/orders" });
+}
+
 [UI("mfe-slow")]
 public class MfeSlowServer : IComponentTreeSupplier
 {
@@ -284,6 +290,7 @@ public sealed class MfeHosts : IAsyncLifetime
         Requests.Enqueue(headers);
         var request = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, MateuExtensions.Json)
                       ?? new RunActionRqDto();
+        headers["consumedRoute"] = request.ConsumedRoute;
         var remoteName = path[1..path.IndexOf('/', 1)];
         try
         {
@@ -492,7 +499,7 @@ public class MicroFrontendServerResolutionTests : IClassFixture<MfeHosts>
         Assert.Equal("/widget", (string?)microFrontend["route"]);
         Assert.Equal("remote.Widget", (string?)microFrontend["serverSideType"]);
         // its fragments target the island the renderer hosts it in
-        Assert.Equal(IslandId(_hosts.RemoteBase + "/fast", "/widget", "_empty", "remote.Widget"),
+        Assert.Equal(IslandId(_hosts.RemoteBase + "/fast", "/widget", "", "remote.Widget"),
             (string?)resolved["fragments"]![0]!["targetComponentId"]);
         // what acts on a page stays out: the page is the host's
         Assert.Empty(resolved["messages"]!.AsArray());
@@ -502,6 +509,26 @@ public class MicroFrontendServerResolutionTests : IClassFixture<MfeHosts>
         Assert.DoesNotContain("server", microFrontend.Select(p => p.Key));
         Assert.Equal(1, Hits("fast"));
         Assert.Equal([MicroFrontendResolutionOutcome.Embedded], Events.Select(e => e.Outcome));
+    }
+
+    [Fact]
+    public async Task An_island_without_a_consumed_route_is_asked_for_its_content_like_the_browser_asks_it()
+    {
+        // the renderer loads an island it resolves itself with consumedRoute "": the host asks the
+        // same. "_empty" (the old default) is the FRESH-load marker: a remote app answered its shell
+        // aimed at the route and the island loaded "_empty/…/route" forever.
+        var (increment, _) = await Load("mfe-fast");
+        var microFrontend = OnlyMicroFrontend(increment);
+        Assert.Null((string?)microFrontend["consumedRoute"]);
+        Assert.Equal([""], Requests.Select(r => r.GetValueOrDefault("consumedRoute")));
+    }
+
+    [Fact]
+    public async Task A_declared_consumed_route_is_asked_as_declared()
+    {
+        var (increment, _) = await Load("mfe-consumed");
+        Assert.Equal("/orders", (string?)OnlyMicroFrontend(increment)["consumedRoute"]);
+        Assert.Equal(["/orders"], Requests.Select(r => r.GetValueOrDefault("consumedRoute")));
     }
 
     [Fact]

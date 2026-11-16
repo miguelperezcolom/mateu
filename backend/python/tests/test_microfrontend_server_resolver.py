@@ -234,7 +234,7 @@ def test_a_client_micro_frontend_maps_exactly_as_before_and_marks_nothing():
         return None
 
     assert find(dumped) == {"type": "MicroFrontend", "baseUrl": "https://x.com", "route": "/r",
-                            "consumedRoute": "_empty", "style": None, "cssClasses": None,
+                            "consumedRoute": None, "style": None, "cssClasses": None,
                             "serverSideType": "", "appState": None, "actionId": None}
     assert "fragmentCache" not in dumped
 

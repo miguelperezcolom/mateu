@@ -126,6 +126,9 @@ public class RouteInstanceCreator {
       throws ClassNotFoundException {
     var route = removeQueryParamsFromRoute(rawRoute);
     var routedClass = routedClassResolver.resolve(route, command);
+    if (routedClass.isEmpty()) {
+      routedClass = mountRootViaRouteResolvers(route, command);
+    }
     if (routedClass.isPresent()) {
       var instanceTypeName = routedClass.get().resolvedClass().getName();
       if (isApp(forName(instanceTypeName), route)) {
@@ -152,6 +155,42 @@ public class RouteInstanceCreator {
     }
     log.debug("no app matches {}", route);
     return Mono.empty();
+  }
+
+  /**
+   * The mount's own root segment ({@code ""}) through the pre-compiled mount resolvers (WebFlux,
+   * Quarkus, Helidon), which the routed-class providers do not know about. On MVC/Micronaut the
+   * providers answer {@code ""} with the mount's {@code @UI} class (the annotation matcher composes
+   * the base url), so a fresh deep link to a routes.yaml route under an app mount ({@code
+   * /shell/orders/pending}) was wrapped in the app's chrome; on the pattern adapters nothing
+   * answered the root segment and the authored view model rendered alone — no menu, no shell.
+   */
+  private Optional<ResolvedRoute> mountRootViaRouteResolvers(
+      String route, RunActionCommand command) {
+    if (routeResolvers == null || !"".equals(route) || command.baseUrl() == null) {
+      return Optional.empty();
+    }
+    var base = command.baseUrl();
+    if (base.contains("://")) {
+      return Optional.empty();
+    }
+    var mount = base.endsWith("/") ? base.substring(0, base.length() - 1) : base;
+    if (mount.length() <= 1 || !mount.startsWith("/")) {
+      return Optional.empty();
+    }
+    for (var resolver : routeResolvers) {
+      var pattern = resolver.matchingPattern(mount, io.mateu.uidl.RouteConstants.NO_PARENT_ROUTE);
+      if (pattern.isPresent()) {
+        var resolved =
+            resolver.resolveRoute(
+                mount, io.mateu.uidl.RouteConstants.NO_PARENT_ROUTE, command.httpRequest());
+        if (resolved != null) {
+          return Optional.of(
+              new ResolvedRoute(route, pattern.get().routeRegex().pattern(), resolved));
+        }
+      }
+    }
+    return Optional.empty();
   }
 
   private Mono<?> resolveAsDirectClass(String rawRoute, RunActionCommand command) {

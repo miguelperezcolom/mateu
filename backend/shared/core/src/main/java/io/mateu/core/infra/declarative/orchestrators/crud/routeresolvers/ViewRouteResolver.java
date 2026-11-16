@@ -41,6 +41,8 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
             ? route.substring(consumedRoute.length() + 1)
             : route.substring(route.lastIndexOf('/') + 1);
     io.mateu.core.infra.observability.RequestObservation.recordSegment(httpRequest, id);
+    httpRequest.setAttribute(
+        io.mateu.core.infra.declarative.orchestrators.RoutedPage.RECORD_ATTRIBUTE, id);
     var view = orchestrator.view(orchestrator.toId(id), httpRequest);
     if (view instanceof java.net.URI || view instanceof java.net.URL) {
       // the record opens somewhere else (an editable page of routes.yaml, another app): the row

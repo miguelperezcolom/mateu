@@ -384,6 +384,16 @@ public class ZonedForm
     [Section("Loose")] public string? D { get; set; }
 }
 
+[UI("zoned-bands"), Title("Zoned with bands")]
+[Zone("left", "62%"), Zone("right")]
+public class ZonedBandsForm
+{
+    [Section("Contact")] public string? Contact { get; set; }
+    [Section("Account", Zone = "left")] public string? Account { get; set; }
+    [Section("Customer", Zone = "right")] public string? Customer { get; set; }
+    [Section("Notes")] public string? Notes { get; set; }
+}
+
 public enum BookingSource { Web, Phone, Agency }
 
 public class BookingRow
@@ -1586,7 +1596,11 @@ public class SyncHandlerTests
         Assert.Contains("\"type\":\"MicroFrontend\"", json);
         Assert.Contains("\"baseUrl\":\"https://billing.example.com\"", json);
         Assert.Contains("\"route\":\"/invoices\"", json);
-        Assert.Contains("\"consumedRoute\":\"_empty\"", json);
+        // not declared: null, as in Java — the renderer loads it with "" (a content load)
+        Assert.Contains("\"consumedRoute\":null", json);
+        var declared = JsonSerializer.Serialize<ComponentDto>(ComponentMapper.Map(
+            new Mateu.Uidl.MicroFrontend("https://billing.example.com", "/invoices") { ConsumedRoute = "/billing" }), Json);
+        Assert.Contains("\"consumedRoute\":\"/billing\"", declared);
     }
 
     [Fact]
@@ -1910,6 +1924,24 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void A_section_with_no_zone_is_a_full_width_band_around_the_zoned_row()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "zoned-bands", ConsumedRoute = "zoned-bands" }));
+
+        // Only the zoned sections share the row: no leftover column for the bands…
+        var tracks = System.Text.RegularExpressions.Regex.Matches(json, "\"gridTemplateColumns\":\"([^\"]*)\"");
+        Assert.Single(tracks);
+        Assert.Equal("62% 1fr", tracks[0].Groups[1].Value);
+        // …and the bands stack around it in declaration order (mirrors Java's renderZones).
+        var contact = json.IndexOf("\"Contact\"", StringComparison.Ordinal);
+        var grid = json.IndexOf("\"ResponsiveGrid\"", StringComparison.Ordinal);
+        var account = json.IndexOf("\"Account\"", StringComparison.Ordinal);
+        var customer = json.IndexOf("\"Customer\"", StringComparison.Ordinal);
+        var notes = json.IndexOf("\"Notes\"", StringComparison.Ordinal);
+        Assert.True(contact >= 0 && contact < grid && grid < account && account < customer && customer < notes);
+    }
+
+    [Fact]
     public void Zones_lay_sections_out_as_side_by_side_columns()
     {
         var json = Render(Handler().Handle(new RunActionRqDto { Route = "zoned", ConsumedRoute = "zoned" }));
@@ -1917,8 +1949,11 @@ public class SyncHandlerTests
         // Consolidated onto the one responsive grid (coherence-plan #9): a grid of columns…
         Assert.Contains("\"type\":\"ResponsiveGrid\"", json);
         Assert.Contains("width: 100%; align-items: start;", json);
-        // …declared zones size by their width as grid tracks, the unzoned section is a fill track…
-        Assert.Contains("\"gridTemplateColumns\":\"64% 36% 1fr\"", json);
+        // …one grid track per declared zone — the unzoned "Loose" section is a full-width band
+        // below the row, not a third column (Java's renderZones)…
+        var tracks = System.Text.RegularExpressions.Regex.Matches(json, "\"gridTemplateColumns\":\"([^\"]*)\"");
+        Assert.Single(tracks);
+        Assert.Equal(2, tracks[0].Groups[1].Value.Split(' ').Length);
         // …and it stacks to one column on narrow containers…
         Assert.Contains("\"stackBelow\":\"40rem\"", json);
         // …and every section card survives.

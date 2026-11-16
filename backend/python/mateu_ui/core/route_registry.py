@@ -286,8 +286,9 @@ class RouteTable:
     def match(self, path: str | None) -> Match | None:
         """Static routes are tried before parameterised ones, so ``orders/new`` is never swallowed by
         ``orders/:id``; among parameterised matches the most specific wins, so matching does not
-        depend on declaration order."""
-        target = _normalize(path)
+        depend on declaration order. A query string or fragment is not part of the path (left on,
+        ``orders/pending?x=1`` was swallowed by ``orders/:id``), as in Java's RouteTable.match."""
+        target = _normalize(None if path is None else re.split(r"[?#]", path, maxsplit=1)[0])
         target_segments = target.split("/") if target else []
         best: Match | None = None
         for entry in self.routes:

@@ -40,6 +40,9 @@ public final class ValidationLocale {
       // no translator: nothing names a language
     }
     if (tag == null || tag.isBlank()) {
+      tag = ConfiguredLocale.tag();
+    }
+    if (tag == null || tag.isBlank()) {
       return Locale.ENGLISH;
     }
     var locale = Locale.forLanguageTag(tag.trim());

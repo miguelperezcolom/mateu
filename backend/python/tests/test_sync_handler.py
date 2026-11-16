@@ -387,6 +387,16 @@ class ZonedForm:
     d: Annotated[str | None, Section("Loose")] = None
 
 
+@ui("zoned-bands")
+@title("Zoned with bands")
+@zones(("left", "62%"), ("right", ""))
+class ZonedBandsForm:
+    contact: Annotated[str | None, Section("Contact")] = None
+    account: Annotated[str | None, Section("Account", zone="left")] = None
+    customer: Annotated[str | None, Section("Customer", zone="right")] = None
+    notes: Annotated[str | None, Section("Notes")] = None
+
+
 class SelectorHotelRow:
     id: str = ""
     name: str = ""
@@ -1452,7 +1462,8 @@ def test_micro_frontend_component_mounts_a_remote_island():
     assert '"type": "MicroFrontend"' in j
     assert '"baseUrl": "https://billing.example.com"' in j
     assert '"route": "/invoices"' in j
-    assert '"consumedRoute": "_empty"' in j
+    # not declared: null, as in Java — the renderer loads it with "" (a content load)
+    assert '"consumedRoute": null' in j
 
 
 def test_app_metadata_carries_the_sse_chat_url():
@@ -1712,6 +1723,37 @@ def test_folded_layout_puts_the_section_cards_in_one_horizontal_row():
     assert "min-width: min(20rem, 100%);" in j
 
 
+def test_a_section_with_no_zone_is_a_full_width_band_around_the_zoned_row():
+    inc = handler().handle(RunActionRq(route="zoned-bands", consumed_route="zoned-bands"))
+    body = json.loads(render(inc))["fragments"][0]["component"]
+
+    def find(node, kind):
+        if isinstance(node, dict):
+            if (node.get("metadata") or {}).get("type") == kind:
+                yield node
+            for v in node.values():
+                yield from find(v, kind)
+        elif isinstance(node, list):
+            for v in node:
+                yield from find(v, kind)
+
+    grids = list(find(body, "ResponsiveGrid"))
+    assert len(grids) == 1
+    # only the zoned sections share the row: no leftover column for the bands
+    assert grids[0]["metadata"]["gridTemplateColumns"] == "62% 1fr"
+    assert len(grids[0]["children"]) == 2
+    # the bands and the row stack, in declaration order, in one vertical layout
+    stack = next(
+        v for v in find(body, "VerticalLayout")
+        if any((c.get("metadata") or {}).get("type") == "ResponsiveGrid" for c in v.get("children", []))
+    )
+    order = [c["metadata"]["type"] for c in stack["children"]]
+    assert order == ["Card", "ResponsiveGrid", "Card"]
+    flat = json.dumps(stack["children"][0])
+    assert "Contact" in flat and "Account" not in flat
+    assert "Notes" in json.dumps(stack["children"][2])
+
+
 def test_zones_lay_sections_out_as_side_by_side_columns():
     inc = handler().handle(RunActionRq(route="zoned", consumed_route="zoned"))
     j = render(inc)
@@ -1719,8 +1761,10 @@ def test_zones_lay_sections_out_as_side_by_side_columns():
     # Consolidated onto the one responsive grid (coherence-plan #9): a grid of columns…
     assert '"type": "ResponsiveGrid"' in j
     assert "width: 100%; align-items: start;" in j
-    # …declared zones size by their width as grid tracks, the unzoned section is a fill track…
-    assert '"gridTemplateColumns": "64% 36% 1fr"' in j
+    # …one grid track per declared zone — the unzoned "Loose" section is a full-width band
+    # below the row, not a third column (Java's renderZones)…
+    assert len(re.findall(r'"gridTemplateColumns": "([^"]*)"', j)) == 1
+    assert len(re.search(r'"gridTemplateColumns": "([^"]*)"', j).group(1).split()) == 2
     # …and it stacks to one column on narrow containers…
     assert '"stackBelow": "40rem"' in j
     # …and every section card survives.

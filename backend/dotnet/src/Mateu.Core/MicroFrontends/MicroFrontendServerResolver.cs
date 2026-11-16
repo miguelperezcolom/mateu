@@ -366,7 +366,10 @@ internal sealed class MicroFrontendServerResolver(
     {
         ActionId = mf.ActionId ?? "",
         Route = mf.Route ?? "",
-        ConsumedRoute = mf.ConsumedRoute,
+        // what the renderer sends for an island it loads itself (Resolve.Client): no consumed route
+        // is "" — a CONTENT load; a fresh one ("_empty") made a remote APP answer its shell aimed at
+        // the route, and the island looped on "_empty/…/route"
+        ConsumedRoute = mf.ConsumedRoute ?? "",
         ServerSideType = mf.ServerSideType,
         AppState = AppStateOf(mf.AppState),
         ComponentState = new(),
@@ -439,7 +442,8 @@ internal sealed class MicroFrontendServerResolver(
         var route = mf.Route ?? "";
         var parts = new List<string>();
         if (!string.IsNullOrEmpty(mf.ServerSideType)) parts.Add("type=" + mf.ServerSideType);
-        if (mf.ConsumedRoute is not null) parts.Add("consumed=" + mf.ConsumedRoute);
+        // null and "" are the same load (RequestFor), so the same fragment
+        if (!string.IsNullOrEmpty(mf.ConsumedRoute)) parts.Add("consumed=" + mf.ConsumedRoute);
         if (!string.IsNullOrWhiteSpace(mf.ActionId)) parts.Add("action=" + mf.ActionId);
         if (mf.AppState is not null) parts.Add("appState=" + JsonSerializer.Serialize(mf.AppState, WireJson.Options));
         return b.TrimEnd('/') + (route.StartsWith('/') || route.Length == 0 ? route : "/" + route)

@@ -83,6 +83,31 @@ describe('ConnectedElement.applyCommand', () => {
         }
     })
 
+    it('a server NavigateTo carries the toast its answer just showed over the page load', async () => {
+        // "Ticket created" + NavigateTo /tickets: the load threw the toast away before anyone saw it
+        const { noteShownMessage, takeCarriedMessages, resetCarryOver } = await import('@infra/notify/messageCarryOver')
+        resetCarryOver()
+        sessionStorage.clear()
+        const assign = vi.fn()
+        const location = window.location
+        Object.defineProperty(window, 'location', { configurable: true, value: { ...location, href: location.href, origin: location.origin, assign } })
+        try {
+            noteShownMessage({ title: '', text: 'Ticket created', position: 'bottomEnd', variant: 'success', duration: 3000 })
+            el.applyCommand(cmd('NavigateTo', '/tickets'))
+            expect(assign).toHaveBeenCalled()
+            expect(takeCarriedMessages().map((m) => m.text)).toEqual(['Ticket created'])
+            // a cross-origin URL opens a new tab: this page (and its toast) stays, nothing is carried
+            vi.spyOn(window, 'open').mockImplementation(() => null)
+            noteShownMessage({ title: '', text: 'Sent', position: 'bottomEnd', variant: 'success', duration: 3000 })
+            el.applyCommand(cmd('NavigateTo', 'https://other.example/x'))
+            expect(takeCarriedMessages()).toEqual([])
+        } finally {
+            Object.defineProperty(window, 'location', { configurable: true, value: location })
+            resetCarryOver()
+            sessionStorage.clear()
+        }
+    })
+
     it('NavigateTo opens a cross-origin URL in a new tab without an opener', () => {
         const open = vi.spyOn(window, 'open').mockImplementation(() => null)
         el.applyCommand(cmd('NavigateTo', 'https://other.example/x'))
@@ -125,6 +150,23 @@ describe('ConnectedElement.applyCommand', () => {
         el.applyCommand(cmd('CloseModal'))
         expect(second.close).toHaveBeenCalledTimes(1)
         expect(first.close).not.toHaveBeenCalled()
+    })
+
+    it('two CloseModal in one answer close the two topmost overlays, not the closing one twice', () => {
+        // the optimistic-lock dialog's Overwrite over an edit drawer: one CloseModal for the
+        // dialog, one for the drawer — the dialog stays in the DOM through its fade-out
+        const root = el.shadowRoot!
+        type Overlay = { close: () => void, closing?: boolean }
+        const drawer = document.createElement('mateu-drawer') as unknown as Overlay
+        const dialog = document.createElement('mateu-dialog') as unknown as Overlay
+        drawer.close = vi.fn(() => { drawer.closing = true })
+        dialog.close = vi.fn(() => { dialog.closing = true })
+        root.append(drawer as unknown as Node, dialog as unknown as Node)
+        el.applyCommand(cmd('CloseModal'))
+        el.applyCommand(cmd('CloseModal', { eventName: 'crud-saved-in-drawer' }))
+        expect(dialog.close).toHaveBeenCalledTimes(1)
+        expect(drawer.close).toHaveBeenCalledTimes(1)
+        expect(events.map((e) => e.type)).not.toContain('close-modal-requested')
     })
 
     it('AddContentToBody wires listeners that stop calling back once the component is gone', () => {

@@ -24,6 +24,10 @@ export class MateuDialog extends ComponentElement {
     @state()
     opened = true
 
+    /** Set by close(): the overlay stays in the DOM through its exit transition but is no longer on
+     *  the stack — a second CloseModal of the same answer closes the overlay under it. */
+    closing = false
+
     /** Owns the focus while the dialog is open; see infra/a11y/focusTrap. */
     private focusTrap: FocusTrap | undefined
 
@@ -37,6 +41,7 @@ export class MateuDialog extends ComponentElement {
     }
 
     close = () => {
+        this.closing = true
         this.opened = false
         dirtyGuard.release(this)
         // Release BEFORE the unmount, while the element the focus should return to is still

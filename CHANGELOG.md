@@ -18,9 +18,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Demo `demo/demo-spring-boot-starter` (Maven and Gradle), checked in CI against Boot's dependency
   management. Docs: "The simplest way: the Spring Boot starter" in the Spring MVC setup page.
 - **IDE completion for `mateu.*` settings**: `mateu-mvc-core` ships Spring configuration metadata for
-  47 user-facing settings (types, descriptions, defaults), pinned by `SpringConfigurationMetadataTest`.
+  48 user-facing settings (types, descriptions, defaults), pinned by `SpringConfigurationMetadataTest`.
 - The annotation processors answer `SourceVersion.latestSupported()`: javac no longer warns
   "Supported source version 'RELEASE_8' … less than -source '21'" on every build.
+
+### Added — pin the app's language
+
+- **`mateu.locale`** (env `MATEU_LOCALE`; .NET `MateuOptions.Locale`; Python
+  `add_mateu(locale=…)`): a BCP 47 tag (`es`, `pt-BR`) that every request gets as its UI language
+  instead of the browser's `Accept-Language` — `AppDto.locale` (so `<html lang>`, the client
+  chrome and money formatting), the server's built-in texts, the not-found page, validation
+  messages and `${i18n.…}`. The Java served page carries it on `<html lang>` from the first byte. An
+  app's own `Translator.locale(...)` still wins; unset = unchanged; an invalid value is ignored with
+  one warning. Docs `advanced/i18n.md#pin-the-apps-language`.
 
 ### Fixed — listings and menu addresses
 
@@ -107,9 +117,134 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Section's slot came out 202 px tall). The plugin's new command **Repair: collapse empty marker
   rows** fixes an existing library in place.
 
+### Fixed — a toast survives the page load a server navigation causes
+
+- **An action that answers a message AND navigates no longer loses the message** — e.g.
+  `List.of(Message.success("Ticket created"), URI.create("/tickets"))` in Java, or
+  `new object[] { Message.Success("…"), "/tickets" }` in C#. A server `NavigateTo` is a full page
+  load by design in every backend (the target may be another mount of the origin, which the
+  browser cannot tell apart from its own on a root mount), so the toast was drawn and thrown away
+  with the page. The web client now keeps the messages that answer just showed in this tab's
+  sessionStorage right before the load and the next page shows them once it booted
+  (`infra/notify/messageCarryOver.ts`; text only — an action of the message belonged to the screen
+  the load destroyed; stale after 30 s; a `#fragment` move carries nothing). Not ported to Redwood.
+
+### Fixed — zones in the .NET and Python ports
+
+- **A section with no zone on a zoned form is a full-width band again in .NET and Python.** On a
+  form with `[Zone]`s / `@zones`, the ports put every section that named no zone into an extra
+  trailing column (`62% 1fr 1fr`: Contact, Account and Customer side by side). Like Java, such a
+  section is now a full-width band stacked in declaration order, and each run of zoned sections
+  between the bands collapses into one row of columns. A form whose sections all have a zone
+  answers exactly as before. New conformance case `zones-band`.
+
+### Fixed — proxied catalogue sources
+
+- **A `@RestOptions(source = "products")` field gets its options when only the catalogue says
+  `proxy: true`** — whether a Java view advertises `__restfetch__` was decided from the field's
+  own `proxy` flag, so a source proxied by its `sources.yaml` entry (or a
+  `RestSourceCatalogSupplier`) was never advertised and the browser dropped the fetch ("no
+  component on the page handles it"). The decision now reads the RESOLVED source, as the proxy leg
+  does, for `@RestOptions`, `@RestListing`, `@RestData`, `@RestAction` and `RestSourceSupplier`
+  declarations alike. The .NET and Python ports already did. Test
+  `RestOptionsCatalogueProxySyncTest`.
+
+### Fixed — translations and plain text
+
+- An `AutoCrud` speaks the app's language: its title, the window title, the listing's column
+  headers, its forms' labels and their enum options now go through the app's `Translator`, like a
+  plain page's. The crud builds its views while it handles the route, which ran outside the
+  translator context, so a `Translator` mapping `Name` → `Bezeichnung` was called and the crud
+  still said "Name".
+- A `Welcome` page's overridden `heroTitle()` / `heroSubtitle()` / `heroOverline()` (and its
+  `@Panel` tile titles) go through the translator: `${i18n.home.title}` showed the key. Python's
+  `Welcome` too.
+- A class-level `@PlainText` covers `Amount` fields too: they rendered as an editable currency +
+  number pair, while a field-level `@PlainText` showed them as formatted money.
+- Python: with the app's own `Translator`, a text that IS a key of the YAML translation files is
+  still looked up there (only `${i18n.…}` was) — the same as .NET.
+- The listing pager's "N items" is in the UI's language on Vaadin (chromeTexts, six languages,
+  singular for one), React Native (caption and buttons) and the IntelliJ plugin (caption), which
+  were English too. Redwood already had it.
+
+### Fixed — server-resolved micro frontends
+
+- **A `MicroFrontend` with `resolve = SERVER` and no `consumedRoute` no longer loops in the
+  browser.** The host asked the remote with a null consumed route, which a Mateu server reads as a
+  FRESH load (`_empty`): a remote app answered its shell aimed at the route, and that shell, painted
+  in the island, kept POSTing `…/_empty/_empty/…/route`. The host now asks with `""` — what the
+  renderer sends for a `CLIENT` island — so the embedded answer is the page; no author has to set
+  `consumedRoute("")`. Java, .NET and Python (the ports defaulted the island's consumed route to
+  `_empty` on the wire, which looped the same way: it is now null, as in Java). .NET's
+  `MicroFrontend` gained `ConsumedRoute` (Java and Python had it); the web renderer always gives the
+  island a consumed route (`""` when none is declared).
+- A refused CRUD write (`delete`/`save`/`create`… on a `@ReadOnly` or `@Not*` crud) now logs its
+  one WARN, like every other refusal — the 403 was there, the log line was not.
+
+### Fixed — test harness
+
+- `Screen.route()` (`io.mateu:mateu-test`) keeps a CRUD's prefix after Save or Edit: a crud's
+  record view pushes `/P-100` / `/P-003/edit` relative to the screen showing it, and the harness
+  now composes it like the browser does (`mateu-ux`), giving `/products/P-100` and
+  `/products/P-003/edit` instead of the bare push. Same rule in the .NET
+  (`Mateu.AspNetCore.Testing`, `MateuScreen.Route`) and Python (`mateu_ui.testing`, `screen.route`)
+  harnesses.
+
+### Fixed — CRUD drawers and record pages
+
+- Java: an `editInDrawer()` crud reached as a `@Menu` entry of an app shell saves the record the
+  drawer edits. The save was sent with the app's route (`/rates`, consumed `""`) and the crud's own
+  segment was read as the record id, so every save answered "This record no longer exists". In
+  drawer mode the id comes from the drawer's state (AutoCrud and capability listings).
+- Java: Edit on the record page of a `Crud<View, Editor, …>` whose view has no id field (a
+  `CustomerCard`) opens that record's editor. It went to `/customers/null/edit` when the record had
+  been opened from a row. The record page now carries the id of the record it shows in its state.
+- .NET and Python: saving an existing record from an `EditInDrawer` / `@edit_in_drawer` drawer
+  updates it. It used to store a copy under a new id. The refresh after the save runs on the
+  listing with the listing's own filters. It used to send the drawer's values as filters, so the
+  listing showed only matching rows or "Nothing here yet".
+- .NET: Edit on the record page of an `IListing` + `INavigable` + `IEditable` listing opens the
+  editor of the record its route names. It answered 403 "You are not allowed to do this".
+- Web: two `CloseModal` commands in one answer close the two topmost overlays. After "Overwrite"
+  in the optimistic-lock dialog over an edit drawer, the second one closed the fading dialog again
+  and the drawer stayed open.
+- Java: a crud that cannot delete shows no row selection boxes unless something uses the selection
+  (a `@ListToolbarButton` or `@DragRows`).
+
+### Fixed — routes and menus
+
+- A query string no longer hands a pinned route to its `:param` neighbour: with `orders/pending`
+  (fixedParams) and `orders/:id` in one mount, `/shop/orders/pending?status=archived` showed the
+  `:id` screen with `id=pending?…` ("Not found: pending"). Route matching ignores the query and the
+  fragment on every leg — Java `RouteTable.match` (the app shell typed its content with the wrong
+  view model), the web/React Native bundle resolver, Redwood's port, IntelliJ's static bundle and
+  the .NET/Python registries. Two cases in `conformance/client/route-params.json`.
+- The tabs of a record master (`children:` routes) keep their address under a non-root mount: a
+  tab of `customers/:customerId` under `basePath: /shop` went to
+  `/shop/customers/7/customers/7/notes` (and the breadcrumb, read off that address, doubled too) —
+  the shell looked for the consumed route above the mount instead of below it.
+- A route file's `basePath` is checked against every mount the app serves: an app compiled with a
+  framework annotation processor alone (the Spring Boot starter's one-processor setup) has no
+  `ui-registrations` of its own, and its `@UI("/shop")` was reported at startup as "matches no @UI
+  mount". The generated controllers and routed-class providers count now.
+- One menu entry is selected: the most specific match (exact, else the longest prefix). On
+  `/shop/orders/pending` «Open orders» (`/shop/orders`) no longer stays selected beside «Pending» —
+  on the server (`selected` on the wire; a query no longer unselects the entry, and an entry spelled
+  with the mount matches a mount-relative route) and in the Vaadin shell (the band marked the FIRST
+  entry covering the route, so «Open orders» won).
+- A deep link to a routes.yaml route under an app mount (`/shop/orders/pending`) opens inside the
+  app — its menu and chrome — on WebFlux, Quarkus and Helidon too. Those adapters resolve mounts
+  through pre-compiled route resolvers, which the shell lookup did not ask, so the route's view
+  model rendered alone (MVC and Micronaut were right).
+
 ### Changed — examples
 
 - The starters, guides and workshop examples point at 3.0.0.
+
+### Docs
+
+- The C# manual, the `mateu-dotnet` skill and the .NET READMEs install `Mateu.AspNetCore` without
+  `--prerelease` now that 3.0.0 is released.
 
 ## [3.0-beta.65 – 3.0.0] — 2026-11-13 to 2026-11-15
 

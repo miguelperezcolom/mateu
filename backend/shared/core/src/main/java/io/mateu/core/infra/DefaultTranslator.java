@@ -61,10 +61,15 @@ public class DefaultTranslator implements Translator {
     return text;
   }
 
-  /** The request's first {@code Accept-Language} tag, or null when it sends none. */
+  /**
+   * The app's pinned language ({@code mateu.locale}) when it is set, else the request's first
+   * {@code Accept-Language} tag, or null when it sends none.
+   */
   @Override
   public String locale(HttpRequest httpRequest) {
     if (httpRequest == null) return null;
+    var configured = ConfiguredLocale.tag();
+    if (configured != null) return configured;
     String acceptLanguage = httpRequest.getHeaderValue("Accept-Language");
     if (acceptLanguage == null || acceptLanguage.isBlank()) return null;
     String tag = acceptLanguage.split(",")[0].trim().split(";")[0].trim();
@@ -72,9 +77,14 @@ public class DefaultTranslator implements Translator {
     return Locale.forLanguageTag(tag).toLanguageTag();
   }
 
-  /** The request's language — English when it names none, never the JVM's default locale. */
+  /**
+   * The request's language ({@code mateu.locale} when pinned) — English when it names none, never
+   * the JVM's default locale.
+   */
   private Locale resolveLocale(HttpRequest httpRequest) {
     if (httpRequest == null) return Locale.ENGLISH;
+    var configured = ConfiguredLocale.tag();
+    if (configured != null) return Locale.forLanguageTag(configured);
     String acceptLanguage = httpRequest.getHeaderValue("Accept-Language");
     if (acceptLanguage == null || acceptLanguage.isBlank()) return Locale.ENGLISH;
     try {

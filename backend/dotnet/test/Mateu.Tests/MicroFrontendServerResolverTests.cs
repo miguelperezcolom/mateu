@@ -202,7 +202,7 @@ public class MicroFrontendServerResolverTests
     {
         var dto = ComponentMapper.Map(new MicroFrontend("https://a.com/x", "/r"));
         Assert.Equal(
-            "{\"type\":\"MicroFrontend\",\"baseUrl\":\"https://a.com/x\",\"route\":\"/r\",\"consumedRoute\":\"_empty\","
+            "{\"type\":\"MicroFrontend\",\"baseUrl\":\"https://a.com/x\",\"route\":\"/r\",\"consumedRoute\":null,"
             + "\"style\":null,\"cssClasses\":null,\"serverSideType\":\"\",\"appState\":null,\"actionId\":null}",
             JsonSerializer.Serialize(dto.Metadata, MateuExtensions.Json));
         // a server one carries no server-only info on the wire either, and is marked for resolution

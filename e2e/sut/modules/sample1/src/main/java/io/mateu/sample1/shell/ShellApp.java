@@ -58,6 +58,10 @@ public class ShellApp implements AppActionsSupplier, NotificationsSupplier, Glob
 
   @Menu ShellReports reports;
 
+  // a route that is a PREFIX of the next entry's: on /shell/orders/pending only "Pending orders"
+  // is the selected entry (the longest match), never both
+  @Menu RouteLink openOrders = new RouteLink("/shell/orders", "Open orders");
+
   @Menu RouteLink pending = new RouteLink("/shell/orders/pending", "Pending orders");
 
   @Menu(display = MenuDisplay.cards)

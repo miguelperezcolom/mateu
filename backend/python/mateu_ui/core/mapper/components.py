@@ -1499,7 +1499,10 @@ class ComponentMapperMixin(MixinBase):
                 metadata=TextMetadata(text=slot.fallback, container="div"),
                 id=id_, children=[], style=slot.style, css_classes=slot.css_classes,
             )
-        meta = MicroFrontendMetadata(base_url="", style=slot.style, css_classes=slot.css_classes)
+        # what the renderers send for a root load (Java: MicroFrontendMapper): a slot degraded to the
+        # client must load too
+        meta = MicroFrontendMetadata(base_url="", consumed_route="_empty", style=slot.style,
+                                     css_classes=slot.css_classes)
         meta._server = ServerResolution(
             timeout_ms=slot.timeout_ms if slot.timeout_ms and slot.timeout_ms > 0 else None,
             slot_key=slot.key,

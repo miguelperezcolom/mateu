@@ -177,6 +177,52 @@ public class DrawerCrudAndRailTests
         Assert.Equal("Saved", Assert.Single(inc.Messages).Text);
     }
 
+    /// <summary>The drawer's form state as the browser posts it back: its initial data, as JSON
+    /// values.</summary>
+    private static Dictionary<string, object?> PostedState(ServerSideComponentDto form) =>
+        JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(JsonSerializer.Serialize(form.InitialData, Json))!
+            .ToDictionary(e => e.Key, e => (object?)e.Value);
+
+    [Fact]
+    public void Saving_an_existing_record_from_the_drawer_updates_it_and_refreshes_the_listing()
+    {
+        var opened = Handler().Handle(new RunActionRqDto
+        {
+            Route = "/drawer-contacts", ActionId = "view",
+            ServerSideType = typeof(DrawerContacts).FullName, InitiatorComponentId = "ux_list",
+            Parameters = new Dictionary<string, object?> { ["id"] = JsonDocument.Parse("\"1\"").RootElement },
+        });
+        var drawer = Assert.IsType<DrawerMetadataDto>(
+            Assert.IsType<ClientSideComponentDto>(Assert.Single(opened.Fragments).Component).Metadata);
+        var form = Assert.IsType<ServerSideComponentDto>(drawer.Content);
+        var state = PostedState(form);
+        Assert.Equal("ux_list", ((JsonElement)state[SyncHandler.DrawerHostKey]!).GetString());
+        state["name"] = JsonDocument.Parse("\"Alpha (edited)\"").RootElement;
+
+        var before = DrawerContacts.Stored.Count;
+        try
+        {
+            // sent by the drawer's form, with the LISTING's route: no record id in it
+            var saved = Handler().Handle(new RunActionRqDto
+            {
+                Route = "/drawer-contacts", ActionId = "save",
+                ServerSideType = typeof(DrawerContacts).FullName, InitiatorComponentId = form.Id,
+                ComponentState = state,
+            });
+            Assert.Equal(before, DrawerContacts.Stored.Count);
+            Assert.Equal("Alpha (edited)", Assert.Single(DrawerContacts.Stored, t => t.Id == "1").Name);
+            // the refresh runs on the listing (its own filters), not on the drawer's form, whose
+            // values would be read as the listing's filters
+            var refresh = Assert.Single(saved.Commands, c => c.Type == "RunAction");
+            Assert.Contains("\"targetComponentId\":\"ux_list\"", JsonSerializer.Serialize(refresh.Data, Json));
+        }
+        finally
+        {
+            DrawerContacts.Stored.RemoveAll(t => t.Id == "1");
+            DrawerContacts.Stored.Insert(0, new Thing { Id = "1", Name = "Alpha" });
+        }
+    }
+
     [Fact]
     public void Cancel_just_closes_the_drawer()
     {

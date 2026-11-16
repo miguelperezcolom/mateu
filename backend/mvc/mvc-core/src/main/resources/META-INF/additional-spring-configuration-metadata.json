@@ -242,6 +242,11 @@
       "defaultValue": "en"
     },
     {
+      "name": "mateu.locale",
+      "type": "java.lang.String",
+      "description": "BCP 47 language tag (es, pt-BR) every request gets as its UI language instead of the browser's Accept-Language. Unset = the browser's language; an invalid value is ignored with one warning."
+    },
+    {
       "name": "mateu.client-log.enabled",
       "type": "java.lang.Boolean",
       "description": "Accept the browser error reports the renderers send (logged under the mateu.client logger).",

@@ -172,6 +172,9 @@ public class FieldTypeMapper {
             || Date.class.equals(typeOf(field))
             || ZonedDateTime.class.equals(typeOf(field))
             || java.sql.Date.class.equals(typeOf(field))
+            // an Amount reads like the field-level @PlainText one: dense text, formatted as money
+            // by its data type — it was left an editable currency + number pair
+            || Amount.class.equals(typeOf(field))
             || typeOf(field).isEnum())) {
       return FieldStereotype.plainText;
     }

@@ -115,8 +115,12 @@ class DesktopPolishP3Test : RenderTestCase() {
 
     // D-20 — the platform's pager ──────────────────────────────────────────────────────────────────
     fun testThePagerUsesIconButtonsAndAPlainCaption() {
-        assertEquals("Page 2 of 20 · 200 items", pagerText(1, 20, 200))
-        assertEquals("Page 1 of 1 · 1 item", pagerText(0, 1, 1))
+        assertEquals("Page 2 of 20 · 200 items", pagerText(1, 20, 200, Locale.ENGLISH))
+        assertEquals("Page 1 of 1 · 1 item", pagerText(0, 1, 1, Locale.ENGLISH))
+        // in the UI's language (the app's locale, else the IDE's)
+        assertEquals("Seite 2 von 20 · 200 Einträge", pagerText(1, 20, 200, Locale.GERMANY))
+        assertEquals("Página 1 de 1 · 1 elemento", pagerText(0, 1, 1, Locale.forLanguageTag("es")))
+        assertEquals("Page 1 of 3 · 30 items", pagerText(0, 3, 30, Locale.JAPANESE))
         val view = crud("""{"type":"Crud","columns":[{"metadata":{"id":"name","label":"Name"}}]}""",
             """{"page":{"content":[{"name":"a"}],"totalElements":25,"pageNumber":0,"pageSize":10}}""")
         val pager = buttons(view).filter { it.accessibleContext.accessibleName in setOf("Previous page", "Next page") }

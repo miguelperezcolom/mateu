@@ -23,6 +23,10 @@ export class MateuDrawer extends ComponentElement {
     @state()
     opened = false
 
+    /** Set by close(): the overlay stays in the DOM through its exit transition but is no longer on
+     *  the stack — a second CloseModal of the same answer closes the overlay under it. */
+    closing = false
+
     // How many times the user pressed Maximize — each step bumps the drawer one standard size up.
     @state()
     private maximizeSteps = 0
@@ -120,6 +124,7 @@ export class MateuDrawer extends ComponentElement {
     }
 
     close = () => {
+        this.closing = true
         this.opened = false
         dirtyGuard.release(this)
         this.releaseLayoutInset()

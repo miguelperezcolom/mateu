@@ -145,10 +145,16 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   @SuppressWarnings("unchecked")
   T toEditedEntity(HttpRequest httpRequest) {
     var posted = postedState(httpRequest);
-    var routeId =
-        io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.CrudIdExtractor
-            .idFromRoute(this, httpRequest);
     var postedId = posted != null ? posted.get(getIdFieldForRow()) : null;
+    // a drawer's save names no record in its route (it is sent with the listing's or, for a crud
+    // that is a menu entry, the app's — /rates with consumed route ""): the record is the one the
+    // drawer's state names. Read as a record route, the crud's own segment was taken for the id and
+    // every save was refused as "no longer exists".
+    var routeId =
+        editInDrawer() && postedId != null
+            ? null
+            : io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.CrudIdExtractor
+                .idFromRoute(this, httpRequest);
     var loaded = routeId != null ? recordAt(routeId) : null;
     if (routeId != null && loaded == null) {
       // the route names a record that is not there: saving the posted state as it came would let a

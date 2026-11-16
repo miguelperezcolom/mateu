@@ -189,6 +189,21 @@ public class MateuTestHarnessMoreTests : IDisposable
         Assert.Equal("/harness-actions/pushed", screen.Route);
     }
 
+    [Theory]
+    // a crud's record view pushes its route relative to the ux that shows it, as the browser composes it
+    [InlineData("/P-005", "/products", "/products/P-005")]
+    [InlineData("/P-003/edit", "/products", "/products/P-003/edit")]
+    [InlineData("", "/products", "/products")]
+    // already under it, or nothing to compose with: as pushed
+    [InlineData("/products/new", "/products", "/products/new")]
+    [InlineData("/P-005", "_empty", "/P-005")]
+    [InlineData("/P-005", "", "/P-005")]
+    [InlineData("P-005", "/products", "P-005")]
+    public void A_pushed_route_is_composed_like_the_browser(string pushed, string consumed, string address)
+    {
+        Assert.Equal(address, MateuScreen.AddressOf(pushed, consumed));
+    }
+
     [Fact]
     public void A_refusal_is_a_message_and_a_bug_is_thrown()
     {

@@ -214,12 +214,14 @@ class ArchetypeMapperMixin(MixinBase):
             self.map_component(
                 fluent.HeroSection(
                     id="hero",
-                    title=hero_title,
-                    subtitle=hero_subtitle,
+                    # the page's own texts: through the translator, like a @title (Java's
+                    # WelcomeComposer) — "${i18n.home.title}" reached the wire as written
+                    title=self._opt_t(hero_title),
+                    subtitle=self._opt_t(hero_subtitle),
                     image=hero_image,
                     centered=True,
                     tone=hero_tone,
-                    overline=hero_overline,
+                    overline=self._opt_t(hero_overline),
                     content=tuple(ctas),
                 )
             )

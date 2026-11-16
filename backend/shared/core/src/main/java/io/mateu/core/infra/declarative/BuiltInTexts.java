@@ -195,8 +195,9 @@ public final class BuiltInTexts {
 
   /**
    * The UI's language (a lower-case primary subtag) for this request: the translator's, else the
-   * browser's first {@code Accept-Language}; null with no request, or for a static bundle's raw
-   * render (the visitor's browser picks the language there).
+   * app's pinned {@code mateu.locale}, else the browser's first {@code Accept-Language}; null with
+   * no request, or for a static bundle's raw render (the visitor's browser picks the language
+   * there).
    */
   static String language(Translator translator, HttpRequest httpRequest) {
     if (httpRequest == null || TranslationRegistry.isRaw(httpRequest)) {
@@ -207,8 +208,11 @@ public final class BuiltInTexts {
       try {
         tag = translator.locale(httpRequest);
       } catch (RuntimeException ignored) {
-        // a translator that cannot tell: the browser's, then
+        // a translator that cannot tell: the app's pinned language, then the browser's
       }
+    }
+    if (tag == null || tag.isBlank()) {
+      tag = io.mateu.core.infra.ConfiguredLocale.tag();
     }
     if (tag == null || tag.isBlank()) {
       try {

@@ -886,7 +886,10 @@ class MicroFrontendServerResolver:
         return {
             "actionId": meta.action_id or "",
             "route": plan.route or "",
-            "consumedRoute": meta.consumed_route,
+            # what the renderer sends for an island it loads itself (resolve = CLIENT): no consumed
+            # route is "" — a CONTENT load. None reached the remote as a FRESH load ("_empty"): an app
+            # answered its shell aimed at the route and the island looped on "_empty/…/route"
+            "consumedRoute": meta.consumed_route or "",
             "serverSideType": meta.server_side_type,
             "appState": {str(k): v for k, v in app_state.items()},
             "componentState": {},
@@ -953,7 +956,7 @@ class MicroFrontendServerResolver:
         parts = []
         if meta.server_side_type:
             parts.append("type=" + meta.server_side_type)
-        if meta.consumed_route is not None:
+        if meta.consumed_route:  # None and "" are the same load (_request_for)
             parts.append("consumed=" + meta.consumed_route)
         if meta.action_id and meta.action_id.strip():
             parts.append("action=" + meta.action_id)

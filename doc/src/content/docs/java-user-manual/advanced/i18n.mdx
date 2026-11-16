@@ -129,6 +129,26 @@ browser's language the same way. A label you write yourself is never touched. (T
 catalogue is Java's: the .NET and Python servers send these built-in labels in English and leave
 the rest to your translator.)
 
+### Pin the app's language
+
+An app that speaks one language whatever the browser says (a Spanish back office used from
+machines set up in English) sets **`mateu.locale`**:
+
+```properties
+mateu.locale=es
+```
+
+or `MATEU_LOCALE=es` in the environment (.NET: `MateuOptions.Locale` or `MATEU_LOCALE`; Python:
+`add_mateu(app, …, locale="es")` or `MATEU_LOCALE`). The value is a BCP 47 tag: `es`, `en-GB`,
+`pt-BR` (`pt_BR` is read too). With it set, every request gets that language instead of its
+`Accept-Language`: `AppDto.locale` (so `<html lang>`, the client's own words and money formatting),
+the words the server writes for you, the not-found page, bean-validation messages and what
+`${i18n.…}` resolves for. Without it nothing changes: the browser decides.
+
+A `Translator` that overrides `locale(...)` still wins over the setting (a per-user preference beats
+the app-wide default); one that returns null leaves it to the setting. A value that is not a language
+tag is ignored, with one warning in the log.
+
 Date fields are written and read in the page language too: the Vaadin date pickers and Redwood's
 `oj-input-date` / `oj-input-date-time` (forms, drawers, the row editor, range filters) take the
 order and separator from it, refined by the browser's region (`es` + `es-MX`) — *15/2/2041* in
