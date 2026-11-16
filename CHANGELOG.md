@@ -113,7 +113,6 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [3.0-beta.65 – 3.0.0] — 2026-11-13 to 2026-11-15
 
-
 ### Added — message page
 
 - **`MessagePage`, a page template for a page that stands on its own** — a confirmation, "check
