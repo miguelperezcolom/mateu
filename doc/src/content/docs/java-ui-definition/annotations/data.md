@@ -23,7 +23,7 @@ Turns a field into a search-as-you-type lookup. `search` provides the list of ma
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Lookup {
     Class<? extends LookupOptionsSupplier> search() default LookupOptionsSupplier.class;
-    Class<? extends LabelSupplier> label() default LabelSupplier.class;
+    Class<? extends LookupLabelSupplier> label() default LookupLabelSupplier.class;
     boolean bubble() default false;
 }
 ```
@@ -33,7 +33,7 @@ public @interface Lookup {
 | Attribute | Type | Default | Description |
 |---|---|---|---|
 | `search` | `Class<LookupOptionsSupplier>` | — | Provider that returns matching options for a search term |
-| `label` | `Class<LabelSupplier>` | — | Provider that returns the display label for a stored ID |
+| `label` | `Class<LookupLabelSupplier>` | — | Provider that returns the display label for a stored ID |
 | `bubble` | `boolean` | `false` | Propagate the selection event to the parent component |
 
 ### Example
@@ -44,7 +44,7 @@ public @interface Lookup {
 String customerId;
 
 // CustomerSearchService implements LookupOptionsSupplier
-// CustomerLabelService implements LabelSupplier
+// CustomerLabelService implements LookupLabelSupplier
 ```
 
 ---

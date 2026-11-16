@@ -105,8 +105,7 @@ menu:
   servers have no CORS policy of their own: the host's CORS middleware (ASP.NET `UseCors`,
   Starlette's `CORSMiddleware`) covers every path it serves.
   The renderer loads a remote screen's root-relative module url (`/eventconductor/graph.js`) from
-  the product's origin, not from your shell's (the web renderers built on `libs/mateu`; the
-  Redwood renderer does not do this yet).
+  the product's origin, not from your shell's (the Vaadin and Redwood renderers both do).
 
   A product built on Mateu before 3.0 beta answers every origin (its generated controllers
   carried `@CrossOrigin`); after it upgrades, it must list your origin.

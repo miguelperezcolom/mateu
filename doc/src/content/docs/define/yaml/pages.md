@@ -278,8 +278,8 @@ content:                     # the template's main slot
   the right, wrapping under it on a narrow screen. Each slot travels in a container named after it
   (`item-overview-body`, `item-overview-footer`, `item-overview-main`) and the template's own values
   on the form (`template: {type, avatar, photo}`).
-- It works served by the **Java** backend, pre-rendered into a static bundle and expanded in the
-  browser from a `specsOnly` bundle. The .NET and Python YAML builders do not read `template:` yet.
+- It works served by the **Java**, **.NET** and **Python** backends, pre-rendered into a static bundle
+  and expanded in the browser from a `specsOnly` bundle.
 - `template:` is **experimental** (`@Experimental("page templates (3.0 beta)")`). The twelve templates
   in the table above are available; the IDEs' **Item Overview** page template writes `template:` for you.
 - Demo: the record pages of `demo/demo-starwars` (`person.yaml`, `planet.yaml`, `film.yaml`…).

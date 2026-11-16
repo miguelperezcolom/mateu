@@ -76,11 +76,11 @@ We would rather you read this than discover it:
   definition to another engine means re-implementing those **derivation semantics**, which today live
   mostly in code and docs rather than in one formal spec. The static bundle sidesteps this for
   pre-renderable screens; anything with server logic does not travel as data alone.
-- **Not yet a versioned multi-vendor standard.** The wire is documented and schema-backed, but does
-  not yet carry an explicit protocol version, and it evolves. It is re-implementable against a
-  **pinned snapshot** — "freeze this wire version" is the supported procedure — but it is not (yet) a
-  frozen public standard. Versioning the wire and publishing it as a standalone spec are on the
-  roadmap (see below).
+- **Not a multi-vendor standard.** The wire is documented, schema-backed and versioned
+  (`wireVersion` `3.0` on every response, additive within a major — see the
+  [wire specification](/reference/wire-specification/)), but it has one producer family and it
+  evolves. It is re-implementable against a **pinned wire version** — "freeze this wire version" is
+  the supported procedure — but no other vendor implements it.
 - **Skills, not just files.** The definition has no vendor lock on the *files*, but the derivation
   runtime and the Mateu-specific skills are, today, effectively single-vendor. This is a materially
   better position than any proprietary low-code platform (which traps the app in its runtime), and a
@@ -97,17 +97,14 @@ A Mateu app is an ordinary backend service; deploy it the way you deploy any of 
   → runnable JAR → JDK 21 runtime) you can copy.
 - **Backend-free:** [Static bundle](/deploy/static-bundle/) for CDN deployment.
 
-## Roadmap: making portability verifiable, not theoretical
+## Making portability verifiable, not theoretical
 
-To move this page's guarantees from "true in principle" to "verifiable", the following hardening is
-planned (tracked as workstream **R2** in the reference-architecture materials):
+What turns this page's guarantees from "true in principle" into "verifiable":
 
-1. **Version the wire** — an explicit `wireVersion`/`schemaVersion` on the envelope and in the schema
-   `$id`, with an additive-within-a-major compatibility policy.
-2. **Publish the wire + derivation semantics as a standalone versioned spec** (not scattered across
-   DTOs and docs).
-3. **A minimal Core reference renderer** — the concrete "1-day renderer" skeleton the conformance
-   harness measures.
-
-Until those land, treat routes (1) and (2) above as fully available today, and route (3) as
-"bounded and documented, against a pinned wire snapshot".
+1. **A versioned wire** — every envelope carries `wireVersion`, with an additive-within-a-major
+   compatibility policy ([wire specification](/reference/wire-specification/#status-and-versioning)).
+2. **The wire + derivation semantics as one versioned spec** — the
+   [wire specification](/reference/wire-specification/), with its generated JSON Schemas and the
+   conformance corpus.
+3. **A minimal Core reference renderer** — the dependency-free
+   [reference renderer](/design-systems/reference-renderer/) the conformance harness measures.

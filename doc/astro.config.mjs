@@ -501,6 +501,8 @@ export default defineConfig({
 										{ slug: 'java-ui-definition/field-types' },
 										{ slug: 'java-ui-definition/file-uploads' },
 										{ slug: 'java-ui-definition/domain-vocabulary', label: 'Build Your Domain Vocabulary' },
+										{ slug: 'java-ui-definition/component-catalogue', label: 'Business components' },
+										{ slug: 'java-ui-definition/custom-components', label: 'Custom components' },
 										{
 											label: 'Components',
 											items: [{ autogenerate: { directory: 'java-ui-definition/components' } }],

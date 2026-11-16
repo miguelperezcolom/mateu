@@ -74,14 +74,15 @@ box); what changes is the main slot underneath:
 
 Note: Redwood's own pages disagree on the number of banner actions — the category page says a
 primary and one secondary, the template guide allows one call to action plus up to six in an
-overflow menu. Mateu sends every `Button` field; the Redwood renderer currently paints the first two.
+overflow menu. Mateu sends every `Button` field; the Redwood renderer paints the first as the
+template's primary action and the rest as its secondary actions.
 
 ### Renderer status (Redwood)
 
 | | Built with Spectra's component? | Biggest gap |
 |---|---|---|
-| Dashboard landing page | ❌ composed: Spectra page header + JET panels; no `oj-sp-dashboard-landing-page` / `oj-sp-scoreboard` / `oj-sp-dashboard-panel` | a KPI drill-in is a «View» button, not a clickable tile; `rowSpan` is ignored |
-| Welcome page | 🟡 Spectra's banner (`oj-sp-header-welcome-banner`) + JET tiles; not `oj-sp-welcome-page` | only two actions, custom image ignored, no overline |
+| Dashboard landing page | ✅ `oj-sp-dashboard-landing-page`, KPI strip on `oj-sp-scoreboard` | `oj-sp-dashboard-grid` ignores `colSpan`/`rowSpan`/`columns()`, so a dashboard that declares any of them gets a plain grid ([Dashboard](/ux-patterns/dashboard/)) |
+| Welcome page | ✅ `oj-sp-welcome-page` | no image-layout or hide-on-phone switch ([Welcome page](/ux-patterns/welcome-page/)) |
 
 ## Detail pages
 
@@ -97,9 +98,9 @@ the user must keep the page underneath in view.
 | Foldout layout (horizontal) | an overview across the top plus 2–8 categories of related information, each in its own vertical panel the user unfolds | `Foldout` archetype (`@Panel` fields; `panelSummary` for the strip) | ✅ `oj-sp-foldout-layout` + `oj-sp-foldout-panel` |
 | Foldout layout (vertical) | a small amount of varied content: the overview is the first vertical panel, the rest fold out beside it | `Foldout` (the overview field is the first panel) | ✅ same component; the horizontal/vertical overview variants are not distinguished |
 | General overview | the simplest detail page: the attributes of one object, read-only, with related collections and an optional info column | `GeneralOverview<Row>` (record switcher, `overview`, `info` slot) | ✅ `oj-sp-general-overview-page` + `oj-sp-header-general-overview` |
-| Item overview | the item itself fills the page: a key-info panel next to tabbed related information | `ItemOverview` archetype | 🟡 composed (key panel + `oj-tab-bar`); the `oj-sp-item-overview-page` attempt was reverted (see the Redwood DESIGN-NOTES) |
-| General drawer | more about one or several objects of the current page, read-only, without leaving it | `Drawer` returned from an action (`subtitle`, `size`, `maximizable`, `peerNav`, `position`) | 🟡 `oj-drawer-popup` at the end edge with title + subtitle; size, maximize, peer arrows, position, close icon not drawn |
-| Bottom drawer | the same, docked full width along the bottom; closable, or fixed with an expand/collapse handle | `Drawer` with `DrawerPosition.bottom` + `collapsible` | ❌ opens at the end edge like any drawer |
+| Item overview | the item itself fills the page: a key-info panel next to tabbed related information | `ItemOverview` archetype | ✅ `oj-sp-item-overview-page` + `oj-sp-item-overview` |
+| General drawer | more about one or several objects of the current page, read-only, without leaving it | `Drawer` returned from an action (`subtitle`, `size`, `maximizable`, `peerNav`, `position`) | 🟡 `oj-sp-general-drawer-template` docked at the edge it names; no header slot, `layout(true)` does not push the page ([Drawer](/ux-patterns/drawer/)) |
+| Bottom drawer | the same, docked full width along the bottom; closable, or fixed with an expand/collapse handle | `Drawer` with `DrawerPosition.bottom` + `collapsible` | ✅ `oj-sp-bottom-drawer-template` (`collapsible` = its fixed mode) |
 
 ### Elements shared by the family
 
@@ -120,20 +121,17 @@ the user must keep the page underneath in view.
 
 - General drawer: sizes S/M/L (XL with maximize), start or end position, popup (modal or not) or
   layout (overlay or push); required title and close. Mateu models all of it on `Drawer`
-  (`DrawerSize`, `DrawerPosition`, `modeless`, `layout`); Vaadin draws it all, Redwood does not yet
-  (see [Drawer](/ux-patterns/drawer/)).
+  (`DrawerSize`, `DrawerPosition`, `modeless`, `layout`); Vaadin draws it all, Redwood all but the
+  push layout (see [Drawer](/ux-patterns/drawer/)).
 - Bottom drawer: default or maximized height, closable (close icon) or fixed (handle,
   expand/collapse), tabs or title. Mateu: `DrawerPosition.bottom` + `collapsible`; no "fixed" flag
   and maximize does not change the height.
 
 ### Known gaps
 
-1. Redwood drawers: size, maximize, peer arrows, start/bottom position, modeless/layout and the close
-   icon are sent to the renderer but not drawn yet.
-2. Spectra's drawer templates (`oj-sp-general-drawer-template`, `oj-sp-bottom-drawer-template`) are not
-   used yet: the drawers are a plain JET drawer.
-3. Small screens: no drawer goes full window (guide rule) in any web renderer.
-4. Item overview is composed, not `oj-sp-item-overview-page`.
+1. Redwood drawers: the general drawer's header slot (tabs) is not used, and `layout(true)` does not
+   push the page ([Drawer](/ux-patterns/drawer/#known-gaps)).
+2. Small screens: no drawer goes full window (guide rule) in the Vaadin renderer.
 
 ## Transactional pages
 
@@ -151,7 +149,7 @@ the backend; the page comes out with the template's anatomy.
 | **Data management** | work inside a large data collection as part of a transaction, with drawers for the details of a piece | `DataManagement` archetype (grid ⇄ Gantt, docked panels) — [Data management](/ux-patterns/data-management/) | see that page |
 | **Gantt page** | adjust and follow a schedule, with a bottom panel and a side detail | `GanttPage` archetype — [Gantt](/ux-patterns/gantt/#gantt-page-template-ganttpage-archetype) | see that page |
 | **Guided process** | split a complex, infrequent process (2–25 steps) into steps the user can leave and resume | `Wizard` + `@WizardProgress(RAIL)`, `Draftable`, `stepSkippable`, `stepApplies` — [Wizard](/ux-patterns/wizard/#the-redwood-guided-process) | ✅ `oj-sp-guided-process`; drafts/skip are Mateu buttons in the body |
-| **Collection detail** | go through a list and read or act on the selected item beside it | `CollectionDetail<Row>` archetype — [Collection detail](/ux-patterns/collection-detail/) | 🟡 composed (cards + detail column), not the template component |
+| **Collection detail** | go through a list and read or act on the selected item beside it | `CollectionDetail<Row>` archetype — [Collection detail](/ux-patterns/collection-detail/) | ✅ `oj-sp-collection-detail-page` |
 | **Create and edit drawer** | create or edit one or several related items without leaving the main task | `editInDrawer()` on a CRUD, or an action returning a `Drawer` — [Drawer](/ux-patterns/drawer/) | see that page |
 
 ### How to choose
