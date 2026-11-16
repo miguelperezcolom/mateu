@@ -8,6 +8,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed — proxied catalogue sources
+
+- **A `@RestOptions(source = "products")` field gets its options when only the catalogue says
+  `proxy: true`** — whether a Java view advertises `__restfetch__` was decided from the field's
+  own `proxy` flag, so a source proxied by its `sources.yaml` entry (or a
+  `RestSourceCatalogSupplier`) was never advertised and the browser dropped the fetch ("no
+  component on the page handles it"). The decision now reads the RESOLVED source, as the proxy leg
+  does, for `@RestOptions`, `@RestListing`, `@RestData`, `@RestAction` and `RestSourceSupplier`
+  declarations alike. The .NET and Python ports already did. Test
+  `RestOptionsCatalogueProxySyncTest`.
+
 ### Added — message page
 
 - **`MessagePage`, a page template for a page that stands on its own** — a confirmation, "check

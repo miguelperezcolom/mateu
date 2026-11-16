@@ -6,6 +6,7 @@ import io.mateu.uidl.annotations.RestListing;
 import io.mateu.uidl.annotations.RestOptions;
 import io.mateu.uidl.data.RestAction;
 import io.mateu.uidl.data.RestDataSource;
+import io.mateu.uidl.data.RestSourceCatalog;
 import java.util.LinkedHashMap;
 
 /**
@@ -34,40 +35,70 @@ final class RestDataSupport {
    * {@code @RestListing}/{@code @RestData}, or on anything a {@link
    * io.mateu.uidl.interfaces.RestSourceSupplier} view declares at runtime. Gates advertising the
    * {@code __restfetch__} action so only proxy views carry it.
+   *
+   * <p>A source named by reference ({@code source = "products"}) is judged by what it RESOLVES to:
+   * the catalogue entry may say {@code proxy: true} while the surface says nothing, and the proxy
+   * leg resolves it the same way ({@code RestSourceResolver}). Judged by the declaration alone, the
+   * view never advertised {@code __restfetch__} and the field got no options.
    */
   static boolean hasProxySource(Object instance) {
+    return hasProxySource(instance, RestSourceCatalogMapper.catalogue());
+  }
+
+  static boolean hasProxySource(Object instance, RestSourceCatalog catalogue) {
     if (instance instanceof io.mateu.uidl.interfaces.RestSourceSupplier supplier) {
       var declarations = supplier.declaredRestSources();
       if (declarations != null
           && declarations.stream()
-              .anyMatch(d -> d != null && d.source() != null && d.source().proxy())) {
+              .anyMatch(
+                  d ->
+                      d != null
+                          && d.source() != null
+                          && proxied(d.source().proxy(), d.source().ref(), catalogue))) {
         return true;
       }
     }
     var cls = instance.getClass();
     var listing = MetaAnnotations.find(cls, RestListing.class);
-    if (listing != null && listing.proxy()) {
+    if (listing != null && proxied(listing.proxy(), listing.source(), catalogue)) {
       return true;
     }
     var data = MetaAnnotations.find(cls, RestData.class);
-    if (data != null && data.proxy()) {
+    if (data != null && proxied(data.proxy(), data.source(), catalogue)) {
       return true;
     }
     for (var c = cls; c != null && c != Object.class; c = c.getSuperclass()) {
       for (var f : c.getDeclaredFields()) {
         var a = MetaAnnotations.find(f, RestOptions.class);
-        if (a != null && a.proxy()) {
+        if (a != null && proxied(a.proxy(), a.source(), catalogue)) {
           return true;
         }
       }
     }
     for (var m : cls.getMethods()) {
       var a = MetaAnnotations.find(m, io.mateu.uidl.annotations.RestAction.class);
-      if (a != null && a.proxy()) {
+      if (a != null && proxied(a.proxy(), a.source(), catalogue)) {
         return true;
       }
     }
     return false;
+  }
+
+  /**
+   * Whether a surface's source is proxied: declared so on the surface or, for a reference, by the
+   * catalogue entry it names — the same OR {@link RestDataSource#resolvedAgainst} applies.
+   */
+  private static boolean proxied(boolean declared, String ref, RestSourceCatalog catalogue) {
+    if (declared) {
+      return true;
+    }
+    if (ref == null || ref.isBlank() || catalogue == null) {
+      return false;
+    }
+    return catalogue
+        .get(ref)
+        .map(entry -> entry.source() != null && entry.source().proxy())
+        .orElse(false);
   }
 
   /**
