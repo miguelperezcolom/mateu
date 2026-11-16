@@ -80,6 +80,28 @@ public class SeparatorForm
     public string? Email { get; set; }
 }
 
+/// <summary>[SeparatorBefore] in a two-column form, after a row only half filled.</summary>
+[UI("sections/separator-two-columns"), FormLayout(Columns = 2)]
+public class TwoColumnSeparatorForm
+{
+    public string? Nombre { get; set; } = "María";
+
+    [SeparatorBefore]
+    public string? Email { get; set; }
+
+    public string? Phone { get; set; }
+}
+
+/// <summary>A section naming a zone the class does not declare (Java: renderZones' trailing column).</summary>
+[UI("sections/stray-zone")]
+[Zone("left", "60%"), Zone("right", "40%")]
+public class StrayZoneForm
+{
+    [Section("Main", Zone = "left")] public string? A { get; set; }
+    [Section("Side", Zone = "right")] public string? B { get; set; }
+    [Section("Elsewhere", Zone = "nowhere")] public string? C { get; set; }
+}
+
 /// <summary>[SeparatorBefore] inside a [Tab] (Java: SeparatorAndTextSizeSyncTest).</summary>
 [UI("sections/separator-in-tab")]
 public class TabbedSeparatorForm
@@ -230,6 +252,38 @@ public class SectionFeatureTests
         Assert.Single(separators);
         // spans the form's columns: one, inferred for a small form (Java parity)
         Assert.Equal("1", separators[0].GetProperty("attributes").GetProperty("data-colspan").GetString());
+    }
+
+    [Fact]
+    public void A_separator_closes_the_half_filled_row_before_it_and_takes_a_row_of_its_own()
+    {
+        var root = RenderView(typeof(TwoColumnSeparatorForm));
+        var rows = Objects(root)
+            .Where(o => o.TryGetProperty("metadata", out var m) && m.ValueKind == JsonValueKind.Object
+                        && m.TryGetProperty("type", out var t) && t.GetString() == "FormRow")
+            .Select(row => Objects(row.GetProperty("children"))
+                .Where(o => o.TryGetProperty("type", out var t)
+                            && t.GetString() is "FormField" or "Separator")
+                .Select(o => o.GetProperty("type").GetString() == "Separator"
+                    ? "—" : o.GetProperty("fieldId").GetString())
+                .ToList())
+            .ToList();
+        Assert.Equal([["nombre"], ["—"], ["email", "phone"]], rows);
+        var separator = Objects(root).Single(o => o.TryGetProperty("type", out var t) && t.GetString() == "Separator");
+        Assert.Equal("2", separator.GetProperty("attributes").GetProperty("data-colspan").GetString());
+    }
+
+    [Fact]
+    public void A_section_in_an_undeclared_zone_gets_a_trailing_flexible_column()
+    {
+        var json = JsonSerializer.Serialize(RenderView(typeof(StrayZoneForm)), Json);
+        var tracks = System.Text.RegularExpressions.Regex.Matches(json, "\"gridTemplateColumns\":\"([^\"]*)\"");
+        var track = Assert.Single(tracks).Groups[1].Value.Split(' ');
+        Assert.Equal(3, track.Length);
+        var main = json.IndexOf("\"Main\"", StringComparison.Ordinal);
+        var side = json.IndexOf("\"Side\"", StringComparison.Ordinal);
+        var elsewhere = json.IndexOf("\"Elsewhere\"", StringComparison.Ordinal);
+        Assert.True(main >= 0 && main < side && side < elsewhere);
     }
 
     [Fact]

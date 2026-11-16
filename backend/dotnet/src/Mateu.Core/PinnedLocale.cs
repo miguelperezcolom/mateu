@@ -8,12 +8,14 @@ namespace Mateu.Core;
 /// <c>locale</c>, so <c>&lt;html lang&gt;</c>, the client chrome and money formatting, and what
 /// <c>${i18n.…}</c> resolves for) instead of the browser's <c>Accept-Language</c>. An app's own
 /// <see cref="Mateu.Uidl.ITranslator.Locale"/> still wins over it.</summary>
-internal static partial class PinnedLocale
+internal static class PinnedLocale
 {
     public const string EnvVar = "MATEU_LOCALE";
 
-    [GeneratedRegex("^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$")]
-    private static partial Regex Tag();
+    // a plain Regex, not [GeneratedRegex]: the generator emits code no test walks through
+    private static readonly Regex TagRegex = new("^[A-Za-z]{2,8}(-[A-Za-z0-9]{1,8})*$", RegexOptions.Compiled);
+
+    private static Regex Tag() => TagRegex;
 
     /// <summary>The pinned tag, normalised (<c>pt_br</c> → <c>pt-BR</c>): <paramref name="configured"/>
     /// when not blank, else <c>MATEU_LOCALE</c>; null when neither is set or the value is not a language
