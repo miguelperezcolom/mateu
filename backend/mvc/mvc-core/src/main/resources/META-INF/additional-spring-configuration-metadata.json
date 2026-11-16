@@ -1,0 +1,281 @@
+{
+  "groups": [
+    {
+      "name": "mateu",
+      "description": "Mateu: model-driven UIs. Every key is also read as a JVM system property or as the MATEU_* environment variable (dots and dashes become underscores)."
+    }
+  ],
+  "properties": [
+    {
+      "name": "mateu.cors.allowed-origins",
+      "type": "java.lang.String",
+      "description": "Comma-separated origins allowed to call Mateu's API (/mateu/**) from another origin. CORS is off while it is unset; never use * together with credentials."
+    },
+    {
+      "name": "mateu.cors.allow-credentials",
+      "type": "java.lang.Boolean",
+      "description": "Whether cross-origin calls to Mateu's API may carry credentials (cookies, Authorization).",
+      "defaultValue": false
+    },
+    {
+      "name": "mateu.cors.paths",
+      "type": "java.lang.String",
+      "description": "Extra comma-separated path patterns the CORS allow-list covers besides Mateu's API, e.g. /elements/** for modules a shell on another origin imports."
+    },
+    {
+      "name": "mateu.actions.strict",
+      "type": "java.lang.Boolean",
+      "description": "Strict action mode: an actionId runs only a marked method or one the view advertises; anything else is refused with 403.",
+      "defaultValue": true
+    },
+    {
+      "name": "mateu.errors.detailed",
+      "type": "java.lang.Boolean",
+      "description": "Show the raw exception in the error toast instead of the generic message with a reference id. For development only.",
+      "defaultValue": false
+    },
+    {
+      "name": "mateu.listing.max-page-size",
+      "type": "java.lang.Integer",
+      "description": "Largest page size a listing search may ask for; larger or non-positive sizes are capped to it.",
+      "defaultValue": 500
+    },
+    {
+      "name": "mateu.layout.inference.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Infer form layouts (folded optional fields, sections as tabs, small enums as radio buttons) for every class without @AutoLayout.",
+      "defaultValue": false
+    },
+    {
+      "name": "mateu.page.inference.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Page-level inference: a plain class whose shape is a dashboard or a welcome page is composed as one. @AutoPage(false) opts a class out.",
+      "defaultValue": true
+    },
+    {
+      "name": "mateu.ui.modules",
+      "type": "java.lang.String",
+      "description": "Comma-separated packages of third-party Mateu UI modules (jars of @UI screens) to mount in this application."
+    },
+    {
+      "name": "mateu.public-base-path",
+      "type": "java.lang.String",
+      "description": "Path a reverse proxy strips in front of the app (e.g. /crm), so the served page links its assets and routes under it."
+    },
+    {
+      "name": "mateu.trust-forwarded-prefix",
+      "type": "java.lang.Boolean",
+      "description": "Honour the X-Forwarded-Prefix header as the public base path when mateu.public-base-path is not set. Only behind a proxy that always overwrites it.",
+      "defaultValue": false
+    },
+    {
+      "name": "mateu.forwarded-prefix.trusted",
+      "type": "java.lang.Boolean",
+      "description": "Other spelling of mateu.trust-forwarded-prefix.",
+      "defaultValue": false
+    },
+    {
+      "name": "mateu.mcp.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Serve the MCP endpoint (/mateu/mcp) that lets AI agents operate and author the UIs.",
+      "defaultValue": false
+    },
+    {
+      "name": "mateu.mcp.task-timeout-seconds",
+      "type": "java.lang.Long",
+      "description": "How long an MCP tool call waits for a long task it started before cancelling it.",
+      "defaultValue": 120
+    },
+    {
+      "name": "mateu.mcp.push.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Let MCP callers push UI to an open UI (live UI push). Needs mateu.mcp.enabled too.",
+      "defaultValue": false
+    },
+    {
+      "name": "mateu.telemetry.enabled",
+      "type": "java.lang.Boolean",
+      "description": "OpenTelemetry spans and metrics for every Mateu request (only when the OpenTelemetry API is on the classpath).",
+      "defaultValue": true
+    },
+    {
+      "name": "mateu.static-assets.compression",
+      "type": "java.lang.Boolean",
+      "description": "Serve the renderer's text assets gzipped.",
+      "defaultValue": true
+    },
+    {
+      "name": "mateu.static-assets.caching",
+      "type": "java.lang.Boolean",
+      "description": "Cache headers for the renderer's assets: content-versioned paths immutable, the rest revalidated.",
+      "defaultValue": true
+    },
+    {
+      "name": "mateu.pwa.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Serve every UI as an installable web app (manifest, service worker, icons). Always off in development mode.",
+      "defaultValue": true
+    },
+    {
+      "name": "mateu.security.csrf-exemption.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Exempt Mateu's JSON calls from Spring Security's CSRF check (they cannot be sent cross-site without CORS).",
+      "defaultValue": true
+    },
+    {
+      "name": "mateu.uploads.secret",
+      "type": "java.lang.String",
+      "description": "HMAC secret signing file upload tickets. Random per process when unset; every instance behind a load balancer must share it."
+    },
+    {
+      "name": "mateu.uploads.max-bytes",
+      "type": "java.lang.Long",
+      "description": "Largest file the upload endpoint accepts when the field declares no limit.",
+      "defaultValue": 104857600
+    },
+    {
+      "name": "mateu.uploads.max-files-per-ticket",
+      "type": "java.lang.Integer",
+      "description": "How many files one upload ticket of a multiple-file field may send.",
+      "defaultValue": 100
+    },
+    {
+      "name": "mateu.idempotency.max-entries",
+      "type": "java.lang.Integer",
+      "description": "Finished answers remembered for Idempotency-Key replays (in memory, per process).",
+      "defaultValue": 2000
+    },
+    {
+      "name": "mateu.idempotency.max-entries-per-caller",
+      "type": "java.lang.Integer",
+      "description": "Idempotency keys one caller may hold at a time.",
+      "defaultValue": 100
+    },
+    {
+      "name": "mateu.idempotency.ttl-seconds",
+      "type": "java.lang.Long",
+      "description": "How long a finished answer is remembered for Idempotency-Key replays.",
+      "defaultValue": 86400
+    },
+    {
+      "name": "mateu.remotes",
+      "type": "java.lang.String",
+      "description": "Comma-separated ids of the remote Mateu backends micro frontends may be resolved against; each one is configured with mateu.remotes.<id>.base-url, .timeout-ms and .identity."
+    },
+    {
+      "name": "mateu.self-base-url",
+      "type": "java.lang.String",
+      "description": "Base url this server calls itself at, for remotes declared with a path base url. Defaults to the local socket."
+    },
+    {
+      "name": "mateu.remote.allowed-hosts",
+      "type": "java.lang.String",
+      "description": "Optional comma-separated allow-list of hosts (host or host:port) remote calls may reach; any other host is refused."
+    },
+    {
+      "name": "mateu.microfrontends.default-timeout-ms",
+      "type": "java.lang.Integer",
+      "description": "Timeout of one server-resolved micro frontend call when it declares none.",
+      "defaultValue": 500
+    },
+    {
+      "name": "mateu.microfrontends.max-budget-ms",
+      "type": "java.lang.Integer",
+      "description": "Cap of the time a page waits for its server-resolved micro frontends before degrading them to the browser.",
+      "defaultValue": 2000
+    },
+    {
+      "name": "mateu.content-slots.remote",
+      "type": "java.lang.String",
+      "description": "Remote id @ContentSlot fields ask for their content.",
+      "defaultValue": "content"
+    },
+    {
+      "name": "mateu.content-slots.route",
+      "type": "java.lang.String",
+      "description": "Route a content slot asks its remote for; {key} is replaced by the slot key.",
+      "defaultValue": "/content-slots/{key}"
+    },
+    {
+      "name": "mateu.content-slots.descriptor.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Answer the __content_slots__ action that lists every content slot of the application.",
+      "defaultValue": false
+    },
+    {
+      "name": "mateu.oracle-cdn.url",
+      "type": "java.lang.String",
+      "description": "Mirror of https://static.oracle.com/cdn the Redwood renderer's page loads from instead of Oracle's CDN. Unset = Oracle's CDN."
+    },
+    {
+      "name": "mateu.build-id",
+      "type": "java.lang.String",
+      "description": "Replaces the computed build id sent in the X-Mateu-Build header (renderers offer a reload when it changes)."
+    },
+    {
+      "name": "mateu.environment",
+      "type": "java.lang.String",
+      "description": "Name of the specs/ui environment (environments/<name>.yaml) whose REST source overrides apply."
+    },
+    {
+      "name": "mateu.sources.mock",
+      "type": "java.lang.Boolean",
+      "description": "Sample mode: REST sources with sample data answer it instead of calling their endpoint; writes succeed without persisting.",
+      "defaultValue": false
+    },
+    {
+      "name": "mateu.dev",
+      "type": "java.lang.Boolean",
+      "description": "Development mode: specs/ui read from the source tree with live reload, and the authoring tools.",
+      "defaultValue": false
+    },
+    {
+      "name": "mateu.dev.specs-dir",
+      "type": "java.lang.String",
+      "description": "Comma-separated directories development mode reads specs/ui from.",
+      "defaultValue": "src/main/resources/specs/ui"
+    },
+    {
+      "name": "mateu.i18n.fallback",
+      "type": "java.lang.String",
+      "description": "Locale used when the request's locale has no translation catalogue or lacks a key.",
+      "defaultValue": "en"
+    },
+    {
+      "name": "mateu.client-log.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Accept the browser error reports the renderers send (logged under the mateu.client logger).",
+      "defaultValue": true
+    },
+    {
+      "name": "mateu.client-log.max-reports-per-minute",
+      "type": "java.lang.Integer",
+      "description": "Browser error reports accepted per client and minute.",
+      "defaultValue": 60
+    },
+    {
+      "name": "mateu.bundle.endpoint.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Serve GET /mateu/v3/bundle, which renders every screen as a static bundle for whoever asks.",
+      "defaultValue": false
+    },
+    {
+      "name": "mateu.documents.ttl-seconds",
+      "type": "java.lang.Long",
+      "description": "How long a generated document's one-time download link stays valid.",
+      "defaultValue": 300
+    },
+    {
+      "name": "mateu.progress.reattach-grace-seconds",
+      "type": "java.lang.Integer",
+      "description": "How long a running long task waits for a client that left to reattach before it is cancelled (0 = cancel at once).",
+      "defaultValue": 60
+    },
+    {
+      "name": "mateu.push.expo.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Send remote push notifications through Expo's push service (fixed native builds only).",
+      "defaultValue": false
+    }
+  ]
+}

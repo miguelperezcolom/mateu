@@ -14,7 +14,7 @@ export function renderIconField(host: MateuField, value: FieldValue, label: Fiel
         ></vaadin-icon>`
     }
     return html`
-        <vaadin-combo-box
+        <vaadin-combo-box ?disabled="${host.field.disabled}"
                         id="${host.field.fieldId}"
                         placeholder="${host.field.placeholder ?? nothing}"
                         label="${label}"

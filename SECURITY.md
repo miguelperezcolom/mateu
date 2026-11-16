@@ -33,7 +33,7 @@ longer, we tell you why and agree a new date.
 
 | Version | Supported |
 |---|---|
-| Latest 3.0 beta (until 3.0.0 is out) | ✅ security fixes, in the next beta |
+| 3.0.x — the latest 3.0 release | ✅ security fixes, in the next patch release |
 | Older 3.0 betas and alphas | ❌ — upgrade to the latest release ([migration guide](https://mateu.io/reference/migrating-from-alpha/)) |
 | 1.x / 2.x | ❌ |
 

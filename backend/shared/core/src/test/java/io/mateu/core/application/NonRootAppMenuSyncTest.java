@@ -325,7 +325,7 @@ class NonRootAppMenuSyncTest {
       "/page, /page, " + PLAIN,
       "/reports/monthly, /reports, " + MONTHLY,
       "/routed, /routed, " + ROUTED,
-      "/rootOther, /rootOther, io.mateu.core.application.NonRootAppMenuSyncTest$RootOtherPage",
+      "/root-other, /root-other, io.mateu.core.application.NonRootAppMenuSyncTest$RootOtherPage",
       "/summary, /summary, " + SUMMARY
     })
     void aDeepLinkOrReloadLandsOnThePageWithItsEntrySelected(
@@ -341,7 +341,7 @@ class NonRootAppMenuSyncTest {
       "/page, " + PLAIN,
       "/reports/monthly, " + MONTHLY,
       "/routed, " + ROUTED,
-      "/rootOther, io.mateu.core.application.NonRootAppMenuSyncTest$RootOtherPage",
+      "/root-other, io.mateu.core.application.NonRootAppMenuSyncTest$RootOtherPage",
       "/summary, " + SUMMARY
     })
     void aMenuClickLoadsThePageInsideTheShell(String route, String screen) {

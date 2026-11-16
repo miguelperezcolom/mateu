@@ -35,7 +35,7 @@ export function renderDateRangeField(host: MateuField, _fieldId: string, value: 
 
 export function renderDateField(host: MateuField, _fieldId: string, value: FieldValue, label: FieldLabel, _labelText: string): TemplateResult {
     if (!host.field) return html``
-        return html`<vaadin-date-picker
+        return html`<vaadin-date-picker ?disabled="${host.field.disabled}"
                 placeholder="${host.field?.placeholder ?? nothing}"
                     id="${host.field.fieldId}"
                     label="${label}"
@@ -51,7 +51,7 @@ export function renderDateField(host: MateuField, _fieldId: string, value: Field
 
 export function renderDateTimeField(host: MateuField, _fieldId: string, value: FieldValue, label: FieldLabel, _labelText: string): TemplateResult {
     if (!host.field) return html``
-        return html`<vaadin-date-time-picker
+        return html`<vaadin-date-time-picker ?disabled="${host.field.disabled}"
                     id="${host.field.fieldId}"
                     label="${label}"
                     .i18n="${datePickerI18n()}"
@@ -66,7 +66,7 @@ export function renderDateTimeField(host: MateuField, _fieldId: string, value: F
 
 export function renderTimeField(host: MateuField, _fieldId: string, value: FieldValue, label: FieldLabel, _labelText: string): TemplateResult {
     if (!host.field) return html``
-        return html`<vaadin-time-picker
+        return html`<vaadin-time-picker ?disabled="${host.field.disabled}"
                 placeholder="${host.field?.placeholder ?? nothing}"
                     id="${host.field.fieldId}"
                     label="${label}"

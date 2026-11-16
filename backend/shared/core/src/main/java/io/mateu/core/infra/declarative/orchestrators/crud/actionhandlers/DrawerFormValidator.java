@@ -120,10 +120,6 @@ final class DrawerFormValidator {
    * between…"), else the validator's own message — interpolated in the request's language.
    */
   private static String messageOf(ConstraintViolation<?> violation) {
-    var template = violation.getMessageTemplate();
-    if (template != null && template.equals("{jakarta.validation.constraints.NotBlank.message}")) {
-      return "Cannot be empty";
-    }
     var descriptor = violation.getConstraintDescriptor();
     var client =
         descriptor == null

@@ -133,7 +133,7 @@ export function renderSelectField(host: MateuField, value: FieldValue, label: Fi
         realValue = (value as { value: unknown }).value
     }
     return html`
-        <vaadin-select
+        <vaadin-select ?disabled="${host.field.disabled}"
                 placeholder="${host.field?.placeholder ?? nothing}"
                 id="${host.field.fieldId}"
                 label="${label}"

@@ -15,10 +15,18 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
 
 @SupportedAnnotationTypes({"io.mateu.uidl.annotations.UI", "io.mateu.uidl.annotations.App"})
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class MateuUIAnnotationProcessor extends AbstractProcessor {
 
   private boolean indexedUIsProcessed = false;
+
+  /**
+   * Whatever Java the application compiles with: a fixed {@code RELEASE_8} made javac warn
+   * "Supported source version 'RELEASE_8' … less than -source '21'" on every build of every app.
+   */
+  @Override
+  public SourceVersion getSupportedSourceVersion() {
+    return SourceVersion.latestSupported();
+  }
 
   /**
    * The mount path each routed class of this compilation claimed, normalised (no trailing slash, so

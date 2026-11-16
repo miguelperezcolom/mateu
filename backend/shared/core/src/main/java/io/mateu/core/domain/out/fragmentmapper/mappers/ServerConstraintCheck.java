@@ -16,6 +16,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Negative;
 import jakarta.validation.constraints.NegativeOrZero;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -33,12 +34,12 @@ import java.util.Map;
 
 /**
  * The server's own check of the constraints a form sends to the client as validations ({@code
- * NotNull}, {@code NotEmpty}, {@code Size}, {@code Min}, {@code Max}, {@code Pattern}, {@code
- * Email}, {@code Positive}, {@code PositiveOrZero}, {@code Negative}, {@code NegativeOrZero},
- * {@code DecimalMin}, {@code DecimalMax}), run before an action the client is told to validate
- * ({@code validationRequired}). The browser is untrusted and not the only client: a tampered
- * request, or any client that does not evaluate the rules, used to reach the action method with
- * whatever it sent.
+ * NotNull}, {@code NotEmpty}, {@code NotBlank}, {@code Size}, {@code Min}, {@code Max}, {@code
+ * Pattern}, {@code Email}, {@code Positive}, {@code PositiveOrZero}, {@code Negative}, {@code
+ * NegativeOrZero}, {@code DecimalMin}, {@code DecimalMax}), run before an action the client is told
+ * to validate ({@code validationRequired}). The browser is untrusted and not the only client: a
+ * tampered request, or any client that does not evaluate the rules, used to reach the action method
+ * with whatever it sent.
  *
  * <p>It checks exactly what the client checks and nothing more — the fields {@link
  * ValidationMapper} sends validations for, with the same messages — so a request a well-behaved
@@ -124,6 +125,9 @@ public final class ServerConstraintCheck {
     if (constraint instanceof NotEmpty notEmpty) {
       return ConstraintValidationMapper.notEmptyMessage(notEmpty);
     }
+    if (constraint instanceof NotBlank notBlank) {
+      return ConstraintValidationMapper.notBlankMessage(notBlank);
+    }
     if (constraint instanceof Size size) {
       return ConstraintValidationMapper.sizeMessage(size);
     }
@@ -169,6 +173,10 @@ public final class ServerConstraintCheck {
     var notEmpty = MetaAnnotations.find(field, NotEmpty.class);
     if (notEmpty != null && (isAbsent(value) || length(value) == 0)) {
       messages.add(ConstraintValidationMapper.notEmptyMessage(notEmpty));
+    }
+    var notBlank = MetaAnnotations.find(field, NotBlank.class);
+    if (notBlank != null && isBlank(value)) {
+      messages.add(ConstraintValidationMapper.notBlankMessage(notBlank));
     }
     if (!isAbsent(value)) {
       for (Size size : field.getAnnotationsByType(Size.class)) {
@@ -242,6 +250,15 @@ public final class ServerConstraintCheck {
   /** What the client state calls absent: null, or a blank input. */
   private static boolean isAbsent(Object value) {
     return value == null || (value instanceof CharSequence text && text.isEmpty());
+  }
+
+  /**
+   * What {@code @NotBlank} refuses, read like the client's condition: absent, an empty list, or
+   * text with no character that is not whitespace.
+   */
+  private static boolean isBlank(Object value) {
+    if (isAbsent(value) || length(value) == 0) return true;
+    return value instanceof CharSequence text && text.toString().strip().isEmpty();
   }
 
   /** The length the client's {@code .length} would read; -1 when the value has none. */

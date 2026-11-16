@@ -75,6 +75,7 @@ version (latest release).
 | `demo-vaadin-quarkus` | Quarkus 3 | 8094 | `mvn quarkus:dev` |
 | `demo-vaadin-helidon-mp` | Helidon MP 4 | 8095 | `mvn package && java -jar target/demo-vaadin-helidon-mp.jar` |
 | `demo-vaadin-kotlin-mvc` | Spring Boot 4 MVC, Kotlin | 8096 | `mvn spring-boot:run` |
+| [`demo-spring-boot-starter`](demo-spring-boot-starter) | Spring Boot 4 MVC with `io.mateu:mateu-spring-boot-starter` (one dependency + one processor; Maven **and** Gradle). Tracks master. | 8089 | `mvn spring-boot:run` / `gradle bootRun` |
 
 ## Focused & kitchen-sink demos (track master — build the backend first)
 

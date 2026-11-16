@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from datetime import (
     date,
     datetime,
@@ -520,7 +522,8 @@ class LayoutMapperMixin(MixinBase):
         # containers (mirrors Java's flushZonedRow — the old flex-wrap point was ~20rem/column).
         return ClientSideComponent(
             metadata=ResponsiveGridMetadata(
-                grid_template_columns=" ".join(tracks), stack_below="40rem"
+                grid_template_columns=" ".join(proportional_zone_tracks(tracks)),
+                stack_below="40rem",
             ),
             children=columns,
             style="width: 100%; align-items: start;",
@@ -833,6 +836,19 @@ class LayoutMapperMixin(MixinBase):
 #: Java's SectionFormRenderer.stickyStyle: a sticky section's card stays pinned while the form
 #: scrolls (the renderer stacks several under the page header).
 STICKY_SECTION_STYLE = "position: sticky; top: var(--mateu-sticky-top, 0.5rem); z-index: 2;"
+
+
+_PERCENTAGE_TRACK = re.compile(r"\d*\.?\d+%")
+
+
+def proportional_zone_tracks(tracks: list[str]) -> list[str]:
+    """A row whose zones are ALL percentages ("62% 38%") is a ratio: the tracks become
+    "62fr 38fr", sharing what the column gap leaves — as percentages they added up to 100% PLUS
+    the gap and the last column was clipped. Any other row keeps its tracks (mirrors Java's
+    SectionFormRenderer.proportional)."""
+    if tracks and all(_PERCENTAGE_TRACK.fullmatch(t) for t in tracks):
+        return [t[:-1] + "fr" for t in tracks]
+    return tracks
 
 
 def _is_sticky(section: Section | None) -> bool:

@@ -31,7 +31,7 @@ export function renderComboboxField(host: MateuField, value: FieldValue, label: 
         const dataProvider = host.remoteComboDataProvider(coords.action)
 
         return html`
-        <vaadin-combo-box
+        <vaadin-combo-box ?disabled="${host.field.disabled}"
                 placeholder="${host.field?.placeholder ?? nothing}"
                 id="${host.field.fieldId}"
                 label="${label}"
@@ -64,7 +64,7 @@ export function renderComboboxField(host: MateuField, value: FieldValue, label: 
     // and lit would not set the same value again once they do
     const options = host.field.optionsSource ? sourcedOptions(host) : host.field.options
     return html`
-        <vaadin-combo-box
+        <vaadin-combo-box ?disabled="${host.field.disabled}"
                 placeholder="${host.field?.placeholder ?? nothing}"
                 id="${host.field.fieldId}"
                 label="${label}"

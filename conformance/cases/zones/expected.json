@@ -140,7 +140,7 @@
             "type" : "ClientSide"
           } ],
           "metadata" : {
-            "gridTemplateColumns" : "64% 36%",
+            "gridTemplateColumns" : "64fr 36fr",
             "stackBelow" : "40rem",
             "type" : "ResponsiveGrid"
           },

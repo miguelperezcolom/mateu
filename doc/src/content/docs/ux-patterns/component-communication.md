@@ -179,8 +179,9 @@ public class GuestsSection {
         pax.put("firstName", guest.getFirstName());
         pax.put("nationality", guest.getNationality());
         pax.put("hasCardex", guest.isHasCardex());
-        // Wrapped in a List so the bare UICommand isn't treated as a page result.
-        return List.of(UICommand.dispatchEvent("pax-selected", pax));
+        // A UICommand returned on its own is sent as a command, never rendered as a page; return
+        // a List to send it together with other results (a Message, the page state…).
+        return UICommand.dispatchEvent("pax-selected", pax);
     }
 }
 ```

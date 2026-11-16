@@ -197,8 +197,20 @@ export function nestedListingAtomOf(node, ctx) {
     adp: !asCards && dataProviderFactory ? dataProviderFactory(tableRows) : null,
     loaded: !!loaded,
     isEmpty: !!loaded && rows.length === 0,
-    emptyText: md.emptyStateMessage || chromeText('noData'),
+    emptyText: listingEmptyMessageOf(loaded, md),
   }
+}
+
+/**
+ * What an empty listing says: the message the search answer carries next to its page
+ * (`data[<crud id>].emptyStateMessage`, the server's ListingData), else the listing's own
+ * metadata, else the default. Reading the metadata alone, a Listing returning
+ * `new ListingData<>(page, "Pick a warehouse")` kept showing "No data".
+ */
+export function listingEmptyMessageOf(loaded, md) {
+  const own = loaded && typeof loaded.emptyStateMessage === 'string' ? loaded.emptyStateMessage.trim() : ''
+  if (own) return loaded.emptyStateMessage
+  return (md && md.emptyStateMessage) || chromeText('noData')
 }
 
 /** Projection of the LISTING (Crud component): columns + rows (from the data axis) + search.
@@ -523,7 +535,7 @@ export function listingBaseOf(ctx, opts = {}) {
     rowRoute: md.rowRoute || '',
     searchable: !!md.searchable,
     pageSize: md.pageSize || 20,
-    emptyStateMessage: md.emptyStateMessage || chromeText('noData'),
+    emptyStateMessage: listingEmptyMessageOf((ctx.data || {}).crud, md),
     columns: finishColumnSizing(columns, fitColumns),
     fitColumns,
     defaultSizedColumns: defaultSized,
@@ -709,6 +721,23 @@ export function selectionOfKeySet(keySet) {
   }
   const values = typeof keySet.values === 'function' ? Array.from(keySet.values()) : []
   return { all: false, keys: values, except: [] }
+}
+
+/**
+ * Unchecks every row of the listing's oj-table, for a listing refreshed IN PLACE (a delete, its
+ * Undo, a row action: the search a bus event runs). The table keys its rows by position
+ * (_rowNumber) and keeps its selection across a data change, so the row that moved into a deleted
+ * one's place showed checked — and was what the next Delete sent — and the restored row came back
+ * checked after the Undo. Returns whether something was checked.
+ */
+export function clearTableSelection(table) {
+  const current = table && table.selected
+  const row = current && current.row
+  if (!row || typeof row.clear !== 'function') return false
+  const was = selectionOfKeySet(row)
+  if (!was.all && !was.keys.length) return false
+  table.selected = Object.assign({}, current, { row: row.clear() })
+  return true
 }
 
 /** The checked rows, resolved against the CURRENT rows by their key (_rowNumber). What is

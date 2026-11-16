@@ -94,6 +94,24 @@ def is_technical_id(f) -> bool:
     return f.name == "id" and not f.has(EditableOnlyWhenCreating) and not f.has(GeneratedValue)
 
 
+def editable_in_a_row(f) -> bool:
+    """Whether a column of an ``@inline_editing`` listing may be an editor. A row edited in place
+    is an EDIT of a stored record, so what an edit never takes from the client stays plain text:
+    ``ReadOnly()``, ``EditableOnlyWhenCreating()`` (the cell accepted typing the update-row save
+    then dropped — the edit was silently lost), the record's ``id``, ``GeneratedValue()`` and the
+    optimistic-lock ``Version()`` (Java's ``ListingColumnBuilder.isEditableInARow``, .NET's
+    ``EditableInARow``)."""
+    from mateu_ui.uidl.markers import EditableOnlyWhenCreating, GeneratedValue, ReadOnly, Version
+
+    return not (
+        f.has(ReadOnly)
+        or f.has(EditableOnlyWhenCreating)
+        or f.has(GeneratedValue)
+        or f.has(Version)
+        or f.name == "id"
+    )
+
+
 def hidden_in_current_form(f) -> bool:
     """Whether the field has no place in the crud record form being drawn."""
     mode = _mode.get()

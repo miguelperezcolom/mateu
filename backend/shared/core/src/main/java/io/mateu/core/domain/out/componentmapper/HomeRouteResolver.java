@@ -56,6 +56,15 @@ public class HomeRouteResolver {
           return Optional.of(actionable);
         }
       }
+      // the OLD address of a route-typed entry (its field name, /countColdRoom for
+      // "/count/cold-room"): links and bookmarks made before 3.0.1 still open its screen
+      for (Actionable actionable : actionables) {
+        if (MenuEntryMapper.isFieldAliasOf(actionable, token)) {
+          String cleanPrefix = !"".equals(prefix) && !"/".equals(prefix) ? prefix : "";
+          setResolvedPath(httpRequest, cleanPrefix + token);
+          return Optional.of(actionable);
+        }
+      }
     }
     return Optional.empty();
   }

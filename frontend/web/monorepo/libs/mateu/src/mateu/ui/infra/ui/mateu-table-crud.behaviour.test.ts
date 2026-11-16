@@ -7,6 +7,7 @@ import { BasicComponentRenderer } from './renderers/BasicComponentRenderer'
 import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType'
 import { registerExternalJsonMock } from '@infra/http/externalOptions'
 import { writeColumnPrefs } from '../columnPrefsStore'
+import { saveView, setDefaultView } from '../savedViewsStore'
 import { setRestSourceCatalogue } from '@infra/http/restSourceCatalogue'
 import { ExternalRestError } from '@infra/http/serviceMessage'
 import { setNotifier } from '@application/Notifier'
@@ -93,6 +94,39 @@ describe('the URL is the listing\'s memory', () => {
         const { actions } = await mount(crud(), undefined)
         expect(actions().find(a => a.actionId === 'search').parameters._searchState.searchText).toBe('madrid')
         expect(window.location.search).toBe('?searchText=madrid')
+    })
+
+    it('the default saved view goes into the ONE opening search (it used to race an unfiltered one)', async () => {
+        saveView('/orders', { name: 'Ana\'s', values: { customer: 'Ana', unknown: 'x' } })
+        setDefaultView('/orders', 'Ana\'s')
+        const { actions } = await mount(crud(), undefined)
+        // asked for at once, on mount — so it stands in for the enclosing component's OnLoad search
+        // (onLoadTimes.ts) instead of following it a tick later
+        expect(actions().filter(a => a.actionId === 'search')).toHaveLength(1)
+        await settle()
+        const searches = actions().filter(a => a.actionId === 'search')
+        expect(searches).toHaveLength(1)
+        expect(searches[0].parameters._searchState).toMatchObject({ customer: 'Ana', page: 0 })
+        // only the listing's own filters are taken from the view
+        expect(searches[0].parameters._searchState.unknown).toBeUndefined()
+        // the page the user opened, with its view on: the URL says it, without a new history entry
+        expect(new URLSearchParams(window.location.search).get('customer')).toBe('Ana')
+    })
+
+    it('filters in the URL win over the default saved view', async () => {
+        saveView('/orders', { name: 'mine', values: { customer: 'Ana' } })
+        setDefaultView('/orders', 'mine')
+        history.replaceState(null, '', '/orders?customer=Bob')
+        const { actions } = await mount(crud(), undefined)
+        const searches = actions().filter(a => a.actionId === 'search')
+        expect(searches).toHaveLength(1)
+        expect(searches[0].parameters._searchState.customer).toBe('Bob')
+    })
+
+    it('a view that is not the default one is not applied on opening', async () => {
+        saveView('/orders', { name: 'mine', values: { customer: 'Ana' } })
+        const { actions } = await mount(crud(), rows)
+        expect(actions().filter(a => a.actionId === 'search')).toHaveLength(0)
     })
 
     it('a plain URL does not search on mount (the server trigger does that)', async () => {
@@ -206,6 +240,44 @@ describe('the crud header and toolbar', () => {
         expect(button().disabled).toBe(false)
         button().click()
         expect(actions().at(-1)).toMatchObject({ actionId: 'delete', parameters: { crud_selected_items: [rows[1]] } })
+    })
+
+    it('rows refreshed in place (a delete, its Undo) drop the selection of a row that is gone', async () => {
+        const three = [{ id: 'A1', customer: 'Ana', _rowNumber: 0 }, { id: 'B2', customer: 'Bob', _rowNumber: 1 },
+            { id: 'C3', customer: 'Cid', _rowNumber: 2 }]
+        const { el, root } = await mount(crud({ toolbar: [{ id: 'del', actionId: 'delete', label: 'Delete', rowsSelectedRequired: true }] }), three)
+        const button = () => root.querySelector('[data-action-id="del"]') as HTMLButtonElement
+        el.state = { ...el.state, idFieldForRow: 'id', crud_selected_items: [three[1]] }
+        await el.updateComplete
+        expect(button().disabled).toBe(false)
+        const heard: string[] = []
+        el.addEventListener('mateu-selection-changed', () => heard.push('changed'))
+        // the listing-changed search answers the rows without B2: C3 moved into its position
+        const afterDelete = [{ id: 'A1', customer: 'Ana', _rowNumber: 0 }, { id: 'C3', customer: 'Cid', _rowNumber: 1 }]
+        el.data = { crud: { page: { pageNumber: 0, pageSize: 10, totalElements: 2, content: afterDelete } } }
+        await el.updateComplete
+        expect(el.state.crud_selected_items).toEqual([])
+        expect(button().disabled).toBe(true)
+        expect(heard).toEqual(['changed'])
+        // the component around re-binds its own (stale) copy of the selection: still nothing selected
+        el.state = { ...el.state, crud_selected_items: [three[1]] }
+        await el.updateComplete
+        expect(el.state.crud_selected_items).toEqual([])
+        // the Undo brings B2 back: it is not selected again
+        el.data = { crud: { page: { pageNumber: 0, pageSize: 10, totalElements: 3, content: three.map(r => ({ ...r })) } } }
+        await el.updateComplete
+        expect(el.state.crud_selected_items).toEqual([])
+    })
+
+    it('rows refreshed in place keep the selection of a row that is still there', async () => {
+        const { el } = await mount(crud(), rows)
+        el.state = { ...el.state, idFieldForRow: 'id', crud_selected_items: [rows[0]] }
+        await el.updateComplete
+        const fresh = rows.map(r => ({ ...r }))
+        el.data = { crud: { page: { pageNumber: 0, pageSize: 10, totalElements: 2, content: fresh } } }
+        await el.updateComplete
+        expect(el.state.crud_selected_items).toHaveLength(1)
+        expect(el.state.crud_selected_items[0]).toBe(fresh[0])
     })
 
     it('an older server: the selection gate is read off the enclosing component\'s advertised action', async () => {

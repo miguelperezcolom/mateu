@@ -1,5 +1,5 @@
 import { announceUrlChange, URL_CHANGED_EVENT } from '@infra/ui/urlChanges.ts'
-import { hasSelection, requiresSelection, SELECTION_CHANGED_EVENT } from "@infra/ui/selectionGate";
+import { hasSelection, requiresSelection, sameSelection, selectionStillOnScreen, SELECTION_CHANGED_EVENT } from "@infra/ui/selectionGate";
 import { byLine } from './listingLines'
 import { stampButton } from "@infra/ui/renderers/nodeIdStamp.ts";
 import {customElement, property, state} from "lit/decorators.js";
@@ -12,6 +12,7 @@ import './mateu-column-chooser'
 import type { ColumnChooserEntry } from './mateu-column-chooser'
 import './mateu-content-header'
 import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from '../columnPrefsStore.ts'
+import { defaultView } from '../savedViewsStore.ts'
 import { interpolate, templateResolver } from './interpolation'
 import { fetchExternalPage, fetchExternalRows, pageOf } from '@infra/http/externalOptions.ts'
 import { filterExternalRows, sortExternalRows } from '@infra/http/restRowFilters.ts'
@@ -49,6 +50,8 @@ import { sortDirectionOf } from '@infra/ui/sortDirection.ts';
 import { isListingOwnLoad } from '@infra/http/localRequests.ts';
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { showsPreSearch } from '@infra/ui/listingPreSearch.ts'
+import { listingEmptyMessage } from '@infra/ui/listingEmptyMessage.ts'
+import { formatMoneyValue } from '@infra/ui/moneyFormat.ts'
 import { renderComponent } from '@infra/ui/renderers/renderComponent.ts'
 import { keyed } from 'lit/directives/keyed.js'
 
@@ -965,8 +968,49 @@ export class MateuTableCrud extends LitElement {
     // while the key still matches, so the previous screen's rows never surface under this one.
     private _restRows: { key: string | undefined; listing: any } | undefined = undefined
 
+    /** The rows and the state the selection was last reconciled with (see keepSelectionOnScreen). */
+    private _selectionRows: unknown = undefined
+    private _selectionState: unknown = undefined
+
+    /**
+     * New rows (or a state re-bound by the component around): the selection keeps only the rows
+     * still on screen (selectionGate's selectionStillOnScreen). A search the listing runs itself
+     * starts with no selection, but a refresh in place — a delete and its Undo answer the
+     * listing-changed event, which runs the search on the component around this listing — kept the
+     * old one, and the grid, which tells rows apart by position, showed the row that moved into a
+     * deleted one's place as selected (with Delete still enabled), and the restored row selected
+     * again after the Undo.
+     */
+    private keepSelectionOnScreen() {
+        const rows = (this.data?.[this.id] as { page?: { content?: Record<string, unknown>[] } } | undefined)?.page?.content
+        if (!Array.isArray(rows)) return
+        if (rows === this._selectionRows && this.state === this._selectionState) return
+        this._selectionRows = rows
+        this._selectionState = this.state
+        const metadata = (this.component as ClientSideComponent | undefined)?.metadata as Crud | undefined
+        // infinite scrolling keeps the rows it fetched before: a selection may be on any of them
+        if (metadata?.infiniteScrolling) return
+        const idField = (this.state?.idFieldForRow as string | undefined) ?? this.identifierFieldName ?? 'id'
+        const keys = [...new Set([`${this.id}_selected_items`, 'crud_selected_items'])]
+        let changed = false
+        const next = { ...this.state }
+        keys.forEach(key => {
+            if (!hasSelection(this.state?.[key])) return
+            const kept = selectionStillOnScreen(this.state[key], rows, idField)
+            if (sameSelection(kept, this.state[key])) return
+            next[key] = kept
+            changed = true
+        })
+        if (!changed) return
+        this.state = next
+        this._selectionState = next
+        // selection-gated toolbar buttons (here and in the page header) follow it
+        this.dispatchEvent(new CustomEvent(SELECTION_CHANGED_EVENT, { bubbles: true, composed: true }))
+    }
+
     protected willUpdate(_changedProperties: PropertyValues) {
         super.willUpdate(_changedProperties)
+        if (_changedProperties.has("data") || _changedProperties.has("state")) this.keepSelectionOnScreen()
         if (!_changedProperties.has("data")) return
         if (this.data?.[this.id] != undefined) return
         const kept = this._restRows
@@ -1039,6 +1083,12 @@ export class MateuTableCrud extends LitElement {
                     page: defaultPage,
                     sort: []
                 })
+                // The default (starred) saved view of a listing opened with nothing in the URL: its
+                // conditions go into THIS opening search, which then stands in for the OnLoad one.
+                // The filter bar used to apply it a tick later, as a second search racing the
+                // unfiltered opening one — whichever answer arrived last won, so the chip showed
+                // the view's filter over every row.
+                if (!urlChanged) this.state = this._withDefaultView(metadata, this.state)
                 const urlHasNonDefault = this.state.page !== defaultPage
                     || (this.state.sort?.length > 0)
                     || [...this._filterIds(metadata)].some(id => this.state[id] != null)
@@ -1064,6 +1114,23 @@ export class MateuTableCrud extends LitElement {
                 if (restored !== this.state) this.state = restored
             }
         }
+    }
+
+    /**
+     * {@code base} with the conditions of this route's default saved view, when the URL carries no
+     * params at all (they always win) and nothing is set yet. Only the keys that are filters of this
+     * listing are taken. Returns {@code base} unchanged when there is no default view to apply.
+     */
+    private _withDefaultView(metadata: Crud, base: Record<string, any>): Record<string, any> {
+        const location = (globalThis as { window?: { location?: Location } }).window?.location
+        if (!location || location.search) return base
+        const view = defaultView(location.pathname)
+        if (!view) return base
+        const filterIds = this._filterIds(metadata)
+        if ([...filterIds].some(id => base[id] != null && base[id] !== '')) return base
+        const values = Object.fromEntries(Object.entries(view.values ?? {})
+            .filter(([key, value]) => filterIds.has(key) && value != null && value !== ''))
+        return Object.keys(values).length ? { ...base, ...values } : base
     }
 
     /**
@@ -1231,7 +1298,7 @@ export class MateuTableCrud extends LitElement {
         const rows: any[] = (listing?.page?.content as any[]) ?? []
         const emptyMsg = this.awaitingFirstSearch
             ? chromeText('searchToStart')
-            : this.state[this.component?.id!]?.emptyStateMessage
+            : listingEmptyMessage(this.data, this.state, this.id, this.component?.id)
 
         const formatListValue = (col: GridColumn, item: any) => {
             const val = item[col.id]
@@ -1242,6 +1309,8 @@ export class MateuTableCrud extends LitElement {
                 return html`<span theme="badge pill ${theme}">${status.message}</span>`
             }
             if (col.dataType === 'bool') return html`${val ? '✓' : '✗'}`
+            // an Amount in its own locale/currency, a number declared money in the UI's
+            if (col.dataType === 'money' || col.stereotype === 'money') return html`${val === '' ? '' : formatMoneyValue(val)}`
             if (typeof val === 'object') return html`${val.label ?? val.name ?? val.message ?? ''}`
             return html`${formatTemporalCell(valueLabel(val, col.valueLabels), col.dataType, uiLocale())}`
         }

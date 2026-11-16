@@ -21,15 +21,28 @@ import java.util.List;
 final class AppMenuDtoBuilder {
 
   static List<MenuOptionDto> buildMenu(AppShell app, String route, String appRoute) {
-    return buildMenu(app, app.menu(), route, appRoute, "");
+    return buildMenu(app, route, appRoute, "");
+  }
+
+  static List<MenuOptionDto> buildMenu(
+      AppShell app, String route, String appRoute, String baseUrl) {
+    return buildMenu(app, app.menu(), route, appRoute, "", baseUrl);
   }
 
   private static List<MenuOptionDto> buildMenu(
-      AppShell app, List<Actionable> menu, String route, String appRoute, String prefix) {
+      AppShell app,
+      List<Actionable> menu,
+      String route,
+      String appRoute,
+      String prefix,
+      String baseUrl) {
     return menu.stream()
         .map(
             option -> {
-              var path = getPath(appRoute, prefix, option);
+              var path =
+                  namesItsRoute(option)
+                      ? asWritten(appRoute, baseUrl, option.path())
+                      : getPath(appRoute, prefix, option);
               var remote = option instanceof RemoteMenu remoteMenu ? remoteMenu : null;
               return MenuOptionDto.builder()
                   .label(remote != null ? remoteLabel(remote, path) : option.label())
@@ -64,7 +77,8 @@ final class AppMenuDtoBuilder {
                               // concatenating the null made them "null/check-in"
                               asMenu.path() != null
                                   ? relative(appRoute, prefix, asMenu.path())
-                                  : prefix)
+                                  : prefix,
+                              baseUrl)
                           : List.of())
                   .separator(option instanceof MenuSeparator)
                   .remote(option instanceof RemoteMenu)
@@ -169,6 +183,20 @@ final class AppMenuDtoBuilder {
       return methodLink.methodName();
     }
     return null;
+  }
+
+  /**
+   * An entry addressed by its own route ({@code @Menu String countColdRoom = "/count/cold-room"}:
+   * path = route, see {@code MenuEntryMapper.namesItsRoute}) goes where it says, whatever group it
+   * sits in — below the mount, never below its group.
+   */
+  static boolean namesItsRoute(Actionable option) {
+    return io.mateu.core.domain.out.componentmapper.MenuEntryMapper.isAddressedByItsRoute(option);
+  }
+
+  private static String asWritten(String appRoute, String baseUrl, String route) {
+    var own = withinMount(appRoute, withinMount(baseUrl, route));
+    return own == null || own.isEmpty() ? "/" : own;
   }
 
   private static String getPath(String appRoute, String prefix, Actionable option) {

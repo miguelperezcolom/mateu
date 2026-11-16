@@ -47,7 +47,7 @@ public final class AppMapper {
       appRoute = appRoute.substring(baseUrl.length());
     }
     var appRouteForMenu = appRoute;
-    var menu = buildMenu(app, route, appRouteForMenu);
+    var menu = buildMenu(app, route, appRouteForMenu, baseUrl);
     app = withFirstMenuItemAsHome(app, menu);
     var selectedOption = getSelectedOption(appRoute, route, app.menu(), httpRequest);
     var appDto =

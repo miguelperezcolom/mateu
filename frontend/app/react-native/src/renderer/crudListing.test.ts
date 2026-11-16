@@ -7,6 +7,7 @@ import {
   applySearchToState,
   cellTone,
   columnDefsOf,
+  emptyMessageOf,
   listRowModel,
   extractListing,
   firstRowAction,
@@ -151,4 +152,13 @@ test('a list row: a primary first column leads with its picture and its caption'
   });
   // only an http(s) / data:image url is a picture
   assert.equal(listRowModel({ name: 'X', image: 'javascript:alert(1)' }, cols, text).leading, undefined);
+});
+
+test('an empty listing says what its search answer says (ListingData.emptyStateMessage)', () => {
+  const answered = { page: { content: [] }, emptyStateMessage: 'Pick a warehouse on the header' };
+  assert.equal(emptyMessageOf(answered, {}), 'Pick a warehouse on the header');
+  assert.equal(emptyMessageOf(answered, { emptyStateMessage: 'Nada' }), 'Pick a warehouse on the header');
+  assert.equal(emptyMessageOf({ page: { content: [] }, emptyStateMessage: ' ' }, { emptyStateMessage: 'Nada' }), 'Nada');
+  assert.equal(emptyMessageOf({ page: { content: [] } }, {}), 'No data');
+  assert.equal(emptyMessageOf(null, {}), 'No data');
 });

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.mateu</groupId>
+        <artifactId>mateu-mvc-parent</artifactId>
+        <version>0.0.1-MATEU</version>
+    </parent>
+
+    <!--
+      The one dependency a Spring Boot application adds to get Mateu: Spring MVC, Mateu's MVC
+      runtime (auto-configured) and the Vaadin web renderer. A jar with no code (Spring Boot's starter
+      convention: a dependency declared without <type> is a jar), so Initializr and Gradle can name it
+      like any other starter.
+
+      NO Spring version is set here: every Spring artifact comes without a version and the
+      application's Spring Boot dependency management decides it.
+
+      The annotation processor that generates the controllers is a separate, compile-time-only
+      artifact — io.mateu:mateu-annotation-processor-mvc on the annotationProcessorPaths (Maven) or
+      the annotationProcessor configuration (Gradle) — exactly like Lombok. It is ONE entry: it already
+      carries the indexer and the content-slot processor.
+    -->
+    <artifactId>mateu-spring-boot-starter</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Mateu Spring Boot starter</name>
+    <description>Starter for building Mateu UIs on Spring Boot (Spring MVC): the Mateu MVC runtime and the Vaadin web renderer.</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <!-- Every module of the backend inherits this annotations jar (backend/pom.xml); the starter
+             has no code, so it is not passed on to the application (see the exclusions below). -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+            <version>3.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-mvc</artifactId>
+            <version>${project.version}</version>
+            <!-- Build-time annotations Mateu's own classes were compiled with; an application needs
+                 neither to compile against Mateu nor to run it. Left out so an app that did not
+                 choose Lombok does not get it, and so no LGPL jar (FindBugs annotations) lands in
+                 the application. -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.projectlombok</groupId>
+                    <artifactId>lombok</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.code.findbugs</groupId>
+                    <artifactId>annotations</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-vaadin</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.code.findbugs</groupId>
+                    <artifactId>annotations</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- The test app is a user's app: its @UI class is compiled with the one processor entry
+                 the documentation tells users to add, and nothing else. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>io.mateu</groupId>
+                            <artifactId>mateu-annotation-processor-mvc</artifactId>
+                            <version>${project.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*IT.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

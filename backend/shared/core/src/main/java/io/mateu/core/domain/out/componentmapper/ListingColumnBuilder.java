@@ -50,18 +50,24 @@ final class ListingColumnBuilder {
         getAllFields(rowClass).stream()
             .anyMatch(
                 field -> MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.GroupBy.class));
-    columns.addAll(
+    var shown =
         getAllFields(rowClass).stream()
             .filter(field -> filterColumn(field, instance, httpRequest))
-            .map(
-                field ->
-                    getColumn(field, instance, baseUrl, route, initiatorComponentId, httpRequest))
-            .map(
-                column ->
-                    grouped
-                        ? column
-                        : column.toBuilder().sortable(isSortable(rowClass, column)).build())
-            .toList());
+            .toList();
+    // A row's action columns (ColumnAction / ColumnActionGroup) that come after every data column
+    // are frozen to the END: a row with many fields is a wide grid, and its "Run" / "Edit" button
+    // sat past the right edge, behind the horizontal scroll. The same rule the editable grid's
+    // row-editor button follows (freezeRowEditorButton). An action column placed among the data
+    // columns is where its author put it, and stays there.
+    int lastDataColumn = -1;
+    for (int i = 0; i < shown.size(); i++) if (!isActionField(shown.get(i))) lastDataColumn = i;
+    for (int i = 0; i < shown.size(); i++) {
+      var column =
+          getColumn(shown.get(i), instance, baseUrl, route, initiatorComponentId, httpRequest);
+      if (!grouped) column = column.toBuilder().sortable(isSortable(rowClass, column)).build();
+      if (i > lastDataColumn) column = column.toBuilder().frozenToEnd(true).build();
+      columns.add(column);
+    }
     if (instance instanceof Selector<?>) {
       columns.add(
           GridColumn.builder()
@@ -74,6 +80,11 @@ final class ListingColumnBuilder {
               .build());
     }
     return columns;
+  }
+
+  private static boolean isActionField(Field field) {
+    return io.mateu.uidl.data.ColumnAction.class.equals(field.getType())
+        || io.mateu.uidl.data.ColumnActionGroup.class.equals(field.getType());
   }
 
   /**
@@ -143,12 +154,12 @@ final class ListingColumnBuilder {
     boolean autoWidth = "auto".equalsIgnoreCase(rawWidth);
     String columnWidth = autoWidth ? null : rawWidth;
     // Inline row editing: when the listing class is annotated @InlineEditing, every data column
-    // (except @ReadOnly ones) is edited in place; commits dispatch the crud's update-row action.
+    // (except the ones a saved row never takes from the client) is edited in place; commits
+    // dispatch the crud's update-row action.
     boolean editable =
         instance != null
             && MetaAnnotations.isPresent(instance.getClass(), InlineEditing.class)
-            && !MetaAnnotations.isPresent(field, ReadOnly.class)
-            && !isVersionField(field);
+            && isEditableInARow(field);
     return GridColumn.builder()
         .id(field.getName())
         .label(getLabel(field))
@@ -228,6 +239,39 @@ final class ListingColumnBuilder {
             field, io.mateu.uidl.annotations.Tooltip.class);
     if (tooltip != null && !tooltip.value().isBlank()) return tooltip.value();
     return columnWidth != null ? field.getName() : null;
+  }
+
+  /**
+   * Whether a column of an {@code @InlineEditing} listing may be an editor. A row in place is an
+   * EDIT of an existing record, so what an edit never takes from the client is drawn as plain text:
+   * {@code @ReadOnly}, {@code @EditableOnlyWhenCreating} (the user typed it on the creation form —
+   * the update-row save keeps the stored value, so an editor there accepted typing that was then
+   * silently lost), the record's id ({@code @PrimaryKey}, a field named {@code id}, a {@code
+   * GeneratedValue}) and the optimistic-lock version.
+   */
+  static boolean isEditableInARow(java.lang.reflect.Field field) {
+    return !MetaAnnotations.isPresent(field, ReadOnly.class)
+        && !MetaAnnotations.isPresent(
+            field, io.mateu.uidl.annotations.EditableOnlyWhenCreating.class)
+        && !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.GeneratedValue.class)
+        && !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.PrimaryKey.class)
+        && !isDeclaredIdOfItsRecord(field)
+        && !isVersionField(field);
+  }
+
+  /** A field named {@code id} when its class declares no {@code @PrimaryKey}. */
+  private static boolean isDeclaredIdOfItsRecord(java.lang.reflect.Field field) {
+    if (!"id".equals(field.getName())) {
+      return false;
+    }
+    for (var other :
+        io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields(
+            field.getDeclaringClass())) {
+      if (MetaAnnotations.isPresent(other, io.mateu.uidl.annotations.PrimaryKey.class)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

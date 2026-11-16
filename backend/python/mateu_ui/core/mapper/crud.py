@@ -54,7 +54,6 @@ from mateu_ui.uidl import (
     NumberRange,
     PrimaryColumn,
     RangeFilter,
-    ReadOnly,
     RowStatus,
     RuleSupplier,
     Searchable,
@@ -81,7 +80,7 @@ from mateu_ui.uidl.export import ExportColumn
 from ..export import FORMATS
 from ..titles import record_title, titled_by_data
 from ._base import MixinBase
-from .crud_modes import crud_form_mode
+from .crud_modes import crud_form_mode, editable_in_a_row
 from ._common import (
     COMPACT_STYLE,
     _id,
@@ -156,8 +155,9 @@ class CrudMapperMixin(MixinBase):
         hero = instance if isinstance(instance, HeroSearch) else (
             cls() if isinstance(cls, type) and issubclass(cls, HeroSearch) else None
         )
-        # Class-level @inline_editing: every data column (except ReadOnly() ones) is edited in
-        # place; each committed cell dispatches the crud's update-row action (Java parity).
+        # Class-level @inline_editing: every data column is edited in place, except the ones an
+        # edit never takes from the client (editable_in_a_row); each committed cell dispatches the
+        # crud's update-row action (Java parity).
         inline = getattr(cls, "__mateu_inline_editing__", False)
         columns: list[GridColumn] = []
         # the rows open by click: the technical id is not a column (W-V-TABLE-ID); HiddenInList(): the
@@ -165,7 +165,7 @@ class CrudMapperMixin(MixinBase):
         for f in without_technical_id(
             [f for f in view_fields(element) if self.visible(f) and not f.has(HiddenInList)], True
         ):
-            editable = inline and not f.has(ReadOnly)
+            editable = inline and editable_in_a_row(f)
             columns.append(GridColumn(id=camel_case(f.name), metadata=listing_column(column_options(self.typed_column(GridColumnMeta(
                 id=camel_case(f.name),
                 label=(f.marker(Label).value if f.has(Label) else humanize(f.name)),

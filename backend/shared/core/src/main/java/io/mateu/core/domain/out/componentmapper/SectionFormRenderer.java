@@ -512,7 +512,7 @@ final class SectionFormRenderer {
     blocks.add(
         new ResponsiveGrid(
             "zoned-row-" + blocks.size(),
-            tracks,
+            proportional(tracks),
             null,
             columns,
             null,
@@ -536,6 +536,31 @@ final class SectionFormRenderer {
    */
   private static GridTrack track(String width) {
     return width == null || width.isBlank() ? GridTrack.fill() : GridTrack.fixed(width);
+  }
+
+  private static final java.util.regex.Pattern PERCENTAGE =
+      java.util.regex.Pattern.compile("(\\d*\\.?\\d+)%");
+
+  /**
+   * A row whose zones are ALL declared as percentages ({@code 62% 38%}) is a ratio: the tracks
+   * become {@code 62fr 38fr}, which share what the column gap leaves. As percentages the tracks
+   * added up to 100% PLUS the gap, so the row overflowed the page by the gap and the last column
+   * was clipped. A row with any other track (a length, the leftover {@code 1fr} of an undeclared
+   * zone) keeps its tracks as declared. Same rule in the .NET and Python ports.
+   */
+  static List<GridTrack> proportional(List<GridTrack> tracks) {
+    if (tracks.isEmpty()
+        || !tracks.stream()
+            .allMatch(
+                t ->
+                    t.length() != null
+                        && t.size() == io.mateu.uidl.annotations.SizeMode.fixed
+                        && PERCENTAGE.matcher(t.length()).matches())) {
+      return tracks;
+    }
+    return tracks.stream()
+        .map(t -> GridTrack.fixed(t.length().substring(0, t.length().length() - 1) + "fr"))
+        .toList();
   }
 
   static Component buildTitleRow(

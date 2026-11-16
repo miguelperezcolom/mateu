@@ -126,3 +126,52 @@ public class InlineEditWriteProtectionTests
         Assert.Equal("Bolt", Nm11PartsBase.Store["p1"].Name);
     }
 }
+
+public class InlineVolume
+{
+    public string Id { get; set; } = "";
+    public string Title { get; set; } = "";
+    [Label("ISBN"), EditableOnlyWhenCreating] public string Isbn { get; set; } = "";
+    [Version] public int Revision { get; set; }
+}
+
+[UI("inline-volumes"), Title("Volumes"), InlineEditing]
+public class InlineVolumes : Crud<InlineVolume>
+{
+    public override IEnumerable<InlineVolume> Fetch(string? search) =>
+        [new InlineVolume { Id = "v1", Title = "Earthsea", Isbn = "978-0-553-26250-9" }];
+}
+
+/// <summary>An [InlineEditing] listing edits stored records in place: an [EditableOnlyWhenCreating]
+/// cell accepted typing the update-row save then dropped (the edit was silently lost). Such a
+/// column — and the [Version] — is plain text; the other data columns stay editors. Mirrors Java's
+/// InlineEditingLockedColumnsSyncTest.</summary>
+public class InlineEditingLockedColumnsTests
+{
+    [Fact]
+    public void Create_only_and_version_columns_are_not_inline_editors()
+    {
+        var inc = new SyncHandler(new MateuRegistry(typeof(InlineVolume).Assembly))
+            .Handle(new RunActionRqDto { Route = "inline-volumes", ConsumedRoute = "inline-volumes" });
+        var columns = new Dictionary<string, JsonElement>();
+        void Walk(JsonElement e)
+        {
+            if (e.ValueKind == JsonValueKind.Object)
+            {
+                if (e.TryGetProperty("type", out var t) && t.ValueKind == JsonValueKind.String
+                    && t.GetString() == "GridColumn" && e.TryGetProperty("id", out var id))
+                    columns[id.GetString()!] = e;
+                foreach (var p in e.EnumerateObject()) Walk(p.Value);
+            }
+            else if (e.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in e.EnumerateArray()) Walk(item);
+            }
+        }
+        Walk(JsonSerializer.SerializeToElement(inc, SyncHandlerTests.JsonOptions));
+
+        Assert.True(columns["title"].GetProperty("editable").GetBoolean());
+        Assert.False(columns["isbn"].GetProperty("editable").GetBoolean());
+        Assert.False(columns["revision"].GetProperty("editable").GetBoolean());
+    }
+}

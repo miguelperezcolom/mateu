@@ -36,7 +36,7 @@ Open http://localhost:8080. The page loads Oracle JET, Spectra and the Visual Bu
 
 ![Products on the Redwood renderer](img/redwood-products.png)
 
-> **Known gap at 3.0-beta.64 — C# and Python on Redwood.** We checked all three backends with the
+> **Known gap at 3.0.0 — C# and Python on Redwood.** We checked all three backends with the
 > Redwood renderer: on **Java** every screen draws (above). On **C# and Python** the Redwood shell,
 > menu and page titles draw but the **screen contents stay empty** (the same app on Vaadin is fine).
 > If you are on those tracks, look at Redwood on Java's solution with a neighbour, or at the public

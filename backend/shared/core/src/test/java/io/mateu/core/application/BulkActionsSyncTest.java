@@ -264,6 +264,31 @@ class BulkActionsSyncTest {
   }
 
   @Test
+  void aBulkActionOnAFilteredListingLeavesItsAddressAndItsFilterAlone() {
+    // the listing is filtered (the filter lives in the URL's query): the bulk answer refreshes it
+    // in place. It used to also push the listing's BARE path, which dropped the query — the
+    // listing then searched a second time with an emptied state and showed every row under the
+    // filter's chip.
+    var increment =
+        run(
+            "action-on-row-approve",
+            Map.of(
+                "_route",
+                "list",
+                "customer",
+                "Acme",
+                "crud_selected_items",
+                List.of(Map.of("id", "1", "customer", "Acme", "total", 100.0, "approved", false))));
+    assertThat(increment.commands())
+        .noneMatch(c -> c.type() == io.mateu.dtos.UICommandTypeDto.PushStateToHistory)
+        .anyMatch(c -> c.type() == io.mateu.dtos.UICommandTypeDto.DispatchEvent);
+
+    // and the search the listing then runs keeps the filter it carries
+    var search = run("search", Map.of("_route", "list", "customer", "Acme", "size", 10, "page", 0));
+    assertThat(String.valueOf(search.fragments())).contains("Acme").doesNotContain("Globex");
+  }
+
+  @Test
   void builtInBulkDeleteStillRemovesTheSelectedRows() {
     run(
         "delete",

@@ -450,8 +450,8 @@ class SearchHandlerMixin(MixinBase):
         if group_by is not None:
             by_group: dict[str, list] = {}
             # Java keys groups by String.valueOf(value) — sorted case-insensitively.
-            for item in sorted(rows, key=lambda it: str(getattr(it, group_by, None)).casefold()):
-                by_group.setdefault(str(getattr(item, group_by, None)), []).append(item)
+            for item in sorted(rows, key=lambda it: group_value(getattr(it, group_by, None)).casefold()):
+                by_group.setdefault(group_value(getattr(item, group_by, None)), []).append(item)
             groups = [
                 {"value": value, "count": len(members), "aggregates": self._aggregate_over(members, aggregates)}
                 for value, members in by_group.items()
@@ -485,7 +485,7 @@ class SearchHandlerMixin(MixinBase):
             return None
         counts: dict[str, int] = {}
         for item in items:
-            key = str(getattr(item, group_by, None))
+            key = group_value(getattr(item, group_by, None))
             counts[key] = counts.get(key, 0) + 1
         return [{"value": value, "count": count, "aggregates": {}} for value, count in counts.items()]
 
@@ -653,6 +653,23 @@ class SearchHandlerMixin(MixinBase):
             for label, message in violations(entity, element, fields)
             if message != "Cannot be empty"
         ]
+
+
+def group_value(value) -> str:
+    """The text a ``GroupBy()`` group is keyed and labelled by — Java's ``String.valueOf``: an
+    enum member is its NAME (``North``, never Python's ``Region.North``) unless its enum class
+    writes its own ``__str__``, None is ``null`` and a bool ``true``/``false``. The row carries the
+    same text, which is how the listing puts each row under its group."""
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, Enum):
+        own = type(value).__dict__.get("__str__")
+        if own is not None and getattr(own, "__qualname__", "").split(".")[-2:-1] == [type(value).__name__]:
+            return str(value)
+        return value.name
+    return str(value)
 
 
 def _numbered(rows: list[dict], page: int, size: int) -> list[dict]:

@@ -140,7 +140,7 @@ class McpToolsSyncTest {
   void listRoutesWalksTheAppMenuIncludingSubmenus() throws Exception {
     var routes = new ArrayList<String>();
     shellMcp.listRoutes("", ANONYMOUS).forEach(r -> routes.add(r.get("route").asText()));
-    assertThat(routes).containsExactly("books", "reports", "reports/sales", "");
+    assertThat(routes).containsExactly("mcp-books", "reports", "mcp-counter", "");
   }
 
   @Test

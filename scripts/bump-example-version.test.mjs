@@ -12,11 +12,26 @@ const repo = new URL('..', import.meta.url)
 const script = readFileSync(new URL('scripts/bump-example-version.sh', repo), 'utf8')
 const step = script.slice(script.indexOf('# The first FINAL release of a line'))
 
+const preRelease = (file, pairs) => {
+    let text = readFileSync(file, 'utf8')
+    for (const [final, pre] of pairs) text = text.replace(final, pre)
+    writeFileSync(file, text)
+}
+
 const run = (version) => {
     const dir = mkdtempSync(join(tmpdir(), 'bump-'))
     mkdirSync(join(dir, 'backend/python'), { recursive: true })
     copyFileSync(new URL('SECURITY.md', repo), join(dir, 'SECURITY.md'))
     copyFileSync(new URL('backend/python/pyproject.toml', repo), join(dir, 'backend/python/pyproject.toml'))
+    // The step runs ONCE, on the first final of a line: start from the pre-release wording it rewrites,
+    // whatever the real files say today (after 3.0.0 they already carry the final wording).
+    preRelease(join(dir, 'SECURITY.md'), [
+        ['| 3.0.x — the latest 3.0 release | ✅ security fixes, in the next patch release |',
+         '| Latest 3.0 beta (until 3.0.0 is out) | ✅ security fixes, in the next beta |'],
+    ])
+    preRelease(join(dir, 'backend/python/pyproject.toml'), [
+        ['"Development Status :: 5 - Production/Stable"', '"Development Status :: 4 - Beta"'],
+    ])
     writeFileSync(join(dir, 'step.sh'), `set -euo pipefail\nnew="$1"\n${step}`)
     const r = spawnSync('bash', ['step.sh', version], { cwd: dir, encoding: 'utf8' })
     assert.equal(r.status, 0, r.stderr)

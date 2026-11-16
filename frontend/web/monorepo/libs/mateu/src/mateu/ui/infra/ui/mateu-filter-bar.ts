@@ -9,7 +9,6 @@ import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField
 import { badge } from "@infra/ui/badgeStyles.ts";
 import {
     SavedView,
-    defaultView,
     deleteView,
     listSavedViews,
     saveView,
@@ -184,8 +183,9 @@ export class MateuFilterBar extends LitElement {
 
     // ── saved views ──────────────────────────────────────────────────────────
     // Named snapshots of the whole condition set (keyword + filters), persisted client-side per
-    // route (savedViewsStore). Applying one replaces the current conditions and re-searches; the
-    // scope's default view is applied on first load when the URL carries no explicit params.
+    // route (savedViewsStore). Applying one replaces the current conditions and re-searches. The
+    // scope's default view is applied by the LISTING (mateu-table-crud), inside its opening search:
+    // applied here a tick later it was a second search racing the first.
 
     private get viewsScope(): string {
         return window.location.pathname
@@ -219,7 +219,7 @@ export class MateuFilterBar extends LitElement {
         return values
     }
 
-    private applyView(view: SavedView, history?: 'replace') {
+    private applyView(view: SavedView) {
         // clear everything first (one reset event), then set the view's values, then search
         const fieldIds = this.allFilterKeys()
         const cleared: Record<string, any> = {}
@@ -233,7 +233,7 @@ export class MateuFilterBar extends LitElement {
         Object.entries(view.values).forEach(([key, value]) => this.emitValueChanged(key, value))
         this.viewsOpened = false
         this.detachOutsideClick()
-        this.requestSearch(history)
+        this.requestSearch()
     }
 
     private saveCurrentView(input: HTMLInputElement) {
@@ -260,19 +260,6 @@ export class MateuFilterBar extends LitElement {
         requestAnimationFrame(() => requestAnimationFrame(() => {
             if (input.isConnected && mayTakeFocusOnItsOwn()) input.focus({ preventScroll: true })
         }))
-    }
-
-    protected firstUpdated() {
-        // default view: only when the URL carries no explicit filter params (they win)
-        if (window.location.search) return
-        const view = defaultView(this.viewsScope)
-        if (!view) return
-        // wait a tick so the host finishes wiring its listeners
-        setTimeout(() => {
-            const anySet = !!this.state.searchText || this.filters.some(field => this.isSet(field))
-            // the page the user opened, with its default view on: not a step in the history
-            if (!anySet) this.applyView(view, 'replace')
-        }, 0)
     }
 
     // ── filter typing helpers ────────────────────────────────────────────────

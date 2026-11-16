@@ -137,6 +137,12 @@
         <artifactId>mateu-helidon-mp</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <!-- Spring Boot starter: Spring MVC + mateu-mvc + mateu-vaadin in one dependency -->
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>mateu-spring-boot-starter</artifactId>
+        <version>${project.version}</version>
+      </dependency>
       <!-- web renderers (choose one) -->
       <dependency>
         <groupId>io.mateu</groupId>

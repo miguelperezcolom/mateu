@@ -8,6 +8,111 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+## [3.0.1] — 2026-11-16
+
+### Added — Spring Boot starter
+
+- **`io.mateu:mateu-spring-boot-starter`** — one dependency (plus the `mateu-annotation-processor-mvc`
+  processor) gives a Spring Boot app Mateu on Spring MVC with the Vaadin renderer. It brings
+  `spring-boot-starter-webmvc` without a version, so the app's Boot BOM decides, and in `mateu-bom`.
+  Demo `demo/demo-spring-boot-starter` (Maven and Gradle), checked in CI against Boot's dependency
+  management. Docs: "The simplest way: the Spring Boot starter" in the Spring MVC setup page.
+- **IDE completion for `mateu.*` settings**: `mateu-mvc-core` ships Spring configuration metadata for
+  47 user-facing settings (types, descriptions, defaults), pinned by `SpringConfigurationMetadataTest`.
+- The annotation processors answer `SourceVersion.latestSupported()`: javac no longer warns
+  "Supported source version 'RELEASE_8' … less than -source '21'" on every build.
+
+### Fixed — listings and menu addresses
+
+- **A delete on a searched listing keeps the search.** The refresh after a delete, its Undo or a row
+  action also pushed the listing's bare path to the history, which dropped the search text, filters,
+  page and sort from the address, and the listing searched again without them.
+- **A delete drops its selection.** The row that moved into the deleted one's place showed selected
+  (and Delete stayed on); the Undo brought the restored row back selected. Vaadin keeps only the
+  selected rows still on screen, matched by id; Redwood unchecks the table when the listing searches
+  again (its next Delete would have sent the wrong row).
+- **Columns that cannot be edited in a row are no inline editors**: `@EditableOnlyWhenCreating`,
+  the record's id (`@PrimaryKey`, else `id`), `@GeneratedValue` and `@Version`, besides `@ReadOnly`.
+  The cell took typing and the edit was silently lost. Java, .NET and Python.
+- A listing's own empty message (`new ListingData<>(page, "Pick a warehouse on the header")`) is
+  shown: it travels in the search answer's data, and Vaadin, Redwood, React Native and the IntelliJ
+  plugin read only the state or the metadata, so they kept showing the default text.
+- An `Amount` row field of a listing is a money column (dataType `money`, right-aligned), written
+  in the amount's own locale and currency; it used to read "[object Object]" on the web (a blank
+  cell on the desktop).
+- A route-typed menu entry (`@Menu String countColdRoom = "/count/cold-room"`) puts its route in
+  the address bar instead of the field name (`/countColdRoom`), whatever group it sits in; the
+  menu, the section index and the MCP route list name it by that route. The old field-name address
+  keeps working as an alias, so existing bookmarks and links still open the same screen. An entry
+  left null still routes to the field under the app.
+- **A listing row's trailing action columns are frozen to the end.** A `ColumnAction` /
+  `ColumnActionGroup` field that comes after every data column of the row (a "Run" or "Edit"
+  button, the usual place) is sent `frozenToEnd`, so on a row with many fields it stays at the
+  grid's right edge instead of sitting past the horizontal scroll — the rule the editable grid's
+  row-editor button already followed. An action column placed among the data columns stays where it
+  was put.
+
+### Fixed — listings keep their filter
+
+- **A listing opened with a starred (default) saved view showed every row under the view's chip.**
+  The filter bar applied the view a tick after opening, as a second search racing the unfiltered
+  opening one, and whichever answer arrived last won. The listing (`mateu-table-crud`) now puts the
+  view's conditions into its one opening search, which stands in for the OnLoad search; filters in
+  the URL still win. Redwood already ran the two in sequence and dropped the first, so it is
+  unchanged.
+- **A bulk action (`@ListToolbarButton`) on a filtered listing lost the filter.** Its answer
+  refreshed the listing in place and also pushed the listing's bare path, which dropped the query
+  string holding the filters; the listing then searched again with an emptied state. An in-place
+  refresh (bulk/row action, delete, Undo) no longer touches the address (the same fix as the delete
+  case in #1256).
+- **Python: a `GroupBy()` group on an enum field was named `Region.North`** instead of `North`,
+  so no row matched its group. Group values now follow Java's `String.valueOf`: an enum is its
+  member name (or its own `__str__`), `None` is `null`, a bool `true`/`false`.
+
+### Fixed — validation and disabled fields
+
+- `@NotBlank` is checked. The field showed as required, but no condition reached the browser and the
+  server's check before an action ignored it, so `"   "` or no value at all went through. The browser
+  and the server now refuse a blank value (empty after trimming) with "Cannot be empty", like
+  `@NotEmpty`. The CRUD edit drawer's message for it is now translated too.
+- `@Disabled("expr")` / `@DisabledUnless` disable every kind of field on Vaadin. Only the text field
+  and the switch read the flag: a checkbox, a number, an integer, a slider, a star rating, a date,
+  a time, a select, a combo box, a radio group, a list box, a multi-select, a money field, a colour,
+  a link, a lookup, an image and a file upload stayed editable while the rule held.
+- Docs: the validation page said any custom `@Constraint` is picked up automatically. Only the
+  built-in constraints are read; the page now lists them and shows how to check your own rule.
+
+### Fixed — zones
+
+- **`@Zones` whose widths add up to 100% no longer overflow the page by the column gap.** A row
+  like `@Zone(width = "62%")` + `@Zone(width = "38%")` was sent as the grid tracks `62% 38%`, so
+  with the gap beside them the right column was clipped by ~16px and the page scrolled sideways.
+  When every zone of a row is a percentage the tracks are now sent as `fr` (`62fr 38fr`): same
+  ratio, sharing what the gap leaves. Rows with a length or a leftover column are unchanged, and
+  they still stack below 40rem. Same rule in the .NET and Python ports (conformance case `zones`).
+- Docs: component communication no longer says a `UICommand` has to be wrapped in a `List` — one
+  returned on its own is sent as a command.
+
+### Fixed — Python long tasks
+
+- **A Python `@button` / `@toolbar` / `@action` declared `-> LongTaskRun` now streams** — it is
+  advertised with `sse`, as .NET does for a `LongTaskRun` return type and Java for a `Flux`. Before,
+  only a wizard's completion action was inferred: the client called `/sync`, the task ran to the
+  end and nothing streamed. An unannotated method still needs `@action_options(sse=True)`, and an
+  `@action_options` without `sse` does not switch the inferred streaming off (like .NET).
+
+### Fixed — Figma kit
+
+- An empty `#flags` marker row no longer leaves a 100 px gap under a component (a TextField in a
+  Section's slot came out 202 px tall). The plugin's new command **Repair: collapse empty marker
+  rows** fixes an existing library in place.
+
+### Changed — examples
+
+- The starters, guides and workshop examples point at 3.0.0.
+
+## [3.0-beta.65 – 3.0.0] — 2026-11-13 to 2026-11-15
+
 ### Added — message page
 
 - **`MessagePage`, a page template for a page that stands on its own** — a confirmation, "check
