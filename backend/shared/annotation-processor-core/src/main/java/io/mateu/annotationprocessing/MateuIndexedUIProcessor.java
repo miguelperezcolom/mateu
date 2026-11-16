@@ -4,8 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 
@@ -27,7 +25,6 @@ import javax.lang.model.element.TypeElement;
  * the processor path, not from the sources).
  */
 @SupportedAnnotationTypes("*")
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class MateuIndexedUIProcessor extends MateuUIAnnotationProcessor {
 
   static final String MATEU_CONTROLLER_SUFFIX = "MateuController";

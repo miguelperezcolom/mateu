@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  A Spring Boot application shaped like one start.spring.io generates, using Mateu through ONE
+  dependency (io.mateu:mateu-spring-boot-starter) and ONE annotation processor entry
+  (io.mateu:mateu-annotation-processor-mvc). Everything Spring is versioned by the Spring Boot parent
+  alone: nothing below overrides a Spring version. CI builds and tests it (examples.yml, "Spring
+  Boot compatibility"), with Maven and with Gradle (build.gradle next to this file).
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.2</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>com.example</groupId>
+    <artifactId>demo-spring-boot-starter</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>demo-spring-boot-starter</name>
+    <description>The smallest Mateu app on Spring Boot: one starter, one processor</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <!-- Tracks master: the starter is newer than the last release. Build the backend first
+             (cd backend && mvn install -DskipTests), or pass -Dmateu.version=<a release that has it>. -->
+        <mateu.version>0.0.1-MATEU</mateu.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-spring-boot-starter</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- Generates one Spring MVC controller per @UI class (compile time only). Once
+                         annotationProcessorPaths is set nothing else on the classpath runs, so list
+                         every processor you use here (Lombok too). -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>io.mateu</groupId>
+                            <artifactId>mateu-annotation-processor-mvc</artifactId>
+                            <version>${mateu.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

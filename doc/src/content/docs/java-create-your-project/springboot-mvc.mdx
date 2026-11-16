@@ -6,6 +6,67 @@ import YouTube from '../../../components/YouTube.astro';
 
 <YouTube id="u1Nhg5I45gw" title="Mateu on Spring MVC" />
 
+## The simplest way: the Spring Boot starter
+
+Add **one dependency** and **one annotation processor** to any Spring Boot 4 project (Java 21).
+The starter is published from the first release after 3.0.0; on 3.0.0 or older, use the steps
+below.
+
+- `io.mateu:mateu-spring-boot-starter` brings Spring MVC (`spring-boot-starter-webmvc`), Mateu's
+  auto-configured MVC runtime (`mateu-mvc`) and the Vaadin web renderer (`mateu-vaadin`). It sets
+  no Spring version: your Spring Boot dependency management decides them all.
+- `io.mateu:mateu-annotation-processor-mvc` is the compile-time code generator (one Spring MVC
+  controller per `@UI` class). It goes where Lombok goes — the processor path, never the runtime
+  classpath — and it is a single entry: it already carries the UI indexer.
+
+Maven:
+
+```xml
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>mateu-spring-boot-starter</artifactId>
+    <version>MATEU_VERSION</version>
+</dependency>
+```
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <configuration>
+        <!-- once this list is set nothing else on the classpath runs: list Lombok here too if you use it -->
+        <annotationProcessorPaths>
+            <path>
+                <groupId>io.mateu</groupId>
+                <artifactId>mateu-annotation-processor-mvc</artifactId>
+                <version>MATEU_VERSION</version>
+            </path>
+        </annotationProcessorPaths>
+    </configuration>
+</plugin>
+```
+
+Gradle:
+
+```groovy
+dependencies {
+    implementation 'io.mateu:mateu-spring-boot-starter:MATEU_VERSION'
+    annotationProcessor 'io.mateu:mateu-annotation-processor-mvc:MATEU_VERSION'
+}
+```
+
+Then write a `@UI` class (see [Step 4](#step-4-create-your-mateu-ui)) and run the app. The
+[`demo/demo-spring-boot-starter`](https://github.com/miguelperezcolom/mateu/tree/master/demo/demo-spring-boot-starter)
+project is exactly this — a `pom.xml` and a `build.gradle` shaped like the ones start.spring.io
+generates — and CI builds and tests it with both, on Spring Boot's own dependency management.
+
+The `mateu.*` settings (CORS, MCP, public base path, uploads…) are described in the jar's
+configuration metadata, so your IDE completes and documents them in `application.properties`; the
+full list is in [Configuration properties](/java-create-your-project/configuration/).
+
+The steps below do the same by hand, with Mateu's BOM — use them when you want the Redwood renderer
+instead of Vaadin, or to pick each artifact yourself.
+
 ## Step 1: Have a Spring Boot web project
 
 You need a valid Spring Boot project with **Web (MVC)** enabled. If you do not have one, create it

@@ -16,6 +16,8 @@
   <modules>
     <module>mvc-core</module>
     <module>annotation-processor-mvc</module>
+    <!-- io.mateu:mateu-spring-boot-starter: mvc-core + the Vaadin renderer, one dependency -->
+    <module>spring-boot-starter</module>
   </modules>
 
 </project>
