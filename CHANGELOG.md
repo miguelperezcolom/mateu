@@ -56,6 +56,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - Docs: component communication no longer says a `UICommand` has to be wrapped in a `List` — one
   returned on its own is sent as a command.
 
+### Fixed — validation and disabled fields
+
+- `@NotBlank` is checked. The field showed as required, but no condition reached the browser and the
+  server's check before an action ignored it, so `"   "` or no value at all went through. The browser
+  and the server now refuse a blank value (empty after trimming) with "Cannot be empty", like
+  `@NotEmpty`. The CRUD edit drawer's message for it is now translated too.
+- `@Disabled("expr")` / `@DisabledUnless` disable every kind of field on Vaadin. Only the text field
+  and the switch read the flag: a checkbox, a number, an integer, a slider, a star rating, a date,
+  a time, a select, a combo box, a radio group, a list box, a multi-select, a money field, a colour,
+  a link, a lookup, an image and a file upload stayed editable while the rule held.
+- Docs: the validation page said any custom `@Constraint` is picked up automatically. Only the
+  built-in constraints are read; the page now lists them and shows how to check your own rule.
+
 ### Fixed — rc.2 web
 
 - A non-root YAML mount keeps its address on Vaadin: a reload no longer lands in another app.

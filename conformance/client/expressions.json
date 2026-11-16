@@ -16,7 +16,8 @@
       "email": "ana@example.com",
       "from": "2026-01-01",
       "to": "2026-02-01",
-      "numStr": "42"
+      "numStr": "42",
+      "blank": "   "
     },
     "data": { "total": 12.5 },
     "appState": { "hotel": "H1" },
@@ -137,6 +138,21 @@
       "name": "server @NotNull condition on a number 0 (a value, Bean semantics)",
       "expr": "state['zero'] != null && state['zero'] !== '' && (state['zero'].length === undefined || state['zero'].length > 0)",
       "expected": true
+    },
+    {
+      "name": "server @NotBlank condition, text present",
+      "expr": "state['name'] != null && state['name'] !== '' && (state['name'].length === undefined || state['name'].length > 0) && /\\S/.test(state['name'])",
+      "expected": true
+    },
+    {
+      "name": "server @NotBlank condition, only whitespace",
+      "expr": "state['blank'] != null && state['blank'] !== '' && (state['blank'].length === undefined || state['blank'].length > 0) && /\\S/.test(state['blank'])",
+      "expected": false
+    },
+    {
+      "name": "server @NotBlank condition, absent",
+      "expr": "state['missing'] != null && state['missing'] !== '' && (state['missing'].length === undefined || state['missing'].length > 0) && /\\S/.test(state['missing'])",
+      "expected": false
     },
     { "name": "server @Min condition, absent value passes", "expr": "state['missing'] == null || state['missing'] === '' || state['missing'] >= 18", "expected": true },
     { "name": "server @Min condition, low value fails", "expr": "state['age'] == null || state['age'] === '' || state['age'] >= 31", "expected": false },

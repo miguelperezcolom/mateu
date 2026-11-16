@@ -25,7 +25,7 @@ export function renderColorField(host: MateuField, value: FieldValue, label: Fie
                 .helperText="${host.helperText()}"
                 data-colspan="${host.field.colspan}"
         >
-            <input type="color" aria-label="${label ?? ''}" .value="${colorInputValue(value)}" @input="${(e: Event) => {
+            <input ?disabled="${host.field.disabled}" type="color" aria-label="${label ?? ''}" .value="${colorInputValue(value)}" @input="${(e: Event) => {
                 host.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                     detail: {
                         value: (e.target as HTMLInputElement).value,

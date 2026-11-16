@@ -50,6 +50,10 @@ export class MateuMoneyField extends LitElement {
     @property()
     colspan?: string
 
+    /** `@Disabled` / `@DisabledUnless`: the amount and its currency cannot be changed. */
+    @property({ type: Boolean, reflect: true })
+    disabled = false
+
     @property()
     helperText?: string
 
@@ -130,11 +134,13 @@ export class MateuMoneyField extends LitElement {
                     .helperText="${this.helperText}"
                     ?autofocus="${this.autofocus}"
                     ?required="${this.required || nothing}"
+                    ?disabled="${this.disabled}"
                     theme="align-right"
             ><div slot="prefix"><vaadin-select
                     item-label-path="label"
                     item-value-path="value"
                     .items="${this.currencies()}"
+                    ?disabled="${this.disabled}"
                     @value-changed="${this.currencyChanged}"
                     .value="${this.amount?.currency ?? this.empty.currency}"
                     style="max-width: 100px;"

@@ -18,7 +18,7 @@ export function renderLinkField(host: MateuField, value: FieldValue, label: Fiel
         ><a href="${ifDefined(safeHref(value))}">${value}</a></vaadin-custom-field>`
     }
     return html`
-                <vaadin-text-field
+                <vaadin-text-field ?disabled="${host.field.disabled}"
                         id="${host.field.fieldId}"
                         placeholder="${host.field.placeholder ?? nothing}"
                         label="${label}"

@@ -22,7 +22,7 @@ export function renderImageField(host: MateuField, value: FieldValue, label: Fie
                 data-colspan="${host.field.colspan}"
         >
             <div style="display: flex; flex-direction: column; align-items: flex-start; gap: var(--lumo-space-s); width: 100%;">
-                <vaadin-text-field
+                <vaadin-text-field ?disabled="${host.field.disabled}"
                         class="mateu-image-url"
                         accessible-name="${label ?? nothing}"
                         placeholder="${host.field.placeholder ?? nothing}"
@@ -78,21 +78,21 @@ export function renderUploadableImageField(host: MateuField, value: FieldValue, 
                     </div>`}
                 <input type="file" accept="image/*" style="display: none;" @change="${host.imageUpload}">
                 <vaadin-horizontal-layout theme="spacing" style="justify-content: flex-start;">
-                    <vaadin-button @click="${host.triggerImageUpload}">
+                    <vaadin-button ?disabled="${host.field.disabled}" @click="${host.triggerImageUpload}">
                         <vaadin-icon icon="vaadin:upload" slot="prefix"></vaadin-icon>
                         ${hasImage ? chromeText('replace') : chromeText('upload')}
                     </vaadin-button>
-                    <vaadin-button theme="tertiary" class="mateu-image-use-url"
+                    <vaadin-button ?disabled="${host.field.disabled}" theme="tertiary" class="mateu-image-use-url"
                             aria-expanded="${urlBoxOpen.has(host) ? 'true' : 'false'}" @click="${toggleUrlBox}">
                         <vaadin-icon icon="vaadin:link" slot="prefix"></vaadin-icon>
                         ${chromeText('useImageUrl')}
                     </vaadin-button>
-                    ${hasImage ? html`<vaadin-button theme="error tertiary" @click="${host.imageDelete}">
+                    ${hasImage ? html`<vaadin-button ?disabled="${host.field.disabled}" theme="error tertiary" @click="${host.imageDelete}">
                         <vaadin-icon icon="vaadin:trash" slot="prefix"></vaadin-icon>
                         ${chromeText('delete')}
                     </vaadin-button>` : nothing}
                 </vaadin-horizontal-layout>
-                ${urlBoxOpen.has(host) ? html`<vaadin-text-field
+                ${urlBoxOpen.has(host) ? html`<vaadin-text-field ?disabled="${host.field.disabled}"
                         class="mateu-image-url"
                         accessible-name="${chromeText('imageUrl')}"
                         placeholder="${IMAGE_URL_PLACEHOLDER}"

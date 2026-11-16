@@ -12,7 +12,7 @@ export function renderRadioField(host: MateuField, value: FieldValue, label: Fie
         host.requestRemoteOptions(coords.action)
 
         return html`
-        <vaadin-radio-group
+        <vaadin-radio-group ?disabled="${host.field.disabled}"
                 id="${host.field.fieldId}"
                 label="${label}"
                 @value-changed="${selectValueChanged(host, host.data[host.id]?.content)}"
@@ -48,7 +48,7 @@ export function renderRadioField(host: MateuField, value: FieldValue, label: Fie
     }
     const options = host.field.optionsSource ? sourcedOptions(host) : host.field.options
     return html`
-        <vaadin-radio-group
+        <vaadin-radio-group ?disabled="${host.field.disabled}"
                 id="${host.field.fieldId}"
                 label="${label}"
                 @value-changed="${selectValueChanged(host, options)}"

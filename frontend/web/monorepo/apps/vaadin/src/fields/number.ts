@@ -7,7 +7,7 @@ import type { ValueChangedDetail } from './fieldEvents'
 
 export function renderNumberField(host: MateuField, _fieldId: string, value: FieldValue, label: FieldLabel, _labelText: string): TemplateResult {
     if (!host.field) return html``
-        return html`<vaadin-number-field
+        return html`<vaadin-number-field ?disabled="${host.field.disabled}"
                 placeholder="${host.field?.placeholder ?? nothing}"
                 autocomplete="${host.field?.autocomplete ?? nothing}"
                     id="${host.field.fieldId}"
@@ -41,8 +41,8 @@ export function renderIntegerField(host: MateuField, _fieldId: string, value: Fi
                 >${values.map(index => html`
                 <vaadin-icon 
                         icon="vaadin:star" 
-                        style="cursor: pointer; color: var(${index <= renderValue?'--lumo-warning-color':'--lumo-shade-30pct'});"
-                        @click="${() => host.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
+                        style="cursor: ${host.field!.disabled ? 'default' : 'pointer'}; color: var(${index <= renderValue?'--lumo-warning-color':'--lumo-shade-30pct'});"
+                        @click="${() => !host.field!.disabled && host.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                             detail: {
                                 value: index,
                                 fieldId: host.field!.fieldId
@@ -65,7 +65,7 @@ export function renderIntegerField(host: MateuField, _fieldId: string, value: Fi
                         label="${label}"
                         .helperText="${host.helperText()}"
                         data-colspan="${host.field.colspan}"
-                ><input type="range" aria-label="${label ?? ''}" @input="${(e: Event) => {
+                ><input ?disabled="${host.field.disabled}" type="range" aria-label="${label ?? ''}" @input="${(e: Event) => {
                     host.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                         detail: {
                             value: (e.target as HTMLInputElement).value,
@@ -78,7 +78,7 @@ export function renderIntegerField(host: MateuField, _fieldId: string, value: Fi
             `
         }
         return html`
-            <vaadin-integer-field
+            <vaadin-integer-field ?disabled="${host.field.disabled}"
                     placeholder="${host.field?.placeholder ?? nothing}"
                 autocomplete="${host.field?.autocomplete ?? nothing}"
                     id="${host.field.fieldId}"
