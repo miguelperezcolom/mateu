@@ -232,6 +232,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   on the server (`selected` on the wire; a query no longer unselects the entry, and an entry spelled
   with the mount matches a mount-relative route) and in the Vaadin shell (the band marked the FIRST
   entry covering the route, so «Open orders» won).
+- A deep link to a routes.yaml route under an app mount (`/shop/orders/pending`) opens inside the
+  app — its menu and chrome — on WebFlux, Quarkus and Helidon too. Those adapters resolve mounts
+  through pre-compiled route resolvers, which the shell lookup did not ask, so the route's view
+  model rendered alone (MVC and Micronaut were right).
 
 ### Changed — examples
 
