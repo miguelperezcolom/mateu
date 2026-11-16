@@ -16,11 +16,11 @@ Elige: autoría **Code**, runtime **Spring Boot (MVC)** / **.NET** / **Python**,
 plantilla **Back office: Product CRUD**, artifact **`workshop`**, paquete `com.example.workshop`.
 
 Solo Java, sin IDE:
-`mvn archetype:generate -DarchetypeGroupId=io.mateu -DarchetypeArtifactId=mateu-archetype -DarchetypeVersion=3.0-beta.64 -DgroupId=com.example -DartifactId=workshop -Dpackage=com.example.workshop`
+`mvn archetype:generate -DarchetypeGroupId=io.mateu -DarchetypeArtifactId=mateu-archetype -DarchetypeVersion=3.0.0 -DgroupId=com.example -DartifactId=workshop -Dpackage=com.example.workshop`
 
 > **¿Sin tiempo o sin plugin?** Abre `labs/01-first-app/<tu itinerario>/start/`: es exactamente lo
 > que genera el asistente. (Los asistentes escriben la última versión de Mateu; los labs están
-> verificados con 3.0-beta.64, que es la que fija `start/`. Si algo no cuadra, sigue desde `start/`.)
+> verificados con 3.0.0, que es la que fija `start/`. Si algo no cuadra, sigue desde `start/`.)
 
 Échale un vistazo: es pequeño.
 

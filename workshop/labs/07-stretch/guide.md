@@ -27,7 +27,7 @@ run `mvn test` / `dotnet test` / `pytest` — the harness of lab 03 checks what 
 
 ## D. Drive a user's live session from the server — *coming in the next release*
 
-> **Not in 3.0-beta.64.** At the time of writing this is being built on a branch and has not reached
+> **Not in 3.0.0.** At the time of writing this is being built on a branch and has not reached
 > `master` or a release. Do not try it on the workshop's version.
 
 The plan: an agent paired with a user's open UI (as in lab 05) reads the screen the user is looking
@@ -37,7 +37,7 @@ will walk through it on the Quote screen.
 
 ## E. The desktop app as an MCP server — *coming in the next release*
 
-> **Not in 3.0-beta.64.** It exists on a branch, not in a release.
+> **Not in 3.0.0.** It exists on a branch, not in a release.
 
 An opt-in in the desktop app's *Settings › Mateu › AI agents (MCP)* will make the desktop app itself
 an MCP server, so an agent can operate the UIs you have open in it.

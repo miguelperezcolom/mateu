@@ -72,7 +72,7 @@ https://swapi.mateu.io es una API pública de Star Wars que responde a navegador
 Una página que la usa, fichero nuevo `planets.yaml`:
 
 ```yaml
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0-beta.64/backend/shared/uidl/uidl-schema.json
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0.0/backend/shared/uidl/uidl-schema.json
 pageType: collection
 type: Listing
 title: Planets
