@@ -21,6 +21,8 @@ interface Props {
   onMove: (entry: HubEntry, delta: number) => void;
   onExport: () => void;
   onAbout: () => void;
+  /** A line above the list when the stored list could not be read (uiStore ListHealth). */
+  notice?: string;
 }
 
 /**
@@ -28,7 +30,7 @@ interface Props {
  * Each row's actions (remove, reorder) are one tap away — its "⋮" button or a long press open them in a bottom sheet — besides the
  * edit mode, which shows them on every row at once.
  */
-export function HomeScreen({ entries, openIds, pending, onOpen, onAdd, onAddDemo, onRemove, onMove, onExport, onAbout }: Props) {
+export function HomeScreen({ entries, openIds, pending, onOpen, onAdd, onAddDemo, onRemove, onMove, onExport, onAbout, notice }: Props) {
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
@@ -46,6 +48,10 @@ export function HomeScreen({ entries, openIds, pending, onOpen, onAdd, onAddDemo
         )}
         {!editing && <Appbar.Action icon="information-outline" onPress={onAbout} accessibilityLabel="About Mateu" />}
       </HubBar>
+
+      {!!notice && (
+        <Text style={styles.notice} accessibilityRole="alert">{notice}</Text>
+      )}
 
       {entries.length === 0 ? (
         <View style={hubStyles.centered}>
@@ -260,8 +266,8 @@ function EntryRow({
         onLongPress={editing ? undefined : onMore}
         delayLongPress={400}
         accessibilityRole="button"
-        accessibilityLabel={`${entry.name}, ${domain}${running ? ', open' : ''}${pending ? `, ${pendingText(pending)}` : ''}`}
-        accessibilityHint="Opens this UI"
+        accessibilityLabel={`${entry.name}, ${domain}${entry.invalid ? ', address no longer accepted' : ''}${running ? ', open' : ''}${pending ? `, ${pendingText(pending)}` : ''}`}
+        accessibilityHint={entry.invalid ? 'Explains why it cannot be opened' : 'Opens this UI'}
         accessibilityActions={[
           ...(!first ? [{ name: 'moveUp', label: 'Move up' }] : []),
           ...(!last ? [{ name: 'moveDown', label: 'Move down' }] : []),
@@ -273,7 +279,7 @@ function EntryRow({
           else if (e.nativeEvent.actionName === 'remove') onRemove();
         }}
       >
-        <View style={styles.rowInner}>
+        <View style={[styles.rowInner, entry.invalid ? styles.rowInvalid : null]}>
           <View>
             <UiIcon name={entry.name} icon={entry.icon} color={entry.themeColor} size={40} />
             {running && <View style={styles.runningDot} />}
@@ -281,6 +287,7 @@ function EntryRow({
           <View style={styles.rowText}>
             <Text style={styles.rowName} numberOfLines={1}>{entry.name}</Text>
             <Text style={styles.rowDomain} numberOfLines={1}>{running ? `${domain} · open` : domain}</Text>
+            {!!entry.invalid && <Text style={styles.rowInvalidText} numberOfLines={2}>{`Can't be opened: ${entry.invalid}`}</Text>}
             {pending > 0 && <Text style={styles.rowPending} numberOfLines={1}>{pendingText(pending)}</Text>}
           </View>
         </View>
@@ -305,6 +312,9 @@ const pendingText = (n: number) => (n === 1 ? '1 change pending' : `${n} changes
 
 const styles = themed(() => StyleSheet.create({
   rowPending: { color: theme.warning, fontSize: 12, fontWeight: '600' },
+  rowInvalid: { opacity: 0.6 },
+  rowInvalidText: { color: theme.danger, fontSize: 12 },
+  notice: { color: theme.warning, backgroundColor: theme.warningBg, fontSize: 14, paddingHorizontal: theme.spacing.md, paddingVertical: theme.spacing.sm },
   search: { marginHorizontal: theme.spacing.md, marginTop: theme.spacing.sm, backgroundColor: theme.background },
   list: { paddingVertical: theme.spacing.sm, paddingBottom: 96 },
   divider: { marginLeft: 72 },

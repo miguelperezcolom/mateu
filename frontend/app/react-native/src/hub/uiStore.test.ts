@@ -1,6 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEMO_BASE_URL, ENTRIES_KEY, SEEDED_KEY, UiStore, searchEntries, uiSecretKeys } from './uiStore.ts';
+import {
+  DEMO_BASE_URL,
+  ENTRIES_KEY,
+  SEEDED_KEY,
+  UNREADABLE_KEY,
+  UiStore,
+  searchEntries,
+  uiSecretKeys,
+} from './uiStore.ts';
 import { hubBarSignsOut, uiSessionId } from './uiSession.ts';
 import { exportLink, parseHubLink } from './links.ts';
 import type { KeyValueStore } from '../core/sessionId.ts';
@@ -132,21 +140,24 @@ test('applyManifest renames and touch stamps lastOpened', async () => {
   assert.ok(e.lastOpened! > e.addedAt);
 });
 
-test('corrupt or hostile stored data is dropped, not trusted', async () => {
-  const meta = memory({
-    [SEEDED_KEY]: '1',
-    [ENTRIES_KEY]: JSON.stringify([
-      { id: 'a', baseUrl: 'javascript:alert(1)' },
-      { id: 'b', baseUrl: 'https://ok.com', name: 'OK' },
-      { id: 'c', baseUrl: 'https://ok.com/' }, // duplicate after normalisation
-      'junk',
-      null,
-    ]),
-  });
+test('hostile stored data is not trusted: a refused address is kept as invalid, junk is put aside', async () => {
+  const raw = JSON.stringify([
+    { id: 'a', baseUrl: 'javascript:alert(1)' },
+    { id: 'b', baseUrl: 'https://ok.com', name: 'OK' },
+    { id: 'c', baseUrl: 'https://ok.com/' }, // duplicate after normalisation
+    'junk',
+    null,
+  ]);
+  const meta = memory({ [SEEDED_KEY]: '1', [ENTRIES_KEY]: raw });
   const { store } = make(meta);
-  assert.deepEqual((await store.load()).map((e) => e.id), ['b']);
-  const broken = make(memory({ [SEEDED_KEY]: '1', [ENTRIES_KEY]: '{not json' })).store;
-  assert.deepEqual(await broken.load(), []);
+  const list = await store.load();
+  assert.deepEqual(list.map((e) => e.id), ['a', 'b']);
+  assert.equal(list[0].invalid, 'Only https addresses can be added.');
+  assert.equal(list[0].baseUrl, 'javascript:alert(1)');
+  assert.equal(list[1].invalid, undefined);
+  // what could not be kept is not lost from the device
+  assert.equal(meta.data[UNREADABLE_KEY], raw);
+  assert.equal(store.health(), 'ok');
 });
 
 test('search matches name, short name and domain', () => {
