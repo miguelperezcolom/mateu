@@ -45,6 +45,17 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   end and nothing streamed. An unannotated method still needs `@action_options(sse=True)`, and an
   `@action_options` without `sse` does not switch the inferred streaming off (like .NET).
 
+### Fixed — zones
+
+- **`@Zones` whose widths add up to 100% no longer overflow the page by the column gap.** A row
+  like `@Zone(width = "62%")` + `@Zone(width = "38%")` was sent as the grid tracks `62% 38%`, so
+  with the gap beside them the right column was clipped by ~16px and the page scrolled sideways.
+  When every zone of a row is a percentage the tracks are now sent as `fr` (`62fr 38fr`): same
+  ratio, sharing what the gap leaves. Rows with a length or a leftover column are unchanged, and
+  they still stack below 40rem. Same rule in the .NET and Python ports (conformance case `zones`).
+- Docs: component communication no longer says a `UICommand` has to be wrapped in a `List` — one
+  returned on its own is sent as a command.
+
 ### Fixed — rc.2 web
 
 - A non-root YAML mount keeps its address on Vaadin: a reload no longer lands in another app.

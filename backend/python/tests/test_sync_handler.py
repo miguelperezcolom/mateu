@@ -1727,6 +1727,17 @@ def test_zones_lay_sections_out_as_side_by_side_columns():
     assert "Main" in j and "Side" in j and "Loose" in j
 
 
+def test_percentage_zones_that_fill_the_row_share_what_the_gap_leaves():
+    from mateu_ui.core.mapper.layout import proportional_zone_tracks
+
+    # 62% + 38% + the column gap overflowed the page: as fr tracks they keep the ratio and fit.
+    assert proportional_zone_tracks(["62%", "38%"]) == ["62fr", "38fr"]
+    assert proportional_zone_tracks(["33.3%", "33.3%", "33.4%"]) == ["33.3fr", "33.3fr", "33.4fr"]
+    # any other track keeps the row as declared
+    assert proportional_zone_tracks(["64%", "36%", "1fr"]) == ["64%", "36%", "1fr"]
+    assert proportional_zone_tracks(["20rem", "1fr"]) == ["20rem", "1fr"]
+
+
 def test_list_of_rows_field_renders_as_a_grid_form_field():
     inc = handler().handle(RunActionRq(route="checkin", consumed_route="checkin"))
     j = render(inc)
