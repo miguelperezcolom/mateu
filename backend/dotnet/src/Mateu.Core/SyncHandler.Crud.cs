@@ -82,6 +82,10 @@ internal sealed partial class SyncHandler
                 && rq.ComponentState.TryGetValue(Naming.CamelCase(p.Name), out var raw) && raw is not null)
                 SetSimple(p, crud, raw);
         var (mode, id) = ParseCrudRoute(baseRoute, rq.Route);
+        // A drawer's Save names no record in its route (it is sent with the listing's): the record
+        // is the one the drawer's form state names. Read off the route alone, a save of an EXISTING
+        // record from the drawer ran as a create and stored a copy under a new id.
+        if (id is null && rq.ActionId == "save" && EditInDrawer(crud)) id = RowId(rq, element);
 
         // The row editing actions of a list property of the entity form (Java resolves the list on
         // the crud's entity class: FieldCrudActionRunner.getViewModelClass).
@@ -313,6 +317,29 @@ internal sealed partial class SyncHandler
         _ => true,
     };
 
+    /// <summary>The state key of a create/edit drawer's form naming the component the drawer was
+    /// opened from (the listing): the save's refresh runs THERE, with the listing's own state.</summary>
+    internal const string DrawerHostKey = "_drawerHost";
+
+    /// <summary>The listing a drawer's save refreshes: the one its form names, else the
+    /// component that sent the request (the listing itself, when it opens the drawer).</summary>
+    private static string DrawerHost(RunActionRqDto rq) =>
+        StateString(GetState(rq.ComponentState, DrawerHostKey)) is { Length: > 0 } host ? host : Target(rq);
+
+    /// <summary>The drawer's form with <see cref="DrawerHostKey"/> in its initial data.</summary>
+    private static ServerSideComponentDto WithDrawerHost(ServerSideComponentDto form, RunActionRqDto rq) =>
+        form with { InitialData = WithDrawerHost(form.InitialData, rq)! };
+
+    private static object? WithDrawerHost(object? initialData, RunActionRqDto rq)
+    {
+        if (initialData is not null and not IDictionary<string, object?>) return initialData;
+        var data = initialData is IDictionary<string, object?> map
+            ? new Dictionary<string, object?>(map)
+            : new Dictionary<string, object?>();
+        data[DrawerHostKey] = DrawerHost(rq);
+        return data;
+    }
+
     private static bool EditInDrawer(object crud) =>
         crud.GetType().GetProperty("EditInDrawer")?.GetValue(crud) as bool? ?? false;
 
@@ -338,7 +365,8 @@ internal sealed partial class SyncHandler
         Type crudType, Type element, object entity, string mode, string route, RunActionRqDto rq, object crud,
         object? initialData = null, string? errorMessage = null)
     {
-        ComponentDto form = _mapper.MapEntityForm(crudType, element, entity, mode, route, crud as ICrudAffordances);
+        ComponentDto form = WithDrawerHost(
+            _mapper.MapEntityForm(crudType, element, entity, mode, route, crud as ICrudAffordances), rq);
         if (errorMessage is not null)
             form = new ClientSideComponentDto(new VerticalLayoutMetadataDto(), null,
             [
@@ -350,7 +378,7 @@ internal sealed partial class SyncHandler
         var width = crudType.GetProperty("EditDrawerWidth")?.GetValue(crud) as string ?? "36rem";
         var drawer = new ClientSideComponentDto(
             new DrawerMetadataDto("crud-edit-drawer", mode == "new" ? "New" : "Edit", form)
-                { Width = width, InitialData = initialData },
+                { Width = width, InitialData = initialData is null ? null : WithDrawerHost(initialData, rq) },
             "crud-edit-drawer", [], null, null, null);
         return new UIFragmentDto(Target(rq), drawer, null,
             LookupLabels(element, entity, Activator.CreateInstance(crudType)!), "Add", null);
@@ -488,7 +516,7 @@ internal sealed partial class SyncHandler
                     UICommandDto.MarkAsClean() with { TargetComponentId = Target(rq) },
                     UICommandDto.DispatchEvent(SavedInDrawerEvent) with { TargetComponentId = Target(rq) },
                     new UICommandDto(Target(rq), "RunAction",
-                        new { actionId = "search", targetComponentId = Target(rq) }),
+                        new { actionId = "search", targetComponentId = DrawerHost(rq) }),
                 ],
                 messages: [new MessageDto("success", "middle", "", "Saved", 3000)],
                 fragments: [CrudDrawerFragment(crudType, element, next, "edit", $"{baseRoute}/{nextId}/edit", rq,
@@ -503,8 +531,11 @@ internal sealed partial class SyncHandler
                 [
                     new UICommandDto(Target(rq), "MarkAsClean", null),
                     UICommandDto.CloseModal(SavedInDrawerEvent) with { TargetComponentId = Target(rq) },
+                    // the LISTING searches again, with its own filters: run by the drawer's form
+                    // (the component that sent the save), the search bubbled to the listing
+                    // carrying the drawer's values as the state, read as filters
                     new UICommandDto(Target(rq), "RunAction",
-                        new { actionId = "search", targetComponentId = Target(rq) }),
+                        new { actionId = "search", targetComponentId = DrawerHost(rq) }),
                 ],
                 messages: [new MessageDto("success", "middle", "", "Saved", 3000)]);
         }

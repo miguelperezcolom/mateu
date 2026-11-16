@@ -160,6 +160,10 @@ class RunActionRq(BaseModel):
 # search (mirrors Java's Crud.SAVED_IN_DRAWER_EVENT).
 SAVED_IN_DRAWER_EVENT = "mateu-crud:saved-in-drawer"
 
+# The state key of a create/edit drawer's form naming the component the drawer was opened from
+# (the listing): the save's refresh runs THERE, with the listing's own state and filters.
+DRAWER_HOST_KEY = "_drawerHost"
+
 log = logging.getLogger("mateu.sync")
 
 #: The routes.yaml entry matched for the request in flight. Per REQUEST, so it lives in a

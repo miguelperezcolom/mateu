@@ -125,6 +125,32 @@ def test_create_persists_closes_the_drawer_emitting_the_saved_event_and_reruns_t
     assert inc.messages[0].text == "Saved"
 
 
+def test_saving_an_existing_record_from_the_drawer_updates_it_and_refreshes_the_listing():
+    reset()
+    opened = handler().handle(
+        RunActionRq(route="/drawer-contacts", actionId="view",
+                    serverSideType=f"{__name__}.DrawerContacts", initiatorComponentId="ux_list",
+                    parameters={"id": "1"})
+    )
+    form = opened.fragments[0].component.metadata.content
+    state = dict(form.initial_data)
+    assert state["_drawerHost"] == "ux_list"
+    state["name"] = "Ada Lovelace"
+    before = len(STORED)
+    # sent by the drawer's form, with the LISTING's route: no record id in it
+    saved = handler().handle(
+        RunActionRq(route="/drawer-contacts", actionId="save",
+                    serverSideType=f"{__name__}.DrawerContacts", initiatorComponentId=form.id,
+                    componentState=state)
+    )
+    assert len(STORED) == before, "updated, not copied under a new id"
+    assert [c.name for c in STORED if c.id == "1"] == ["Ada Lovelace"]
+    # the refresh runs on the listing (its own filters), not on the drawer's form, whose values
+    # would be read as the listing's filters
+    refresh = next(c for c in saved.commands if c.type == "RunAction")
+    assert refresh.data["targetComponentId"] == "ux_list"
+
+
 def test_cancel_just_closes_the_drawer():
     reset()
     inc = handler().handle(

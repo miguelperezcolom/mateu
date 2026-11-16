@@ -27,6 +27,17 @@ public final class RoutedPage {
   /** The page's consumed route, in its state. */
   public static final String ROUTE_KEY = "_pageRoute";
 
+  /**
+   * The id of the record a {@code view} / {@code edit} page shows, in its state. The page's model
+   * need not have a field holding it (a crud's view class is often a card without the id: {@code
+   * CustomerCard(name, email…)}), and the page's own route is the crud's — so its Edit, opened from
+   * a row, went to {@code <crud>/null/edit}.
+   */
+  public static final String RECORD_KEY = "_recordId";
+
+  /** Request attribute the record page resolvers set to the id of the record they render. */
+  public static final String RECORD_ATTRIBUTE = "mateu.routedPage.recordId";
+
   private RoutedPage() {}
 
   /** The routed views whose page carries its whereabouts. */
@@ -37,6 +48,12 @@ public final class RoutedPage {
   /** The page state with its id and route added (a copy: the original may be the user's map). */
   @SuppressWarnings("unchecked")
   static Object stamp(Object state, String pageId, String consumedRoute) {
+    return stamp(state, pageId, consumedRoute, null);
+  }
+
+  /** {@link #stamp(Object, String, String)} plus the id of the record the page shows, if known. */
+  @SuppressWarnings("unchecked")
+  static Object stamp(Object state, String pageId, String consumedRoute, String recordId) {
     if (state != null && !(state instanceof Map<?, ?>)) {
       return state;
     }
@@ -46,6 +63,9 @@ public final class RoutedPage {
     }
     stamped.put(ID_KEY, pageId);
     stamped.put(ROUTE_KEY, consumedRoute);
+    if (recordId != null && !recordId.isEmpty()) {
+      stamped.put(RECORD_KEY, recordId);
+    }
     return stamped;
   }
 
@@ -59,14 +79,23 @@ public final class RoutedPage {
     return read(httpRequest, ROUTE_KEY);
   }
 
+  /** The id of the record the page that sent this action shows, or null when it did not say. */
+  public static String recordId(HttpRequest httpRequest) {
+    return read(httpRequest, RECORD_KEY);
+  }
+
   /** The state without the page's whereabouts — what the app's own code reads. */
   public static Map<String, Object> without(Map<String, Object> state) {
-    if (state == null || (!state.containsKey(ID_KEY) && !state.containsKey(ROUTE_KEY))) {
+    if (state == null
+        || (!state.containsKey(ID_KEY)
+            && !state.containsKey(ROUTE_KEY)
+            && !state.containsKey(RECORD_KEY))) {
       return state;
     }
     var clean = new LinkedHashMap<>(state);
     clean.remove(ID_KEY);
     clean.remove(ROUTE_KEY);
+    clean.remove(RECORD_KEY);
     return clean;
   }
 

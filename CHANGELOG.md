@@ -23,6 +23,27 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   IntelliJ / VS Code "New › Mateu" page templates. Demo: `demo-museum` `visit-booked` and `sign-in`.
   Docs `ux-patterns/message-page.md`.
 
+### Fixed — CRUD drawers and record pages
+
+- Java: an `editInDrawer()` crud reached as a `@Menu` entry of an app shell saves the record the
+  drawer edits. The save was sent with the app's route (`/rates`, consumed `""`) and the crud's own
+  segment was read as the record id, so every save answered "This record no longer exists". In
+  drawer mode the id comes from the drawer's state (AutoCrud and capability listings).
+- Java: Edit on the record page of a `Crud<View, Editor, …>` whose view has no id field (a
+  `CustomerCard`) opens that record's editor. It went to `/customers/null/edit` when the record had
+  been opened from a row. The record page now carries the id of the record it shows in its state.
+- .NET and Python: saving an existing record from an `EditInDrawer` / `@edit_in_drawer` drawer
+  updates it. It used to store a copy under a new id. The refresh after the save runs on the
+  listing with the listing's own filters. It used to send the drawer's values as filters, so the
+  listing showed only matching rows or "Nothing here yet".
+- .NET: Edit on the record page of an `IListing` + `INavigable` + `IEditable` listing opens the
+  editor of the record its route names. It answered 403 "You are not allowed to do this".
+- Web: two `CloseModal` commands in one answer close the two topmost overlays. After "Overwrite"
+  in the optimistic-lock dialog over an edit drawer, the second one closed the fading dialog again
+  and the drawer stayed open.
+- Java: a crud that cannot delete shows no row selection boxes unless something uses the selection
+  (a `@ListToolbarButton` or `@DragRows`).
+
 ### Fixed — rc.2 web
 
 - A non-root YAML mount keeps its address on Vaadin: a reload no longer lands in another app.

@@ -58,7 +58,10 @@ internal sealed partial class SyncHandler
             // Navigable: the row click navigates to the read-only detail route.
             "view" when profile.CanView && CapabilityRowId(rq, profile) is { } viewId =>
                 UIIncrementDto.Of(commands: [new UICommandDto(Target(rq), "NavigateTo", $"{baseRoute}/{viewId}")]),
-            "edit" when profile.CanEdit && CapabilityRowId(rq, profile) is { } editId =>
+            // Edit on the record's page: the row's id, else the record the page's route names — the
+            // detail need not carry the id (a card of the record), and without the route's the
+            // press fell through to "no such action" and answered 403
+            "edit" when profile.CanEdit && (CapabilityRowId(rq, profile) ?? id) is { } editId =>
                 UIIncrementDto.Of(commands: [new UICommandDto(Target(rq), "NavigateTo", $"{baseRoute}/{editId}/edit")]),
             "new" when profile.CanCreate =>
                 UIIncrementDto.Of(commands: [new UICommandDto(Target(rq), "NavigateTo", $"{baseRoute}/new")]),
@@ -165,8 +168,8 @@ internal sealed partial class SyncHandler
     private UIIncrementDto CapabilityDrawer(
         CapabilityProfile profile, Type formType, object entity, string mode, string route, RunActionRqDto rq)
     {
-        var form = _mapper.MapCapabilityForm(
-            profile.ListingType, formType, entity, readOnly: false, CapabilityToolbar(profile, mode), route);
+        var form = WithDrawerHost(_mapper.MapCapabilityForm(
+            profile.ListingType, formType, entity, readOnly: false, CapabilityToolbar(profile, mode), route), rq);
         var drawer = new ClientSideComponentDto(
             new DrawerMetadataDto("crud-edit-drawer", mode == "new" ? "New" : "Edit", form)
                 { Width = "36rem" },
@@ -222,8 +225,9 @@ internal sealed partial class SyncHandler
                 [
                     new UICommandDto(Target(rq), "MarkAsClean", null),
                     UICommandDto.CloseModal(SavedInDrawerEvent) with { TargetComponentId = Target(rq) },
+                    // the listing the drawer was opened from searches again with its own state
                     new UICommandDto(Target(rq), "RunAction",
-                        new { actionId = "search", targetComponentId = Target(rq) }),
+                        new { actionId = "search", targetComponentId = DrawerHost(rq) }),
                 ],
                 messages: [new MessageDto("success", "middle", "", "Saved", 3000)]);
         return Navigate(profile.CanView && id is not null ? $"{baseRoute}/{id}" : baseRoute, "Saved", rq);

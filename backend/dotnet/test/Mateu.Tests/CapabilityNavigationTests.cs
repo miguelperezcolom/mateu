@@ -118,6 +118,43 @@ public class CapabilityNavigationTests
     }
 
     [Fact]
+    public void Edit_on_the_record_page_goes_to_the_editor_of_the_record_its_route_names()
+    {
+        // the record page's state need not carry the id (a detail card of the record): the route
+        // does — the press used to fall through to "no such action" and answer 403
+        var edit = Run(typeof(NavFullBooks), "/nav-full-books/b1", "edit",
+            new Dictionary<string, object?> { ["title"] = El("El Quijote") });
+        Assert.Equal("/nav-full-books/b1/edit",
+            Assert.Single(edit.Commands, c => c.Type == "NavigateTo").Data);
+    }
+
+    [Fact]
+    public void A_drawer_save_refreshes_the_listing_it_was_opened_from()
+    {
+        var opened = Run(typeof(DrawerFullBooks), "/drawer-full-books", "edit",
+            new Dictionary<string, object?> { ["id"] = El("b1") });
+        var drawer = Assert.IsType<DrawerMetadataDto>(
+            Assert.IsType<ClientSideComponentDto>(Assert.Single(opened.Fragments).Component).Metadata);
+        var form = Assert.IsType<ServerSideComponentDto>(drawer.Content);
+        var state = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(
+                JsonSerializer.Serialize(form.InitialData, Json))!
+            .ToDictionary(e => e.Key, e => (object?)e.Value);
+
+        var saved = new SyncHandler(new MateuRegistry(typeof(PlainBooks).Assembly)).Handle(new RunActionRqDto
+        {
+            Route = "/drawer-full-books",
+            ConsumedRoute = "/drawer-full-books",
+            ServerSideType = typeof(DrawerFullBooks).FullName,
+            ActionId = "save",
+            InitiatorComponentId = form.Id,
+            ComponentState = state,
+        });
+        var refresh = Assert.Single(saved.Commands, c => c.Type == "RunAction");
+        // the listing ("cap_app" opened the drawer) searches with its own state, not the drawer's
+        Assert.Contains("\"targetComponentId\":\"cap_app\"", JsonSerializer.Serialize(refresh.Data, Json));
+    }
+
+    [Fact]
     public void The_edit_route_of_a_navigable_editable_listing_loads_the_editor()
     {
         var editor = Run(typeof(NavFullBooks), "/nav-full-books/b1/edit", "");

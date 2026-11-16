@@ -317,7 +317,10 @@ class ListingHandlerMixin(MixinBase):
                 UICommand(
                     target_component_id=self.target(rq),
                     type="RunAction",
-                    data={"actionId": "search", "targetComponentId": self.target(rq)},
+                    # the LISTING searches again with its own filters: run by the drawer's
+                    # form (which sent the save) it bubbled to the listing carrying the drawer's
+                    # values as the state, read as filters
+                    data={"actionId": "search", "targetComponentId": self.drawer_host(rq)},
                 ),
             ],
             messages=[MessageDto(variant="success", position="middle", title="", text="Saved", duration=3000)],

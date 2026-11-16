@@ -127,26 +127,34 @@ public class CapabilityCrud extends Crud<Object, Object, Object, Object, Object,
 
   /**
    * The id of the record a save edits: the route's, else the posted form's own id (under the
-   * editor's key, else under the row's key the drawer was opened with).
+   * editor's key, else under the row's key the drawer was opened with). A drawer's save names no
+   * record in its route — it is sent with the listing's (or, for a crud that is a menu entry, the
+   * app's) — so there the posted id comes first: read as a record route, the crud's own segment was
+   * taken for the id and every save was refused as "no longer exists".
    */
   @SuppressWarnings("unchecked")
   private Object editedId(String idField, HttpRequest httpRequest) {
-    var fromRoute =
-        io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.CrudIdExtractor
-            .idFromRoute(this, httpRequest);
-    Object raw = fromRoute;
-    if (raw == null && httpRequest.runActionRq() != null) {
+    Object postedId = null;
+    if (httpRequest.runActionRq() != null) {
       var parameters = httpRequest.runActionRq().parameters();
       var posted =
           parameters != null && parameters.get("initiatorState") instanceof java.util.Map<?, ?> m
               ? (java.util.Map<String, Object>) m
               : httpRequest.runActionRq().componentState();
       if (posted != null) {
-        raw = idField != null ? posted.get(idField) : null;
-        if (raw == null) {
-          raw = posted.get(getIdFieldForRow());
+        postedId = idField != null ? posted.get(idField) : null;
+        if (postedId == null) {
+          postedId = posted.get(getIdFieldForRow());
         }
       }
+    }
+    Object raw =
+        editInDrawer() && postedId != null
+            ? postedId
+            : io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.CrudIdExtractor
+                .idFromRoute(this, httpRequest);
+    if (raw == null) {
+      raw = postedId;
     }
     if (raw == null) {
       return null;
