@@ -287,7 +287,7 @@ Groups the annotated field and all following fields under a named section headin
 @Target({ElementType.FIELD, ElementType.METHOD})
 public @interface Section {
     String value();
-    int columns() default 1;
+    int columns() default 0;
     String style() default "";
     String zone() default "";
 }
@@ -298,7 +298,7 @@ public @interface Section {
 | Attribute | Type | Default | Description |
 |---|---|---|---|
 | `value` | `String` | — | Section heading label (required) |
-| `columns` | `int` | `1` | Number of columns inside this section's field grid |
+| `columns` | `int` | `0` | Number of columns inside this section's field grid; `0` (unset) inherits the form's count |
 | `style` | `String` | `""` | Inline CSS for the section container |
 | `zone` | `String` | `""` | Name of the layout zone this section belongs to. Only used when the class is annotated with [`@Zones`](#zones--zone); sections sharing a zone are stacked inside that zone's column |
 | `sticky` | `boolean` | `false` | Pin the section card (`position: sticky`) so it stays in view while the rest of the page scrolls. Handy on a long [`@Toc`](#toc) page for a reference section (e.g. a list you keep glancing at); multiple sticky sections stack under the pinned header |

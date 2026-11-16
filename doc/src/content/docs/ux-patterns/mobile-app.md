@@ -3,7 +3,7 @@ title: Mobile App (Open on Mobile)
 description: One generic Mateu app for iOS and Android that renders any Mateu UI natively — UIs are added by scanning a QR code, like accounts in an authenticator app. The server side (the UI manifest and the "Open on mobile" button) ships today.
 ---
 
-**Status:** 🧪 Experimental (`@Experimental`, mobile app 3.0 beta) — the server side and the app are
+**Status:** 🧪 Experimental (`@Experimental`) — the server side and the app are
 shipped: the Mateu app is on the [App Store](https://apps.apple.com/app/mateu/id6829227403) and in
 Google Play's closed test (see [Status](#status)). For users: [the Mateu app](/native/mateu-app/).
 
@@ -61,7 +61,7 @@ ASP.NET Core and by FastAPI, with `Content-Type: application/json`,
   "themeColor": "#1f6feb",
   "wireVersion": "3.0",
   "minAppVersion": "1.0.0",
-  "mateuVersion": "3.0-beta.33",
+  "mateuVersion": "3.0.0",
   "auth": {
     "type": "oidc",
     "issuer": "https://auth.acme.com/realms/acme",
@@ -110,7 +110,7 @@ Settings win because the identity provider usually changes per environment while
 | `themeColor` | `MATEU_MOBILE_THEME_COLOR` | `themeColor` / `ThemeColor` / `theme_color` | Java: `@App(accentColor)`; else omitted |
 | `wireVersion` | — | — | the server's wire version, the same value every response carries (`"3.0"`; servers before 3.0-alpha.426 sent `"3"` — the app compares the major only, so both are the same wire) |
 | `minAppVersion` | `MATEU_MOBILE_MIN_APP_VERSION` | `minAppVersion` / `MinAppVersion` / `min_app_version` | `"1.0.0"` |
-| `mateuVersion` | — | — | the Mateu release the server runs (`3.0-beta.33`; .NET `3.0.0-beta.33`, Python `3.0.0b33`); omitted on a development build, which names no release |
+| `mateuVersion` | — | — | the Mateu release the server runs (`3.0.0`, the same on .NET and Python; a pre-release such as `3.1-rc.1` is `3.1.0-rc.1` on .NET and `3.1.0rc1` on Python); omitted on a development build, which names no release |
 | `auth.issuer` | `MATEU_MOBILE_OIDC_ISSUER` | `oidcIssuer` / `OidcIssuer` / `oidc_issuer` | — |
 | `auth.clientId` | `MATEU_MOBILE_OIDC_CLIENT_ID` | `oidcClientId` / `OidcClientId` / `oidc_client_id` | — |
 | `auth.scopes` | `MATEU_MOBILE_OIDC_SCOPES` (comma and/or space separated) | `scopes` / `Scopes` / `scopes` | `["openid", "profile"]` |

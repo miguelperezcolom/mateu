@@ -398,9 +398,8 @@ summary.
 - **`backend/api-compat/japicmp-exclusions.properties`** is the reviewed allowlist: adding an entry
   is how an intentional break (the end of a deprecation period, a major release) gets through; the
   comment block above the list names the release or PR that accepted each group, and the list is
-  reset to its sentinel whenever the baseline moves. Until `3.0.0` is on Maven Central the baseline
-  is the last pre-release; once it is, `3.0.0` becomes the baseline — the promise is measured from
-  `3.0.0`. The [Internal](#stable-and-experimental-api-by-package)
+  reset to its sentinel whenever the baseline moves. The baseline is the latest release (`3.0.0`
+  at GA) — the promise is measured from `3.0.0`. The [Internal](#stable-and-experimental-api-by-package)
   types are excluded from the check.
 - Marking an existing stable API `@Experimental` or `@Internal` is itself reported as a removal —
   japicmp drops the annotated element on the new side only — so an API cannot leave the promise
