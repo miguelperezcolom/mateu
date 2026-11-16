@@ -29,7 +29,7 @@
 #     setup .exe (osslsigncode, RFC 3161 timestamp); JetBrains' own binaries keep JetBrains' signature
 #
 # Needs a Mateu release that has the white-label icon options (3.0-beta.67 or later).
-# Guide: https://mateu.io/native/white-label/ (doc/src/content/docs/native/white-label.md).
+# Guide: https://mateu.io/native/white-label/ (doc/src/content/docs/native/white-label.mdx).
 
 name: Desktop app (white label)
 
