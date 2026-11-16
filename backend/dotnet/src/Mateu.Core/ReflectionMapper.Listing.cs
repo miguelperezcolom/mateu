@@ -280,13 +280,14 @@ internal sealed partial class ReflectionMapper
         // Crud.Display (CrudDisplay): New/Delete On|Off|Disabled on top of the capability hooks —
         // Off removes the button, Disabled shows it inert (mirrors Java's ListRouteResolver).
         var display = (crud as ICrudAffordances)?.Display ?? CrudDisplay.Defaults;
-        // Class-level [InlineEditing]: every data column (except [ReadOnly] ones) is edited in
-        // place; each committed cell dispatches the crud's update-row action (Java parity).
+        // Class-level [InlineEditing]: every data column is edited in place, except the ones an
+        // edit never takes from the client (EditableInARow); each committed cell dispatches the
+        // crud's update-row action (Java parity).
         var inlineEditing = viewType.Find<InlineEditingAttribute>() != null;
         var columns = WithoutTechnicalId(EditableProperties(element).Where(p => Visible(p) && !HiddenInList(p)), element, rowsClickable)
             .Select((p, index) =>
             {
-                var editable = inlineEditing && p.Find<ReadOnlyAttribute>() == null;
+                var editable = inlineEditing && EditableInARow(p, element);
                 return new GridColumnDto(new GridColumnMetaDto(
                     Naming.CamelCase(p.Name),
                     p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))

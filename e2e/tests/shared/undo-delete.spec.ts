@@ -24,4 +24,49 @@ test.describe('undoable delete', () => {
     await expect(page.locator('vaadin-notification-card').getByText('1 record restored')).toBeVisible();
     await expect(page.locator('vaadin-grid').getByText('Call Ana').first()).toBeVisible();
   });
+
+  // 3.0.0 videos: on a searched listing, a delete answered EVERY row (the search after it went out
+  // without the text) while the chip still said "a"; the row that moved into the deleted one's
+  // place showed selected, Delete stayed enabled, and the Undo brought the row back selected.
+  test('a delete and its Undo keep the search and leave nothing selected', async ({ page }) => {
+    const searches: Array<Record<string, unknown>> = [];
+    page.on('request', (request) => {
+      if (request.method() !== 'POST' || !request.url().includes('/mateu/v3/')) return;
+      const body = JSON.parse(request.postData() ?? '{}');
+      if (body.actionId === 'search') searches.push(body.componentState ?? {});
+    });
+    await page.goto('/undo-notes');
+    await expect(page.getByText('Buy milk').first()).toBeVisible();
+    await page.locator('mateu-filter-bar input.free-text').click();
+    await page.keyboard.press('Escape');
+    await page.keyboard.type('a');
+    await page.keyboard.press('Enter');
+    // "a": Call Ana and Pay rent, not Buy milk
+    await expect(page.locator('vaadin-grid').getByText('Buy milk')).toHaveCount(0);
+    await expect(page).toHaveURL(/searchText=a/);
+    const grid = page.locator('vaadin-grid').first();
+    const selected = () => grid.evaluate((g) => ((g as unknown as { selectedItems?: unknown[] }).selectedItems ?? []).length);
+    const deleteButton = page.locator('vaadin-button').filter({ hasText: 'Delete' }).first();
+
+    await page.locator('vaadin-grid vaadin-checkbox').nth(1).click();
+    await expect.poll(selected).toBe(1);
+    searches.length = 0;
+    await deleteButton.click();
+    await expect(page.locator('vaadin-notification-card').getByText('1 record deleted')).toBeVisible();
+    await expect.poll(() => searches.length).toBeGreaterThan(0);
+    expect(searches.every((state) => state.searchText === 'a')).toBe(true);
+    await expect(page).toHaveURL(/searchText=a/);
+    await expect(page.locator('vaadin-grid').getByText('Buy milk')).toHaveCount(0);
+    // the row now in the deleted one's place is not selected, and Delete is off again
+    await expect.poll(selected).toBe(0);
+    await expect(deleteButton).toBeDisabled();
+
+    searches.length = 0;
+    await page.getByRole('button', { name: /undo/i }).first().click();
+    await expect(page.locator('vaadin-notification-card').getByText('1 record restored')).toBeVisible();
+    await expect.poll(() => searches.length).toBeGreaterThan(0);
+    expect(searches.every((state) => state.searchText === 'a')).toBe(true);
+    await expect(page.locator('vaadin-grid').getByText('Buy milk')).toHaveCount(0);
+    await expect.poll(selected).toBe(0);
+  });
 });

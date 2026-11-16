@@ -183,6 +183,43 @@ class UndoDeleteSyncTest {
         .anyMatch(c -> c.type() == io.mateu.dtos.UICommandTypeDto.DispatchEvent);
   }
 
+  /**
+   * The listing keeps its search text, filters, page and sort in the address bar's query. A delete
+   * and its Undo refresh the rows in place, so they must leave the address alone: answering the
+   * listing's bare path made the listing see its URL move and search again WITHOUT them (every row
+   * shown under a search chip still on screen).
+   */
+  @Test
+  void deleteAndUndoLeaveTheListingsAddressAndItsSearchAlone() {
+    var searched = new java.util.HashMap<String, Object>(selecting("n2"));
+    searched.put("searchText", "call");
+    var delete = run(NotesCrud.class, "/notes", "delete", searched, null);
+    assertThat(delete.commands())
+        .noneMatch(c -> c.type() == io.mateu.dtos.UICommandTypeDto.PushStateToHistory)
+        .anyMatch(c -> c.type() == io.mateu.dtos.UICommandTypeDto.DispatchEvent);
+
+    var undo =
+        run(
+            NotesCrud.class,
+            "/notes",
+            Restorable.RESTORE_ACTION,
+            Map.of("_route", "list", "searchText", "call"),
+            Map.of(Restorable.RESTORE_IDS, List.of("n2")));
+    assertThat(undo.commands())
+        .noneMatch(c -> c.type() == io.mateu.dtos.UICommandTypeDto.PushStateToHistory)
+        .anyMatch(c -> c.type() == io.mateu.dtos.UICommandTypeDto.DispatchEvent);
+
+    // and the search the listing then runs keeps the text it carries
+    var search =
+        run(
+            NotesCrud.class,
+            "/notes",
+            "search",
+            Map.of("_route", "list", "searchText", "call", "size", 10, "page", 0),
+            null);
+    assertThat(String.valueOf(search.fragments())).contains("Call Ana").doesNotContain("Buy milk");
+  }
+
   @Test
   void aCrudWithoutRestorableKeepsTheConfirmationAndAnswersNoToast() {
     var listing = run(PlainNotesCrud.class, "/plain-notes", "", Map.of("_route", "list"), null);

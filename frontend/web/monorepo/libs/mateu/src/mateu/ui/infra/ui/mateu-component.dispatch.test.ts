@@ -375,6 +375,15 @@ describe('the search action', () => {
         request(el, 'search', { parameters: { _searchState: { searchText: 'mad', page: 1 } } })
         expect(el.state).toMatchObject({ searchText: 'mad', page: 1 })
     })
+
+    it('a search of its own (the listing-changed event of a delete, its Undo) keeps the search and drops the selection', async () => {
+        const el = await mount(serverSide({ actions: [{ id: 'search' }] }),
+            { searchText: 'le guin', size: 10, page: 0, sort: [], crud_selected_items: [{ id: 'B-003' }] })
+        request(el, 'search')
+        expect(sent[0].detail.componentState).toMatchObject({ searchText: 'le guin', page: 0, crud_selected_items: [] })
+        // the copy it hands down to the listing no longer carries the deleted row
+        expect(el.state.crud_selected_items).toEqual([])
+    })
 })
 
 describe('an action this component does not own', () => {

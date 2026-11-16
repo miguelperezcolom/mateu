@@ -1,5 +1,5 @@
 import { announceUrlChange, URL_CHANGED_EVENT } from '@infra/ui/urlChanges.ts'
-import { hasSelection, requiresSelection, SELECTION_CHANGED_EVENT } from "@infra/ui/selectionGate";
+import { hasSelection, requiresSelection, sameSelection, selectionStillOnScreen, SELECTION_CHANGED_EVENT } from "@infra/ui/selectionGate";
 import { byLine } from './listingLines'
 import { stampButton } from "@infra/ui/renderers/nodeIdStamp.ts";
 import {customElement, property, state} from "lit/decorators.js";
@@ -965,8 +965,49 @@ export class MateuTableCrud extends LitElement {
     // while the key still matches, so the previous screen's rows never surface under this one.
     private _restRows: { key: string | undefined; listing: any } | undefined = undefined
 
+    /** The rows and the state the selection was last reconciled with (see keepSelectionOnScreen). */
+    private _selectionRows: unknown = undefined
+    private _selectionState: unknown = undefined
+
+    /**
+     * New rows (or a state re-bound by the component around): the selection keeps only the rows
+     * still on screen (selectionGate's selectionStillOnScreen). A search the listing runs itself
+     * starts with no selection, but a refresh in place — a delete and its Undo answer the
+     * listing-changed event, which runs the search on the component around this listing — kept the
+     * old one, and the grid, which tells rows apart by position, showed the row that moved into a
+     * deleted one's place as selected (with Delete still enabled), and the restored row selected
+     * again after the Undo.
+     */
+    private keepSelectionOnScreen() {
+        const rows = (this.data?.[this.id] as { page?: { content?: Record<string, unknown>[] } } | undefined)?.page?.content
+        if (!Array.isArray(rows)) return
+        if (rows === this._selectionRows && this.state === this._selectionState) return
+        this._selectionRows = rows
+        this._selectionState = this.state
+        const metadata = (this.component as ClientSideComponent | undefined)?.metadata as Crud | undefined
+        // infinite scrolling keeps the rows it fetched before: a selection may be on any of them
+        if (metadata?.infiniteScrolling) return
+        const idField = (this.state?.idFieldForRow as string | undefined) ?? this.identifierFieldName ?? 'id'
+        const keys = [...new Set([`${this.id}_selected_items`, 'crud_selected_items'])]
+        let changed = false
+        const next = { ...this.state }
+        keys.forEach(key => {
+            if (!hasSelection(this.state?.[key])) return
+            const kept = selectionStillOnScreen(this.state[key], rows, idField)
+            if (sameSelection(kept, this.state[key])) return
+            next[key] = kept
+            changed = true
+        })
+        if (!changed) return
+        this.state = next
+        this._selectionState = next
+        // selection-gated toolbar buttons (here and in the page header) follow it
+        this.dispatchEvent(new CustomEvent(SELECTION_CHANGED_EVENT, { bubbles: true, composed: true }))
+    }
+
     protected willUpdate(_changedProperties: PropertyValues) {
         super.willUpdate(_changedProperties)
+        if (_changedProperties.has("data") || _changedProperties.has("state")) this.keepSelectionOnScreen()
         if (!_changedProperties.has("data")) return
         if (this.data?.[this.id] != undefined) return
         const kept = this._restRows

@@ -43,5 +43,47 @@ export const withSelectionGate = <B extends GatedButton & { disabled?: boolean }
     ? { ...button, disabled: true }
     : button
 
+/**
+ * The selection as it stands once the listing shows `rows`: each selected row that is still there,
+ * as the row object now on screen, and none that is gone.
+ *
+ * A listing refreshed in place (a delete, its Undo, a row action — the server's listing-changed
+ * event) keeps its selection, and the grid tells rows apart by their position (`_rowNumber`): the
+ * row that moved into a deleted one's place showed selected, Delete stayed enabled, and after the
+ * Undo the restored row came back selected. A selected row object still among `rows` stays as it
+ * is; any other is matched by its id (`idField`) and replaced by the row now on screen, or dropped
+ * when there is none (or no id to match it by).
+ */
+export const selectionStillOnScreen = (
+    selection: unknown,
+    rows: ReadonlyArray<Record<string, unknown>> | undefined,
+    idField: string | undefined,
+): Record<string, unknown>[] => {
+    if (!hasSelection(selection) || !rows) return []
+    const onScreen = new Set(rows)
+    const byId = new Map<string, Record<string, unknown>>()
+    if (idField) {
+        rows.forEach(row => {
+            const id = row?.[idField]
+            if (id != null) byId.set(String(id), row)
+        })
+    }
+    const kept: Record<string, unknown>[] = []
+    ;(selection as Array<Record<string, unknown> | null | undefined>).forEach(selected => {
+        if (!selected) return
+        const id = idField ? selected[idField] : undefined
+        const row = onScreen.has(selected) ? selected : id == null ? undefined : byId.get(String(id))
+        if (row && !kept.includes(row)) kept.push(row)
+    })
+    return kept
+}
+
+/** Whether two selections hold the same row objects, in the same order. */
+export const sameSelection = (a: unknown, b: unknown): boolean => {
+    const left = Array.isArray(a) ? a : []
+    const right = Array.isArray(b) ? b : []
+    return left.length === right.length && left.every((row, i) => row === right[i])
+}
+
 /** The event the grids dispatch (bubbling, composed) whenever the row selection changes. */
 export const SELECTION_CHANGED_EVENT = 'mateu-selection-changed'
