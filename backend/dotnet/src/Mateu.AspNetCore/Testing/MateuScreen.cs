@@ -341,7 +341,7 @@ public sealed class MateuScreen
                 break;
             case "PushStateToHistory":
                 var route = Json.Str(command.Data);
-                if (route.Length > 0) Route = route;
+                if (route.Length > 0) Route = AddressOf(route, frame.ConsumedRoute);
                 break;
             case "CloseModal":
                 if (_frames.Count > 1) _frames.Remove(_frames.Contains(frame) && frame != _frames[0] ? frame : _frames[^1]);
@@ -354,6 +354,20 @@ public sealed class MateuScreen
                         data?["parameters"] is JsonObject p ? (JsonObject)p.DeepClone() : new JsonObject());
                 break;
         }
+    }
+
+    /// <summary>The address a <c>PushStateToHistory</c> leaves in the browser's bar, composed like
+    /// <c>mateu-ux.routeChangedListener</c>: a mediator's internal push (<c>/P-005</c> from a crud's
+    /// record view) is relative to the consumed route of the ux showing it (<c>/products</c>).</summary>
+    internal static string AddressOf(string pushed, string? consumedRoute)
+    {
+        if ((pushed.Length == 0 || pushed.StartsWith('/'))
+            && !string.IsNullOrEmpty(consumedRoute)
+            && consumedRoute != "_empty"
+            && consumedRoute.StartsWith('/')
+            && !pushed.StartsWith(consumedRoute, StringComparison.Ordinal))
+            return consumedRoute + pushed;
+        return pushed;
     }
 
     private void ApplyFragment(Frame frame, JsonObject fragment)

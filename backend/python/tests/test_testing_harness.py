@@ -50,6 +50,25 @@ def test_a_row_opens_its_record(mateu):
     screen = mateu.open("/harness-products")
     screen.listing().row("Milk frother").open()
     assert screen.field("name").value == "Milk frother"
+    assert screen.route == "/harness-products/P-003"
+    screen.button("Edit").press()
+    assert screen.route == "/harness-products/P-003/edit"
+
+
+@pytest.mark.parametrize("pushed, consumed, address", [
+    # a crud's record view pushes its route relative to the ux that shows it, as the browser composes it
+    ("/P-005", "/products", "/products/P-005"),
+    ("/P-003/edit", "/products", "/products/P-003/edit"),
+    ("", "/products", "/products"),
+    # already under it, or nothing to compose with: as pushed
+    ("/products/new", "/products", "/products/new"),
+    ("/P-005", "_empty", "/P-005"),
+    ("/P-005", "", "/P-005"),
+    ("P-005", "/products", "P-005"),
+])
+def test_a_pushed_route_is_composed_like_the_browser(pushed, consumed, address):
+    from mateu_ui.testing import _address_of
+    assert _address_of(pushed, consumed) == address
 
 
 def test_a_form_action_shows_a_message(mateu):
