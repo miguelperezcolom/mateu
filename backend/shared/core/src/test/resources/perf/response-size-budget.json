@@ -136,7 +136,8 @@
     "yaml-field-types" : 7008,
     "yaml-partial" : 5172,
     "yaml-template" : 6904,
-    "zones" : 8503
+    "zones" : 8503,
+    "zones-band" : 15032
   },
   "measured" : {
     "access-annotations" : 5435,
@@ -273,6 +274,7 @@
     "yaml-field-types" : 6370,
     "yaml-partial" : 4701,
     "yaml-template" : 6276,
-    "zones" : 7730
+    "zones" : 7730,
+    "zones-band" : 13665
   }
 }

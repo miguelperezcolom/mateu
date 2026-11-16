@@ -95,6 +95,25 @@ public class ZonedForm
     public string? Notes { get; set; } = "Quiet";
 }
 
+// Zoned layout with full-width bands: a section with no zone is a band stacked in declaration
+// order; the run of zoned sections between the bands collapses into one row of columns.
+[UI("conformance/zones-band"), Title("Zoned form with bands")]
+[Zone("left", "62%"), Zone("right")]
+public class ZonedBandForm
+{
+    [Section("Contact")]
+    public string? Name { get; set; } = "Ada";
+
+    [Section("Account", Zone = "left")]
+    public string? Account { get; set; } = "ACC-1";
+
+    [Section("Customer", Zone = "right")]
+    public string? Customer { get; set; } = "Lovelace";
+
+    [Section("Notes")]
+    public string? Notes { get; set; } = "Quiet";
+}
+
 [UI("conformance/money-field"), Title("Money field")]
 public class MoneyField
 {

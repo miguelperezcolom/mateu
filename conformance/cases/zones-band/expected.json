@@ -1,0 +1,298 @@
+{
+  "commands" : [ {
+    "data" : "Zoned form with bands",
+    "type" : "SetWindowTitle"
+  } ],
+  "fragments" : [ {
+    "action" : "Replace",
+    "component" : {
+      "children" : [ {
+        "children" : [ {
+          "children" : [ {
+            "cssClasses" : "mateu-section",
+            "metadata" : {
+              "content" : {
+                "children" : [ {
+                  "metadata" : {
+                    "container" : "h3",
+                    "text" : "Contact",
+                    "type" : "Text"
+                  },
+                  "style" : " flex: 1; margin: 0;",
+                  "type" : "ClientSide"
+                }, {
+                  "children" : [ {
+                    "children" : [ {
+                      "children" : [ {
+                        "metadata" : {
+                          "colspan" : 1,
+                          "dataType" : "string",
+                          "fieldId" : "name",
+                          "label" : "Name",
+                          "optionsColumns" : 1,
+                          "sliderMax" : 100,
+                          "stereotype" : "regular",
+                          "type" : "FormField"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "FormRow"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "autoResponsive" : true,
+                      "expandColumns" : true,
+                      "maxColumns" : 2,
+                      "type" : "FormLayout"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "type" : "VerticalLayout"
+                  },
+                  "style" : "width: 100%;",
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "type" : "ClientSide"
+              },
+              "type" : "Card",
+              "variants" : [ "outlined" ]
+            },
+            "style" : "flex: 1; min-width: 0; width:100%;",
+            "type" : "ClientSide"
+          }, {
+            "children" : [ {
+              "children" : [ {
+                "cssClasses" : "mateu-section",
+                "metadata" : {
+                  "content" : {
+                    "children" : [ {
+                      "metadata" : {
+                        "container" : "h3",
+                        "text" : "Account",
+                        "type" : "Text"
+                      },
+                      "style" : " flex: 1; margin: 0;",
+                      "type" : "ClientSide"
+                    }, {
+                      "children" : [ {
+                        "children" : [ {
+                          "children" : [ {
+                            "metadata" : {
+                              "colspan" : 1,
+                              "dataType" : "string",
+                              "fieldId" : "account",
+                              "label" : "Account",
+                              "optionsColumns" : 1,
+                              "sliderMax" : 100,
+                              "stereotype" : "regular",
+                              "type" : "FormField"
+                            },
+                            "type" : "ClientSide"
+                          } ],
+                          "metadata" : {
+                            "type" : "FormRow"
+                          },
+                          "type" : "ClientSide"
+                        } ],
+                        "metadata" : {
+                          "autoResponsive" : true,
+                          "expandColumns" : true,
+                          "maxColumns" : 2,
+                          "type" : "FormLayout"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "VerticalLayout"
+                      },
+                      "style" : "width: 100%;",
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "VerticalLayout"
+                    },
+                    "type" : "ClientSide"
+                  },
+                  "type" : "Card",
+                  "variants" : [ "outlined" ]
+                },
+                "style" : "flex: 1; min-width: 0; width:100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "spacing" : true,
+                "type" : "VerticalLayout"
+              },
+              "style" : "min-width: 0;",
+              "type" : "ClientSide"
+            }, {
+              "children" : [ {
+                "cssClasses" : "mateu-section",
+                "metadata" : {
+                  "content" : {
+                    "children" : [ {
+                      "metadata" : {
+                        "container" : "h3",
+                        "text" : "Customer",
+                        "type" : "Text"
+                      },
+                      "style" : " flex: 1; margin: 0;",
+                      "type" : "ClientSide"
+                    }, {
+                      "children" : [ {
+                        "children" : [ {
+                          "children" : [ {
+                            "metadata" : {
+                              "colspan" : 1,
+                              "dataType" : "string",
+                              "fieldId" : "customer",
+                              "label" : "Customer",
+                              "optionsColumns" : 1,
+                              "sliderMax" : 100,
+                              "stereotype" : "regular",
+                              "type" : "FormField"
+                            },
+                            "type" : "ClientSide"
+                          } ],
+                          "metadata" : {
+                            "type" : "FormRow"
+                          },
+                          "type" : "ClientSide"
+                        } ],
+                        "metadata" : {
+                          "autoResponsive" : true,
+                          "expandColumns" : true,
+                          "maxColumns" : 2,
+                          "type" : "FormLayout"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "VerticalLayout"
+                      },
+                      "style" : "width: 100%;",
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "type" : "VerticalLayout"
+                    },
+                    "type" : "ClientSide"
+                  },
+                  "type" : "Card",
+                  "variants" : [ "outlined" ]
+                },
+                "style" : "flex: 1; min-width: 0; width:100%;",
+                "type" : "ClientSide"
+              } ],
+              "metadata" : {
+                "spacing" : true,
+                "type" : "VerticalLayout"
+              },
+              "style" : "min-width: 0;",
+              "type" : "ClientSide"
+            } ],
+            "metadata" : {
+              "gridTemplateColumns" : "62% 1fr",
+              "stackBelow" : "40rem",
+              "type" : "ResponsiveGrid"
+            },
+            "style" : "width: 100%; align-items: start;",
+            "type" : "ClientSide"
+          }, {
+            "cssClasses" : "mateu-section",
+            "metadata" : {
+              "content" : {
+                "children" : [ {
+                  "metadata" : {
+                    "container" : "h3",
+                    "text" : "Notes",
+                    "type" : "Text"
+                  },
+                  "style" : " flex: 1; margin: 0;",
+                  "type" : "ClientSide"
+                }, {
+                  "children" : [ {
+                    "children" : [ {
+                      "children" : [ {
+                        "metadata" : {
+                          "colspan" : 1,
+                          "dataType" : "string",
+                          "fieldId" : "notes",
+                          "label" : "Notes",
+                          "optionsColumns" : 1,
+                          "sliderMax" : 100,
+                          "stereotype" : "regular",
+                          "type" : "FormField"
+                        },
+                        "type" : "ClientSide"
+                      } ],
+                      "metadata" : {
+                        "type" : "FormRow"
+                      },
+                      "type" : "ClientSide"
+                    } ],
+                    "metadata" : {
+                      "autoResponsive" : true,
+                      "expandColumns" : true,
+                      "maxColumns" : 2,
+                      "type" : "FormLayout"
+                    },
+                    "type" : "ClientSide"
+                  } ],
+                  "metadata" : {
+                    "type" : "VerticalLayout"
+                  },
+                  "style" : "width: 100%;",
+                  "type" : "ClientSide"
+                } ],
+                "metadata" : {
+                  "type" : "VerticalLayout"
+                },
+                "type" : "ClientSide"
+              },
+              "type" : "Card",
+              "variants" : [ "outlined" ]
+            },
+            "style" : "flex: 1; min-width: 0; width:100%;",
+            "type" : "ClientSide"
+          } ],
+          "metadata" : {
+            "spacing" : true,
+            "type" : "VerticalLayout"
+          },
+          "style" : "width: 100%;",
+          "type" : "ClientSide"
+        } ],
+        "metadata" : {
+          "pageTitle" : "Zoned band form",
+          "pageType" : "form",
+          "title" : "Zoned form with bands",
+          "type" : "Page"
+        },
+        "type" : "ClientSide"
+      } ],
+      "initialData" : {
+        "account" : "ACC-1",
+        "customer" : "Lovelace",
+        "name" : "Ada",
+        "notes" : "Quiet"
+      },
+      "pageType" : "form",
+      "route" : "_empty",
+      "type" : "ServerSide"
+    },
+    "state" : {
+      "account" : "ACC-1",
+      "customer" : "Lovelace",
+      "name" : "Ada",
+      "notes" : "Quiet"
+    }
+  } ],
+  "wireVersion" : "3.0"
+}
