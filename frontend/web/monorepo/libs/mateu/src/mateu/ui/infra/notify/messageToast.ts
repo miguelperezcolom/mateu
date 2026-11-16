@@ -5,6 +5,7 @@ import { requestActionOn } from '@infra/ui/requestAction.ts'
 import { leaveToRoute } from '@infra/ui/rowRoute.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 import { entryOfMessage, inboxStore } from '@infra/notify/inboxStore.ts'
+import { noteShownMessage } from '@infra/notify/messageCarryOver.ts'
 
 /**
  * A server message on its way to the screen — ONE place for every transport (HttpService,
@@ -61,6 +62,8 @@ export const toastOf = (message: Partial<Message>, initiator: HTMLElement): Toas
 /** Shows a server message: the toast, and for persistence `inbox` its entry in the inbox. */
 export const showServerMessage = (message: Message, initiator: HTMLElement): void => {
     notify(toastOf(message, initiator), initiator)
+    // kept for a moment: a NavigateTo in the same answer reloads the page, and carries it over
+    noteShownMessage(message)
     if (message.persistence === 'inbox') {
         inboxStore.addSessionEntry(entryOfMessage(message, new Date(), initiator))
     }

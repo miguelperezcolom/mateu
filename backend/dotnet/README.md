@@ -79,7 +79,7 @@ change (`MATEU_API_WRITE=true dotnet test` rewrites the files).
 ## Install (NuGet)
 
 ```bash
-dotnet add package Mateu.AspNetCore --prerelease   # brings Mateu.Core, Mateu.Uidl, Mateu.Dtos
+dotnet add package Mateu.AspNetCore   # brings Mateu.Core, Mateu.Uidl, Mateu.Dtos
 ```
 
 ```csharp

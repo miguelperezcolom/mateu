@@ -15,10 +15,10 @@ for the UI. Java (`@UI`) → skill `mateu`; YAML pages/routes → skill `mateu-y
 
 ```bash
 dotnet new web -n MyApp && cd MyApp
-dotnet add package Mateu.AspNetCore --prerelease     # brings Mateu.Uidl, Mateu.Core, Mateu.Dtos
+dotnet add package Mateu.AspNetCore     # brings Mateu.Uidl, Mateu.Core, Mateu.Dtos
 ```
 
-NuGet versions follow the Java release: `3.0-beta.N` → `3.0.0-beta.N`. Targets net10.0.
+NuGet versions follow the Java release: `v3.0.0` → `3.0.0` (a pre-release such as `v3.1-rc.N` → `3.1.0-rc.N` needs `--prerelease`). Targets net10.0.
 A class library holding only views references `Mateu.Uidl` alone.
 
 ```csharp

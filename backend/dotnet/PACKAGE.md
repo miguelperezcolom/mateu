@@ -20,7 +20,7 @@ shared wire-conformance corpus.
 ## Install
 
 ```bash
-dotnet add package Mateu.AspNetCore --prerelease
+dotnet add package Mateu.AspNetCore
 ```
 
 ## Use

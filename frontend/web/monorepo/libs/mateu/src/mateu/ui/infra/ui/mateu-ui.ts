@@ -30,6 +30,8 @@ import { announceUrlChange, URL_CHANGED_EVENT } from '@infra/ui/urlChanges.ts'
 import { startTabSessionClaim } from '@infra/http/tabSession.ts'
 import { rememberedTasks } from '@infra/progress/taskMemory.ts'
 import { signInGate } from '@infra/auth/signIn.ts'
+import { takeCarriedMessages, toastOfCarried } from '@infra/notify/messageCarryOver.ts'
+import { notify } from '@application/Notifier.ts'
 
 // A duplicated tab copied this tab's sessionStorage, its UI session id included: find out FIRST
 // (before any request carries the id) whether another tab holds it, and take a fresh one if so.
@@ -217,6 +219,12 @@ export class MateuUi extends LitElement {
             // The errors the user sees (and uncaught JS errors) go to the server log, at the app's
             // own base URL: POST <baseUrl>/mateu/v3/client-log. First top-level mateu-ui wins.
             installClientErrorReporting(this.baseUrl)
+            // the toast of the answer whose NavigateTo loaded this page (messageCarryOver.ts) —
+            // after this tick, so a design-system notifier registered at load is the one drawing it
+            const carried = takeCarriedMessages()
+            if (carried.length > 0) {
+                setTimeout(() => carried.forEach((m) => notify(toastOfCarried(m), this)), 0)
+            }
             // In bundle mode, kick off the manifest fetch; the route load awaits it in the api
             // client (awaitBundle), so the first load is answered from the bundle (no backend). A
             // failed manifest fetch just falls back to the backend.
