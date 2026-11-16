@@ -151,6 +151,19 @@ class RouteTypedMenuEntryUrlSyncTest {
         .isEqualTo(FreezerCount.class.getName());
   }
 
+  /** A patch must not break links: the old field-name address still opens the same screen. */
+  @Test
+  void theOldFieldNameAddressStillOpensTheScreen() {
+    var app = shell("/countColdRoom");
+    assertThat(screen(app.homeRoute(), app.homeConsumedRoute()))
+        .isEqualTo(ColdRoomCount.class.getName());
+    assertThat(screen("/countColdRoom", "")).isEqualTo(ColdRoomCount.class.getName());
+    // …and in a group, its old address under the group
+    var grouped = shell("/counts/freezer");
+    assertThat(screen(grouped.homeRoute(), grouped.homeConsumedRoute()))
+        .isEqualTo(FreezerCount.class.getName());
+  }
+
   @Test
   void aDeepLinkToTheRouteSelectsTheEntry() {
     var app = shell("/count/cold-room");

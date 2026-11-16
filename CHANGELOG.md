@@ -18,8 +18,9 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   cell on the desktop).
 - A route-typed menu entry (`@Menu String countColdRoom = "/count/cold-room"`) puts its route in
   the address bar instead of the field name (`/countColdRoom`), whatever group it sits in; the
-  menu, the section index and the MCP route list name it by that route. An entry left null still
-  routes to the field under the app.
+  menu, the section index and the MCP route list name it by that route. The old field-name address
+  keeps working as an alias, so existing bookmarks and links still open the same screen. An entry
+  left null still routes to the field under the app.
 
 ### Added — message page
 

@@ -106,6 +106,40 @@ public final class MenuEntryMapper {
         && namesItsRoute(link.path());
   }
 
+  /**
+   * The field-name address a route-typed entry had before 3.0.1 ({@code /countColdRoom} for
+   * {@code @Menu String countColdRoom = "/count/cold-room"}), kept as an ALIAS so bookmarks and
+   * links made with it still open the screen. Keyed by the class declaring the field + the route;
+   * filled when the menu is built (every request builds it before resolving), bounded because the
+   * keys come from code.
+   */
+  private static final java.util.Map<String, String> FIELD_ALIASES =
+      new java.util.concurrent.ConcurrentHashMap<>();
+
+  private static final int MAX_FIELD_ALIASES = 10_000;
+
+  private static String aliasKey(String serverSideType, String route) {
+    return serverSideType + "|" + route;
+  }
+
+  private static void rememberAlias(Object instance, String route, Field field) {
+    if (instance == null || FIELD_ALIASES.size() >= MAX_FIELD_ALIASES) {
+      return;
+    }
+    FIELD_ALIASES.put(aliasKey(instance.getClass().getName(), route), "/" + field.getName());
+  }
+
+  /**
+   * Whether {@code token} ({@code /countColdRoom}) is the old field-name address of a route-typed
+   * entry ({@link #isAddressedByItsRoute}).
+   */
+  public static boolean isFieldAliasOf(io.mateu.uidl.interfaces.Actionable option, String token) {
+    return isAddressedByItsRoute(option)
+        && token != null
+        && token.equals(
+            FIELD_ALIASES.get(aliasKey(((RouteLink) option).serverSideType(), option.path())));
+  }
+
   private static Actionable mapFieldToMenu(
       String appRoute, Field field, Object instance, String route, HttpRequest httpRequest) {
     if ("/".equals(appRoute)) {
@@ -121,6 +155,9 @@ public final class MenuEntryMapper {
     }
     if (String.class.equals(field.getType())) {
       var uri = (String) getValue(field, instance);
+      if (uri != null && namesItsRoute(uri)) {
+        rememberAlias(instance, uri, field);
+      }
       if (uri != null) {
         // a route-typed entry is addressed by ITS route: the browser shows /count/cold-room, not
         // the field's name (/countColdRoom) — the screen already came from the route
@@ -138,6 +175,9 @@ public final class MenuEntryMapper {
     }
     if (URI.class.equals(field.getType())) {
       var uri = (URI) getValue(field, instance);
+      if (uri != null && namesItsRoute(uri.toString())) {
+        rememberAlias(instance, uri.toString(), field);
+      }
       if (uri != null) {
         return new RouteLink(uri.toString(), getLabel(field))
             .withPath(namesItsRoute(uri.toString()) ? uri.toString() : "/" + field.getName())
