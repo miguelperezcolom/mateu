@@ -38,7 +38,10 @@ public record DrawerMetadataDto(string? Id, string? HeaderTitle, ComponentDto? C
 /// island runs its own sync loop against the remote backend.</summary>
 public record MicroFrontendMetadataDto(string BaseUrl, string Route) : ComponentMetadataDto
 {
-    public string ConsumedRoute { get; init; } = "_empty";
+    /// <summary>Null = not declared, as in Java: the island loads with "" (a CONTENT load). It used
+    /// to default to "_empty" — the FRESH-load marker —, so a remote APP answered its shell aimed at
+    /// the route and the island loaded "_empty/…/route" forever.</summary>
+    public string? ConsumedRoute { get; init; }
     public string? Style { get; init; }
     public string? CssClasses { get; init; }
     public string ServerSideType { get; init; } = "";

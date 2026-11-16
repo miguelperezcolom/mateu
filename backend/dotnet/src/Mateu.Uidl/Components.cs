@@ -1481,6 +1481,11 @@ public sealed record MicroFrontend(string BaseUrl, string Route = "") : Componen
     /// Experimental (3.0-beta.27).</summary>
     public string? ServerSideType { get; init; }
 
+    /// <summary>The route the remote view has already consumed; null = none, the island loads its
+    /// route as content (what the renderer sends: ""). Experimental. (Mirrors
+    /// io.mateu.uidl.data.MicroFrontend.consumedRoute and Python's consumed_route.)</summary>
+    public string? ConsumedRoute { get; init; }
+
     /// <summary>The action the island's first request runs; null = the route load.
     /// Experimental (3.0-beta.27).</summary>
     public string? ActionId { get; init; }

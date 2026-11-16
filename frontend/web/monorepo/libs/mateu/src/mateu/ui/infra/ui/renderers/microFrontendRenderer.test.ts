@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { microFrontendUxId } from './microFrontendRenderer'
+import { microFrontendConsumedRoute, microFrontendUxId } from './microFrontendRenderer'
 import MicroFrontend from '@mateu/shared/apiClients/dtos/componentmetadata/MicroFrontend'
 
 // The id handed to an embedded micro-frontend's <mateu-ux> USED to be a fresh nanoid() per render.
@@ -32,5 +32,29 @@ describe('microFrontendUxId', () => {
     it('tolerates missing optional fields without throwing', () => {
         const id = microFrontendUxId({ baseUrl: 'http://x/remote', route: '/r' } as unknown as MicroFrontend)
         expect(id).toMatch(/^[a-zA-Z0-9_]+$/)
+    })
+
+    it('is the same with no consumed route and an empty one (the host resolves both as one island)', () => {
+        expect(microFrontendUxId(mfe({ consumedRoute: undefined }))).toBe(microFrontendUxId(mfe({ consumedRoute: '' })))
+    })
+})
+
+// A missing consumed route reached the server as a FRESH load ("_empty"): a remote APP answered its
+// shell aimed at the route, and the shell painted inside the island loaded "_empty/…/route", got
+// another shell, and the browser looped forever (resolve = SERVER sent the null; the host now asks
+// with "" too). The island's loads always carry a consumed route — "" when none is declared.
+describe('microFrontendConsumedRoute', () => {
+
+    it('is "" when the micro frontend declares none (a content load, never a fresh one)', () => {
+        expect(microFrontendConsumedRoute(mfe({ consumedRoute: undefined }))).toBe('')
+        expect(microFrontendConsumedRoute(mfe({ consumedRoute: null as unknown as string }))).toBe('')
+    })
+
+    it('is never the fresh-load marker unless declared', () => {
+        expect(microFrontendConsumedRoute(mfe({ consumedRoute: undefined }))).not.toBe('_empty')
+    })
+
+    it('keeps a declared one', () => {
+        expect(microFrontendConsumedRoute(mfe({ consumedRoute: '/orders' }))).toBe('/orders')
     })
 })

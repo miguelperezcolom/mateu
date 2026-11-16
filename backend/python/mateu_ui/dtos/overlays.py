@@ -66,7 +66,10 @@ class MicroFrontendMetadata(Wire):
     type: Literal["MicroFrontend"] = "MicroFrontend"
     base_url: str
     route: str = ""
-    consumed_route: str = "_empty"
+    #: None = not declared, as in Java: the island loads with "" (a CONTENT load). It used to default
+    #: to "_empty" — the FRESH-load marker —, so a remote APP answered its shell aimed at the route
+    #: and the island loaded "_empty/…/route" forever.
+    consumed_route: str | None = None
     style: str | None = None
     css_classes: str | None = None
     server_side_type: str = ""

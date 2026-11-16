@@ -23,6 +23,20 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   IntelliJ / VS Code "New › Mateu" page templates. Demo: `demo-museum` `visit-booked` and `sign-in`.
   Docs `ux-patterns/message-page.md`.
 
+### Fixed — server-resolved micro frontends
+
+- **A `MicroFrontend` with `resolve = SERVER` and no `consumedRoute` no longer loops in the
+  browser.** The host asked the remote with a null consumed route, which a Mateu server reads as a
+  FRESH load (`_empty`): a remote app answered its shell aimed at the route, and that shell, painted
+  in the island, kept POSTing `…/_empty/_empty/…/route`. The host now asks with `""` — what the
+  renderer sends for a `CLIENT` island — so the embedded answer is the page; no author has to set
+  `consumedRoute("")`. Java, .NET and Python (the ports defaulted the island's consumed route to
+  `_empty` on the wire, which looped the same way: it is now null, as in Java). .NET's
+  `MicroFrontend` gained `ConsumedRoute` (Java and Python had it); the web renderer always gives the
+  island a consumed route (`""` when none is declared).
+- A refused CRUD write (`delete`/`save`/`create`… on a `@ReadOnly` or `@Not*` crud) now logs its
+  one WARN, like every other refusal — the 403 was there, the log line was not.
+
 ### Fixed — rc.2 web
 
 - A non-root YAML mount keeps its address on Vaadin: a reload no longer lands in another app.

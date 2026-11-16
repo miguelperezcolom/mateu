@@ -1586,7 +1586,11 @@ public class SyncHandlerTests
         Assert.Contains("\"type\":\"MicroFrontend\"", json);
         Assert.Contains("\"baseUrl\":\"https://billing.example.com\"", json);
         Assert.Contains("\"route\":\"/invoices\"", json);
-        Assert.Contains("\"consumedRoute\":\"_empty\"", json);
+        // not declared: null, as in Java — the renderer loads it with "" (a content load)
+        Assert.Contains("\"consumedRoute\":null", json);
+        var declared = JsonSerializer.Serialize<ComponentDto>(ComponentMapper.Map(
+            new Mateu.Uidl.MicroFrontend("https://billing.example.com", "/invoices") { ConsumedRoute = "/billing" }), Json);
+        Assert.Contains("\"consumedRoute\":\"/billing\"", declared);
     }
 
     [Fact]

@@ -89,6 +89,7 @@ class _Remote(BaseHTTPRequestHandler):
         REQUESTS.append(headers)
         length = int(self.headers.get("Content-Length") or 0)
         request = json.loads(self.rfile.read(length) or b"{}")
+        headers["consumedRoute"] = request.get("consumedRoute")
         remote = path[1:path.index("/", 1)]
         if remote == "slow":
             RELEASE.wait(NEVER_IN_TIME_S)
@@ -302,6 +303,13 @@ class DeadSlotPage:
                                              timeout_ms=100)] = None
 
 
+@ui("mfe-consumed")
+class ConsumedServer(_Page):
+    def parts(self):
+        return [fluent.MicroFrontend(base_url=f"{BASE}/fast", route="/widget", consumed_route="/orders",
+                                     resolve=fluent.Resolve.SERVER, timeout_ms=IN_TIME)]
+
+
 @ui("mfe-query-base")
 class QueryInBase(_Page):
     """A base url under a registered remote whose query would swallow the sync suffix."""
@@ -313,7 +321,7 @@ class QueryInBase(_Page):
 
 SOURCES = (Remotes, ExchangeIdentity, Recorder, ClientOnly, FastServer, SlowServer, BrokenServer,
            Unregistered, UnknownIdentity, Parallel, CacheByKey, CachePerUser, CacheShared, CacheNone,
-           Anonymous, Exchanged, SlotPage, DeadSlotPage, QueryInBase)
+           Anonymous, Exchanged, SlotPage, DeadSlotPage, QueryInBase, ConsumedServer)
 
 
 # ── fixtures and helpers ──────────────────────────────────────────────────────────────────────
@@ -402,13 +410,29 @@ def test_a_server_micro_frontend_that_answers_in_time_is_embedded_keeping_its_or
     # its fragments target the island the renderer hosts it in (ids from the wire values)
     import re
 
-    expected = "mfe_" + re.sub(r"[^a-zA-Z0-9]", "_", f"{BASE}/fast|/widget|_empty|remote.Widget")
+    expected = "mfe_" + re.sub(r"[^a-zA-Z0-9]", "_", f"{BASE}/fast|/widget||remote.Widget")
     assert microfrontend["resolved"]["fragments"][0]["targetComponentId"] == expected
     # what acts on a page stays out: the page is the host's
     assert microfrontend["resolved"]["messages"] == []
     assert increment["messages"] == []
     assert hits("fast") == 1
     assert [e.outcome for e in EVENTS] == [Outcome.EMBEDDED]
+
+
+def test_an_island_without_a_consumed_route_is_asked_for_its_content_like_the_browser_asks_it(host):
+    # the renderer loads an island it resolves itself with consumedRoute "": the host asks the same.
+    # "_empty" (the old default) is the FRESH-load marker: a remote app answered its shell aimed at
+    # the route and the island loaded "_empty/…/route" forever.
+    client, _ = host
+    microfrontend = only_micro_frontend(load(client, "mfe-fast").json())
+    assert microfrontend["consumedRoute"] is None
+    assert [r["consumedRoute"] for r in REQUESTS] == [""]
+
+
+def test_a_declared_consumed_route_is_asked_as_declared(host):
+    client, _ = host
+    only_micro_frontend(load(client, "mfe-consumed").json())
+    assert [r["consumedRoute"] for r in REQUESTS] == ["/orders"]
 
 
 def test_a_slow_remote_degrades_to_the_client_at_its_deadline_and_is_not_waited_for(host):
