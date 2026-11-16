@@ -8,6 +8,23 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed — listings keep their filter
+
+- **A listing opened with a starred (default) saved view showed every row under the view's chip.**
+  The filter bar applied the view a tick after opening, as a second search racing the unfiltered
+  opening one, and whichever answer arrived last won. The listing (`mateu-table-crud`) now puts the
+  view's conditions into its one opening search, which stands in for the OnLoad search; filters in
+  the URL still win. Redwood already ran the two in sequence and dropped the first, so it is
+  unchanged.
+- **A bulk action (`@ListToolbarButton`) on a filtered listing lost the filter.** Its answer
+  refreshed the listing in place and also pushed the listing's bare path, which dropped the query
+  string holding the filters; the listing then searched again with an emptied state. An in-place
+  refresh (bulk/row action, delete, Undo) no longer touches the address (the same fix as the delete
+  case in #1256).
+- **Python: a `GroupBy()` group on an enum field was named `Region.North`** instead of `North`,
+  so no row matched its group. Group values now follow Java's `String.valueOf`: an enum is its
+  member name (or its own `__str__`), `None` is `null`, a bool `true`/`false`.
+
 ### Added — message page
 
 - **`MessagePage`, a page template for a page that stands on its own** — a confirmation, "check

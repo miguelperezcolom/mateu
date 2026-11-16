@@ -554,13 +554,11 @@ class CrudSyncTest {
                 .filter(c -> c.type() == io.mateu.dtos.UICommandTypeDto.DispatchEvent)
                 .count())
         .isEqualTo(1);
-    // and the browser's url stays the listing's
-    org.assertj.core.api.Assertions.assertThat(
-            increment.commands().stream()
-                .filter(c -> c.type() == io.mateu.dtos.UICommandTypeDto.PushStateToHistory)
-                .map(c -> String.valueOf(c.data())))
-        .singleElement()
-        .satisfies(path -> org.assertj.core.api.Assertions.assertThat(path).doesNotEndWith("list"));
+    // and the browser's url is left alone: it is the listing's already, WITH the search text,
+    // filters, page and sort in its query — the bare path pushed here dropped them, and the
+    // listing searched again without them
+    org.assertj.core.api.Assertions.assertThat(increment.commands())
+        .noneMatch(c -> c.type() == io.mateu.dtos.UICommandTypeDto.PushStateToHistory);
   }
 
   @org.junit.jupiter.api.Test

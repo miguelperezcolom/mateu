@@ -251,3 +251,68 @@ def test_typed_filters_left_untouched_keep_their_defaults():
     f = SEEN[0].filters
     assert f.stay is None and f.price is None
     assert f.statuses == set()
+
+
+# ── GroupBy() on an enum field ───────────────────────────────────────────────────
+
+
+class Zone(Enum):
+    North = "n"
+    South = "s"
+
+
+class Shop:
+    id: str = ""
+    zone: Annotated[Zone, GroupBy()] = Zone.North
+    sales: Annotated[float, Aggregate(AggregateFunction.sum)] = 0.0
+
+    def __init__(self, id="", zone=Zone.North, sales=0.0):
+        self.id, self.zone, self.sales = id, zone, sales
+
+
+SHOPS = [Shop("1", Zone.South, 10.0), Shop("2", Zone.North, 5.0), Shop("3", Zone.North, 7.0)]
+
+
+@ui("csp-shops")
+class Shops(Crud[Shop]):
+    def fetch(self, search):
+        return list(SHOPS)
+
+
+@ui("csp-shops-listing")
+class ShopsListing(Listing[Shop]):
+    def search(self, request, http=None):
+        return ListingData(rows=list(SHOPS), total_elements=3)
+
+
+def test_an_enum_group_is_named_by_its_member_name_like_java_and_dotnet():
+    # it used to answer Python's str(member), "Zone.North", which also matched no row
+    data = search(Shops)
+    assert [g["value"] for g in data["groups"]] == ["North", "South"]
+    assert data["groups"][0]["count"] == 2
+    assert data["groups"][0]["aggregates"] == {"sales": 12.0}
+    assert {g["value"] for g in data["groups"]} == {r["zone"] for r in data["page"]["content"]}
+
+
+def test_a_listing_synthesizes_enum_groups_by_member_name_too():
+    data = search(ShopsListing)
+    assert data["groups"] == [
+        {"value": "South", "count": 1, "aggregates": {}},
+        {"value": "North", "count": 2, "aggregates": {}},
+    ]
+
+
+def test_group_values_follow_java_string_value_of():
+    from mateu_ui.core.sync_handler.search import group_value
+
+    class Named(Enum):
+        A = 1
+
+        def __str__(self):
+            return "Alpha"
+
+    assert group_value(None) == "null"
+    assert group_value(True) == "true"
+    assert group_value(Zone.South) == "South"
+    assert group_value(Named.A) == "Alpha"
+    assert group_value(3) == "3"

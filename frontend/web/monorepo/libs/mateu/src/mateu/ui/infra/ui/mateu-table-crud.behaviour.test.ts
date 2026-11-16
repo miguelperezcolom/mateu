@@ -7,6 +7,7 @@ import { BasicComponentRenderer } from './renderers/BasicComponentRenderer'
 import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType'
 import { registerExternalJsonMock } from '@infra/http/externalOptions'
 import { writeColumnPrefs } from '../columnPrefsStore'
+import { saveView, setDefaultView } from '../savedViewsStore'
 import { setRestSourceCatalogue } from '@infra/http/restSourceCatalogue'
 import { ExternalRestError } from '@infra/http/serviceMessage'
 import { setNotifier } from '@application/Notifier'
@@ -93,6 +94,39 @@ describe('the URL is the listing\'s memory', () => {
         const { actions } = await mount(crud(), undefined)
         expect(actions().find(a => a.actionId === 'search').parameters._searchState.searchText).toBe('madrid')
         expect(window.location.search).toBe('?searchText=madrid')
+    })
+
+    it('the default saved view goes into the ONE opening search (it used to race an unfiltered one)', async () => {
+        saveView('/orders', { name: 'Ana\'s', values: { customer: 'Ana', unknown: 'x' } })
+        setDefaultView('/orders', 'Ana\'s')
+        const { actions } = await mount(crud(), undefined)
+        // asked for at once, on mount — so it stands in for the enclosing component's OnLoad search
+        // (onLoadTimes.ts) instead of following it a tick later
+        expect(actions().filter(a => a.actionId === 'search')).toHaveLength(1)
+        await settle()
+        const searches = actions().filter(a => a.actionId === 'search')
+        expect(searches).toHaveLength(1)
+        expect(searches[0].parameters._searchState).toMatchObject({ customer: 'Ana', page: 0 })
+        // only the listing's own filters are taken from the view
+        expect(searches[0].parameters._searchState.unknown).toBeUndefined()
+        // the page the user opened, with its view on: the URL says it, without a new history entry
+        expect(new URLSearchParams(window.location.search).get('customer')).toBe('Ana')
+    })
+
+    it('filters in the URL win over the default saved view', async () => {
+        saveView('/orders', { name: 'mine', values: { customer: 'Ana' } })
+        setDefaultView('/orders', 'mine')
+        history.replaceState(null, '', '/orders?customer=Bob')
+        const { actions } = await mount(crud(), undefined)
+        const searches = actions().filter(a => a.actionId === 'search')
+        expect(searches).toHaveLength(1)
+        expect(searches[0].parameters._searchState.customer).toBe('Bob')
+    })
+
+    it('a view that is not the default one is not applied on opening', async () => {
+        saveView('/orders', { name: 'mine', values: { customer: 'Ana' } })
+        const { actions } = await mount(crud(), rows)
+        expect(actions().filter(a => a.actionId === 'search')).toHaveLength(0)
     })
 
     it('a plain URL does not search on mount (the server trigger does that)', async () => {

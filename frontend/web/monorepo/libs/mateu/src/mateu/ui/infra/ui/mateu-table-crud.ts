@@ -12,6 +12,7 @@ import './mateu-column-chooser'
 import type { ColumnChooserEntry } from './mateu-column-chooser'
 import './mateu-content-header'
 import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from '../columnPrefsStore.ts'
+import { defaultView } from '../savedViewsStore.ts'
 import { interpolate, templateResolver } from './interpolation'
 import { fetchExternalPage, fetchExternalRows, pageOf } from '@infra/http/externalOptions.ts'
 import { filterExternalRows, sortExternalRows } from '@infra/http/restRowFilters.ts'
@@ -1039,6 +1040,12 @@ export class MateuTableCrud extends LitElement {
                     page: defaultPage,
                     sort: []
                 })
+                // The default (starred) saved view of a listing opened with nothing in the URL: its
+                // conditions go into THIS opening search, which then stands in for the OnLoad one.
+                // The filter bar used to apply it a tick later, as a second search racing the
+                // unfiltered opening one — whichever answer arrived last won, so the chip showed
+                // the view's filter over every row.
+                if (!urlChanged) this.state = this._withDefaultView(metadata, this.state)
                 const urlHasNonDefault = this.state.page !== defaultPage
                     || (this.state.sort?.length > 0)
                     || [...this._filterIds(metadata)].some(id => this.state[id] != null)
@@ -1064,6 +1071,23 @@ export class MateuTableCrud extends LitElement {
                 if (restored !== this.state) this.state = restored
             }
         }
+    }
+
+    /**
+     * {@code base} with the conditions of this route's default saved view, when the URL carries no
+     * params at all (they always win) and nothing is set yet. Only the keys that are filters of this
+     * listing are taken. Returns {@code base} unchanged when there is no default view to apply.
+     */
+    private _withDefaultView(metadata: Crud, base: Record<string, any>): Record<string, any> {
+        const location = (globalThis as { window?: { location?: Location } }).window?.location
+        if (!location || location.search) return base
+        const view = defaultView(location.pathname)
+        if (!view) return base
+        const filterIds = this._filterIds(metadata)
+        if ([...filterIds].some(id => base[id] != null && base[id] !== '')) return base
+        const values = Object.fromEntries(Object.entries(view.values ?? {})
+            .filter(([key, value]) => filterIds.has(key) && value != null && value !== ''))
+        return Object.keys(values).length ? { ...base, ...values } : base
     }
 
     /**
