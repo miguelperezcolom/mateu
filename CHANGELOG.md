@@ -8,49 +8,6 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
-### Added — pin the app's language
-
-- **`mateu.locale`** (env `MATEU_LOCALE`; .NET `MateuOptions.Locale`; Python
-  `add_mateu(locale=…)`): a BCP 47 tag (`es`, `pt-BR`) that every request gets as its UI language
-  instead of the browser's `Accept-Language` — `AppDto.locale` (so `<html lang>`, the client
-  chrome and money formatting), the server's built-in texts, the not-found page, validation
-  messages and `${i18n.…}`. The Java served page carries it on `<html lang>` from the first byte. An
-  app's own `Translator.locale(...)` still wins; unset = unchanged; an invalid value is ignored with
-  one warning. Docs `advanced/i18n.md#pin-the-apps-language`.
-### Fixed — a toast survives the page load a server navigation causes
-
-- **An action that answers a message AND navigates no longer loses the message** — e.g.
-  `List.of(Message.success("Ticket created"), URI.create("/tickets"))` in Java, or
-  `new object[] { Message.Success("…"), "/tickets" }` in C#. A server `NavigateTo` is a full page
-  load by design in every backend (the target may be another mount of the origin, which the
-  browser cannot tell apart from its own on a root mount), so the toast was drawn and thrown away
-  with the page. The web client now keeps the messages that answer just showed in this tab's
-  sessionStorage right before the load and the next page shows them once it booted
-  (`infra/notify/messageCarryOver.ts`; text only — an action of the message belonged to the screen
-  the load destroyed; stale after 30 s; a `#fragment` move carries nothing). Not ported to Redwood.
-
-### Docs
-
-- The C# manual, the `mateu-dotnet` skill and the .NET READMEs install `Mateu.AspNetCore` without
-  `--prerelease` now that 3.0.0 is released.
-### Fixed — zones in the .NET and Python ports
-
-- **A section with no zone on a zoned form is a full-width band again in .NET and Python.** On a
-  form with `[Zone]`s / `@zones`, the ports put every section that named no zone into an extra
-  trailing column (`62% 1fr 1fr`: Contact, Account and Customer side by side). Like Java, such a
-  section is now a full-width band stacked in declaration order, and each run of zoned sections
-  between the bands collapses into one row of columns. A form whose sections all have a zone
-  answers exactly as before. New conformance case `zones-band`.
-### Fixed — proxied catalogue sources
-
-- **A `@RestOptions(source = "products")` field gets its options when only the catalogue says
-  `proxy: true`** — whether a Java view advertises `__restfetch__` was decided from the field's
-  own `proxy` flag, so a source proxied by its `sources.yaml` entry (or a
-  `RestSourceCatalogSupplier`) was never advertised and the browser dropped the fetch ("no
-  component on the page handles it"). The decision now reads the RESOLVED source, as the proxy leg
-  does, for `@RestOptions`, `@RestListing`, `@RestData`, `@RestAction` and `RestSourceSupplier`
-  declarations alike. The .NET and Python ports already did. Test
-  `RestOptionsCatalogueProxySyncTest`.
 ## [3.0.1] — 2026-11-16
 
 ### Added — Spring Boot starter
@@ -61,9 +18,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Demo `demo/demo-spring-boot-starter` (Maven and Gradle), checked in CI against Boot's dependency
   management. Docs: "The simplest way: the Spring Boot starter" in the Spring MVC setup page.
 - **IDE completion for `mateu.*` settings**: `mateu-mvc-core` ships Spring configuration metadata for
-  47 user-facing settings (types, descriptions, defaults), pinned by `SpringConfigurationMetadataTest`.
+  48 user-facing settings (types, descriptions, defaults), pinned by `SpringConfigurationMetadataTest`.
 - The annotation processors answer `SourceVersion.latestSupported()`: javac no longer warns
   "Supported source version 'RELEASE_8' … less than -source '21'" on every build.
+
+### Added — pin the app's language
+
+- **`mateu.locale`** (env `MATEU_LOCALE`; .NET `MateuOptions.Locale`; Python
+  `add_mateu(locale=…)`): a BCP 47 tag (`es`, `pt-BR`) that every request gets as its UI language
+  instead of the browser's `Accept-Language` — `AppDto.locale` (so `<html lang>`, the client
+  chrome and money formatting), the server's built-in texts, the not-found page, validation
+  messages and `${i18n.…}`. The Java served page carries it on `<html lang>` from the first byte. An
+  app's own `Translator.locale(...)` still wins; unset = unchanged; an invalid value is ignored with
+  one warning. Docs `advanced/i18n.md#pin-the-apps-language`.
 
 ### Fixed — listings and menu addresses
 
@@ -150,26 +117,37 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Section's slot came out 202 px tall). The plugin's new command **Repair: collapse empty marker
   rows** fixes an existing library in place.
 
-### Changed — examples
+### Fixed — a toast survives the page load a server navigation causes
 
-- The starters, guides and workshop examples point at 3.0.0.
+- **An action that answers a message AND navigates no longer loses the message** — e.g.
+  `List.of(Message.success("Ticket created"), URI.create("/tickets"))` in Java, or
+  `new object[] { Message.Success("…"), "/tickets" }` in C#. A server `NavigateTo` is a full page
+  load by design in every backend (the target may be another mount of the origin, which the
+  browser cannot tell apart from its own on a root mount), so the toast was drawn and thrown away
+  with the page. The web client now keeps the messages that answer just showed in this tab's
+  sessionStorage right before the load and the next page shows them once it booted
+  (`infra/notify/messageCarryOver.ts`; text only — an action of the message belonged to the screen
+  the load destroyed; stale after 30 s; a `#fragment` move carries nothing). Not ported to Redwood.
 
-## [3.0-beta.65 – 3.0.0] — 2026-11-13 to 2026-11-15
+### Fixed — zones in the .NET and Python ports
 
-### Added — message page
+- **A section with no zone on a zoned form is a full-width band again in .NET and Python.** On a
+  form with `[Zone]`s / `@zones`, the ports put every section that named no zone into an extra
+  trailing column (`62% 1fr 1fr`: Contact, Account and Customer side by side). Like Java, such a
+  section is now a full-width band stacked in declaration order, and each run of zoned sections
+  between the bands collapses into one row of columns. A form whose sections all have a zone
+  answers exactly as before. New conformance case `zones-band`.
 
-- **`MessagePage`, a page template for a page that stands on its own** — a confirmation, "check
-  your email", an error, a signed-out page, a sign-in step: one card near the top of a full-bleed
-  illustrated background, with no app chrome. `template: {type: MessagePage, background, image,
-  width, footer}` on a `type: Form`: the form's title is the card's h1, its content the card's body
-  (text, links, fields, buttons), its toolbar the card's actions, `footer` the small links at its
-  foot. While it is on screen the app shell puts its header, menu and FABs away (Vaadin and
-  Redwood). On Redwood the background is Redwood's own imagery (the welcome banner's tone and
-  gallery illustration, from Oracle's CDN or its mirror) and the card Redwood's Neutral 10 surface;
-  on Vaadin it is Mateu's own illustration, drawn in CSS. Java, .NET and Python, the browser
-  expander, Vaadin, Redwood (composed — Spectra has no component for it), the Figma contract and the
-  IntelliJ / VS Code "New › Mateu" page templates. Demo: `demo-museum` `visit-booked` and `sign-in`.
-  Docs `ux-patterns/message-page.md`.
+### Fixed — proxied catalogue sources
+
+- **A `@RestOptions(source = "products")` field gets its options when only the catalogue says
+  `proxy: true`** — whether a Java view advertises `__restfetch__` was decided from the field's
+  own `proxy` flag, so a source proxied by its `sources.yaml` entry (or a
+  `RestSourceCatalogSupplier`) was never advertised and the browser dropped the fetch ("no
+  component on the page handles it"). The decision now reads the RESOLVED source, as the proxy leg
+  does, for `@RestOptions`, `@RestListing`, `@RestData`, `@RestAction` and `RestSourceSupplier`
+  declarations alike. The .NET and Python ports already did. Test
+  `RestOptionsCatalogueProxySyncTest`.
 
 ### Fixed — translations and plain text
 
@@ -188,6 +166,7 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - The listing pager's "N items" is in the UI's language on Vaadin (chromeTexts, six languages,
   singular for one), React Native (caption and buttons) and the IntelliJ plugin (caption), which
   were English too. Redwood already had it.
+
 ### Fixed — server-resolved micro frontends
 
 - **A `MicroFrontend` with `resolve = SERVER` and no `consumedRoute` no longer loops in the
@@ -201,6 +180,7 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   island a consumed route (`""` when none is declared).
 - A refused CRUD write (`delete`/`save`/`create`… on a `@ReadOnly` or `@Not*` crud) now logs its
   one WARN, like every other refusal — the 403 was there, the log line was not.
+
 ### Fixed — test harness
 
 - `Screen.route()` (`io.mateu:mateu-test`) keeps a CRUD's prefix after Save or Edit: a crud's
@@ -209,6 +189,7 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `/products/P-003/edit` instead of the bare push. Same rule in the .NET
   (`Mateu.AspNetCore.Testing`, `MateuScreen.Route`) and Python (`mateu_ui.testing`, `screen.route`)
   harnesses.
+
 ### Fixed — CRUD drawers and record pages
 
 - Java: an `editInDrawer()` crud reached as a `@Menu` entry of an app shell saves the record the
@@ -229,6 +210,7 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   and the drawer stayed open.
 - Java: a crud that cannot delete shows no row selection boxes unless something uses the selection
   (a `@ListToolbarButton` or `@DragRows`).
+
 ### Fixed — routes and menus
 
 - A query string no longer hands a pinned route to its `:param` neighbour: with `orders/pending`
@@ -250,6 +232,32 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   on the server (`selected` on the wire; a query no longer unselects the entry, and an entry spelled
   with the mount matches a mount-relative route) and in the Vaadin shell (the band marked the FIRST
   entry covering the route, so «Open orders» won).
+
+### Changed — examples
+
+- The starters, guides and workshop examples point at 3.0.0.
+
+### Docs
+
+- The C# manual, the `mateu-dotnet` skill and the .NET READMEs install `Mateu.AspNetCore` without
+  `--prerelease` now that 3.0.0 is released.
+
+## [3.0-beta.65 – 3.0.0] — 2026-11-13 to 2026-11-15
+
+### Added — message page
+
+- **`MessagePage`, a page template for a page that stands on its own** — a confirmation, "check
+  your email", an error, a signed-out page, a sign-in step: one card near the top of a full-bleed
+  illustrated background, with no app chrome. `template: {type: MessagePage, background, image,
+  width, footer}` on a `type: Form`: the form's title is the card's h1, its content the card's body
+  (text, links, fields, buttons), its toolbar the card's actions, `footer` the small links at its
+  foot. While it is on screen the app shell puts its header, menu and FABs away (Vaadin and
+  Redwood). On Redwood the background is Redwood's own imagery (the welcome banner's tone and
+  gallery illustration, from Oracle's CDN or its mirror) and the card Redwood's Neutral 10 surface;
+  on Vaadin it is Mateu's own illustration, drawn in CSS. Java, .NET and Python, the browser
+  expander, Vaadin, Redwood (composed — Spectra has no component for it), the Figma contract and the
+  IntelliJ / VS Code "New › Mateu" page templates. Demo: `demo-museum` `visit-booked` and `sign-in`.
+  Docs `ux-patterns/message-page.md`.
 
 ### Fixed — rc.2 web
 
