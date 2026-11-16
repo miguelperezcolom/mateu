@@ -178,6 +178,8 @@ public final class IndexPage {
     // group reference to replaceAll — an IllegalArgumentException, i.e. a 500 on every page load.
     html = html.replace("<!-- AQUIFAVICON -->", faviconOf(spec.favicon()));
     html = html.replace("AQUIELTITULODELAPAGINA", spec.title());
+    // the app's pinned language (mateu.locale) on <html lang> from the first byte
+    html = ConfiguredLocale.htmlLang(html);
     // which app this page is, for the renderer's client caches (ahead of the app's own head; the
     // PWA head, added last, hashes it)
     html = appHead(html, (spec.uiId() == null ? "" : spec.uiId()) + "|" + spec.path());

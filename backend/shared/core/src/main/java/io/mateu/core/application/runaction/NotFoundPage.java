@@ -198,10 +198,15 @@ public final class NotFoundPage {
               "Torna indietro"));
 
   /**
-   * The words for the browser's language (the primary subtag of its first {@code Accept-Language}:
-   * {@code pt-BR} → pt, {@code de-AT} → de), English for one the page does not speak.
+   * The words for the app's pinned {@code mateu.locale}, else for the browser's language (the
+   * primary subtag of its first {@code Accept-Language}: {@code pt-BR} → pt, {@code de-AT} → de),
+   * English for one the page does not speak.
    */
   static Texts textsFor(HttpRequest httpRequest) {
+    var configured = io.mateu.core.infra.ConfiguredLocale.tag();
+    if (configured != null) {
+      return TEXTS.getOrDefault(primaryLanguage(configured), TEXTS.get("en"));
+    }
     if (httpRequest == null) {
       return TEXTS.get("en");
     }
