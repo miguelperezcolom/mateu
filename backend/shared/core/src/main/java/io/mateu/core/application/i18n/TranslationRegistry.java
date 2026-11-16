@@ -358,7 +358,8 @@ public class TranslationRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   /**
    * The UI language of a request: what the app's {@link Translator} says (by default the first
-   * {@code Accept-Language} tag), else the header read directly; null when neither says.
+   * {@code Accept-Language} tag), else the app's pinned {@code mateu.locale}, else the header read
+   * directly; null when none says.
    */
   public static String localeOf(HttpRequest httpRequest) {
     try {
@@ -372,7 +373,8 @@ public class TranslationRegistry implements io.mateu.core.infra.dev.SpecsCache {
     } catch (Throwable ignored) {
       // no bean context (a build-time export, a bare test): read the header ourselves
     }
-    return acceptLanguage(httpRequest);
+    var configured = io.mateu.core.infra.ConfiguredLocale.tag();
+    return configured != null ? configured : acceptLanguage(httpRequest);
   }
 
   /** The request's first {@code Accept-Language} tag, or null. */

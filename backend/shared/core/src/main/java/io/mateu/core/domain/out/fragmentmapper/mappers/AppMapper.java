@@ -241,16 +241,21 @@ public final class AppMapper {
     return actions.stream().map(AppMapper::mapHeaderAction).toList();
   }
 
-  /** The UI language: what the app's {@link io.mateu.uidl.interfaces.Translator} says. */
+  /**
+   * The UI language: what the app's {@link io.mateu.uidl.interfaces.Translator} says, else the
+   * app's pinned {@code mateu.locale}.
+   */
   static String getLocale(HttpRequest httpRequest) {
+    String tag = null;
     try {
       var translator =
           io.mateu.uidl.di.MateuBeanProvider.getSingletonBean(
               io.mateu.uidl.interfaces.Translator.class);
-      return translator != null ? translator.locale(httpRequest) : null;
+      tag = translator != null ? translator.locale(httpRequest) : null;
     } catch (RuntimeException noTranslator) {
-      return null;
+      // no translator: the setting, if any
     }
+    return tag != null && !tag.isBlank() ? tag : io.mateu.core.infra.ConfiguredLocale.tag();
   }
 
   /**

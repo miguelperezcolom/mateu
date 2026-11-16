@@ -47,6 +47,13 @@ public sealed class MateuOptions
     /// Java: <c>mateu.oracle-cdn.url</c>.</summary>
     public string? OracleCdnUrl { get; set; }
 
+    /// <summary>Pins the UI language for every request: a BCP 47 tag such as <c>es</c> or <c>pt-BR</c>.
+    /// Mateu's own texts and the app shell's <c>locale</c> (<c>&lt;html lang&gt;</c>, the client chrome,
+    /// money formatting) use it instead of the browser's <c>Accept-Language</c>; an app's own
+    /// <c>ITranslator.Locale</c> still wins. Null (the default) reads <c>MATEU_LOCALE</c>; unset = the
+    /// browser decides, as before. An invalid value is ignored with a warning. Java: <c>mateu.locale</c>.</summary>
+    public string? Locale { get; set; }
+
     /// <summary>Honour the <c>X-Forwarded-Prefix</c> a prefix-stripping reverse proxy sets: the served
     /// page (only with <c>MapMateu(ui: …)</c>) then loads its assets and calls the API under that
     /// prefix. Null (the default) reads <c>MATEU_FORWARDED_PREFIX_TRUSTED</c>; off, the header is

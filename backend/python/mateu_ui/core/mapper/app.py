@@ -687,9 +687,11 @@ def remote_route_prefix(own_path: str | None) -> str | None:
 
 
 def _accept_language() -> str | None:
-    from ..translations import accept_language
+    """The app's pinned language (``add_mateu(locale=…)`` / ``MATEU_LOCALE``), else the request's
+    ``Accept-Language``."""
+    from ..translations import request_locale
 
-    return accept_language()
+    return request_locale()
 
 
 def _app_presentation(cls) -> dict:

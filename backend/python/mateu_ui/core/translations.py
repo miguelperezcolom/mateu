@@ -116,10 +116,18 @@ def accept_language() -> str | None:
     return None if not tag or tag == "*" else tag
 
 
+def request_locale() -> str | None:
+    """The app's pinned language (``add_mateu(locale=…)`` / ``MATEU_LOCALE``) when set, else the
+    request's first ``Accept-Language`` tag, or None."""
+    from .pinned_locale import pinned
+
+    return pinned() or accept_language()
+
+
 def locale_of(mapper=None) -> str | None:
     """The UI language of the request in flight: what the app's ``Translator.locale()`` says (the
-    port's locale chain, which also feeds ``AppMetadata.locale``), else the ``Accept-Language``
-    header; None when neither says (the fallback locale then applies)."""
+    port's locale chain, which also feeds ``AppMetadata.locale``), else the app's pinned language,
+    else the ``Accept-Language`` header; None when none says (the fallback locale then applies)."""
     if mapper is not None:
         try:
             locale = mapper._locale()
@@ -127,7 +135,7 @@ def locale_of(mapper=None) -> str | None:
             locale = None
         if locale:
             return locale
-    return accept_language()
+    return request_locale()
 
 
 class TranslationRegistry:

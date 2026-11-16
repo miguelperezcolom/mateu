@@ -8,6 +8,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added — pin the app's language
+
+- **`mateu.locale`** (env `MATEU_LOCALE`; .NET `MateuOptions.Locale`; Python
+  `add_mateu(locale=…)`): a BCP 47 tag (`es`, `pt-BR`) that every request gets as its UI language
+  instead of the browser's `Accept-Language` — `AppDto.locale` (so `<html lang>`, the client
+  chrome and money formatting), the server's built-in texts, the not-found page, validation
+  messages and `${i18n.…}`. The Java served page carries it on `<html lang>` from the first byte. An
+  app's own `Translator.locale(...)` still wins; unset = unchanged; an invalid value is ignored with
+  one warning. Docs `advanced/i18n.md#pin-the-apps-language`.
+
 ### Added — message page
 
 - **`MessagePage`, a page template for a page that stands on its own** — a confirmation, "check
