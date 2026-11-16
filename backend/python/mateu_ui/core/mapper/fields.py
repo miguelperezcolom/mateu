@@ -212,7 +212,8 @@ class FieldMapperMixin(MixinBase):
                         nested_cls, camel_case(n)))
             for n, fn in methods_with(nested_cls, "__mateu_fab__"):
                 if not any(hasattr(fn, m) for m in ("__mateu_action__", "__mateu_button__", "__mateu_toolbar__")):
-                    add(Action(id=camel_case(n), validation_required=False))
+                    add(with_action_options(
+                        Action(id=camel_case(n), validation_required=False), nested_cls, camel_case(n)))
             prefix = nested_forms.NESTED_ACTION_PREFIX + camel_case(f.name) + "-"
             out.extend(a.model_copy(update={"id": prefix + a.id}) for a in own)
         return out

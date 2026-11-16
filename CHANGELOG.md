@@ -23,6 +23,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   IntelliJ / VS Code "New › Mateu" page templates. Demo: `demo-museum` `visit-booked` and `sign-in`.
   Docs `ux-patterns/message-page.md`.
 
+### Fixed — Python long tasks
+
+- **A Python `@button` / `@toolbar` / `@action` declared `-> LongTaskRun` now streams** — it is
+  advertised with `sse`, as .NET does for a `LongTaskRun` return type and Java for a `Flux`. Before,
+  only a wizard's completion action was inferred: the client called `/sync`, the task ran to the
+  end and nothing streamed. An unannotated method still needs `@action_options(sse=True)`, and an
+  `@action_options` without `sse` does not switch the inferred streaming off (like .NET).
+
 ### Fixed — rc.2 web
 
 - A non-root YAML mount keeps its address on Vaadin: a reload no longer lands in another app.

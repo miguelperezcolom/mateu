@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import typing
 from typing import Any
 
 from mateu_ui.dtos import (
@@ -35,6 +34,7 @@ from ._common import (
     _id,
     _field_value,
     _row_cell,
+    returns_long_task_run,
     with_action_options,
 )
 
@@ -96,17 +96,7 @@ def completion_streams(cls, name: str) -> bool:
     """Whether the ``@wizard_completion_action`` method answers a ``LongTaskRun`` (its declared
     return type): its progress streams, so the client must call it over SSE (Java advertises a
     completion returning a Flux with ``sse``)."""
-    from mateu_ui.uidl.progress import LongTaskRun
-
-    fn = getattr(cls, name, None)
-    try:
-        hints = typing.get_type_hints(fn) if fn is not None else {}
-    except Exception:  # noqa: BLE001 - an unresolvable annotation: fall back to its spelling
-        hints = {}
-    returned = hints.get("return", getattr(fn, "__annotations__", {}).get("return"))
-    if returned is LongTaskRun:
-        return True
-    return isinstance(returned, str) and returned.split(".")[-1].strip("'\"") == "LongTaskRun"
+    return returns_long_task_run(getattr(cls, name, None))
 
 
 def completion_action(cls, name: str) -> Action:
