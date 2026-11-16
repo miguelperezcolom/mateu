@@ -159,7 +159,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     runCatching { TableSpeedSearch.installOn(table) }
 
     // Empty listings show the wire's emptyStateMessage through the IDE's StatusText.
-    table.emptyText.text = plain(metadata.text("emptyStateMessage").ifBlank { "No data" })
+    table.emptyText.text = plain(listingEmptyMessage(null, metadata))
 
     // Per-user column personalization (show/hide via header right-click + native drag-reorder,
     // persisted per crud route). The identity/row-open column (first link column) is protected.
@@ -560,6 +560,8 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         // the page on screen, for the desktop MCP server's screen summary
         ctx.noteListingPage(component.text("id"), listing)
         model.setEntries(buildEntries(rows, specs, groupBy, listing))
+        // the listing's own empty message travels in its search answer (ListingData.emptyStateMessage)
+        table.emptyText.text = plain(listingEmptyMessage(listing, metadata))
         // `width` / `@ColumnWidth("auto")` (autoWidth) / flexGrow 0 — the desktop ignored them all;
         // an auto column needs its rows to measure, so the plan is applied on every page
         GridTables.applyWidths(table, specColumns)
@@ -725,6 +727,17 @@ internal fun formatNumberCell(raw: String, money: Boolean, locale: java.util.Loc
  * cannot be compared at a glance (Few, "Show Me the Numbers": align numbers on the right) — and
  * formatted with [formatNumberCell].
  */
+/**
+ * What an empty listing says: the message its search answer carries next to the page
+ * (`ListingData.emptyStateMessage`), else the listing's metadata, else "No data". Reading the
+ * metadata alone, a listing answering "Pick a warehouse on the header" showed "No data".
+ */
+internal fun listingEmptyMessage(listing: JsonNode?, metadata: JsonNode): String {
+    val own = listing?.path("emptyStateMessage")?.takeIf { it.isTextual }?.asText().orEmpty()
+    if (own.isNotBlank()) return own
+    return metadata.path("emptyStateMessage").takeIf { it.isTextual }?.asText().orEmpty().ifBlank { "No data" }
+}
+
 internal class NumberCellRenderer(private val money: Boolean) : DefaultTableCellRenderer() {
     init { horizontalAlignment = javax.swing.SwingConstants.RIGHT; htmlDisabled() }
     override fun setValue(value: Any?) {
@@ -1020,6 +1033,9 @@ private class CrudTableModel(
         return when {
             spec.kind == ColKind.STATUS || spec.kind == ColKind.LINK -> node
             spec.dataType == "bool" || spec.editorType == "boolean" -> node.asBoolean(false)
+            // an Amount (a money column) reads in its own locale and currency — it showed blank
+            !spec.editable && (spec.dataType == "money" || spec.stereotype == "money") && MoneyValues.isAmount(node) ->
+                MoneyValues.text(node)
             // an editable cell edits the RAW value; a read-only one shows its label
             spec.editable -> node.displayString()
             // a date reads in the user's locale, not as ISO (D-15)

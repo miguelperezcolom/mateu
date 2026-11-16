@@ -49,6 +49,8 @@ import { sortDirectionOf } from '@infra/ui/sortDirection.ts';
 import { isListingOwnLoad } from '@infra/http/localRequests.ts';
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { showsPreSearch } from '@infra/ui/listingPreSearch.ts'
+import { listingEmptyMessage } from '@infra/ui/listingEmptyMessage.ts'
+import { formatMoneyValue } from '@infra/ui/moneyFormat.ts'
 import { renderComponent } from '@infra/ui/renderers/renderComponent.ts'
 import { keyed } from 'lit/directives/keyed.js'
 
@@ -1272,7 +1274,7 @@ export class MateuTableCrud extends LitElement {
         const rows: any[] = (listing?.page?.content as any[]) ?? []
         const emptyMsg = this.awaitingFirstSearch
             ? chromeText('searchToStart')
-            : this.state[this.component?.id!]?.emptyStateMessage
+            : listingEmptyMessage(this.data, this.state, this.id, this.component?.id)
 
         const formatListValue = (col: GridColumn, item: any) => {
             const val = item[col.id]
@@ -1283,6 +1285,8 @@ export class MateuTableCrud extends LitElement {
                 return html`<span theme="badge pill ${theme}">${status.message}</span>`
             }
             if (col.dataType === 'bool') return html`${val ? '✓' : '✗'}`
+            // an Amount in its own locale/currency, a number declared money in the UI's
+            if (col.dataType === 'money' || col.stereotype === 'money') return html`${val === '' ? '' : formatMoneyValue(val)}`
             if (typeof val === 'object') return html`${val.label ?? val.name ?? val.message ?? ''}`
             return html`${formatTemporalCell(valueLabel(val, col.valueLabels), col.dataType, uiLocale())}`
         }

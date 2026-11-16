@@ -46,6 +46,7 @@ import {
   allRowsSelected,
   applySearchToState,
   columnDefsOf,
+  emptyMessageOf,
   extractListing,
   cellTone,
   firstRowAction as firstRowActionOf,
@@ -692,7 +693,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
       ) : rawRows.length === 0 ? (
         <View style={styles.emptyState}>
           <IconButton icon="tray-remove" size={36} iconColor={theme.faint} disabled importantForAccessibility="no" />
-          <PaperText variant="bodyLarge" style={styles.emptyStateText}>{(metadata['emptyStateMessage'] as string) || 'No data'}</PaperText>
+          <PaperText variant="bodyLarge" style={styles.emptyStateText}>{emptyMessageOf(liveData, metadata)}</PaperText>
         </View>
       ) : gridLayout === 'cards' ? (
         // Cards: one card per row — the mobile-first layout

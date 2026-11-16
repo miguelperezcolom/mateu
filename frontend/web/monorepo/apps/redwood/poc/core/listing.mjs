@@ -197,8 +197,20 @@ export function nestedListingAtomOf(node, ctx) {
     adp: !asCards && dataProviderFactory ? dataProviderFactory(tableRows) : null,
     loaded: !!loaded,
     isEmpty: !!loaded && rows.length === 0,
-    emptyText: md.emptyStateMessage || chromeText('noData'),
+    emptyText: listingEmptyMessageOf(loaded, md),
   }
+}
+
+/**
+ * What an empty listing says: the message the search answer carries next to its page
+ * (`data[<crud id>].emptyStateMessage`, the server's ListingData), else the listing's own
+ * metadata, else the default. Reading the metadata alone, a Listing returning
+ * `new ListingData<>(page, "Pick a warehouse")` kept showing "No data".
+ */
+export function listingEmptyMessageOf(loaded, md) {
+  const own = loaded && typeof loaded.emptyStateMessage === 'string' ? loaded.emptyStateMessage.trim() : ''
+  if (own) return loaded.emptyStateMessage
+  return (md && md.emptyStateMessage) || chromeText('noData')
 }
 
 /** Projection of the LISTING (Crud component): columns + rows (from the data axis) + search.
@@ -523,7 +535,7 @@ export function listingBaseOf(ctx, opts = {}) {
     rowRoute: md.rowRoute || '',
     searchable: !!md.searchable,
     pageSize: md.pageSize || 20,
-    emptyStateMessage: md.emptyStateMessage || chromeText('noData'),
+    emptyStateMessage: listingEmptyMessageOf((ctx.data || {}).crud, md),
     columns: finishColumnSizing(columns, fitColumns),
     fitColumns,
     defaultSizedColumns: defaultSized,

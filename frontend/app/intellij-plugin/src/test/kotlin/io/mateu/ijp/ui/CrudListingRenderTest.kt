@@ -93,6 +93,25 @@ class CrudListingRenderTest : BasePlatformTestCase() {
         await("nextPage") { server.actionIds().contains("nextPage") }
     }
 
+    /** ListingData.emptyStateMessage travels in the search answer, next to the page. */
+    fun testAnEmptyAnswerSaysWhatTheListingAnswered() {
+        val ctx = context()
+        val view = render(ctx)
+        ctx.applyIncrement(json("""{"fragments":[{"targetComponentId":"crud1","data":{"page":{"content":[],"totalElements":0,"pageNumber":0,"pageSize":10},"emptyStateMessage":"Pick a warehouse on the header"}}]}"""))
+        assertEquals("Pick a warehouse on the header", (table(view) as com.intellij.ui.table.JBTable).emptyText.text)
+    }
+
+    /** An Amount in a money column reads as the amount (it showed a blank cell). */
+    fun testAnAmountCellReadsInItsOwnLocaleAndCurrency() {
+        val ctx = context()
+        val view = render(ctx, data = """{"page":{"content":[
+              {"id":"p1","name":"Tea","status":"ACTIVE","price":{"currency":"EUR","value":14.4,"locale":"es-ES"}}
+            ],"totalElements":1,"pageNumber":0,"pageSize":10}}""")
+        val table = table(view)
+        val text = table.getValueAt(0, 3).toString().replace(' ', ' ')
+        assertEquals("14,40 €", text)
+    }
+
     fun testALaterSearchAnswerReplacesTheRows() {
         val ctx = context()
         val view = render(ctx)

@@ -3,6 +3,7 @@ import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColu
 import { html, nothing } from "lit";
 import { uuidAwareText } from "@infra/ui/uuidCell.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { formatMoneyValue } from '@infra/ui/moneyFormat.ts'
 
 /*
  * Design-system-neutral table renderer — a plain HTML <table>, no `@vaadin`. Shared by the core
@@ -11,7 +12,7 @@ import { chromeText } from '@infra/ui/chromeTexts.ts'
  * sorting, editing, virtual scrolling, etc. Cells are plain text.
  */
 
-interface Col { id: string; label: string; autoWidth?: boolean; width?: string }
+interface Col { id: string; label: string; autoWidth?: boolean; width?: string; money?: boolean }
 
 const extractColumns = (component: ClientSideComponent): Col[] => {
     const md = component.metadata as any
@@ -20,13 +21,16 @@ const extractColumns = (component: ClientSideComponent): Col[] => {
         .filter(c => c && (c.metadata as any))
         .map(c => {
             const gc = c.metadata as GridColumn
-            return { id: c.id ?? '', label: (gc?.label ?? c.id ?? '') as string, autoWidth: (gc as any)?.autoWidth, width: (gc as any)?.width }
+            return { id: c.id ?? '', label: (gc?.label ?? c.id ?? '') as string, autoWidth: (gc as any)?.autoWidth, width: (gc as any)?.width,
+                money: gc?.dataType === 'money' || gc?.stereotype === 'money' }
         })
 }
 
-const cellText = (row: any, colId: string): string => {
+export const cellText = (row: any, colId: string, money = false): string => {
     const v = row?.[colId]
     if (v == null) return ''
+    // an amount of money (an Amount in its own locale/currency, a number declared money)
+    if (money && v !== '') return formatMoneyValue(v)
     if (typeof v === 'object') return v.text ?? v.label ?? v.value ?? ''
     return String(v)
 }
@@ -42,7 +46,7 @@ export const renderNeutralTable = (component: ClientSideComponent, rows: any[], 
                 <tbody>
                     ${(rows ?? []).length === 0
                         ? html`<tr><td colspan="${Math.max(1, columns.length)}" style="padding:1.5rem; text-align:center; color: var(--lumo-secondary-text-color,#888);">${emptyMessage ?? chromeText('noData')}</td></tr>`
-                        : rows.map(row => html`<tr>${columns.map(c => html`<td style="${td}" title="${cellText(row, c.id)}">${uuidAwareText(cellText(row, c.id))}</td>`)}</tr>`)}
+                        : rows.map(row => html`<tr>${columns.map(c => html`<td style="${td}" title="${cellText(row, c.id, c.money)}">${uuidAwareText(cellText(row, c.id, c.money))}</td>`)}</tr>`)}
                 </tbody>
             </table>
         </div>

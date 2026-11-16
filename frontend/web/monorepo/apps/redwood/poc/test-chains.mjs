@@ -285,6 +285,23 @@ test('an empty listing says so in the chrome language, not a hard-wired English 
   assert.equal(own.emptyStateMessage, 'Nada')
 })
 
+test('an empty listing says what its search answer says (ListingData.emptyStateMessage travels in the data)', async () => {
+  const { listingOf, nestedListingAtomOf } = await import('./core/listing.mjs')
+  const tree = { type: 'ClientSide', id: 'c', metadata: { type: 'Crud', columns: [] }, children: [] }
+  const answered = { crud: { page: { content: [] }, emptyStateMessage: 'Pick a warehouse on the header' } }
+  assert.equal(listingOf({ state: {}, data: answered, tree }).emptyStateMessage, 'Pick a warehouse on the header')
+  // the data wins over the metadata; a blank one leaves the metadata's
+  const own = { ...tree, metadata: { ...tree.metadata, emptyStateMessage: 'Nada' } }
+  assert.equal(listingOf({ state: {}, data: answered, tree: own }).emptyStateMessage, 'Pick a warehouse on the header')
+  assert.equal(listingOf({ state: {}, data: { crud: { emptyStateMessage: ' ' } }, tree: own }).emptyStateMessage, 'Nada')
+  // a nested listing reads it from its own data key
+  const nested = { type: 'ClientSide', id: 'stock', metadata: { type: 'Crud', columns: [] }, children: [] }
+  const { nestedListingKeyOf } = await import('./core/listing.mjs')
+  const key = nestedListingKeyOf(nested)
+  const atom = nestedListingAtomOf(nested, { state: {}, data: { [key]: { page: { content: [] }, emptyStateMessage: 'Nothing counted yet' } } })
+  assert.equal(atom.emptyText, 'Nothing counted yet')
+})
+
 test('onMateuNavigate: every navigation names the tab — a federated screen with no SetWindowTitle no longer keeps the previous title', () => {
   const chain = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../webApps/vbredwoodapp/pages/shell-page-chains/onMateuNavigate.js'), 'utf-8')
   assert.match(chain, /bridge\.setDocTitle\(\(reg\.effects && reg\.effects\.docTitle\) \|\| summary\.title \|\| \(reg\.shell && reg\.shell\.title\)\)/)
