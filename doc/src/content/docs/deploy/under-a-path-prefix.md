@@ -67,8 +67,9 @@ The proxy forwards `/crm/x` as `/x`, so the server cannot tell on its own. Tell 
   can send its own, and the page would then be written for whatever prefix it chose. On Spring you
   can also let Spring apply it (`server.forward-headers-strategy=framework`, which turns
   `X-Forwarded-Prefix` into the request's context path). On ASP.NET use the platform's own opt-in,
-  `app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedPrefix })`.
-  The Python port does not read the header: use the setting or `--root-path`.
+  `app.UseForwardedHeaders(new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedPrefix })`,
+  or Mateu's `MateuOptions.ForwardedPrefixTrusted = true`. On Python pass
+  `add_mateu(forwarded_prefix_trusted=True)`; both ports also read `MATEU_FORWARDED_PREFIX_TRUSTED=true`.
 
 When both are present the setting wins. A framework context path is added after the proxy prefix:
 a proxy at `/edge` in front of a Spring app at `/crm` is `/edge/crm`.

@@ -18,7 +18,7 @@ those situations and which rules make them safe. The normative contracts it buil
 
 | Piece | Versioned by | Ships with |
 |---|---|---|
-| Mateu (core, adapter, **web renderer**) | the Mateu release (`3.0-beta.N`, `3.0.0`…) | your artifact — the renderer jar (`mateu-vaadin` / `mateu-redwood`) is on your classpath |
+| Mateu (core, adapter, **web renderer**) | the Mateu release (`3.0.0`, `3.0.1`…) | your artifact — the renderer jar (`mateu-vaadin` / `mateu-redwood`) is on your classpath |
 | Your screens (`@UI` classes, YAML definitions) | your own release | your artifact |
 | The wire between them | `wireVersion` in every response (currently `3.0`) | — |
 | Native renderers | the installable (React Native app, IntelliJ plugin) | the store / marketplace / OTA |
@@ -168,7 +168,7 @@ own requests only (never on calls to third-party REST sources):
 X-Mateu-Renderer: vaadin/0.0.15 wire/3.0
 X-Mateu-Renderer: redwood/2604.1.0 wire/3.0
 X-Mateu-Renderer: react-native/1.0.0 wire/3.0
-X-Mateu-Renderer: intellij/3.0-beta.12 wire/3.0
+X-Mateu-Renderer: intellij/3.0.0 wire/3.0
 ```
 
 The version is the renderer's own (its npm package, the installable, the plugin), not Mateu's. When

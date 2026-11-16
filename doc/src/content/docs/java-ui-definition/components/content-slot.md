@@ -134,7 +134,7 @@ Each module compiled with the indexer annotation processor carries
 ```json
 {
   "version": 1,
-  "mateuVersion": "3.0-beta.26",
+  "mateuVersion": "3.0.0",
   "slots": [
     {"key": "front-office.home.destacado", "application": "front-office", "screen": "home",
      "name": "destacado", "declaredIn": "com.acme.Home", "field": "destacado", "route": "/home",
