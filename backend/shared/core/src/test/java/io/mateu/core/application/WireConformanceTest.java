@@ -184,6 +184,28 @@ class WireConformanceTest {
   }
 
   /**
+   * Zoned layout with full-width bands: a section with no zone is a band stacked in declaration
+   * order, and the run of zoned sections between the bands collapses into one row of columns.
+   */
+  @SuppressWarnings("unused")
+  @UI("/conformance/zones-band")
+  @Title("Zoned form with bands")
+  @Zones({@Zone(name = "left", width = "62%"), @Zone(name = "right")})
+  public static class ZonedBandForm {
+    @Section("Contact")
+    public String name = "Ada";
+
+    @Section(value = "Account", zone = "left")
+    public String account = "ACC-1";
+
+    @Section(value = "Customer", zone = "right")
+    public String customer = "Lovelace";
+
+    @Section("Notes")
+    public String notes = "Quiet";
+  }
+
+  /**
    * Money intent on the wire: an editable money field keeps the numeric dataType and carries the
    * intent as the stereotype; a plain-text money field keeps the dense plainText stereotype and the
    * intent moves to dataType money.
@@ -2581,6 +2603,7 @@ class WireConformanceTest {
           "page-header",
           "tabs",
           "zones",
+          "zones-band",
           "money-field",
           "banner",
           "fab",
@@ -2737,6 +2760,7 @@ class WireConformanceTest {
             PageHeader.class,
             Tabs.class,
             ZonedForm.class,
+            ZonedBandForm.class,
             MoneyField.class,
             BannerPage.class,
             FabPage.class,

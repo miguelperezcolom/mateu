@@ -246,6 +246,7 @@ public class WireConformanceTests
         { "page-header", typeof(PageHeader) },
         { "tabs", typeof(Tabs) },
         { "zones", typeof(Wire.ZonedForm) },
+        { "zones-band", typeof(Wire.ZonedBandForm) },
         { "money-field", typeof(MoneyField) },
         { "banner", typeof(BannerPage) },
         { "fab", typeof(FabPage) },

@@ -8,6 +8,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed — zones in the .NET and Python ports
+
+- **A section with no zone on a zoned form is a full-width band again in .NET and Python.** On a
+  form with `[Zone]`s / `@zones`, the ports put every section that named no zone into an extra
+  trailing column (`62% 1fr 1fr`: Contact, Account and Customer side by side). Like Java, such a
+  section is now a full-width band stacked in declaration order, and each run of zoned sections
+  between the bands collapses into one row of columns. A form whose sections all have a zone
+  answers exactly as before. New conformance case `zones-band`.
+
 ### Added — message page
 
 - **`MessagePage`, a page template for a page that stands on its own** — a confirmation, "check

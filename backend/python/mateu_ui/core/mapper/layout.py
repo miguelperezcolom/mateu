@@ -478,10 +478,11 @@ class LayoutMapperMixin(MixinBase):
     def build_zones(
         self, declared_zones, sections, section_zones, section_markers, instance, read_only
     ) -> ClientSideComponent:
-        """Distributes sections into the @zones columns and lays them out side by side — each
-        zone a VerticalLayout stacking its section cards, its width from the zone declaration;
-        sections with an unrecognised zone fall into a trailing flexible column (mirrors Java's
-        SectionFormRenderer.renderZones)."""
+        """Lays out the sections of a @zones form (mirrors Java's SectionFormRenderer.renderZones):
+        a section with NO zone is a full-width band, stacked in declaration order; a maximal run of
+        zoned sections collapses into one side-by-side row at its position. With no band at all the
+        single row is the whole answer (unchanged wire shape); otherwise the bands and rows stack in
+        a VerticalLayout."""
 
         def card_of(i):
             title, fields = sections[i]
@@ -494,6 +495,33 @@ class LayoutMapperMixin(MixinBase):
                 triggers=self.inline_triggers(fields, instance),
             )
 
+        blocks: list = []
+        pending: list[int] = []
+
+        def flush():
+            if pending:
+                blocks.append(self._zoned_row(declared_zones, list(pending), section_zones, card_of))
+                pending.clear()
+
+        for i in range(len(sections)):
+            if not (section_zones[i] or "").strip():
+                flush()
+                blocks.append(card_of(i))
+            else:
+                pending.append(i)
+        flush()
+
+        if len(blocks) == 1:
+            return blocks[0]
+        return ClientSideComponent(
+            metadata=VerticalLayoutMetadata(spacing=True), children=blocks, style="width: 100%;"
+        )
+
+    def _zoned_row(self, declared_zones, indices, section_zones, card_of) -> ClientSideComponent:
+        """One run of zoned sections as a row of columns — each zone a VerticalLayout stacking its
+        section cards, its width from the zone declaration; sections with an unrecognised zone fall
+        into a trailing flexible column (mirrors Java's SectionFormRenderer.flushZonedRow)."""
+
         def column(cards) -> ClientSideComponent:
             # Consolidated onto the one responsive grid (coherence-plan #9): the grid track sizes the
             # column, so the column is a bare VerticalLayout (mirrors Java's zoneColumn).
@@ -504,7 +532,7 @@ class LayoutMapperMixin(MixinBase):
 
         columns = []
         tracks: list[str] = []
-        remaining = list(range(len(sections)))
+        remaining = indices
         for name, width in declared_zones:
             mine = [i for i in remaining if section_zones[i] == name]
             if not mine:

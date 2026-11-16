@@ -202,10 +202,11 @@ internal sealed partial class ReflectionMapper
         return cards;
     }
 
-    /// <summary>Distributes sections into the [Zone] columns and lays them out side by side —
-    /// each zone a VerticalLayout stacking its section cards, its width from Zone.Width;
-    /// sections with an unrecognised zone fall into a trailing flexible column (mirrors Java's
-    /// SectionFormRenderer.renderZones).</summary>
+    /// <summary>Lays out the sections of a [Zone] form (mirrors Java's
+    /// SectionFormRenderer.renderZones): a section with NO zone is a full-width band, stacked in
+    /// declaration order; a maximal run of zoned sections collapses into one side-by-side row at its
+    /// position. With no band at all the single row is the whole answer (unchanged wire shape);
+    /// otherwise the bands and rows stack in a VerticalLayout.</summary>
     private ComponentDto BuildZones(
         Type type,
         List<ZoneAttribute> zones,
@@ -220,6 +221,39 @@ internal sealed partial class ReflectionMapper
                 MapFields(sections[i].Props, instance, readOnly, SectionColumns(sectionAttrs[i], type)),
                 sectionAttrs[i], type, sections[i].Props, titled: true);
 
+        var blocks = new List<ComponentDto>();
+        var pending = new List<int>();
+        void Flush()
+        {
+            if (pending.Count == 0) return;
+            blocks.Add(ZonedRow(zones, pending.ToList(), sectionZones, CardOf));
+            pending.Clear();
+        }
+        for (var i = 0; i < sections.Count; i++)
+        {
+            if (string.IsNullOrWhiteSpace(sectionZones[i]))
+            {
+                Flush();
+                blocks.Add(CardOf(i));
+            }
+            else pending.Add(i);
+        }
+        Flush();
+
+        if (blocks.Count == 1) return blocks[0];
+        return new ClientSideComponentDto(
+            new VerticalLayoutMetadataDto { Spacing = true }, null, blocks, "width: 100%;", null, null);
+    }
+
+    /// <summary>One run of zoned sections as a row of columns — each zone a VerticalLayout stacking
+    /// its section cards, its width from Zone.Width; sections with an unrecognised zone fall into a
+    /// trailing flexible column (mirrors Java's SectionFormRenderer.flushZonedRow).</summary>
+    private static ComponentDto ZonedRow(
+        List<ZoneAttribute> zones,
+        List<int> indices,
+        List<string> sectionZones,
+        Func<int, ComponentDto> CardOf)
+    {
         // Consolidated onto the one responsive grid (coherence-plan #9): each zone is a grid track
         // sized from its width, so the column is a bare VerticalLayout (mirrors Java's zoneColumn).
         ComponentDto Column(IEnumerable<ComponentDto> cards) =>
@@ -229,7 +263,7 @@ internal sealed partial class ReflectionMapper
 
         var columns = new List<ComponentDto>();
         var tracks = new List<string>();
-        var remaining = Enumerable.Range(0, sections.Count).ToList();
+        var remaining = indices;
         foreach (var zone in zones)
         {
             var mine = remaining.Where(i => sectionZones[i] == zone.Name).ToList();
