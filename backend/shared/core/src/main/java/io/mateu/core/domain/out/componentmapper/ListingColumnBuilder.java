@@ -50,18 +50,24 @@ final class ListingColumnBuilder {
         getAllFields(rowClass).stream()
             .anyMatch(
                 field -> MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.GroupBy.class));
-    columns.addAll(
+    var shown =
         getAllFields(rowClass).stream()
             .filter(field -> filterColumn(field, instance, httpRequest))
-            .map(
-                field ->
-                    getColumn(field, instance, baseUrl, route, initiatorComponentId, httpRequest))
-            .map(
-                column ->
-                    grouped
-                        ? column
-                        : column.toBuilder().sortable(isSortable(rowClass, column)).build())
-            .toList());
+            .toList();
+    // A row's action columns (ColumnAction / ColumnActionGroup) that come after every data column
+    // are frozen to the END: a row with many fields is a wide grid, and its "Run" / "Edit" button
+    // sat past the right edge, behind the horizontal scroll. The same rule the editable grid's
+    // row-editor button follows (freezeRowEditorButton). An action column placed among the data
+    // columns is where its author put it, and stays there.
+    int lastDataColumn = -1;
+    for (int i = 0; i < shown.size(); i++) if (!isActionField(shown.get(i))) lastDataColumn = i;
+    for (int i = 0; i < shown.size(); i++) {
+      var column =
+          getColumn(shown.get(i), instance, baseUrl, route, initiatorComponentId, httpRequest);
+      if (!grouped) column = column.toBuilder().sortable(isSortable(rowClass, column)).build();
+      if (i > lastDataColumn) column = column.toBuilder().frozenToEnd(true).build();
+      columns.add(column);
+    }
     if (instance instanceof Selector<?>) {
       columns.add(
           GridColumn.builder()
@@ -74,6 +80,11 @@ final class ListingColumnBuilder {
               .build());
     }
     return columns;
+  }
+
+  private static boolean isActionField(Field field) {
+    return io.mateu.uidl.data.ColumnAction.class.equals(field.getType())
+        || io.mateu.uidl.data.ColumnActionGroup.class.equals(field.getType());
   }
 
   /**
