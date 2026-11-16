@@ -1,0 +1,194 @@
+---
+title: "Quarkus"
+---
+
+import YouTube from '../../../components/YouTube.astro';
+
+<YouTube id="gSjrjSAKhkg" title="Mateu on Quarkus" />
+
+## Step 1: Have a Quarkus project
+
+Use an existing one, or create one with Quarkus's own generator (or at
+[code.quarkus.io](https://code.quarkus.io)) — the REST + Jackson extension is the one Mateu needs:
+
+```bash
+mvn io.quarkus.platform:quarkus-maven-plugin:create \
+    -DprojectGroupId=com.acme -DprojectArtifactId=my-app -Dextensions=rest-jackson -DnoCode
+```
+
+Prefer a complete project? Copy [`starters/quarkus`](https://github.com/miguelperezcolom/mateu/tree/master/starters/quarkus)
+instead: the app shell, a home page and a CRUD, with this exact setup.
+
+## Step 2: Add Mateu dependencies
+
+Import Mateu's BOM once, so no Mateu artifact needs a version of its own:
+
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-bom</artifactId>
+            <version>MATEU_VERSION</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+Then the runtime dependencies:
+
+```xml
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>mateu-quarkus</artifactId>
+</dependency>
+<!-- serves the built-in frontend; choose one: mateu-vaadin (Vaadin), mateu-redwood (Oracle Redwood / Visual Builder) -->
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>mateu-vaadin</artifactId>
+</dependency>
+<!-- the Mateu wire is Jackson: mateu-quarkus uses Quarkus REST with Jackson, and declares both
+     `provided` so the versions are the ones of YOUR Quarkus platform -->
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-rest-jackson</artifactId>
+</dependency>
+```
+
+And the annotation processor, on the processor path:
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <configuration>
+        <annotationProcessorPaths>
+            <!-- list Lombok, MapStruct… here too if you use them -->
+            <path>
+                <groupId>io.mateu</groupId>
+                <artifactId>mateu-annotation-processor-quarkus</artifactId>
+                <version>MATEU_VERSION</version>
+            </path>
+        </annotationProcessorPaths>
+    </configuration>
+</plugin>
+```
+
+> The annotation processor (`mateu-annotation-processor-quarkus`) goes on the **annotation processor path only** — never as a
+> regular `<dependency>`: it is a compile-time code generator, and as a dependency it would ship its
+> own libraries (FreeMarker, Guava) inside your application. Its jar declares itself to Gradle as an
+> incremental (aggregating) processor.
+
+Or, with Gradle:
+
+```kotlin
+implementation(platform("io.mateu:mateu-bom:MATEU_VERSION"))
+annotationProcessor(platform("io.mateu:mateu-bom:MATEU_VERSION"))
+implementation("io.mateu:mateu-quarkus")
+implementation("io.mateu:mateu-vaadin")
+annotationProcessor("io.mateu:mateu-annotation-processor-quarkus")
+implementation("io.quarkus:quarkus-rest-jackson")
+```
+
+> `mateu-quarkus` brings no REST or DI extension along: declare `quarkus-rest-jackson` as above.
+> Mateu needs no Spring-DI support; add `quarkus-spring-di` yourself only if YOUR beans use Spring
+> annotations or are `@Named` without a scope.
+
+See [Configuration properties](/java-create-your-project/configuration/) for what you can tune —
+notably cross-origin access (off unless you list the origins) and the MCP endpoint (off unless enabled).
+
+## Step 3: Create your Mateu UI
+
+Nothing special is required. Just annotate your class with `@UI`:
+
+```java
+
+package com.example.demo;
+
+import io.mateu.uidl.annotations.UI;
+
+@UI("")
+public class HelloWorld {
+
+}
+
+```
+
+Run it — in development mode, or packaged:
+
+```bash
+mvn quarkus:dev
+# or
+mvn package && java -jar target/quarkus-app/quarkus-run.jar
+```
+
+and the UI is at [http://localhost:8080](http://localhost:8080) (for the code above, an empty page
+titled *Hello world*). The rest is the same Java as on any other runtime: the
+[quickstart](/java-user-manual/start-here/quickstart/)'s `Shell`, `Home`, `Product`, `ProductStore`
+and `Products` classes compile and run here unchanged — leave out its Spring `Application` class
+(Quarkus needs no main class) and replace this `HelloWorld`, which takes the same root path as
+`Shell`.
+
+
+### Views as CDI beans
+
+A view (a `@UI` class, a menu target, an `AutoCrud`, a lookup supplier…) does not need to be a bean:
+Mateu creates it on every request and still fills its `@Inject` fields. If you make it one — e.g. for
+constructor injection — use `@Dependent`: a view holds per-request state, and an `@ApplicationScoped`
+one would be shared by every request and user. Mateu does not use a shared instance: it builds a fresh
+one per request (constructor and `@Inject` fields from the container, `@PostConstruct` run) and logs a
+one-time warning — ArC interceptors (`@Transactional`…) do not apply to that instance.
+
+Mateu reaches those classes only by reflection, so ArC sees nothing that injects them. By default it
+would remove them as unused beans at build time — and, with them, the services only they inject,
+leaving those `@Inject` fields `null`. `mateu-quarkus` therefore sets
+`quarkus.arc.remove-unused-beans=fwk` (keep every bean declared in your application, still remove
+unused framework beans); no `@Unremovable` is needed. Your `application.properties` can override it.
+
+### Live reload in `quarkus:dev`
+
+`mateu-quarkus` turns Mateu's [development mode](/java-create-your-project/configuration/#development-mode-live-reload)
+on in Quarkus's **dev profile** (`%dev.mateu.dev=true`, a default your `application.properties`
+overrides): under `mvn quarkus:dev` the specs are read from `src/main/resources/specs/ui` and
+watched, and when you edit a Java class the open browser tab is re-rendered once Quarkus has
+recompiled it — no manual reload. The packaged application (prod profile) and the tests never get
+it. To opt out, set `%dev.mateu.dev=false`.
+
+An empty class renders an empty page. For a complete project on this runtime — a model, a store and
+a full CRUD, with this exact build setup — copy the [`starters/quarkus`](https://github.com/miguelperezcolom/mateu/tree/master/starters/quarkus) project; CI
+compiles and boots it on every change.
+
+## Troubleshooting
+
+In case you are using a maven project and you are setting custom annotation processor paths (e.g. because you are using mapstruct) you must add the annotation processor from Mateu, in your pom.xml:
+
+```xml
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                    <annotationProcessorPaths>
+                        <path> <!-- when using mapstruct -->
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${org.mapstruct.version}</version>
+                        </path>
+                        <path>
+                            <groupId>io.mateu</groupId>
+                            <artifactId>mateu-annotation-processor-quarkus</artifactId>
+                            <version>MATEU_VERSION</version>
+                        </path>
+                        <!-- other annotation processors -->
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+```

@@ -1,0 +1,71 @@
+---
+/**
+ * A YouTube video, embedded the way the home page reel always was: youtube-nocookie.com (no
+ * cookies until the visitor presses play), lazy loaded, responsive 16:9, with a title for screen
+ * readers. One component for every video on the site.
+ *
+ *   <YouTube id="KKYsYGO1LvQ" title="Mateu in 3 minutes" />
+ *
+ * Under the player goes a "watch on YouTube" link (the title, or `caption` when given).
+ * `wide` = the home page's larger, shadowed frame, without that line (the home writes its own).
+ */
+interface Props {
+	id: string;
+	title: string;
+	caption?: string;
+	wide?: boolean;
+}
+
+const { id, title, caption, wide = false } = Astro.props;
+const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?rel=0&cc_load_policy=0`;
+const watch = `https://youtu.be/${encodeURIComponent(id)}`;
+---
+
+<figure class:list={['mateu-video', { wide }]}>
+	<div class="frame">
+		<iframe
+			src={src}
+			title={title}
+			loading="lazy"
+			allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+			allowfullscreen
+			referrerpolicy="strict-origin-when-cross-origin"></iframe>
+	</div>
+	{!wide && (
+		<figcaption>
+			🎬 <a href={watch}>{caption ?? title}</a> — on YouTube
+		</figcaption>
+	)}
+</figure>
+
+<style>
+	.mateu-video {
+		margin: 1.25rem 0;
+		max-width: 720px;
+	}
+	.mateu-video.wide {
+		max-width: 920px;
+		margin: 1.5rem auto 0;
+	}
+	.frame {
+		aspect-ratio: 16 / 9;
+		border-radius: 12px;
+		overflow: hidden;
+		background: var(--sl-color-gray-6);
+	}
+	.wide .frame {
+		border-radius: 16px;
+		box-shadow: 0 30px 90px -40px rgba(0, 0, 0, 0.6);
+	}
+	iframe {
+		width: 100%;
+		height: 100%;
+		border: 0;
+		display: block;
+	}
+	figcaption {
+		font-size: var(--sl-text-sm);
+		margin-top: 0.5rem;
+		color: var(--sl-color-gray-3);
+	}
+</style>
