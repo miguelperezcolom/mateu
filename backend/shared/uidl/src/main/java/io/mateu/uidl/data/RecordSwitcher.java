@@ -28,7 +28,7 @@ import lombok.Builder;
  *     {@code route}; null means {@link io.mateu.uidl.interfaces.RecordSwitcherSupplier#ACTION_ID}
  */
 @Builder
-@Experimental("record switcher (3.0-alpha.409)")
+@Experimental("record switcher (since 3.0)")
 public record RecordSwitcher(
     List<Option> options,
     String value,
@@ -36,9 +36,9 @@ public record RecordSwitcher(
     String label,
     boolean searchable,
     boolean disabled,
-    @Experimental("YAML page header (3.0 beta)") RestDataSource optionsSource,
-    @Experimental("YAML page header (3.0 beta)") String route,
-    @Experimental("YAML page header (3.0 beta)") String actionId) {
+    @Experimental("YAML page header (since 3.0)") RestDataSource optionsSource,
+    @Experimental("YAML page header (since 3.0)") String route,
+    @Experimental("YAML page header (since 3.0)") String actionId) {
 
   public RecordSwitcher {
     options = options != null ? options : List.of();

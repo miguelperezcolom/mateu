@@ -19,9 +19,9 @@ public record PlanningBlock(
     String color,
     String status,
     /** Icon shown before the label (e.g. "vaadin:star" for a VIP); null for none. */
-    @Experimental("planning board interactions (3.0-alpha.409)") String icon,
+    @Experimental("planning board interactions (since 3.0)") String icon,
     /** What hovering the block shows (several lines separated by \n); null = label + dates. */
-    @Experimental("planning board interactions (3.0-alpha.409)") String summary) {
+    @Experimental("planning board interactions (since 3.0)") String summary) {
 
   public PlanningBlock(
       String id,

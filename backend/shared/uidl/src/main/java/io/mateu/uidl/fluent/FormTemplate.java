@@ -8,5 +8,5 @@ import io.mateu.uidl.annotations.Experimental;
  * without one is free: its {@code content} is laid out as authored. The template decides the look
  * (colours, surfaces, spacing); the page only fills it in.
  */
-@Experimental("page templates (3.0 beta)")
+@Experimental("page templates (since 3.0)")
 public interface FormTemplate {}

@@ -170,9 +170,11 @@ component draws Spectra's `oj-sp-global-header` with the app's logo, and under i
 the standalone Redwood renderer draws for `MENU_ON_TOP` (the app's title, its top-level entries,
 groups as menus, card menus). Choosing an entry navigates inside the component, like any other
 navigation (`mateuNavigate` fires first and can be cancelled). Leave `route` empty to open the app's
-home. Not drawn yet: every menu variant (`HAMBURGER_MENU`, `MENU_ON_LEFT`, `RAIL`, `TABS`…) is shown as
-that top band, not as a navigator drawer or rail; the `@AppContext` pickers, header actions, the user
-menu, the notification bell, the AI chat and the Ask palette are not part of it.
+home. Inside the component every menu variant (`HAMBURGER_MENU`, `MENU_ON_LEFT`, `RAIL`, `TABS`…) is
+shown as that top band, never as a navigator drawer or rail (the standalone renderer draws those);
+`TILES` groups still open as card panels in it, and `HAMBURGER_SECTIONS` puts its sections in it as
+top-level entries. Not drawn yet: the `@AppContext` pickers, header actions, the user menu, the
+notification bell, the AI chat and the Ask palette are not part of it.
 
 In shell mode the component **scrolls itself**. A VB app's index stops the page body from scrolling
 (`.vb-web-applayout-body { overflow-y: hidden }`) and expects the root page's shell to provide the

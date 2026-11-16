@@ -14,7 +14,7 @@ import lombok.Builder;
  * origin and the destination.
  */
 @Builder
-@Experimental("drag rows to a destination (3.0-alpha.409)")
+@Experimental("drag rows to a destination (since 3.0)")
 public record DropZone(
     String id,
     String accept,

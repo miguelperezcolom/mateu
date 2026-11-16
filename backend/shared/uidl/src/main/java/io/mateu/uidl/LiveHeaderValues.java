@@ -22,7 +22,7 @@ import java.util.function.Consumer;
  * LiveHeaderValues.publish("businessDate", "13 Oct 2026");
  * }</pre>
  */
-@Experimental("live header values (3.0-alpha, E2 patterns)")
+@Experimental("live header values (since 3.0, E2 patterns)")
 public final class LiveHeaderValues {
 
   private static final Map<String, String> CURRENT = new ConcurrentHashMap<>();

@@ -84,7 +84,7 @@ public record RouteEntry(
     RestDataSource appData,
     String defaultChild,
     String show,
-    @Experimental("YAML access keys (3.0-alpha.409)") Access access) {
+    @Experimental("YAML access keys (since 3.0)") Access access) {
 
   public RouteEntry {
     route = route == null ? "" : route;

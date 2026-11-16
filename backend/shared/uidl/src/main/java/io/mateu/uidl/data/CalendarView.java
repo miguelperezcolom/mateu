@@ -7,7 +7,7 @@ import io.mateu.uidl.annotations.Experimental;
  * Sunday around the anchor date), a single {@code day}, or a {@code list} — the agenda of the
  * month, grouped by date.
  */
-@Experimental("calendar views (3.0-alpha.409)")
+@Experimental("calendar views (since 3.0)")
 public enum CalendarView {
   month,
   week,

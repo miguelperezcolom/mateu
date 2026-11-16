@@ -35,7 +35,7 @@ public abstract class Dashboard implements ComponentTreeSupplier {
    * Whether the viewer may drag the tiles into their own order (OPERA's dashboard). The order is
    * kept per viewer by the renderer; the field order stays the default. Default: false.
    */
-  @Experimental("reorderable dashboards (3.0-alpha.409)")
+  @Experimental("reorderable dashboards (since 3.0)")
   protected boolean reorderable() {
     return false;
   }

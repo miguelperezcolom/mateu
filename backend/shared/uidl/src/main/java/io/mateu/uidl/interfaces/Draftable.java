@@ -19,7 +19,7 @@ import io.mateu.uidl.annotations.Experimental;
  *       the user left — or null to start at the beginning.
  * </ul>
  */
-@Experimental("wizard drafts (3.0-alpha.409)")
+@Experimental("wizard drafts (since 3.0)")
 public interface Draftable {
 
   Object saveDraft(HttpRequest httpRequest);

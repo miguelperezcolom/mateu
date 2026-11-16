@@ -17,7 +17,7 @@ import lombok.Singular;
  * {@code summary} for the folded strip, {@code open} to start unfolded), and its header (title,
  * toolbar) is the page's.
  */
-@Experimental("page templates (3.0 beta)")
+@Experimental("page templates (since 3.0)")
 @Builder
 public record FoldoutPage(
     @Singular("overviewItem") List<Component> overview, FoldoutOrientation orientation)

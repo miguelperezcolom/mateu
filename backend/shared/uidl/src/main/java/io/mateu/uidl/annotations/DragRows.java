@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
-@Experimental("drag rows to a destination (3.0-alpha.409)")
+@Experimental("drag rows to a destination (since 3.0)")
 @Documented
 public @interface DragRows {
 

@@ -82,25 +82,25 @@ public abstract class CalendarPage implements io.mateu.core.domain.RequestBound,
    * The views the user can switch between; the first one is the initial view. Default: the month
    * view only (no switcher).
    */
-  @Experimental("calendar views (3.0-alpha.409)")
+  @Experimental("calendar views (since 3.0)")
   protected List<CalendarView> views() {
     return List.of(CalendarView.month);
   }
 
   /** A label and a tone for each date's cell, from {@code from} to {@code to} (inclusive). */
-  @Experimental("calendar views (3.0-alpha.409)")
+  @Experimental("calendar views (since 3.0)")
   protected List<CalendarDay> days(LocalDate from, LocalDate to, HttpRequest httpRequest) {
     return List.of();
   }
 
   /** Whether the date cells themselves are clickable ({@link #actionOnDay}). Default: false. */
-  @Experimental("calendar views (3.0-alpha.409)")
+  @Experimental("calendar views (since 3.0)")
   protected boolean daysClickable() {
     return false;
   }
 
   /** What clicking a date's cell does — e.g. open that day's availability. */
-  @Experimental("calendar views (3.0-alpha.409)")
+  @Experimental("calendar views (since 3.0)")
   protected Object actionOnDay(LocalDate date, HttpRequest httpRequest) {
     return null;
   }
@@ -276,7 +276,7 @@ public abstract class CalendarPage implements io.mateu.core.domain.RequestBound,
    * the period as it is.
    */
   @io.mateu.uidl.annotations.Action
-  @Experimental("calendar date jump (3.0-beta.13)")
+  @Experimental("calendar date jump (since 3.0)")
   public Object goCalendarToDate(HttpRequest httpRequest) {
     currentRequest = httpRequest;
     var date = httpRequest.runActionRq().parameters().get("_date");
@@ -291,7 +291,7 @@ public abstract class CalendarPage implements io.mateu.core.domain.RequestBound,
   }
 
   @io.mateu.uidl.annotations.Action
-  @Experimental("calendar views (3.0-alpha.409)")
+  @Experimental("calendar views (since 3.0)")
   public Object switchCalendarView(HttpRequest httpRequest) {
     currentRequest = httpRequest;
     var requested = httpRequest.runActionRq().parameters().get("_view");
@@ -317,7 +317,7 @@ public abstract class CalendarPage implements io.mateu.core.domain.RequestBound,
   }
 
   @io.mateu.uidl.annotations.Action
-  @Experimental("calendar views (3.0-alpha.409)")
+  @Experimental("calendar views (since 3.0)")
   public Object openCalendarDay(HttpRequest httpRequest) {
     currentRequest = httpRequest;
     var date = httpRequest.runActionRq().parameters().get("_date");

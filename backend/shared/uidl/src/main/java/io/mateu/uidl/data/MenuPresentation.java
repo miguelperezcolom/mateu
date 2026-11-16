@@ -9,7 +9,7 @@ import lombok.Builder;
  * a card. Declared with {@code @Menu(display, image)} and {@code @Icon} on the {@code @Menu} field,
  * or set fluently with {@code withPresentation}. Null = the plain list entry.
  */
-@Experimental("card menus (3.0-alpha.409)")
+@Experimental("card menus (since 3.0)")
 @Builder
 public record MenuPresentation(MenuDisplay display, String icon, String image) {
 

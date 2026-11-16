@@ -7,7 +7,7 @@ import io.mateu.uidl.annotations.Experimental;
  * hover} — pointing at it, or focusing it from the keyboard — for read-only details such as a rate
  * breakdown or a reservation summary.
  */
-@Experimental("hover popovers (3.0-alpha.409)")
+@Experimental("hover popovers (since 3.0)")
 public enum PopoverTrigger {
   click,
   hover

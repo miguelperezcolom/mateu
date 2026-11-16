@@ -19,5 +19,5 @@ import lombok.Builder;
  * @param open whether it starts open
  */
 @Builder
-@Experimental("docked panels of DataManagement (3.0-alpha.409)")
+@Experimental("docked panels of DataManagement (since 3.0)")
 public record DockedPanel(String id, String title, Component content, String size, boolean open) {}

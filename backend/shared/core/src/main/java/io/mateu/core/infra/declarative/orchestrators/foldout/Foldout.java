@@ -161,7 +161,7 @@ public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier, 
    * so the user can tell whether it is worth opening. Receives the panel's field name; null (the
    * default) = title only.
    */
-  @Experimental("foldout panel summaries (3.0-alpha.409)")
+  @Experimental("foldout panel summaries (since 3.0)")
   protected Component panelSummary(String panelFieldName) {
     return null;
   }

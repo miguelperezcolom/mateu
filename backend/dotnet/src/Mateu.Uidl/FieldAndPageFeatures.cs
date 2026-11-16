@@ -482,7 +482,7 @@ public sealed class PageTemplateAttribute(PageType value) : Attribute
 public sealed class WelcomeBannerAttribute : Attribute
 {
     /// <summary>A short line above the title introducing it ("Good morning", "Sales"…). Empty for
-    /// none. (Java's @WelcomeBanner.overline.) Experimental (3.0-beta.13).</summary>
+    /// none. (Java's @WelcomeBanner.overline.) Experimental (since 3.0).</summary>
     public string Overline { get; set; } = "";
 
     /// <summary>Big banner title. Empty → the view's [Title].</summary>

@@ -118,7 +118,7 @@ grid-like pages → `collection`; General/Item Overview, Foldout and Gantt → `
 A page's header lives on its `type: Form` node: `title`, `subtitle`, `avatar`, `header`,
 `toolbar`, `buttons`, `footer`, `noHeader` — and every other element a Java page gets from its
 annotations and suppliers, now authorable as data. The keys in the table below are
-**experimental** (`@Experimental("YAML page header (3.0 beta)")` on the `Form` record): their names
+**experimental** (`@Experimental("YAML page header (since 3.0)")` on the `Form` record): their names
 and shapes may still change before they are declared stable.
 
 | Key | Shape | Java twin |
@@ -280,7 +280,7 @@ content:                     # the template's main slot
   on the form (`template: {type, avatar, photo}`).
 - It works served by the **Java**, **.NET** and **Python** backends, pre-rendered into a static bundle
   and expanded in the browser from a `specsOnly` bundle.
-- `template:` is **experimental** (`@Experimental("page templates (3.0 beta)")`). The twelve templates
+- `template:` is **experimental** (`@Experimental("page templates (since 3.0)")`). The twelve templates
   in the table above are available; the IDEs' **Item Overview** page template writes `template:` for you.
 - Demo: the record pages of `demo/demo-starwars` (`person.yaml`, `planet.yaml`, `film.yaml`…).
 

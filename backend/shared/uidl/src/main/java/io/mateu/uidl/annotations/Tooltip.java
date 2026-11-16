@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
-@Experimental("listing cell tooltips (3.0-alpha.409)")
+@Experimental("listing cell tooltips (since 3.0)")
 @Documented
 public @interface Tooltip {
 

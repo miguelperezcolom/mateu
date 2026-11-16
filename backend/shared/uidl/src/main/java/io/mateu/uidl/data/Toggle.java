@@ -13,7 +13,7 @@ import io.mateu.uidl.annotations.Experimental;
  * consumed server-side while composing: a {@code disabled} affordance travels as a disabled button,
  * an {@code off} one does not travel at all, so no renderer needs to know about them.
  */
-@Experimental("archetype display options (3.0-alpha.409)")
+@Experimental("archetype display options (since 3.0)")
 public enum Toggle {
   on,
   off,

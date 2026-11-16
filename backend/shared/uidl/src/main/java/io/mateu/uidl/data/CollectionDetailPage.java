@@ -18,7 +18,7 @@ import lombok.Singular;
  * noSelection} — so the collection's page and its item's page share one list (a partial) and differ
  * in their content.
  */
-@Experimental("page templates (3.0 beta)")
+@Experimental("page templates (since 3.0)")
 @Builder
 public record CollectionDetailPage(
     @Singular("listItem") List<Component> list,

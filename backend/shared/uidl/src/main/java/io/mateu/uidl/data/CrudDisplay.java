@@ -19,7 +19,7 @@ import lombok.Builder;
  * </ul>
  */
 @Builder(toBuilder = true)
-@Experimental("archetype display options (3.0-alpha.409)")
+@Experimental("archetype display options (since 3.0)")
 public record CrudDisplay(Toggle create, Toggle delete, Toggle saveAndNext, Toggle errorBanner) {
 
   public static CrudDisplay defaults() {

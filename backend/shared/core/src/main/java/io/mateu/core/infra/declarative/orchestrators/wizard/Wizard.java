@@ -100,7 +100,7 @@ public abstract class Wizard
    * draft buttons of a {@link Draftable} wizard and the "Skip" button of {@link #stepSkippable}
    * steps — each {@code on}, {@code off} or {@code disabled}. Override to switch them.
    */
-  @Experimental("archetype display options (3.0-alpha.409)")
+  @Experimental("archetype display options (since 3.0)")
   protected WizardDisplay display() {
     return WizardDisplay.defaults();
   }
@@ -111,7 +111,7 @@ public abstract class Wizard
    * unlike {@link #stepApplies}, which removes a step the answers made irrelevant, a skippable step
    * is still there, the user just chooses not to fill it in now. Default: no step is skippable.
    */
-  @Experimental("skippable wizard steps (3.0-alpha.409)")
+  @Experimental("skippable wizard steps (since 3.0)")
   protected boolean stepSkippable(String stepFieldName) {
     return false;
   }
@@ -124,7 +124,7 @@ public abstract class Wizard
    * checked. Return null to let the move happen; anything else cancels it and becomes the response
    * (typically a {@code Message.error(...)} explaining why). Default: never cancels.
    */
-  @Experimental("cancelable before-step hook (3.0-alpha.409)")
+  @Experimental("cancelable before-step hook (since 3.0)")
   protected Object beforeStepNavigate(String fromStep, String toStep, HttpRequest httpRequest) {
     return null;
   }

@@ -602,12 +602,12 @@ public sealed class AIAttribute(string sse) : Attribute
     /// <summary>The text of the chat panel's Follow mode button while it is OFF (the toggle that
     /// decides whether the view follows the assistant or stays where the user is). Empty = the
     /// renderer's own, in the user's language ("Follow", "Seguir"). (Java's <c>@AI(followLabel)</c>.)
-    /// Experimental (3.0-beta.51).</summary>
+    /// Experimental (since 3.0).</summary>
     public string FollowLabel { get; set; } = "";
 
     /// <summary>The text of the Follow mode button while it is ON (its default state). Empty = the
     /// renderer's own ("Following", "Siguiendo"). (Java's <c>@AI(followingLabel)</c>.)
-    /// Experimental (3.0-beta.51).</summary>
+    /// Experimental (since 3.0).</summary>
     public string FollowingLabel { get; set; } = "";
 }
 

@@ -15,9 +15,9 @@ public record PlanningResource(
     String label,
     String group,
     /** Values of the board's attribute columns, in order (e.g. "SUP", "Clean"). */
-    @Experimental("planning board interactions (3.0-alpha.409)") List<String> attributes,
+    @Experimental("planning board interactions (since 3.0)") List<String> attributes,
     /** Icon shown before the label (icon name, e.g. "vaadin:star"); null for none. */
-    @Experimental("planning board interactions (3.0-alpha.409)") String icon) {
+    @Experimental("planning board interactions (since 3.0)") String icon) {
 
   public PlanningResource(String id, String label, String group) {
     this(id, label, group, List.of(), null);

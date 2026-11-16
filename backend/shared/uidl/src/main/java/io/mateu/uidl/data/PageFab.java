@@ -15,5 +15,5 @@ import lombok.Builder;
  * @param buttonStyle the button style ({@code primary} when absent)
  */
 @Builder
-@Experimental("YAML page header (3.0 beta)")
+@Experimental("YAML page header (since 3.0)")
 public record PageFab(String icon, String label, String actionId, int order, String buttonStyle) {}

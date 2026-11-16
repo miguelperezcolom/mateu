@@ -74,7 +74,7 @@ public @interface App {
    * key next to every visible button and tab — the declared shortcut when there is one, otherwise a
    * letter of its label assigned automatically — and Alt+that letter activates it. Opt-in.
    */
-  @Experimental("access keys (3.0-alpha.409)")
+  @Experimental("access keys (since 3.0)")
   boolean accessKeys() default false;
 
   /**
@@ -84,7 +84,7 @@ public @interface App {
    * instead. The QR carries no secret, only where the UI lives; credentials are entered at login.
    * Pair it with {@link MobileApp} for the name, icon and identity provider the app shows. Opt-in.
    */
-  @Experimental("mobile app (3.0 beta)")
+  @Experimental("mobile app (since 3.0)")
   boolean mobileQr() default false;
 
   /**
@@ -146,7 +146,7 @@ public @interface App {
    * a header value only changes through {@code UICommand.updateHeaderValue} in the browser that ran
    * the action.
    */
-  @Experimental("live header values (3.0-alpha, E2 patterns)")
+  @Experimental("live header values (since 3.0, E2 patterns)")
   boolean liveUpdates() default false;
 
   /**
@@ -188,17 +188,17 @@ public @interface App {
    * with {@link io.mateu.uidl.interfaces.KeepAliveHandler}), "Sign out" — or the countdown reaching
    * zero — goes to {@link #idleSignOutUrl()}. 0 (the default): off.
    */
-  @Experimental("idle-session warning (3.0-alpha, E2 patterns)")
+  @Experimental("idle-session warning (since 3.0, E2 patterns)")
   int idleTimeoutMinutes() default 0;
 
   /** How long the idle warning counts down before signing out. Default 60 seconds. */
-  @Experimental("idle-session warning (3.0-alpha, E2 patterns)")
+  @Experimental("idle-session warning (since 3.0, E2 patterns)")
   int idleWarningSeconds() default 60;
 
   /**
    * Where "Sign out" goes — a full page load, typically the app's logout endpoint (Mateu does no
    * authentication). Blank: the app's logout url when it has one, else the app's root.
    */
-  @Experimental("idle-session warning (3.0-alpha, E2 patterns)")
+  @Experimental("idle-session warning (since 3.0, E2 patterns)")
   String idleSignOutUrl() default "";
 }

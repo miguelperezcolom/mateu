@@ -38,7 +38,7 @@ public @interface AI {
    * arrive) or stays where the user is (they wait in the conversation as buttons). Empty = the
    * renderer's own, in the user's language ("Follow", "Seguir").
    */
-  @Experimental("AI chat follow mode (3.0 beta)")
+  @Experimental("AI chat follow mode (since 3.0)")
   String followLabel() default "";
 
   /**
@@ -46,6 +46,6 @@ public @interface AI {
    * followingLabel = "Following the copilot"}. Empty = the renderer's own, in the user's language
    * ("Following", "Siguiendo").
    */
-  @Experimental("AI chat follow mode (3.0 beta)")
+  @Experimental("AI chat follow mode (since 3.0)")
   String followingLabel() default "";
 }

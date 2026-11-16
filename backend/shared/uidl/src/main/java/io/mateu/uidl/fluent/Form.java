@@ -36,33 +36,33 @@ public record Form(
     String style,
     String cssClasses,
     /** The small line of text above the title (Redwood's {@code overlineText}). */
-    @Experimental("YAML page header (3.0 beta)") String overline,
+    @Experimental("YAML page header (since 3.0)") String overline,
     /** What the header shows while the title is still empty ("New booking…"). */
-    @Experimental("YAML page header (3.0 beta)") String titlePlaceholder,
+    @Experimental("YAML page header (since 3.0)") String titlePlaceholder,
     /** The "last updated" line under the subtitle — the twin of a {@code @Timestamp} field. */
-    @Experimental("YAML page header (3.0 beta)") String timestamp,
+    @Experimental("YAML page header (since 3.0)") String timestamp,
     /** Header chips — the twin of {@code @BadgeInHeader} / {@code HeaderBadgesSupplier}. */
-    @Experimental("YAML page header (3.0 beta)") @Singular("badge") List<Chip> badges,
+    @Experimental("YAML page header (since 3.0)") @Singular("badge") List<Chip> badges,
     /** Header key facts (label/value) — the twin of {@code @KPI}. */
-    @Experimental("YAML page header (3.0 beta)") @Singular("kpi") List<Fact> kpis,
+    @Experimental("YAML page header (since 3.0)") @Singular("kpi") List<Fact> kpis,
     /** Previous/next object arrows — the twin of {@code PeerNavigationSupplier}. */
-    @Experimental("YAML page header (3.0 beta)") PeerNav peerNav,
+    @Experimental("YAML page header (since 3.0)") PeerNav peerNav,
     /** The record/context switcher — the twin of {@code RecordSwitcherSupplier}. */
-    @Experimental("YAML page header (3.0 beta)") RecordSwitcher recordSwitcher,
+    @Experimental("YAML page header (since 3.0)") RecordSwitcher recordSwitcher,
     /** Banners under the header — the twin of {@code @Banner} / {@code BannerSupplier}. */
-    @Experimental("YAML page header (3.0 beta)") @Singular("banner") List<PageBanner> banners,
+    @Experimental("YAML page header (since 3.0)") @Singular("banner") List<PageBanner> banners,
     /** Page floating action buttons — the twin of {@code @Fab} methods on a page. */
-    @Experimental("YAML page header (3.0 beta)") @Singular("fab") List<PageFab> fabs,
+    @Experimental("YAML page header (since 3.0)") @Singular("fab") List<PageFab> fabs,
     /**
      * The page template this page fills (e.g. {@code ItemOverviewPage}); null = a free page, its
      * content laid out as authored.
      */
-    @Experimental("page templates (3.0 beta)") FormTemplate template,
+    @Experimental("page templates (since 3.0)") FormTemplate template,
     /**
      * Ask before leaving this page with unsaved changes — the twin of
      * {@code @ConfirmOnNavigationIfDirty}.
      */
-    @Experimental("YAML page header (3.0 beta)") boolean confirmOnNavigationIfDirty)
+    @Experimental("YAML page header (since 3.0)") boolean confirmOnNavigationIfDirty)
     implements Component, ContentSupplier, PageMainContent {
 
   public Form {

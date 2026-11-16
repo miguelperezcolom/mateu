@@ -40,7 +40,7 @@ public record Listing(
      * {@code dashboard} slot): a dashboard, recent items, tips… — replaced by the results as soon
      * as the user searches. Only meaningful on a listing that does not search on opening.
      */
-    @Experimental("listing pattern gaps (3.0-alpha.409)") @Singular("preSearchItem")
+    @Experimental("listing pattern gaps (since 3.0)") @Singular("preSearchItem")
         List<Component> preSearch,
     boolean wrapCellContent,
     boolean compact,
@@ -73,11 +73,11 @@ public record Listing(
     @Singular("groupAction") List<UserTrigger> groupActions,
     io.mateu.uidl.data.RestDataSource rowsSource,
     /** The row field whose value tones the whole row (@RowStatus); null = no row tones. */
-    @Experimental("listing pattern gaps (3.0-alpha.409)") String rowStatusField,
+    @Experimental("listing pattern gaps (since 3.0)") String rowStatusField,
     /**
      * Rows can be dragged onto a DropZone accepting this type (@DragRows); null = not draggable.
      */
-    @Experimental("listing pattern gaps (3.0-alpha.409)") String dragType)
+    @Experimental("listing pattern gaps (since 3.0)") String dragType)
     implements Component, PageMainContent {
 
   public Boolean autoFocusOnSearchText() {

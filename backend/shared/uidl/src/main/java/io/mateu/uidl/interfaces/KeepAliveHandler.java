@@ -9,7 +9,7 @@ import io.mateu.uidl.annotations.Experimental;
  * what keeps an ordinary servlet session alive — and does nothing else. Mateu does no
  * authentication: what "signed in" means is the app's.
  */
-@Experimental("idle-session warning (3.0-alpha, E2 patterns)")
+@Experimental("idle-session warning (since 3.0, E2 patterns)")
 public interface KeepAliveHandler {
 
   void keepAlive(HttpRequest httpRequest);

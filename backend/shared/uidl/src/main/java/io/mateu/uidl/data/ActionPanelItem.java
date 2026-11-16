@@ -10,7 +10,7 @@ import lombok.Builder;
  * the label ("Traces (3)").
  */
 @Builder
-@Experimental("action panel (3.0-alpha.409)")
+@Experimental("action panel (since 3.0)")
 public record ActionPanelItem(
     String label,
     String actionId,

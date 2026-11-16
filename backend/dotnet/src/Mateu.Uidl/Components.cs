@@ -31,7 +31,7 @@ public interface IComponentTreeSupplier
 /// Only the content changes: the page title and toolbar (Back to list, Edit) stay the CRUD's, and the
 /// edit and create forms of the same class keep their forms. <c>null</c> keeps the default form.
 /// (The C# analogue of io.mateu.uidl.interfaces.DetailContentSupplier — parameterless, the port
-/// idiom, like <see cref="IComponentTreeSupplier.Component"/>.) Experimental (3.0-beta.8).</summary>
+/// idiom, like <see cref="IComponentTreeSupplier.Component"/>.) Experimental (since 3.0).</summary>
 public interface IDetailContentSupplier
 {
     IComponent? DetailContent();
@@ -106,7 +106,7 @@ public sealed record MetricCard : ComponentBase
     /// <summary>Makes the tile clickable — the renderer dispatches this action (a method name).</summary>
     public string? ActionId { get; init; }
     /// <summary>The period the value covers ("Last 7 days", "This month"), shown under the value.
-    /// Experimental (3.0-alpha.412), like Java's <c>MetricCard.timeframe</c>.</summary>
+    /// Experimental (since 3.0), like Java's <c>MetricCard.timeframe</c>.</summary>
     public string? Timeframe { get; init; }
 }
 
@@ -210,7 +210,7 @@ public sealed record FoldoutPanel : ComponentBase
     /// <summary>True = the author did not decide: the renderer opens the panel while it fits the row
     /// (declaration order, after the panels declared open) and folds it otherwise; Open is then
     /// ignored. Null (default) = Open decides. (Mirrors io.mateu.uidl.data.FoldoutPanel.autoOpen.)
-    /// Experimental (3.0-beta.42).</summary>
+    /// Experimental (since 3.0).</summary>
     public bool? AutoOpen { get; init; }
 
     /// <summary>Optional CSS length for the expanded panel (e.g. "40rem"); null = renderer default.</summary>
@@ -269,7 +269,7 @@ public sealed record HeroSection : ComponentBase
     public HeroTone Tone { get; init; } = HeroTone.Auto;
     /// <summary>A short line ABOVE the title introducing it (the Redwood welcome page's overline:
     /// "Good morning", "Sales"…). Null/blank for none. (Java's HeroSection.overline.)
-    /// Experimental (3.0-beta.13).</summary>
+    /// Experimental (since 3.0).</summary>
     public string? Overline { get; init; }
     public IReadOnlyList<IComponent> Content { get; init; } = [];
 }
@@ -406,20 +406,20 @@ public sealed record KanbanColumn
 public sealed record Kanban : ComponentBase
 {
     public IReadOnlyList<KanbanColumn> Columns { get; init; } = [];
-    /// <summary>The action a card move dispatches. Experimental (3.0-beta.33).</summary>
+    /// <summary>The action a card move dispatches. Experimental (since 3.0).</summary>
     public string? MoveActionId { get; init; }
-    /// <summary>The REST source the cards are fetched from. Experimental (3.0-beta.33).</summary>
+    /// <summary>The REST source the cards are fetched from. Experimental (since 3.0).</summary>
     public RestDataSource? RowsSource { get; init; }
-    /// <summary>The item field naming a card's column. Experimental (3.0-beta.33).</summary>
+    /// <summary>The item field naming a card's column. Experimental (since 3.0).</summary>
     public string? ColumnField { get; init; }
-    /// <summary>The card template. Experimental (3.0-beta.33).</summary>
+    /// <summary>The card template. Experimental (since 3.0).</summary>
     public KanbanCard? Card { get; init; }
-    /// <summary>Card colours by value. Experimental (3.0-beta.33).</summary>
+    /// <summary>Card colours by value. Experimental (since 3.0).</summary>
     public IReadOnlyDictionary<string, string>? CardColors { get; init; }
-    /// <summary>The route a card opens. Experimental (3.0-beta.33).</summary>
+    /// <summary>The route a card opens. Experimental (since 3.0).</summary>
     public string? CardRoute { get; init; }
     /// <summary>The item field that orders a column's cards; a move sends its new value.
-    /// Experimental (3.0-beta.35).</summary>
+    /// Experimental (since 3.0).</summary>
     public string? OrderField { get; init; }
 }
 
@@ -459,7 +459,7 @@ public sealed record ProgressSteps : ComponentBase
     public bool Vertical { get; init; }
     /// <summary>The title of the screen after the last step (a wizard's result step), which is
     /// no step: a renderer that shows the finished process as one more screen names it with this
-    /// instead of inventing one. Null when there is no such screen. Experimental (3.0-beta.8).</summary>
+    /// instead of inventing one. Null when there is no such screen. Experimental (since 3.0).</summary>
     public string? ResultTitle { get; init; }
 }
 
@@ -558,7 +558,7 @@ public sealed record OrgNode
 /// <summary>How an <see cref="OrgChart"/> is presented: Tree — the whole hierarchy at once,
 /// top-down; Focus — one node in focus (the chart's <c>Focus</c>, else the root) with its chain of
 /// ancestors above it and its children below, picking one moves the focus there. Travels in
-/// lowercase (tree|focus), like Java's OrgChartDisplay. Experimental (3.0-beta.38).</summary>
+/// lowercase (tree|focus), like Java's OrgChartDisplay. Experimental (since 3.0).</summary>
 public enum OrgChartDisplay
 {
     Tree,
@@ -570,10 +570,10 @@ public sealed record OrgChart : ComponentBase
 {
     public OrgNode? Root { get; init; }
     /// <summary>The presentation (<see cref="OrgChartDisplay"/>); null = tree.
-    /// Experimental (3.0-beta.38), like Java's <c>OrgChart.display</c>.</summary>
+    /// Experimental (since 3.0), like Java's <c>OrgChart.display</c>.</summary>
     public OrgChartDisplay? Display { get; init; }
     /// <summary>The id of the node a Focus chart opens on (the root when null or unknown).
-    /// Experimental (3.0-beta.38), like Java's <c>OrgChart.focus</c>.</summary>
+    /// Experimental (since 3.0), like Java's <c>OrgChart.focus</c>.</summary>
     public string? Focus { get; init; }
 }
 
@@ -1192,7 +1192,7 @@ public sealed record Image : ComponentBase
     public string Src { get; init; } = "";
 
     /// <summary>The text alternative a screen reader reads; <c>""</c> declares the image
-    /// decorative. Null = none declared. Experimental (3.0-beta.4).</summary>
+    /// decorative. Null = none declared. Experimental (since 3.0).</summary>
     public string? Alt { get; init; }
 }
 
@@ -1478,7 +1478,7 @@ public sealed record MicroFrontend(string BaseUrl, string Route = "") : Componen
     public object? AppState { get; init; }
 
     /// <summary>The remote view's type name (its serverSideType); null = resolved by the route.
-    /// Experimental (3.0-beta.27).</summary>
+    /// Experimental (since 3.0).</summary>
     public string? ServerSideType { get; init; }
 
     /// <summary>The route the remote view has already consumed; null = none, the island loads its
@@ -1487,7 +1487,7 @@ public sealed record MicroFrontend(string BaseUrl, string Route = "") : Componen
     public string? ConsumedRoute { get; init; }
 
     /// <summary>The action the island's first request runs; null = the route load.
-    /// Experimental (3.0-beta.27).</summary>
+    /// Experimental (since 3.0).</summary>
     public string? ActionId { get; init; }
 
     /// <summary>Where the island is resolved: <see cref="Mateu.Uidl.Resolve.Client"/> (the default,
@@ -1721,7 +1721,7 @@ public sealed record Form : ComponentBase
     public IReadOnlyList<PageFab> Fabs { get; init; } = [];
 
     /// <summary>The design-system page template this page FILLS (YAML <c>template:</c>); null = a
-    /// free page, its content as written. See <see cref="IFormTemplate"/>. Experimental (3.0 beta).</summary>
+    /// free page, its content as written. See <see cref="IFormTemplate"/>. Experimental (since 3.0).</summary>
     public IFormTemplate? Template { get; init; }
 }
 

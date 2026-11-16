@@ -23,10 +23,10 @@ public record Calendar(
     String id,
     LocalDate month,
     List<CalendarEvent> events,
-    @Experimental("calendar views (3.0-alpha.409)") CalendarView view,
-    @Experimental("calendar views (3.0-alpha.409)") List<CalendarView> views,
-    @Experimental("calendar views (3.0-alpha.409)") List<CalendarDay> days,
-    @Experimental("calendar views (3.0-alpha.409)") String dayActionId,
+    @Experimental("calendar views (since 3.0)") CalendarView view,
+    @Experimental("calendar views (since 3.0)") List<CalendarView> views,
+    @Experimental("calendar views (since 3.0)") List<CalendarDay> days,
+    @Experimental("calendar views (since 3.0)") String dayActionId,
     String style,
     String cssClasses)
     implements Component {

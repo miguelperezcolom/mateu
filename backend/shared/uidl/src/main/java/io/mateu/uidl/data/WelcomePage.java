@@ -12,7 +12,7 @@ import io.mateu.uidl.fluent.FormTemplate;
  * banner's {@code backgroundColor}, Spectra's value ({@code dark-slate}…) or the bare tone ({@code
  * slate}…); {@code auto} or none keeps the default look.
  */
-@Experimental("page templates (3.0 beta)")
+@Experimental("page templates (since 3.0)")
 public record WelcomePage(String backgroundColor) implements FormTemplate {
 
   /** The banner's tone: Spectra's {@code dark-<tone>} or the bare tone; {@code null} if unknown. */

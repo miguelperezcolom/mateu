@@ -22,12 +22,12 @@ public record HeroSection(
      * The band's tone (the Redwood welcome-page palette): {@code null}/{@code auto} keeps the
      * default look, any other {@link HeroTone} paints a dark tinted band with light ink.
      */
-    @Experimental("hero tone (3.0-alpha.409)") HeroTone tone,
+    @Experimental("hero tone (since 3.0)") HeroTone tone,
     /**
      * A short line ABOVE the title introducing it (the Redwood welcome page's overline: "Good
      * morning", "Sales"…). {@code null}/blank for none.
      */
-    @Experimental("hero overline (3.0-beta.13)") String overline,
+    @Experimental("hero overline (since 3.0)") String overline,
     List<Component> content,
     String style,
     String cssClasses)

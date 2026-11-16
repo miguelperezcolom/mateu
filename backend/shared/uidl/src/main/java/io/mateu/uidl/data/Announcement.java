@@ -8,5 +8,5 @@ import io.mateu.uidl.annotations.Experimental;
  * for errors). Built with {@link UICommand#announce(String)} / {@link
  * UICommand#announceAssertive(String)}.
  */
-@Experimental("screen-reader announcements (3.0-alpha.409)")
+@Experimental("screen-reader announcements (since 3.0)")
 public record Announcement(String text, boolean assertive) {}

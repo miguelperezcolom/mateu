@@ -10,5 +10,5 @@ import lombok.Builder;
  * success, warning, danger, neutral) that tints the cell.
  */
 @Builder
-@Experimental("calendar views (3.0-alpha.409)")
+@Experimental("calendar views (since 3.0)")
 public record CalendarDay(LocalDate date, String label, String tone) {}

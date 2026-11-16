@@ -154,7 +154,7 @@ protected String heroOverline() { return "Good morning"; }
 or `@WelcomeBanner(overline = "Good morning")` on any page (`HeroSection.overline` when composing
 fluently). Empty or `null` shows none. Redwood passes it to the welcome template's own
 `overlineText`; Vaadin, React Native and IntelliJ draw it small and muted above the title. It is
-`@Experimental` (3.0-beta.13). In .NET override `HeroOverline` / set `[WelcomeBanner(Overline = …)]`;
+`@Experimental` (since 3.0). In .NET override `HeroOverline` / set `[WelcomeBanner(Overline = …)]`;
 in Python override `hero_overline()` / pass `@welcome_banner(overline=…)`.
 
 ## Hero tone

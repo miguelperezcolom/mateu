@@ -8,7 +8,7 @@ import io.mateu.uidl.annotations.Experimental;
  * theme's base); the others paint a DARK tinted band with light ink. The names are hues, not brand
  * colors — each renderer maps them onto its own palette.
  */
-@Experimental("hero tone (3.0-alpha.409)")
+@Experimental("hero tone (since 3.0)")
 public enum HeroTone {
   auto,
   ocean,

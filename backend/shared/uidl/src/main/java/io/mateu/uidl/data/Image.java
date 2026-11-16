@@ -18,7 +18,7 @@ public record Image(
     String src,
     String style,
     String cssClasses,
-    @Experimental("image alt text (3.0-beta.4)") String alt)
+    @Experimental("image alt text (since 3.0)") String alt)
     implements Component {
 
   public Image(String src) {
@@ -26,7 +26,7 @@ public record Image(
   }
 
   /** An image with its text alternative (since 3.0-beta.4). */
-  @Experimental("image alt text (3.0-beta.4)")
+  @Experimental("image alt text (since 3.0)")
   public Image(String src, String alt) {
     this(src, "", "", alt);
   }

@@ -16,7 +16,7 @@ import lombok.Singular;
  * its {@code content} is the dashboard's main area, typically one {@link DashboardPanel} per chart
  * or list.
  */
-@Experimental("page templates (3.0 beta)")
+@Experimental("page templates (since 3.0)")
 @Builder
 public record DashboardLandingPage(@Singular("kpiItem") List<Component> kpi)
     implements FormTemplate {

@@ -60,19 +60,19 @@ public abstract class GeneralOverview<Row>
    * the overview on wide pages and stacked with it on narrow ones (above it when {@link
    * GeneralOverviewDisplay#promoteInfoSlot()} is on). Null (the default) = no info panel.
    */
-  @Experimental("general overview info panel (3.0-alpha.409)")
+  @Experimental("general overview info panel (since 3.0)")
   protected Component info(Row row, HttpRequest httpRequest) {
     return null;
   }
 
   /** The info panel's width on wide pages (a CSS length). */
-  @Experimental("general overview info panel (3.0-alpha.409)")
+  @Experimental("general overview info panel (since 3.0)")
   protected String infoWidth() {
     return "20rem";
   }
 
   /** This page's built-in affordances (see {@link GeneralOverviewDisplay}). */
-  @Experimental("archetype display options (3.0-alpha.409)")
+  @Experimental("archetype display options (since 3.0)")
   protected GeneralOverviewDisplay display() {
     return GeneralOverviewDisplay.defaults();
   }
@@ -81,7 +81,7 @@ public abstract class GeneralOverview<Row>
    * The context switcher's label ("Requisition", "Customer"…). Blank (the default) = no label: the
    * switcher's options say what they are.
    */
-  @Experimental("record switcher label (3.0 beta)")
+  @Experimental("record switcher label (since 3.0)")
   protected String recordLabel() {
     return "";
   }
@@ -90,7 +90,7 @@ public abstract class GeneralOverview<Row>
    * Labels the switcher with {@link #recordLabel()}: the {@code record} field lives here, where a
    * subclass cannot annotate it. A subclass that supplies labels of its own overrides this.
    */
-  @Experimental("record switcher label (3.0 beta)")
+  @Experimental("record switcher label (since 3.0)")
   @Override
   public String label(String memberName, HttpRequest httpRequest) {
     return "record".equals(memberName) ? recordLabel() : null;

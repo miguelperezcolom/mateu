@@ -14,7 +14,7 @@ import java.util.List;
  * <p>Only client-runnable actions are accepted: an entry with neither steps nor a restAction is
  * dropped with a warning — server logic stays an {@code @Action} method.
  */
-@Experimental("action catalogue (3.0-alpha.409)")
+@Experimental("action catalogue (since 3.0)")
 public interface ActionCatalogSupplier {
 
   /** The actions this bean contributes. Empty when it contributes none. */

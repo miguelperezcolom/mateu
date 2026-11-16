@@ -16,7 +16,7 @@ import lombok.Builder;
  * which cell it was from the request.
  */
 @Builder
-@Experimental("matrix grid (3.0-alpha.409)")
+@Experimental("matrix grid (since 3.0)")
 public record MatrixGrid(
     String id,
     String rowHeaderLabel,

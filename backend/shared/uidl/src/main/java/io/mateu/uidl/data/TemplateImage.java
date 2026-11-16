@@ -8,7 +8,7 @@ import lombok.Builder;
  * ${state.x}}), for an avatar the {@code initials} shown when there is no image, and the {@code
  * alt} text a screen reader reads for it (the page's title when absent).
  */
-@Experimental("page templates (3.0 beta)")
+@Experimental("page templates (since 3.0)")
 @Builder
 public record TemplateImage(String src, String initials, String alt) {
 

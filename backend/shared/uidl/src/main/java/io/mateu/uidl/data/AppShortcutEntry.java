@@ -8,7 +8,7 @@ import lombok.Builder;
  * code-authored ({@code AppShell.shortcuts}) or YAML ({@code type: AppShell}, {@code shortcuts:})
  * shell. A {@code key} and/or a quick-launch {@code code}; a {@code route} or an {@code actionId}.
  */
-@Experimental("app shortcuts (3.0-alpha, E2 patterns)")
+@Experimental("app shortcuts (since 3.0, E2 patterns)")
 @Builder
 public record AppShortcutEntry(
     String key, String route, String actionId, String label, String code) {

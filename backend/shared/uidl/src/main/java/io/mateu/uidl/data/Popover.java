@@ -14,7 +14,7 @@ public record Popover(
     String id,
     Component content,
     Component wrapped,
-    @Experimental("hover popovers (3.0-alpha.409)") PopoverTrigger trigger,
+    @Experimental("hover popovers (since 3.0)") PopoverTrigger trigger,
     String style,
     String cssClasses)
     implements Component {

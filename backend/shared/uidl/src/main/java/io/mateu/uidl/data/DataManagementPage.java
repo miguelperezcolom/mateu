@@ -11,5 +11,5 @@ import io.mateu.uidl.fluent.FormTemplate;
  * it gives the rest: its title heads the page, its toolbar's buttons sit over the data, and its
  * {@code content} is the data view.
  */
-@Experimental("page templates (3.0 beta)")
+@Experimental("page templates (since 3.0)")
 public record DataManagementPage(DockedPanel end, DockedPanel bottom) implements FormTemplate {}

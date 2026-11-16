@@ -19,7 +19,7 @@ public record AppHeaderAction(
     String label,
     String icon,
     List<AppHeaderAction> children,
-    @io.mateu.uidl.annotations.Experimental("YAML app shell extras (3.0 beta)") String route) {
+    @io.mateu.uidl.annotations.Experimental("YAML app shell extras (since 3.0)") String route) {
 
   public AppHeaderAction(
       String actionId, String label, String icon, List<AppHeaderAction> children) {

@@ -15,9 +15,9 @@ public record CalendarEvent(
     String id,
     String title,
     LocalDate date,
-    @Experimental("calendar views (3.0-alpha.409)") LocalDate endDate,
-    @Experimental("calendar views (3.0-alpha.409)") String startTime,
-    @Experimental("calendar views (3.0-alpha.409)") String endTime,
+    @Experimental("calendar views (since 3.0)") LocalDate endDate,
+    @Experimental("calendar views (since 3.0)") String startTime,
+    @Experimental("calendar views (since 3.0)") String endTime,
     String color,
     String actionId) {
 

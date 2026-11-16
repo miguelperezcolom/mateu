@@ -37,19 +37,19 @@ public record Kanban(
     String style,
     String cssClasses,
     /** Action run when a card is dropped; null = the cards do not move. */
-    @Experimental("kanban drag and drop (3.0-beta)") String moveActionId,
+    @Experimental("kanban drag and drop (since 3.0)") String moveActionId,
     /** The REST source whose items are the board's cards (a live board). */
-    @Experimental("kanban drag and drop (3.0-beta)") RestDataSource rowsSource,
+    @Experimental("kanban drag and drop (since 3.0)") RestDataSource rowsSource,
     /** The item field naming the card's column (default {@code status}). */
-    @Experimental("kanban drag and drop (3.0-beta)") String columnField,
+    @Experimental("kanban drag and drop (since 3.0)") String columnField,
     /** Template of a card drawn from an item: {@code ${row.x}} in its texts. */
-    @Experimental("kanban drag and drop (3.0-beta)") KanbanCard card,
+    @Experimental("kanban drag and drop (since 3.0)") KanbanCard card,
     /** A card colour that names a key here takes its value ({@code urgent: "#dc2626"}). */
-    @Experimental("kanban drag and drop (3.0-beta)") Map<String, String> cardColors,
+    @Experimental("kanban drag and drop (since 3.0)") Map<String, String> cardColors,
     /** Where a card from {@code rowsSource} goes when clicked ({@code tasks/${row.id}}). */
-    @Experimental("kanban drag and drop (3.0-beta)") String cardRoute,
+    @Experimental("kanban drag and drop (since 3.0)") String cardRoute,
     /** The item field that orders a column's cards; a move sends its new value. */
-    @Experimental("kanban manual order (3.0-beta)") String orderField)
+    @Experimental("kanban manual order (since 3.0)") String orderField)
     implements Component {
 
   public Kanban(String id, List<KanbanColumn> columns, String style, String cssClasses) {

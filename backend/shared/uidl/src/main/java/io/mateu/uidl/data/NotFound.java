@@ -19,7 +19,7 @@ import lombok.Builder;
  * @param backLabel the text of the way back
  */
 @Builder
-@Experimental("not-found page (3.0-alpha.40x)")
+@Experimental("not-found page (since 3.0)")
 public record NotFound(
     String id,
     String title,
