@@ -407,11 +407,15 @@ public class AppMenuResolver {
                                   && !link.route().isBlank()
                                   && !link.route().startsWith("/"))
                               ? mount + "/" + link.route()
-                              : child instanceof Menu subgroup
-                                  ? base
-                                      + io.mateu.core.domain.out.componentmapper.HomeRouteResolver
-                                          .groupPath(subgroup)
-                                  : base + child.path();
+                              // a route-typed entry (path = route) goes where its route says
+                              : io.mateu.core.domain.out.componentmapper.MenuEntryMapper
+                                      .isAddressedByItsRoute(child)
+                                  ? ((RouteLink) child).route()
+                                  : child instanceof Menu subgroup
+                                      ? base
+                                          + io.mateu.core.domain.out.componentmapper
+                                              .HomeRouteResolver.groupPath(subgroup)
+                                      : base + child.path();
                   return (Component) new Anchor(labelOf(child), target);
                 })
             .toList();

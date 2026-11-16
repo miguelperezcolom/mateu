@@ -4,6 +4,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { MateuTableCrud } from "@infra/ui/mateu-table-crud"
 import { renderComponent } from "@infra/ui/renderers/renderComponent"
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
+import { listingEmptyMessage } from "@infra/ui/listingEmptyMessage"
 
 /** Vaadin adapter Table (standalone) renderer — the vaadin-grid based <mateu-table> element. */
 export const renderTableElement = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): TemplateResult => html`
@@ -29,7 +30,7 @@ export const renderCrudTable = (container: MateuTableCrud, component: ClientSide
                  .state="${state}"
                  .appState="${appState}"
                  .appData="${appData}"
-                 .emptyStateMessage="${state[component?.id!]?.emptyStateMessage}"
+                 .emptyStateMessage="${listingEmptyMessage(container.data, state, container.id, component?.id)}"
                  @sort-direction-changed="${container.directionChanged}"
                  @fetch-more-elements="${container.fetchMoreElements}"
                  baseUrl="${baseUrl}"

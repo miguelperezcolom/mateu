@@ -292,7 +292,7 @@ public final class ParityConformanceFixtures {
   @UI("/conformance/app-fabs")
   @Title("Fab app")
   public static class FabApp {
-    @Menu public String home = "/a";
+    @Menu public String home = "/home";
 
     @Fab(icon = "vaadin:plus")
     public void create() {}

@@ -29,7 +29,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.List;
 
-final class MenuEntryMapper {
+public final class MenuEntryMapper {
 
   static Actionable mapToMenu(
       String appRoute, Method method, Object instance, String route, HttpRequest httpRequest) {
@@ -83,6 +83,29 @@ final class MenuEntryMapper {
     return entry;
   }
 
+  /**
+   * Whether a {@code @Menu} String/URI value is an in-app route ({@code /count/cold-room}): it
+   * becomes the entry's path too — the menu builder recognises an entry whose path IS its route and
+   * keeps it as written. An external URL, a protocol-relative one or a route with a query keep
+   * being addressed by the field.
+   */
+  static boolean namesItsRoute(String uri) {
+    return uri.startsWith("/") && !uri.startsWith("//") && !uri.contains("?") && uri.length() > 1;
+  }
+
+  /**
+   * Whether a menu entry is a route-typed {@code @Menu} String/URI mapped here: its path IS its
+   * route ({@link #namesItsRoute}), so the menu and the section index address it by that route —
+   * whatever group it sits in — instead of composing a path under the group.
+   */
+  public static boolean isAddressedByItsRoute(io.mateu.uidl.interfaces.Actionable option) {
+    return option instanceof RouteLink link
+        && link.path() != null
+        && link.path().equals(link.route())
+        && link.serverSideType() != null
+        && namesItsRoute(link.path());
+  }
+
   private static Actionable mapFieldToMenu(
       String appRoute, Field field, Object instance, String route, HttpRequest httpRequest) {
     if ("/".equals(appRoute)) {
@@ -99,8 +122,10 @@ final class MenuEntryMapper {
     if (String.class.equals(field.getType())) {
       var uri = (String) getValue(field, instance);
       if (uri != null) {
+        // a route-typed entry is addressed by ITS route: the browser shows /count/cold-room, not
+        // the field's name (/countColdRoom) — the screen already came from the route
         return new RouteLink(uri, getLabel(field))
-            .withPath("/" + field.getName())
+            .withPath(namesItsRoute(uri) ? uri : "/" + field.getName())
             .withServerSideType(instance.getClass().getName())
             .withConsumedRoute(appRoute)
             .withDescription(description);
@@ -115,7 +140,7 @@ final class MenuEntryMapper {
       var uri = (URI) getValue(field, instance);
       if (uri != null) {
         return new RouteLink(uri.toString(), getLabel(field))
-            .withPath("/" + field.getName())
+            .withPath(namesItsRoute(uri.toString()) ? uri.toString() : "/" + field.getName())
             .withDescription(description);
       }
       return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field))

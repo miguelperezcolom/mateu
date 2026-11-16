@@ -8,6 +8,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed — listings and menu addresses
+
+- A listing's own empty message (`new ListingData<>(page, "Pick a warehouse on the header")`) is
+  shown: it travels in the search answer's data, and Vaadin, Redwood, React Native and the IntelliJ
+  plugin read only the state or the metadata, so they kept showing the default text.
+- An `Amount` row field of a listing is a money column (dataType `money`, right-aligned), written
+  in the amount's own locale and currency; it used to read "[object Object]" on the web (a blank
+  cell on the desktop).
+- A route-typed menu entry (`@Menu String countColdRoom = "/count/cold-room"`) puts its route in
+  the address bar instead of the field name (`/countColdRoom`), whatever group it sits in; the
+  menu, the section index and the MCP route list name it by that route. An entry left null still
+  routes to the field under the app.
+
 ### Added — message page
 
 - **`MessagePage`, a page template for a page that stands on its own** — a confirmation, "check

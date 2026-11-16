@@ -26,6 +26,20 @@ export function extractListing<T = Dict>(data: unknown): T {
   return {} as T;
 }
 
+/**
+ * What an empty listing says: the message its search answer carries next to the page (the
+ * server's `ListingData.emptyStateMessage`), else the listing's metadata, else the default. Reading
+ * the metadata alone, a listing answering "Pick a warehouse on the header" showed "No data".
+ */
+export function emptyMessageOf(data: unknown, metadata: Dict, fallback = 'No data'): string {
+  const d = data as Dict | null;
+  const own = d && typeof d === 'object' ? d['emptyStateMessage'] : undefined;
+  if (typeof own === 'string' && own.trim()) return own;
+  const declared = metadata['emptyStateMessage'];
+  if (typeof declared === 'string' && declared.trim()) return declared;
+  return fallback;
+}
+
 /** The page object (rows + paging counters), whether the data is the envelope or the bare page. */
 export function extractPage(data: unknown): Dict | undefined {
   const d = data as Dict | null;

@@ -160,7 +160,7 @@ class McpAppShellSyncTest {
 
   @Test
   void aRouteMenuEntryAnswersTheScreenItPointsTo() {
-    assertThat(mcp.describeScreen("other", "", REQUESTS).get("serverSideType").asText())
+    assertThat(mcp.describeScreen("mcp-elsewhere", "", REQUESTS).get("serverSideType").asText())
         .isEqualTo(Elsewhere.class.getName());
   }
 
@@ -173,6 +173,6 @@ class McpAppShellSyncTest {
         .containsEntry("hello", "Hello")
         .containsEntry("books", "Books")
         .containsEntry("items", "Items")
-        .containsEntry("other", "Other");
+        .containsEntry("mcp-elsewhere", "Other");
   }
 }

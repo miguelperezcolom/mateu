@@ -5,6 +5,7 @@ import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.MappedValue;
 import io.mateu.uidl.annotations.PrimaryColumn;
 import io.mateu.uidl.annotations.Stereotype;
+import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.FieldDataType;
@@ -32,6 +33,11 @@ final class ColumnTypeMapper {
     }
     if (ComponentDto.class.isAssignableFrom(columnField.getType())) {
       return FieldDataType.component;
+    }
+    // an Amount carries its own currency and locale: a money column, formatted by every renderer's
+    // money rule (it used to be "string" and the web wrote the object as "[object Object]")
+    if (Amount.class.isAssignableFrom(columnField.getType())) {
+      return FieldDataType.money;
     }
     if (ColumnAction.class.isAssignableFrom(columnField.getType())) {
       return FieldDataType.action;

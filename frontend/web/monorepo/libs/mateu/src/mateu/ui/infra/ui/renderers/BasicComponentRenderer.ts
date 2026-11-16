@@ -7,6 +7,7 @@ import { MateuApp } from "@infra/ui/mateu-app.ts";
 import { renderApp } from "@infra/ui/renderers/appRenderer.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { MateuTableCrud } from "../mateu-table-crud.ts";
+import { listingEmptyMessage } from "@infra/ui/listingEmptyMessage.ts";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
@@ -67,7 +68,7 @@ export abstract class BasicComponentRenderer implements ComponentRenderer {
         // DS-neutral crud listing table. The Vaadin adapter overrides this with the vaadin-grid
         // based <mateu-table> (sorting/editing/virtual scroll).
         const rows = (container.data?.[container.id] as any)?.page?.content ?? []
-        return renderNeutralTable(component!, rows, state[component?.id!]?.emptyStateMessage as string | undefined)
+        return renderNeutralTable(component!, rows, listingEmptyMessage(container.data, state, container.id, component?.id))
     }
     /** Short renderer name for diagnostics/conformance. Subclasses should override. */
     rendererName(): string {

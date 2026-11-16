@@ -375,7 +375,7 @@ class WireConformanceTest {
       implements io.mateu.uidl.interfaces.NotificationsSupplier,
           io.mateu.uidl.interfaces.GlobalSearchSupplier {
 
-    @io.mateu.uidl.annotations.Menu public String home = "/a";
+    @io.mateu.uidl.annotations.Menu public String home = "/home";
 
     @Override
     public List<io.mateu.uidl.data.AppNotification> notifications(HttpRequest httpRequest) {
@@ -808,7 +808,7 @@ class WireConformanceTest {
       askLabel = "Ask Mateu",
       askIcon = "vaadin:question")
   public static class BrandedApp {
-    @io.mateu.uidl.annotations.Menu public String home = "/a";
+    @io.mateu.uidl.annotations.Menu public String home = "/home";
   }
 
   /**
@@ -821,7 +821,7 @@ class WireConformanceTest {
   @Title("Record")
   @io.mateu.uidl.annotations.App(backLink = io.mateu.uidl.annotations.BackLink.PARENT)
   public static class BackLinkApp {
-    @io.mateu.uidl.annotations.Menu public String overview = "/a";
+    @io.mateu.uidl.annotations.Menu public String overview = "/overview";
   }
 
   /** A page that turns the automatic breadcrumb trail off (PageDto.noBreadcrumbs). */
@@ -1726,7 +1726,7 @@ class WireConformanceTest {
   @Title("Context app")
   public static class ContextApp {
 
-    @io.mateu.uidl.annotations.Menu public String home = "/a";
+    @io.mateu.uidl.annotations.Menu public String home = "/home";
 
     @AppContext(label = "Hotel")
     public Hotel hotel;

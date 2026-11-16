@@ -20,6 +20,8 @@ export interface GroupSummary {
  */
 export interface ListingData {
     page?: Page
+    /** What an empty result says (`ListingData.emptyStateMessage` on the server); null = the default. */
+    emptyStateMessage?: string | null
     aggregates?: Record<string, number>
     groups?: GroupSummary[]
 }
