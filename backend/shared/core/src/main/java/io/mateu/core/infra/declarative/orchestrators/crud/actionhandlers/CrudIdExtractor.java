@@ -22,6 +22,10 @@ public class CrudIdExtractor {
       }
     }
     if (id == null) {
+      // the record page says which record it shows (its model need not hold the id)
+      id = io.mateu.core.infra.declarative.orchestrators.RoutedPage.recordId(httpRequest);
+    }
+    if (id == null) {
       id = idFromRoute(orchestrator, httpRequest);
     }
     return id;

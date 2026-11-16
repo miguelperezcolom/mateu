@@ -102,11 +102,58 @@ class BulkActionsSyncTest {
     }
   }
 
+  /** Not deletable, but its bulk button still needs the selection. */
+  @UI("/bulk-invoices-not-deletable")
+  @Title("Invoices")
+  @io.mateu.uidl.annotations.NotDeletable
+  public static class NotDeletableInvoicesCrud extends InvoicesCrud {}
+
+  /** Not deletable and nothing else uses a selection: no selection boxes. */
+  @UI("/plain-invoices-not-deletable")
+  @Title("Invoices")
+  @io.mateu.uidl.annotations.NotDeletable
+  public static class PlainNotDeletableInvoicesCrud extends AutoCrud<Invoice> {
+    @Override
+    public CrudStore<Invoice> store() {
+      return new CrudStore<>() {
+        @Override
+        public Optional<Invoice> findById(String id) {
+          return INVOICES.stream().filter(invoice -> invoice.id().equals(id)).findFirst();
+        }
+
+        @Override
+        public String save(Invoice entity) {
+          return entity.id;
+        }
+
+        @Override
+        public List<Invoice> findAll() {
+          return INVOICES;
+        }
+
+        @Override
+        public void deleteAllById(List<String> selectedIds) {}
+      };
+    }
+  }
+
+  /** Not deletable, but its rows are dragged: the drag carries the selection. */
+  @UI("/dragged-invoices-not-deletable")
+  @Title("Invoices")
+  @io.mateu.uidl.annotations.NotDeletable
+  @io.mateu.uidl.annotations.DragRows("invoice")
+  public static class DraggedNotDeletableInvoicesCrud extends PlainNotDeletableInvoicesCrud {}
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(InvoicesCrud.class);
+    mateu =
+        TestMateu.withUis(
+            InvoicesCrud.class,
+            NotDeletableInvoicesCrud.class,
+            PlainNotDeletableInvoicesCrud.class,
+            DraggedNotDeletableInvoicesCrud.class);
   }
 
   @AfterAll
@@ -185,6 +232,39 @@ class BulkActionsSyncTest {
   }
 
   // ── wire shape ──────────────────────────────────────────────────────────────
+
+  private static CrudlDto listingOf(String route, Class<?> crud) {
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route(route)
+                .consumedRoute(route)
+                .serverSideType(crud.getName())
+                .actionId("")
+                .initiatorComponentId("c1_app")
+                .componentState(Map.of())
+                .build());
+    return findCrudl(increment.fragments().get(0).component());
+  }
+
+  @Test
+  void aCrudThatCannotDeleteShowsNoSelectionUnlessSomethingUsesIt() {
+    assertThat(
+            listingOf("/plain-invoices-not-deletable", PlainNotDeletableInvoicesCrud.class)
+                .rowsSelectionEnabled())
+        .as("nothing uses the selection")
+        .isFalse();
+    assertThat(
+            listingOf("/bulk-invoices-not-deletable", NotDeletableInvoicesCrud.class)
+                .rowsSelectionEnabled())
+        .as("a bulk button uses it")
+        .isTrue();
+    assertThat(
+            listingOf("/dragged-invoices-not-deletable", DraggedNotDeletableInvoicesCrud.class)
+                .rowsSelectionEnabled())
+        .as("dragging rows uses it")
+        .isTrue();
+  }
 
   @Test
   void theBulkButtonTravelsOnTheListingToolbarWithItsLabelAndSelectionIsEnabled() {

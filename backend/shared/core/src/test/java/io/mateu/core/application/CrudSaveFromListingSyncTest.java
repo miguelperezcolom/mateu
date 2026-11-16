@@ -7,14 +7,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import io.mateu.uidl.annotations.Menu;
+import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.data.ListingData;
+import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.interfaces.CrudStore;
+import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -74,11 +79,63 @@ class CrudSaveFromListingSyncTest {
     }
   }
 
+  /** A crud whose record view is a card WITHOUT the id (the docs' CustomerCard). */
+  public record CustomerCard(String name, String email) {}
+
+  public record CustomerEditor(@ReadOnly String id, String name, String email) {}
+
+  public record Customer(String id, String name, String email) implements Identifiable {}
+
+  static final Map<String, Customer> CUSTOMERS = new ConcurrentHashMap<>();
+
+  public static class Customers
+      extends Crud<CustomerCard, CustomerEditor, CustomerEditor, Object, Customer, String> {
+    @Override
+    public ListingData<Customer> search(SearchRequest request, HttpRequest httpRequest) {
+      return ListingData.from(List.copyOf(CUSTOMERS.values()));
+    }
+
+    @Override
+    public CustomerCard view(String id, HttpRequest httpRequest) {
+      var c = CUSTOMERS.get(id);
+      return new CustomerCard(c.name(), c.email());
+    }
+
+    @Override
+    public CustomerEditor edit(String id, HttpRequest httpRequest) {
+      var c = CUSTOMERS.get(id);
+      return new CustomerEditor(c.id(), c.name(), c.email());
+    }
+
+    @Override
+    public CustomerEditor creationForm(HttpRequest httpRequest) {
+      return new CustomerEditor(null, "", "");
+    }
+
+    @Override
+    public String save(HttpRequest httpRequest) {
+      var editor = httpRequest.getComponentState(CustomerEditor.class);
+      CUSTOMERS.put(editor.id(), new Customer(editor.id(), editor.name(), editor.email()));
+      return editor.id();
+    }
+
+    @Override
+    public String create(HttpRequest httpRequest) {
+      return save(httpRequest);
+    }
+
+    @Override
+    public void deleteAllById(List<String> ids, HttpRequest httpRequest) {
+      ids.forEach(CUSTOMERS::remove);
+    }
+  }
+
   @SuppressWarnings("unused")
   @UI("")
   @Title("My app")
   public static class Shell {
     @Menu Products products;
+    @Menu Customers customers;
   }
 
   static final String APP = "ux_root_" + Shell.class.getName().replace('.', '_') + "_app";
@@ -152,6 +209,40 @@ class CrudSaveFromListingSyncTest {
     assertThat(STORE.get("P-001").name()).isEqualTo("Espresso machine X");
     assertThat(STORE.get("P-001").price()).isEqualTo(249);
     assertThat(STORE.get("P-002").name()).isEqualTo("Coffee grinder");
+  }
+
+  @Test
+  void editOnTheViewOfACardWithoutAnIdGoesToTheRecordsEditor() {
+    CUSTOMERS.put("C-001", new Customer("C-001", "Ana Ruiz", "ana@example.com"));
+    var viewPage =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/customers/C-001")
+                .consumedRoute("/customers")
+                .serverSideType(Customers.class.getName())
+                .actionId("")
+                .initiatorComponentId(CRUD_UX)
+                .componentState(Map.of("_route", "/C-001"))
+                .build());
+    var viewState = pageState(viewPage);
+    assertThat(viewState).doesNotContainKey("id");
+
+    // Edit, bubbled to the app: neither the card nor the app's route ("/customers") names the id
+    var edit =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/customers")
+                .consumedRoute("")
+                .serverSideType(Customers.class.getName())
+                .actionId("edit")
+                .initiatorComponentId(APP)
+                .componentState(viewState)
+                .parameters(Map.of("initiatorState", viewState))
+                .build());
+
+    assertThat(errors(edit)).isEmpty();
+    var answer = JSON.valueToTree(edit).toString();
+    assertThat(answer).contains("/C-001/edit").doesNotContain("null/edit");
   }
 
   @Test

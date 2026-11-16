@@ -42,6 +42,7 @@ from ._base import MixinBase
 from mateu_ui.uidl import Restorable
 from .undo_delete import deleted_message, is_restorable, restore_ids, restored_message
 from ._common import (
+    DRAWER_HOST_KEY,
     RunActionRq,
     SAVED_IN_DRAWER_EVENT,
     version_field,
@@ -104,6 +105,11 @@ class CrudHandlerMixin(MixinBase):
                 setattr(crud, name, value)
         mode, id_ = self.parse_crud_route(base_route, rq.route)
         aid = rq.action_id
+        # A drawer's Save names no record in its route (it is sent with the listing's): the record
+        # is the one the drawer's form state names. Read off the route alone, a save of an EXISTING
+        # record from the drawer ran as a create and stored a copy under a new id.
+        if id_ is None and aid == "save" and getattr(crud_type, "__mateu_edit_in_drawer__", False):
+            id_ = self._row_id(rq)
 
         # A Lookup() field on the entity form searches its options through the crud view.
         if aid and aid.startswith("search-"):
@@ -454,6 +460,11 @@ class CrudHandlerMixin(MixinBase):
             crud_type, element, entity, mode, route, save_action_id=save_action_id,
             save_and_next=save_and_next,
         )
+        # the drawer's form names the listing it was opened from: the save's refresh runs there
+        form = form.model_copy(update={"initial_data": {
+            **(form.initial_data if isinstance(form.initial_data, dict) else {}),
+            DRAWER_HOST_KEY: self.drawer_host(rq),
+        }})
         content = form
         if error_message is not None:
             # the Redwood create-edit-drawer error banner: a danger Notice over the form
@@ -644,7 +655,7 @@ class CrudHandlerMixin(MixinBase):
                         UICommand(
                             target_component_id=target,
                             type="RunAction",
-                            data={"actionId": "search", "targetComponentId": target},
+                            data={"actionId": "search", "targetComponentId": self.drawer_host(rq)},
                         ),
                     ],
                 })
@@ -659,7 +670,10 @@ class CrudHandlerMixin(MixinBase):
                     UICommand(
                         target_component_id=self.target(rq),
                         type="RunAction",
-                        data={"actionId": "search", "targetComponentId": self.target(rq)},
+                        # the LISTING searches again with its own filters: run by the drawer's
+                    # form (which sent the save) it bubbled to the listing carrying the drawer's
+                    # values as the state, read as filters
+                    data={"actionId": "search", "targetComponentId": self.drawer_host(rq)},
                     ),
                 ],
                 messages=[MessageDto(variant="success", position="middle", title="", text="Saved", duration=3000)],

@@ -283,8 +283,16 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
     return true;
   }
 
+  /**
+   * Whether the listing's rows carry a selection box. Only when something uses the selection: the
+   * Delete button, a bulk {@code @ListToolbarButton} or dragging rows ({@code @DragRows}) — an
+   * {@code @NotDeletable} crud with none of them used to show checkboxes that did nothing.
+   */
   public boolean selectionEnabled() {
-    return true;
+    return CrudWriteGate.mayDelete(this)
+        || ListingSummarySpec.dragTypeOf(metadataSource()) != null
+        || getAllMethods(behaviourSource().getClass()).stream()
+            .anyMatch(method -> MetaAnnotations.isPresent(method, ListToolbarButton.class));
   }
 
   public String newLabel() {

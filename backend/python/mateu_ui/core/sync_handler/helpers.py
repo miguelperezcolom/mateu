@@ -42,6 +42,7 @@ from mateu_ui.uidl import components as fluent
 from ._base import MixinBase
 from ._common import (
     log,
+    DRAWER_HOST_KEY,
     RunActionRq,
 )
 
@@ -56,6 +57,15 @@ class ResponseHelpersMixin(MixinBase):
         """The window title of a page built from ``instance`` — a record page is named after the
         record, like its page header (Java's getTitle(entity); see :mod:`mateu_ui.core.titles`)."""
         return self.mapper.T(_record_title(type_, instance))
+
+    @staticmethod
+    def drawer_host(rq: RunActionRq | None) -> str:
+        """The listing a create/edit drawer's save refreshes: the one its form names
+        (``DRAWER_HOST_KEY``, written when the drawer opened), else the component that sent the
+        request — the listing itself, when it opens the drawer."""
+        state = (rq.component_state or {}) if rq is not None else {}
+        host = state.get(DRAWER_HOST_KEY)
+        return host if isinstance(host, str) and host else ResponseHelpersMixin.target(rq)
 
     @staticmethod
     def target(rq: RunActionRq | None) -> str:

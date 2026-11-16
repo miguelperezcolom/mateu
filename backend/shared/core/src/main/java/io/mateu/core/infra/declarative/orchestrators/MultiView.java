@@ -257,7 +257,14 @@ public abstract class MultiView
             .withConfirmOnNavigationIfDirty(viewName.equals("edit") || viewName.equals("new"))
             .withPageType(pageTypeOfView(viewName, modelView));
     if (RoutedPage.tracks(viewName)) {
-      dto = dto.withInitialData(RoutedPage.stamp(dto.initialData(), pageId, consumedRoute));
+      // the record shown: the resolver that rendered it says so, else (a page re-rendered by one
+      // of its own buttons) the page's state already did
+      var recordId =
+          httpRequest.getAttribute(RoutedPage.RECORD_ATTRIBUTE) instanceof String id
+              ? id
+              : RoutedPage.recordId(httpRequest);
+      dto =
+          dto.withInitialData(RoutedPage.stamp(dto.initialData(), pageId, consumedRoute, recordId));
     }
     return dto;
   }

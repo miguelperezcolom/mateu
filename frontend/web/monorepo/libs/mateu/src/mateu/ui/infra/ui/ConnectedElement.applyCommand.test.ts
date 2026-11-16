@@ -127,6 +127,23 @@ describe('ConnectedElement.applyCommand', () => {
         expect(first.close).not.toHaveBeenCalled()
     })
 
+    it('two CloseModal in one answer close the two topmost overlays, not the closing one twice', () => {
+        // the optimistic-lock dialog's Overwrite over an edit drawer: one CloseModal for the
+        // dialog, one for the drawer — the dialog stays in the DOM through its fade-out
+        const root = el.shadowRoot!
+        type Overlay = { close: () => void, closing?: boolean }
+        const drawer = document.createElement('mateu-drawer') as unknown as Overlay
+        const dialog = document.createElement('mateu-dialog') as unknown as Overlay
+        drawer.close = vi.fn(() => { drawer.closing = true })
+        dialog.close = vi.fn(() => { dialog.closing = true })
+        root.append(drawer as unknown as Node, dialog as unknown as Node)
+        el.applyCommand(cmd('CloseModal'))
+        el.applyCommand(cmd('CloseModal', { eventName: 'crud-saved-in-drawer' }))
+        expect(dialog.close).toHaveBeenCalledTimes(1)
+        expect(drawer.close).toHaveBeenCalledTimes(1)
+        expect(events.map((e) => e.type)).not.toContain('close-modal-requested')
+    })
+
     it('AddContentToBody wires listeners that stop calling back once the component is gone', () => {
         el.applyCommand(cmd('AddContentToBody', { name: 'div', attributes: { id: 'injected', 'data-test': '1' }, on: { click: 'clicked' } }))
         const injected = document.getElementById('injected')!
