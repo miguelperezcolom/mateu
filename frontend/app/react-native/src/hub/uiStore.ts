@@ -365,16 +365,37 @@ export class UiStore {
    * state after a failed read (what could not be read was put aside). Otherwise (a refreshed
    * manifest, a "last opened" stamp) nothing is written while the list is in that state.
    */
-  private persist(byUser: boolean): Promise<void> {
+  private persist(byUser: boolean, forget?: string): Promise<void> {
     for (const l of [...this.listeners]) l(this.entries);
     if (!this.writable && !byUser) return this.writes;
     this.writable = true;
     const entries = this.entries;
-    this.writes = this.writes.then(() => this.write(entries));
+    this.writes = this.writes.then(() => this.write(entries, forget));
     return this.writes;
   }
 
-  private async write(entries: HubEntry[]): Promise<void> {
+  /**
+   * The copy kept before a write: the list it replaces — minus a removed entry, which must not
+   * survive in the copy (removing a UI deletes what the app kept of it).
+   */
+  private async copyBefore(forget: string | undefined): Promise<string | null> {
+    if (forget === undefined) return this.lastWritten;
+    let base = this.lastWritten;
+    if (base === null) {
+      const previous = await this.getOnce(PREVIOUS_KEY);
+      base = previous.ok ? previous.value : null;
+    }
+    if (base === null) return null;
+    try {
+      const parsed: unknown = JSON.parse(base);
+      if (!Array.isArray(parsed)) return null;
+      return JSON.stringify(parsed.filter((e) => !(e && typeof e === 'object' && (e as { id?: unknown }).id === forget)));
+    } catch {
+      return null;
+    }
+  }
+
+  private async write(entries: HubEntry[], forget?: string): Promise<void> {
     // icons and manifests first: the list never names an entry whose keys were not attempted
     for (const e of entries) {
       if (!this.dirty.has(e.id)) continue;
@@ -395,7 +416,8 @@ export class UiStore {
       return;
     }
     try {
-      if (this.lastWritten !== null) await this.meta.set(PREVIOUS_KEY, this.lastWritten);
+      const copy = await this.copyBefore(forget);
+      if (copy !== null) await this.meta.set(PREVIOUS_KEY, copy);
     } catch {
       // the copy is a safety net; the list itself is still written
     }
@@ -440,7 +462,7 @@ export class UiStore {
     await this.load();
     this.entries = this.entries.filter((e) => e.id !== id);
     this.dirty.delete(id);
-    await this.persist(true);
+    await this.persist(true, id);
     const keys = entryKeys(id);
     await this.meta.remove(keys.icon).catch(() => {});
     await this.meta.remove(keys.manifest).catch(() => {});

@@ -290,6 +290,69 @@ test('an invalid entry is kept (with its original address), exported, and remova
   assert.deepEqual(store.list().map((e) => e.id), ['y']);
 });
 
+test('a removed UI does not survive in the copy', async () => {
+  const meta = memory({ [SEEDED_KEY]: '1' });
+  const store = make(meta);
+  const a = (await store.add('https://a.com')).entry;
+  await store.add('https://b.com');
+  await store.remove(a.id);
+  assert.ok(!meta.data[PREVIOUS_KEY].includes('https://a.com'));
+  assert.ok(meta.data[PREVIOUS_KEY].includes('https://b.com'), 'the rest of the copy stays');
+  // also when the list shown came from the copy itself
+  const recovered = memory({ [SEEDED_KEY]: '1', [ENTRIES_KEY]: '{', [PREVIOUS_KEY]: listOf('https://a.com', 'https://b.com') });
+  const r = make(recovered);
+  await r.load();
+  await r.remove('e0');
+  assert.ok(!recovered.data[PREVIOUS_KEY].includes('https://a.com'));
+  assert.deepEqual(JSON.parse(recovered.data[ENTRIES_KEY]).map((e: { id: string }) => e.id), ['e1']);
+});
+
+test('removing from an unreadable list with an unusable copy still removes', async () => {
+  const missing = memory({ [SEEDED_KEY]: '1', [ENTRIES_KEY]: '{' });
+  missing.failGet.add(PREVIOUS_KEY);
+  const store = make(missing);
+  await store.load();
+  assert.equal(store.health(), 'unreadable');
+  const { entry } = await store.add('https://a.com');
+  await store.remove(entry.id);
+  assert.equal(missing.data[ENTRIES_KEY], '[]');
+  assert.equal(missing.data[PREVIOUS_KEY], '[]');
+});
+
+test('an unusable copy is not rewritten when the user empties an unreadable list', async () => {
+  for (const previous of ['not json', '{"a":1}']) {
+    const meta = memory({ [SEEDED_KEY]: '1', [ENTRIES_KEY]: '{', [PREVIOUS_KEY]: previous });
+    const store = make(meta);
+    await store.load();
+    assert.equal(store.health(), 'unreadable');
+    await store.remove('ghost');
+    assert.equal(meta.data[ENTRIES_KEY], '[]');
+    assert.equal(meta.data[PREVIOUS_KEY], previous);
+  }
+});
+
+test('odd storage failures do not lose the list', async () => {
+  // an entry object without an id is put aside with the rest of the raw text
+  const raw = JSON.stringify([{ baseUrl: 'https://a.com' }, { id: 'b', baseUrl: 'https://b.com' }]);
+  const meta = memory({ [ENTRIES_KEY]: raw });
+  meta.failGet.add(SEEDED_KEY);
+  meta.failGet.add(UNREADABLE_KEY);
+  const store = make(meta);
+  const seen: number[] = [];
+  const off = store.subscribe((l) => seen.push(l.length));
+  assert.deepEqual((await store.load()).map((e) => e.id), ['b']);
+  assert.equal(meta.data[UNREADABLE_KEY], undefined, 'could not be put aside — and the list was not touched either');
+  assert.equal(meta.data[ENTRIES_KEY], raw);
+  await store.add('https://c.com');
+  off();
+  await store.add('https://d.com');
+  assert.deepEqual(seen, [2]);
+  // an unreadable "seeded" flag counts as seeded: no list, and still no demo
+  const empty = memory();
+  empty.failGet.add(SEEDED_KEY);
+  assert.deepEqual(await make(empty).load(), []);
+});
+
 test('load is shared by concurrent callers', async () => {
   const meta = memory({ [SEEDED_KEY]: '1', [ENTRIES_KEY]: listOf('https://a.com') });
   const store = make(meta);
