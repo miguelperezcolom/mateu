@@ -82,6 +82,7 @@ export default defineConfig({
 					items: [
 						{ slug: 'mateu-about/what-is-mateu', label: 'What is Mateu' },
 						{ slug: 'start-here/whats-new', label: "What's new in 3.0" },
+						{ slug: 'start-here/videos', label: 'Videos: Mateu in N minutes' },
 						{ label: 'Mateu Explorer (live) ↗', link: 'https://explorer.mateu.io', attrs: { target: '_blank', rel: 'noopener' } },
 						{ slug: 'start-here/choose-your-path', label: 'Choose your path' },
 						{ slug: 'concepts/building-blocks', label: 'What a Mateu UI is made of' },
