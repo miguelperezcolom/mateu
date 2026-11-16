@@ -14,7 +14,6 @@ import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
@@ -27,8 +26,13 @@ import javax.tools.StandardLocation;
  * of dependent modules without needing the sources.
  */
 @SupportedAnnotationTypes({"io.mateu.uidl.annotations.UI", "io.mateu.uidl.annotations.App"})
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class MateuUIIndexerProcessor extends AbstractProcessor {
+
+  /** Whatever Java the module compiles with (a fixed RELEASE_8 made javac warn on every build). */
+  @Override
+  public SourceVersion getSupportedSourceVersion() {
+    return SourceVersion.latestSupported();
+  }
 
   /** Accumulated entries across all processing rounds. key = fully-qualified class name */
   private final Map<String, String> entries = new LinkedHashMap<>();

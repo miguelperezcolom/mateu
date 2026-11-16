@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -25,8 +24,13 @@ import javax.tools.Diagnostic.Kind;
   "io.mateu.uidl.annotations.Action",
   "io.mateu.uidl.annotations.Actions"
 })
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class MateuLintAnnotationProcessor extends AbstractProcessor {
+
+  /** Whatever Java the application compiles with (see MateuUIAnnotationProcessor). */
+  @Override
+  public SourceVersion getSupportedSourceVersion() {
+    return SourceVersion.latestSupported();
+  }
 
   private static final Set<String> HIDDEN_ANNOTS =
       Set.of(

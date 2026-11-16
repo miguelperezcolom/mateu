@@ -136,7 +136,17 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+                    <!-- the processor paths below without a version take it from the Spring Boot BOM -->
+                    <annotationProcessorPathsUseDepMgmt>true</annotationProcessorPathsUseDepMgmt>
                     <annotationProcessorPaths>
+                        <!-- Merges META-INF/additional-spring-configuration-metadata.json (the mateu.*
+                             settings, pinned by SpringConfigurationMetadataTest) into the jar's
+                             META-INF/spring-configuration-metadata.json, the file IDEs read to
+                             complete and document application.properties. -->
+                        <path>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
+                        </path>
                         <path>
                             <groupId>io.mateu</groupId>
                             <artifactId>mateu-annotation-processor-mvc</artifactId>
