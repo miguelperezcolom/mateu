@@ -45,9 +45,13 @@ public record RouteTable(List<RouteEntry> routes) {
    * tried before parameterised ones, so {@code orders/new} is never swallowed by {@code
    * orders/:id}; among parameterised matches the most specific (fewest parameters, then longest)
    * wins, so matching does not depend on declaration order.
+   *
+   * <p>A query string or fragment on the path is not part of it: {@code orders/pending?status=x} is
+   * {@code orders/pending}. Left on, the last segment ({@code pending?status=x}) equalled no
+   * literal segment and the {@code :id} neighbour swallowed it, with {@code id=pending?status=x}.
    */
   public Optional<Match> match(String path) {
-    var normalized = trimSlashes(path);
+    var normalized = trimSlashes(withoutQuery(path));
     return routes.stream()
         .map(entry -> matchOne(entry, normalized))
         .flatMap(Optional::stream)
@@ -114,6 +118,20 @@ public record RouteTable(List<RouteEntry> routes) {
    * replaceAll("/+$", "")}: that regex is quadratic on a long interior run of slashes, and the path
    * here comes from the client.
    */
+  /** {@code path} without its query string or fragment ({@code null} stays {@code null}). */
+  static String withoutQuery(String path) {
+    if (path == null) {
+      return null;
+    }
+    for (int i = 0; i < path.length(); i++) {
+      var c = path.charAt(i);
+      if (c == '?' || c == '#') {
+        return path.substring(0, i);
+      }
+    }
+    return path;
+  }
+
   static String trimSlashes(String s) {
     if (s == null) {
       return "";

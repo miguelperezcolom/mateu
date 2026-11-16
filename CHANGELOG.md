@@ -138,6 +138,28 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   IntelliJ / VS Code "New › Mateu" page templates. Demo: `demo-museum` `visit-booked` and `sign-in`.
   Docs `ux-patterns/message-page.md`.
 
+### Fixed — routes and menus
+
+- A query string no longer hands a pinned route to its `:param` neighbour: with `orders/pending`
+  (fixedParams) and `orders/:id` in one mount, `/shop/orders/pending?status=archived` showed the
+  `:id` screen with `id=pending?…` ("Not found: pending"). Route matching ignores the query and the
+  fragment on every leg — Java `RouteTable.match` (the app shell typed its content with the wrong
+  view model), the web/React Native bundle resolver, Redwood's port, IntelliJ's static bundle and
+  the .NET/Python registries. Two cases in `conformance/client/route-params.json`.
+- The tabs of a record master (`children:` routes) keep their address under a non-root mount: a
+  tab of `customers/:customerId` under `basePath: /shop` went to
+  `/shop/customers/7/customers/7/notes` (and the breadcrumb, read off that address, doubled too) —
+  the shell looked for the consumed route above the mount instead of below it.
+- A route file's `basePath` is checked against every mount the app serves: an app compiled with a
+  framework annotation processor alone (the Spring Boot starter's one-processor setup) has no
+  `ui-registrations` of its own, and its `@UI("/shop")` was reported at startup as "matches no @UI
+  mount". The generated controllers and routed-class providers count now.
+- One menu entry is selected: the most specific match (exact, else the longest prefix). On
+  `/shop/orders/pending` «Open orders» (`/shop/orders`) no longer stays selected beside «Pending» —
+  on the server (`selected` on the wire; a query no longer unselects the entry, and an entry spelled
+  with the mount matches a mount-relative route) and in the Vaadin shell (the band marked the FIRST
+  entry covering the route, so «Open orders» won).
+
 ### Fixed — rc.2 web
 
 - A non-root YAML mount keeps its address on Vaadin: a reload no longer lands in another app.

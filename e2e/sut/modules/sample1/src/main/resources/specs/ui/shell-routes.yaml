@@ -15,6 +15,10 @@ routes:
     defaultParams:
       status: open
 
+  # the :param neighbour of orders/pending: the literal route keeps answering /shell/orders/pending
+  - route: orders/:id
+    viewModel: io.mateu.sample1.shell.ShellOrder
+
   - route: customers/:customerId
     viewModel: io.mateu.sample1.shell.ShellCustomerMaster
     defaultChild: orders

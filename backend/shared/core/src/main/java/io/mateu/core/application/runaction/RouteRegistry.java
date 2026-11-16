@@ -723,6 +723,12 @@ public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
       // against (a unit test or a static bundle), so a mismatch cannot be told from a valid mount.
       return;
     }
+    // The annotation index is only one producer: an app compiled with a framework annotation
+    // processor alone (the Spring Boot starter's one-processor setup) writes no ui-registrations
+    // for its OWN @UI classes — only the jars it depends on do —, so its @UI("/shop") was missing
+    // here and a valid `basePath: /shop` was reported as matching no mount. The generated
+    // controllers (every adapter) and the routed-class providers name every mount served.
+    known.addAll(registeredMounts());
     for (var basePath : declared) {
       if (!known.contains(basePath)) {
         log.error(
@@ -733,6 +739,44 @@ public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
             known);
       }
     }
+  }
+
+  /**
+   * The mounts the container serves, normalized like a {@code basePath}: the base url of every
+   * generated {@link io.mateu.core.infra.MateuController} and the {@code @UI} path of every {@link
+   * io.mateu.uidl.interfaces.RoutedClassProvider}'s class. Empty when the container is not up yet
+   * (a unit test, a bundle build) — never fails.
+   */
+  static Set<String> registeredMounts() {
+    var mounts = new LinkedHashSet<String>();
+    try {
+      if (!MateuBeanProvider.isInitialized()) {
+        return mounts;
+      }
+      var controllers = MateuBeanProvider.getBeans(io.mateu.core.infra.MateuController.class);
+      if (controllers != null) {
+        for (var controller : controllers) {
+          var baseUrl = controller.getBaseUrl();
+          if (baseUrl != null) {
+            mounts.add(normalize(baseUrl));
+          }
+        }
+      }
+      var providers =
+          MateuBeanProvider.getBeans(io.mateu.uidl.interfaces.RoutedClassProvider.class);
+      if (providers != null) {
+        for (var provider : providers) {
+          var type = provider.routedClass();
+          var ui = type == null ? null : type.getAnnotation(io.mateu.uidl.annotations.UI.class);
+          if (ui != null) {
+            mounts.add(normalize(ui.value()));
+          }
+        }
+      }
+    } catch (Throwable t) {
+      log.debug("Route registry: could not list the registered mounts ({})", t.toString());
+    }
+    return mounts;
   }
 
   /** Reads a route file (a {@code routes:} envelope or a bare list) into relative-route entries. */

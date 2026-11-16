@@ -116,6 +116,35 @@ export const isActiveFor = (option: MenuOption, path: string, source?: Selection
     coverLength(option, path, source) >= 0
 
 /**
+ * Whether `option` is the active one for `path` AMONG `menu`: it covers `path` (isActiveFor) and no
+ * entry of the menu covers it more specifically. An entry whose route is only a PREFIX of the
+ * current one (`/orders` on `/orders/pending`) stays active only while nothing longer answers — on
+ * `/orders/42` (no entry of its own) it is, on `/orders/pending` the «Pending» entry is, alone. A
+ * group holding the most specific entry is active too (it covers with that entry's length).
+ */
+export const isMostSpecificFor = (option: MenuOption, menu: MenuOption[] | undefined, path: string, source?: SelectionSource): boolean => {
+    const own = coverLength(option, path, source)
+    if (own < 0) return false
+    return (menu ?? []).every(other => coverLength(other, path, source) <= own)
+}
+
+/**
+ * The spelling of `path` the menu's entries use. Under a non-root mount (`/shop`) the route on
+ * screen is mount-relative (`/orders/pending`, a fresh load) while an entry authored with the full
+ * path carries the mount (`/shop/orders/pending`, a RouteLink) — and after a click the shell holds the
+ * entry's own spelling. Whichever of the two the menu covers more specifically is the one to compare;
+ * `path` itself on a tie (or at the root mount).
+ */
+export const menuSpellingOf = (menu: MenuOption[] | undefined, path: string, mountPath: string | undefined, source?: SelectionSource): string => {
+    const mount = normRoute(mountPath)
+    const current = normRoute(path)
+    if (!mount || mount === '/' || current === mount || current.startsWith(mount + '/')) return path
+    const withMount = mount + (current === '/' ? '' : current)
+    const best = (p: string) => Math.max(-1, ...(menu ?? []).map(option => coverLength(option, p, source)))
+    return best(withMount) > best(path) + mount.length ? withMount : path
+}
+
+/**
  * The `source` to tell the active entry by: itself when some entry of the menu served from it
  * covers `path`, undefined otherwise — route alone, then, as before. The base a screen was loaded
  * from does not always name an entry (a page a local screen navigated to, a base spelt another way),

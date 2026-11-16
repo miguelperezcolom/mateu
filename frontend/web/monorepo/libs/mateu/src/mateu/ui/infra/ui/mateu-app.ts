@@ -22,8 +22,9 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import { publishShellMenu } from "@infra/ui/breadcrumbTrail.ts";
-import { activeSection, activeTopIndex, isActiveFor, isMount, mountRootPath, sectionHome, selectionSourceFor, type SelectionSource } from "@infra/ui/navTree.ts";
+import { activeSection, activeTopIndex, isActiveFor, isMostSpecificFor, isMount, menuSpellingOf, mountRootPath, sectionHome, selectionSourceFor, type SelectionSource } from "@infra/ui/navTree.ts";
 import { retryUnavailableMenus } from "@infra/ui/remoteMenuRetry.ts";
+import { pathBelowConsumedRoute } from "@infra/ui/navigationUrl.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 
@@ -713,10 +714,12 @@ export class MateuApp extends ComponentElement {
                 route = (route??'').substring(1)
             }
             let targetUrl = new URL(baseUrl + route)
-            if (consumedRoute && targetUrl.pathname.startsWith(consumedRoute)) {
-                const pathAfterConsumed = targetUrl.pathname.substring(consumedRoute.length)
+            // the consumed route is mount-relative: looked for below the mount (pathBelowConsumedRoute),
+            // or a record master's tab under a non-root mount doubled it in the address bar
+            const pathAfterConsumed = pathBelowConsumedRoute(targetUrl.pathname, new URL(baseUrl).pathname, consumedRoute)
+            if (pathAfterConsumed !== undefined) {
                 // the query is part of where we are going (a listing's filters): keep it
-                targetUrl = new URL(targetUrl.origin + (pathAfterConsumed || '/') + targetUrl.search)
+                targetUrl = new URL(targetUrl.origin + pathAfterConsumed + targetUrl.search)
             }
             // The same path with another query is another place: /bookings?status=Cancelled is not
             // /bookings. Comparing paths alone left the address bar on the old query, and the
@@ -764,12 +767,19 @@ export class MateuApp extends ComponentElement {
     // navegación en cliente manda la ruta seleccionada actual
     //
     // The rule itself is navTree's (isActiveFor): a remote section that has not answered yet is
-    // active by the prefix its screens live under, a group by what it holds.
+    // active by the prefix its screens live under, a group by what it holds. Of the entries covering
+    // the route only the most specific is active (isMostSpecificFor): «Open orders» (/orders) is not
+    // selected beside «Pending» (/orders/pending) on /orders/pending.
     private isActiveOption = (option: MenuOption): boolean => {
         if (!this.selectedRoute) {
             return !!option.selected || (isMount(option) && isActiveFor(option, window.location.pathname))
         }
-        return isActiveFor(option, this.selectedRoute, this.selectionSource(this.selectedRoute))
+        const app = (this.component as ClientSideComponent | undefined)?.metadata as App | undefined
+        const menu = app?.navMenu ?? app?.menu
+        // a fresh load under a non-root mount holds the mount-relative route, an entry authored
+        // with the full path carries the mount: compared in the menu's spelling, or none was active
+        const path = menuSpellingOf(menu, this.selectedRoute, mountRootPath(this.baseUrl))
+        return isMostSpecificFor(option, menu, path, this.selectionSource(path))
     }
 
     /**

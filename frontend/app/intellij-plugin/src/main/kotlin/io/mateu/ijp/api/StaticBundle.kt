@@ -302,6 +302,9 @@ class StaticBundle(manifest: JsonNode, private val locales: () -> List<String> =
             return out
         }
 
-        private fun segmentsOf(route: String): List<String> = route.trim('/').let { if (it.isEmpty()) emptyList() else it.split('/') }
+        /** A query string or fragment is not part of the path (RouteTable.match): left on, `orders/pending?x=1`
+         *  ended in a segment no literal route equals and `orders/:id` swallowed it. */
+        private fun segmentsOf(route: String): List<String> =
+            route.substringBefore('?').substringBefore('#').trim('/').let { if (it.isEmpty()) emptyList() else it.split('/') }
     }
 }

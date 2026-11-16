@@ -32,6 +32,18 @@ class RouteTableTest {
   }
 
   @Test
+  void aQueryStringDoesNotHandAStaticRouteToItsParameterisedNeighbour() {
+    // `orders/new?x=1` used to end in the segment `new?x=1`, which equals no literal one, so
+    // `orders/:id` answered with id=`new?x=1`
+    assertThat(TABLE.match("orders/new?status=archived").orElseThrow().entry())
+        .isEqualTo(NEW_ORDER);
+    assertThat(TABLE.match("/orders/new#top").orElseThrow().entry()).isEqualTo(NEW_ORDER);
+    var match = TABLE.match("orders/42?tab=lines").orElseThrow();
+    assertThat(match.entry()).isEqualTo(ORDER);
+    assertThat(match.pathParams()).containsExactly(Map.entry("id", "42"));
+  }
+
+  @Test
   void aParameterisedRouteReadsItsParamsOffThePath() {
     var match = TABLE.match("orders/42").orElseThrow();
     assertThat(match.entry()).isEqualTo(ORDER);

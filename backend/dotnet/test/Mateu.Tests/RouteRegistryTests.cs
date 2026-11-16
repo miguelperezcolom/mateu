@@ -107,6 +107,17 @@ public class RouteRegistryTests
     }
 
     [Fact]
+    public void A_query_string_does_not_hand_a_static_route_to_its_parameterised_sibling()
+    {
+        // orders/new?x=1 used to end in the segment new?x=1, which no literal route equals
+        Assert.Equal("Mateu.Tests.RegistryNewOrder", Registry().Match("orders/new?status=archived")!.Entry.ViewModel);
+        Assert.Equal("Mateu.Tests.RegistryNewOrder", Registry().Match("/orders/new#top")!.Entry.ViewModel);
+        var match = Registry().Match("orders/42?tab=lines")!;
+        Assert.Equal("Mateu.Tests.RegistryOrderDetail", match.Entry.ViewModel);
+        Assert.Equal("42", match.PathParams["id"]);
+    }
+
+    [Fact]
     public void A_route_can_have_a_definition_and_no_view_model()
     {
         var entry = Registry().Match("about")!.Entry;

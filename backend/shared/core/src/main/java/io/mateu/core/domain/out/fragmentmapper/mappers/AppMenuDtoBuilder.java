@@ -21,12 +21,28 @@ import java.util.List;
 final class AppMenuDtoBuilder {
 
   static List<MenuOptionDto> buildMenu(AppShell app, String route, String appRoute) {
-    return buildMenu(app, route, appRoute, "");
+    return buildMenu(app, route, appRoute, null);
   }
 
-  static List<MenuOptionDto> buildMenu(
-      AppShell app, String route, String appRoute, String baseUrl) {
-    return buildMenu(app, app.menu(), route, appRoute, "", baseUrl);
+  /**
+   * The app's menu for {@code route}, with ONE place selected: the most specific entry matching the
+   * route (exact, else the longest prefix) and the groups holding it. An entry matches its own
+   * route and every route below it (a record opened from it keeps it selected), so «Open orders»
+   * ({@code /orders}) matched {@code /orders/pending} too, and was shown selected beside «Pending».
+   * {@code mount} is the base url the app is served at ({@code /shop}): an entry spelled with it
+   * ({@code /shop/orders}, a RouteLink authored with the full path) is compared below it, since the
+   * request route is mount-relative.
+   */
+  static List<MenuOptionDto> buildMenu(AppShell app, String route, String appRoute, String mount) {
+    var normalizedMount =
+        mount == null || mount.isBlank() || "/".equals(mount) || mount.contains("://")
+            ? null
+            : (mount.endsWith("/") ? mount.substring(0, mount.length() - 1) : mount);
+    // the query is not part of where the user is: /orders/pending?status=x is /orders/pending
+    var path = route == null ? null : route.split("[?#]", 2)[0];
+    var menu = buildMenu(app, app.menu(), path, appRoute, "", normalizedMount);
+    var best = mostSpecificSelected(menu, appRoute, normalizedMount);
+    return best < 0 ? menu : keepMostSpecific(menu, best, appRoute, normalizedMount);
   }
 
   private static List<MenuOptionDto> buildMenu(
@@ -35,13 +51,13 @@ final class AppMenuDtoBuilder {
       String route,
       String appRoute,
       String prefix,
-      String baseUrl) {
+      String mount) {
     return menu.stream()
         .map(
             option -> {
               var path =
                   namesItsRoute(option)
-                      ? asWritten(appRoute, baseUrl, option.path())
+                      ? asWritten(appRoute, mount, option.path())
                       : getPath(appRoute, prefix, option);
               var remote = option instanceof RemoteMenu remoteMenu ? remoteMenu : null;
               return MenuOptionDto.builder()
@@ -59,8 +75,7 @@ final class AppMenuDtoBuilder {
                           : null)
                   .image(option.presentation() != null ? option.presentation().image() : null)
                   .path(path)
-                  .selected(
-                      isSelected(option, option.path() == null ? null : path, appRoute, route))
+                  .selected(selected(option, path, appRoute, route, mount))
                   // a hidden entry still travels: the renderer needs to know where its routes
                   // live (deep links, reloads), and leaves it out of the menu it draws
                   .visible(!option.hidden())
@@ -78,7 +93,7 @@ final class AppMenuDtoBuilder {
                               asMenu.path() != null
                                   ? relative(appRoute, prefix, asMenu.path())
                                   : prefix,
-                              baseUrl)
+                              mount)
                           : List.of())
                   .separator(option instanceof MenuSeparator)
                   .remote(option instanceof RemoteMenu)
@@ -106,6 +121,82 @@ final class AppMenuDtoBuilder {
                   .build();
             })
         .toList();
+  }
+
+  /** Whether the entry matches {@code route}, as authored or spelled with the app's mount. */
+  private static boolean selected(
+      Actionable option, String path, String appRoute, String route, String mount) {
+    var compared = option.path() == null ? null : path;
+    if (isSelected(option, compared, appRoute, route)) {
+      return true;
+    }
+    return mount != null
+        && compared != null
+        && compared.startsWith(mount + "/")
+        && route != null
+        && !route.startsWith(mount + "/")
+        && isSelected(option, compared.substring(mount.length()), appRoute, route);
+  }
+
+  /** How specific a selected entry's match is: the length of its path below the mount and app. */
+  private static int specificity(MenuOptionDto option, String appRoute, String mount) {
+    var path = option.path();
+    if (path == null) {
+      return 0;
+    }
+    if (mount != null && path.startsWith(mount + "/")) {
+      path = path.substring(mount.length());
+    }
+    if (appRoute != null
+        && !appRoute.isEmpty()
+        && !"/".equals(appRoute)
+        && path.startsWith(appRoute + "/")) {
+      path = path.substring(appRoute.length());
+    }
+    return path.length();
+  }
+
+  /** The specificity of the most specific selected entry at any depth, or -1 when none is. */
+  private static int mostSpecificSelected(List<MenuOptionDto> menu, String appRoute, String mount) {
+    var best = -1;
+    for (var option : menu) {
+      if (option.selected()) {
+        best = Math.max(best, specificity(option, appRoute, mount));
+      }
+      best = Math.max(best, mostSpecificSelected(option.submenus(), appRoute, mount));
+    }
+    return best;
+  }
+
+  /**
+   * The menu with only the most specific selection kept: an entry stays selected when its match is
+   * as specific as the best one, a group when it still holds a selected entry (or is itself that
+   * match).
+   */
+  private static List<MenuOptionDto> keepMostSpecific(
+      List<MenuOptionDto> menu, int best, String appRoute, String mount) {
+    return menu.stream()
+        .map(
+            option -> {
+              var submenus =
+                  option.submenus().isEmpty()
+                      ? option.submenus()
+                      : keepMostSpecific(option.submenus(), best, appRoute, mount);
+              var selected =
+                  option.selected()
+                      && (specificity(option, appRoute, mount) >= best
+                          || submenus.stream().anyMatch(AppMenuDtoBuilder::holdsSelection));
+              if (selected == option.selected() && submenus == option.submenus()) {
+                return option;
+              }
+              return option.toBuilder().selected(selected).submenus(submenus).build();
+            })
+        .toList();
+  }
+
+  private static boolean holdsSelection(MenuOptionDto option) {
+    return option.selected()
+        || option.submenus().stream().anyMatch(AppMenuDtoBuilder::holdsSelection);
   }
 
   /**

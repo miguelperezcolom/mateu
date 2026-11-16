@@ -197,9 +197,17 @@ const trimSlashes = (s: string): string => {
     return s.substring(start, end)
 }
 
-/** The segments of a route or path, its leading and trailing slashes aside ('' → none). */
+/** `path` without its query string or fragment: `orders/pending?x=1` is `orders/pending`. */
+const withoutQuery = (path: string): string => {
+    const cut = path.search(/[?#]/)
+    return cut < 0 ? path : path.substring(0, cut)
+}
+
+/** The segments of a route or path, its leading and trailing slashes (and a query) aside ('' → none).
+ *  A query left on made the last segment `pending?status=x`, which equals no literal segment, so
+ *  `orders/:id` swallowed `orders/pending?status=x` — the server's RouteTable.match strips it too. */
 const segmentsOf = (route: string): string[] => {
-    const trimmed = trimSlashes(route)
+    const trimmed = trimSlashes(withoutQuery(route))
     return trimmed === '' ? [] : trimmed.split('/')
 }
 
