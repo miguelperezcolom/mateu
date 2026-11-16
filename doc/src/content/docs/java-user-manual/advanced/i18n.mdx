@@ -3,7 +3,11 @@ title: "Internationalization (i18n)"
 description: "How Mateu translates labels, titles and messages, and how to replace the default implementation."
 ---
 
+import YouTube from '../../../../components/YouTube.astro';
+
 Mateu passes the user-visible strings it derives from your declarations — field labels, page titles, validation messages, button texts, alerts — through a bean implementing the `Translator` interface. This centralizes translation in a single extension point. Text you place in a fluent component tree yourself (a `Text`'s text, for instance) travels as written: translate it in your own code, e.g. with the same `Translator` bean.
+
+<YouTube id="wYhPTIIRgm8" title="Mateu deep dives: Internationalisation" />
 
 ---
 
