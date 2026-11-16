@@ -21,6 +21,7 @@
 import { setHostHeaderProvider, setHostCredentials } from './hostHeaders.mjs'
 import { setMount } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
+import { chromeText } from './i18n.mjs'
 
 // ── the component's properties ───────────────────────────────────────────────────────────────
 
@@ -134,6 +135,99 @@ export function propertyChangeOf(previous, next) {
   if (previous.route !== next.route || JSON.stringify(previous.params) !== JSON.stringify(next.params)
       || JSON.stringify(previous.initialState) !== JSON.stringify(next.initialState)) return 'navigate'
   return null
+}
+
+// ── design time: the Visual Builder designer's canvas ────────────────────────────────────────
+
+/**
+ * Whether the page is Visual Builder's DESIGNER canvas (its edit mode), not a running app. The signal
+ * is the one VB's own runtime reads: the canvas loads the page with `vbdt:` query parameters
+ * (visual-runtime 2701: rtEnvConfig.getCommunicationConfig reads `vbdt:editModeComChannelUrl` and
+ * `vbdt:editModeComChannelClass` off location.href and switches to its design-time environment;
+ * `vbdt:preferExtensionVersion` is the designer's too). A running app — preview, live, a JET page —
+ * carries none of them.
+ *
+ * VB's router rewrites the URL (replaceState) and DROPS those parameters before the page's
+ * components boot, so the URL alone is not enough: the runtime keeps what it decided in requirejs'
+ * map — `vbRuntimeEnvironmentClass` is the designer's class instead of the runtime's own
+ * (vbInitConfig.RUNTIME_ENV_CLASS, else vb/private/helpers/runtimeEnvironment). `env` is the window
+ * (its requirejs, its vbInitConfig); either signal is enough.
+ */
+export const VB_RUNTIME_ENVIRONMENT_CLASS = 'vb/private/helpers/runtimeEnvironment'
+
+export function isVbDesignTime(location, env) {
+  const search = String((location && location.search) || '')
+  if (/[?&]vbdt(:|%3A)/i.test(search)) return true
+  return vbEnvironmentClassIsTheDesigners(env)
+}
+
+function vbEnvironmentClassIsTheDesigners(env) {
+  const rjs = env && env.requirejs
+  const config = rjs && rjs.s && rjs.s.contexts && rjs.s.contexts._ && rjs.s.contexts._.config
+  const mapped = config && config.map && config.map['*'] && config.map['*'].vbRuntimeEnvironmentClass
+  if (!mapped) return false
+  const own = (env.vbInitConfig && env.vbInitConfig.RUNTIME_ENV_CLASS) || VB_RUNTIME_ENVIRONMENT_CLASS
+  return mapped !== own
+}
+
+/** Whether the page is served from a Visual Builder DESIGNER path (/ic/builder/design/…): that
+ *  origin is Oracle's VB server, never a Mateu backend, so an empty base-url must not call it. */
+export function isVbDesignerPage(location) {
+  return /\/ic\/builder\/design\//.test(String((location && location.pathname) || ''))
+}
+
+/**
+ * How the component starts: `boot` (it calls the backend) or `placeholder` (no request at all — a
+ * neutral box saying what to set). The rule:
+ *  - a base-url (after trimming) → boot;
+ *  - no base-url on a running page → boot against the page's own origin (a VB app served next to
+ *    its Mateu backend, or behind the same proxy: "Empty = the same origin as this page");
+ *  - no base-url in the VB DESIGNER (its canvas, or a page under /ic/builder/design/) → placeholder:
+ *    the designer's origin is not a Mateu backend, and calling it painted Mateu's "no longer
+ *    available" band on the canvas the moment the component was dropped.
+ */
+export function embeddedStartOf(config, location, env) {
+  if (config && config.baseUrl) return { start: 'boot' }
+  if (isVbDesignTime(location, env) || isVbDesignerPage(location)) return { start: 'placeholder' }
+  return { start: 'boot' }
+}
+
+/** The variables the placeholder binds: shown, with the failure's reason when there is one. */
+export function embeddedPlaceholderVarsOf(reason) {
+  return {
+    mateuEmbeddedPlaceholder: true,
+    mateuEmbeddedPlaceholderDetail: reason ? chromeText('embeddedPlaceholderFailed', { reason: String(reason) }) : '',
+    mateuEmbeddedShell: false,
+    mateuLastError: '',
+  }
+}
+
+// the page is the designer's canvas: a failed request shows the placeholder, not the error band
+let embeddedDesignTime = false
+
+/**
+ * Starts (or starts over) the component: the placeholder when embeddedStartOf says so — no request
+ * — else bootEmbedded. In the designer a failure (an unreachable or wrong base-url) shows the
+ * placeholder with its reason instead of the error band; at run time it is reported as always.
+ */
+export async function startEmbedded(b, runtime, config, location, env) {
+  const vars = runtime.$application.variables
+  embeddedDesignTime = isVbDesignTime(location, env) || isVbDesignerPage(location)
+  const decision = embeddedStartOf(config, location, env)
+  if (decision.start === 'placeholder') {
+    Object.assign(vars, embeddedPlaceholderVarsOf(''))
+    return decision
+  }
+  vars.mateuEmbeddedPlaceholder = false
+  vars.mateuEmbeddedPlaceholderDetail = ''
+  try {
+    await bootEmbedded(b, runtime, config)
+  } catch (e) {
+    if (!embeddedDesignTime || (e && e.stale === true)) throw e
+    const failure = (e && e.failure) || {}
+    Object.assign(vars, embeddedPlaceholderVarsOf(failure.message || (e && e.message) || String(e)))
+  }
+  return decision
 }
 
 // ── the mode switch the chains consult ───────────────────────────────────────────────────────
@@ -678,7 +772,10 @@ export function installEmbeddedContentRuntime(b, runtime) {
       onSettle: ({ failure }) => {
         vars.mateuBusy = false
         if (b.clearPressedControlBusy) b.clearPressedControlBusy()
-        if (failure && failure.kind !== 'cancelled') {
+        if (failure && failure.kind !== 'cancelled' && embeddedDesignTime) {
+          // the designer's canvas: the placeholder says what failed (the band would cover the canvas)
+          Object.assign(vars, embeddedPlaceholderVarsOf(failure.message))
+        } else if (failure && failure.kind !== 'cancelled') {
           vars.mateuLastError = failure.message
           if (b.announce) b.announce(failure.message, { politeness: 'assertive' })
           emitEmbedded(EMBEDDED_EVENTS.error, { kind: failure.kind, message: failure.message, status: failure.status })
@@ -780,6 +877,12 @@ export const EMBEDDED_API = {
   CONTENT_ACTION_SINKS,
   installEmbeddedContentRuntime,
   bootEmbedded,
+  isVbDesignTime,
+  isVbDesignerPage,
+  VB_RUNTIME_ENVIRONMENT_CLASS,
+  embeddedStartOf,
+  embeddedPlaceholderVarsOf,
+  startEmbedded,
   embeddedShellVarsOf,
   navigateEmbedded,
   setHostHeaderProvider,

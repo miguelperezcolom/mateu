@@ -325,6 +325,73 @@ await ctx.close()
   await hctx.close()
 }
 
+// ── design time: the component dropped on a page in the VB DESIGNER, before its base-url is set ──
+// The designer's canvas loads the page with vbdt: parameters (the edit-mode channel VB's runtime
+// reads off location.href); without a base-url the component must call NOTHING (it used to call the
+// designer's own origin and paint "This is no longer available…") and show its placeholder instead.
+// The handshake is VB's own, played as the designer plays it: the editor's URL in sessionStorage
+// (oracle.vbdt.editor), the channel module under it and the design-time environment class — VB then
+// boots in edit mode and its router drops the vbdt: parameters from the URL, as in the real designer.
+{
+  const EDITOR = 'https://designer.invalid/ic/builder/design/'
+  const dctx = await browser.newContext({ viewport: { width: 1280, height: 800 } })
+  await dctx.route(EDITOR + '**', (r) => r.fulfill({ contentType: 'text/javascript', body: 'define([], () => ({}));' }))
+  await dctx.route('**/vbdt/probeEnvironment.js', (r) => r.fulfill({
+    contentType: 'text/javascript',
+    body: "define(['vb/private/helpers/runtimeEnvironment'], (RuntimeEnvironment) => class extends RuntimeEnvironment {});",
+  }))
+  await dctx.addInitScript((editor) => { try { sessionStorage.setItem('oracle.vbdt.editor', editor) } catch (e) { /* none */ } }, EDITOR)
+  const dpage = await dctx.newPage()
+  const derrors = []
+  const mateuCalls = []
+  dpage.on('pageerror', (e) => derrors.push(e.message))
+  dpage.on('request', (r) => { if (r.url().includes('/mateu/v3/')) mateuCalls.push(r.url()) })
+  const designer = (baseUrl) => `${HOST_URL}/vb/?${new URLSearchParams({
+    baseUrl, route: ROUTE,
+    'vbdt:editModeComChannelUrl': EDITOR + 'channel.js',
+    'vbdt:editModeComChannelClass': 'vbdt/probeEnvironment',
+  })}`
+  const placeholderOf = () => dpage.evaluate(() => {
+    const box = document.querySelector('mateu-ui .mateu-embedded-placeholder')
+    const scroller = document.querySelector('mateu-ui .mateu-embedded-scroller')
+    const band = document.querySelector('mateu-ui .mateu-error-band')
+    return {
+      shown: !!box && box.getBoundingClientRect().height > 0,
+      text: box ? box.innerText.replace(/\s+/g, ' ').trim() : '',
+      frameHidden: !scroller || scroller.hidden,
+      band: !!band && band.getBoundingClientRect().height > 0,
+    }
+  })
+  await dpage.goto(designer(' '), { waitUntil: 'domcontentloaded' })
+  const shown = await dpage.waitForFunction(() => {
+    const box = document.querySelector('mateu-ui .mateu-embedded-placeholder')
+    return !!box && box.getBoundingClientRect().height > 0
+  }, null, { timeout: 120000 }).then(() => true, () => false)
+  await dpage.waitForTimeout(2000)
+  const editMode = await dpage.evaluate(() => {
+    const config = window.requirejs && window.requirejs.s.contexts._.config
+    return { envClass: config && config.map && config.map['*'] && config.map['*'].vbRuntimeEnvironmentClass, url: location.href }
+  })
+  console.log('design time:', JSON.stringify(editMode))
+  check('design time: VB booted in its edit mode (the designer\'s environment class)', editMode.envClass === 'vbdt/probeEnvironment', JSON.stringify(editMode))
+  const empty = await placeholderOf()
+  check(`design time, no base-url: the placeholder shows ("${empty.text}"), the frame is hidden`,
+    shown && /Mateu UI/.test(empty.text) && /base URL/i.test(empty.text) && empty.frameHidden && !empty.band, JSON.stringify(empty))
+  check('design time, no base-url: no request reaches any /mateu/v3/ endpoint', !mateuCalls.length, mateuCalls.join(', '))
+  // a base-url that does not answer: the placeholder with the reason, never the error band
+  await dpage.goto(designer('http://127.0.0.1:9/mateu'), { waitUntil: 'domcontentloaded' })
+  const failedShown = await dpage.waitForFunction(() => {
+    const box = document.querySelector('mateu-ui .mateu-embedded-placeholder')
+    return !!box && box.querySelector('.mateu-embedded-placeholder-detail')
+  }, null, { timeout: 120000 }).then(() => true, () => false)
+  const failedBox = await placeholderOf()
+  check(`design time, unreachable base-url: the placeholder says why ("${failedBox.text}"), no error band`,
+    failedShown && failedBox.frameHidden && !failedBox.band, JSON.stringify(failedBox))
+  check('design time: no page errors', !derrors.length, derrors.slice(0, 3).join(' | '))
+  if (shots) await dpage.screenshot({ path: join(shots, 'vb2701-design-time-placeholder.png') })
+  await dctx.close()
+}
+
 await browser.close()
 console.log(`\n${passed}/${passed + failed} checks OK`)
 process.exit(failed ? 1 : 0)

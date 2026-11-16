@@ -112,6 +112,8 @@
   "screenChanged": "This screen has changed since you opened it. Reload to continue.",
   "errSecurityRefused": "The server's security layer refused this request before the app could handle it (for example its CSRF protection). If it keeps happening, tell your administrator.",
   "errNotFound": "This is no longer available. It may have been moved or deleted.",
+  "embeddedPlaceholderHint": "Set the Backend base URL (and Route) to show a Mateu screen.",
+  "embeddedPlaceholderFailed": "Could not load the screen: {reason}",
   "errClient": "The request was rejected.",
   "errClientStatus": "The request was rejected (error {status}).",
   "errUnknown": "Something went wrong. Try again.",

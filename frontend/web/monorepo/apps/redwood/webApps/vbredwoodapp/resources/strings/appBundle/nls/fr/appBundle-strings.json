@@ -112,6 +112,8 @@
   "screenChanged": "Cet écran a changé depuis que vous l'avez ouvert. Rechargez pour continuer.",
   "errSecurityRefused": "La couche de sécurité du serveur a refusé cette requête avant que l'application puisse la traiter (par exemple sa protection CSRF). Si cela se reproduit, prévenez votre administrateur.",
   "errNotFound": "Ceci n'est plus disponible. Il a peut-être été déplacé ou supprimé.",
+  "embeddedPlaceholderHint": "Indiquez l'URL de base du backend (et la route) pour afficher un écran Mateu.",
+  "embeddedPlaceholderFailed": "Impossible de charger l'écran : {reason}",
   "errClient": "La requête a été refusée.",
   "errClientStatus": "La requête a été refusée (erreur {status}).",
   "errUnknown": "Une erreur s'est produite. Réessayez.",

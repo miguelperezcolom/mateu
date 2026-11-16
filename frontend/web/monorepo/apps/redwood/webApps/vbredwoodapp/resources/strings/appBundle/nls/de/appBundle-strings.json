@@ -112,6 +112,8 @@
   "screenChanged": "Dieser Bildschirm hat sich geändert, seit Sie ihn geöffnet haben. Laden Sie neu, um fortzufahren.",
   "errSecurityRefused": "Die Sicherheitsschicht des Servers hat diese Anfrage abgelehnt, bevor die Anwendung sie bearbeiten konnte (zum Beispiel ihr CSRF-Schutz). Wenn das wieder passiert, wenden Sie sich an Ihren Administrator.",
   "errNotFound": "Dies ist nicht mehr verfügbar. Möglicherweise wurde es verschoben oder gelöscht.",
+  "embeddedPlaceholderHint": "Geben Sie die Backend-Basis-URL (und die Route) an, um eine Mateu-Ansicht anzuzeigen.",
+  "embeddedPlaceholderFailed": "Die Ansicht konnte nicht geladen werden: {reason}",
   "errClient": "Die Anfrage wurde abgelehnt.",
   "errClientStatus": "Die Anfrage wurde abgelehnt (Fehler {status}).",
   "errUnknown": "Etwas ist schiefgelaufen. Versuchen Sie es erneut.",

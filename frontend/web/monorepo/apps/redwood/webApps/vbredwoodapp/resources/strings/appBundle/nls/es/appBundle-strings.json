@@ -112,6 +112,8 @@
   "screenChanged": "Esta pantalla ha cambiado desde que la abriste. Recarga para continuar.",
   "errSecurityRefused": "La capa de seguridad del servidor rechazó la petición antes de que la aplicación pudiera atenderla (por ejemplo, su protección CSRF). Si se repite, avisa a tu administrador.",
   "errNotFound": "Esto ya no está disponible. Puede que se haya movido o borrado.",
+  "embeddedPlaceholderHint": "Indica la URL base del backend (y la ruta) para mostrar una pantalla de Mateu.",
+  "embeddedPlaceholderFailed": "No se pudo cargar la pantalla: {reason}",
   "errClient": "La petición ha sido rechazada.",
   "errClientStatus": "La petición ha sido rechazada (error {status}).",
   "errUnknown": "Algo ha ido mal. Inténtalo de nuevo.",
