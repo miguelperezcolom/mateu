@@ -42,6 +42,7 @@ const crud = (over: Record<string, any> = {}): any => ({
     _initializedForKey: undefined,
     state: {},
     _initStateFromUrl: (MateuTableCrud.prototype as any)._initStateFromUrl,
+    _withDefaultView: (MateuTableCrud.prototype as any)._withDefaultView,
     _filterIds: (MateuTableCrud.prototype as any)._filterIds,
     _restoreUrlFiltersIfMissing: (MateuTableCrud.prototype as any)._restoreUrlFiltersIfMissing,
     _urlParams: (MateuTableCrud.prototype as any)._urlParams,

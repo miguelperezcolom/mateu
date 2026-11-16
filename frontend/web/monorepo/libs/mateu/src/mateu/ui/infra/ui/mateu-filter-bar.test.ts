@@ -227,21 +227,14 @@ describe('mateu-filter-bar (smart search)', () => {
         expect($(bar, '.views-panel').textContent).not.toMatch(/[★✕]/u)
     })
 
-    it('the default saved view is applied on open when the URL carries no params', async () => {
+    it('the bar does not apply the default saved view itself: the listing puts it in its opening search', async () => {
+        // applied here a tick after opening, it was a second search racing the unfiltered opening
+        // one — the later answer won, so the chip showed the view's filter over every row
         vi.useFakeTimers()
         saveView(window.location.pathname, { name: 'mine', values: { status: 'CLOSED' } })
         setDefaultView(window.location.pathname, 'mine')
         await mount()
-        vi.advanceTimersByTime(1)
-        expect(events.filter(e => e.type === 'value-changed').map(e => e.detail)).toEqual([{ fieldId: 'status', value: 'CLOSED' }])
-    })
-
-    it('the default view does NOT override conditions that are already set', async () => {
-        vi.useFakeTimers()
-        saveView(window.location.pathname, { name: 'mine', values: { status: 'CLOSED' } })
-        setDefaultView(window.location.pathname, 'mine')
-        await mount({ status: 'OPEN' })
-        vi.advanceTimersByTime(1)
+        vi.advanceTimersByTime(10)
         expect(events).toEqual([])
     })
 

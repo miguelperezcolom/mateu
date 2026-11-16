@@ -52,6 +52,23 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   row-editor button already followed. An action column placed among the data columns stays where it
   was put.
 
+### Fixed — listings keep their filter
+
+- **A listing opened with a starred (default) saved view showed every row under the view's chip.**
+  The filter bar applied the view a tick after opening, as a second search racing the unfiltered
+  opening one, and whichever answer arrived last won. The listing (`mateu-table-crud`) now puts the
+  view's conditions into its one opening search, which stands in for the OnLoad search; filters in
+  the URL still win. Redwood already ran the two in sequence and dropped the first, so it is
+  unchanged.
+- **A bulk action (`@ListToolbarButton`) on a filtered listing lost the filter.** Its answer
+  refreshed the listing in place and also pushed the listing's bare path, which dropped the query
+  string holding the filters; the listing then searched again with an emptied state. An in-place
+  refresh (bulk/row action, delete, Undo) no longer touches the address (the same fix as the delete
+  case in #1256).
+- **Python: a `GroupBy()` group on an enum field was named `Region.North`** instead of `North`,
+  so no row matched its group. Group values now follow Java's `String.valueOf`: an enum is its
+  member name (or its own `__str__`), `None` is `null`, a bool `true`/`false`.
+
 ### Fixed — validation and disabled fields
 
 - `@NotBlank` is checked. The field showed as required, but no condition reached the browser and the
@@ -95,6 +112,7 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - The starters, guides and workshop examples point at 3.0.0.
 
 ## [3.0-beta.65 – 3.0.0] — 2026-11-13 to 2026-11-15
+
 
 ### Added — message page
 

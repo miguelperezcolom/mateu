@@ -31,6 +31,7 @@ const crud = (over: Record<string, any> = {}): any => ({
     scheduleMeasure: vi.fn(), data: {}, id: 'listing', loadingSince: undefined, awaitingRows: false,
     _initializedForKey: undefined, _appliedUrl: undefined, _urlWrite: 'push', state: {}, component: META,
     _initStateFromUrl: (MateuTableCrud.prototype as any)._initStateFromUrl,
+    _withDefaultView: (MateuTableCrud.prototype as any)._withDefaultView,
     _filterIds: (MateuTableCrud.prototype as any)._filterIds,
     _restoreUrlFiltersIfMissing: (MateuTableCrud.prototype as any)._restoreUrlFiltersIfMissing,
     _urlParams: (MateuTableCrud.prototype as any)._urlParams,
