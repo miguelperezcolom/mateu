@@ -67,7 +67,29 @@ When a build is made by hand (`eas build`), pass `MATEU_VERSION=<release>` (e.g.
 its environment so the hub knows which release the binary carries; without it the app compares only
 wire versions.
 
-## 0d. Pending store build: 1.0.1 (200003) — `expo-notifications`
+## 0c-bis. Pending store build: 1.0.2 (200004) — Android Auto Backup of the list of UIs
+
+The list of UIs lives in AsyncStorage, and the backup rules expo-secure-store installs by default
+include only shared preferences — so Android never backed the list up, and a reinstall from Play
+started empty. `plugins/with-hub-backup.js` (rules in `plugins/hub-backup-rules.js`, tested by
+`src/hub/backupRules.test.ts`) writes `res/xml/mateu_backup_rules.xml` (Android ≤ 11) and
+`mateu_data_extraction_rules.xml` (12+, cloud backup and device transfer): the AsyncStorage database
+`RKStorage` and shared preferences IN, the `SecureStore` preferences OUT (encrypted with a keystore
+key that a reinstall does not bring back). expo-secure-store gets `configureAndroidBackup: false`.
+A config-plugin change, so a new runtime:
+
+- `expo.version` **1.0.2**, `android.versionCode` **200004** / `ios.buildNumber` **"200004"**
+  (iOS changes nothing natively; it just keeps the same version).
+- Checked with `npx expo prebuild --no-install --platform android`: the manifest carries
+  `android:fullBackupContent="@xml/mateu_backup_rules"` and
+  `android:dataExtractionRules="@xml/mateu_data_extraction_rules"`.
+- To check a backup/restore on a device: `adb shell bmgr backupnow io.mateu.app`, uninstall,
+  install the same build, then `adb shell bmgr restore <token> io.mateu.app` (or reinstall from Play
+  with backup on) — the list must come back, and each signed-in UI must ask to sign in again.
+- Play Data safety: data backed up through Android's own backup service is not data the app
+  collects; check the console's current wording before submitting.
+
+## 0d. Store build 1.0.1 (200003) — `expo-notifications`
 
 The OS-level notifications of an app that declares `@App(osNotifications = true)`
 (design/progress-and-notifications.md, "OS-level notifications") added a NATIVE module,
