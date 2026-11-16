@@ -8,6 +8,6 @@ import lombok.Builder;
  * pin), an optional {@code description} line and pin {@code color} (any CSS colour).
  */
 @Builder
-@Experimental("map markers (3.0-alpha.409)")
+@Experimental("map markers (since 3.0)")
 public record MapMarker(
     String id, double latitude, double longitude, String label, String description, String color) {}

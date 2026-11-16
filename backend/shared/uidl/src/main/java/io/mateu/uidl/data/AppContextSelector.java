@@ -18,7 +18,7 @@ import lombok.Builder;
  *     — by the browser for a direct source, through the server for a proxied one
  */
 @Builder
-@Experimental("YAML app shell extras (3.0 beta)")
+@Experimental("YAML app shell extras (since 3.0)")
 public record AppContextSelector(
     String fieldName, String label, List<Option> options, RestDataSource optionsSource) {
 

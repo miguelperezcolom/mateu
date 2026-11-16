@@ -10,7 +10,7 @@ import java.util.List;
  * UICommand.updateHeaderValue(id, value)} or {@code LiveHeaderValues.publish(id, value)} — see
  * {@link HeaderValue}.
  */
-@Experimental("live header values (3.0-alpha, E2 patterns)")
+@Experimental("live header values (since 3.0, E2 patterns)")
 public interface HeaderValuesSupplier {
 
   List<HeaderValue> headerValues(HttpRequest httpRequest);

@@ -495,7 +495,7 @@ Marks the final action in a multi-step wizard flow. When the annotated method is
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 public @interface WizardCompletionAction {
-  @Experimental("early wizard completion (3.0-alpha.409)")
+  @Experimental("early wizard completion (since 3.0)")
   String availableFromStep() default "";
 }
 ```

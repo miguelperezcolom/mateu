@@ -24,7 +24,7 @@ import lombok.Builder;
  * @param differencesOnly whether the "Show only differences" switch starts on
  * @param mergeLabel the merge button's label; blank = "Merge"
  */
-@Experimental("record merge (3.0-alpha, E2 patterns)")
+@Experimental("record merge (since 3.0, E2 patterns)")
 @Builder
 public record RecordMerge(
     String id,

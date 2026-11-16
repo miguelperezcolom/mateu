@@ -56,45 +56,45 @@ public record AppShell(
     /** No nav chrome (implies the command center) — the twin of {@code @App(chromeless)}. */
     Boolean chromeless,
     /** Access keys mode — the twin of {@code @App(accessKeys)}. Null: the class. */
-    @Experimental("access keys (3.0-alpha.409)") Boolean accessKeys,
+    @Experimental("access keys (since 3.0)") Boolean accessKeys,
     /** App-wide keyboard shortcuts / quick-launch codes — the twin of {@code @AppShortcut}. */
-    @Experimental("app shortcuts (3.0-alpha, E2 patterns)") @Singular
+    @Experimental("app shortcuts (since 3.0, E2 patterns)") @Singular
         List<io.mateu.uidl.data.AppShortcutEntry> shortcuts,
     /** Live header values, with their initial value — the twin of {@code HeaderValuesSupplier}. */
-    @Experimental("live header values (3.0-alpha, E2 patterns)") @Singular
+    @Experimental("live header values (since 3.0, E2 patterns)") @Singular
         List<io.mateu.uidl.data.HeaderValue> headerValues,
     /** The live event stream — the twin of {@code @App(liveUpdates)}. Null: the class. */
-    @Experimental("live header values (3.0-alpha, E2 patterns)") Boolean liveUpdates,
+    @Experimental("live header values (since 3.0, E2 patterns)") Boolean liveUpdates,
     /** Idle-session timeout in minutes — the twin of {@code @App(idleTimeoutMinutes)}. */
-    @Experimental("idle-session warning (3.0-alpha, E2 patterns)") Integer idleTimeoutMinutes,
+    @Experimental("idle-session warning (since 3.0, E2 patterns)") Integer idleTimeoutMinutes,
     /** The idle warning's countdown in seconds — the twin of {@code @App(idleWarningSeconds)}. */
-    @Experimental("idle-session warning (3.0-alpha, E2 patterns)") Integer idleWarningSeconds,
+    @Experimental("idle-session warning (since 3.0, E2 patterns)") Integer idleWarningSeconds,
     /** Where the idle warning's "Sign out" goes — the twin of {@code @App(idleSignOutUrl)}. */
-    @Experimental("idle-session warning (3.0-alpha, E2 patterns)") String idleSignOutUrl,
+    @Experimental("idle-session warning (since 3.0, E2 patterns)") String idleSignOutUrl,
     /**
      * "Open on mobile" — the twin of {@code @App(mobileQr)} (YAML {@code mobileQr: true}). Null:
      * the class.
      */
-    @Experimental("mobile app (3.0 beta)") Boolean mobileQr,
+    @Experimental("mobile app (since 3.0)") Boolean mobileQr,
     /**
      * Application context pickers on the header — the data twin of {@code @AppContext} fields:
      * static options or a REST source each.
      */
-    @Experimental("YAML app shell extras (3.0 beta)") @Singular
+    @Experimental("YAML app shell extras (since 3.0)") @Singular
         List<io.mateu.uidl.data.AppContextSelector> contextSelectors,
     /**
      * Header action buttons (and dropdowns) — the data twin of {@code AppActionsSupplier}: each
      * navigates ({@code route}) or runs an action of the shell / the action catalogue.
      */
-    @Experimental("YAML app shell extras (3.0 beta)") @Singular
+    @Experimental("YAML app shell extras (since 3.0)") @Singular
         List<io.mateu.uidl.data.AppHeaderAction> headerActions,
     /** The notification inbox fed by REST sources — the twin of {@code NotificationsSupplier}. */
-    @Experimental("YAML app shell extras (3.0 beta)")
+    @Experimental("YAML app shell extras (since 3.0)")
         io.mateu.uidl.data.AppNotificationsSource notifications,
     /**
      * The palette's entity search fed by a REST source — the twin of {@code GlobalSearchSupplier}.
      */
-    @Experimental("YAML app shell extras (3.0 beta)")
+    @Experimental("YAML app shell extras (since 3.0)")
         io.mateu.uidl.data.AppGlobalSearchSource globalSearch,
     /**
      * The AI assistant chat — the data twin of {@code @AI} (YAML {@code ai: {sse, mcp, upload,

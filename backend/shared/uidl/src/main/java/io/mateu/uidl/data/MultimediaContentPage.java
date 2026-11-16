@@ -11,7 +11,7 @@ import io.mateu.uidl.fluent.FormTemplate;
  * and the form's {@code content} is the sections. Its own field is the banner's {@code
  * backgroundColor}, as in {@link WelcomePage}.
  */
-@Experimental("page templates (3.0 beta)")
+@Experimental("page templates (since 3.0)")
 public record MultimediaContentPage(String backgroundColor) implements FormTemplate {
 
   /** The banner's tone (see {@link WelcomePage#toneOrNull()}). */

@@ -18,7 +18,7 @@ import lombok.Builder;
  * parameters}) through the standard action mechanism, like any button.
  */
 @Builder
-@Experimental("action panel (3.0-alpha.409)")
+@Experimental("action panel (since 3.0)")
 public record ActionPanel(
     String id,
     String label,

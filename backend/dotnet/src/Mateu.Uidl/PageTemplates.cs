@@ -6,7 +6,7 @@ namespace Mateu.Uidl;
 // lays the slots out as ordinary components, each in a container whose id names the slot, so every
 // renderer draws the page, and the template's own values travel on the Form's wire metadata
 // (`template`) for a renderer that has the template itself (Redwood paints Spectra's).
-// Experimental, like Java's ("page templates (3.0 beta)").
+// Experimental, like Java's ("page templates (since 3.0)").
 
 /// <summary>A page template a <see cref="Form"/> fills (Java's <c>FormTemplate</c>). The YAML
 /// <c>type:</c> of a template IS its record's name.</summary>

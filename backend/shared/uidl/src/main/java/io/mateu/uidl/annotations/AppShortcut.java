@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  * public class Shell { ... }
  * }</pre>
  */
-@Experimental("app shortcuts (3.0-alpha, E2 patterns)")
+@Experimental("app shortcuts (since 3.0, E2 patterns)")
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 @Repeatable(AppShortcuts.class)

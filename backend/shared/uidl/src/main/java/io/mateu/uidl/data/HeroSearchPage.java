@@ -10,7 +10,7 @@ import io.mateu.uidl.fluent.FormTemplate;
  * description) head the hero, and its {@code content} is the results — a searchable listing. Its
  * own field is the hero's {@code backgroundColor}, as in {@link WelcomePage}.
  */
-@Experimental("page templates (3.0 beta)")
+@Experimental("page templates (since 3.0)")
 public record HeroSearchPage(String backgroundColor) implements FormTemplate {
 
   /** The hero's tone (see {@link WelcomePage#toneOrNull()}). */

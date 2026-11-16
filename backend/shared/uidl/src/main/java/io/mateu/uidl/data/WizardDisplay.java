@@ -18,7 +18,7 @@ import lombok.Builder;
  * disabled}.
  */
 @Builder(toBuilder = true)
-@Experimental("archetype display options (3.0-alpha.409)")
+@Experimental("archetype display options (since 3.0)")
 public record WizardDisplay(Toggle saveDraft, Toggle saveAndClose, Toggle skip) {
 
   public static WizardDisplay defaults() {

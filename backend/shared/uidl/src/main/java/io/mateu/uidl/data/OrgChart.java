@@ -19,8 +19,8 @@ public record OrgChart(
     OrgNode root,
     String style,
     String cssClasses,
-    @Experimental("org chart in focus (3.0-beta.38)") OrgChartDisplay display,
-    @Experimental("org chart in focus (3.0-beta.38)") String focus)
+    @Experimental("org chart in focus (since 3.0)") OrgChartDisplay display,
+    @Experimental("org chart in focus (since 3.0)") String focus)
     implements Component {
 
   /** The chart before {@code display} and {@code focus} existed (kept for binary compatibility). */

@@ -34,7 +34,7 @@ import java.util.function.Function;
  * <p>Mateu ships UI only: {@code auth} TELLS the app which identity provider to use; validating the
  * token it then sends is the host application's framework's job, as for any other client.
  */
-@Experimental("mobile app (3.0 beta)")
+@Experimental("mobile app (since 3.0)")
 public final class MobileManifest {
 
   /** Every UI's base URL followed by this is the endpoint. */

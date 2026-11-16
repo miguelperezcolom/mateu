@@ -47,7 +47,7 @@ public abstract class DataManagement implements ComponentTreeSupplier, PageWidth
    * details or properties pane beside the grid/gantt, which shrinks to make room (it reflows, it
    * does not overlay). The page adds a toggle for it to its toolbar. Null (the default) = none.
    */
-  @Experimental("docked panels (3.0-alpha.409)")
+  @Experimental("docked panels (since 3.0)")
   protected DockedPanel endPanel(HttpRequest httpRequest) {
     return null;
   }
@@ -57,7 +57,7 @@ public abstract class DataManagement implements ComponentTreeSupplier, PageWidth
    * messages, log or totals strip. Toggled from the toolbar like {@link #endPanel}. Null (the
    * default) = none.
    */
-  @Experimental("docked panels (3.0-alpha.409)")
+  @Experimental("docked panels (since 3.0)")
   protected DockedPanel bottomPanel(HttpRequest httpRequest) {
     return null;
   }
@@ -219,7 +219,7 @@ public abstract class DataManagement implements ComponentTreeSupplier, PageWidth
   }
 
   @Action
-  @Experimental("docked panels (3.0-alpha.409)")
+  @Experimental("docked panels (since 3.0)")
   public Object toggleEndPanel(HttpRequest httpRequest) {
     var end = endPanel(httpRequest);
     boolean open = end != null && (_endOpen != null ? _endOpen : end.open());
@@ -228,7 +228,7 @@ public abstract class DataManagement implements ComponentTreeSupplier, PageWidth
   }
 
   @Action
-  @Experimental("docked panels (3.0-alpha.409)")
+  @Experimental("docked panels (since 3.0)")
   public Object toggleBottomPanel(HttpRequest httpRequest) {
     var bottom = bottomPanel(httpRequest);
     boolean open = bottom != null && (_bottomOpen != null ? _bottomOpen : bottom.open());

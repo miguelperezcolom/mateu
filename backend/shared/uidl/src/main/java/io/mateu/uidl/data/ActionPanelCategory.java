@@ -6,5 +6,5 @@ import lombok.Builder;
 
 /** A column of an {@link ActionPanel}: a title and its actions. */
 @Builder
-@Experimental("action panel (3.0-alpha.409)")
+@Experimental("action panel (since 3.0)")
 public record ActionPanelCategory(String title, List<ActionPanelItem> actions) {}

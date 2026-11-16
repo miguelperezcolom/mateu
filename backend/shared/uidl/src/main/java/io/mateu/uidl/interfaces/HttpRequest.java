@@ -43,7 +43,7 @@ public interface HttpRequest {
    * header. {@code null} when the adapter cannot tell (the default). Used to cap the live UI
    * sessions of anonymous callers per address.
    */
-  @Experimental("live UI push session caps (3.0 beta)")
+  @Experimental("live UI push session caps (since 3.0)")
   default String getRemoteAddress() {
     return null;
   }

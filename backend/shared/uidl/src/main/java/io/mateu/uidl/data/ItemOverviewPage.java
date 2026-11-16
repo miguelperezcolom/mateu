@@ -17,7 +17,7 @@ import lombok.Singular;
  * badge the item's badge, its toolbar the item's actions, its peer navigation the previous/next
  * item — and the form's {@code content} is the template's {@code main} slot (typically a tab bar).
  */
-@Experimental("page templates (3.0 beta)")
+@Experimental("page templates (since 3.0)")
 @Builder
 public record ItemOverviewPage(
     TemplateImage avatar,

@@ -9,6 +9,6 @@ import lombok.Builder;
  * editable} lets its cells be edited in place; {@code emphasis} marks a total or key row.
  */
 @Builder
-@Experimental("matrix grid (3.0-alpha.409)")
+@Experimental("matrix grid (since 3.0)")
 public record MatrixRow(
     String id, String label, List<MatrixCell> cells, boolean editable, boolean emphasis) {}

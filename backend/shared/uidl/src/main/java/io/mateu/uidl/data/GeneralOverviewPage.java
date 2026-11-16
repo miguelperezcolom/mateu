@@ -16,7 +16,7 @@ import lombok.Singular;
  * timestamp and toolbar are the page header's, and its {@code content} is the template's {@code
  * main} slot, typically sections of label/value fields.
  */
-@Experimental("page templates (3.0 beta)")
+@Experimental("page templates (since 3.0)")
 @Builder
 public record GeneralOverviewPage(@Singular("infoItem") List<Component> info)
     implements FormTemplate {

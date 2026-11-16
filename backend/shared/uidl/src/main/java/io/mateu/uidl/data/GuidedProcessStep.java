@@ -12,7 +12,7 @@ import lombok.Singular;
  * description} the process's step list shows, and the components the step asks for ({@code
  * content}).
  */
-@Experimental("page templates (3.0 beta)")
+@Experimental("page templates (since 3.0)")
 @Builder
 public record GuidedProcessStep(
     String id, String title, String description, @Singular("contentItem") List<Component> content) {

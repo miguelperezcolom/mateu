@@ -11,5 +11,5 @@ import io.mateu.uidl.annotations.Experimental;
  *
  * @param source the search endpoint
  */
-@Experimental("YAML app shell extras (3.0 beta)")
+@Experimental("YAML app shell extras (since 3.0)")
 public record AppGlobalSearchSource(RestDataSource source) {}

@@ -25,7 +25,7 @@ public record MetricCard(
      * The period the value covers ("Last 7 days", "This month", "Q3 2026"), shown under the value.
      * A number without its timeframe cannot be read; {@code null} shows nothing.
      */
-    @Experimental("KPI timeframe (3.0-alpha.412)") String timeframe)
+    @Experimental("KPI timeframe (since 3.0)") String timeframe)
     implements Component {
 
   /** The 3.0-alpha.411 shape (no timeframe), kept so code compiled against it keeps linking. */

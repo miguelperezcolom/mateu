@@ -27,7 +27,7 @@ public record FoldoutPanel(
      * compact digest — a count, a status, a total — drawn in the collapsed strip under the rotated
      * title, so the user can tell whether it is worth opening. Null = title only.
      */
-    @Experimental("foldout panel summaries (3.0-alpha.409)") Component summary,
+    @Experimental("foldout panel summaries (since 3.0)") Component summary,
     String style,
     String cssClasses,
     /**
@@ -35,7 +35,7 @@ public record FoldoutPanel(
      * the available width (in declaration order) and folds it otherwise. Null/false = {@code open}
      * decides, as before. A YAML panel without {@code open:} gets {@code autoOpen: true}.
      */
-    @Experimental("foldout auto-open (3.0-beta.41)") Boolean autoOpen)
+    @Experimental("foldout auto-open (since 3.0)") Boolean autoOpen)
     implements Component {
 
   /** The 3.0-alpha.409 shape (no autoOpen), kept so code compiled against it keeps linking. */

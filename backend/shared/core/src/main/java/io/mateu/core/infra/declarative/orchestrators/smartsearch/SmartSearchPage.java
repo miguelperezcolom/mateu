@@ -41,7 +41,7 @@ public abstract class SmartSearchPage<Filters, Row>
    * the user searches. Null (the default) = the usual empty listing. Pointless when the page
    * preloads its results.
    */
-  @Experimental("pre-search content (3.0-alpha.409)")
+  @Experimental("pre-search content (since 3.0)")
   protected Component preSearchContent(HttpRequest httpRequest) {
     return null;
   }

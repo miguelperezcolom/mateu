@@ -17,7 +17,7 @@ import lombok.Builder;
  * Both are plain on/off switches: an informational panel has no "disabled" state.
  */
 @Builder(toBuilder = true)
-@Experimental("archetype display options (3.0-alpha.409)")
+@Experimental("archetype display options (since 3.0)")
 public record GeneralOverviewDisplay(Toggle info, Toggle promoteInfoSlot) {
 
   public static GeneralOverviewDisplay defaults() {

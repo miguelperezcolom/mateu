@@ -15,7 +15,7 @@ import lombok.Singular;
  * (submit, create), its cancel button the way out. Every step belongs to the one form, so moving
  * between steps keeps what was typed — no server round trip, the template moves on its own.
  */
-@Experimental("page templates (3.0 beta)")
+@Experimental("page templates (since 3.0)")
 @Builder
 public record GuidedProcessPage(@Singular("step") List<GuidedProcessStep> steps)
     implements FormTemplate {

@@ -66,7 +66,7 @@ How each renderer draws it:
 | Redwood | — (Spectra has no tree: drawn in focus) | Spectra's hierarchy viewer (`oj-sp-hierarchy-viewer` + `oj-sp-hierarchy-card`), its animations included |
 | React Native, IntelliJ | indented tree | focus card with its chain and its reports |
 
-`display` and `focus` are `@Experimental` (3.0-beta.38).
+`display` and `focus` are `@Experimental` (since 3.0).
 
 ## When to use it
 

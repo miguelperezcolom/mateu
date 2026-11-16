@@ -17,7 +17,7 @@ import lombok.Singular;
  * and its {@code content} is the template's {@code main} slot, the sections. Without a detail the
  * main slot has the vertical anchor navigator (the two exclude each other).
  */
-@Experimental("page templates (3.0 beta)")
+@Experimental("page templates (since 3.0)")
 @Builder
 public record AdvancedCreateEditPage(@Singular("detailItem") List<Component> detail)
     implements FormTemplate {

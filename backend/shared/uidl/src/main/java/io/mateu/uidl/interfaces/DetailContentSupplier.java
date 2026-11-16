@@ -31,7 +31,7 @@ import io.mateu.uidl.fluent.Component;
  * }
  * }</pre>
  */
-@Experimental("custom CRUD detail content (3.0 beta)")
+@Experimental("custom CRUD detail content (since 3.0)")
 public interface DetailContentSupplier {
 
   Component detailContent(HttpRequest httpRequest);

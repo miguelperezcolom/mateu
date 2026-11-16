@@ -68,7 +68,7 @@ public @interface Section {
    * the form that edits this section — rendered as an "Edit" button on the section's title row.
    * Empty = none.
    */
-  @Experimental("section affordances (3.0-alpha.409)")
+  @Experimental("section affordances (since 3.0)")
   String editAction() default "";
 
   /**
@@ -76,7 +76,7 @@ public @interface Section {
    * adds an item to this section (a guest, a line, a contact) — an "Add" button on the title row.
    * Empty = none.
    */
-  @Experimental("section affordances (3.0-alpha.409)")
+  @Experimental("section affordances (since 3.0)")
   String addAction() default "";
 
   /**
@@ -84,6 +84,6 @@ public @interface Section {
    * that shows the rest of what this section summarises — a "View more" link under the section's
    * content. Empty = none.
    */
-  @Experimental("section affordances (3.0-alpha.409)")
+  @Experimental("section affordances (since 3.0)")
   String viewMoreAction() default "";
 }

@@ -45,7 +45,7 @@ public abstract class Welcome implements ComponentTreeSupplier {
    * A short line above the hero title introducing it (the Redwood welcome page's overline: "Good
    * morning", "Sales"…). {@code null} (the default) for none.
    */
-  @Experimental("hero overline (3.0-beta.13)")
+  @Experimental("hero overline (since 3.0)")
   protected String heroOverline() {
     return null;
   }
@@ -60,7 +60,7 @@ public abstract class Welcome implements ComponentTreeSupplier {
    * io.mateu.uidl.data.HeroTone#auto} (the default) keeps the default look, any other hue paints a
    * dark tinted band with light ink.
    */
-  @Experimental("hero tone (3.0-alpha.409)")
+  @Experimental("hero tone (since 3.0)")
   protected io.mateu.uidl.data.HeroTone heroTone() {
     return io.mateu.uidl.data.HeroTone.auto;
   }

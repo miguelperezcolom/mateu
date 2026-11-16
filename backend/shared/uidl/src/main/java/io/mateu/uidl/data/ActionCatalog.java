@@ -19,7 +19,7 @@ import java.util.Optional;
  * An OWNER's own action (a page's {@code actions:}, the shell's {@code actions:}, a Java method)
  * always wins over a catalogue entry of the same id: the catalogue fills gaps, it never overrides.
  */
-@Experimental("action catalogue (specs/ui/actions.yaml, 3.0-alpha.409)")
+@Experimental("action catalogue (specs/ui/actions.yaml, since 3.0)")
 public record ActionCatalog(List<Action> actions) {
 
   public ActionCatalog {

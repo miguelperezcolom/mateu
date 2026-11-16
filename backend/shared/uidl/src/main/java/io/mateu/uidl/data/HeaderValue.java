@@ -13,6 +13,6 @@ import lombok.Builder;
  * @param id what the server addresses it by
  * @param label the caption before the value; blank = the value alone
  */
-@Experimental("live header values (3.0-alpha, E2 patterns)")
+@Experimental("live header values (since 3.0, E2 patterns)")
 @Builder
 public record HeaderValue(String id, String label, String value) {}

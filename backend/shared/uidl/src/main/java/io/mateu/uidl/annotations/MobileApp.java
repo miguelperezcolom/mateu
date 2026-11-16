@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
  * bearer token. Mateu validates nothing: the application's framework does, as for any other client.
  * Without both, the manifest carries no {@code auth} and the UI is opened without signing in.
  */
-@Experimental("mobile app (3.0 beta)")
+@Experimental("mobile app (since 3.0)")
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 @Documented

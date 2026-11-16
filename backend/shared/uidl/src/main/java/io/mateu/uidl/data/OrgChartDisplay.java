@@ -16,7 +16,7 @@ import io.mateu.uidl.annotations.Experimental;
  * The Redwood renderer always presents the chart in focus: Spectra's org chart is its hierarchy
  * viewer, and it has no tree.
  */
-@Experimental("org chart in focus (3.0-beta.38)")
+@Experimental("org chart in focus (since 3.0)")
 public enum OrgChartDisplay {
   tree,
   focus

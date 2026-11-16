@@ -22,12 +22,12 @@ public record Map(
     String id,
     String position,
     String zoom,
-    @Experimental("map markers (3.0-alpha.409)") List<MapMarker> markers,
-    @Experimental("map markers (3.0-alpha.409)") String markerActionId,
+    @Experimental("map markers (since 3.0)") List<MapMarker> markers,
+    @Experimental("map markers (since 3.0)") String markerActionId,
     String style,
     String cssClasses,
-    @Experimental("map markers (3.0-alpha.409)") String tileUrl,
-    @Experimental("map markers (3.0-alpha.409)") String attribution)
+    @Experimental("map markers (since 3.0)") String tileUrl,
+    @Experimental("map markers (since 3.0)") String attribution)
     implements Component {
 
   public Map(String position, String zoom, String style, String cssClasses) {

@@ -15,5 +15,5 @@ import io.mateu.uidl.annotations.Experimental;
  * @param source the inbox listing
  * @param markRead the "mark as read" call, or null for a read-only inbox
  */
-@Experimental("YAML app shell extras (3.0 beta)")
+@Experimental("YAML app shell extras (since 3.0)")
 public record AppNotificationsSource(RestDataSource source, RestDataSource markRead) {}

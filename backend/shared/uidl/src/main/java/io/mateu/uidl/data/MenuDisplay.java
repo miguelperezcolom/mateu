@@ -7,7 +7,7 @@ import io.mateu.uidl.annotations.Experimental;
  * title, description, an icon or image, and the entry's own children as actions — like the product
  * menus of a documentation site.
  */
-@Experimental("card menus (3.0-alpha.409)")
+@Experimental("card menus (since 3.0)")
 public enum MenuDisplay {
   list,
   cards

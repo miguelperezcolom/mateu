@@ -22,7 +22,7 @@ public record FieldLink(
     Object itemData,
     String description,
     boolean hidden,
-    @Experimental("card menus (3.0-alpha.409)") MenuPresentation presentation)
+    @Experimental("card menus (since 3.0)") MenuPresentation presentation)
     implements Actionable {
   /** The entry without presentation (a plain list entry). */
   public FieldLink(

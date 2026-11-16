@@ -22,7 +22,7 @@ public record ProgressSteps(
     boolean vertical,
     String style,
     String cssClasses,
-    @Experimental("wizard result title (3.0 beta)") String resultTitle)
+    @Experimental("wizard result title (since 3.0)") String resultTitle)
     implements Component {
 
   /** Without a result title (the shape before it existed). */

@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /** The container of repeated {@link AppShortcut}s. */
-@Experimental("app shortcuts (3.0-alpha, E2 patterns)")
+@Experimental("app shortcuts (since 3.0, E2 patterns)")
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 @Documented

@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 public @interface WelcomeBanner {
 
   /** A short line above the title introducing it ("Good morning", "Sales"…). Empty for none. */
-  @Experimental("hero overline (3.0-beta.13)")
+  @Experimental("hero overline (since 3.0)")
   String overline() default "";
 
   /** Big banner title. Defaults to the page {@code @Title}. */
@@ -36,6 +36,6 @@ public @interface WelcomeBanner {
   String image() default "";
 
   /** The banner's tone: {@code auto} (default look) or a dark tinted band. */
-  @Experimental("hero tone (3.0-alpha.409)")
+  @Experimental("hero tone (since 3.0)")
   io.mateu.uidl.data.HeroTone tone() default io.mateu.uidl.data.HeroTone.auto;
 }

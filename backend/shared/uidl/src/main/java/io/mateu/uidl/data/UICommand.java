@@ -86,13 +86,13 @@ public record UICommand(UICommandType type, Object data) {
    * tell a non-sighted user what just happened when nothing on screen takes focus ("3 rows
    * imported", "Saved"). Nothing is drawn.
    */
-  @Experimental("screen-reader announcements (3.0-alpha.409)")
+  @Experimental("screen-reader announcements (since 3.0)")
   public static UICommand announce(String text) {
     return new UICommand(UICommandType.Announce, new Announcement(text, false));
   }
 
   /** Like {@link #announce(String)}, through the ASSERTIVE region (interrupts — errors only). */
-  @Experimental("screen-reader announcements (3.0-alpha.409)")
+  @Experimental("screen-reader announcements (since 3.0)")
   public static UICommand announceAssertive(String text) {
     return new UICommand(UICommandType.Announce, new Announcement(text, true));
   }
@@ -112,7 +112,7 @@ public record UICommand(UICommandType type, Object data) {
    * {@code value}: in this tab and in every other tab of the same browser. To reach every OTHER
    * session too, publish it with {@link io.mateu.uidl.LiveHeaderValues#publish(String, String)}.
    */
-  @Experimental("live header values (3.0-alpha, E2 patterns)")
+  @Experimental("live header values (since 3.0, E2 patterns)")
   public static UICommand updateHeaderValue(String id, String value) {
     return new UICommand(UICommandType.UpdateHeaderValue, new HeaderValue(id, null, value));
   }
