@@ -71,7 +71,7 @@ pages and searches on the server. Name it once, in `sources.yaml`:
 A page that uses it — new file `planets.yaml`:
 
 ```yaml
-$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0.0/backend/shared/uidl/uidl-schema.json
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/v3.0.1/backend/shared/uidl/uidl-schema.json
 pageType: collection
 type: Listing
 title: Planets

@@ -28,7 +28,7 @@ escribió.
 
 ## D. Manejar la sesión en vivo de un usuario desde el servidor — *llega en la próxima versión*
 
-> **No está en 3.0.0.** Al escribir esto se está construyendo en una rama y no ha llegado a
+> **No está en 3.0.1.** Al escribir esto se está construyendo en una rama y no ha llegado a
 > `master` ni a una versión publicada. No lo intentes con la versión del taller.
 
 El plan: un agente emparejado con la UI abierta de un usuario (como en el lab 05) lee la pantalla que
@@ -38,7 +38,7 @@ recorrerá sobre la pantalla Quote.
 
 ## E. La app de escritorio como servidor MCP — *llega en la próxima versión*
 
-> **No está en 3.0.0.** Existe en una rama, no en una versión publicada.
+> **No está en 3.0.1.** Existe en una rama, no en una versión publicada.
 
 Una opción en *Settings › Mateu › AI agents (MCP)* de la app de escritorio la convertirá en servidor
 MCP, para que un agente maneje las UIs que tienes abiertas en ella.

@@ -123,9 +123,9 @@ does not; the harness tests prove both without Keycloak.
 
 ## The user menu — next release
 
-On `master` (not in 3.0.0) the header shows **who** is signed in: picture or initials, name,
+On `master` (not in 3.0.1) the header shows **who** is signed in: picture or initials, name,
 e-mail and **Sign out** in a menu, read from the identity your framework authenticated
-(`name`/`preferred_username`, `email`, `picture`). In 3.0.0 you get the plain **Sign out**
+(`name`/`preferred_username`, `email`, `picture`). In 3.0.1 you get the plain **Sign out**
 button you saw above.
 
 ## Stretch

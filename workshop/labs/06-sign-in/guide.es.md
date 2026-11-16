@@ -124,9 +124,9 @@ los tests del arnés lo demuestran sin Keycloak.
 
 ## El menú de usuario — próxima versión
 
-En `master` (no en 3.0.0) la cabecera muestra **quién** ha entrado: foto o iniciales, nombre,
+En `master` (no en 3.0.1) la cabecera muestra **quién** ha entrado: foto o iniciales, nombre,
 e-mail y **Sign out** en un menú, leídos de la identidad que autenticó tu framework
-(`name`/`preferred_username`, `email`, `picture`). En 3.0.0 tienes el botón **Sign out** simple
+(`name`/`preferred_username`, `email`, `picture`). En 3.0.1 tienes el botón **Sign out** simple
 que viste arriba.
 
 ## Extra
