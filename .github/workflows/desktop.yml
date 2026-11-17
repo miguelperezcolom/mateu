@@ -107,7 +107,7 @@ jobs:
           persist-credentials: false
       - name: Derive the versions from the tag
         run: scripts/plugin-versions.sh "$TAG" >> "$GITHUB_ENV"
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           java-version: 21
           distribution: zulu
@@ -226,7 +226,7 @@ jobs:
       - name: Unmount the dmg
         if: always()
         run: hdiutil detach "$RUNNER_TEMP/published/dmg" -force -quiet || true
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mateu-desktop-macos-${{ matrix.arch }}
           path: |
@@ -255,7 +255,7 @@ jobs:
           persist-credentials: false
       - name: Derive the versions from the tag
         run: scripts/plugin-versions.sh "$TAG" >> "$GITHUB_ENV"
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           java-version: 21
           distribution: zulu
@@ -287,7 +287,7 @@ jobs:
           node scripts/intellij-class-visibility.mjs "$root" "$(find "${root}data/plugins" -mindepth 1 -maxdepth 1 -type d | head -1)"
           scripts/desktop-smoke.sh linux "$root"
       # The Windows smoke test runs on windows-latest (job smoke-windows), from this artifact's zip.
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mateu-desktop-${{ matrix.platform }}
           path: |
@@ -310,13 +310,13 @@ jobs:
       actions: read # SignPath reads this run's job and downloads the artifact to sign
       contents: read
     steps:
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: mateu-desktop-windows
           path: ${{ runner.temp }}/pkg
       - name: Upload the setup to sign
         id: unsigned
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mateu-desktop-windows-unsigned
           path: ${{ runner.temp }}/pkg/mateu-desktop-*-windows-setup.exe
@@ -342,7 +342,7 @@ jobs:
           signed=("$RUNNER_TEMP"/signed/mateu-desktop-*-windows-setup.exe)
           [ -f "${signed[0]}" ] || { echo "SignPath returned no setup"; exit 1; }
           cp -f "${signed[0]}" "$RUNNER_TEMP/pkg/"
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mateu-desktop-windows
           path: ${{ runner.temp }}/pkg/
@@ -363,7 +363,7 @@ jobs:
         with:
           persist-credentials: false
           sparse-checkout: scripts
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: mateu-desktop-windows
           path: ${{ runner.temp }}\pkg
@@ -417,7 +417,7 @@ jobs:
           persist-credentials: false
       - name: Derive the versions from the tag
         run: scripts/plugin-versions.sh "$TAG" >> "$GITHUB_ENV"
-      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           java-version: 21
           distribution: zulu
@@ -440,7 +440,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/feed"
           cp "frontend/app/intellij-plugin/build/distributions/mateu-intellij-plugin-$INTELLIJ_VERSION.zip" \
             frontend/app/intellij-plugin/build/installer/mateu-desktop-update.json "$RUNNER_TEMP/feed/"
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mateu-desktop-feed
           path: ${{ runner.temp }}/feed/
@@ -456,7 +456,7 @@ jobs:
       contents: write # gh release upload
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: mateu-desktop-*
           path: ${{ runner.temp }}/out
