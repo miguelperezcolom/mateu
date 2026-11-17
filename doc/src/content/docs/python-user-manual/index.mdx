@@ -263,7 +263,7 @@ so a deployment can switch them without code.
 | `mcp_push_max_anonymous_sessions_per_address` | env `MATEU_MCP_PUSH_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS`, else 200 | Anonymous sessions per client address (behind a proxy, run uvicorn with `--proxy-headers`). |
 | `build_id` | env `MATEU_BUILD_ID`, else a fingerprint of the release | The `X-Mateu-Build` id ([versions across teams](/deploy/versions-across-teams/)). |
 | `oracle_cdn_url` | env `MATEU_ORACLE_CDN_URL` | A mirror of Oracle's CDN for the Redwood page ([Oracle CDN mirror](/deploy/oracle-cdn-mirror/)). |
-| `remotes` | none | `RemoteDescriptor`s for [server-resolved micro frontends](/java-ui-definition/components/micro-frontend/#net-and-python) and content slots (on top of `RemoteCatalogSupplier` subclasses). |
+| `remotes` | env `MATEU_REMOTES` (see below), else none | `RemoteDescriptor`s for [server-resolved micro frontends](/java-ui-definition/components/micro-frontend/#net-and-python) and content slots (on top of `RemoteCatalogSupplier` subclasses; explicit ones win). |
 | `default_timeout_ms` | env `MATEU_MICROFRONTENDS_DEFAULT_TIMEOUT_MS`, else 500 | Budget of a server-resolved fragment that names none. |
 | `max_budget_ms` | env `MATEU_MICROFRONTENDS_MAX_BUDGET_MS`, else 2000 | The most a view waits for its fragments. |
 | `content_remote_id` | env `MATEU_CONTENT_SLOTS_REMOTE`, else `content` | The remote [content slots](/java-ui-definition/components/content-slot/#net-and-python) are resolved against. |
@@ -271,6 +271,46 @@ so a deployment can switch them without code.
 | `self_base_url` | env `MATEU_SELF_BASE_URL` | This server's origin, for a remote registered as a path on it. |
 | `content_slots_descriptor_enabled` | env `MATEU_CONTENT_SLOTS_DESCRIPTOR_ENABLED`, else off | Serve the `__content_slots__` descriptor action. |
 | `remote_registry`, `identity_strategies`, `fragment_cache_store`, `correlation_id_provider`, `resolution_listeners` | Mateu's | Replace (or add to) the micro-frontend collaborators. |
+
+### Configuring remotes from environment variables
+
+Container and Kubernetes deployments can register server-resolved micro-frontend remotes **without
+modifying Python code** by using `MATEU_REMOTES` and its per-remote companions:
+
+```env
+# Comma-separated list of remote IDs
+MATEU_REMOTES=orders,content
+
+# Per-remote variables — ID is upper-cased and every - replaced with _
+MATEU_REMOTES_ORDERS_BASE_URL=https://orders.example.com
+MATEU_REMOTES_ORDERS_TIMEOUT_MS=5000
+MATEU_REMOTES_ORDERS_IDENTITY=orders-service
+
+MATEU_REMOTES_CONTENT_BASE_URL=https://content.example.com
+MATEU_REMOTES_CONTENT_TIMEOUT_MS=3000
+MATEU_REMOTES_CONTENT_IDENTITY=content-service
+```
+
+**ID mapping.** Remote IDs are transformed before constructing the variable name: they are
+upper-cased and every hyphen (`-`) is replaced with an underscore (`_`).  So the remote id
+`order-service` reads its URL from `MATEU_REMOTES_ORDER_SERVICE_BASE_URL`.
+
+**Precedence (lowest → highest).** Environment-variable remotes have the _lowest_ priority:
+
+1. `MATEU_REMOTES` / `MATEU_REMOTES_<ID>_*` — base layer, always read first.
+2. Remotes from `RemoteCatalogSupplier` subclasses among the sources — overwrite any env remote
+   with the same id.
+3. Explicit remotes from `add_mateu(remotes=[...])` — always win.
+
+**Missing or invalid base URL.** An id listed in `MATEU_REMOTES` whose
+`MATEU_REMOTES_<ID>_BASE_URL` is absent, blank, or not a valid absolute http(s) URL (or a
+path starting with `/`) is **skipped** with a warning on the `mateu_ui.microfrontends` logger.
+The other remotes in the list are still registered normally and application startup is not
+interrupted.
+
+**Malformed timeout.** A `MATEU_REMOTES_<ID>_TIMEOUT_MS` that is not a positive integer is
+ignored with a warning; the remote's default timeout (the global `default_timeout_ms`) is used
+instead.
 
 ## Forms
 
