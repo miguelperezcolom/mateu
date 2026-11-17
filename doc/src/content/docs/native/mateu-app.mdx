@@ -47,8 +47,25 @@ adds nothing you did not confirm.
   Each UI keeps its own session, and **Sign out** signs you out of that one only.
 - A UI opened before opens from what the phone kept and refreshes it in the background, so it starts
   fast even on a slow connection.
-- **Export my UIs** gives a QR code with your list, to move it to another phone. It carries the
-  addresses only — never a password or a session.
+- **Export my UIs** (the QR button in the list's top bar) gives a QR code with your list, and
+  **Share** sends the same link as text, to move it to another phone or keep it somewhere safe. It
+  carries the addresses only — never a password or a session.
+
+## Keeping your list
+
+Your list of UIs is part of your phone's own backup: Android's backup to your Google account and
+iCloud (or a computer backup) on iPhone. Android never backs up the sign-ins: after a restore there
+you sign in to each UI again.
+
+- **Updating the app** never touches the list.
+- **Uninstalling on Android deletes the list.** Installing again brings it back only if Android
+  restores the app's backup (Settings › Google › Backup must be on, and it must have run since you
+  added the UIs). On iPhone a reinstall restores it from an iCloud or computer backup.
+- To be sure, **Export my UIs** before uninstalling or changing phones, and scan (or open) that link
+  with the app afterwards.
+- If the list ever cannot be read, the app says so and shows the copy it kept before the last change;
+  it does not overwrite the stored list until you change it yourself. An entry whose address the app
+  no longer accepts stays on the list, greyed, so you can see it and remove it.
 
 ## Safe by design
 

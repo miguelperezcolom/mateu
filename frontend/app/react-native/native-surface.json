@@ -1,5 +1,5 @@
 {
-  "appVersion": "1.0.1",
+  "appVersion": "1.0.2",
   "surface": {
     "android": {
       "adaptiveIcon": {
@@ -7,6 +7,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "monochromeImage": "./assets/monochrome-icon.png"
       },
+      "allowBackup": true,
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.SYSTEM_ALERT_WINDOW",
@@ -136,7 +137,12 @@
         }
       ],
       "expo-web-browser",
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": false
+        }
+      ],
       "./plugins/with-local-notifications-only",
       [
         "expo-notifications",
@@ -146,7 +152,8 @@
           "icon": "./assets/monochrome-icon.png"
         }
       ],
-      "./plugins/with-async-storage-size"
+      "./plugins/with-async-storage-size",
+      "./plugins/with-hub-backup"
     ],
     "reactNative": "0.86.3",
     "scheme": "mateu"
