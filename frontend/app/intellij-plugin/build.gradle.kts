@@ -33,8 +33,8 @@ fun deleteTree(root: File) {
 }
 
 plugins {
-    kotlin("jvm") version "2.2.21"
-    id("org.jetbrains.intellij.platform") version "2.19.0"
+    kotlin("jvm") version "2.4.21"
+    id("org.jetbrains.intellij.platform") version "2.20.1"
     // Line coverage of the plugin's own code (`koverLog` / `koverXmlReport`, verified by `koverVerify`).
     id("org.jetbrains.kotlinx.kover") version "0.9.11"
 }
@@ -131,7 +131,7 @@ dependencies {
     // SVG images (an Image / avatar / card media whose src is an .svg) — MIT, pure Java. Bundled in
     // the plugin rather than reaching into the platform's own SVG code, which is internal API the
     // plugin verifier refuses (and whose jsvg copy is a JetBrains fork, `-jb.N`).
-    implementation("com.github.weisj:jsvg:2.0.0")
+    implementation("com.github.weisj:jsvg:2.2.0")
     // Jackson (JsonNode/ObjectMapper: the whole wire model) — BUNDLED. 2025.2 exposed the platform's
     // copy to every plugin (lib-client.jar); from 2026.x it is the content module
     // intellij.libraries.jackson.databind, NOT embedded in the core classloader, so a plugin that does
@@ -139,7 +139,7 @@ dependencies {
     // 3.0-beta.64 desktop app on its 2026.3 base). Declaring that module would break the 2025.2 floor
     // (no such module there), so the plugin carries its own: databind + core + annotations, nothing
     // else, all from our jar — the platform never sees our Jackson objects.
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.22.2")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.23.0")
     testImplementation("junit:junit:4.13.2")
 }
 
