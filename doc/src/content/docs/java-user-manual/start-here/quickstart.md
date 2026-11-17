@@ -47,8 +47,8 @@ my-app/
 
 The part people get wrong is the **annotation processor**: Mateu generates one Spring MVC controller
 per `@UI` class at compile time, so `mateu-annotation-processor-mvc` must be in
-`maven-compiler-plugin`'s `annotationProcessorPaths` — next to Lombok, because once that list is
-set nothing else on the classpath runs as a processor.
+`maven-compiler-plugin`'s `annotationProcessorPaths`. Once that list is set nothing else on the
+classpath runs as a processor, so if you add Lombok or another processor later, list it there too.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -93,12 +93,6 @@ set nothing else on the classpath runs as a processor.
             <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
-        <!-- The generated controllers use Lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
     </dependencies>
 
     <build>
@@ -108,14 +102,9 @@ set nothing else on the classpath runs as a processor.
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <!-- REQUIRED: the Mateu annotation processor generates one Spring MVC controller
-                         per @UI class. List every processor you use here (Lombok too): once
+                         per @UI class. List every processor you use here (Lombok too, if you add it): once
                          annotationProcessorPaths is set, nothing else on the classpath runs. -->
                     <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
                         <path>
                             <groupId>io.mateu</groupId>
                             <artifactId>mateu-annotation-processor-mvc</artifactId>
@@ -128,6 +117,8 @@ set nothing else on the classpath runs as a processor.
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <!-- Your code and the generated controllers do not need Lombok, but Mateu's jars
+                         still bring it in transitively: keep it out of the runnable jar. -->
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

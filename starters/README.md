@@ -77,5 +77,5 @@ and `static` ones declare them as data (`app.ui.yaml` with `home: home`, `app.ya
 `products.yaml`).
 
 And in the `pom.xml`, the one thing people get wrong: the Mateu **annotation processor** in
-`maven-compiler-plugin`'s `annotationProcessorPaths`, next to Lombok's. Without it nothing is
+`maven-compiler-plugin`'s `annotationProcessorPaths` (with any other processor you use, such as Lombok). Without it nothing is
 generated and every route answers 404.

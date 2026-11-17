@@ -49,7 +49,7 @@ mvn package && java -jar target/mateu-starter-helidon-mp.jar   # http://localhos
   `findAll`, `deleteAllById`; override `find(searchText, filters, pageable)` to page in the
   database). The entity implements `Identifiable`.
 - **The annotation processor is mandatory.** `mateu-annotation-processor-helidon-mp` must stay in
-  `maven-compiler-plugin` → `annotationProcessorPaths` (next to Lombok). Without it no controller
+  `maven-compiler-plugin` → `annotationProcessorPaths`. Without it no controller
   is generated and every route answers 404.
 - Keep `src/main/resources/META-INF/beans.xml` (without a bean archive the generated controllers
   are not registered and every route 404s) and `jersey-media-json-jackson` (Mateu's wire is
