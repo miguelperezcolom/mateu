@@ -2849,99 +2849,107 @@ export function withSubresources(blocks, contexts, opts = {}) {
   // a docked panel, an overview's info column) is not flattened into the host block — the host block
   // becomes a ROW OF BLOCKS (isBlockRow, top level only: the template paints it in the host content)
   const columnsOf = new Map()
+  // one hole → what fills it (the hole itself while its surface is not loaded)
+  const fill = (a) => {
+    if (!a || !a.isSubresource) return [a]
+    const ctx = contexts && contexts[a.islandId]
+    if (!ctx || !ctx.tree) return [a]
+    // a MicroFrontend that embeds a whole APP (transport embeddedAppOf): the app itself, framed —
+    // its shell (menu, pickers, header actions, shortcuts) is its own, as on its own page
+    if (ctx.embeddedApp) {
+      const href = safeHref(ctx.embeddedApp.src)
+      return href ? [{ isAppFrame: true, src: href, title: ctx.embeddedApp.title || href, frameStyle: { height: ctx.embeddedApp.height || '36rem' }, fromSurface: true }] : []
+    }
+    const crud = findByType(ctx.tree, 'Crud')
+    // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
+    const chrome = (a.subresource && a.subresource.chrome) || null
+    if (!crud) {
+      let inner = islandContentOf(ctx, { ...(chrome ? { chrome } : {}), surface: true, keyScope: a.islandId, activeTabs })
+      // a surface holds surfaces of its own (an example island with component fields, a
+      // MicroFrontend inside an island…): their holes are filled the same way, and the ones still
+      // unloaded name the surface they belong to (parentId: loadSubresources registers them under it)
+      if (inner && depth < 4) {
+        inner = withSubresources(inner.map((b) => ({
+          ...b,
+          items: (b.items || []).map((x) => (x && x.isSubresource && x.subresource && !x.subresource.parentId
+            ? { ...x, subresource: { ...x.subresource, parentId: a.islandId } } : x)),
+        })), contexts, { depth: depth + 1, activeTabs })
+      }
+      // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
+      // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
+      const mark = (list) => {
+        const items = (list || []).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item))
+        // a MicroFrontend's / an inline island's surface: its actions go back to IT (dispatchHostBlockAction → surface)
+        return a.subresource && a.subresource.surface ? tagSurfaceActions(items, a.islandId) : items
+      }
+      const items = mark(inner ? inner.flatMap((b) => b.items) : [])
+      if (depth === 0 && inner && inner.some((b) => /oj-md-\d/.test(b.colClass || b.blockClass || ''))) {
+        // the surface's column blocks, each with its own atoms (and card look)
+        const sub = inner.map((b) => ({ blockClass: b.colClass || b.blockClass || 'oj-flex-item oj-sm-12',
+          innerClass: b.isCard ? 'oj-panel oj-sm-margin-3x-bottom' : '',
+          items: mark(b.spSection ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || []) : b.items) }))
+        const marker = { isColumnsMarker: true, items }
+        columnsOf.set(marker, sub)
+        return [marker]
+      }
+      return items
+    }
+    const md = crud.metadata || {}
+    const wire = leafColumnsOf(md.columns)
+      // the per-row actions have no place in the query-only table
+      .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
+    const page = (((ctx.data || {}).crud || {}).page) || {}
+    const rows = labelCellRows(statusBadgeRows(page.content || [], wire), wire)
+    const grid = {
+      isGrid: true,
+      isSubresourceGrid: true,
+      fieldId: a.islandId,
+      // NONE / COMPACT: the embedded listing's title is its page's, and that page shows none
+      label: chrome === 'NONE' || chrome === 'COMPACT' ? '' : (md.title || ''),
+      columns: wire.map((c) => {
+        const def = c.dataType === 'status'
+          ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
+          : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id }
+        const align = alignOf(c)
+        if (align && !def.template) { def.className = 'oj-helper-text-align-' + align; def.headerClassName = 'oj-helper-text-align-' + align }
+        return def
+      }),
+      rows,
+      adp: dataProviderFactory ? dataProviderFactory(rows) : null,
+      isEmpty: rows.length === 0,
+      total: page.totalElements == null ? rows.length : page.totalElements,
+      rowEditable: false,
+      addActionId: '',
+      addLabel: '',
+      // rowsSelectionEnabled → the selection column; dragType (@DragRows) → its rows drag to a DropZone
+      selectionMode: md.rowsSelectionEnabled || md.multipleRowSelectionEnabled ? { row: 'multiple' } : { row: 'none' },
+      dragTypes: md.dragType ? [dragMimeOf(md.dragType)] : [],
+    }
+    // its gridLayout (cards / list / masterDetail / tree): the table was the only one drawn
+    Object.assign(grid, subresourceLayoutOf(crud, ctx, page, grid, a.islandId))
+    // the listing is ONE PART of its surface (DropZones beside it, texts, a header…): the rest is
+    // drawn too, the table where the listing sits — only the table was kept, the zones were lost
+    const composed = islandContentOf(ctx, { ...(chrome ? { chrome } : {}), crudAtom: grid })
+    // …and what its page DECLARES above the listing (HeaderSupplier: the drop zones of @DragRows)
+    const pageNode = findByType(ctx.tree, 'Page')
+    const declared = pageNode && pageNode.metadata && Array.isArray(pageNode.metadata.header) ? pageNode.metadata.header : []
+    const head = declared.length
+      ? islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingHeader', metadata: { type: 'VerticalLayout' }, children: declared } }) || []
+      : []
+    const items = [...head.flatMap((b) => b.items), ...(composed ? composed.flatMap((b) => b.items) : [])]
+    if (items.length <= 1) return [grid]
+    const marked = items.map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item))
+    return a.subresource && a.subresource.surface ? tagSurfaceActions(marked, a.islandId) : marked
+  }
   const filled = blocks.map((block) => ({
     ...block,
-    items: (block.items || []).flatMap((a) => {
-      if (!a || !a.isSubresource) return [a]
-      const ctx = contexts && contexts[a.islandId]
-      if (!ctx || !ctx.tree) return [a]
-      // a MicroFrontend that embeds a whole APP (transport embeddedAppOf): the app itself, framed —
-      // its shell (menu, pickers, header actions, shortcuts) is its own, as on its own page
-      if (ctx.embeddedApp) {
-        const href = safeHref(ctx.embeddedApp.src)
-        return href ? [{ isAppFrame: true, src: href, title: ctx.embeddedApp.title || href, frameStyle: { height: ctx.embeddedApp.height || '36rem' }, fromSurface: true }] : []
-      }
-      const crud = findByType(ctx.tree, 'Crud')
-      // an EMBEDDED MicroFrontend (MicroFrontend.chrome) keeps only what its chrome says of its page
-      const chrome = (a.subresource && a.subresource.chrome) || null
-      if (!crud) {
-        let inner = islandContentOf(ctx, { ...(chrome ? { chrome } : {}), surface: true, keyScope: a.islandId, activeTabs })
-        // a surface holds surfaces of its own (an example island with component fields, a
-        // MicroFrontend inside an island…): their holes are filled the same way, and the ones still
-        // unloaded name the surface they belong to (parentId: loadSubresources registers them under it)
-        if (inner && depth < 4) {
-          inner = withSubresources(inner.map((b) => ({
-            ...b,
-            items: (b.items || []).map((x) => (x && x.isSubresource && x.subresource && !x.subresource.parentId
-              ? { ...x, subresource: { ...x.subresource, parentId: a.islandId } } : x)),
-          })), contexts, { depth: depth + 1, activeTabs })
-        }
-        // marked as the surface's: the generic form cannot draw them (hostContentShown reads the
-        // FILLED blocks — once the hole is gone, nothing else said the content had another surface in it)
-        const mark = (list) => {
-          const items = (list || []).map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item))
-          // a MicroFrontend's / an inline island's surface: its actions go back to IT (dispatchHostBlockAction → surface)
-          return a.subresource && a.subresource.surface ? tagSurfaceActions(items, a.islandId) : items
-        }
-        const items = mark(inner ? inner.flatMap((b) => b.items) : [])
-        if (depth === 0 && inner && inner.some((b) => /oj-md-\d/.test(b.colClass || b.blockClass || ''))) {
-          // the surface's column blocks, each with its own atoms (and card look)
-          const sub = inner.map((b) => ({ blockClass: b.colClass || b.blockClass || 'oj-flex-item oj-sm-12',
-            innerClass: b.isCard ? 'oj-panel oj-sm-margin-3x-bottom' : '',
-            items: mark(b.spSection ? [{ isSpSectionHeader: true, sectionTitle: b.sectionTitle, sectionActions: b.sectionActions }].concat(b.sectionItems || []) : b.items) }))
-          const marker = { isColumnsMarker: true, items }
-          columnsOf.set(marker, sub)
-          return [marker]
-        }
-        return items
-      }
-      const md = crud.metadata || {}
-      const wire = leafColumnsOf(md.columns)
-        // the per-row actions have no place in the query-only table
-        .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
-      const page = (((ctx.data || {}).crud || {}).page) || {}
-      const rows = labelCellRows(statusBadgeRows(page.content || [], wire), wire)
-      const grid = {
-        isGrid: true,
-        isSubresourceGrid: true,
-        fieldId: a.islandId,
-        // NONE / COMPACT: the embedded listing's title is its page's, and that page shows none
-        label: chrome === 'NONE' || chrome === 'COMPACT' ? '' : (md.title || ''),
-        columns: wire.map((c) => {
-          const def = c.dataType === 'status'
-            ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
-            : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id }
-          const align = alignOf(c)
-          if (align && !def.template) { def.className = 'oj-helper-text-align-' + align; def.headerClassName = 'oj-helper-text-align-' + align }
-          return def
-        }),
-        rows,
-        adp: dataProviderFactory ? dataProviderFactory(rows) : null,
-        isEmpty: rows.length === 0,
-        total: page.totalElements == null ? rows.length : page.totalElements,
-        rowEditable: false,
-        addActionId: '',
-        addLabel: '',
-        // rowsSelectionEnabled → the selection column; dragType (@DragRows) → its rows drag to a DropZone
-        selectionMode: md.rowsSelectionEnabled || md.multipleRowSelectionEnabled ? { row: 'multiple' } : { row: 'none' },
-        dragTypes: md.dragType ? [dragMimeOf(md.dragType)] : [],
-      }
-      // its gridLayout (cards / list / masterDetail / tree): the table was the only one drawn
-      Object.assign(grid, subresourceLayoutOf(crud, ctx, page, grid, a.islandId))
-      // the listing is ONE PART of its surface (DropZones beside it, texts, a header…): the rest is
-      // drawn too, the table where the listing sits — only the table was kept, the zones were lost
-      const composed = islandContentOf(ctx, { ...(chrome ? { chrome } : {}), crudAtom: grid })
-      // …and what its page DECLARES above the listing (HeaderSupplier: the drop zones of @DragRows)
-      const pageNode = findByType(ctx.tree, 'Page')
-      const declared = pageNode && pageNode.metadata && Array.isArray(pageNode.metadata.header) ? pageNode.metadata.header : []
-      const head = declared.length
-        ? islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingHeader', metadata: { type: 'VerticalLayout' }, children: declared } }) || []
-        : []
-      const items = [...head.flatMap((b) => b.items), ...(composed ? composed.flatMap((b) => b.items) : [])]
-      if (items.length <= 1) return [grid]
-      const marked = items.map((item) => (item && typeof item === 'object' ? { ...item, fromSurface: true } : item))
-      return a.subresource && a.subresource.surface ? tagSurfaceActions(marked, a.islandId) : marked
-    }),
+    items: (block.items || []).flatMap(fill),
+    // a titled @Section (spSection) is painted from its sectionItems — a copy of its items made
+    // when the content was projected, so with the holes still in: filled the same way, or the
+    // section of a loaded MicroFrontend / @Subresource stayed empty (a columned surface flat here)
+    ...(Array.isArray(block.sectionItems)
+      ? { sectionItems: block.sectionItems.flatMap(fill).flatMap((x) => (columnsOf.has(x) ? x.items : [x])) }
+      : {}),
   }))
   if (!columnsOf.size) return filled
   return filled.map((block) => {

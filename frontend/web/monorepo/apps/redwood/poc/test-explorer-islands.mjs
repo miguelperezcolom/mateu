@@ -190,6 +190,28 @@ test('a MicroFrontend answering a whole app or a page only a page can draw is fr
     .includes('<iframe class="mateu-app-frame"'), 'the generated page draws the frame')
 })
 
+test('a MicroFrontend in a titled @Section is drawn in the section, once loaded (its painted copy too)', () => {
+  // the shape a portal page sends: a section card (h3 title) whose content is an embedded MicroFrontend.
+  // oj-sp-section paints the card's sectionItems — a copy taken before the island loaded: the remote
+  // answered 200 and the section stayed empty
+  const mfe = cs({ type: 'MicroFrontend', baseUrl: '/_loyalty', route: '/loyalty/accruals', chrome: 'COMPACT' }, [], 'mfe-block')
+  const section = { ...cs({ type: 'Card', title: cs({ type: 'Text', container: 'h3', text: 'Accruals' }), content: mfe }, [], 'card-1'), cssClasses: 'mateu-section' }
+  const host = ss('page', 'portal.ItemPage', [cs({ type: 'Form', title: 'Tools' }, [section])])
+  const contexts = { [HOST_ID]: { id: HOST_ID, kind: 'host', tree: host, state: {}, data: {} } }
+  const blocks = hostContentOf(contexts[HOST_ID], null, {})
+  const card = blocks.find((b) => b.spSection)
+  assert.ok(card, 'painted as an oj-sp-section')
+  const hole = card.sectionItems.find((a) => a.isSubresource)
+  assert.ok(hole, 'the section holds the hole while the island loads')
+  contexts[hole.islandId] = { id: hole.islandId, kind: 'island', state: {}, data: {},
+    tree: ss(hole.islandId, 'loyalty.AccrualsPage', [cs({ type: 'Page', title: 'Accruals' }, [cs({ type: 'Text', text: 'remote body' })])]) }
+  const filled = withSubresources(blocks, contexts).find((b) => b.spSection)
+  for (const list of [filled.items, filled.sectionItems]) {
+    assert.ok(!list.some((a) => a.isSubresource), 'no hole left')
+    assert.ok(list.some((a) => a.isText && a.text === 'remote body'), 'the remote page is there')
+  }
+})
+
 test('a NotFound, an EmptyState, a FoldoutLayout or a Listing inside an example card stays content', () => {
   const card = (child) => ss('entry', 'explorer.EntryPage', [cs({ type: 'Form', title: 'Entry' }, [cs({ type: 'Markdown', markdown: 'x' }), cs({ type: 'Card' }, [child])])])
   const nf = card(cs({ type: 'NotFound', title: 'Booking not found', message: 'No HB-99999', backRoute: 'home' }))
