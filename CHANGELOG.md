@@ -8,6 +8,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Fixed — Redwood
+
+- **A MicroFrontend or `@Subresource` inside a titled `@Section` is drawn once it loads.** Spectra's
+  `oj-sp-section` paints the section's `sectionItems`, a copy of its atoms taken before the island
+  loaded, and `withSubresources` only filled `items`: the remote answered 200 and the section stayed
+  empty (no error, nothing in the DOM). Both lists are filled now. Test in `test-explorer-islands.mjs`.
+
 ## [3.0.1] — 2026-11-16
 
 ### Added — Spring Boot starter
