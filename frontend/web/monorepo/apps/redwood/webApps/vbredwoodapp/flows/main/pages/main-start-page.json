@@ -7,6 +7,11 @@
       "defaultValue": [],
       "description": "diálogo de columnas del listado: [{id, label, visible}] en el orden elegido"
     },
+    "mateuViewsVersion": {
+      "type": "number",
+      "defaultValue": 0,
+      "description": "Bumped when a saved view is saved, deleted or (un)made the default: the views button's label is evaluated again"
+    },
     "mateuViewsMenu": {
       "type": "any",
       "defaultValue": [],

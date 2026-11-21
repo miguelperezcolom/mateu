@@ -209,6 +209,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     viewRouteOf,
     currentViewValues,
     viewsMenuOf,
+    activeViewOf,
+    viewsButtonLabelOf,
+    toggleDefaultView,
     listingScope,
     installRowTones,
     // @OnRowSelected on a grid field: row click / shortcut + number (tables.mjs)

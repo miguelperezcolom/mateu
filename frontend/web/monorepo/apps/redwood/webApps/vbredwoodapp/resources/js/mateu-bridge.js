@@ -96,6 +96,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       views: 'Views',
       saveView: 'Save view',
       openWithView: 'Open with this view',
+      dontOpenWithView: 'Don’t open with this view',
+      deleteViewNamed: 'Delete view {name}',
+      viewSaved: 'View “{name}” saved',
       saveCurrentView: 'Save current view…',
       clearFilters: 'Clear filters',
       pagingOf: 'of',
@@ -407,6 +410,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       views: 'Vistas',
       saveView: 'Guardar vista',
       openWithView: 'Abrir con esta vista',
+      dontOpenWithView: 'No abrir con esta vista',
+      deleteViewNamed: 'Borrar la vista {name}',
+      viewSaved: 'Vista «{name}» guardada',
       saveCurrentView: 'Guardar la vista actual…',
       clearFilters: 'Quitar filtros',
       pagingOf: 'de',
@@ -705,6 +711,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       views: 'Vues',
       saveView: 'Enregistrer la vue',
       openWithView: 'Ouvrir avec cette vue',
+      dontOpenWithView: 'Ne plus ouvrir avec cette vue',
+      deleteViewNamed: 'Supprimer la vue {name}',
+      viewSaved: 'Vue « {name} » enregistrée',
       saveCurrentView: 'Enregistrer la vue actuelle…',
       clearFilters: 'Effacer les filtres',
       pagingOf: 'sur',
@@ -1011,6 +1020,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       views: 'Ansichten',
       saveView: 'Ansicht speichern',
       openWithView: 'Mit dieser Ansicht öffnen',
+      dontOpenWithView: 'Nicht mehr mit dieser Ansicht öffnen',
+      deleteViewNamed: 'Ansicht {name} löschen',
+      viewSaved: 'Ansicht „{name}“ gespeichert',
       saveCurrentView: 'Aktuelle Ansicht speichern…',
       clearFilters: 'Filter entfernen',
       pagingOf: 'von',
@@ -1317,6 +1329,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       views: 'Visualizações',
       saveView: 'Salvar visualização',
       openWithView: 'Abrir com esta visualização',
+      dontOpenWithView: 'Não abrir com esta visualização',
+      deleteViewNamed: 'Excluir a visualização {name}',
+      viewSaved: 'Visualização “{name}” salva',
       saveCurrentView: 'Salvar a visualização atual…',
       clearFilters: 'Limpar filtros',
       pagingOf: 'de',
@@ -1623,6 +1638,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       views: 'Viste',
       saveView: 'Salva vista',
       openWithView: 'Apri con questa vista',
+      dontOpenWithView: 'Non aprire con questa vista',
+      deleteViewNamed: 'Elimina la vista {name}',
+      viewSaved: 'Vista «{name}» salvata',
       saveCurrentView: 'Salva la vista attuale…',
       clearFilters: 'Rimuovi filtri',
       pagingOf: 'di',
@@ -2261,10 +2279,62 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return values
   }
 
-  /** The options of the views menu (oj-menu): the saved ones (★ the default one) + actions. */
-  function viewsMenuOf(scope, storage) {
-    const views = listSavedViews(scope, storage).map((v) => ({ value: 'view:' + v.name, label: (v.isDefault ? '★ ' : '') + v.name }))
+  /**
+   * A condition set in a comparable form: unset values (null, '', []) dropped, keys sorted, a multi-value
+   * as its sorted values joined by commas (a list saved from the bar and the same list read back from
+   * the URL, `a,b`, are the same condition). The web renderer runs the same rule (savedViewsStore.ts).
+   */
+  function comparableValues(values) {
+    const entries = Object.keys(values || {})
+      .filter((k) => { const v = values[k]; return v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && !v.length) })
+      .map((k) => {
+        const v = values[k]
+        const list = Array.isArray(v) ? v.map(String) : (typeof v === 'string' && v.indexOf(',') >= 0 ? v.split(',') : null)
+        return [k, list ? list.map((x) => x.trim()).filter(Boolean).sort().join(',') : String(v)]
+      })
+      .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+    return JSON.stringify(entries)
+  }
+
+  function sameViewValues(a, b) { return comparableValues(a) === comparableValues(b) }
+
+  /** The saved view the current conditions ARE (null when nothing is applied or none matches). */
+  function activeViewOf(views, values) {
+    if (comparableValues(values) === '[]') return null
+    return (views || []).find((v) => sameViewValues(v.values, values)) || null
+  }
+
+  /** What the views button says: the active view's name, else its own label. */
+  function viewsButtonLabelOf(scope, values, fallback, storage) {
+    const active = activeViewOf(listSavedViews(scope, storage), values)
+    return active ? active.name : fallback
+  }
+
+  /** Marks (or, when it already is, unmarks) a view as the one the listing opens with. */
+  function toggleDefaultView(scope, name, storage) {
+    const all = readAll(VIEWS_KEY, storage)
+    all[scope] = (all[scope] || []).map((v) => ({ ...v, isDefault: v.name === name ? !v.isDefault : false }))
+    writeAll(VIEWS_KEY, all, storage)
+  }
+
+  /**
+   * The options of the views menu (oj-menu): the saved ones (✓ the one the listing is showing, ★ the
+   * default one) + actions. With a view on, the menu also lets the user make it the default (or stop
+   * opening with it) and delete it — what an option of an oj-menu cannot carry inline.
+   */
+  function viewsMenuOf(scope, storage, current) {
+    const saved = listSavedViews(scope, storage)
+    const active = current ? activeViewOf(saved, current) : null
+    const views = saved.map((v) => ({
+      value: 'view:' + v.name,
+      label: (active && active.name === v.name ? '✓ ' : '') + (v.isDefault ? '★ ' : '') + v.name,
+    }))
+    const onActive = active ? [
+      { value: 'default', label: chromeText(active.isDefault ? 'dontOpenWithView' : 'openWithView') },
+      { value: 'delete', label: chromeText('deleteViewNamed', { name: active.name }) },
+    ] : []
     return views.concat([{ value: 'save', label: chromeText('saveCurrentView') }])
+      .concat(onActive)
       .concat(views.length ? [{ value: 'clear', label: chromeText('clearFilters') }] : [])
   }
 
@@ -39515,6 +39585,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     viewRouteOf,
     currentViewValues,
     viewsMenuOf,
+    activeViewOf,
+    viewsButtonLabelOf,
+    toggleDefaultView,
     listingScope,
     installRowTones,
     // @OnRowSelected on a grid field: row click / shortcut + number (tables.mjs)

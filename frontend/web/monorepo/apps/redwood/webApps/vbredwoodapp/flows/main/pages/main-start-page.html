@@ -35127,7 +35127,10 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-align-items-center oj-sm-margin-2x-bottom mateu-listing-tools">
               <oj-menu-button chroming="borderless" class="oj-button-sm" id="mateuViewsButton">
                 <span slot="startIcon" class="oj-ux-ico-bookmark"></span>
-                <oj-bind-text value="[[ $application.translations.appBundle.views ]]"></oj-bind-text>
+                <!-- the active saved view's name (the user sees which view is on and where to get back to it).
+                     In a SPAN: the button copies bare text into its label once, at init — a changing binding left
+                     outside it showed «Kettles Views»; an element is moved, binding and all -->
+                <span class="mateu-views-label"><oj-bind-text value="[[ $functions.viewsButtonLabel($application.variables.mateuFilterValues, $application.variables.mateuLastSearchText, $application.translations.appBundle.views, $page.variables.mateuViewsVersion) ]]"></oj-bind-text></span>
                 <oj-menu slot="menu" id="mateuViewsMenu"
                   on-oj-before-open="[[ $listeners.viewsBeforeOpen ]]"
                   on-oj-menu-action="[[ $listeners.viewsAction ]]">
@@ -43195,7 +43198,10 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
               <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-align-items-center oj-sm-margin-2x-bottom mateu-listing-tools">
                 <oj-menu-button chroming="borderless" class="oj-button-sm" id="mateuViewsButton">
                   <span slot="startIcon" class="oj-ux-ico-bookmark"></span>
-                  <oj-bind-text value="[[ $application.translations.appBundle.views ]]"></oj-bind-text>
+                  <!-- the active saved view's name (the user sees which view is on and where to get back to it).
+                       In a SPAN: the button copies bare text into its label once, at init — a changing binding left
+                       outside it showed «Kettles Views»; an element is moved, binding and all -->
+                  <span class="mateu-views-label"><oj-bind-text value="[[ $functions.viewsButtonLabel($application.variables.mateuFilterValues, $application.variables.mateuLastSearchText, $application.translations.appBundle.views, $page.variables.mateuViewsVersion) ]]"></oj-bind-text></span>
                   <oj-menu slot="menu" id="mateuViewsMenu"
                     on-oj-before-open="[[ $listeners.viewsBeforeOpen ]]"
                     on-oj-menu-action="[[ $listeners.viewsAction ]]">
@@ -59024,7 +59030,10 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
       <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-align-items-center oj-sm-margin-2x-bottom mateu-listing-tools">
         <oj-menu-button chroming="borderless" class="oj-button-sm" id="mateuViewsButton">
           <span slot="startIcon" class="oj-ux-ico-bookmark"></span>
-          <oj-bind-text value="[[ $application.translations.appBundle.views ]]"></oj-bind-text>
+          <!-- the active saved view's name (the user sees which view is on and where to get back to it).
+               In a SPAN: the button copies bare text into its label once, at init — a changing binding left
+               outside it showed «Kettles Views»; an element is moved, binding and all -->
+          <span class="mateu-views-label"><oj-bind-text value="[[ $functions.viewsButtonLabel($application.variables.mateuFilterValues, $application.variables.mateuLastSearchText, $application.translations.appBundle.views, $page.variables.mateuViewsVersion) ]]"></oj-bind-text></span>
           <oj-menu slot="menu" id="mateuViewsMenu"
             on-oj-before-open="[[ $listeners.viewsBeforeOpen ]]"
             on-oj-menu-action="[[ $listeners.viewsAction ]]">
@@ -92653,7 +92662,10 @@ on-sp-primary-action="[[ $listeners.hostBlockAction ]]"></oj-sp-empty-state>
             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-align-items-center oj-sm-margin-2x-bottom mateu-listing-tools">
               <oj-menu-button chroming="borderless" class="oj-button-sm" id="mateuViewsButton">
                 <span slot="startIcon" class="oj-ux-ico-bookmark"></span>
-                <oj-bind-text value="[[ $application.translations.appBundle.views ]]"></oj-bind-text>
+                <!-- the active saved view's name (the user sees which view is on and where to get back to it).
+                     In a SPAN: the button copies bare text into its label once, at init — a changing binding left
+                     outside it showed «Kettles Views»; an element is moved, binding and all -->
+                <span class="mateu-views-label"><oj-bind-text value="[[ $functions.viewsButtonLabel($application.variables.mateuFilterValues, $application.variables.mateuLastSearchText, $application.translations.appBundle.views, $page.variables.mateuViewsVersion) ]]"></oj-bind-text></span>
                 <oj-menu slot="menu" id="mateuViewsMenu"
                   on-oj-before-open="[[ $listeners.viewsBeforeOpen ]]"
                   on-oj-menu-action="[[ $listeners.viewsAction ]]">

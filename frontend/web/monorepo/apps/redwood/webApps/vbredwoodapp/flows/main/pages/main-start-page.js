@@ -2,9 +2,18 @@
 
 // The content page module: the chains are in *-chains/; here only what a binding
 // expression needs to call.
-define([], () => {
+define(['resources/js/mateu-bridge'], (bridge) => {
   'use strict';
   return class MateuContentPageModule {
+    /**
+     * The views button's label: the saved view the listing is showing, else «Views». `version` is
+     * there only so the binding is evaluated again when a view is saved or deleted.
+     */
+    // eslint-disable-next-line no-unused-vars
+    viewsButtonLabel(filterValues, searchText, fallback, version) {
+      return bridge.viewsButtonLabelOf(bridge.listingScope(), bridge.currentViewValues(filterValues, searchText), fallback);
+    }
+
     /**
      * The listing rows as the SERVER sorted them: the page's data provider without the local
      * sorting. oj-table, when a header is clicked, asks the provider for the current page with

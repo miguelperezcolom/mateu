@@ -18,15 +18,21 @@ define([
     /**
      * @param {Object} context
      * @param {Object} params
-     * @param {string} params.op  menu | action | save | cancelSave
+     * @param {string} params.op  menu | action (a view, save, default, delete, clear) | save | cancelSave
      */
     async run(context, { op, value }) {
       const { $application, $page } = context;
       const scope = bridge.listingScope();
       const dialog = () => document.getElementById('mateuSaveViewDialog');
+      const current = () => bridge.currentViewValues($application.variables.mateuFilterValues, $application.variables.mateuLastSearchText);
+      const changed = () => { $page.variables.mateuViewsVersion = ($page.variables.mateuViewsVersion || 0) + 1; };
+      const toast = async (text) => {
+        $page.variables.mateuToastText = text;
+        await Actions.callComponentMethod(context, { selector: '#mateuToast', method: 'open' });
+      };
       const go = (route) => Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route, force: true } });
       if (op === 'menu') {
-        $page.variables.mateuViewsMenu = bridge.viewsMenuOf(scope);
+        $page.variables.mateuViewsMenu = bridge.viewsMenuOf(scope, undefined, current());
         // oj-menu reads its options when it initializes: the ones the for-each stamps later do not
         // dispatch ojMenuAction until a refresh() (the same trap as the navigation-list)
         await new Promise((r) => requestAnimationFrame(() => r()));
@@ -39,6 +45,14 @@ define([
           $page.variables.mateuViewName = '';
           $page.variables.mateuViewDefault = false;
           dialog().open();
+          return;
+        }
+        if (value === 'default' || value === 'delete') {
+          const active = bridge.activeViewOf(bridge.listSavedViews(scope), current());
+          if (!active) return;
+          if (value === 'default') bridge.toggleDefaultView(scope, active.name);
+          else bridge.deleteView(scope, active.name);
+          changed();
           return;
         }
         if (value === 'clear') {
@@ -59,6 +73,8 @@ define([
           isDefault: !!$page.variables.mateuViewDefault,
         });
         dialog().close();
+        changed();
+        await toast(bridge.chromeText('viewSaved', { name }));
         return;
       }
       if (op === 'cancelSave') dialog().close();
