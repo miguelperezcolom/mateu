@@ -8,7 +8,17 @@ import YouTube from '../../../components/YouTube.astro';
 
 ## Step 1: Have a Micronaut project
 
-Obviously you need a valid Micronaut project. If you do not have it already, you should create it from IntelliJ.
+Start from any Micronaut application: create one at [Micronaut Launch](https://micronaut.io/launch/), with
+the `mn` CLI or from IntelliJ. One `mateu-micronaut` jar serves both supported lines:
+
+| Micronaut | Java | Build |
+|---|---|---|
+| **5.x** (what Launch generates) | 25 | Maven 3.9.10 or later (Launch's `mvnw` has it), or Gradle |
+| **4.10.x** | 21 or later | Maven or Gradle |
+
+Micronaut 5's own Maven rules need Maven 3.9.10: with 3.9.9 or earlier the build stops at
+`maven-enforcer-plugin` with `ClassNotFoundException: …CheckSnakeYaml`. Use the project's `./mvnw`
+or a newer Maven.
 
 ## Step 2: Add Mateu dependencies
 
@@ -129,8 +139,11 @@ public class Application {
 ```
 
 Mateu's beans, bean introspections and JSON serialization ship inside the `mateu-micronaut` jar and are
-discovered from the classpath, and static content is served by micronaut's default static resources,
-so no annotations nor extra configuration properties are needed.
+discovered from the classpath, and the adapter serves the renderer's assets (`/assets/…`,
+`/_redwood/…`) straight from the renderer jar, so no annotations nor extra configuration properties
+are needed. (Up to 3.0.1 the app had to map them with
+`micronaut.router.static-resources.<name>.paths=classpath:static`; that mapping still works, and can
+go.)
 
 Just annotate your class with `@UI`:
 

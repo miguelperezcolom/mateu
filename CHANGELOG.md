@@ -8,6 +8,37 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added — Micronaut 5
+
+- **Micronaut 5 is supported** next to 4.10: the same `mateu-micronaut` jar serves both. CI runs
+  the adapter's suite (the adapter parity contract over real HTTP included) against the Micronaut 5
+  platform as well (`-Pmicronaut5`, job `micronaut-5`, JDK 25). `starters/micronaut` is on
+  Micronaut 5.2.7 / Java 25. Micronaut 5 needs Java 25 and, with Maven, 3.9.10 or later (its
+  enforcer rule `checkSnakeYaml` fails to load on 3.9.9).
+- **No configuration for the renderer's assets on Micronaut.** The adapter serves `/assets/…`,
+  `/_redwood/…`, `/version_<n>/…` straight from the renderer jar (`MateuRendererAssetsFilter`,
+  with ETag / Last-Modified revalidation), like the Quarkus adapter. The
+  `micronaut.router.static-resources.*` mapping apps used to need still works and can go.
+- The New Project generator offers the **Redwood renderer on Micronaut**.
+
+### Fixed — what Mateu's artifacts bring into an app
+
+- **Lombok no longer reaches apps.** `mateu-dtos` declared it with compile scope, so it landed on
+  every app's runtime classpath and — through the `mateu-annotation-processor-*` jars — on its
+  annotation processor path, where it ran over the app's own sources. It is now `provided`
+  everywhere; an app that uses Lombok declares it itself, as usual.
+- **`com.google.code.findbugs:annotations` (LGPL) no longer reaches apps.** The parent pom and
+  `mateu-uidl` declared it with compile scope; no Mateu source uses it. Now `provided`.
+- The controller generated for Micronaut no longer makes javac warn "@Nullable on primitive types"
+  (the client-log endpoint's body).
+
+### Fixed — Redwood
+
+- **A remote whose own routes already live under its mount prefix** (a `RemoteMenu` field named
+  like the remote's top group: field `intranet`, remote routes `/intranet/avisos`…) is asked for
+  those routes as they are. The Redwood renderer took the prefix off, the remote answered NotFound
+  and every section of such a shell was "Page not found" (the Vaadin renderer was right).
+
 ## [3.0.1] — 2026-11-16
 
 ### Added — Spring Boot starter

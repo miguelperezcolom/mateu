@@ -776,6 +776,36 @@ jobs:
       - name: .NET packages build
         run: cd backend/dotnet && for p in src/*/*.csproj; do dotnet pack "$p" -c Release -o /tmp/nupkgs; done
 
+  # The Micronaut adapter is built against Micronaut 4 and serves Micronaut 5 apps with the same
+  # jar (what Micronaut Launch generates since 5.0). This job compiles and runs the adapter's suite
+  # (the AdapterParityITFoundation contract over real HTTP included) against the Micronaut 5
+  # platform: `-Pmicronaut5` in backend/micronaut/micronaut-core. Micronaut 5 needs JDK 25.
+  micronaut-5:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: 25
+          distribution: zulu
+
+      - name: Install the backend the adapter depends on
+        run: >-
+          mvn -B install -DskipTests -Dgpg.skip=true -Dmaven.javadoc.skip=true -Darchetype.test.skip=true
+          -Dmateu.api.enforce=false --file backend/pom.xml
+          -pl micronaut/micronaut-core -am
+
+      - name: Micronaut adapter suite on Micronaut 5
+        run: >-
+          mvn -B verify -Pmicronaut5 -Dgpg.skip=true -Dmaven.javadoc.skip=true -Dmateu.api.enforce=false
+          --file backend/pom.xml -pl micronaut/micronaut-core
+
   # The ONE check branch protection should require (design/ci-required-checks.md). Requiring each
   # job by name breaks whenever a job is added, renamed or split (every matrix leg is its own check:
   # "python (3.11)"), and a required check that never reports blocks the PR forever. This job always
@@ -794,6 +824,7 @@ jobs:
       - python-lowest-deps
       - renderer-vb
       - backend-tests
+      - micronaut-5
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
