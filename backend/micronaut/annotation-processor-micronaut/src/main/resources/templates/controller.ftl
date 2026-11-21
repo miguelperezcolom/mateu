@@ -111,7 +111,7 @@ public class ${simpleClassName}MateuController implements MateuController {
     // The renderer's error reports (io.mateu.core.infra.ClientErrorLog): one log line per report.
     @Post(value = "v3/client-log", consumes = MediaType.ALL)
     @ExecuteOn(TaskExecutors.BLOCKING)
-    public HttpResponse<?> clientLog(@Body @Nullable byte[] body, HttpRequest<?> request) {
+    public HttpResponse<?> clientLog(@Body byte[] body, HttpRequest<?> request) {
         if (!clientLogEnabled) {
             return HttpResponse.status(io.micronaut.http.HttpStatus.NOT_FOUND);
         }
