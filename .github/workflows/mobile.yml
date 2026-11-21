@@ -257,3 +257,10 @@ jobs:
           # APK's must keep saying it updates from the releases page, not from Google Play (GA review S8)
           MATEU_DISTRIBUTION=github ./node_modules/.bin/eas update --channel github --environment production \
             --message "Mateu $MATEU_VERSION (GitHub APK)" --non-interactive
+      # The update only reaches installs of ITS app version: say so on the release when a store does
+      # not have that version live yet (the 1.0.1 runtime reached no store install for three
+      # releases while this job was green). A warning, never a failure.
+      - name: Does a store install get it?
+        if: env.HAS_EXPO == 'true'
+        working-directory: .
+        run: node scripts/ota-store-check.mjs

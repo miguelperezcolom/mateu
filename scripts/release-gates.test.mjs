@@ -323,6 +323,8 @@ test('the over-the-air update goes to the store channel and to the GitHub APK ch
     const ota = jobBlock('mobile.yml', 'ota')
     assert.match(ota, /eas update --channel production /)
     assert.match(ota, /MATEU_DISTRIBUTION=github \.\/node_modules\/\.bin\/eas update --channel github /)
+    // and it says on the release when no store install gets that update (scripts/ota-store-check.mjs)
+    assert.match(ota, /node scripts\/ota-store-check\.mjs/)
     const android = jobBlock('mobile.yml', 'android')
     assert.match(android, /echo "MATEU_DISTRIBUTION=github" >> "\$GITHUB_ENV"/)
     const config = readFileSync(new URL('../frontend/app/react-native/app.config.ts', import.meta.url), 'utf8')

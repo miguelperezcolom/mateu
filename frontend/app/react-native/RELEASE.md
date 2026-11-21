@@ -67,6 +67,17 @@ When a build is made by hand (`eas build`), pass `MATEU_VERSION=<release>` (e.g.
 its environment so the hub knows which release the binary carries; without it the app compares only
 wire versions.
 
+## 0c bis. A new app version strands the store installs until its store build is live
+
+`expo.version` is the OTA runtime. From the release that bumps it, every over-the-air update is
+published for the NEW version only: phones installed from a store keep their current JavaScript —
+and the hub keeps asking them to "Update Mateu" with nothing new in the store — until the store
+build of that version is live. It happened with 1.0.1 (rc.2, 3.0.0 and 3.0.1 reached no store
+install). So a version bump means: build and submit both stores at once (§1, §2), and when the Play
+build goes live set `android` in `store-versions.json`. The `ota` job runs
+`scripts/ota-store-check.mjs`, which warns on the release while a store (Play from that file, the
+App Store from its public lookup) is not on the runtime it publishes for.
+
 ## 0d. Pending store build: 1.0.1 (200003) — `expo-notifications`
 
 The OS-level notifications of an app that declares `@App(osNotifications = true)`

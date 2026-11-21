@@ -32,6 +32,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - The controller generated for Micronaut no longer makes javac warn "@Nullable on primitive types"
   (the client-log endpoint's body).
 
+### Added — release check for the phone app's over-the-air updates
+
+- The `ota` release job warns (annotation + step summary) when the app version it publishes the
+  update for is not live in a store yet (`scripts/ota-store-check.mjs`: the App Store's public
+  lookup, `frontend/app/react-native/store-versions.json` for Google Play). Since the app moved to
+  1.0.1 (a native module), the updates of 3.0-rc.2, 3.0.0 and 3.0.1 reached no phone installed from
+  a store, with every job green: those installs stay on their JavaScript until the 1.0.1 store
+  builds are live.
+
 ### Fixed — Redwood
 
 - **A remote whose own routes already live under its mount prefix** (a `RemoteMenu` field named
