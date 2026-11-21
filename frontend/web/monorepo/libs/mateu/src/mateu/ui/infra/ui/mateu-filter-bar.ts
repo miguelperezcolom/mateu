@@ -9,6 +9,7 @@ import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField
 import { badge } from "@infra/ui/badgeStyles.ts";
 import {
     SavedView,
+    activeView,
     deleteView,
     listSavedViews,
     saveView,
@@ -16,6 +17,8 @@ import {
 } from "../savedViewsStore.ts";
 import { ListenerSlot } from '@infra/ui/connectionScope.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { notify } from '@application/Notifier.ts'
+import { announce } from '@infra/a11y/announcer.ts'
 import { icon } from '@infra/ui/renderers/neutralIcon.ts'
 import { mayTakeFocusOnItsOwn } from '@infra/a11y/initialFocus.ts'
 
@@ -241,6 +244,12 @@ export class MateuFilterBar extends LitElement {
         if (!name) return
         saveView(this.viewsScope, { name, values: this.snapshotValues() })
         input.value = ''
+        // closed, so the button shows the view's name right away: that is where the user goes back to it
+        this.viewsOpened = false
+        this.detachOutsideClick()
+        const saved = chromeTextf('viewSaved', { name })
+        notify({ text: saved, variant: 'success', duration: 3000 }, this)
+        announce(saved)
         this.requestUpdate()
     }
 
@@ -452,6 +461,7 @@ export class MateuFilterBar extends LitElement {
     private renderViewsPanel(): TemplateResult | typeof nothing {
         if (!this.viewsOpened) return nothing
         const views = listSavedViews(this.viewsScope)
+        const active = activeView(views, this.snapshotValues())
         const anySet = !!this.state.searchText || this.filters.some(field => this.isSet(field))
         return html`
             <div class="panel views-panel">
@@ -459,7 +469,9 @@ export class MateuFilterBar extends LitElement {
                 ${views.length === 0 ? html`
                     <div class="panel-row views-empty">${chromeText('noSavedViews')}</div>` : nothing}
                 ${views.map(view => html`
-                    <div class="panel-row view-row" @mousedown="${this.keepFocus}">
+                    <div class="panel-row view-row ${active?.name === view.name ? 'view-row--active' : ''}"
+                         aria-current="${active?.name === view.name ? 'true' : 'false'}" @mousedown="${this.keepFocus}">
+                        <span class="view-check" aria-hidden="true">${active?.name === view.name ? '✓' : ''}</span>
                         <span class="view-name" @click="${() => this.applyView(view)}">${view.name}</span>
                         <button class="view-star ${view.isDefault ? 'view-star--on' : ''}"
                                 title="${view.isDefault ? chromeText('unsetDefaultView') : chromeText('openWithView')}"
@@ -512,6 +524,8 @@ export class MateuFilterBar extends LitElement {
     }
 
     render(): TemplateResult {
+        // the saved view the current conditions are, named on the views button
+        const activeNow = activeView(listSavedViews(this.viewsScope), this.snapshotValues())
         const chips: { fieldId: string, label: string, display: string }[] = []
         if (this.state.searchText) {
             chips.push({ fieldId: 'searchText', label: 'Text', display: String(this.state.searchText) })
@@ -574,7 +588,9 @@ export class MateuFilterBar extends LitElement {
                                    if (e.key === 'Escape') this.closePanel()
                                }}"/>
                     ` : nothing}
-                    <button class="views-button" title="${chromeText('savedViews')}" aria-label="${chromeText('savedViews')}"
+                    <button class="views-button ${activeNow ? 'views-button--active' : ''}"
+                            title="${activeNow ? chromeTextf('savedViewsActive', { name: activeNow.name }) : chromeText('savedViews')}"
+                            aria-label="${activeNow ? chromeTextf('savedViewsActive', { name: activeNow.name }) : chromeText('savedViews')}"
                             @mousedown="${this.keepFocus}"
                             @click="${(e: Event) => {
                                 e.stopPropagation()
@@ -592,6 +608,7 @@ export class MateuFilterBar extends LitElement {
                         <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24">
                             <path fill="currentColor" d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/>
                         </svg>
+                        ${activeNow ? html`<span class="views-button-name">${activeNow.name}</span>` : nothing}
                     </button>
                 </div>
                 ${this.renderPanel()}
@@ -693,6 +710,28 @@ export class MateuFilterBar extends LitElement {
             padding: 0.15rem 0.3rem;
             color: var(--lumo-secondary-text-color, #555);
             line-height: 1;
+        }
+        .views-button--active {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--lumo-primary-text-color, #1676f3);
+        }
+        .views-button-name {
+            font-size: var(--lumo-font-size-s, 0.875rem);
+            max-width: 12rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .view-check {
+            display: inline-block;
+            width: 1.1em;
+            flex-shrink: 0;
+            color: var(--lumo-primary-text-color, #1676f3);
+        }
+        .view-row--active .view-name {
+            font-weight: 600;
         }
         .views-button:hover {
             color: var(--lumo-primary-text-color, #1676f3);

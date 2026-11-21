@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+    activeView,
+    sameViewValues,
     defaultView,
     deleteView,
     listSavedViews,
@@ -83,5 +85,19 @@ describe('savedViewsStore', () => {
         expect(listSavedViews(SCOPE)).toEqual([])
         saveView(SCOPE, { name: 'A', values: { a: 1 } })
         expect(listSavedViews(SCOPE)).toHaveLength(1)
+    })
+
+    it('tells which saved view the current conditions are', () => {
+        const views = [
+            { name: 'Kettles', values: { searchText: 'kettle' } },
+            { name: 'Open EU', values: { status: ['Open', 'Draft'], region: 'EU' } },
+        ]
+        expect(activeView(views, { searchText: 'kettle' })?.name).toBe('Kettles')
+        // order of keys and of a multi-value, unset keys and the URL's comma-joined form do not matter
+        expect(activeView(views, { region: 'EU', status: 'Draft,Open', price_from: '' })?.name).toBe('Open EU')
+        expect(activeView(views, { searchText: 'kettles' })).toBeUndefined()
+        // nothing applied: no view is on, not even one saved with empty values
+        expect(activeView([{ name: 'Empty', values: {} }], {})).toBeUndefined()
+        expect(sameViewValues({ a: ['x', 'y'] }, { a: 'y,x' })).toBe(true)
     })
 })

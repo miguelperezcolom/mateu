@@ -123,10 +123,73 @@ export function currentViewValues(filterValues, searchText) {
   return values
 }
 
-/** The options of the views menu (oj-menu): the saved ones (★ the default one) + actions. */
-export function viewsMenuOf(scope, storage) {
-  const views = listSavedViews(scope, storage).map((v) => ({ value: 'view:' + v.name, label: (v.isDefault ? '★ ' : '') + v.name }))
+/**
+ * A condition set in a comparable form: unset values (null, '', []) dropped, keys sorted, a multi-value
+ * as its sorted values joined by commas (a list saved from the bar and the same list read back from
+ * the URL, `a,b`, are the same condition). The web renderer runs the same rule (savedViewsStore.ts).
+ */
+function isUnsetValue(v) {
+  return v === undefined || v === null || v === '' || (Array.isArray(v) && !v.length)
+}
+
+function listOfValue(v) {
+  if (Array.isArray(v)) return v.map(String)
+  if (typeof v === 'string' && v.includes(',')) return v.split(',')
+  return null
+}
+
+const byText = (a, b) => a.localeCompare(b)
+
+function comparableValues(values) {
+  const entries = Object.keys(values || {})
+    .filter((k) => !isUnsetValue(values[k]))
+    .map((k) => {
+      const list = listOfValue(values[k])
+      return [k, list ? list.map((x) => x.trim()).filter(Boolean).sort(byText).join(',') : String(values[k])]
+    })
+    .sort((a, b) => byText(a[0], b[0]))
+  return JSON.stringify(entries)
+}
+
+export function sameViewValues(a, b) { return comparableValues(a) === comparableValues(b) }
+
+/** The saved view the current conditions ARE (null when nothing is applied or none matches). */
+export function activeViewOf(views, values) {
+  if (comparableValues(values) === '[]') return null
+  return (views || []).find((v) => sameViewValues(v.values, values)) || null
+}
+
+/** What the views button says: the active view's name, else its own label. */
+export function viewsButtonLabelOf(scope, values, fallback, storage) {
+  const active = activeViewOf(listSavedViews(scope, storage), values)
+  return active ? active.name : fallback
+}
+
+/** Marks (or, when it already is, unmarks) a view as the one the listing opens with. */
+export function toggleDefaultView(scope, name, storage) {
+  const all = readAll(VIEWS_KEY, storage)
+  all[scope] = (all[scope] || []).map((v) => ({ ...v, isDefault: v.name === name ? !v.isDefault : false }))
+  writeAll(VIEWS_KEY, all, storage)
+}
+
+/**
+ * The options of the views menu (oj-menu): the saved ones (✓ the one the listing is showing, ★ the
+ * default one) + actions. With a view on, the menu also lets the user make it the default (or stop
+ * opening with it) and delete it — what an option of an oj-menu cannot carry inline.
+ */
+export function viewsMenuOf(scope, storage, current) {
+  const saved = listSavedViews(scope, storage)
+  const active = current ? activeViewOf(saved, current) : null
+  const views = saved.map((v) => ({
+    value: 'view:' + v.name,
+    label: (active && active.name === v.name ? '✓ ' : '') + (v.isDefault ? '★ ' : '') + v.name,
+  }))
+  const onActive = active ? [
+    { value: 'default', label: chromeText(active.isDefault ? 'dontOpenWithView' : 'openWithView') },
+    { value: 'delete', label: chromeText('deleteViewNamed', { name: active.name }) },
+  ] : []
   return views.concat([{ value: 'save', label: chromeText('saveCurrentView') }])
+    .concat(onActive)
     .concat(views.length ? [{ value: 'clear', label: chromeText('clearFilters') }] : [])
 }
 

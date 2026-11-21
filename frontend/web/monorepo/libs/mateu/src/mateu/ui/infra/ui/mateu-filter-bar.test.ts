@@ -206,12 +206,29 @@ describe('mateu-filter-bar (smart search)', () => {
             { name: 'Open from Jan', values: { status: 'OPEN', arrival_from: '2026-01-01' } },
         ])
         await bar.updateComplete
+        // saved: the panel closes and the views button names the view the listing is showing
+        expect(bar.shadowRoot!.querySelector('.views-panel')).toBeNull()
+        expect($(bar, '.views-button-name').textContent).toBe('Open from Jan')
+        expect($(bar, '.views-button').getAttribute('aria-label')).toContain('Open from Jan')
+        ;($(bar, '.views-button') as HTMLButtonElement).click()
+        await bar.updateComplete
+        expect($(bar, '.view-row').getAttribute('aria-current')).toBe('true')
+        expect($(bar, '.view-check').textContent).toBe('✓')
         events = []
         ;(bar.shadowRoot!.querySelector('.view-name') as HTMLElement).click()
         expect(events[0].type).toBe('filter-reset-requested')
         expect(events.filter(e => e.type === 'value-changed').map(e => e.detail))
             .toEqual([{ fieldId: 'status', value: 'OPEN' }, { fieldId: 'arrival_from', value: '2026-01-01' }])
         expect(events.at(-1)!.type).toBe('search-requested')
+    })
+
+    it('saved views: no view is named on the button while the conditions are not one of them', async () => {
+        saveView(window.location.pathname, { name: 'Closed', values: { status: 'CLOSED' } })
+        const bar = await mount({ status: 'OPEN' })
+        expect(bar.shadowRoot!.querySelector('.views-button-name')).toBeNull()
+        ;($(bar, '.views-button') as HTMLButtonElement).click()
+        await bar.updateComplete
+        expect($(bar, '.view-row').getAttribute('aria-current')).toBe('false')
     })
 
     it('the saved-view star is a named toggle drawn from the icon set (W-V-GLYPHS)', async () => {

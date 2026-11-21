@@ -281,15 +281,16 @@ define([
       $application.variables.mateuListing = listingSummary;
       $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
       // DEFAULT VIEW (★ in the views menu): a listing opened with no filters in the URL
-      // opens with it — via the same route with its query, the URL-filters path
-      if (listingSummary && String(route).indexOf('?') < 0) {
+      // opens with it — via the same route with its query, the URL-filters path. Navigated HERE,
+      // in this chain: firing application:mateuNavigate and awaiting it waited for a chain queued
+      // behind this one (the screen stayed loading for ever), and on a fresh load nobody heard it.
+      // (target.full: `route` is the bare path by now, so it never said «no filters» — it looped)
+      if (listingSummary && !target.full.includes('?')) {
         const preferred = bridge.defaultView(bridge.listingScope());
         if (preferred) {
-          await Actions.fireEvent(context, {
-            name: 'application:mateuNavigate',
-            payload: { route: bridge.viewRouteOf(bridge.listingScope(), preferred.values), force: true },
-          });
-          return;
+          return this.navigate(context,
+            { event: { route: bridge.viewRouteOf(bridge.listingScope(), preferred.values) }, force: true, fromUrl },
+            startsLoading);
         }
       }
       // another screen, another table: the previous one's selection is not inherited
