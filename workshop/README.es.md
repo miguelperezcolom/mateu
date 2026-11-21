@@ -10,7 +10,7 @@ taller **tecleas**, no miras: cada lab termina con algo funcionando en tu máqui
 C# (.NET) o Python. Los labs que no dependen del lenguaje (renderers en el móvil y el escritorio,
 YAML, IA) son los mismos para los tres; solo cambian los labs de código.
 
-**Versión de Mateu**: todos los labs fijan **3.0.0**, la versión que usan los
+**Versión de Mateu**: todos los labs fijan **3.0.2**, la versión que usan los
 [starters](../starters). Ningún lab compila Mateu desde el código fuente.
 
 ## Agenda
@@ -64,7 +64,7 @@ una vez los dos renderers web; tu app sirve aquel al que apunte `MATEU_UI`:
 
 **Itinerario Python**: **Python 3.11+** y `pip`. Descarga también los renderers
 (`workshop/tools/fetch-renderers.sh`) y calienta la caché de paquetes:
-`pip download -d /tmp/wheels mateu-ui==3.0.0 fastapi uvicorn pytest httpx "pyjwt[crypto]"`.
+`pip download -d /tmp/wheels mateu-ui==3.0.2 fastapi uvicorn pytest httpx "pyjwt[crypto]"`.
 
 **Compruébalo todo**: [lab 00 · Comprobación del entorno](labs/00-setup/guide.es.md), cinco
 minutos, la misma lista con el comando que demuestra cada punto.
