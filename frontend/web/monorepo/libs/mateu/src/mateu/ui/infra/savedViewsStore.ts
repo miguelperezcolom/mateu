@@ -72,14 +72,25 @@ export const defaultView = (scope: string): SavedView | undefined =>
  * read back from the URL (`a,b`) are the same condition. The same rule runs in the Redwood renderer
  * (apps/redwood/poc/prefs.mjs, sameViewValues).
  */
+const isUnset = (v: unknown): boolean =>
+    v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0)
+
+const listOf = (v: unknown): string[] | null => {
+    if (Array.isArray(v)) return v.map(String)
+    if (typeof v === 'string' && v.includes(',')) return v.split(',')
+    return null
+}
+
+const byText = (a: string, b: string): number => a.localeCompare(b)
+
 const comparable = (values: Record<string, unknown> | undefined): string => {
     const entries = Object.entries(values ?? {})
-        .filter(([, v]) => v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && v.length === 0))
+        .filter(([, v]) => !isUnset(v))
         .map(([k, v]): [string, string] => {
-            const list = Array.isArray(v) ? v.map(String) : typeof v === 'string' && v.includes(',') ? v.split(',') : null
-            return [k, list ? list.map(s => s.trim()).filter(Boolean).sort().join(',') : String(v)]
+            const list = listOf(v)
+            return [k, list ? list.map(s => s.trim()).filter(Boolean).sort(byText).join(',') : String(v)]
         })
-        .sort(([a], [b]) => a.localeCompare(b))
+        .sort(([a], [b]) => byText(a, b))
     return JSON.stringify(entries)
 }
 

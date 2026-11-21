@@ -128,15 +128,26 @@ export function currentViewValues(filterValues, searchText) {
  * as its sorted values joined by commas (a list saved from the bar and the same list read back from
  * the URL, `a,b`, are the same condition). The web renderer runs the same rule (savedViewsStore.ts).
  */
+function isUnsetValue(v) {
+  return v === undefined || v === null || v === '' || (Array.isArray(v) && !v.length)
+}
+
+function listOfValue(v) {
+  if (Array.isArray(v)) return v.map(String)
+  if (typeof v === 'string' && v.includes(',')) return v.split(',')
+  return null
+}
+
+const byText = (a, b) => a.localeCompare(b)
+
 function comparableValues(values) {
   const entries = Object.keys(values || {})
-    .filter((k) => { const v = values[k]; return v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && !v.length) })
+    .filter((k) => !isUnsetValue(values[k]))
     .map((k) => {
-      const v = values[k]
-      const list = Array.isArray(v) ? v.map(String) : (typeof v === 'string' && v.indexOf(',') >= 0 ? v.split(',') : null)
-      return [k, list ? list.map((x) => x.trim()).filter(Boolean).sort().join(',') : String(v)]
+      const list = listOfValue(values[k])
+      return [k, list ? list.map((x) => x.trim()).filter(Boolean).sort(byText).join(',') : String(values[k])]
     })
-    .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+    .sort((a, b) => byText(a[0], b[0]))
   return JSON.stringify(entries)
 }
 

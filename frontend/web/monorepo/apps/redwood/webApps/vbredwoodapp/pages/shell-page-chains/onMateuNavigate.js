@@ -285,7 +285,7 @@ define([
       // in this chain: firing application:mateuNavigate and awaiting it waited for a chain queued
       // behind this one (the screen stayed loading for ever), and on a fresh load nobody heard it.
       // (target.full: `route` is the bare path by now, so it never said «no filters» — it looped)
-      if (listingSummary && target.full.indexOf('?') < 0) {
+      if (listingSummary && !target.full.includes('?')) {
         const preferred = bridge.defaultView(bridge.listingScope());
         if (preferred) {
           return this.navigate(context,

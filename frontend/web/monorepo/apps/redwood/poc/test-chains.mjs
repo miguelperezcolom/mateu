@@ -313,7 +313,7 @@ test('onMateuNavigate: the default saved view is navigated in the chain, never b
   assert.doesNotMatch(chain, /fireEvent\([^)]*application:mateuNavigate/, 'the chain fires application:mateuNavigate (a chain queued behind itself)')
   assert.match(chain, /defaultView\(bridge\.listingScope\(\)\)[\s\S]{0,200}return this\.navigate\(context/, 'the default view is applied by navigating in this chain')
   // the bare `route` never carries the query: deciding on it re-applied the view for ever
-  assert.match(chain, /listingSummary && target\.full\.indexOf\('\?'\) < 0/, 'the «no filters in the URL» test reads the full target')
+  assert.match(chain, /listingSummary && !target\.full\.includes\('\?'\)/, 'the «no filters in the URL» test reads the full target')
 })
 
 test('onMateuNavigate: the item overview template (mateuItemOv) is what turns iopOn on — not the reverted mateuIop', () => {
