@@ -111,6 +111,17 @@ for s in "${@:-spring-mvc spring-webflux quarkus micronaut helidon-mp yaml stati
       [[ "$(load "$one" "$p" /products)" =~ $(products_of "$one") ]] || { echo "✘ $one: no products screen"; ok=0; }
     fi
     page=$(curl -s -m 5 "http://localhost:$p/" || true)
+    # What a browser does next: fetch the page's scripts and styles, compressed. A native image that
+    # lacks an option can still answer them while logging UnsupportedFeatureError — Micronaut on
+    # Linux without -H:+SharedArenaSupport did, and real browsers never finished loading (curl alone
+    # did not notice).
+    for asset in $(echo "$page" | grep -oE '(src|href)="/[^"]+\.(js|css)"' | sed -E 's/^(src|href)="//; s/"$//' | head -6); do
+      curl -s -m 10 -o /dev/null -H 'Accept-Encoding: gzip, deflate, br, zstd' "http://localhost:$p$asset" || true
+    done
+    sleep 1
+    if grep -q "UnsupportedFeatureError" "$log"; then
+      echo "✘ $one: serving the page's assets logged UnsupportedFeatureError:"; grep -m3 "UnsupportedFeatureError" "$log"; ok=0
+    fi
     kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null
     if [[ $ok == 1 && "$page" == *"<html"* ]]; then
       echo "✔ $one (port $p): page served; shell opens on home; home and products answered"
