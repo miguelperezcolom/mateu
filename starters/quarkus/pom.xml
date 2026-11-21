@@ -37,30 +37,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-arc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest</artifactId>
-        </dependency>
-        <!-- the Mateu wire is Jackson (the adapter declares it `provided`) -->
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest-jackson</artifactId>
-        </dependency>
-
-        <!-- Mateu runtime for Quarkus -->
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>mateu-quarkus</artifactId>
-            <version>${mateu.version}</version>
-        </dependency>
-        <!-- The web renderer (served as static assets by the app) -->
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>mateu-vaadin</artifactId>
-            <version>${mateu.version}</version>
+            <groupId>io.quarkiverse.mateu</groupId>
+            <artifactId>quarkus-mateu</artifactId>
+            <version>1.1.0</version>
         </dependency>
         <!-- The generated controllers use Lombok -->
         <dependency>

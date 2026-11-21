@@ -8,6 +8,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Changed — the Quarkus starter is the quarkus.io blog sample, on the Quarkiverse extension
+
+- `starters/quarkus` depends on **`io.quarkiverse.mateu:quarkus-mateu`** (1.1.0: the runtime, REST + Jackson, the
+  Vaadin renderer and native support in one dependency) instead of `mateu-quarkus` + `mateu-vaadin` + Quarkus REST. It
+  is the sample of the Mateu post on the Quarkus blog: an `@ApplicationScoped` `ProductStore` injected into
+  `Products`, a `Hello` page whose button calls a CDI bean (`Greetings`), `@Status` on the product's status, and the
+  shell opens on `hello`. The generator's dashboard template brings its own `Products`/`ProductStore` (it reads the
+  store statically), and the templates that replace the shell drop `Hello`/`Greetings`. The Quarkus setup page now
+  recommends the extension.
+
 ### Added — GraalVM native image on Spring Boot and Micronaut
 
 - **A Mateu app builds as a native executable with no reflection configuration**:
