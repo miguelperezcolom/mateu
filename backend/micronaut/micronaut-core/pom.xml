@@ -27,10 +27,10 @@
          consumes them. Bumped from the 4.9.x line as a COORDINATED platform bump (adapter + every
          consumer pom) to clear the micronaut-context / micronaut-http-server advisories
          (dependabot #302, #740) - a lone bump of the adapter broke on NullMarked. -->
-    <micronaut.core.version>4.10.31</micronaut.core.version>
-    <micronaut.serialization.version>2.16.2</micronaut.serialization.version>
-    <micronaut.reactor.version>3.9.1</micronaut.reactor.version>
-    <micronaut.test.version>4.10.3</micronaut.test.version>
+    <micronaut.core.version>5.2.25</micronaut.core.version>
+    <micronaut.serialization.version>3.2.6</micronaut.serialization.version>
+    <micronaut.reactor.version>4.3.0</micronaut.reactor.version>
+    <micronaut.test.version>5.2.0</micronaut.test.version>
   </properties>
 
   <profiles>
