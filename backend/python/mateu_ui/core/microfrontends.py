@@ -249,15 +249,65 @@ def _owns(base: _Url, target: _Url) -> bool:
     return target_path == base_path or target_path.startswith(base_path + "/")
 
 
+def remotes_from_env() -> list[RemoteDescriptor]:
+    """Read ``MATEU_REMOTES`` and the per-remote ``MATEU_REMOTES_<ID>_*`` variables and return
+    the resulting :class:`~mateu_ui.uidl.RemoteDescriptor` list (Java's
+    ``mateu.remotes=…`` / ``mateu.remotes.<id>.base-url=…``).
+
+    The remote ID is upper-cased and every ``-`` replaced with ``_`` when composing the variable
+    name: ``order-service`` → ``MATEU_REMOTES_ORDER_SERVICE_BASE_URL``.
+
+    A remote whose base URL is missing, empty or invalid is skipped with a warning; malformed
+    timeouts are ignored (the remote's default is used instead).  Empty or whitespace-only entries
+    in ``MATEU_REMOTES`` are silently skipped."""
+    ids_raw = os.environ.get("MATEU_REMOTES", "").strip()
+    if not ids_raw:
+        return []
+    out: list[RemoteDescriptor] = []
+    for raw_id in ids_raw.split(","):
+        remote_id = raw_id.strip()
+        if not remote_id:
+            continue
+        env_key = remote_id.upper().replace("-", "_")
+        base_url = os.environ.get(f"MATEU_REMOTES_{env_key}_BASE_URL", "").strip() or None
+        if not base_url:
+            TRACE.warning(
+                "Remote '%s' listed in MATEU_REMOTES has no MATEU_REMOTES_%s_BASE_URL — skipped",
+                remote_id, env_key,
+            )
+            continue
+        timeout_ms: int | None = None
+        raw_timeout = os.environ.get(f"MATEU_REMOTES_{env_key}_TIMEOUT_MS", "").strip()
+        if raw_timeout:
+            try:
+                parsed = int(raw_timeout)
+                timeout_ms = parsed if parsed > 0 else None
+            except (TypeError, ValueError):
+                TRACE.warning(
+                    "Remote '%s': MATEU_REMOTES_%s_TIMEOUT_MS=%r is not a valid integer — ignored",
+                    remote_id, env_key, raw_timeout,
+                )
+        identity: str | None = os.environ.get(f"MATEU_REMOTES_{env_key}_IDENTITY", "").strip() or None
+        out.append(RemoteDescriptor(id=remote_id, base_url=base_url,
+                                    timeout_ms=timeout_ms, identity=identity))
+    return out
+
+
 class DefaultRemoteRegistry(RemoteRegistry):
-    """Mateu's own registry: the remotes the :class:`RemoteCatalogSupplier` subclasses return, with
-    the ones passed to ``add_mateu(remotes=[...])`` on top (same id = the explicit one wins). A url
-    belongs to a remote when it has the same scheme, host and port and its path is the remote's or
-    under it (``https://a.com/x`` owns ``https://a.com/x/y``, not ``https://a.com/xy``)."""
+    """Mateu's own registry: the remotes from the environment (``MATEU_REMOTES…``) at the lowest
+    precedence, then the :class:`RemoteCatalogSupplier` subclasses, then the ones passed to
+    ``add_mateu(remotes=[...])`` on top (same id = the explicit one wins). A url belongs to a remote
+    when it has the same scheme, host and port and its path is the remote's or under it
+    (``https://a.com/x`` owns ``https://a.com/x/y``, not ``https://a.com/xy``)."""
 
     def __init__(self, suppliers: Iterable[RemoteCatalogSupplier] = (),
-                 remotes: Iterable[RemoteDescriptor] = ()):
+                 remotes: Iterable[RemoteDescriptor] = (),
+                 env_remotes: Iterable[RemoteDescriptor] | None = None):
         self._remotes: dict[str, RemoteDescriptor] = {}
+        # Lowest precedence: environment-configured remotes registered first so that
+        # supplier-provided and explicit remotes can overwrite them.
+        for remote in (remotes_from_env() if env_remotes is None else env_remotes):
+            self._register(remote)
         for supplier in suppliers:
             try:
                 supplied = supplier.remotes()
@@ -1225,5 +1275,6 @@ __all__ = [
     "RemoteIdentityStrategies",
     "ServerResolution",
     "micro_frontend_id",
+    "remotes_from_env",
     "stamp_fragment_cache",
 ]
