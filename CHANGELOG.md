@@ -23,6 +23,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **Redwood: the last row of a listing was cut off with the bottom navigation** (an app whose menu
+  is the tab bar at the bottom). Spectra's content card has `margin: -40px 0`; the content area
+  zeroed its bottom padding when the bottom bar is shown, so the page was 40px shorter than what it
+  drew. It now keeps 40px there.
+
 - **YAML-declared mounts in a native image**: `SpecsIndex` found no `type: UI` file there (it walked
   `file:` and `jar:` resources only; a native image serves them as `resource:`), so a YAML app had no
   mount and every screen was "Page not found".
