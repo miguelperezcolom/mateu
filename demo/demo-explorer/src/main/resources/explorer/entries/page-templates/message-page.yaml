@@ -1,0 +1,15 @@
+id: message-page
+area: page-templates
+group: templates
+title: Message page
+covers: [template:MessagePage]
+description: |
+  A `type: Form` with `template: {type: MessagePage}`: one card over a full-bleed illustrated
+  background, with no app chrome — for a confirmation, a sign-in step or an error. The form's
+  `title`/`subtitle` head the card, its `content` is the body, its `toolbar` the actions and `footer`
+  the links under them. `background` picks the tone. No server code: the button is a `RouteLink`.
+examples:
+  - title: The whole page
+    route: x/page-templates/message-page
+pages:
+  - {route: x/page-templates/message-page, layout: explorer/page-templates/message-page/message.yaml}

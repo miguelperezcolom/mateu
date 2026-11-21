@@ -10,7 +10,7 @@ with two different design systems, on a phone, in a desktop app, for an AI agent
 Python. The language-neutral labs (renderers on the phone and the desktop, YAML, AI) are the same for
 the three tracks; only the code labs differ.
 
-**Mateu version**: every lab is pinned to **3.0.0** — the release the
+**Mateu version**: every lab is pinned to **3.0.2** — the release the
 [starters](../starters) use. Nothing in the labs builds Mateu from source.
 
 ## Agenda
@@ -64,7 +64,7 @@ renderers once — your app serves the one you point `MATEU_UI` at:
 
 **Python track**: **Python 3.11+** and `pip`. Download the renderers too
 (`workshop/tools/fetch-renderers.sh`), and warm the package cache:
-`pip download -d /tmp/wheels mateu-ui==3.0.0 fastapi uvicorn pytest httpx "pyjwt[crypto]"`.
+`pip download -d /tmp/wheels mateu-ui==3.0.2 fastapi uvicorn pytest httpx "pyjwt[crypto]"`.
 
 **Check it all**: [lab 00 · Setup check](labs/00-setup/guide.md) — five minutes, the same list with
 the command that proves each item.
