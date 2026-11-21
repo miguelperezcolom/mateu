@@ -63,7 +63,7 @@ Annotation processors only see the **sources of the module being compiled**. So:
 | Spring Boot MVC | `mateu-mvc` | `mateu-annotation-processor-mvc` | `spring-boot-starter-webmvc` |
 | Spring Boot WebFlux | `mateu-webflux` | `mateu-annotation-processor-webflux` | `spring-boot-starter-webflux` |
 | Quarkus | `mateu-quarkus` | `mateu-annotation-processor-quarkus` | `quarkus-rest-jackson` (Jackson wire) |
-| Micronaut | `mateu-micronaut` | `mateu-annotation-processor-micronaut` | static-resources mapping `classpath:static` in `application.properties` |
+| Micronaut | `mateu-micronaut` | `mateu-annotation-processor-micronaut` | nothing since 3.0.2 (before: a static-resources mapping `classpath:static` in `application.properties`); Micronaut 5 needs Java 25 and Maven 3.9.10+ |
 | Helidon MP | `mateu-helidon-mp` | `mateu-annotation-processor-helidon-mp` | `META-INF/beans.xml` + `jersey-media-json-jackson` |
 
 Plus ONE renderer jar, served as static assets: `io.mateu:mateu-vaadin` (default) or

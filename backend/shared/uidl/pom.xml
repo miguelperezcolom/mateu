@@ -202,6 +202,8 @@
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>annotations</artifactId>
             <version>3.0.1</version>
+            <!-- build-time only, like in the parent: never on an app's runtime classpath (LGPL) -->
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

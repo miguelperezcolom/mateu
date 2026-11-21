@@ -120,6 +120,42 @@ await atest('federation: expanded remote menus carry the prefix, deep links and 
   }
 })
 
+await atest('federation: a remote whose own routes already live under the mount prefix is asked for them as they are', async () => {
+  // RemoteMenu("/_intranet") in a field named `intranet`: the server declares routePrefix /intranet, and the remote's
+  // own menu is a group `intranet` whose leaves are /intranet/avisos… — its routes, not the shell's. The splice keeps
+  // them (they are already under the prefix) and the requests must keep them too: taking the prefix off asked the
+  // remote for /avisos, and it answered NotFound (the Vaadin renderer sends them as they are).
+  const original = globalThis.fetch
+  const sent = []
+  globalThis.fetch = async (url, init) => {
+    sent.push({ url: String(url), body: init && init.body ? JSON.parse(init.body) : null })
+    if (String(url).startsWith('http://intra.test/_intranet/mateu/v3/sync/')) {
+      return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({ commands: [], messages: [], fragments: [{ component: { type: 'ClientSide', metadata: { type: 'App', route: '', homeRoute: '/intranet/inicio', serverSideType: 'ch.IntranetHome',
+        menu: [{ label: 'Intranet', route: '/intranet', path: '/intranet', submenus: [
+          { label: 'Inicio', route: '/intranet/inicio', path: '/intranet/inicio' },
+          { label: 'Avisos', route: '/intranet/avisos', path: '/intranet/avisos' }] }] } } }] }) }
+    }
+    throw new TypeError('Failed to fetch')
+  }
+  try {
+    const menu = await expandRemoteMenus([
+      { label: 'Intranet', remote: true, baseUrl: 'http://intra.test/_intranet', route: '', path: '/intranet', routePrefix: '/intranet', shellLabel: true },
+    ])
+    const leaves = (o) => (o.submenus || []).flatMap((c) => (c.submenus || []).length ? leaves(c) : [c.route])
+    assert.deepEqual(leaves(menu[0]), ['/intranet/inicio', '/intranet/avisos'])
+    assert.equal(remoteRouteOf('/intranet/avisos').baseUrl, 'http://intra.test/_intranet')
+    assert.equal(routeForRemote('http://intra.test/_intranet', '/intranet/avisos'), '/intranet/avisos')
+    // a deep link under one of its routes, too
+    assert.equal(routeForRemote('http://intra.test/_intranet', '/intranet/avisos/aviso-1'), '/intranet/avisos/aviso-1')
+    sent.length = 0
+    await callMateu('http://intra.test/_intranet', { route: '/intranet/avisos', actionId: '' }, { quiet: true })
+    assert.equal(sent[0].url, 'http://intra.test/_intranet/mateu/v3/sync/intranet/avisos')
+    assert.equal(sent[0].body.route, '/intranet/avisos')
+  } finally {
+    globalThis.fetch = original
+  }
+})
+
 await atest('federation: a fresh deep link to a remote screen loads the content from the remote the shell names', async () => {
   const original = globalThis.fetch
   const sent = []

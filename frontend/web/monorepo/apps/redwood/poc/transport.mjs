@@ -1131,6 +1131,31 @@ const remoteRoutes = new Map()
 // knows its routes WITHOUT the prefix: it is taken off every request sent to that base.
 const remotePrefixes = new Map()
 
+// The routes a remote answers with, as IT knows them (its menu's, groups included), by base. A remote's own
+// routes may already live under the mount's prefix — a RemoteMenu in a field named like the remote's own top
+// group: routePrefix /intranet, routes /intranet/avisos — and then they are spliced as they are and must be
+// asked for as they are: taking the prefix off asked the remote for /avisos, which it does not have.
+const remoteNativeRoutes = new Map()
+
+function nativeRouteOf(base, route) {
+  const own = remoteNativeRoutes.get(String(base || ''))
+  if (!own || !own.size) return false
+  const path = String(route == null ? '' : route).split('?')[0]
+  const lead = path[0] === '/' ? path : '/' + path
+  for (const r of own) {
+    if (lead === r || lead.indexOf(r + '/') === 0) return true
+  }
+  return false
+}
+
+function registerNativeRoute(base, route) {
+  const r = String(route || '').split('?')[0].replace(/\/+$/, '')
+  if (!base || !r || r === '/') return
+  const key = String(base)
+  if (!remoteNativeRoutes.has(key)) remoteNativeRoutes.set(key, new Set())
+  remoteNativeRoutes.get(key).add(r[0] === '/' ? r : '/' + r)
+}
+
 /** `route` with `prefix` in front, unless it already lives under it (or there is no prefix). */
 export function prefixedRoute(prefix, route) {
   const p = String(prefix || '').replace(/\/+$/, '')
@@ -1148,6 +1173,8 @@ export function routeForRemote(base, route) {
   const prefix = remotePrefixes.get(String(base || ''))
   const r = String(route == null ? '' : route)
   if (!prefix) return r
+  // one of the remote's own routes (or under one): it already carried the prefix, so it keeps it
+  if (nativeRouteOf(base, r)) return r
   const lead = r[0] === '/' ? r : '/' + r
   if (lead === prefix || lead.indexOf(prefix + '?') === 0) return lead.slice(prefix.length) || ''
   return lead.indexOf(prefix + '/') === 0 ? lead.slice(prefix.length) : r
@@ -1258,6 +1285,8 @@ function adoptRemote(menu, option, app) {
     if (child.baseUrl) continue
     // under the mount's prefix in the shell (see remotePrefixes); the raw route stays registered too
     const raw = child.route || child.path || ''
+    // a raw route already under the prefix is the remote's own: asked for as it is (see remoteNativeRoutes)
+    if (prefix && raw && prefixedRoute(prefix, raw) === raw) registerNativeRoute(option.baseUrl, raw)
     if (prefix) {
       if (child.route) child.route = prefixedRoute(prefix, child.route)
       if (child.path) child.path = prefixedRoute(prefix, child.path)

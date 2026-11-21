@@ -22,7 +22,7 @@ Code and the tools that read `AGENTS.md` get the same guidance.
 | [`spring-mvc`](spring-mvc) | Spring Boot 4 (MVC), Java 21 | `mvn spring-boot:run` | http://localhost:8080 |
 | [`spring-webflux`](spring-webflux) | Spring Boot 4 (WebFlux), Java 21 | `mvn spring-boot:run` | http://localhost:8080 |
 | [`quarkus`](quarkus) | Quarkus 3, Java 21 | `mvn quarkus:dev` | http://localhost:8080 |
-| [`micronaut`](micronaut) | Micronaut 4, Java 21 | `mvn mn:run` | http://localhost:8080 |
+| [`micronaut`](micronaut) | Micronaut 5, Java 25 | `mvn mn:run` | http://localhost:8080 |
 | [`helidon-mp`](helidon-mp) | Helidon MP 4, Java 21 | `mvn package && java -jar target/mateu-starter-helidon-mp.jar` | http://localhost:8080 |
 | [`dotnet`](dotnet) | ASP.NET Core 10 (C#, .NET 10 SDK) | `dotnet run` | sync API on http://localhost:8080; the page too with `MATEU_UI=<mateu-vaadin jar or its static/>` |
 | [`python`](python) | FastAPI (Python 3.11+) | `pip install -r requirements.txt && uvicorn main:app --port 8080` | sync API on http://localhost:8080; the page too with `MATEU_UI=<mateu-vaadin jar or its static/>` |

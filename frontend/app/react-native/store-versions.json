@@ -1,0 +1,5 @@
+{
+  "$comment": "The app version (app.json expo.version) LIVE in each store. scripts/ota-store-check.mjs warns on a release whose over-the-air update targets a version no store has yet. Update `android` when a Play build goes live; the release check reads the App Store's own version (`ios` is its offline fallback).",
+  "android": "1.0.0",
+  "ios": "1.0.0"
+}

@@ -29,6 +29,12 @@
 
 
     <dependencies>
+    <!-- Lombok is build-time only (provided): it must not reach an app's classpath or processor path -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mateu-uidl</artifactId>
