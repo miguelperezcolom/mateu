@@ -26,7 +26,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - **Lombok no longer reaches apps.** `mateu-dtos` declared it with compile scope, so it landed on
   every app's runtime classpath and — through the `mateu-annotation-processor-*` jars — on its
   annotation processor path, where it ran over the app's own sources. It is now `provided`
-  everywhere; an app that uses Lombok declares it itself, as usual.
+  everywhere; an app that uses Lombok declares it itself, as usual. **Upgrade note**: an app whose
+  code uses Lombok but lists it only on `annotationProcessorPaths` (not as a dependency) compiled
+  thanks to that leak and now fails with `package lombok does not exist` — add
+  `org.projectlombok:lombok` with `<scope>provided</scope>` (Spring Boot manages its version).
 - **`com.google.code.findbugs:annotations` (LGPL) no longer reaches apps.** The parent pom and
   `mateu-uidl` declared it with compile scope; no Mateu source uses it. Now `provided`.
 - The controller generated for Micronaut no longer makes javac warn "@Nullable on primitive types"
