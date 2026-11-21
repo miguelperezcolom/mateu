@@ -21,7 +21,22 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   validation, YAML screens, Vaadin and Redwood); CI workflow `native.yml` builds both native and
   smoke-tests them. Docs: `deploy/native-image.md`.
 
+### Changed — saved views say which one is on (Vaadin and Redwood)
+
+- **The listing names the saved view it is showing**: the views button reads the view's name
+  («Kettles») instead of «Views» while the conditions are exactly that view's (same rule in both
+  renderers: unset values dropped, key order and a multi-value's order or comma-joined form
+  ignored), and the list marks it with ✓. Saving a view shows a toast («View “Kettles” saved»,
+  also announced to screen readers) and, on Vaadin, closes the panel so the button shows it.
+- **Redwood can now delete a view and make it the default from the menu** (with a view on: «Open
+  with this view» / «Don’t open with this view», «Delete view …»), which Vaadin already offered.
+
 ### Fixed
+
+- **Redwood: a listing with a default saved view (★) never finished loading** when opened from the
+  menu: the chain re-applied the view for ever (it tested the bare route, which never carries the
+  query), each time through an awaited `mateuNavigate` event. It now tests the full target and
+  navigates in the chain itself.
 
 - **Redwood: the last row of a listing was cut off with the bottom navigation** (an app whose menu
   is the tab bar at the bottom). Spectra's content card has `margin: -40px 0`; the content area

@@ -658,6 +658,27 @@ test('columns: ordered ones first, the rest after in their order, hidden ones ou
   assert.equal(prefs.readColumnPrefs('/r', store), null, 'back to the defaults: the scope is forgotten')
 })
 
+test('saved views: the menu names the view the listing is showing and acts on it (default, delete)', () => {
+  const store = memoryStore()
+  prefs.saveView('/r', { name: 'Kettles', values: prefs.currentViewValues({}, 'kettle') }, store)
+  prefs.saveView('/r', { name: 'Open EU', values: { status: ['Open', 'Draft'], region: 'EU' } }, store)
+  // the URL's comma-joined list, key order and unset keys do not matter
+  assert.equal(prefs.activeViewOf(prefs.listSavedViews('/r', store), { region: 'EU', status: 'Draft,Open', x: '' }).name, 'Open EU')
+  assert.equal(prefs.activeViewOf(prefs.listSavedViews('/r', store), {}), null, 'nothing applied: no view is on')
+  assert.equal(prefs.viewsButtonLabelOf('/r', prefs.currentViewValues({}, 'kettle'), 'Views', store), 'Kettles')
+  assert.equal(prefs.viewsButtonLabelOf('/r', prefs.currentViewValues({}, 'kettles'), 'Views', store), 'Views')
+  const menu = prefs.viewsMenuOf('/r', store, prefs.currentViewValues({}, 'kettle'))
+  assert.deepEqual(menu.map((o) => o.label), ['✓ Kettles', 'Open EU', chromeText('saveCurrentView'),
+    chromeText('openWithView'), chromeText('deleteViewNamed', { name: 'Kettles' }), chromeText('clearFilters')])
+  prefs.toggleDefaultView('/r', 'Kettles', store)
+  assert.deepEqual(prefs.viewsMenuOf('/r', store, prefs.currentViewValues({}, 'kettle')).map((o) => o.label).slice(0, 4),
+    ['✓ ★ Kettles', 'Open EU', chromeText('saveCurrentView'), chromeText('dontOpenWithView')])
+  prefs.toggleDefaultView('/r', 'Kettles', store)
+  assert.equal(prefs.defaultView('/r', store), null, 'the toggle unmarks it again')
+  // no view on: no default/delete entries (they would not say which view)
+  assert.deepEqual(prefs.viewsMenuOf('/r', store, {}).map((o) => o.value), ['view:Kettles', 'view:Open EU', 'save', 'clear'])
+})
+
 test('saved views: a new default replaces the old one, saving a name again replaces it, the last one deleted forgets the scope', () => {
   const store = memoryStore()
   prefs.saveView('/r', { name: 'A', values: { x: 1 }, isDefault: true }, store)
