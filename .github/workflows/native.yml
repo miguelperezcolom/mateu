@@ -1,0 +1,54 @@
+name: Native image
+
+# Mateu apps built as GraalVM native executables: the Spring Boot and Micronaut starters, built with
+# GraalVM against this commit and smoke-tested like their JVM jars (starters/smoke-test.sh). What
+# makes them work is mateu-core's MateuNativeImageFeature + reachability metadata
+# (META-INF/native-image/io.mateu/mateu-core); Quarkus has its own extension (quarkus-mateu), tested
+# in its repository. Slow (two native builds), so not part of the required checks: a failure here is
+# a native regression to fix before the next release.
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'starters/spring-mvc/**'
+      - 'starters/micronaut/**'
+      - 'starters/smoke-test.sh'
+      - '.github/workflows/native.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'backend/**'
+      - 'starters/spring-mvc/**'
+      - 'starters/micronaut/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-starters:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: graalvm/setup-graalvm@60e76998d25690099182b796e99b8804da582d90 # v1.6.10
+        with:
+          java-version: '25'
+          distribution: 'graalvm-community'
+          cache: 'maven'
+
+      - name: Install the backend reactor (0.0.1-MATEU)
+        run: mvn -B -q install -Dmaven.test.skip -Dgpg.skip=true -Dmateu.api.enforce=false --file backend/pom.xml
+
+      - name: Spring Boot starter, native
+        run: mvn -B -Pnative native:compile -DskipTests -Dmateu.version=0.0.1-MATEU --file starters/spring-mvc/pom.xml
+
+      - name: Micronaut starter, native
+        run: mvn -B package -DskipTests -Dpackaging=native-image -Dmateu.version=0.0.1-MATEU --file starters/micronaut/pom.xml
+
+      - name: Boot both native executables and load their screens
+        run: NATIVE=true starters/smoke-test.sh spring-mvc micronaut

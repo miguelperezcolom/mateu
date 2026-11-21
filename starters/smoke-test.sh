@@ -8,6 +8,7 @@
 #
 #   starters/smoke-test.sh                 # all of them
 #   starters/smoke-test.sh spring-mvc      # just one
+#   NATIVE=true starters/smoke-test.sh spring-mvc micronaut   # their native executables
 set -uo pipefail
 cd "$(dirname "$0")"
 
@@ -21,6 +22,14 @@ port_of() {
 
 cmd_for() {
   local s=$1 p; p=$(port_of "$1")
+  # NATIVE=true: the native executables (native.yml builds them with GraalVM) instead of the jars
+  if [[ ${NATIVE:-} == true ]]; then
+    case $s in
+      spring-mvc) echo "$s/target/mateu-starter-$s --server.port=$p" ;;
+      micronaut) echo "micronaut/target/mateu-starter-micronaut -Dmicronaut.server.port=$p" ;;
+    esac
+    return
+  fi
   case $s in
     spring-mvc|spring-webflux) echo "$JAVA -jar $s/target/mateu-starter-$s-1.0.0-SNAPSHOT.jar --server.port=$p" ;;
     quarkus)   echo "$JAVA -Dquarkus.http.port=$p -jar quarkus/target/quarkus-app/quarkus-run.jar" ;;
