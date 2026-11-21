@@ -1002,8 +1002,12 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
 .mateu-content {
   padding-bottom: 6rem;
 }
+/* With the bottom in-app navigation the FAB lives in that bar, so the content needs no FAB clearance —
+   but not 0 either: Spectra's primary content container has `margin: -40px 0` (the card climbs onto the
+   page band above it), and that negative BOTTOM margin makes the page 40px shorter than what it draws,
+   so the scroll area cut off the last row of a listing (found on the native demo, 2026-11-21). */
 .oj-sp-inappnav-visible .mateu-content {
-  padding-bottom: 0;
+  padding-bottom: var(--oj-core-spacing-10x, 40px);
 }
 @media (max-width: 599px) {
   .mateu-wizard-nav,
