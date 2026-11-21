@@ -26,7 +26,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "io.mateu.app",
-      "versionCode": 200003,
+      "versionCode": 200004,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.POST_NOTIFICATIONS"
@@ -107,6 +107,7 @@
       ],
       "expo-web-browser",
       "expo-secure-store",
+      "./plugins/with-optional-portrait-screen",
       "./plugins/with-local-notifications-only",
       [
         "expo-notifications",

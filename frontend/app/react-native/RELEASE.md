@@ -80,6 +80,11 @@ App Store from its public lookup) is not on the runtime it publishes for.
 
 ## 0d. Pending store build: 1.0.1 (200003) — `expo-notifications`
 
+Shipped to Play as **200004** (200003 was uploaded first and refused for review: ML Kit's barcode
+scanner declares a portrait-locked activity, which IMPLIES a required
+`android.hardware.screen.portrait`; `plugins/with-optional-portrait-screen.js` declares it not
+required). iOS: build 2 of 1.0.1 (EAS remote counter).
+
 The OS-level notifications of an app that declares `@App(osNotifications = true)`
 (design/progress-and-notifications.md, "OS-level notifications") added a NATIVE module,
 `expo-notifications` — LOCAL notifications only: no push service, no push token, nothing new leaves
