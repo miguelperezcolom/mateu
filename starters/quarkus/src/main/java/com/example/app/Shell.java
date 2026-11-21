@@ -14,12 +14,12 @@ import io.mateu.uidl.interfaces.HomeRouteSupplier;
 @Title("My app")
 public class Shell implements HomeRouteSupplier {
 
-  @Menu Home home;
+  @Menu Hello hello;
 
   @Menu Products products;
 
   @Override
   public String homeRoute() {
-    return "home";
+    return "hello";
   }
 }

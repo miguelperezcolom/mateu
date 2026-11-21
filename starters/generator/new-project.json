@@ -35,7 +35,7 @@
   "$samples": "The template gallery: what the new project starts from. The flavours and runtimes list which they offer, in order (the first is the default); the flavour's `overlays[id]` names the overlay that turns the starter into it. `dropsSampleFiles`: the language's sampleFiles (the Product CRUD) go; `removeFiles`: further starter files the template replaces with nothing.",
   "samples": [
     {"id": "crud", "label": "Back office: Product CRUD", "description": "An app shell with a home page and a Products menu entry: a listing, create, detail, edit and delete over a Product record."},
-    {"id": "dashboard", "label": "Dashboard + listings", "description": "A dashboard of KPIs and charts computed from the data, a read-only searchable Orders listing and the Product CRUD.", "removeFiles": ["src/main/java/com/example/app/Home.java"]},
+    {"id": "dashboard", "label": "Dashboard + listings", "description": "A dashboard of KPIs and charts computed from the data, a read-only searchable Orders listing and the Product CRUD.", "removeFiles": ["src/main/java/com/example/app/Home.java", "src/main/java/com/example/app/Hello.java", "src/main/java/com/example/app/Greetings.java"]},
     {"id": "intake", "label": "Wizard-driven intake", "description": "A multi-step request wizard with a branching step and a review before it is submitted, plus a listing of the submitted requests.", "dropsSampleFiles": true},
     {"id": "operations", "label": "Operations: board + calendar", "description": "A kanban board whose cards move between stages on the server, and the same tasks on a calendar by due date.", "dropsSampleFiles": true},
     {"id": "empty", "label": "Home only", "description": "An app shell with just a home page, to add your screens to.", "dropsSampleFiles": true},
@@ -48,10 +48,10 @@
         "src/main/java/com/example/app/Product.java",
         "src/main/java/com/example/app/ProductStatus.java",
         "src/main/java/com/example/app/ProductStore.java",
-        "src/main/java/com/example/app/Products.java",
+        "src/main/java/com/example/app/Products.java", "src/main/java/com/example/app/Hello.java", "src/main/java/com/example/app/Greetings.java",
         "src/test/java/com/example/app/ProductsUiTest.java"
       ],
-      "unmount": {"removeFiles": ["src/main/java/com/example/app/Shell.java", "src/main/java/com/example/app/Home.java"]},
+      "unmount": {"removeFiles": ["src/main/java/com/example/app/Shell.java", "src/main/java/com/example/app/Home.java", "src/main/java/com/example/app/Hello.java", "src/main/java/com/example/app/Greetings.java"]},
       "sampleRoute": {"route": "products", "label": "Products", "viewModel": "com.example.app.Products"},
       "specsDir": "src/main/resources/specs/ui",
       "sourceRoot": "src/main/java",

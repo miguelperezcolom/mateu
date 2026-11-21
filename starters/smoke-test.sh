@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Boots each packaged Java starter on its own port and, through the Mateu action endpoint, checks
 # the building blocks of every starter: the app shell at the root opens on the home page
-# (homeRoute "home"), the home page answers with its "Browse products" call to action, and the
+# (homeRoute "home" — "hello" for Quarkus, see home_of), the home page answers (its "Browse products" call to action), and the
 # products screen answers (the CRUD view model; for the YAML-only starter, the listing). The static
 # starter has no server: its bundle is checked on disk.
 # Run after `mvn -f starters/pom.xml package`.
@@ -47,6 +47,21 @@ shell_of() {
   esac
 }
 
+# The page the shell opens on, and what it answers with. The Quarkus starter is the quarkus.io blog
+# sample (the quarkus-mateu extension): it opens on Hello, a form whose button calls a CDI bean.
+home_of() {
+  case $1 in
+    quarkus) echo 'hello' ;;
+    *) echo 'home' ;;
+  esac
+}
+home_marker_of() {
+  case $1 in
+    quarkus) echo 'Greet' ;;
+    *) echo 'Browse products' ;;
+  esac
+}
+
 # What the products screen answers with: the CRUD view model, or the YAML listing.
 products_of() {
   case $1 in
@@ -88,11 +103,11 @@ for s in "${@:-spring-mvc spring-webflux quarkus micronaut helidon-mp yaml stati
       body=$(curl -s -m 5 -X POST -H 'Content-Type: application/json' \
         "http://localhost:$p/mateu/v3/sync/_no_route" \
         -d '{"route":"","actionId":"","componentState":{}}' 2>/dev/null || true)
-      if [[ "$body" == *'"homeRoute":"home"'* ]]; then ok=1; break; fi
+      if [[ "$body" == *"\"homeRoute\":\"$(home_of "$one")\""* ]]; then ok=1; break; fi
       sleep 2
     done
     if [[ $ok == 1 ]]; then
-      [[ "$(load "$one" "$p" /home)" == *'Browse products'* ]] || { echo "✘ $one: no home page"; ok=0; }
+      [[ "$(load "$one" "$p" "/$(home_of "$one")")" == *"$(home_marker_of "$one")"* ]] || { echo "✘ $one: no home page"; ok=0; }
       [[ "$(load "$one" "$p" /products)" =~ $(products_of "$one") ]] || { echo "✘ $one: no products screen"; ok=0; }
     fi
     page=$(curl -s -m 5 "http://localhost:$p/" || true)

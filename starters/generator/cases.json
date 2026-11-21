@@ -923,6 +923,92 @@
           "<staticOnly>true</staticOnly>"
         ]
       }
+    },
+    {
+      "name": "quarkus, code, CRUD (the quarkus.io blog sample: quarkus-mateu extension, injected store, Hello + Greetings)",
+      "options": {
+        "runtime": "quarkus",
+        "buildTool": "maven",
+        "renderer": "vaadin",
+        "authoring": "code",
+        "sample": "crud",
+        "pages": [],
+        "groupId": "com.acme",
+        "artifactId": "shop",
+        "packageName": "com.acme.shop",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "src/main/java/com/acme/shop/Shell.java",
+        "src/main/java/com/acme/shop/Hello.java",
+        "src/main/java/com/acme/shop/Greetings.java",
+        "src/main/java/com/acme/shop/Products.java",
+        "src/main/java/com/acme/shop/ProductStore.java"
+      ],
+      "absent": [
+        "src/main/java/com/acme/shop/Home.java"
+      ],
+      "contains": {
+        "pom.xml": [
+          "<groupId>io.quarkiverse.mateu</groupId>",
+          "<artifactId>quarkus-mateu</artifactId>",
+          "<artifactId>mateu-annotation-processor-quarkus</artifactId>"
+        ],
+        "src/main/java/com/acme/shop/Shell.java": [
+          "@Menu Hello hello;",
+          "@Menu Products products;",
+          "return \"hello\";"
+        ],
+        "src/main/java/com/acme/shop/ProductStore.java": [
+          "@ApplicationScoped"
+        ],
+        "src/main/java/com/acme/shop/Products.java": [
+          "@Inject ProductStore store;"
+        ]
+      },
+      "lacks": {
+        "pom.xml": [
+          "<artifactId>mateu-quarkus</artifactId>"
+        ]
+      }
+    },
+    {
+      "name": "quarkus, code, template dashboard (its own static ProductStore: the starter's is a CDI bean)",
+      "options": {
+        "runtime": "quarkus",
+        "buildTool": "maven",
+        "renderer": "vaadin",
+        "authoring": "code",
+        "sample": "dashboard",
+        "pages": [],
+        "groupId": "com.acme",
+        "artifactId": "shop",
+        "packageName": "com.acme.shop",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "src/main/java/com/acme/shop/Overview.java",
+        "src/main/java/com/acme/shop/Products.java",
+        "src/main/java/com/acme/shop/ProductStore.java"
+      ],
+      "absent": [
+        "src/main/java/com/acme/shop/Home.java",
+        "src/main/java/com/acme/shop/Hello.java",
+        "src/main/java/com/acme/shop/Greetings.java"
+      ],
+      "contains": {
+        "src/main/java/com/acme/shop/ProductStore.java": [
+          "public static final ProductStore INSTANCE"
+        ],
+        "src/main/java/com/acme/shop/Products.java": [
+          "ProductStore.INSTANCE"
+        ]
+      },
+      "lacks": {
+        "src/main/java/com/acme/shop/ProductStore.java": [
+          "@ApplicationScoped"
+        ]
+      }
     }
   ]
 }
