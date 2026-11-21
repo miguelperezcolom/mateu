@@ -8,6 +8,25 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added — GraalVM native image on Spring Boot and Micronaut
+
+- **A Mateu app builds as a native executable with no reflection configuration**:
+  `mvn -Pnative native:compile` (Spring Boot), `mvn package -Dpackaging=native-image` (Micronaut).
+  `mateu-core` ships `MateuNativeImageFeature` + reachability metadata
+  (`META-INF/native-image/io.mateu/mateu-core/`): Mateu's own classes and every class of the app's
+  classpath entries that refer to Mateu (or carry `specs/ui`) are registered for reflection, with
+  their arrays, the arrays commons-beanutils creates, the renderer assets, `specs/`, the PWA files,
+  the validation bundle and the request proxy. Quarkus keeps its extension (quarkus-mateu); the
+  feature stands aside there. Verified on the Spring Boot and Micronaut starters (forms, CRUD,
+  validation, YAML screens, Vaadin and Redwood); CI workflow `native.yml` builds both native and
+  smoke-tests them. Docs: `deploy/native-image.md`.
+
+### Fixed
+
+- **YAML-declared mounts in a native image**: `SpecsIndex` found no `type: UI` file there (it walked
+  `file:` and `jar:` resources only; a native image serves them as `resource:`), so a YAML app had no
+  mount and every screen was "Page not found".
+
 ### Added — Micronaut 5
 
 - **Micronaut 5 is supported** next to 4.10: the same `mateu-micronaut` jar serves both. CI runs

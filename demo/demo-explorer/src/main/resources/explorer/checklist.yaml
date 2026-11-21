@@ -199,6 +199,7 @@ groups:
   - {id: "template:GuidedProcessPage", title: "GuidedProcessPage", doc: "https://mateu.io/ux-patterns/wizard/"}
   - {id: "template:HeroSearchPage", title: "HeroSearchPage", doc: "https://mateu.io/ux-patterns/hero-search/"}
   - {id: "template:ItemOverviewPage", title: "ItemOverviewPage", doc: "https://mateu.io/ux-patterns/item-overview/"}
+  - {id: "template:MessagePage", title: "MessagePage", doc: "https://mateu.io/ux-patterns/message-page/"}
   - {id: "template:MultimediaContentPage", title: "MultimediaContentPage", doc: "https://mateu.io/ux-patterns/multimedia-content/"}
   - {id: "template:WelcomePage", title: "WelcomePage", doc: "https://mateu.io/ux-patterns/welcome-page/"}
   archetypes/overview:

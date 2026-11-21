@@ -193,6 +193,8 @@ public final class SpecsIndex {
         switch (url.getProtocol()) {
           case "file" -> scanDir(new File(url.toURI()), ROOT, paths);
           case "jar" -> scanJar(url, paths);
+          // a GraalVM native image: resources live in the image, under the `resource:` scheme
+          case "resource" -> scanNativeImage(paths);
           default -> {}
         }
       }
@@ -227,6 +229,32 @@ public final class SpecsIndex {
       jar.stream()
           .map(java.util.jar.JarEntry::getName)
           .filter(name -> name.startsWith(prefix) && isYaml(name))
+          .forEach(out::add);
+    }
+  }
+
+  /**
+   * A native image serves its resources through the {@code resource:} file system GraalVM provides
+   * (only the ones included in the image: the native support of each adapter includes {@code
+   * specs/**}). Walked like a directory; without it no {@code type: UI} file was found and a
+   * YAML-defined app had no mount in native.
+   */
+  private static void scanNativeImage(Set<String> out) throws Exception {
+    var uri = java.net.URI.create("resource:/");
+    java.nio.file.FileSystem fs;
+    try {
+      fs = java.nio.file.FileSystems.newFileSystem(uri, java.util.Map.of());
+    } catch (java.nio.file.FileSystemAlreadyExistsException e) {
+      fs = java.nio.file.FileSystems.getFileSystem(uri);
+    }
+    var root = fs.getPath(ROOT);
+    if (!java.nio.file.Files.isDirectory(root)) {
+      return;
+    }
+    try (var walk = java.nio.file.Files.walk(root)) {
+      walk.filter(java.nio.file.Files::isRegularFile)
+          .map(path -> path.toString().replaceFirst("^/", ""))
+          .filter(SpecsIndex::isYaml)
           .forEach(out::add);
     }
   }
