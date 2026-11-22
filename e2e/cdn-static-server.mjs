@@ -22,6 +22,7 @@ const port = Number(arg('port', '9300'))
 const proxy = arg('proxy', '')
 const backend = arg('backend', '')
 const upstream = proxy ? new URL(proxy) : null
+const SAFE_PROXY_PATH = /^\/mateu(\/[\w\-.~%/]*)?(\?[\w\-.~%=&+,:;@/]*)?$/
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
@@ -45,6 +46,8 @@ const index = () => {
 
 createServer((req, res) => {
   if (proxy && (req.url === '/mateu' || req.url.startsWith('/mateu/'))) {
+    // only a plain path below /mateu goes upstream: no '..', no whitespace, no scheme or host
+    if (!SAFE_PROXY_PATH.test(req.url) || req.url.includes('..')) { res.writeHead(400); res.end(); return }
     // the host and port are the --proxy ones; only the path (always /mateu…) comes from the request
     const send = upstream.protocol === 'https:' ? httpsRequest : httpRequest
     const headers = { ...req.headers, host: upstream.host }

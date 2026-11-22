@@ -28,14 +28,14 @@ export function pageBackendOf(doc: Pick<Document, 'querySelector'> | null | unde
 
 /** The rule of {@link pageBackendOf} over the raw value. */
 export function normalizePageBackend(raw: string | null | undefined): string {
-    let v = String(raw == null ? '' : raw).trim()
+    let v = String(raw ?? '').trim()
     if (!v) return ''
     let end = v.length
-    while (end > 0 && v.charCodeAt(end - 1) === 47) end--
+    while (end > 0 && v.codePointAt(end - 1) === 47) end--
     v = v.slice(0, end)
     if (!v) return ''
     if (/^https?:\/\/[^\s/?#]+(\/[^\s?#]*)?$/i.test(v)) return v
-    if (v.charAt(0) === '/' && v.charAt(1) !== '/' && v.charAt(1) !== '\\' && !/[\s?#]/.test(v)) return v
+    if (v.startsWith('/') && v.charAt(1) !== '/' && v.charAt(1) !== '\\' && !/[\s?#]/.test(v)) return v
     console.warn(`mateu: ignoring <meta name="${PAGE_BACKEND_META}" content="${raw}">: expected an http(s) URL or a path`)
     return ''
 }

@@ -21,8 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Micronaut and Helidon MP when an app maps {@code static/} at the root (the Micronaut starter's
  * {@code micronaut.router.static-resources}). Those adapters ask {@link #hidden} and answer 404
  * then, so nothing changes for an app; an app's OWN {@code static/index.html} (first on the
- * classpath) is never hidden. Quarkus never reaches the file. Pinned on all five adapters by
- * {@code AdapterParityITFoundation.neverServesTheRenderersDeployablePage}.
+ * classpath) is never hidden. Quarkus never reaches the file. Pinned on all five adapters by {@code
+ * AdapterParityITFoundation.neverServesTheRenderersDeployablePage}.
  */
 public final class DeployablePage {
 

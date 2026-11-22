@@ -2158,15 +2158,15 @@ test('mount: a static page (CDN) names its backend with <meta name="mateu-backen
   assert.equal(mateuBase('http://localhost:9005'), 'http://localhost:9005')
   // a server page (<mateu-ui>) never reads the tag
   initMount(doc({ baseUrl: '/console' }, 'https://api.example.com'))
-  assert.equal(mateuBase('http://dev'), '/console')
-  assert.equal(mateuAssetBase('http://dev'), '')
+  assert.equal(mateuBase('http://dev'), '/console') // NOSONAR: test inputs of the URL rule, never requested
+  assert.equal(mateuAssetBase('http://dev'), '') // NOSONAR: test inputs of the URL rule, never requested
   setMount(null)
   // the rule, identical to libs/mateu pageBackend.ts
   const warn = console.warn; console.warn = () => {}
   try {
     assert.equal(normalizePageBackend('  '), '')
     assert.equal(normalizePageBackend('/admin/'), '/admin')
-    for (const bad of ['javascript:alert(1)', 'api.example.com', '//evil.example', '/\\evil', 'https://a b', 'https://x/?q=1', 'ftp://x']) {
+    for (const bad of ['javascript:alert(1)', 'api.example.com', '//evil.example', '/\\evil', 'https://a b', 'https://x/?q=1', 'ftp://x']) { // NOSONAR: test inputs of the URL rule, never requested
       assert.equal(normalizePageBackend(bad), '', bad)
     }
   } finally { console.warn = warn }
