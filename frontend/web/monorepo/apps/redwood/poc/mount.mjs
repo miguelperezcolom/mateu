@@ -42,7 +42,8 @@ export function normalizeMount(value) {
 /**
  * The base for /mateu/v3/... calls: the mount the <mateu-ui> carries when there is one (its
  * attributes as a plain object, or null when the page has no such element), else the development
- * default (the app-flow constant mateuBaseUrl — an absolute backend URL under vb-serve).
+ * default (the app-flow constant mateuBaseUrl — an absolute backend URL under vb-serve; '' in the
+ * jar). A static page's <meta name="mateu-backend"> comes before that default (mateuBase).
  */
 export function baseUrlOf(attrs, devDefault) {
   if (!attrs) return devDefault
@@ -95,16 +96,51 @@ export function spelledWithTheBase(route, mount, base = publicBasePath) {
   return path === bare || path.startsWith(bare + '/') ? b + r : r
 }
 
+// ── the backend a static page names ─────────────────────────────────────────────────────────────
+// The jar's DEPLOYABLE page (static/index.html, written by scripts/static-site-page.mjs at the repo
+// root) is uploaded to a CDN or a static host, with no backend to write a <mateu-ui> into it: it runs
+// in hash mode and names the backend in ONE place, <meta name="mateu-backend" content="…">. Empty or
+// absent = the page's own origin (the host proxies /mateu/* to the backend — the recommended setup).
+// The same tag and the same rule as libs/mateu pageBackend.ts (Vaadin).
+
+/** The page's backend rule over the raw value: '' or an http(s) URL / a root-relative path, without
+ *  trailing slashes; anything else is ignored (it would become the base of every call). */
+export function normalizePageBackend(raw) {
+  let v = trimSlashesAtEnd(String(raw == null ? '' : raw).trim())
+  if (!v) return ''
+  if (/^https?:\/\/[^\s/?#]+(\/[^\s?#]*)?$/i.test(v)) return v
+  if (v.charAt(0) === '/' && v.charAt(1) !== '/' && v.charAt(1) !== '\\' && !/[\s?#]/.test(v)) return v
+  if (typeof console !== 'undefined') console.warn('mateu: ignoring <meta name="mateu-backend" content="' + raw + '">: expected an http(s) URL or a path')
+  return ''
+}
+
+/** The backend the page's <meta name="mateu-backend"> names ('' = same origin / no tag). */
+export function pageBackendOf(doc) {
+  const el = doc && typeof doc.querySelector === 'function' ? doc.querySelector('meta[name="mateu-backend"]') : null
+  return normalizePageBackend(el ? el.getAttribute('content') : null)
+}
+
+/** Where a backend serves its STATIC things (images, logos, modules): its origin root for an
+ *  absolute URL, the page's own root ('') for a path. */
+export function assetRootOf(backend) {
+  const m = /^(https?:\/\/[^/?#]+)/i.exec(String(backend || ''))
+  return m ? m[1] : ''
+}
+
 // ── the mount read at boot ─────────────────────────────────────────────────────────────────────
 let mountPath = null
 // the public base ('' or '/crm') the page's <mateu-ui publicBase> names
 let publicBasePath = ''
+// hash mode: the backend the page names (null = no tag: the app constant decides, as under vb-serve)
+let pageBackend = null
 
 /** Reads the <mateu-ui> of the page once: the mount ('' at the root) or null (hash mode). */
 export function initMount(doc) {
   const el = doc && typeof doc.querySelector === 'function' ? doc.querySelector('mateu-ui') : null
   mountPath = el ? baseUrlOf({ baseUrl: el.getAttribute('baseUrl') }, '') : null
   publicBasePath = el ? normalizeMount(el.getAttribute('publicBase') || el.getAttribute('publicbase')) : ''
+  const meta = !el && doc && typeof doc.querySelector === 'function' ? doc.querySelector('meta[name="mateu-backend"]') : null
+  pageBackend = meta ? pageBackendOf(doc) : null
   return mountPath
 }
 
@@ -117,9 +153,10 @@ export function bundleUrlOf(doc) {
 }
 
 /** Test hook / explicit setting: null = hash mode. */
-export function setMount(value, base = '') {
+export function setMount(value, base = '', backend = null) {
   mountPath = value == null ? null : normalizeMount(value)
   publicBasePath = normalizeMount(base)
+  pageBackend = backend == null ? null : normalizePageBackend(backend)
 }
 
 /** The public base ('' at the root of a host, '/crm' under a context path / a proxy prefix). */
@@ -141,12 +178,18 @@ export function isPathMode() { return mountPath != null }
 export function currentMount() { return mountPath || '' }
 
 /** The base for API calls: the mount in path mode, the development constant otherwise. */
-export function mateuBase(devDefault) { return mountPath != null ? mountPath : devDefault }
+export function mateuBase(devDefault) {
+  if (mountPath != null) return mountPath
+  return pageBackend != null ? pageBackend : devDefault
+}
 
 /** The base for STATIC things the backend serves at its root (images, logos, web-component
  *  modules, the agent's sseUrl): the origin root in path mode — they are not under the mount, just
  *  as on the Vaadin renderer —, the development constant (the backend origin) otherwise. */
-export function mateuAssetBase(devDefault) { return mountPath != null ? publicBasePath : devDefault }
+export function mateuAssetBase(devDefault) {
+  if (mountPath != null) return publicBasePath
+  return pageBackend != null ? assetRootOf(pageBackend) : devDefault
+}
 
 /** What goes in history.pushState for a route: its path under the mount, or '#route'. */
 export function urlOfRoute(route) {

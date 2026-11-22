@@ -29,6 +29,10 @@ internal static class UiPage
 
     public const string Index = "_index.html";
 
+    /// <summary>The renderer jars' page for a CDN / static host (scripts/static-site-page.mjs): a
+    /// backend never serves it (Java <c>DeployablePage</c>, Python <c>ui_page.DEPLOYABLE_PAGE</c>).</summary>
+    public const string DeployablePage = "index.html";
+
     public const string TitleMarker = "AQUIELTITULODELAPAGINA";
     public const string UiFrom = "<!-- AQUIUI -->";
     public const string UiTo = "<!-- HASTAAQUIUI -->";

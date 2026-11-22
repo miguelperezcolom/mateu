@@ -23,6 +23,7 @@ import { installLiveReload } from '@infra/dev/liveReload.ts'
 import { installPrintSupport } from '@infra/ui/documents.ts'
 import { unclaimedActionWarning } from '@infra/ui/unclaimedAction.ts'
 import { trustRootBaseUrl } from '@infra/http/credentialScope.ts'
+import { effectiveBaseUrl } from '@infra/http/pageBackend.ts'
 import { useMountForTokenCookie } from '@infra/http/authToken.ts'
 import { publicBase as currentPublicBase, setPublicBase } from '@infra/http/publicBase.ts'
 import { routeQueryOf } from '@infra/ui/routeQuery.ts'
@@ -161,6 +162,11 @@ export class MateuUi extends LitElement {
 
     connectedCallback() {
         super.connectedCallback()
+
+        // a page served by a CDN / static host (the jar's deployable index.html) writes no baseUrl:
+        // the backend is the page's <meta name="mateu-backend">, '' (same origin, behind a
+        // /mateu/* proxy) without one. A page that wrote baseUrl keeps it (pageBackend.ts).
+        this.baseUrl = effectiveBaseUrl(this, document)
 
         // the host page wrote this element (data never can — sanitizePolicy.ts): its backend is
         // trusted with the user's credentials (credentialScope.ts)

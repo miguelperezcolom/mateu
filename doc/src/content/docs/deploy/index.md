@@ -15,6 +15,10 @@ memory between requests, so the server scales horizontally without sticky sessio
 Choose a backend when screens need **server-side logic**: database access, domain rules, secrets
 injected into proxied API calls, server-side validation.
 
+The backend does not have to serve the page as well: the renderer's files can live on a CDN or any
+static host, with the host proxying `/mateu/*` to the backend
+([Deploy a renderer to a CDN or static host](/deploy/renderer-on-a-cdn/)).
+
 | Runtime | Setup |
 |---|---|
 | Spring Boot MVC | [Spring Boot MVC](/java-create-your-project/springboot-mvc/) |

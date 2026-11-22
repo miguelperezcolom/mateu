@@ -263,6 +263,10 @@ create, edit and delete go through the `demo/demo-starwars` backend, which holds
 
 ## Hosting
 
+(This section is about a bundle, which carries its screens. To put only the renderer's page on a CDN
+in front of a backend that builds the screens, see
+[Deploy a renderer to a CDN or static host](/deploy/renderer-on-a-cdn/).)
+
 - **Any static host.** Serve the folder with an **SPA fallback** — every path that is not a file gets
   `index.html` (Netlify reads the shipped `_redirects`; S3/CloudFront: an error document; nginx:
   `try_files $uri /index.html`). Deep links (`/vcns/7`) then boot the app, which resolves the route

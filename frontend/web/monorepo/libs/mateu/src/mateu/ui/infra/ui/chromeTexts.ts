@@ -409,6 +409,8 @@ const en = {
     carouselPause: 'Pause the slides',
     carouselPlay: 'Play the slides',
     appContextChanging: '{label}: {value}. Reloading the app…',
+    // an SSE answer a proxy (a CDN) answered with an error page instead of the stream (SSEService)
+    streamCutByProxy: 'The streamed answer did not arrive (HTTP {status}): a proxy between this page and the server, such as a CDN, cut it.',
 }
 
 type Catalogue = Record<keyof typeof en, string>
@@ -777,6 +779,8 @@ const es: Catalogue = {
     carouselPause: 'Pausar las diapositivas',
     carouselPlay: 'Reproducir las diapositivas',
     appContextChanging: '{label}: {value}. Recargando la aplicación…',
+    // an SSE answer a proxy (a CDN) answered with an error page instead of the stream (SSEService)
+    streamCutByProxy: 'La respuesta en streaming no llegó (HTTP {status}): un proxy entre esta página y el servidor, como un CDN, la cortó.',
 }
 
 const fr: Catalogue = {
@@ -1146,6 +1150,8 @@ const fr: Catalogue = {
     signInFailed: 'La connexion a échoué. Veuillez réessayer.',
     signOut: 'Se déconnecter',
     userMenuOf: 'Compte : {name}',
+    // an SSE answer a proxy (a CDN) answered with an error page instead of the stream (SSEService)
+    streamCutByProxy: 'La réponse en continu n\'est pas arrivée (HTTP {status}) : un proxy entre cette page et le serveur, comme un CDN, l\'a coupée.',
 }
 
 const de: Catalogue = {
@@ -1515,6 +1521,8 @@ const de: Catalogue = {
     signInFailed: 'Die Anmeldung hat nicht funktioniert. Bitte versuchen Sie es erneut.',
     signOut: 'Abmelden',
     userMenuOf: 'Konto: {name}',
+    // an SSE answer a proxy (a CDN) answered with an error page instead of the stream (SSEService)
+    streamCutByProxy: 'Die gestreamte Antwort kam nicht an (HTTP {status}): ein Proxy zwischen dieser Seite und dem Server, etwa ein CDN, hat sie abgebrochen.',
 }
 
 const pt: Catalogue = {
@@ -1884,6 +1892,8 @@ const pt: Catalogue = {
     signInFailed: 'Não foi possível iniciar sessão. Tente novamente.',
     signOut: 'Terminar sessão',
     userMenuOf: 'Conta: {name}',
+    // an SSE answer a proxy (a CDN) answered with an error page instead of the stream (SSEService)
+    streamCutByProxy: 'A resposta em streaming não chegou (HTTP {status}): um proxy entre esta página e o servidor, como uma CDN, cortou-a.',
 }
 
 const it: Catalogue = {
@@ -2253,6 +2263,8 @@ const it: Catalogue = {
     signInFailed: 'Accesso non riuscito. Riprova.',
     signOut: 'Esci',
     userMenuOf: 'Account: {name}',
+    // an SSE answer a proxy (a CDN) answered with an error page instead of the stream (SSEService)
+    streamCutByProxy: 'La risposta in streaming non è arrivata (HTTP {status}): un proxy tra questa pagina e il server, come una CDN, l\'ha interrotta.',
 }
 
 /** The languages Mateu's chrome speaks. A language outside this list falls back to English. */

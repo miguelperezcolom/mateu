@@ -24,7 +24,8 @@ import { mayCarryCredentials } from '@infra/http/credentialScope.ts'
 import { readAppContext } from '@infra/appContextStore.ts'
 import { handleSessionExpired } from '@infra/http/sessionGuard.ts'
 import { notify } from '@application/Notifier.ts'
-import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { isStreamCutByProxy } from '@infra/http/streamCut.ts'
 import { isFinished } from '@infra/progress/taskStore.ts'
 
 export class SSEService implements Service {
@@ -132,6 +133,8 @@ export class SSEService implements Service {
                     const text = await response.text()
                     body = text
                     try { body = JSON.parse(text); message = (body as { message?: string })?.message || message } catch { if (text.trim()) message = text.trim() }
+                    // a proxy's error page (a CDN that cut or buffered the stream), not Mateu's answer
+                    if (isStreamCutByProxy(response.status, text)) message = chromeTextf('streamCutByProxy', { status: response.status })
                 } catch { /* no body */ }
                 // Mateu's refusal from another deployment than the screen's: a stale screen, told
                 // as such with a Reload (buildWatch.ts, requestPolicy.ts)

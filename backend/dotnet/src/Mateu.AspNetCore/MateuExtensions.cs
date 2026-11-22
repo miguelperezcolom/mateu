@@ -557,6 +557,8 @@ public static partial class MateuExtensions
     {
         // the PWA's files are its endpoint's alone: never a renderer file, never the page
         if (Pwa.IsEndpoint(path)) return null;
+        // the renderer's page for a CDN (no backend fills it): never served by a backend
+        if (path == "/" + UiPage.DeployablePage) return null;
         if (path != "/" && UiPage.IsAsset(path))
         {
             // an empty segment (/assets//x.js) is not the file's name: one file, one address

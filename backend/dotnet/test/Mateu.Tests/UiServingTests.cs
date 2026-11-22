@@ -85,6 +85,19 @@ public class UiServingTests
         Assert.Contains("mine", await (await http.GetAsync("/mine")).Content.ReadAsStringAsync());
     }
 
+    /// <summary>The jar's <c>static/index.html</c> is the page for a CDN (no backend fills it): a
+    /// backend answers 404 for it, as before the jar carried it.</summary>
+    [Fact]
+    public async Task The_renderers_page_for_a_cdn_is_never_served()
+    {
+        if (!RendererCheckedOut) return;
+        Assert.True(File.Exists(Path.Combine(VaadinStatic, UiPage.DeployablePage)));
+        var (web, http) = await Host("/app", VaadinStatic);
+        await using var _ = web;
+        Assert.Equal(HttpStatusCode.NotFound, (await http.GetAsync("/index.html")).StatusCode);
+        Assert.DoesNotContain("name=\"mateu-backend\"", await (await http.GetAsync("/app")).Content.ReadAsStringAsync());
+    }
+
     [Fact]
     public async Task The_page_is_served_at_the_mount_and_its_deep_links_and_the_assets_at_the_root()
     {

@@ -130,6 +130,16 @@ def test_the_renderers_assets_are_served_at_the_origin_root(vaadin_static):
     assert files.read("assets/index.css") is not None
 
 
+def test_the_renderers_page_for_a_cdn_is_never_served(vaadin_static):
+    """The jar's static/index.html is the page for a CDN (no backend fills it): a backend answers
+    404 for it, as before the jar carried it — never a page aimed at nothing."""
+    assert (vaadin_static / "index.html").is_file()
+    c = client(vaadin_static, "/app")
+    assert c.get("/index.html").status_code == 404
+    assert c.get("/index.html", headers={"accept": "text/html"}).status_code == 404
+    assert 'name="mateu-backend"' not in c.get("/app", headers={"accept": "text/html"}).text
+
+
 def test_the_renderers_text_assets_are_gzipped_to_a_browser_that_accepts_it(vaadin_static):
     """Java's AssetCompression: the bundles travel gzipped (2.6 MB → 0.65 MB on a first load)."""
     c = client(vaadin_static)
