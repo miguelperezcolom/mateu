@@ -35,7 +35,9 @@ check() {
 
   # The newest source commit, ignoring test files (they do not end up in the bundle).
   local source_commit
-  source_commit=$(git log -1 --format=%H -- $sources ':(exclude)**/*.test.ts' ':(exclude)**/*.spec.ts')
+  # tests, docs and the shared React tree's build-time checks never reach a bundle
+  source_commit=$(git log -1 --format=%H -- $sources ':(exclude)**/*.test.ts' ':(exclude)**/*.spec.ts' \
+    ':(exclude)**/README.md' ':(exclude)frontend/web/react-renderer/scripts/**' ':(exclude)frontend/web/react-renderer/views/kit-contract.json')
   if [ -z "$source_commit" ]; then
     status=1
     echo "?? $name: no commit found for its sources ($sources) — they moved; fix this script"
