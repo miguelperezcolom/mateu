@@ -21,6 +21,7 @@ const dir = resolve(arg('dir', '.'))
 const port = Number(arg('port', '9300'))
 const proxy = arg('proxy', '')
 const backend = arg('backend', '')
+const upstream = proxy ? new URL(proxy) : null
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
@@ -44,10 +45,14 @@ const index = () => {
 
 createServer((req, res) => {
   if (proxy && (req.url === '/mateu' || req.url.startsWith('/mateu/'))) {
-    const target = new URL(req.url, proxy)
-    const send = target.protocol === 'https:' ? httpsRequest : httpRequest
-    const headers = { ...req.headers, host: target.host }
-    const up = send(target, { method: req.method, headers }, (answer) => {
+    // the host and port are the --proxy ones; only the path (always /mateu…) comes from the request
+    const send = upstream.protocol === 'https:' ? httpsRequest : httpRequest
+    const headers = { ...req.headers, host: upstream.host }
+    const options = {
+      protocol: upstream.protocol, hostname: upstream.hostname, port: upstream.port,
+      path: upstream.pathname.replace(/\/$/, '') + req.url, method: req.method, headers,
+    }
+    const up = send(options, (answer) => {
       res.writeHead(answer.statusCode, answer.headers)
       answer.pipe(res)
     })

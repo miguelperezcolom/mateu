@@ -106,7 +106,7 @@ async function probe(browser, site) {
   await page.waitForTimeout(2000)
   check('the save reached the backend', calls.length > writes && calls.length > before)
   await page.goto(at(site, '/products'))
-  check('the created product is listed', await waitForText(page, new RegExp('Aa CDN ' + id)))
+  check('the created product is listed', await waitForText(page, new RegExp('Aa CDN ' + id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))))
 
   // 4. a streamed action (SSE): LongTask progress, then its result
   await page.goto(at(site, '/jobs'))
