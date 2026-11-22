@@ -19,15 +19,22 @@ export const RENDERER_HEADER = 'X-Mateu-Renderer';
 export const BUILD_HEADER = 'X-Mateu-Build';
 
 let rendererVersion = 'unknown';
+/** Who is calling: `react-native`, unless another renderer runs on this core (the Primer web renderer). */
+let rendererName = 'react-native';
+
+/** The renderer's name in X-Mateu-Renderer — set once at boot by a renderer that reuses this core. */
+export function setRendererName(name: string | null | undefined): void {
+  rendererName = name && name.trim() ? name.trim() : 'react-native';
+}
 
 /** The app's own version (app.json `version`, via expo-constants); blank → `unknown`. */
 export function setRendererVersion(version: string | null | undefined): void {
   rendererVersion = version && version.trim() ? version.trim() : 'unknown';
 }
 
-/** `react-native/<version> wire/<major>.<minor>` — the wire this build was made for. */
+/** `<renderer>/<version> wire/<major>.<minor>` — the wire this build was made for. */
 export function rendererHeaderValue(version: string = rendererVersion, wire: string = MIN_WIRE_VERSION): string {
-  return `react-native/${version} wire/${wire}`;
+  return `${rendererName}/${version} wire/${wire}`;
 }
 
 /** The backend a request url belongs to: the url up to (excluding) its `/mateu/` segment. */

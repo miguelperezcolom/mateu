@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "types": ["vite/client"],
+    "paths": {
+      "@rn/*": ["../../../../app/react-native/src/*"],
+      "@mateu/*": ["../../libs/mateu/src/mateu/*"],
+      "react-native": ["./src/shims/react-native.ts"],
+      "expo-web-browser": ["./src/shims/expo-web-browser.ts"],
+      "expo-file-system": ["./src/shims/expo-file-system.ts"]
+    }
+  },
+  "include": ["src"]
+}

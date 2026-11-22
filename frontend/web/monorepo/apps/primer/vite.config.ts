@@ -1,0 +1,60 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
+import type { IncomingMessage } from 'node:http'
+import { readFileSync } from 'node:fs'
+
+/**
+ * The Primer renderer draws with Primer React, and runs on the React Native renderer's core
+ * (frontend/app/react-native/src/core): the controller, the session, the api client, expressions,
+ * rules… That core is platform-free but for two modules, which import react-native/expo for the
+ * screen-reader announcement and for opening a downloaded file — so those three imports resolve to
+ * small web shims here (src/shims). Nothing in the core is copied.
+ */
+const rnSrc = resolve(import.meta.dirname, '../../../../app/react-native/src')
+
+const rendererVersion: string = JSON.parse(readFileSync(resolve(import.meta.dirname, 'package.json'), 'utf8')).version ?? 'unknown'
+
+const bypassHtml = (req: IncomingMessage) =>
+  req.headers.accept?.includes('text/html') ? '/index.html' : undefined
+
+export default defineConfig({
+  plugins: [react()],
+  // ONE tsconfig for every file, the RN core's included: theirs extends expo/tsconfig.base, which is
+  // only installed inside the React Native app (and a fresh checkout or CI has none)
+  tsconfig: resolve(import.meta.dirname, 'tsconfig.json'),
+  experimental: {
+    renderBuiltUrl(filename: string, { hostType }: { hostType: 'js' | 'css' | 'html' }) {
+      return hostType === 'html' ? '/' + filename : { relative: true }
+    },
+  },
+  define: {
+    // the RN api client reads __DEV__ (Metro's global)
+    __DEV__: JSON.stringify(process.env.NODE_ENV !== 'production'),
+    // the renderer's version, announced in X-Mateu-Renderer
+    __MATEU_RENDERER_VERSION__: JSON.stringify(rendererVersion),
+  },
+  resolve: {
+    dedupe: ['react', 'react-dom'],
+    alias: {
+      'react-native': resolve(import.meta.dirname, 'src/shims/react-native.ts'),
+      'expo-web-browser': resolve(import.meta.dirname, 'src/shims/expo-web-browser.ts'),
+      'expo-file-system': resolve(import.meta.dirname, 'src/shims/expo-file-system.ts'),
+      '@rn': rnSrc,
+      '@mateu': resolve(import.meta.dirname, '../../libs/mateu/src/mateu'),
+    },
+  },
+  server: {
+    port: 5180,
+    fs: { allow: ['..', '../../..', '../../../../app/react-native'] },
+    // the backend's own paths, and any mount's (`/shell-rail/mateu/v3/…`)
+    proxy: Object.fromEntries(['^(/[^/?]+)*/mateu/', '/images', '/assets', '/api'].map((p) => [p, {
+      target: process.env.MATEU_BACKEND ?? 'http://localhost:8080',
+      bypass: bypassHtml,
+    }])),
+  },
+  build: {
+    outDir: 'dist',
+    rollupOptions: { output: { entryFileNames: 'assets/mateu-primer.js', chunkFileNames: 'assets/[name]-[hash].js', assetFileNames: 'assets/[name][extname]' } },
+  },
+})

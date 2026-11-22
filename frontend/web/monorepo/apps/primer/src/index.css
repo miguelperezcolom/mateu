@@ -1,0 +1,27 @@
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bgColor-default);
+  color: var(--fgColor-default);
+}
+
+/* a type the Primer renderer does not draw: explicit and measurable (e2e/conformance.mjs) */
+mateu-unsupported {
+  display: block;
+  padding: var(--base-size-8);
+  border: var(--borderWidth-thin) dashed var(--borderColor-attention-emphasis);
+  border-radius: var(--borderRadius-medium);
+  color: var(--fgColor-attention);
+  font: var(--text-body-shorthand-small);
+}
+
+.mateu-skip-link {
+  position: absolute;
+  left: var(--base-size-8);
+  top: var(--base-size-8);
+  z-index: 1000;
+  transform: translateY(-200%);
+}
+.mateu-skip-link:focus {
+  transform: none;
+}
