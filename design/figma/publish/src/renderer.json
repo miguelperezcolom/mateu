@@ -1,6 +1,6 @@
 {
- "tag": "v3.0.4",
- "base": "https://cdn.jsdelivr.net/gh/miguelperezcolom/mateu@v3.0.4/backend/shared/frontend/vaadin-lit/src/main/resources/static/",
+ "tag": "v3.0.5",
+ "base": "https://cdn.jsdelivr.net/gh/miguelperezcolom/mateu@v3.0.5/backend/shared/frontend/vaadin-lit/src/main/resources/static/",
  "index": "_index.html",
  "files": [
   "assets/THIRD-PARTY-LICENSES.txt",

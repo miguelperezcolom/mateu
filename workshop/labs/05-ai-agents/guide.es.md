@@ -104,7 +104,7 @@ emparejadas con él (o las de su propio usuario); todo queda registrado en el se
 ✅ **Checkpoint**: tu agente (o `curl`) ejecutó `calculate` y obtuvo 27; una página escrita por el
 agente apareció en un drawer sobre tu app abierta.
 
-## Llega en la próxima versión (no está en 3.0.4)
+## Llega en la próxima versión (no está en 3.0.5)
 
 Esto existe en el repositorio pero **aún no se ha publicado**. No lo busques en la versión del
 taller; quien imparte puede enseñarlo con una build de `master`.
@@ -115,7 +115,7 @@ taller; quien imparte puede enseñarlo con una build de `master`.
   `set_session_fields`, `run_session_action`; un agente lee y rellena la pantalla que está viendo un
   usuario emparejado. Ver el [lab 07](../07-stretch/guide.es.md).
 
-(En 3.0.4 la app de escritorio ya tiene **Connect AI**, una acción de la barra de
+(En 3.0.5 la app de escritorio ya tiene **Connect AI**, una acción de la barra de
 herramientas, así que el envío del paso 3 también puede ir a una ventana de escritorio. Verificamos
 el envío en el renderer web con los tres lenguajes, no en la app de escritorio: pruébalo y
 cuéntanoslo.)
