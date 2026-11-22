@@ -80,6 +80,7 @@ jobs:
             frontend/web/monorepo/package-lock.json
             frontend/app/react-native/package-lock.json
             frontend/app/vscode-extension/package-lock.json
+            frontend/web/monorepo/apps/primer/package-lock.json
 
       # Scoped to the one workspace: a plain `npm ci` at the monorepo root also installs
       # apps/redwood's Oracle tooling, part of which comes from static.oracle.com rather than the
@@ -96,12 +97,13 @@ jobs:
         run: |
           (cd frontend/app/react-native && npm ci --ignore-scripts --no-audit --no-fund)
           (cd frontend/app/vscode-extension && npm ci --ignore-scripts --no-audit --no-fund)
+          (cd frontend/web/monorepo/apps/primer && npm ci --ignore-scripts --no-audit --no-fund)
 
       # The vaadin-lit jar is Apache-2.0: nothing bundled into it may be under a commercial licence
       # (it once shipped @vaadin/board, @vaadin/rich-text-editor and a Highcharts chunk). The same holds
       # for the visual editor bundled into the IDE plugins, the React Native app and the .vsix.
       - name: Shipped frontend dependencies are under approved licences
-        run: node scripts/check-frontend-licenses.mjs web react-native vscode-extension
+        run: node scripts/check-frontend-licenses.mjs web react-native vscode-extension primer
 
       # Permissive is not enough: MIT, BSD and Apache-2.0 want their notices to travel with every
       # copy, and a minified bundle keeps none. Each shipped bundle carries THIRD-PARTY-LICENSES.txt
@@ -111,6 +113,12 @@ jobs:
           node scripts/third-party-notices.mjs vaadin --check backend/shared/frontend/vaadin-lit/src/main/resources/static/assets/THIRD-PARTY-LICENSES.txt
           node scripts/third-party-notices.mjs vaadin --check demo/sites/vaadin/assets/THIRD-PARTY-LICENSES.txt
           node scripts/third-party-notices.mjs visual-editor --check frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/THIRD-PARTY-LICENSES.txt
+          node scripts/third-party-notices.mjs primer --check backend/shared/frontend/primer/src/main/resources/static/assets/THIRD-PARTY-LICENSES.txt
+
+      # The Primer renderer (preview) typechecks with its own install — its sources include the React
+      # Native core it runs on, so a core change that breaks it fails here, not in a user's browser.
+      - name: Primer renderer typechecks
+        run: cd frontend/web/monorepo/apps/primer && ./node_modules/.bin/tsc -p .
 
       # Mateu's own components take colour, spacing and type from the design system's tokens; a
       # hard-coded literal ignores dark mode, forced colours and a customer theme. A ratchet: the
