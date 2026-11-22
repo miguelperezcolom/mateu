@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "types": ["vite/client"],
+    "paths": {
+      "@rn/*": ["../../../../app/react-native/src/*"],
+      "@mateu/*": ["../../libs/mateu/src/mateu/*"],
+      "@infra/*": ["../../libs/mateu/src/mateu/ui/infra/*"],
+      "@mr/*": ["../../../react-renderer/*"],
+      "@kit": ["./src/kit/index.tsx"],
+      "@kit/icons": ["./src/kit/icons.tsx"],
+      "@app/*": ["./src/*"],
+      "react-native": ["../../../react-renderer/shims/react-native.ts"],
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"],
+      "react-dom": ["./node_modules/@types/react-dom"],
+      "react-dom/*": ["./node_modules/@types/react-dom/*"],
+      "dompurify": ["./node_modules/dompurify"],
+      "marked": ["./node_modules/marked"],
+      "nanoid": ["./node_modules/nanoid"],
+      "lit": ["./node_modules/lit"],
+      "lit/*": ["./node_modules/lit/*"],
+      "expo-web-browser": ["../../../react-renderer/shims/expo-web-browser.ts"],
+      "expo-file-system": ["../../../react-renderer/shims/expo-file-system.ts"]
+    }
+  },
+  "include": ["src", "../../../react-renderer"],
+  "exclude": ["src/**/*.test.ts", "../../../react-renderer/**/*.test.ts", "../../../react-renderer/vite", "../../../react-renderer/scripts"]
+}

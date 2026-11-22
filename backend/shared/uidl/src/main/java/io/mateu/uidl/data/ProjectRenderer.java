@@ -26,7 +26,12 @@ public enum ProjectRenderer {
    * The GitHub Primer renderer: Primer React over the React Native renderer's core (preview).
    * Served by {@code io.mateu:mateu-primer}.
    */
-  primer("mateu-primer");
+  primer("mateu-primer"),
+  /**
+   * The SAP renderer: SAP's UI5 Web Components and Fiori floorplans over the React Native
+   * renderer's core (preview). Served by {@code io.mateu:mateu-ui5}.
+   */
+  ui5("mateu-ui5");
 
   /** The group id every renderer artifact is published under. */
   public static final String GROUP_ID = "io.mateu";

@@ -66,6 +66,13 @@ relative import from it resolves from the original's place. Prefer a kit compone
 and an override to a fork of the views: an override is a second copy of one file, kept in step by
 hand.
 
+Two shared modules exist only to keep overrides small: `render/fields/native.tsx` (`NATIVE_RULES`,
+empty here — a renderer's own field controls, tried before the generic select and text input: the
+SAP renderer's date pickers, step input and combo box) and `render/AccordionPanel.tsx` (one
+expandable panel — the SAP renderer's `ui5-panel`). When a design system needs ONE control of a
+large view, extract that control into its own shared module and override the module, not the view.
+A custom component is registered on `window.MateuRenderer` (also `window.MateuPrimer`).
+
 ## The contract
 
 **At the root**

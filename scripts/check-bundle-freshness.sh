@@ -83,6 +83,11 @@ check primer \
   "backend/shared/frontend/primer/src/main/resources/static/assets/mateu-primer.js" \
   "frontend/web/monorepo/apps/primer/src frontend/web/monorepo/apps/primer/index.html frontend/web/monorepo/apps/primer/vite.config.ts frontend/web/monorepo/apps/primer/package.json frontend/web/monorepo/apps/primer/package-lock.json frontend/web/react-renderer frontend/app/react-native/src/core frontend/app/react-native/src/renderer frontend/app/react-native/src/api frontend/app/react-native/src/a11y"
 
+# SAP (preview): like Primer — its own app, the shared React renderer tree and the React Native core
+check ui5 \
+  "backend/shared/frontend/ui5/src/main/resources/static/assets/mateu-ui5.js" \
+  "frontend/web/monorepo/apps/ui5/src frontend/web/monorepo/apps/ui5/index.html frontend/web/monorepo/apps/ui5/vite.config.ts frontend/web/monorepo/apps/ui5/package.json frontend/web/monorepo/apps/ui5/package-lock.json frontend/web/react-renderer frontend/app/react-native/src/core frontend/app/react-native/src/renderer frontend/app/react-native/src/api frontend/app/react-native/src/a11y"
+
 # Redwood: the jar is stamped with a hash of the sources it was built from (static/mateu-build-info.json,
 # written by apps/redwood/scripts/copy.mjs; apps/redwood/scripts/source-hash.mjs defines the sources).
 # Stronger than ancestry: it fails on ANY difference - a bundle built from a dirty tree, from another

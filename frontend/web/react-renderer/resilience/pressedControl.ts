@@ -3,21 +3,22 @@ import type { ServerActivity } from '@rn/core/serverActivity'
 /** How long after a press a request still counts as the press's (an action goes out on the next tick). */
 const PRESS_WINDOW_MS = 400
 
-const BUTTONISH = 'button, [role="button"], [role="menuitem"], a[href]'
+export const BUTTONISH = 'button, [role="button"], [role="menuitem"], a[href]'
 
 /**
  * The pressed control shows it was heard: a request that starts right after a press on a button
  * marks THAT button `data-mateu-pending` + `aria-busy` until the server is idle again (Redwood's
  * trackPressedControls: followed at the document level, so every button — toolbar, row, overlay,
  * island — is covered without threading the event through each one). The second press is stopped
- * by the view controller's in-flight guard, not here.
+ * by the view controller's in-flight guard, not here. A design system whose buttons are custom
+ * elements (a ui5-button's role lives in its shadow root) passes their tags in `buttons`.
  */
-export function trackPressedControls(activity: ServerActivity): () => void {
+export function trackPressedControls(activity: ServerActivity, buttons: string = BUTTONISH): () => void {
   let pressed: { el: HTMLElement; at: number } | null = null
   const marked = new Set<HTMLElement>()
 
   const onPress = (e: Event) => {
-    const target = e.target instanceof Element ? e.target.closest(BUTTONISH) : null
+    const target = e.target instanceof Element ? e.target.closest(buttons) : null
     if (target instanceof HTMLElement && !target.hasAttribute('disabled')) pressed = { el: target, at: Date.now() }
   }
   const clear = () => {

@@ -380,3 +380,30 @@ def test_the_primer_renderer_is_served_like_any_web_renderer(caplog, tmp_path, m
     lazy = next(p.name for p in (PRIMER_STATIC / "assets").glob("mateu-primer-visual-*.js"))
     assert c.get("/assets/" + lazy, headers={"accept": "*/*"}).status_code == 200
     assert any("says renderer: vaadin, but this server serves primer" in r.getMessage() for r in caplog.records)
+
+
+UI5_STATIC = Path(__file__).resolve().parents[3] / "backend/shared/frontend/ui5/src/main/resources/static"
+
+
+def test_the_ui5_renderer_is_served_like_any_web_renderer(caplog, tmp_path, monkeypatch):
+    """The mateu-ui5 jar's static/ (UI5 Web Components): its page at the mount and deep links, its
+    entry script, a lazy chunk and its stylesheet at the origin root — and a descriptor naming
+    another renderer is warned at startup."""
+    if not (UI5_STATIC / "_index.html").is_file():
+        pytest.skip("the SAP renderer bundle is not checked out next to this test")
+    import logging
+
+    (tmp_path / "project.yaml").write_text("type: Project\nrenderer: vaadin\n")
+    monkeypatch.setenv("MATEU_SPECS_DIR", str(tmp_path))
+    with caplog.at_level(logging.WARNING, logger="mateu.project"):
+        c = client(UI5_STATIC)
+    home = c.get("/")
+    assert home.status_code == 200 and '<mateu-ui baseUrl=""' in home.text
+    assert 'src="/assets/mateu-ui5.js"' in home.text
+    assert c.get("/ui-probe/7", headers={"accept": "text/html"}).status_code == 200
+    script = c.get("/assets/mateu-ui5.js", headers={"accept": "*/*"})
+    assert script.status_code == 200 and "javascript" in script.headers["content-type"]
+    assert c.get("/assets/mateu-ui5.css", headers={"accept": "*/*"}).status_code == 200
+    lazy = next(p.name for p in (UI5_STATIC / "assets").glob("mateu-ui5-visual-*.js"))
+    assert c.get("/assets/" + lazy, headers={"accept": "*/*"}).status_code == 200
+    assert any("says renderer: vaadin, but this server serves ui5" in r.getMessage() for r in caplog.records)

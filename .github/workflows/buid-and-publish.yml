@@ -192,6 +192,7 @@ jobs:
           check "backend/shared/uidl/target/mateu-uidl-$RELEASE_VERSION.jar" META-INF/LICENSE.txt META-INF/NOTICE
           check "backend/shared/frontend/vaadin-lit/target/mateu-vaadin-$RELEASE_VERSION.jar" META-INF/LICENSE.txt META-INF/NOTICE static/assets/THIRD-PARTY-LICENSES.txt static/assets/mateu-vaadin.js
           check "backend/shared/frontend/primer/target/mateu-primer-$RELEASE_VERSION.jar" META-INF/LICENSE.txt META-INF/NOTICE static/assets/THIRD-PARTY-LICENSES.txt static/assets/mateu-primer.js
+          check "backend/shared/frontend/ui5/target/mateu-ui5-$RELEASE_VERSION.jar" META-INF/LICENSE.txt META-INF/NOTICE static/assets/THIRD-PARTY-LICENSES.txt static/assets/mateu-ui5.js
 
       # The signing key enters the keyring only now, AFTER the first Maven
       # build — third-party code that has no reason to see it.

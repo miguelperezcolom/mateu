@@ -81,5 +81,5 @@ Known gaps:
   texts are English (as on the web).
 - Primer React's own strings ("Select rows", overflow "More items") and the texts the React Native
   core produces (toast actions, load failures) stay English.
-- CustomComponent: an app registers a renderer with `window.MateuPrimer.registerCustomComponent`
+- CustomComponent: an app registers a renderer with `window.MateuRenderer.registerCustomComponent` (also `window.MateuPrimer`)
   or defines a custom element of that name.

@@ -1,0 +1,22 @@
+/* border-box everywhere (a width of 100% includes its padding and border) — UI5's own controls set theirs */
+html { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: inherit; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--sapBackgroundColor);
+  color: var(--sapTextColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+}
+/* a page with no app shell: the content on Fiori's responsive page margins */
+.mateu-page-container { padding: 1rem 2rem; max-width: 100%; box-sizing: border-box; }
+@media (max-width: 599px) { .mateu-page-container { padding: 1rem; } }
+
+/* the served page's mount marker (IndexPage writes it in the root-element region): data, not UI */
+mateu-ui, #mateu-ui5 {
+  display: none !important;
+}
+
+/* the shared chrome (unsupported box, skip link, markdown, .sr-only) is views/base.css, in the contract tokens (tokens.css) */

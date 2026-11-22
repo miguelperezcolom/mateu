@@ -1,0 +1,79 @@
+/* ── page width (fixed / full / edge — the Redwood template parameter, UI5's container widths) ── */
+.mateu-view[data-page-width="fixed"] { margin-inline: auto; }
+.mateu-view[data-page-width="full"] { max-width: none; }
+/* edge: the content area's gutter is given back (the shell pads 24px, 16px on a phone) */
+.mateu-view[data-page-width="edge"] { max-width: none; margin-inline: calc(-1 * 1.5rem); }
+@media (max-width: 767px) { .mateu-view[data-page-width="edge"] { margin-inline: calc(-1 * 1rem); } }
+/* …but the page's own header and banners keep it (an island's page inside is sized by its host) */
+.mateu-view[data-page-width="edge"] .mateu-page:not(.mateu-page .mateu-page) > * > :is(.mateu-page-header-wrap, .mateu-page-banners) { padding-inline: 1.5rem; }
+@media (max-width: 767px) {
+  .mateu-view[data-page-width="edge"] .mateu-page:not(.mateu-page .mateu-page) > * > :is(.mateu-page-header-wrap, .mateu-page-banners) { padding-inline: 1rem; }
+}
+
+/* ── the header ── */
+.mateu-page-overline {
+  font: normal var(--sapFontSmallSize)/1.3 var(--sapFontFamily);
+  font-weight: bold;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--sapContent_LabelColor);
+}
+.mateu-page-title-placeholder { color: var(--sapContent_LabelColor); font-style: italic; font-weight: normal; }
+.mateu-page-timestamp { color: var(--sapContent_LabelColor); font-size: var(--sapFontSmallSize); }
+.mateu-page-subtitle { color: var(--sapContent_LabelColor); }
+.mateu-page-facts { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 0.5rem; }
+.mateu-page-fact { display: flex; flex-direction: column; min-width: 0; }
+.mateu-page-fact-label { color: var(--sapContent_LabelColor); font-size: var(--sapFontSmallSize); }
+.mateu-page-fact-value { font-weight: bold; }
+.mateu-page-toolbar-divider { align-self: stretch; border-inline-start: 1px solid var(--sapList_BorderColor); margin-inline: 0.25rem; }
+.mateu-page-footer { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* docs mode (the index is shown): the header stays on screen under the app header */
+.mateu-page-header-wrap.is-sticky {
+  position: sticky;
+  top: var(--mateu-shell-sticky-top, 0px);
+  z-index: 3;
+  background: var(--sapGroup_ContentBackground);
+  padding-block: 0.5rem;
+  border-bottom: 1px solid var(--sapList_BorderColor);
+}
+
+/* ── @Toc: content + a sticky right-hand index ── */
+.mateu-page-body.with-toc { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: 1.5rem; align-items: start; }
+.mateu-page-toc {
+  position: sticky;
+  top: calc(var(--mateu-page-pinned-top, 0px) + 1rem);
+  max-height: calc(100vh - var(--mateu-page-pinned-top, 0px) - 2rem);
+  overflow-y: auto;
+}
+.mateu-page-toc-key {
+  margin-inline-start: auto;
+  font: normal var(--sapFontSmallSize)/1.3 var(--sapFontFamily);
+  color: var(--sapContent_LabelColor);
+  border: 1px solid var(--sapList_BorderColor);
+  border-radius: 0.25rem;
+  padding: 0 0.25rem;
+  font-family: monospace;
+}
+@media (max-width: 1011px) {
+  .mateu-page-body.with-toc { grid-template-columns: minmax(0, 1fr); }
+  .mateu-page-toc { position: static; max-height: none; order: -1; }
+}
+/* a pinned @Section stacks under the header (its top is measured: .mateu-page-toc.ts) */
+.mateu-page section.mateu-section--sticky { z-index: 2; box-shadow: 0 calc(-1 * 0.5rem) 0 0 var(--sapGroup_ContentBackground); }
+/* a section heading the index moved the focus to (for the screen reader) draws no focus box */
+.mateu-focus-target:focus { outline: none; }
+
+/* ── @Compact: high density — lower controls, tighter spacing, the text keeps its size ── */
+.mateu-compact {
+  --control-medium-size: 1.625rem;
+  --control-medium-paddingBlock: 0.25rem;
+  --control-medium-paddingInline-normal: 0.5rem;
+  --stack-gap-normal: 0.5rem;
+  --stack-gap-spacious: 0.75rem;
+}
+.mateu-compact .FormControl-label, .mateu-compact label { font-size: var(--sapFontSmallSize); }
+/* UI5's inputs size from their wrapper (32px): the small control height, like size="small" */
+.mateu-compact .TextInput-wrapper:not(:has(textarea)) { min-height: 1.625rem; height: 1.625rem; }
+.mateu-compact select { height: 1.625rem; }
+.mateu-compact section { padding: 0.5rem 0.75rem !important; }

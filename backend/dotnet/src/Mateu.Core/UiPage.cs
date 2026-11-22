@@ -7,7 +7,7 @@ namespace Mateu.Core;
 /// <c>SpaFallback</c> + <c>StaticAssetCaching</c> (<c>io.mateu.core.infra</c>).
 /// </summary>
 /// <remarks>
-/// A Java app serves its UI itself: the <c>mateu-vaadin</c> / <c>mateu-redwood</c> / <c>mateu-primer</c> jar on the
+/// A Java app serves its UI itself: the <c>mateu-vaadin</c> / <c>mateu-redwood</c> / <c>mateu-primer</c> / <c>mateu-ui5</c> jar on the
 /// classpath brings the renderer's page (<c>static/_index.html</c>) and assets, and the generated
 /// controller answers the mount and its deep links with that page aimed at the mount. This port
 /// answered the sync API only, so a first-time user had nothing to open in a browser. Given a
@@ -16,7 +16,7 @@ namespace Mateu.Core;
 /// accepts HTML and names no file), the assets at the origin root (where the renderer's page
 /// references them), and nothing under <c>/mateu</c> (an API miss stays a 404, never the page).
 /// The renderer is not packaged with the NuGet: point <c>MapMateu(ui: …)</c> / <c>MATEU_UI</c> at the
-/// jar downloaded from Maven Central (<c>io.mateu:mateu-vaadin</c>, <c>mateu-redwood</c> or <c>mateu-primer</c>, the
+/// jar downloaded from Maven Central (<c>io.mateu:mateu-vaadin</c>, <c>mateu-redwood</c>, <c>mateu-primer</c> or <c>mateu-ui5</c>, the
 /// version of the wire you target) or at its extracted <c>static/</c> folder.
 /// </remarks>
 internal static class UiPage
@@ -376,7 +376,7 @@ internal static class UiPage
                + "<p>It serves the sync API at <code>POST " + mount + "/mateu/v3/sync/{route}</code>, which every Mateu "
                + "renderer (web, mobile, IDE) can render, but no web page.</p>"
                + "<p>To open the app in this browser, set <code>" + EnvVar + "</code> to the "
-               + "<code>io.mateu:mateu-vaadin</code> (or <code>mateu-redwood</code>, <code>mateu-primer</code>) jar, or to its "
+               + "<code>io.mateu:mateu-vaadin</code> (or <code>mateu-redwood</code>, <code>mateu-primer</code>, <code>mateu-ui5</code>) jar, or to its "
                + "<code>static/</code> folder, and restart; or pass the same location as <code>ui</code> when "
                + "registering Mateu.</p></body></html>";
     }
@@ -412,7 +412,7 @@ internal sealed class RendererFiles
         if (files.Read(UiPage.Index) is null)
             throw new FileNotFoundException(
                 $"{full} is not a Mateu web renderer: no {UiPage.Index} (expected the static/ folder of "
-                + "io.mateu:mateu-vaadin, mateu-redwood or mateu-primer, or the jar itself)");
+                + "io.mateu:mateu-vaadin, mateu-redwood, mateu-primer or mateu-ui5, or the jar itself)");
         return files;
     }
 

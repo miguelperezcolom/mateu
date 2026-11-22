@@ -189,7 +189,7 @@ public static partial class MateuExtensions
 
     /// <summary>Maps the Mateu endpoints at <paramref name="baseUrl"/> (the mount; "" = the root).
     /// With <paramref name="ui"/> — the <c>static/</c> folder of the <c>io.mateu:mateu-vaadin</c> (or
-    /// <c>mateu-redwood</c>, <c>mateu-primer</c>) jar, or the jar itself; default: the <c>MATEU_UI</c> environment variable —
+    /// <c>mateu-redwood</c>, <c>mateu-primer</c>, <c>mateu-ui5</c>) jar, or the jar itself; default: the <c>MATEU_UI</c> environment variable —
     /// the server also serves that web renderer's page, like a Java app does: the page answers the
     /// mount and every deep link under it, the renderer's assets are served at the origin root, and
     /// nothing under <c>/mateu</c> is ever answered with the page. The app's own endpoints keep

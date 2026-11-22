@@ -22,6 +22,7 @@ import { RenderBoundary } from './RenderBoundary'
 import { Element, MicroFrontend } from '@mr/render/Embedded'
 import './notice.css'
 import { tx } from '@mr/i18n/texts'
+import { AccordionPanel } from './AccordionPanel'
 
 type Dict = Record<string, unknown>
 
@@ -527,20 +528,6 @@ function Box({ component, state, data, level }: { component: Dict; state: Dict; 
       </Stack>
       </div>
     </section>
-  )
-}
-
-function AccordionPanel({ panel, state, data }: { panel: unknown; state: Dict; data?: unknown }) {
-  const m = meta(panel)
-  const [open, setOpen] = useState(m['active'] === true || m['open'] === true)
-  return (
-    <details open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
-      style={{ border: 'var(--borderWidth-thin) solid var(--borderColor-default)', borderRadius: 'var(--borderRadius-medium)', padding: 'var(--base-size-8) var(--base-size-16)' }}>
-      <summary style={{ cursor: 'pointer', fontWeight: 600 }}>{interpolate(String(m['label'] ?? ''), { state, data })}</summary>
-      <div style={{ paddingTop: 'var(--base-size-12)' }}>
-        {childrenOf(panel).map((c, i) => <ComponentRenderer key={i} component={c} state={state} data={data} />)}
-      </div>
-    </details>
   )
 }
 

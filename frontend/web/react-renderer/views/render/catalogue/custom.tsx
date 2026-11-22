@@ -12,8 +12,8 @@ import type { CatalogueProps, Dict } from './types'
  *     `(props, children) => ReactNode`, @rn/renderer/customComponents). An app serving the prebuilt Primer jar
  *     registers from any script of its page, through the global this bundle publishes:
  *
- *       window.MateuPrimer.registerCustomComponent('acme-rating', (props, children) =>
- *         window.MateuPrimer.React.createElement('div', null, `★ ${props.value}`, children))
+ *       window.MateuRenderer.registerCustomComponent('acme-rating', (props, children) =>
+ *         window.MateuRenderer.React.createElement('div', null, `★ ${props.value}`, children))
  *
  *     (registered before or after the screen arrives: a later registration redraws it);
  *
@@ -104,20 +104,29 @@ function useRegistrations(): number {
 }
 
 /** Registers a React renderer for a custom component `name` (a later registration replaces it). */
-export function registerPrimerCustomComponent(name: string, renderer: CustomComponentRenderer): void {
+export function registerCustomComponent(name: string, renderer: CustomComponentRenderer): void {
   registry.set(name, renderer)
   listeners.forEach((l) => l())
 }
 
+/** What every React renderer (Primer, SAP, Salesforce) puts on `window` for an app's own code. */
+interface MateuRendererGlobal { registerCustomComponent: typeof registerCustomComponent; React: typeof React; [k: string]: unknown }
+
 declare global {
   interface Window {
-    MateuPrimer?: { registerCustomComponent: typeof registerPrimerCustomComponent; React: typeof React; [k: string]: unknown }
+    MateuRenderer?: MateuRendererGlobal
+    /** The same object under Primer's earlier name (its docs and apps named it so). */
+    MateuPrimer?: MateuRendererGlobal
   }
 }
 
 if (typeof window !== 'undefined') {
-  window.MateuPrimer = { ...(window.MateuPrimer ?? {}), registerCustomComponent: registerPrimerCustomComponent, React }
-  // an app that registered BEFORE this bundle ran queued its calls: `(window.MateuPrimerQueue ||= []).push([name, renderer])`
-  const queued = (window as unknown as { MateuPrimerQueue?: [string, CustomComponentRenderer][] }).MateuPrimerQueue
-  if (Array.isArray(queued)) queued.forEach(([n, r]) => registerPrimerCustomComponent(n, r))
+  const api: MateuRendererGlobal = { ...(window.MateuRenderer ?? window.MateuPrimer ?? {}), registerCustomComponent, React }
+  window.MateuRenderer = api
+  window.MateuPrimer = api
+  // an app that registered BEFORE this bundle ran queued its calls: `(window.MateuRendererQueue ||= []).push([name, renderer])`
+  const w = window as unknown as Record<string, [string, CustomComponentRenderer][] | undefined>
+  for (const queued of [w['MateuRendererQueue'], w['MateuPrimerQueue']]) {
+    if (Array.isArray(queued)) queued.forEach(([n, r]) => registerCustomComponent(n, r))
+  }
 }

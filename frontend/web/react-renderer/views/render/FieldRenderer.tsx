@@ -13,6 +13,8 @@ import { RowEditorGrid } from './fields/rowEditor'
 import { ChoiceCards } from './fields/choiceCards'
 import { FieldButton, PopoverChoice } from './fields/stereotypes'
 import { SearchableField, SearchableMultiField } from './fields/selector'
+import { NOT_MINE } from './fields/rule'
+import { NATIVE_RULES } from './fields/native'
 import { interpolate, interpolateUrl } from '@rn/core/expressions'
 import { fieldPlaceholder } from '@rn/core/uxRules'
 import { readOnlyFieldText } from '@rn/core/readOnlyDisplay'
@@ -57,7 +59,8 @@ export function FieldRenderer({ metadata, state }: { metadata: Dict; state: Dict
 }
 
 /** Everything a field's drawing needs, worked out once (the rules below only choose and draw). */
-interface FieldCtx {
+/** What a field rule reads (fields/native.tsx's rules too). */
+export interface FieldCtx {
   m: FieldMeta
   controller: ReturnType<typeof useController>
   state: Dict
@@ -89,8 +92,7 @@ interface FieldCtx {
 }
 
 /** A rule draws the field when it is its kind, or answers NOT_MINE and the next rule is tried. */
-const NOT_MINE = Symbol('not mine')
-type Rule = (c: FieldCtx) => React.ReactNode | typeof NOT_MINE
+export type Rule = (c: FieldCtx) => React.ReactNode | typeof NOT_MINE
 
 function FieldBody({ metadata, state }: { metadata: Dict; state: Dict }) {
   const unlabelled = React.useContext(UnlabelledField)
@@ -460,7 +462,8 @@ const money: Rule = (c) => {
 
 const RULES: Rule[] = [
   propertyRow, grid, status, badge, bool, bulletedList, plainText, searchable, range, media, markup, ownWidgets,
-  fieldButton, choice, lookup, treeSelect, readOnlyValue, multiValued, singleChoice, textarea, money,
+  // a design system's own controls (fields/native.tsx: none in the shared views; a renderer's override adds them)
+  fieldButton, choice, lookup, treeSelect, readOnlyValue, multiValued, ...NATIVE_RULES, singleChoice, textarea, money,
 ]
 
 /** `rightAligned` (amounts) and `bold` on the input's own text. */
