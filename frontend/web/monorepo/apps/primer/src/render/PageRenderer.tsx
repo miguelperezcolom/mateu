@@ -86,7 +86,7 @@ export function PageRenderer({ component, metadata, state, data }: { component: 
           </PageHeader.TitleArea>
           {headerActions.length > 0 && (
             <PageHeader.Actions>
-              <Stack direction="horizontal" gap="condensed" wrap="wrap">{headerActions.map(actionButton)}</Stack>
+              <Stack direction="horizontal" gap="condensed" wrap="wrap">{headerActions.map((b, i) => actionButton(b, i))}</Stack>
             </PageHeader.Actions>
           )}
           {(overline || subtitle || timestamp || kpis.length > 0) && (
@@ -120,7 +120,7 @@ export function PageRenderer({ component, metadata, state, data }: { component: 
       {!readOnly && buttons.length > 0 && (
         <Stack direction="horizontal" justify="end" gap="condensed" wrap="wrap"
           style={{ borderTop: 'var(--borderWidth-thin) solid var(--borderColor-muted)', paddingTop: 'var(--base-size-16)' }}>
-          {buttons.map(actionButton)}
+          {buttons.map((b, i) => actionButton(b, i))}
         </Stack>
       )}
     </Stack>

@@ -188,9 +188,8 @@ function focusMain(e: React.MouseEvent) {
 }
 
 function newSessionId(): string {
-  try {
-    return crypto.randomUUID()
-  } catch {
-    return `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
-  }
+  // a session id is an identifier, never derived from Math.random: crypto is in every browser we serve
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  return 's-' + Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
 }

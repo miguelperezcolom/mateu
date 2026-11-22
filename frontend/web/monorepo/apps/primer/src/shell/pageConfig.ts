@@ -36,7 +36,7 @@ export function locationOfRoute(route: string, baseUrl: string): string {
 
 function baseUrlPath(baseUrl: string): string {
   try {
-    return trimTrailingSlash(new URL(baseUrl || '/', 'http://x').pathname)
+    return trimTrailingSlash(new URL(baseUrl || '/', 'https://mateu.invalid').pathname)
   } catch {
     return ''
   }
