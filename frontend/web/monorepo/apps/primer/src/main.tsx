@@ -10,8 +10,10 @@ import { setRendererName, setRendererVersion } from '@rn/core/buildSkew'
 import { setStreamingFetch } from '@rn/api/MateuApiClient'
 import { ThemedRoot } from './shell/header/theme'
 import { MateuPrimerApp } from './shell/MateuPrimerApp'
-import { baseUrlOfPage } from './shell/pageConfig'
+import { baseUrlOfPage, bundleUrlOfPage } from './shell/pageConfig'
+import { openPageBundle } from './shell/staticBundle'
 import { preloadCatalogue } from './render/catalogue'
+import { primerSignIn } from './shell/signIn'
 
 declare const __MATEU_RENDERER_VERSION__: string
 
@@ -24,15 +26,23 @@ setRendererVersion(typeof __MATEU_RENDERER_VERSION__ === 'string' ? __MATEU_REND
 // the React root is its own element: the mount marker (<mateu-ui> on a served page) only names the mount
 const host = document.getElementById('mateu-primer-root') ?? document.body.appendChild(document.createElement('div'))
 
-createRoot(host).render(
-  <React.StrictMode>
-    <ThemedRoot>
-      <BaseStyles>
-        <MateuPrimerApp baseUrl={baseUrlOfPage(document)} />
-      </BaseStyles>
-    </ThemedRoot>
-  </React.StrictMode>,
-)
+const baseUrl = baseUrlOfPage(document)
 
-// the catalogue families a screen did not need yet, fetched while the browser is idle
+// a page that declares sign-in providers signs the user in first (or completes the provider's
+// callback); without them the app loads at once
+void primerSignIn(baseUrl).then(async (proceed) => {
+  if (!proceed) return
+  // a static bundle (no server behind the loads): fetched before the first render
+  const bundle = await openPageBundle(bundleUrlOfPage(document))
+  createRoot(host).render(
+    <React.StrictMode>
+      <ThemedRoot>
+        <BaseStyles>
+          <MateuPrimerApp baseUrl={baseUrl} bundle={bundle} />
+        </BaseStyles>
+      </ThemedRoot>
+    </React.StrictMode>,
+  )
+})
+
 preloadCatalogue()

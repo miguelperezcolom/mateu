@@ -11,35 +11,53 @@ import { ComponentRenderer } from '../../ComponentRenderer'
 import { BOX_STYLE, styleOf } from '../../styleOf'
 import type { CatalogueProps } from '../types'
 import { activate, arr, colorOf, str, toneBg, toneFg, toneOf, type Dict } from './common'
+import { TileMap } from './tileMap'
 
 // ── Map ───────────────────────────────────────────────────────────────────────────────────────────
 
 /**
- * Map: no tile service is bundled (a map SDK would bring its own look and a third-party host), so —
- * like the native renderers — the markers as a list: each opens OpenStreetMap centred on it, and a
- * marker runs markerActionId with `_markerId`.
+ * Map: the tile map (tileMap.tsx — OpenStreetMap, or the wire's own `tileUrl` + `attribution`) with
+ * the markers on it, and under it the same markers as a list — what a screen reader and a keyboard
+ * read: each opens OpenStreetMap centred on it, and a marker with markerActionId runs it with `_markerId`.
  */
 export function MapView({ component, metadata }: CatalogueProps) {
   const controller = useController()
   const rows = mapRows(metadata as unknown as MapMeta)
-  if (rows.length === 0) return <Text className="mv-muted">No locations.</Text>
+  const run = (r: (typeof rows)[number]) => void controller.runAction(String(metadata['markerActionId']), markerParameters(r))
+  const { height, ...box } = styleOf(component, BOX_STYLE)
+  const h = typeof height === 'string' && /^\d+px$/.test(height) ? parseInt(height, 10) : 360
+  const markers = (arr<Dict>(metadata['markers'])).map((m, i) => ({
+    id: str(m['id']) || String(i),
+    latitude: Number(m['latitude']),
+    longitude: Number(m['longitude']),
+    label: str(m['label']) || str(m['id']),
+    color: str(m['color']) || undefined,
+    actionable: !!metadata['markerActionId'],
+  })).filter((m) => Number.isFinite(m.latitude) && Number.isFinite(m.longitude))
   return (
-    <ul className="mv-box" style={{ listStyle: 'none', margin: 0, padding: 0, ...styleOf(component, BOX_STYLE) }} aria-label="Map locations">
-      {rows.map((r, i) => (
-        <li key={r.key} className="mv-row" style={{ padding: 'var(--base-size-8) var(--base-size-12)', borderTop: i ? 'var(--borderWidth-thin) solid var(--borderColor-muted)' : undefined }}>
-          <span style={{ color: colorOf(r.markerId ? undefined : 'neutral', 'var(--fgColor-danger)') }}><LocationIcon /></span>
-          <span style={{ flex: 1, display: 'grid' }}>
-            {r.actionable
-              ? <Link as="button" onClick={() => void controller.runAction(String(metadata['markerActionId']), markerParameters(r))} style={{ textAlign: 'left', fontWeight: 600 }}>{r.label}</Link>
-              : <Text weight="semibold">{r.label}</Text>}
-            {r.description && <Text size="small" className="mv-muted">{r.description}</Text>}
-          </span>
-          <Link href={r.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12 }}>
-            {r.latitude.toFixed(4)}, {r.longitude.toFixed(4)} ↗
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <div style={{ display: 'grid', gap: 'var(--base-size-8)', ...box }}>
+      <TileMap position={metadata['position'] as string | null} zoom={metadata['zoom'] as string | null} markers={markers}
+        tileUrl={metadata['tileUrl'] as string | null} attribution={metadata['attribution'] as string | null} height={h}
+        onMarker={(m) => { const r = rows.find((x) => x.markerId === m.id) ?? rows[markers.findIndex((x) => x.id === m.id)]; if (r) run(r) }} />
+      {rows.length > 0 && (
+        <ul className="mv-box" style={{ listStyle: 'none', margin: 0, padding: 0 }} aria-label="Map locations">
+          {rows.map((r, i) => (
+            <li key={r.key} className="mv-row" style={{ padding: 'var(--base-size-8) var(--base-size-12)', borderTop: i ? 'var(--borderWidth-thin) solid var(--borderColor-muted)' : undefined }}>
+              <span style={{ color: colorOf(r.markerId ? undefined : 'neutral', 'var(--fgColor-danger)') }}><LocationIcon /></span>
+              <span style={{ flex: 1, display: 'grid' }}>
+                {r.actionable
+                  ? <Link as="button" onClick={() => run(r)} style={{ textAlign: 'left', fontWeight: 600 }}>{r.label}</Link>
+                  : <Text weight="semibold">{r.label}</Text>}
+                {r.description && <Text size="small" className="mv-muted">{r.description}</Text>}
+              </span>
+              <Link href={r.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12 }}>
+                {r.latitude.toFixed(4)}, {r.longitude.toFixed(4)} ↗
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
 

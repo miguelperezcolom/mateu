@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  KeyShortcutRegistry, actionShortcutsOf, isTypingElement, modifiersMatch, shortcutMatches, worksWhileTyping,
+  KeyShortcutRegistry, actionIdInWords, actionShortcutsOf, isTypingElement, modifiersMatch, shortcutMatches, worksWhileTyping,
 } from './keyShortcuts.ts';
 
 test('matching: modifiers exactly, key by logical key or physical code (the web rule)', () => {
@@ -71,4 +71,20 @@ test('action shortcuts are read off the component actions; typing targets are in
   assert.equal(isTypingElement({ tagName: 'DIV', isContentEditable: true }), true);
   assert.equal(isTypingElement({ tagName: 'DIV' }), false);
   assert.equal(isTypingElement(null), false);
+});
+
+test('a help list reads the registered shortcuts, screen first, with their labels', () => {
+  const registry = new KeyShortcutRegistry();
+  registry.register({ shortcut: 'f9', scope: 'app', label: 'Arrivals', run: () => undefined });
+  const off = registry.register({ shortcut: 'ctrl+s', scope: 'screen', actionId: 'saveDraft', label: actionIdInWords('saveDraft'), run: () => undefined });
+  assert.deepEqual(registry.list().map((e) => [e.shortcut, e.label]), [['ctrl+s', 'Save draft'], ['f9', 'Arrivals']]);
+  off();
+  assert.deepEqual(registry.list().map((e) => e.shortcut), ['f9']);
+});
+
+test('an action id in words', () => {
+  assert.equal(actionIdInWords('syncNow'), 'Sync now');
+  assert.equal(actionIdInWords('save-draft'), 'Save draft');
+  assert.equal(actionIdInWords('nested-form-action-guests-addGuest'), 'Guests add guest');
+  assert.equal(actionIdInWords('save'), 'Save');
 });

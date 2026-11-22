@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Button, Heading, IconButton, Text, Textarea } from '@primer/react'
-import { PaperAirplaneIcon, XIcon } from '@primer/octicons-react'
+import { EyeIcon, PaperAirplaneIcon, XIcon } from '@primer/octicons-react'
 import { marked } from 'marked'
 import type { MateuSession } from '@rn/core/MateuSession'
 import {
@@ -9,8 +9,14 @@ import {
 } from '@rn/core/chatStream'
 import { uiEventHooks } from '@rn/core/uiEvents'
 import { sanitizeHtml } from '../../render/safeHtml'
+import { deferAgentEvent, isViewMovingAgentEvent, type DeferredAgentAction } from '@infra/ui/chatFollow.ts'
+import { loadChatFollow, saveChatFollow } from '@infra/ui/chatPanel.ts'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
-interface Message { id: number; from: 'user' | 'agent'; text: string }
+interface Message { id: number; from: 'user' | 'agent'; text: string; deferred?: DeferredAgentAction[] }
+
+/** The app's own wording for the assistant (@AI(askLabel, followLabel, followingLabel)). */
+export interface AssistantTexts { title?: string | null; follow?: string | null; following?: string | null }
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
@@ -48,8 +54,9 @@ function AnswerMarkdown({ source, onRoute }: { source: string; onRoute: (href: s
  * usage, the agent's UI events applied mid-stream — navigation, render-screen, close). Stays
  * mounted while hidden, so the conversation survives closing it.
  */
-export function ChatPanel({ session, sseUrl, open, onClose, seed }: {
+export function ChatPanel({ session, sseUrl, open, onClose, seed, texts = {} }: {
   session: MateuSession
+  texts?: AssistantTexts
   sseUrl: string
   open: boolean
   onClose: () => void
@@ -61,6 +68,11 @@ export function ChatPanel({ session, sseUrl, open, onClose, seed }: {
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState<string | null>(null)
   const [usage, setUsage] = useState<string | null>(null)
+  // follow mode (the web's robot "Follow" button): on, the agent's navigations and screens apply as
+  // they stream; off, they wait on the answer as buttons. Remembered per browser (mateu-chat-follow).
+  const [follow, setFollow] = useState(loadChatFollow)
+  const followRef = useRef(follow)
+  followRef.current = follow
   const nextId = useRef(1)
   const turnRef = useRef<ChatTurn | null>(null)
   const menuContextSent = useRef(false)
@@ -94,7 +106,12 @@ export function ChatPanel({ session, sseUrl, open, onClose, seed }: {
     const apply = (update: ChatTurnUpdate) => {
       if (update.answer) setAgent(agent.id, turn.answer.text)
       if (update.progress) { setProgress(turn.progress.line(Date.now())); setUsage(usageLine(turn.usage) ?? null) }
-      for (const event of update.events) applyChatEvent(event, hooks)
+      for (const event of update.events) {
+        if (!followRef.current && isViewMovingAgentEvent(event.event)) {
+          const held = deferAgentEvent(event.event, event.detail)
+          setMessages((m) => m.map((x) => (x.id === agent.id ? { ...x, deferred: [...(x.deferred ?? []), held] } : x)))
+        } else applyChatEvent(event, hooks)
+      }
     }
     try {
       const mcpUrl = session.chatApp.mcpUrl ? resolveChatUrl(session.chatApp.mcpUrl, base) : undefined
@@ -137,10 +154,15 @@ export function ChatPanel({ session, sseUrl, open, onClose, seed }: {
   }
 
   return (
-    <aside className="mateu-assistant" aria-label="Assistant" hidden={!open}
+    <aside className="mateu-assistant" aria-label={texts.title || 'Assistant'} hidden={!open}
       onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose() } }}>
       <div className="mateu-assistant__header">
-        <Heading as="h2" variant="small">Assistant</Heading>
+        <Heading as="h2" variant="small">{texts.title || 'Assistant'}</Heading>
+        <Button size="small" variant={follow ? 'primary' : 'default'} leadingVisual={EyeIcon} aria-pressed={follow}
+          title={chromeText(follow ? 'chatFollowOn' : 'chatFollowOff')}
+          onClick={() => setFollow(saveChatFollow(!follow))}>
+          {follow ? (texts.following || chromeText('chatFollowing')) : (texts.follow || chromeText('chatFollow'))}
+        </Button>
         <IconButton icon={XIcon} aria-label="Close assistant" variant="invisible" onClick={onClose} />
       </div>
       <div className="mateu-assistant__messages" ref={listRef} aria-live="polite">
@@ -148,6 +170,13 @@ export function ChatPanel({ session, sseUrl, open, onClose, seed }: {
         {messages.map((m) => (
           <div key={m.id} className={`mateu-chat__bubble mateu-chat__bubble--${m.from}`}>
             {m.from === 'agent' ? <AnswerMarkdown source={m.text || '…'} onRoute={openRoute} /> : m.text}
+            {!!m.deferred?.length && (
+              <div className="mateu-chat__deferred">
+                {m.deferred.map((d, i) => (
+                  <Button key={i} size="small" onClick={() => applyChatEvent({ event: d.name, detail: d.detail }, hooks)}>{d.label}</Button>
+                ))}
+              </div>
+            )}
           </div>
         ))}
         {busy && progress && <Text as="p" size="small" className="mateu-muted">{progress}</Text>}

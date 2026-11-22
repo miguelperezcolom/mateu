@@ -1,10 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { modifiersMatch } from '@rn/core/keyShortcuts'
-import { Button, Checkbox, IconButton, Select, Text, TextInput, VisuallyHidden } from '@primer/react'
+import { Button, Checkbox, IconButton, Label, Select, Text, TextInput, VisuallyHidden } from '@primer/react'
+import { cellText as listingCellText } from '@rn/renderer/cellText'
+import { cellTone } from '@rn/renderer/crudListing'
+import { labelVariantOf } from '../looks'
 import { PlusIcon, TrashIcon } from '@primer/octicons-react'
 import { flattenColumnGroups } from '@rn/renderer/columnGroups'
 
 type Dict = Record<string, unknown>
+
+export type GridColumn = Column
 
 interface Column {
   id: string
@@ -17,6 +22,9 @@ interface Column {
   /** a button column (`stereotype: button` or an actionId): its fixed text, else the cell's value */
   actionId?: string
   text?: string
+  /** a status column's tone per raw value (`@Status` mappings), and an enum's labels */
+  tones?: Record<string, string> | null
+  valueLabels?: Record<string, string> | null
 }
 
 const NUMERIC = new Set(['integer', 'int', 'long', 'number', 'double', 'float', 'decimal', 'money'])
@@ -33,18 +41,33 @@ export function gridColumnsOf(columns: unknown, rows: Dict[]): Column[] {
       editorOptions: (m['editorOptions'] as Column['editorOptions']) ?? null,
       actionId: typeof m['actionId'] === 'string' && m['actionId'] ? String(m['actionId']) : undefined,
       text: typeof m['text'] === 'string' && m['text'] ? String(m['text']) : undefined,
+      tones: (m['tones'] as Column['tones']) ?? null,
+      valueLabels: (m['valueLabels'] as Column['valueLabels']) ?? null,
     }))
   const cols = flat.length ? flat : Object.keys(rows[0] ?? {}).map((k) => ({ id: k, label: k }))
   // internal columns (_select — the server-side detail editor's Edit —, _rowNumber…) are wire plumbing, not data
   return cols.filter((c) => !c.id.startsWith('_'))
 }
 
-const cellText = (v: unknown): string => {
+const plainText = (v: unknown, c?: Column): string => {
   if (v === null || v === undefined) return ''
   if (typeof v === 'boolean') return v ? 'Yes' : 'No'
+  if (typeof v === 'object' && ('message' in (v as Dict) || 'value' in (v as Dict))) return listingCellText(v, c?.valueLabels, c)
   if (typeof v === 'object') return String((v as Dict)['label'] ?? (v as Dict)['name'] ?? JSON.stringify(v))
-  return String(v)
+  return listingCellText(v, c?.valueLabels, c)
 }
+
+/**
+ * A grid field cell's value as the listing draws it: a STATUS (a `Status` object `{type, message}`,
+ * a column's `tones`, a status word) is a Primer Label in its tone; the rest is text.
+ */
+export function GridCellValue({ value, column }: { value: unknown; column?: Column }) {
+  const text = plainText(value, column)
+  const tone = column ? cellTone(value, { tones: column.tones ?? null, dataType: column.dataType ?? '' }) : null
+  if (tone) return <Label variant={labelVariantOf({ color: tone })}>{text}</Label>
+  return <>{text}</>
+}
+const cellText = (v: unknown, c?: Column): string => plainText(v, c)
 
 /**
  * A grid field (`@Stereotype(grid)`, a list of rows): a Primer-styled table. Editable columns
@@ -114,10 +137,10 @@ export function GridField({ label, columns, rows, editable, inlineEditing, onCha
 
   const cell = (c: Column, row: Dict, i: number): React.ReactNode => {
     if (c.actionId && (c.stereotype === 'button' || !canEdit(c))) {
-      const text = c.text || cellText(row[c.id])
+      const text = c.text || cellText(row[c.id], c)
       return <Button size="small" variant="invisible" onClick={() => onCellAction?.(c.actionId!, row)}>{text || c.label}</Button>
     }
-    return canEdit(c) ? editor(c, row, i) : cellText(row[c.id])
+    return canEdit(c) ? editor(c, row, i) : <GridCellValue value={row[c.id]} column={c} />
   }
 
   return (

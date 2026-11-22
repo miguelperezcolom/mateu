@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Dialog } from '@primer/react'
+import { Dialog, IconButton } from '@primer/react'
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, ChevronUpIcon, ScreenFullIcon, ScreenNormalIcon } from '@primer/octicons-react'
+import './overlays.css'
 import type { MateuSession, OverlayOpenerContext } from '@rn/core/MateuSession'
 import type { MateuViewController } from '@rn/core/MateuViewController'
 import { interpolate } from '@rn/core/expressions'
@@ -67,7 +69,9 @@ function OverlayLayer({ entry, session: fallback, onClose }: { entry: Entry; ses
   const opener = (entry.opener as { controller?: MateuViewController } | undefined)?.controller
   const meta = ((entry.component as Dict)?.['metadata'] as Dict) ?? {}
   const type = meta['type']
-  const title = interpolate(entry.title, { state: entry.state }) || (type === 'Drawer' ? 'Details' : 'Dialog')
+  const declaredTitle = interpolate(entry.title, { state: entry.state })
+  // an overlay with no title still needs an accessible name — kept for screen readers, not shown
+  const title = declaredTitle || (type === 'Drawer' ? 'Details' : 'Dialog')
   const subtitle = interpolate(String(meta['subtitle'] ?? ''), { state: entry.state })
 
   // what the overlay draws OUTSIDE its content (a footer, a ConfirmDialog's body) runs on the view that opened it
@@ -101,22 +105,86 @@ function OverlayLayer({ entry, session: fallback, onClose }: { entry: Entry; ses
     )
   }
 
+  return <PanelLayer entry={entry} meta={meta} type={String(type ?? '')} title={title} titleShown={!!declaredTitle} subtitle={subtitle} session={session} onClose={onClose} onOpener={onOpener} />
+}
+
+const DRAWER_STEPS = ['small', 'medium', 'large', 'xlarge'] as const
+
+/**
+ * A Dialog or a Drawer (Primer's side sheet / bottom sheet) with every member the wire gives them:
+ * `width` / `height` as declared, `noPadding`, `modeless` (no scrim, the page stays usable), a
+ * `header` component beside the title, and for a Drawer `maximizable` (steps up the sizes),
+ * `collapsible` (a bottom drawer folds to its header strip) and `peerNav` (previous / next object).
+ */
+function PanelLayer({ entry, meta, type, title, titleShown, subtitle, session, onClose, onOpener }: {
+  entry: Entry; meta: Dict; type: string; title: string; titleShown: boolean; subtitle: string; session: MateuSession
+  onClose: () => void; onOpener: (node: unknown) => React.ReactNode
+}) {
+  const drawer = type === 'Drawer'
+  const bottom = drawer && meta['position'] === 'bottom'
+  const [step, setStep] = useState(() => Math.max(0, DRAWER_STEPS.indexOf(drawerWidth(meta['size']))))
+  const [collapsed, setCollapsed] = useState(false)
   const content = overlayContentWithData({ ...meta, initialData: entry.state })
   // a Drawer is Primer's side sheet (Dialog at the edge); a bottom drawer docks at the bottom
-  const position = type === 'Drawer'
-    ? (meta['position'] === 'bottom' ? { narrow: 'bottom', regular: 'bottom' } : meta['position'] === 'start' ? 'left' : 'right')
+  const position = drawer
+    ? (bottom ? { narrow: 'bottom', regular: 'bottom' } : meta['position'] === 'start' ? 'left' : 'right')
     : 'center'
-  const width = type === 'Drawer' ? drawerWidth(meta['size']) : 'large'
+  const declaredWidth = typeof meta['width'] === 'string' && meta['width'] && !bottom && step === DRAWER_STEPS.indexOf(drawerWidth(meta['size'])) ? String(meta['width']) : undefined
+  const declaredHeight = !drawer && typeof meta['height'] === 'string' && meta['height'] ? String(meta['height']) : undefined
+  const peer = drawer ? (meta['peerNav'] as Dict | null | undefined) ?? null : null
+  const goPeer = (route: unknown, label: unknown) => {
+    if (typeof route !== 'string' || !route) return
+    onClose()
+    session.openView({ label: String(label ?? ''), route, consumedRoute: '', serverSideType: '' })
+  }
+  const className = [
+    'mateu-overlay',
+    meta['noPadding'] === true ? 'mateu-overlay--flush' : '',
+    meta['modeless'] === true ? 'mateu-overlay--modeless' : '',
+    collapsed ? 'mateu-overlay--collapsed' : '',
+  ].filter(Boolean).join(' ')
+  const header = meta['header'] && typeof meta['header'] === 'object' ? meta['header'] : null
   return (
     <Dialog
       title={title}
       subtitle={subtitle || undefined}
       onClose={onClose}
       position={position as never}
-      width={width}
-      renderFooter={meta['footer'] ? () => <Dialog.Footer>{onOpener(meta['footer'])}</Dialog.Footer> : undefined}
+      width={drawer ? DRAWER_STEPS[step] : 'large'}
+      className={className}
+      style={{ ...(declaredWidth ? { width: declaredWidth, maxWidth: '100vw' } : {}), ...(declaredHeight ? { height: declaredHeight } : {}) }}
+      renderHeader={({ dialogLabelId, dialogDescriptionId }) => (
+        <Dialog.Header>
+          <div className="mateu-overlay__head">
+            <div className="mateu-overlay__titles">
+              <Dialog.Title id={dialogLabelId} className={titleShown ? undefined : 'sr-only'}>{title}</Dialog.Title>
+              {subtitle && <Dialog.Subtitle id={dialogDescriptionId}>{subtitle}</Dialog.Subtitle>}
+            </div>
+            {header && <div className="mateu-overlay__header">{onOpener(header)}</div>}
+            {peer && (
+              <>
+                <IconButton icon={ChevronLeftIcon} size="small" variant="invisible" disabled={!peer['prevRoute']}
+                  aria-label={peer['prevLabel'] ? `Previous: ${String(peer['prevLabel'])}` : 'Previous'} onClick={() => goPeer(peer['prevRoute'], peer['prevLabel'])} />
+                <IconButton icon={ChevronRightIcon} size="small" variant="invisible" disabled={!peer['nextRoute']}
+                  aria-label={peer['nextLabel'] ? `Next: ${String(peer['nextLabel'])}` : 'Next'} onClick={() => goPeer(peer['nextRoute'], peer['nextLabel'])} />
+              </>
+            )}
+            {drawer && meta['maximizable'] === true && !bottom && (
+              <IconButton icon={step >= DRAWER_STEPS.length - 1 ? ScreenNormalIcon : ScreenFullIcon} size="small" variant="invisible"
+                aria-label={step >= DRAWER_STEPS.length - 1 ? 'Restore size' : 'Make larger'}
+                onClick={() => setStep((st) => (st >= DRAWER_STEPS.length - 1 ? Math.max(0, DRAWER_STEPS.indexOf(drawerWidth(meta['size']))) : st + 1))} />
+            )}
+            {drawer && bottom && meta['collapsible'] === true && (
+              <IconButton icon={collapsed ? ChevronUpIcon : ChevronDownIcon} size="small" variant="invisible"
+                aria-label={collapsed ? 'Expand' : 'Collapse'} aria-expanded={!collapsed} onClick={() => setCollapsed((c) => !c)} />
+            )}
+            {(drawer || meta['closeButtonOnHeader'] !== false) && <Dialog.CloseButton onClose={onClose} />}
+          </div>
+        </Dialog.Header>
+      )}
+      renderFooter={meta['footer'] && !collapsed ? () => <Dialog.Footer>{onOpener(meta['footer'])}</Dialog.Footer> : undefined}
     >
-      {content ? <ViewHost session={session} serverSideNode={content} opener={entry.opener} embedded /> : null}
+      {content && !collapsed ? <ViewHost session={session} serverSideNode={content} opener={entry.opener} embedded /> : null}
     </Dialog>
   )
 }

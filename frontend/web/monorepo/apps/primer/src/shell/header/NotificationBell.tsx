@@ -5,6 +5,7 @@ import type { MateuSession, NavTarget } from '@rn/core/MateuSession'
 import { filtered, grouped, inboxItemOf, unreadCount, type InboxAction, type InboxFilter, type InboxItem } from '@rn/core/inbox'
 import { markReadVars, notificationsOf, runAppSource } from '@rn/core/appSources'
 import { answerData, applyAppAnswer, runAppLevel, type AppTarget } from './appLevel'
+import { useNotifyPermission, useOsNotifications } from './osNotifications'
 
 type Dict = Record<string, unknown>
 
@@ -21,6 +22,9 @@ const FILTERS: { id: InboxFilter; label: string }[] = [
  * InboxStore. An entry opens its detail, goes to its route or unfolds; its actions run server-side.
  */
 export function NotificationBell({ session, app, onNavigate }: { session: MateuSession; app: AppTarget & Dict; onNavigate: (t: NavTarget) => void }) {
+  const osNotifications = app['osNotifications'] === true
+  useOsNotifications(session, osNotifications, onNavigate)
+  const notify = useNotifyPermission()
   const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState<InboxFilter>('all')
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -186,9 +190,12 @@ export function NotificationBell({ session, app, onNavigate }: { session: MateuS
             </section>
           ))}
         </div>
-        {items.length > 0 && (
+        {(items.length > 0 || (osNotifications && notify.permission === 'undetermined')) && (
           <div className="mateu-inbox-foot">
-            <Button size="small" variant="invisible" disabled={unread === 0} onClick={() => void markRead('all')}>Mark all read</Button>
+            {osNotifications && notify.permission === 'undetermined' && (
+              <Button size="small" variant="invisible" leadingVisual={BellIcon} onClick={notify.ask}>Notify me on this device</Button>
+            )}
+            {items.length > 0 && <Button size="small" variant="invisible" disabled={unread === 0} onClick={() => void markRead('all')}>Mark all read</Button>}
           </div>
         )}
       </div>

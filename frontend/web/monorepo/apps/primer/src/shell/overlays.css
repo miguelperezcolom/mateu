@@ -1,0 +1,13 @@
+.mateu-overlay__head { display: flex; align-items: flex-start; gap: var(--base-size-4); width: 100%; }
+.mateu-overlay__titles { flex: 1; min-width: 0; }
+.mateu-overlay__header { display: flex; align-items: center; gap: var(--base-size-8); }
+/* noPadding: the content reaches the panel's edges (a list, a map, a picture) */
+.mateu-overlay--flush [class*="Dialog-Body"] { padding: 0; }
+/* collapsible bottom drawer folded: the header strip only */
+.mateu-overlay--collapsed { height: auto !important; max-height: none !important; }
+.mateu-overlay--collapsed [class*="Dialog-Body"] { display: none; }
+/* modeless: no scrim, the page behind stays usable */
+[class*="Dialog-Backdrop"]:has(.mateu-overlay--modeless) { background: transparent; pointer-events: none; }
+.mateu-overlay--modeless { pointer-events: auto; box-shadow: var(--shadow-floating-large); }
+/* a dialog or drawer sits above the floating buttons (30) and the assistant panel (40) */
+[class*="Dialog-Backdrop"] { z-index: 50; }

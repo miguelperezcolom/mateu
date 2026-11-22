@@ -1,0 +1,20 @@
+.mateu-sign-in {
+  position: fixed; inset: 0; z-index: 2147483000; overflow: auto;
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--base-size-16);
+  background: var(--bgColor-inset);
+}
+.mateu-sign-in-panel {
+  box-sizing: border-box; width: 100%; max-width: 24rem;
+  padding: var(--base-size-24);
+  background: var(--bgColor-default);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-large);
+  box-shadow: var(--shadow-resting-medium);
+}
+.mateu-sign-in-hint { margin: 0; color: var(--fgColor-muted); }
+.mateu-sign-in-glyph {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--bgColor-neutral-muted); font-size: var(--text-body-size-small); font-weight: var(--base-text-weight-semibold);
+}

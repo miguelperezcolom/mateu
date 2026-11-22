@@ -114,3 +114,13 @@
 .mv-def-row:focus-visible { outline: 2px solid var(--focus-outlineColor); outline-offset: -2px; }
 .mv-def-row-title { font-weight: 600; }
 .mv-def-row-caption { color: var(--fgColor-muted); font-size: var(--text-body-size-small); }
+
+/* the tile map (Map) */
+.mv-map { position: relative; overflow: hidden; border: var(--borderWidth-thin) solid var(--borderColor-default); border-radius: var(--borderRadius-medium); background: var(--bgColor-muted); touch-action: none; cursor: grab; }
+.mv-map:focus-visible { outline: 2px solid var(--focus-outlineColor); outline-offset: 2px; }
+.mv-map-tiles { position: absolute; inset: 0; }
+.mv-map img.mv-map-tile { position: absolute; width: 256px; height: 256px; max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none; user-select: none; }
+.mv-pin { position: absolute; width: 18px; height: 18px; margin: -18px 0 0 -9px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--mv-pin); border: 2px solid var(--bgColor-default); box-shadow: var(--shadow-resting-small); padding: 0; cursor: pointer; }
+.mv-pin:focus-visible { outline: 2px solid var(--focus-outlineColor); outline-offset: 2px; }
+.mv-map-zoom { position: absolute; top: var(--base-size-8); right: var(--base-size-8); display: flex; flex-direction: column; gap: var(--base-size-4); }
+.mv-map-credit { position: absolute; right: 0; bottom: 0; padding: 0 var(--base-size-4); font-size: 11px; background: var(--bgColor-default); color: var(--fgColor-muted); opacity: .9; }

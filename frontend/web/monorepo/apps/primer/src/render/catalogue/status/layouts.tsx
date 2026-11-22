@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Heading, IconButton, Label, Text } from '@primer/react'
-import { ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon, PencilIcon, FoldIcon, UnfoldIcon } from '@primer/octicons-react'
+import { ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon, PencilIcon, FoldIcon, UnfoldIcon, PlayIcon, PauseIcon } from '@primer/octicons-react'
 import { foldoutOpenStates } from '@rn/core/foldoutFit'
 import { foldoutSummaryOf } from '@rn/renderer/patternGaps'
 import { useController } from '../../ViewHost'
@@ -156,19 +156,32 @@ export function CarouselLayout({ component, metadata: m, state, data }: Catalogu
   const disabled = m['disabled'] === true
   const [index, setIndex] = useState(() => Math.max(0, Math.min(n - 1, Number(m['selected'] ?? 0) || 0)))
   const [paused, setPaused] = useState(false)
+  // the user's own stop (WCAG 2.2.2): auto-advance stays off until they press play again
+  const [stopped, setStopped] = useState(false)
   const go = (i: number) => { if (!n || disabled) return; setIndex(loop ? (i + n) % n : Math.max(0, Math.min(n - 1, i))) }
   const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+  const auto = m['auto'] === true && n > 1 && !reduced
   useEffect(() => {
-    if (m['auto'] !== true || n < 2 || paused || reduced) return
+    if (!auto || paused || stopped) return
     const timer = setTimeout(() => setIndex((i) => (i + 1) % n), Number(m['duration'] ?? 0) || 5000)
     return () => clearTimeout(timer)
-  }, [index, paused, n, reduced, m])
+  }, [index, paused, stopped, n, auto, m])
+  // a horizontal swipe changes slide (unless the carousel says it may not)
+  const swipe = useRef<number | null>(null)
+  const onPointerDown = (e: React.PointerEvent) => { if (m['disableSwipe'] !== true && e.pointerType !== 'mouse') swipe.current = e.clientX }
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (swipe.current == null) return
+    const dx = e.clientX - swipe.current
+    swipe.current = null
+    if (Math.abs(dx) > 40) go(index + (dx < 0 ? 1 : -1))
+  }
   return (
-    <section className="mateu-st-carousel" aria-roledescription="carousel"
+    <section className="mateu-st-carousel" aria-roledescription="carousel" aria-label={str(m['alt']) || undefined}
+      onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerCancel={() => { swipe.current = null }}
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}
       onKeyDown={(e) => { if (m['disableKeys'] === true) return; if (e.key === 'ArrowLeft') go(index - 1); if (e.key === 'ArrowRight') go(index + 1) }}
       style={styleOf(component, BOX_STYLE)}>
-      <div aria-live={m['auto'] === true && !paused ? 'off' : 'polite'}>
+      <div aria-live={auto && !paused && !stopped ? 'off' : 'polite'}>
         {slides.map((s, i) => (
           <div key={i} role="group" aria-roledescription="slide" aria-label={`${i + 1} of ${n}`} hidden={i !== index}>
             <ComponentRenderer component={s} state={state} data={data} />
@@ -182,6 +195,7 @@ export function CarouselLayout({ component, metadata: m, state, data }: Catalogu
             <button key={i} type="button" className={`mateu-st-dot${i === index ? ' mateu-st-dot-on' : ''}`} aria-label={`Slide ${i + 1}`} aria-current={i === index ? 'true' : undefined} onClick={() => go(i)} disabled={disabled} />
           ))}
           {m['nav'] !== false && <IconButton icon={ChevronRightIcon} aria-label="Next slide" variant="invisible" disabled={disabled || (!loop && index === n - 1)} onClick={() => go(index + 1)} />}
+          {auto && <IconButton icon={stopped ? PlayIcon : PauseIcon} aria-label={stopped ? 'Start the slide show' : 'Stop the slide show'} variant="invisible" onClick={() => setStopped((v) => !v)} />}
         </div>
       )}
     </section>

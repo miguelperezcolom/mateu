@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ActionList, Avatar, Button, Label, Stack, Text, TreeView } from '@primer/react'
+import { ActionList, Avatar, Label, Stack, Text, TreeView } from '@primer/react'
 import { cellText } from '@rn/renderer/cellText'
 import { cardLayoutOf, listColumns, listRowModel, pictureUrlOf, type ColDef } from '@rn/renderer/crudListing'
 import { labelVariantOf } from '../looks'
@@ -118,19 +118,17 @@ export function TreeListing({ rows, defs, label, onOpen, opens, selectLabel }: {
     const name = head ? cellText(row[head.fieldId], head.valueLabels, head as never) : path
     const secondary = rest.map((c) => cellText(row[c.fieldId], c.valueLabels, c as never)).filter(Boolean).join(' · ')
     const canOpen = opens(row)
+    // a selector's tree (a lookup's dialog): pressing the item — click, Enter — picks the row; the
+    // trailing visual is decorative (aria-hidden), so no control may live there
     return (
-      <TreeView.Item key={path} id={path} defaultExpanded onSelect={canOpen && !selectLabel ? () => onOpen(row) : undefined}>
+      <TreeView.Item key={path} id={path} defaultExpanded onSelect={canOpen ? () => onOpen(row) : undefined}>
         {name || '—'}
-        {(secondary || (canOpen && selectLabel)) && (
+        {secondary && (
           <TreeView.TrailingVisual>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--base-size-8)' }}>
-              {secondary && <Text size="small" style={{ color: 'var(--fgColor-muted)' }}>{secondary}</Text>}
-              {canOpen && selectLabel && (
-                <Button size="small" onClick={(e) => { e.stopPropagation(); onOpen(row) }} aria-label={`${selectLabel} ${name}`}>{selectLabel}</Button>
-              )}
-            </span>
+            <Text size="small" style={{ color: 'var(--fgColor-muted)' }}>{secondary}</Text>
           </TreeView.TrailingVisual>
         )}
+        {canOpen && selectLabel && <span className="sr-only">, press to {selectLabel.toLowerCase()}</span>}
         {kids.length > 0 && <TreeView.SubTree>{kids.map((k, i) => node(k, `${path}.${i}`))}</TreeView.SubTree>}
       </TreeView.Item>
     )

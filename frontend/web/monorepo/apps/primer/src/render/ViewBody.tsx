@@ -6,6 +6,8 @@ import { loadFailureMessage } from '@rn/core/uxRules'
 import { ControllerProvider } from './ViewHost'
 import { RenderBoundary } from './RenderBoundary'
 import { ComponentRenderer } from './ComponentRenderer'
+import { pageWidthOf } from './page/pageWidth'
+import './page/page.css'
 
 /** What a view shows: a skeleton while its first answer is on its way, a failure with Retry, or the tree. */
 export function ViewBody({ controller, view, retry, embedded }: {
@@ -29,9 +31,17 @@ export function ViewBody({ controller, view, retry, embedded }: {
     )
   }
   if (!view.component) return null
+  // the content area's view takes its page width (an island or an overlay is sized by its host)
+  const width = embedded ? null : pageWidthOf(view.component)
   return (
     <ControllerProvider value={controller}>
-      <div style={{ position: 'relative' }} key={view.version}>
+      <div
+        style={{ position: 'relative', ...(width?.width === 'fixed' ? { maxWidth: columnCapOf(view.component) } : null) }}
+        key={view.version}
+        className={width ? 'mateu-view' : undefined}
+        data-page-width={width?.width}
+        data-page-type={width?.type}
+      >
         {view.loading && (
           <div style={{ position: 'absolute', top: 'var(--base-size-8)', right: 'var(--base-size-8)', zIndex: 1 }}>
             <Spinner size="small" srText="Loading" />
@@ -58,4 +68,15 @@ function LoadingSkeleton({ embedded }: { embedded?: boolean }) {
       <SkeletonText lines={embedded ? 2 : 6} />
     </div>
   )
+}
+
+/**
+ * A fixed page's measure: the column the server's envelope declares (`max-width: 1200px` on a form,
+ * the 900px reading column of a component tree), else Primer's xlarge container. Full and edge pages
+ * drop it — the web renderers' --mateu-page-column-cap rule.
+ */
+function columnCapOf(component: unknown): string {
+  const style = String((component as Record<string, unknown> | null)?.['style'] ?? '')
+  const m = /(?:^|;)\s*max-width\s*:\s*([0-9.]+(?:px|rem|em|ch|%))/i.exec(style)
+  return m ? m[1] : '1280px'
 }

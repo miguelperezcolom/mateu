@@ -3,6 +3,7 @@ import { ActionList, ActionMenu, Avatar, Button } from '@primer/react'
 import { SignOutIcon } from '@primer/octicons-react'
 import { headerAccountControl, initialsOf, pictureOf, signedInUserOf, userMenuLabel, userMenuTexts } from '@rn/core/userMenu'
 import { safeHref } from '@infra/ui/safeNavigate.ts'
+import { builtInSignOutAvailable, signOutOfBuiltIn } from '../signIn'
 
 type Dict = Record<string, unknown>
 
@@ -16,9 +17,15 @@ export function UserMenu({ app }: { app: Dict }) {
   const locale = typeof app['locale'] === 'string' ? app['locale'] : undefined
   const logout = typeof app['logoutUrl'] === 'string' && app['logoutUrl'] ? safeHref(app['logoutUrl']) ?? undefined : undefined
   const texts = userMenuTexts(locale)
-  const control = headerAccountControl(user, !!logout)
+  // the built-in sign-in's own sign-out (tokens + the IdP's session) wins over a bare logoutUrl
+  const builtIn = builtInSignOutAvailable()
+  const control = headerAccountControl(user, builtIn || !!logout)
   if (control === 'none') return null
-  if (control === 'signOut') return <Button as="a" href={logout} size="small" variant="invisible" leadingVisual={SignOutIcon}>{texts.signOut}</Button>
+  if (control === 'signOut') {
+    return builtIn
+      ? <Button size="small" variant="invisible" leadingVisual={SignOutIcon} onClick={() => void signOutOfBuiltIn()}>{texts.signOut}</Button>
+      : <Button as="a" href={logout} size="small" variant="invisible" leadingVisual={SignOutIcon}>{texts.signOut}</Button>
+  }
   const picture = pictureOf(user!)
   return (
     <ActionMenu>
@@ -35,7 +42,15 @@ export function UserMenu({ app }: { app: Dict }) {
             <ActionList.GroupHeading>{user!.name}</ActionList.GroupHeading>
             {!!user!.email && <ActionList.Item disabled>{user!.email}</ActionList.Item>}
           </ActionList.Group>
-          {logout && (
+          {builtIn ? (
+            <>
+              <ActionList.Divider />
+              <ActionList.Item onSelect={() => void signOutOfBuiltIn()}>
+                <ActionList.LeadingVisual><SignOutIcon /></ActionList.LeadingVisual>
+                {texts.signOut}
+              </ActionList.Item>
+            </>
+          ) : logout && (
             <>
               <ActionList.Divider />
               <ActionList.LinkItem href={logout}>

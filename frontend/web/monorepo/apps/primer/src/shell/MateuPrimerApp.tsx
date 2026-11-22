@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button, Flash, PageLayout, Spinner, Stack, Text, useConfirm } from '@primer/react'
-import { MateuSession, type NavTarget } from '@rn/core/MateuSession'
+import { MateuSession, declareMenuRemotes, navigationSession, type NavTarget } from '@rn/core/MateuSession'
+import { remoteHomeBaseUrl } from '@rn/core/homeTarget'
+import { applyAppExtras, type StaticBundleLike } from './appExtras'
 import { appHomeOf } from '@rn/core/componentContext'
 import { bootFailureOf, loadFailureMessage } from '@rn/core/uxRules'
 import { locationOfRoute, routeOfLocation } from './pageConfig'
@@ -9,6 +11,7 @@ import { Overlays, useOverlays } from './Overlays'
 import { AppShell } from './AppShell'
 import { storedAppContext } from './header/appLevel'
 import { ViewHost } from '../render/ViewHost'
+import type { MateuViewController } from '@rn/core/MateuViewController'
 import { GlobalLayer, type ContentPreview } from './global/GlobalLayer'
 import { Resilience } from './resilience/Resilience'
 
@@ -26,8 +29,13 @@ type Dict = Record<string, unknown>
  * Primer Dialog, confirmAction / confirmDiscard → Primer's confirmation dialog, openView → the
  * browser history.
  */
-export function MateuPrimerApp({ baseUrl }: { baseUrl: string }) {
-  const session = useMemo(() => new MateuSession(baseUrl, newSessionId(), storedAppContext()) /* the @AppContext the user fixed rides every request */, [baseUrl])
+export function MateuPrimerApp({ baseUrl, bundle }: { baseUrl: string; bundle?: StaticBundleLike | null }) {
+  const session = useMemo(() => {
+    const s = new MateuSession(baseUrl, newSessionId(), storedAppContext()) /* the @AppContext the user fixed rides every request */
+    // a static bundle (<mateu-ui bundleUrl>): loads are answered from it, actions still go to a host if there is one
+    if (bundle) s.openStaticBundle(bundle as never)
+    return s
+  }, [baseUrl, bundle])
   const confirm = useConfirm()
   const toasts = useToasts()
   const overlays = useOverlays(session)
@@ -88,7 +96,12 @@ export function MateuPrimerApp({ baseUrl }: { baseUrl: string }) {
           if (meta['actionCatalogue'] !== undefined) session.actionCatalogue.register(meta['actionCatalogue'] as never)
           if (meta['mockSources'] === true) session.sources.setSampleMode(true)
           if (typeof meta['title'] === 'string' && meta['title']) document.title = meta['title']
-          setContent({ label: '', ...appHomeOf(meta) })
+          // the menu's federated entries are trusted with the user's credentials; nothing else is
+          declareMenuRemotes(session, meta['menu'])
+          // accent, favicon, the app-scope data, the capability handshake
+          applyAppExtras(session, meta, () => setBoot((b) => ({ ...b })))
+          const homeBase = remoteHomeBaseUrl(meta as { homeBaseUrl?: string | null }, session.api.baseUrl)
+          setContent({ label: '', ...appHomeOf(meta), ...(homeBase ? { baseUrl: homeBase } : {}) } as NavTarget)
           setBoot((b) => ({ ...b, loading: false, app: meta }))
         } else {
           setContent({ label: '', route, consumedRoute: '_empty', serverSideType: '' })
@@ -116,10 +129,20 @@ export function MateuPrimerApp({ baseUrl }: { baseUrl: string }) {
     return () => window.removeEventListener('popstate', onPop)
   }, [session, route, content, baseUrl])
 
+  // the screen on view, as the assistant and an operating agent read it (RN's screenOf)
+  const onScreenController = useCallback((c: MateuViewController) => {
+    session.currentScreen = () => ({ route: c.currentRoute, componentState: c.currentComponentState, component: c.rendered.component } as never)
+    session.agentScreen.page = c
+  }, [session])
+
+  // a federated screen runs against its own backend (credentials only where the menu trusted it)
+  const contentBase = content ? baseUrlOf(content) : undefined
+  const screenSession = useMemo(() => (contentBase ? navigationSession(session, contentBase) : session), [session, contentBase])
+
   const screen = preview
-    ? <ViewHost key={`preview-${preview.version}`} session={session} preview={{ increment: preview.increment, route: preview.route, consumedRoute: preview.route }} onNavigate={go} />
+    ? <ViewHost key={`preview-${preview.version}`} session={session} preview={{ increment: preview.increment, route: preview.route, consumedRoute: preview.route }} onController={onScreenController} onNavigate={go} />
     : content
-    ? <ViewHost key={`${content.route}|${content.consumedRoute}|${content.serverSideType}`} session={session} target={content} onNavigate={go} />
+    ? <ViewHost key={`${content.route}|${content.consumedRoute}|${content.serverSideType}|${baseUrlOf(content) ?? ''}`} session={screenSession} target={content} onController={onScreenController} onNavigate={go} />
     : null
 
   let body: React.ReactNode
@@ -167,6 +190,9 @@ export function MateuPrimerApp({ baseUrl }: { baseUrl: string }) {
     </>
   )
 }
+
+/** The backend a navigation names, when it is not the shell's (a federated menu entry, a remote home). */
+const baseUrlOf = (t: NavTarget): string | undefined => (t as NavTarget & { baseUrl?: string }).baseUrl || undefined
 
 /** A screen on its own: no app shell, but its page FABs and screen shortcuts still need the global layer. */
 const NO_APP: Record<string, unknown> = {}

@@ -19,6 +19,20 @@ export function baseUrlOfPage(doc: Document): string {
   return trimTrailingSlash(fromDiv ?? '')
 }
 
+/**
+ * The static bundle the page boots from (`<mateu-ui bundleUrl="/x/manifest.json">`, what the
+ * mateu-bundle Maven goal stamps): its manifest answers the route loads with no server behind them.
+ * Null for a page served by a Mateu backend. The dev server also takes `?bundleUrl=`.
+ */
+export function bundleUrlOfPage(doc: Document): string | null {
+  if (import.meta.env.DEV) {
+    const dev = new URLSearchParams(doc.location?.search ?? '').get('bundleUrl')
+    if (dev) return dev
+  }
+  const ui = doc.querySelector('mateu-ui')
+  return ui?.getAttribute('bundleUrl') ?? ui?.getAttribute('bundleurl') ?? null
+}
+
 /** The route the browser asked for, relative to the mount (`/products/12` → `products/12`). */
 export function routeOfLocation(pathname: string, baseUrl: string): string {
   const base = baseUrlPath(baseUrl)

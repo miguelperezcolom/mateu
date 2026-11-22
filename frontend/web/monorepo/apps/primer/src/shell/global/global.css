@@ -90,7 +90,9 @@ body:has(.mateu-assistant:not([hidden])) .mateu-fab-rail { right: calc(min(26rem
   padding: var(--base-size-12) var(--base-size-16);
   border-bottom: var(--borderWidth-thin, 1px) solid var(--borderColor-default);
 }
-.mateu-assistant__header h2 { margin: 0; }
+.mateu-assistant__header h2 { margin: 0; flex: 1; }
+.mateu-assistant__header { gap: var(--base-size-8); }
+.mateu-chat__deferred { display: flex; flex-wrap: wrap; gap: var(--base-size-4); margin-top: var(--base-size-8); }
 .mateu-assistant__messages { flex: 1; overflow-y: auto; padding: var(--base-size-16); display: flex; flex-direction: column; gap: var(--base-size-8); }
 .mateu-assistant__input { display: flex; flex-direction: column; gap: var(--base-size-8); padding: var(--base-size-12) var(--base-size-16); border-top: var(--borderWidth-thin, 1px) solid var(--borderColor-default); }
 .mateu-assistant__input button { align-self: flex-end; }

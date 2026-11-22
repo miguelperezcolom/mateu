@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { ActionList, ActionMenu, Banner, Button, ButtonGroup, Heading, IconButton, Label, Link, ProgressBar, Spinner, Stack, Text } from '@primer/react'
-import { TriangleDownIcon } from '@primer/octicons-react'
+import { AlertIcon, CheckCircleIcon, InfoIcon, StopIcon, TriangleDownIcon } from '@primer/octicons-react'
 import { Blankslate, SkeletonText, UnderlinePanels } from '@primer/react/experimental'
 import { interpolate } from '@rn/core/expressions'
 import { headingLevel, rowJustification } from '@rn/core/uxRules'
@@ -15,9 +15,11 @@ import { usePending } from './usePending'
 import { buttonVariantOf, labelVariantOf } from './looks'
 import { LAYOUT_STYLE, styleOf } from './styleOf'
 import { Markdown } from './Markdown'
+import { octiconOf } from './catalogue/display/shared'
 import { CATALOGUE } from './catalogue'
 import { RenderBoundary } from './RenderBoundary'
 import { Element, MicroFrontend } from './Embedded'
+import './notice.css'
 
 type Dict = Record<string, unknown>
 
@@ -119,9 +121,19 @@ function stackKids({ component, m, state, data, kids }: NodeProps, direction: 'r
   })
 }
 
+/** A layout's gap: none when `spacing` is off, else its `spacingVariant` (xs…xl) on Primer's three steps. */
+const gapOf = (m: Dict): 'none' | 'condensed' | 'normal' | 'spacious' => {
+  if (m['spacing'] === false) return 'none'
+  switch (m['spacingVariant']) {
+    case 'xs': case 's': return 'condensed'
+    case 'l': case 'xl': return 'spacious'
+    default: return 'normal'
+  }
+}
+
 // declared alignment / justification win over Stack's defaults (a toolbar row pushed to the end)
 const vertical: Draw = (p) => (
-  <Stack direction="vertical" gap={p.m['spacing'] === false ? 'none' : 'normal'}
+  <Stack direction="vertical" gap={gapOf(p.m)}
     style={{ alignItems: alignOf(p.m['horizontalAlignment']), justifyContent: rowJustification(p.m['justification'] as string | undefined) ?? undefined, ...styleOf(p.component) }}>
     {stackKids(p, 'column')}
   </Stack>
@@ -169,7 +181,17 @@ const TEXT_SIZE: Record<string, 'large' | 'medium' | 'small'> = { xl: 'large', l
 // `${state.vip ? 'VIP' : ''}`: a badge whose text comes out empty is not shown
 const badge: Draw = ({ m, ctx }) => {
   const value = interpolate(String(m['text'] ?? ''), ctx)
-  return value.trim() ? <Label variant={labelVariantOf(m)}>{value}</Label> : null
+  if (!value.trim()) return null
+  // iconOnLeft / iconOnRight are wire icon tokens; `pill` rounds it fully (Primer's Label is already the small one)
+  const Left = octiconOf(m['iconOnLeft'])
+  const Right = octiconOf(m['iconOnRight'])
+  return (
+    <Label variant={labelVariantOf(m)} className={m['pill'] === true ? 'mateu-badge-pill' : undefined}>
+      {Left && <Left size={12} className="mateu-badge-icon" aria-hidden="true" />}
+      {value}
+      {Right && <Right size={12} className="mateu-badge-icon" aria-hidden="true" />}
+    </Label>
+  )
 }
 
 const anchor: Draw = ({ m, ctx }) => {
@@ -205,26 +227,58 @@ const emptyState: Draw = ({ m, controller }) => (
 )
 
 const NOTICE_VARIANT: Record<string, 'critical' | 'warning' | 'success' | 'info'> = { danger: 'critical', warning: 'warning', success: 'success' }
+const NOTICE_ICON = { critical: StopIcon, warning: AlertIcon, success: CheckCircleIcon, info: InfoIcon } as const
 const notice: Draw = ({ component, m, ctx, controller, kids }) => {
   const value = interpolate(String(m['text'] ?? ''), ctx)
   const content = childrenOf(component)
   if (!value.trim() && content.length === 0) return null
+  const variant = NOTICE_VARIANT[String(m['theme'] ?? 'info')] ?? 'info'
+  const action = m['actionId'] && m['actionLabel']
+    ? { id: String(m['actionId']), label: String(m['actionLabel']) }
+    : null
+  const status = typeof m['status'] === 'string' && m['status'] ? interpolate(m['status'], ctx) : ''
+  const icon = typeof m['icon'] === 'string' && m['icon'] ? m['icon'] : ''
+  // Primer's Banner always draws its severity icon and stacks content under the title: a Notice that
+  // drops the icon, brings its own glyph, carries a status or puts its content on the text's line is
+  // drawn as the same tinted strip in Primer's tokens
+  const own = m['noIcon'] === true || !!icon || !!status || m['inlineContent'] === true
+  if (!own) {
+    return (
+      <Banner
+        title={value || 'Notice'}
+        hideTitle={!value}
+        description={content.length ? <>{kids()}</> : undefined}
+        variant={variant}
+        layout={m['slim'] ? 'compact' : 'default'}
+        primaryAction={action ? <Banner.PrimaryAction onClick={() => void controller.runAction(action.id)}>{action.label}</Banner.PrimaryAction> : undefined}
+      />
+    )
+  }
+  const Glyph = NOTICE_ICON[variant]
   return (
-    <Banner
-      title={value || 'Notice'}
-      hideTitle={!value}
-      description={content.length ? <>{kids()}</> : undefined}
-      variant={NOTICE_VARIANT[String(m['theme'] ?? 'info')] ?? 'info'}
-      layout={m['slim'] ? 'compact' : 'default'}
-      primaryAction={m['actionId'] && m['actionLabel'] ? (
-        <Banner.PrimaryAction onClick={() => void controller.runAction(String(m['actionId']))}>{String(m['actionLabel'])}</Banner.PrimaryAction>
-      ) : undefined}
-    />
+    <div className={`mateu-notice mateu-notice--${variant}${m['slim'] ? ' is-slim' : ''}`} role={variant === 'critical' ? 'alert' : 'status'}
+      data-colspan={m['fullWidth'] === true ? 99 : undefined}>
+      {m['noIcon'] !== true && (
+        icon && !/^[a-z-]+:[a-z0-9-]+$/i.test(icon)
+          ? <span className="mateu-notice__glyph" aria-hidden="true">{icon}</span>
+          : <span className="mateu-notice__icon" aria-hidden="true"><Glyph size={16} /></span>
+      )}
+      <div className={'mateu-notice__body' + (m['inlineContent'] === true ? ' is-inline' : '')}>
+        {value && <span className="mateu-notice__text">{value}</span>}
+        {content.length > 0 && <div className="mateu-notice__content">{kids()}</div>}
+      </div>
+      {action
+        ? <Button size="small" onClick={() => void controller.runAction(action.id)}>{action.label}</Button>
+        : status ? <span className="mateu-notice__status">{status}</span> : null}
+    </div>
   )
 }
 
 const image: Draw = ({ component, m, ctx, controller }) => {
-  const src = controller.session.backendUrl(interpolate(String(m['src'] ?? ''), ctx))
+  const raw = interpolate(String(m['src'] ?? ''), ctx).trim()
+  // an image whose source is not known yet (a `${state.photo}` still empty) draws nothing, not src=""
+  if (!raw) return null
+  const src = controller.session.backendUrl(raw)
   return <img src={src} alt={interpolate(String(m['alt'] ?? ''), ctx)} style={{ maxWidth: '100%', ...styleOf(component) }} />
 }
 
@@ -252,7 +306,7 @@ const CORE: Record<string, Draw> = {
     </div>
   ),
   HorizontalLayout: (p) => (
-    <Stack direction="horizontal" wrap="wrap" gap={p.m['spacing'] === false ? 'none' : 'normal'} align="center"
+    <Stack direction="horizontal" wrap="wrap" gap={gapOf(p.m)} align="center"
       style={{ alignItems: alignOf(p.m['verticalAlignment']), justifyContent: rowJustification(p.m['justification'] as string | undefined) ?? undefined, ...styleOf(p.component) }}>
       {stackKids(p, 'row')}
     </Stack>
@@ -384,6 +438,9 @@ function lengthPx(v: string): number {
   return match[2] === 'px' ? n : n * 16
 }
 
+const sectionClassesOf = (component: Dict): string | undefined =>
+  String(component['cssClasses'] ?? '').split(/\s+/).filter((c) => /^mateu-section(--sticky)?$/.test(c)).join(' ') || undefined
+
 /** A titled, outlined region: Primer has no Card component, its boxes are a bordered surface with a heading. */
 function Box({ component, state, data, level }: { component: Dict; state: Dict; data?: unknown; level: 2 | 3 }) {
   const m = meta(component)
@@ -404,6 +461,9 @@ function Box({ component, state, data, level }: { component: Dict; state: Dict; 
   return (
     <section
       aria-label={title || undefined}
+      // the server's marker classes (mateu-section, mateu-section--sticky): the page's @Toc index and
+      // its sticky stacking find the section cards by them
+      className={sectionClassesOf(component)}
       style={{
         border: frameless || (elevated && !variants.includes('outlined')) ? 'none' : 'var(--borderWidth-thin) solid var(--borderColor-default)',
         boxShadow: elevated ? 'var(--shadow-resting-medium)' : undefined,

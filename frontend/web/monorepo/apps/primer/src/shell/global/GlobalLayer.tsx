@@ -9,7 +9,7 @@ import { runAndApply, routeTarget, type AppMetaLike } from './appActions'
 import { CommandPalette, flattenMenu } from './CommandPalette'
 import { ShortcutsHelp } from './ShortcutsHelp'
 import { IdleWarning } from './IdleWarning'
-import { trackScreenShortcuts, useGlobalKeys, type AppShortcutLike } from './shortcuts'
+import { useGlobalKeys, type AppShortcutLike } from './shortcuts'
 import { useAccessKeys } from './accessKeys'
 import { humanizeId, usePageFabList, type FabLike, type ShownFab } from './fabs'
 import './global.css'
@@ -46,7 +46,6 @@ export function GlobalLayer({ session, app, current, onNavigate, onPreview }: {
     else if (s.actionId) void runAndApply(session, app, s.actionId, onNavigate)
   }
 
-  trackScreenShortcuts(session)
   useGlobalKeys({ session, shortcuts, palette: paletteOn, onPalette: () => setPalette((o) => !o), onHelp: () => setHelp(true), onLaunch: launch })
   useAccessKeys(app['accessKeys'] === true, session, shortcuts)
 
@@ -90,7 +89,7 @@ export function GlobalLayer({ session, app, current, onNavigate, onPreview }: {
         )}
         {sseUrl && (
           <Tooltip text={chat ? 'Close the assistant' : 'Open the assistant'} direction="w">
-            <IconButton className="mateu-fab" icon={CopilotIcon} aria-label={chat ? 'Close assistant' : 'Open assistant'} aria-expanded={chat} size="large" onClick={() => setChat((c) => !c)} />
+            <IconButton className="mateu-fab" icon={octiconOf(app['askIcon']) ?? CopilotIcon} aria-label={chat ? `Close ${String(app['askLabel'] || 'assistant')}` : String(app['askLabel'] || 'Open assistant')} aria-expanded={chat} size="large" onClick={() => setChat((c) => !c)} />
           </Tooltip>
         )}
       </div>
@@ -106,7 +105,8 @@ export function GlobalLayer({ session, app, current, onNavigate, onPreview }: {
       {help && <ShortcutsHelp session={session} shortcuts={shortcuts} palette={paletteOn} onClose={() => setHelp(false)} />}
       {!!app['idleSession'] && <IdleWarning session={session} app={app} />}
       {/* the assistant is its own chunk: only an app with an agent (sseUrl) fetches it */}
-      {sseUrl && <React.Suspense fallback={null}><ChatPanel session={session} sseUrl={sseUrl} open={chat} onClose={() => setChat(false)} seed={seed} /></React.Suspense>}
+      {sseUrl && <React.Suspense fallback={null}><ChatPanel session={session} sseUrl={sseUrl} open={chat} onClose={() => setChat(false)} seed={seed}
+        texts={{ title: app['askLabel'] as string | null, follow: app['followLabel'] as string | null, following: app['followingLabel'] as string | null }} /></React.Suspense>}
     </>
   )
 }

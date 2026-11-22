@@ -949,3 +949,80 @@ test('@Action(shortcut): the shown view registers its keys in the session; anoth
   c.dispose();
   assert.equal(session.keyShortcuts.size(), 0);
 });
+
+test('a @Searchable selector pick in a dialog lands on the form that opened it: value, label, and the dialog closes', async () => {
+  const pick = {
+    commands: [
+      { type: 'DispatchEvent', data: { eventName: 'value-changed', detail: { value: 'menorca', fieldId: 'zona' } } },
+      { type: 'DispatchEvent', data: { eventName: 'data-changed', detail: { value: 'Menorca', key: 'zona-label' } } },
+      { type: 'DispatchEvent', data: { eventName: 'close-modal-requested', detail: null } },
+    ],
+  };
+  const { c: form, session } = harness([fragment(ssc({ actions: [{ id: 'codesearch-zona' }] }))])
+  await form.navigate('/orders', '', '');
+  let closed = 0;
+  const bus: string[] = [];
+  session.closeTopOverlay = () => { closed++; };
+  session.dispatchEvent = (name: string) => { bus.push(name); };
+  // the selector listing inside the dialog: its own controller, opened by the form
+  const selector = new MateuViewController(session);
+  selector.openerController = form;
+  (session as any).api.runAction = () => Promise.resolve(pick);
+  selector.mountServerSide(ssc({ id: 'sel', serverSideType: 'app.ZoneSelector', actions: [{ id: 'action-on-row-select' }] }));
+  await selector.runAction('action-on-row-select', { _clickedRow: { id: 'menorca' } });
+  assert.equal(form.currentComponentState['zona'], 'menorca');
+  assert.equal((form.rendered.data as Json)['zona-label'], 'Menorca');
+  assert.equal(selector.currentComponentState['zona'], undefined);
+  assert.equal(closed, 1);
+  assert.deepEqual(bus, []);
+});
+
+test('a dispatched event that is not one of the form events still travels on the bus', async () => {
+  const { c, session } = harness([fragment(ssc()), { commands: [{ type: 'DispatchEvent', data: { eventName: 'pax-selected', detail: { n: 2 } } }] }]);
+  const bus: string[] = [];
+  session.dispatchEvent = (name: string) => { bus.push(name); };
+  await c.navigate('/orders', '', '');
+  await c.runAction('pick');
+  assert.deepEqual(bus, ['pax-selected']);
+});
+
+test('a list field\'s row editor aimed at <field>-container is drawn in that container, not over the view', async () => {
+  const editor = { type: 'ServerSide', id: 'ed1', serverSideType: 'app.Guest', children: [{ type: 'ClientSide', metadata: { type: 'Form', title: 'Edit guest' } }], initialData: { name: 'Ada', _rowNumber: 0 } };
+  const { c, renders } = harness([
+    fragment(ssc({ actions: [{ id: 'guests_select' }, { id: 'guests_save' }] }), { guests: [{ name: 'Ada', _rowNumber: 0 }] }),
+    { fragments: [
+      { targetComponentId: 'cmp1', action: 'Replace', component: null, state: { guests: [{ name: 'Ada', _rowNumber: 0 }], _show_detail: { guests: true } } },
+      { targetComponentId: 'guests-container', action: 'Replace', component: editor, state: null, data: null },
+    ] },
+  ]);
+  await c.navigate('/orders', '', '');
+  const shown = renders.at(-1)!.component;
+  const drawn: Json[] = [];
+  const off = c.registerContainer('guests-container', (component) => drawn.push(component));
+  await c.runAction('guests_select', { name: 'Ada', _rowNumber: 0 });
+  assert.deepEqual(drawn, [editor]);
+  assert.equal(renders.at(-1)!.component, shown);
+  assert.deepEqual(c.currentComponentState['_show_detail'], { guests: true });
+  // Next: the next row as the container's state
+  const states: Json[] = [];
+  c.registerContainer('guests-container', (component, state) => states.push({ component, state }));
+  c.applyIncrement({ fragments: [{ targetComponentId: 'guests-container', action: 'Replace', component: null, state: { name: 'Alan', _rowNumber: 1 } }] });
+  assert.deepEqual(states, [{ component: null, state: { name: 'Alan', _rowNumber: 1 } }]);
+  assert.equal(c.currentComponentState['name'], undefined);
+  off();
+});
+
+test('an action a nested view does not own goes to the view it is drawn in, with its state as initiatorState', async () => {
+  const { c: holder, calls } = harness([fragment(ssc({ actions: [{ id: 'guests_save' }] }), { guests: [{ name: 'Ada', _rowNumber: 0 }] }), {}]);
+  await holder.navigate('/orders', '', '');
+  const editor = new MateuViewController(holder.session);
+  editor.bubbleTo = holder;
+  editor.mountServerSide({ type: 'ServerSide', id: 'ed1', serverSideType: 'app.Guest', children: [{ type: 'ClientSide', metadata: { type: 'Form' } }], initialData: { name: 'Ada', _rowNumber: 0 } });
+  editor.putState('name', 'Ada L.');
+  await editor.runAction('guests_save');
+  const sent = calls.at(-1)!;
+  assert.equal(sent.actionId, 'guests_save');
+  assert.equal(sent.serverSideType, 'app.Orders');
+  assert.deepEqual(sent.parameters.initiatorState, { name: 'Ada L.', _rowNumber: 0 });
+  assert.deepEqual(sent.componentState.guests, [{ name: 'Ada', _rowNumber: 0 }]);
+});

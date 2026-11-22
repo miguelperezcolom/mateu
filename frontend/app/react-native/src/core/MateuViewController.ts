@@ -24,7 +24,7 @@ import { finishedAnnouncement, progressOf, type TaskAction, type TaskEvent } fro
 import { inboxChangeOf } from './inbox.ts';
 import { classifyFailure, describeFailure, HttpStatusError, isIdempotentAction } from './requestPolicy.ts';
 import { connectivity } from './connectivity.ts';
-import { actionShortcutsOf } from './keyShortcuts.ts';
+import { actionIdInWords, actionShortcutsOf } from './keyShortcuts.ts';
 import { ANONYMOUS_OWNER, newIdempotencyKey, OUTBOX_TEXTS, outboxRecoveryTexts, shouldQueue, type QueuedRequest } from './offlineQueue.ts';
 import type { ToastAction } from './componentContext.ts';
 
@@ -131,6 +131,14 @@ export class MateuViewController {
   /** The actions in flight on this view (a second press of the same one is ignored until it answers). */
   private pending = new Set<string>();
   private pendingListeners = new Set<() => void>();
+
+  /**
+   * The view that opened the overlay this view is the content of (its host sets it from the
+   * overlay's opener). A selector picked in a lookup's dialog answers `value-changed` /
+   * `data-changed` events that, on the web, BUBBLE out of the dialog to the form holding the field:
+   * here they land on this opener (see applyBubblingEvent).
+   */
+  openerController: MateuViewController | null = null;
 
   /** The @Fab buttons of the App shell this view was opened through (see renderComponentFragment). */
   appFabs: { fabs: Json[]; route: string; consumedRoute: string; serverSideType: string } | null = null;
@@ -331,6 +339,28 @@ export class MateuViewController {
     delete this.fieldDataHandlers[fieldId];
   }
 
+  /**
+   * A container inside this view a fragment may be aimed at by id (`<list field>-container`, where
+   * the server answers a list field's row editor): its handler gets the fragment's component, state
+   * and data instead of the view being replaced (the web's applyFragment by container id).
+   */
+  registerContainer(containerId: string, handler: (component: Json | null, state: Json | null, data: unknown) => void): () => void {
+    if (!containerId) return () => undefined;
+    this.containerHandlers[containerId] = handler;
+    return () => {
+      if (this.containerHandlers[containerId] === handler) delete this.containerHandlers[containerId];
+    };
+  }
+  private containerHandlers: Record<string, (component: Json | null, state: Json | null, data: unknown) => void> = {};
+
+  /**
+   * The view an action this one does not own goes to, with this view's state as
+   * `parameters.initiatorState` — the web's bubbling out of a nested mateu-component. Set by the host
+   * of a component drawn INSIDE another view (a list field's row editor: its Save / Cancel / Next are
+   * the holder form's `<field>_save` …, and the edited row rides as the initiator state).
+   */
+  bubbleTo: MateuViewController | null = null;
+
   // ── navigation / actions ────────────────────────────────────────────────────────────
 
   async initialLoad(route: string): Promise<void> {
@@ -478,6 +508,11 @@ export class MateuViewController {
         announce(`There are validation errors. ${summary}`);
         return false;
       }
+    }
+
+    // an action this nested view does not own goes up to the view it is drawn in, carrying our state
+    if (this.bubbleTo && !this.ownsAction(actionId)) {
+      return this.bubbleTo.runAction(actionId, { ...(parameters ?? {}), initiatorState: { ...this.currentComponentState } }, silent, background);
     }
 
     // @Action(confirmationRequired): ask first, with the declared texts — same order as the web's
@@ -816,7 +851,7 @@ export class MateuViewController {
     // @Action(shortcut): the screen's keys, in the session's registry while this view shows them
     this.offShortcuts?.();
     this.offShortcuts = this.session.keyShortcuts?.register(...actionShortcutsOf(sscNode['actions'])
-      .map(({ actionId, shortcut }) => ({ shortcut, scope: 'screen' as const, run: () => void this.runAction(actionId) })));
+      .map(({ actionId, shortcut }) => ({ shortcut, scope: 'screen' as const, actionId, label: actionIdInWords(actionId), run: () => void this.runAction(actionId) })));
     this.actionValidationRequired = flags.validationRequired;
     this.actionRowsSelectedRequired = flags.rowsSelectedRequired;
     this.actionConfirmation = flags.confirmation;
@@ -1039,6 +1074,14 @@ export class MateuViewController {
         session: this.session,
         controller: this,
       });
+      return;
+    }
+
+    // A component aimed at a container this view holds (a list field's row editor) is drawn there;
+    // a state aimed at it (the editor's Next / Prev: another row) is the container's content's state.
+    const container = targetId ? this.containerHandlers[targetId] : undefined;
+    if (container && (component || state)) {
+      container(component, state, data);
       return;
     }
 
@@ -1404,6 +1447,7 @@ export class MateuViewController {
         this.setDirty(false);
         break;
       case 'DispatchEvent':
+        if (this.applyBubblingEvent(cmdData as Json)) break;
         this.dispatchNamedEvent(cmdData as Json);
         break;
       case 'CloseModal':
@@ -1438,6 +1482,37 @@ export class MateuViewController {
       default:
         break;
     }
+  }
+
+  /**
+   * The web's DOM events a server dispatches for the form AROUND the component (a @Searchable
+   * selector's pick: `value-changed {fieldId, value}`, `data-changed {key, value}`,
+   * `close-modal-requested`): applied to the view that holds the field — the opener when this view
+   * is an overlay's content, else this one. True when handled (it is not a bus event then).
+   */
+  private applyBubblingEvent(cmdData: Json | null | undefined): boolean {
+    const eventName = str(cmdData?.['eventName']);
+    const detail = (cmdData?.['detail'] as Json | null | undefined) ?? {};
+    const holder = this.openerController ?? this;
+    if (eventName === 'value-changed' && typeof detail['fieldId'] === 'string' && detail['fieldId']) {
+      holder.putState(detail['fieldId'], detail['value']);
+      return true;
+    }
+    if (eventName === 'data-changed' && typeof detail['key'] === 'string' && detail['key']) {
+      holder.putData(detail['key'], detail['value']);
+      return true;
+    }
+    if (eventName === 'close-modal-requested') {
+      this.session.closeTopOverlay();
+      return true;
+    }
+    return false;
+  }
+
+  /** One entry of the view's data (a resolved label `<field>-label`), re-rendered. */
+  putData(key: string, value: unknown): void {
+    const data = this.view.data && typeof this.view.data === 'object' && !Array.isArray(this.view.data) ? (this.view.data as Json) : {};
+    this.publish({ ...this.view, data: { ...data, [key]: value } });
   }
 
   private dispatchNamedEvent(cmdData: Json | null | undefined): void {

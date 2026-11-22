@@ -54,29 +54,8 @@ export function useGlobalKeys({ session, shortcuts, palette, onPalette, onHelp, 
   }, [session])
 }
 
-/**
- * The keys the screens on show registered (the RN core registers `@Action(shortcut)` in the
- * session's registry and keeps no list a help dialog can read): the registry's `register` is
- * wrapped once per session to remember them while they are registered.
- */
-const screenKeys = new WeakMap<object, Set<string>>()
-
-export function trackScreenShortcuts(session: MateuSession): void {
-  const registry = session.keyShortcuts
-  if (screenKeys.has(registry)) return
-  const keys = new Set<string>()
-  screenKeys.set(registry, keys)
-  const register = registry.register.bind(registry)
-  registry.register = (...entries) => {
-    const off = register(...entries)
-    const mine = entries.filter((e) => e.scope === 'screen' && e.shortcut?.trim()).map((e) => e.shortcut.trim().toLowerCase())
-    mine.forEach((k) => keys.add(k))
-    return () => {
-      off()
-      mine.forEach((k) => keys.delete(k))
-    }
-  }
-}
-
-/** The keys the screens on show answer to (lower-case). */
-export const registeredScreenKeys = (session: MateuSession): string[] => [...(screenKeys.get(session.keyShortcuts) ?? [])]
+/** The `@Action(shortcut)`s the screens on show registered, with what they do (the RN core's registry). */
+export const registeredScreenShortcuts = (session: MateuSession): { key: string; label: string }[] =>
+  session.keyShortcuts.list()
+    .filter((e) => e.scope === 'screen' && e.shortcut?.trim())
+    .map((e) => ({ key: e.shortcut.trim().toLowerCase(), label: e.label || 'An action of this screen' }))

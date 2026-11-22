@@ -1,6 +1,6 @@
-import React from 'react'
-import { ActionList, ActionMenu, Button, Dialog, Heading, Link, NavList, Text, UnderlineNav } from '@primer/react'
-import { ChevronRightIcon } from '@primer/octicons-react'
+import React, { useMemo, useState } from 'react'
+import { ActionList, ActionMenu, Button, Dialog, Heading, Link, NavList, Text, TextInput, UnderlineNav } from '@primer/react'
+import { ChevronRightIcon, SearchIcon } from '@primer/octicons-react'
 import type { MateuSession, NavTarget } from '@rn/core/MateuSession'
 import { isCurrentDestination } from '@rn/core/uxRules'
 import { isRuleLeaf, menuLeafEffects, type ShellAction } from '@rn/core/shellFlows'
@@ -16,6 +16,8 @@ export interface MenuItem {
   route?: string
   consumedRoute?: string
   serverSideType?: string
+  /** A federated entry: the backend that serves it (another Mateu app the shell's menu names). */
+  baseUrl?: string | null
   actionId?: string | null
   submenus?: MenuItem[]
   description?: string | null
@@ -87,7 +89,8 @@ export function useMenuActivation(session: MateuSession, app: Dict, target: AppT
       void runAndApply(session, target, item.actionId)
       return
     }
-    onNavigate({ label: item.label ?? '', route: item.route ?? '', consumedRoute: item.consumedRoute ?? '', serverSideType: item.serverSideType ?? '' })
+    // a federated entry loads from ITS backend (the shell declared it trusted: declareMenuRemotes)
+    onNavigate({ label: item.label ?? '', route: item.route ?? '', consumedRoute: item.consumedRoute ?? '', serverSideType: item.serverSideType ?? '', ...(item.baseUrl ? { baseUrl: item.baseUrl } : {}) } as NavTarget)
   }
 }
 
@@ -137,8 +140,35 @@ function SideEntry({ item, h, depth }: { item: MenuItem; h: MenuHandlers; depth:
   return <SideItem item={item} h={h} depth={depth} />
 }
 
-export function SideNav({ menu, h, label = 'Main menu' }: { menu: MenuItem[]; h: MenuHandlers; label?: string }) {
-  return <NavList aria-label={label}>{menu.map((m, i) => <SideEntry key={i} item={m} h={h} depth={0} />)}</NavList>
+export function SideNav({ menu, h, label = 'Main menu', searchable = false }: { menu: MenuItem[]; h: MenuHandlers; label?: string; searchable?: boolean }) {
+  const [query, setQuery] = useState('')
+  const shown = useMemo(() => (query.trim() ? filterMenu(menu, query) : menu), [menu, query])
+  return (
+    <>
+      {/* a long menu (more than 10 entries — AppDto.totalMenuOptions) gets a filter on top, like the web drawer */}
+      {searchable && (
+        <div className="mateu-menu-search">
+          <TextInput leadingVisual={SearchIcon} aria-label="Search the menu" placeholder="Search the menu" size="small" block
+            value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
+      )}
+      <NavList aria-label={label}>{shown.map((m, i) => <SideEntry key={i} item={m} h={h} depth={0} />)}</NavList>
+      {searchable && query.trim() && shown.length === 0 && <p className="mateu-menu-search-empty">No entries match.</p>}
+    </>
+  )
+}
+
+/** The menu reduced to the entries whose label holds every word typed (a group stays for its matches, or whole when it matches). */
+export function filterMenu(menu: MenuItem[], query: string): MenuItem[] {
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean)
+  const hit = (m: MenuItem) => words.every((w) => (m.label ?? '').toLowerCase().includes(w))
+  const walk = (items: MenuItem[]): MenuItem[] => items.flatMap((m) => {
+    if (m.separator) return []
+    const subs = m.submenus?.length ? walk(m.submenus) : []
+    if (hit(m)) return [m]
+    return subs.length ? [{ ...m, submenus: subs }] : []
+  })
+  return walk(menu)
 }
 
 // ---- top navigation (MENU_ON_TOP, TILES) --------------------------------------------------------

@@ -9,8 +9,10 @@ import { ListBox, Lookup, MultiSelect, TokenList, TreeSelect, type TreeOption } 
 import { FileUpload, ImageValue, PhotoCapture, Signature, UploadableImage } from './fields/media'
 import { MarkupEditor, RichValue } from './fields/markup'
 import { GridField, gridColumnsOf } from './fields/grid'
+import { RowEditorGrid } from './fields/rowEditor'
 import { ChoiceCards } from './fields/choiceCards'
 import { FieldButton, PopoverChoice } from './fields/stereotypes'
+import { SearchableField, SearchableMultiField } from './fields/selector'
 import { interpolate, interpolateUrl } from '@rn/core/expressions'
 import { fieldPlaceholder } from '@rn/core/uxRules'
 import { readOnlyFieldText } from '@rn/core/readOnlyDisplay'
@@ -165,12 +167,22 @@ const propertyRow: Rule = ({ m, dataType, raw, label }) => {
 }
 
 // a grid: an array of rows (@Stereotype(grid), or an array with columns)
-const grid: Rule = ({ m, stereotype, dataType, raw, editable, fieldId, label, controller, commit, shell }) => {
+const grid: Rule = ({ m, stereotype, dataType, raw, editable, fieldId, label, controller, state, commit, shell }) => {
   if (!(stereotype === 'grid' || (dataType === 'array' && Array.isArray(m['columns']) && (m['columns'] as unknown[]).length > 0))) return NOT_MINE
   const rows = Array.isArray(raw) ? (raw as Dict[]) : []
   const selectionAction = typeof m['onItemSelectionActionId'] === 'string' ? (m['onItemSelectionActionId'] as string) : ''
   // an editable grid's default "<field>_selected" selection answers nothing in place: it is not a row click
   const rowAction = selectionAction && !(editable && selectionAction === `${fieldId}_selected`) ? selectionAction : ''
+  // an editable list without @InlineEditing: the server's row editor (Edit / + / − / ↑ / ↓)
+  const columnsMeta = (m['columns'] as Dict[] | undefined) ?? []
+  const serverEditor = editable && m['inlineEditing'] !== true
+    && columnsMeta.some((c) => ((c['metadata'] as Dict | undefined) ?? c)['id'] === '_select')
+  if (serverEditor) {
+    return shell(() => (
+      <RowEditorGrid fieldId={fieldId} label={label} columns={gridColumnsOf(m['columns'], rows)} rows={rows} state={state}
+        formPosition={typeof m['formPosition'] === 'string' ? m['formPosition'] : undefined} />
+    ))
+  }
   return shell(() => (
     <GridField
       label={label}
@@ -308,10 +320,20 @@ const choice: Rule = ({ stereotype, options, dataType, raw, editable, commitPick
   return shell((a11y) => <ChoiceCards options={options} value={pickedStrings(raw)} multiple={multiple} editable={editable} onChange={onChange} a11y={a11y} />)
 }
 
-// a lookup: the server searches (`search-<field>`)
+// @Searchable (a selector Listing behind it): code box + its label + search (`code-` / `codesearch-<field>`);
+// on a collection, tokens + «Add» — as the web renderer draws them
+const searchable: Rule = ({ stereotype, dataType, fieldId, label, raw, text, editable, commit, ref, shell }) => {
+  if (stereotype !== 'searchable') return NOT_MINE
+  if (dataType === 'array' || Array.isArray(raw)) {
+    return shell((a11y) => <SearchableMultiField fieldId={fieldId} label={label} value={raw} editable={editable} onChange={commit} a11y={a11y} buttonRef={ref} />)
+  }
+  return shell((a11y) => <SearchableField fieldId={fieldId} label={label} value={text} editable={editable} a11y={a11y} buttonRef={ref} />)
+}
+
+// a lookup (@Lookup): a remote combobox — the server searches (`search-<field>`)
 const lookup: Rule = ({ m, stereotype, label, fieldId, text, controller, state, editable, commit, ref, placeholder, shell }) => {
   const remote = m['remoteCoordinates'] as Dict | null | undefined
-  if (!(stereotype === 'searchable' || (stereotype === 'combobox' && remote))) return NOT_MINE
+  if (!(stereotype === 'combobox' && remote)) return NOT_MINE
   return shell((a11y) => (
     <Lookup
       label={label}
@@ -436,7 +458,7 @@ const money: Rule = (c) => {
 }
 
 const RULES: Rule[] = [
-  propertyRow, grid, status, badge, bool, bulletedList, plainText, range, media, markup, ownWidgets,
+  propertyRow, grid, status, badge, bool, bulletedList, plainText, searchable, range, media, markup, ownWidgets,
   fieldButton, choice, lookup, treeSelect, readOnlyValue, multiValued, singleChoice, textarea, money,
 ]
 

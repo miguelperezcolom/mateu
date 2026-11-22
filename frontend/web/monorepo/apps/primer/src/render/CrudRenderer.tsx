@@ -17,7 +17,7 @@ import { useController } from './ViewHost'
 import { useButtonPress } from './useButtonPress'
 import { ActionButton } from './PageRenderer'
 import { ComponentRenderer } from './ComponentRenderer'
-import { NUMERIC, ROW_ACTION_TYPES, initialSortOf, rowKeyOf, withoutRowKey, type Dict, type Row } from './listing/rows'
+import { ROW_ACTION_TYPES, initialSortOf, rowKeyOf, withoutRowKey, type Dict, type Row } from './listing/rows'
 import { FilterPanel, filterTokens } from './listing/filters'
 import { RowActions, useCellRenderer } from './listing/cells'
 import { Cards, List, MasterDetail, TreeListing } from './listing/layouts'
@@ -25,6 +25,13 @@ import { DetailsTable } from './listing/DetailsTable'
 import { SavedViews } from './listing/SavedViews'
 import { ColumnChooser, useColumnPrefs } from './listing/ColumnChooser'
 import { useListing } from './listing/useListing'
+import { columnGeometry, tableLookClasses } from './listing/geometry'
+import { ImportDialog } from './listing/ImportDialog'
+import { mayTakeFocusOnItsOwn, watchForInteraction } from '@infra/a11y/initialFocus.ts'
+import './listing/listing.css'
+
+// a listing may put the focus in its search box only once the user has acted on the page
+watchForInteraction()
 
 const aggregatable = (c: ColDef): AggregatableColumn => ({ id: c.fieldId, dataType: c.dataType, stereotype: c.stereotype, aggregate: c.aggregate || undefined })
 const strOf = (v: unknown): string => (typeof v === 'string' ? v : '')
@@ -61,6 +68,14 @@ function listingModel(component: Dict, metadata: Dict, state: Dict) {
     header: (metadata['header'] as unknown[] | undefined) ?? [],
     footer: (metadata['footer'] as unknown[] | undefined) ?? [],
     preSearch: (metadata['preSearch'] as unknown[] | undefined) ?? [],
+    // autoFocusOnSearchText: focused by code once the user has acted (never on a fresh load: the
+    // first Tab must reach the skip link); searchOnEnter false: the search runs as the user types
+    autoFocus: metadata['autoFocusOnSearchText'] === true,
+    searchAsYouType: metadata['searchOnEnter'] === false,
+    // infiniteScrolling: a "Show more" appends the next page instead of the pager
+    infinite: metadata['infiniteScrolling'] === true,
+    looks: tableLookClasses(metadata),
+    contentHeight: strOf(metadata['contentHeight']),
   }
 }
 type Model = ReturnType<typeof listingModel>
@@ -88,7 +103,8 @@ export function CrudRenderer({ component, metadata, state, data }: { component: 
   const { openRow, opensRow } = useRowOpening(m, controller)
 
   const paging = pagingOf(listing.live)
-  const dataRows = paging.rows.map((r, i) => ({ ...r, __mateuRowKey: rowKeyOf(r, i) }))
+  const loaded = useLoadedRows(m.infinite, paging)
+  const dataRows = loaded.map((r, i) => ({ ...r, __mateuRowKey: rowKeyOf(r, i) }))
   const linkColumn = defs.find((c) => c.identifier) ?? defs.find((c) => !c.display) ?? defs[0]
   const cellOf = useCellRenderer({
     linkColumn,
@@ -120,10 +136,42 @@ export function CrudRenderer({ component, metadata, state, data }: { component: 
             openRow={openRow} opensRow={opensRow} sort={listing.initialSort} onSort={listing.sortBy} selection={selection}
           />
         )}
-        <ListingPaging paging={paging} title={m.title} onPage={listing.toPage} />
+        {m.infinite
+          ? <ShowMore loaded={dataRows.length} total={paging.totalElements} onMore={() => listing.toPage(paging.pageNumber + 1)} />
+          : <ListingPaging paging={paging} title={m.title} onPage={listing.toPage} />}
       </Table.Container>
       {m.footer.map((f, i) => <ComponentRenderer key={`f${i}`} component={f} state={state} data={data} />)}
     </>
+  )
+}
+
+/**
+ * The rows on screen: the page — or, with infiniteScrolling, every page loaded so far (page 0
+ * starts over: a new search, sort or filter).
+ */
+function useLoadedRows(infinite: boolean, paging: ReturnType<typeof pagingOf>): Row[] {
+  const [acc, setAcc] = useState<{ pages: Map<number, Row[]>; key: unknown }>({ pages: new Map(), key: null })
+  useEffect(() => {
+    if (!infinite) return
+    setAcc((a) => {
+      const pages = paging.pageNumber === 0 ? new Map<number, Row[]>() : new Map(a.pages)
+      pages.set(paging.pageNumber, paging.rows as Row[])
+      return { pages, key: paging.rows }
+    })
+  }, [infinite, paging.rows, paging.pageNumber])
+  if (!infinite) return paging.rows as Row[]
+  const pages = acc.key === paging.rows ? acc.pages : new Map([...acc.pages, [paging.pageNumber, paging.rows as Row[]]])
+  return [...pages.keys()].sort((a, b) => a - b).flatMap((k) => pages.get(k) ?? [])
+}
+
+function ShowMore({ loaded, total, onMore }: { loaded: number; total: number; onMore: () => void }) {
+  if (total <= 0) return null
+  return (
+    <div className="mateu-listing-more">
+      {loaded < total
+        ? <Button onClick={onMore}>Show more ({loaded} of {total})</Button>
+        : <Text size="small" style={{ color: 'var(--fgColor-muted)' }}>{total} {total === 1 ? 'item' : 'items'}</Text>}
+    </div>
   )
 }
 
@@ -183,6 +231,10 @@ function ListingActions({ m, listing, scope, columnPrefs, state, selected }: {
 }) {
   const controller = useController()
   const press = useButtonPress()
+  const searchBox = useRef<HTMLInputElement>(null)
+  useAutoFocus(m.autoFocus && m.searchable, searchBox)
+  const typed = useDebounced((text: string) => listing.search(listing.filterValues, text), 300)
+  const [importing, setImporting] = useState(false)
   const offersViews = (m.searchable || m.filters.length > 0) && !controller.windowless
   const tableLike = m.layout !== 'tree' && m.defs.length > 1
   if (!m.toolbar.length && !offersViews && !tableLike && !m.searchable && !m.filters.length) return null
@@ -193,11 +245,15 @@ function ListingActions({ m, listing, scope, columnPrefs, state, selected }: {
         {m.searchable && (
           <form role="search" onSubmit={(e) => { e.preventDefault(); listing.search() }}>
             <TextInput
+              ref={searchBox}
               leadingVisual={SearchIcon}
               aria-label={`Search ${m.title || 'the list'}`}
               placeholder="Search"
               value={listing.searchText}
-              onChange={(e) => listing.setSearchText(e.target.value)}
+              onChange={(e) => {
+                listing.setSearchText(e.target.value)
+                if (m.searchAsYouType) typed(e.target.value)
+              }}
             />
           </form>
         )}
@@ -207,12 +263,47 @@ function ListingActions({ m, listing, scope, columnPrefs, state, selected }: {
         {m.toolbar.map((raw, i) => {
           // a bulk action is disabled while no row is selected (the server's gate stays the backstop)
           const b = withSelectionGate(raw as never, selected) as Dict
-          const { onPress, disabled } = press(b, { state }, () => void controller.runAction(buttonActionId(b as never), { crud_selected_items: selected }), String(b['label'] ?? ''))
+          const run = () => {
+            // Import (UploadEnabled): the file first, then `process-import` with its id
+            if (buttonActionId(b as never) === 'import') return setImporting(true)
+            void controller.runAction(buttonActionId(b as never), { crud_selected_items: selected })
+          }
+          const { onPress, disabled } = press(b, { state }, run, String(b['label'] ?? ''))
           return <ActionButton key={i} button={b} onPress={onPress} disabled={disabled} label={String(b['label'])} />
         })}
       </Stack>
+      {importing && (
+        <ImportDialog
+          onClose={() => setImporting(false)}
+          onUploaded={(fileId) => { setImporting(false); void controller.runAction('process-import', { fileId }) }}
+        />
+      )}
     </Table.Actions>
   )
+}
+
+/** The search box takes the focus once, after the page's own route focus — and only if the user has acted. */
+function useAutoFocus(on: boolean, ref: React.RefObject<HTMLInputElement | null>) {
+  useEffect(() => {
+    if (!on) return
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => {
+      const input = ref.current
+      const active = document.activeElement
+      if (input?.isConnected && mayTakeFocusOnItsOwn() && !active?.classList.contains('mateu-skip-link')) input.focus({ preventScroll: true })
+    }))
+    return () => cancelAnimationFrame(id)
+  }, [on]) // eslint-disable-line react-hooks/exhaustive-deps
+}
+
+function useDebounced<A extends unknown[]>(fn: (...args: A) => void, ms: number) {
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const latest = useRef(fn)
+  latest.current = fn
+  useEffect(() => () => clearTimeout(timer.current), [])
+  return (...args: A) => {
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => latest.current(...args), ms)
+  }
 }
 
 /** The applied filters as removable tokens, and Clear filters. */
@@ -289,17 +380,24 @@ function ListingTable({ m, defs, rows, live, cellOf, linkColumn, titleId, sort, 
   const labelColumnId = groupLabelColumnId(m.groupBy, defs.map((c) => c.fieldId))
   const lastColumnId = defs[defs.length - 1]?.fieldId ?? ''
   const footers = buildAggregateFooters(defs.map(aggregatable), listing, m.groupBy)
-  const tableColumns: Dict[] = defs.map((col) => ({
-    id: col.fieldId,
-    header: col.label,
-    field: col.fieldId,
-    rowHeader: col === linkColumn,
-    sortBy: col.sortable ? true : undefined,
-    align: NUMERIC.has(col.dataType) ? 'end' : undefined,
-    renderCell: (row: Row) => (isGroupRow(row)
-      ? <GroupCell row={row} col={col} m={m} labelColumnId={labelColumnId} lastColumnId={lastColumnId} />
-      : cellOf(row, col)),
-  }))
+  const metaOf = (fieldId: string) => m.columnMetas.find((cm) => String(cm['id'] ?? '') === fieldId) ?? {}
+  const tableColumns: Dict[] = defs.map((col) => {
+    const g = columnGeometry(metaOf(col.fieldId), col.dataType)
+    return {
+      id: col.fieldId,
+      header: col.label,
+      field: col.fieldId,
+      rowHeader: col === linkColumn,
+      sortBy: col.sortable ? true : undefined,
+      align: g.align,
+      width: g.width,
+      minWidth: g.minWidth,
+      renderCell: (row: Row) => {
+        if (isGroupRow(row)) return <GroupCell row={row} col={col} m={m} labelColumnId={labelColumnId} lastColumnId={lastColumnId} />
+        return g.centered ? <span className="mateu-cell-centered">{cellOf(row, col)}</span> : cellOf(row, col)
+      },
+    }
+  })
   if (actionsOf) {
     tableColumns.push({
       id: '__mateuRowActions',
@@ -313,7 +411,7 @@ function ListingTable({ m, defs, rows, live, cellOf, linkColumn, titleId, sort, 
     ? defs.filter((c) => footers[c.fieldId] !== undefined).map((c, i) => (i === 0 && !c.aggregate ? footers[c.fieldId] : `${c.label}: ${footers[c.fieldId]}`)).join(' · ')
     : ''
   return (
-    <div style={{ gridArea: 'table' }}>
+    <div style={{ gridArea: 'table', ...(m.contentHeight ? { maxHeight: m.contentHeight } : {}) }} className={['mateu-listing-table', m.looks, m.contentHeight ? 'mateu-listing-scroll' : ''].filter(Boolean).join(' ')}>
       <DataTable
         aria-labelledby={m.title ? titleId : undefined}
         data={displayRows as never[]}
@@ -324,6 +422,8 @@ function ListingTable({ m, defs, rows, live, cellOf, linkColumn, titleId, sort, 
         {...initialSortOf(sort, defs)}
         onToggleSort={(columnId: unknown, direction: 'ASC' | 'DESC') => onSort(String(columnId), direction)}
         rowSelection={selection.enabled || undefined}
+        // a group header row is a heading, not a record: it has no checkbox
+        isRowSelectable={(r: Row) => !isGroupRow(r)}
         onSelectionChange={selection.enabled ? ({ selectedRows }: { selectedRows: Set<string | number> }) => {
           selection.change(rows.filter((r) => selectedRows.has(String(r['__mateuRowKey']))))
         } : undefined}

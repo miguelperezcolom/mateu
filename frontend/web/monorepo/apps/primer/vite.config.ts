@@ -36,16 +36,22 @@ export default defineConfig({
   },
   resolve: {
     dedupe: ['react', 'react-dom'],
-    alias: {
-      'react-native': resolve(import.meta.dirname, 'src/shims/react-native.ts'),
-      'expo-web-browser': resolve(import.meta.dirname, 'src/shims/expo-web-browser.ts'),
-      'expo-file-system': resolve(import.meta.dirname, 'src/shims/expo-file-system.ts'),
-      '@rn': rnSrc,
-      '@mateu': resolve(import.meta.dirname, '../../libs/mateu/src/mateu'),
+    alias: [
+      { find: 'react-native', replacement: resolve(import.meta.dirname, 'src/shims/react-native.ts') },
+      { find: 'expo-web-browser', replacement: resolve(import.meta.dirname, 'src/shims/expo-web-browser.ts') },
+      { find: 'expo-file-system', replacement: resolve(import.meta.dirname, 'src/shims/expo-file-system.ts') },
+      { find: '@rn', replacement: rnSrc },
+      { find: '@mateu', replacement: resolve(import.meta.dirname, '../../libs/mateu/src/mateu') },
       // a few pure rules are libs/mateu's (the web renderers' shared lib) — one rule, not a copy:
-      // the Element attribute policy, the data-HTML sanitizer policy, the public-base rewrite
-      '@infra': resolve(import.meta.dirname, '../../libs/mateu/src/mateu/ui/infra'),
-    },
+      // the Element attribute policy, the data-HTML sanitizer policy, the public-base rewrite, the
+      // built-in sign-in flows
+      { find: '@infra', replacement: resolve(import.meta.dirname, '../../libs/mateu/src/mateu/ui/infra') },
+      // …whose chooser is a Lit element: here it is Primer's (src/shell/SignInChooser.tsx), so lit
+      // never reaches the bundle (it is only a devDependency, for the typecheck of libs/mateu)
+      // libs/mateu's own dependencies resolve from THIS app's install (it is outside the workspaces)
+      { find: /^nanoid$/, replacement: resolve(import.meta.dirname, 'node_modules/nanoid/index.browser.js') },
+      { find: /^\.\/mateu-sign-in\.ts$/, replacement: resolve(import.meta.dirname, 'src/shell/SignInChooser.tsx') },
+    ],
   },
   server: {
     port: 5180,

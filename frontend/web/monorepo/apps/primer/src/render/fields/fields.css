@@ -81,7 +81,8 @@
 .mateu-grid-field tr.clickable:hover td { background: var(--bgColor-muted); }
 .mateu-grid-field tr[aria-selected="true"] td { background: var(--bgColor-accent-muted); }
 .mateu-grid-field td.actions { inline-size: 1%; white-space: nowrap; text-align: end; }
-.mateu-grid-field td:not(.actions) > * { inline-size: 100%; min-inline-size: 6rem; }
+/* an editor fills its cell; a status label, a check, a button keeps its own size */
+.mateu-grid-field td:not(.actions) > :is(input, select, textarea, [data-component=TextInput], [data-component=Select]) { inline-size: 100%; min-inline-size: 6rem; }
 
 .mateu-bullets { margin: 0; padding-inline-start: var(--base-size-20); }
 .mateu-plain-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

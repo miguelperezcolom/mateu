@@ -57,7 +57,7 @@ export function Chart({ component, metadata }: CatalogueProps) {
         aria-label={chartTextAlternative(labels, datasets, pie || radar)} style={{ width: '100%', height: drawH }}>
         {pie ? <Pie values={datasets[0].data ?? []} labels={labels} hole={type === 'doughnut'} polar={type === 'polarArea'} />
           : radar ? <Radar labels={labels} datasets={datasets} />
-            : <XY w={figW} h={drawH} labels={labels} datasets={datasets} line={line} dots={type === 'scatter' || type === 'bubble'} />}
+            : <XY w={figW} h={drawH} labels={labels} datasets={datasets} line={line} dots={type === 'scatter' || type === 'bubble'} fromZero={!line || beginsAtZero(metadata)} />}
       </svg>
       {legend.some(Boolean) && (
         <figcaption className="mv-legend" style={{ marginTop: 'var(--base-size-8)', justifyContent: 'center' }}>
@@ -84,11 +84,20 @@ function fitLabel(label: string, slot: number): string {
   return label.length > max ? label.slice(0, max - 1) + '…' : label
 }
 
-function XY({ w = W, h = H, labels, datasets, line, dots }: { w?: number; h?: number; labels: string[]; datasets: Dataset[]; line: boolean; dots: boolean }) {
+/** chartOptions.scales.y.beginAtZero (Chart.js's option, what the web renderer hands it): a line's
+ *  axis starts at its data otherwise, like Chart.js; bars always stand on zero. */
+const beginsAtZero = (metadata: Dict): boolean =>
+  ((((metadata['chartOptions'] as Dict | undefined)?.['scales'] as Dict | undefined)?.['y'] as Dict | undefined)?.['beginAtZero']) === true
+
+function XY({ w = W, h = H, labels, datasets, line, dots, fromZero = true }: { w?: number; h?: number; labels: string[]; datasets: Dataset[]; line: boolean; dots: boolean; fromZero?: boolean }) {
   const shortLabels = withoutSharedLead(labels)
   const values = datasets.flatMap((d) => d.data ?? [])
-  const max = Math.max(1, ...values)
-  const min = Math.min(0, ...values)
+  const lo = Math.min(...values)
+  const hi = Math.max(...values)
+  // off zero, the data's own range with a little room above and below
+  const pad = fromZero ? 0 : (hi - lo || Math.abs(hi) || 1) * 0.08
+  const max = fromZero ? Math.max(1, hi) : hi + pad
+  const min = fromZero ? Math.min(0, lo) : lo - pad
   const n = Math.max(labels.length, ...datasets.map((d) => d.data?.length ?? 0))
   const iw = w - PAD.l - PAD.r
   const ih = h - PAD.t - PAD.b

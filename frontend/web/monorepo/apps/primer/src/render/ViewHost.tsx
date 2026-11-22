@@ -34,6 +34,8 @@ interface Props {
   preview?: { increment: unknown; route: string; consumedRoute: string; serverSideType?: string }
   /** A micro frontend's declared chrome: sent as embeddedChrome, and what its page header keeps. */
   chrome?: string | null
+  /** The view's controller, once: the shell tells the assistant what is on screen through it. */
+  onController?: (controller: MateuViewController) => void
   onNavigate?: (target: NavTarget, replace?: boolean) => void
 }
 
@@ -42,7 +44,7 @@ interface Props {
  * is) and re-renders on every increment it applies. The web twin of RN's MateuViewHost, without
  * its native concerns (keyboard avoidance, the FAB band, the screen stack).
  */
-export function ViewHost({ session, target, serverSideNode, opener, embedded, preview, chrome, onNavigate }: Props) {
+export function ViewHost({ session, target, serverSideNode, opener, embedded, preview, chrome, onController, onNavigate }: Props) {
   const controller = useMemo(() => new MateuViewController(session), [session])
   const [view, setView] = useState<RenderedView>(controller.rendered)
 
@@ -60,6 +62,8 @@ export function ViewHost({ session, target, serverSideNode, opener, embedded, pr
         controller.currentRoute = opener.route
         controller.currentConsumedRoute = opener.consumedRoute
         controller.currentServerSideType = opener.serverSideType
+        // a selector picked in a lookup's dialog writes its value into the form that opened it
+        controller.openerController = (opener.controller as MateuViewController | undefined) ?? null
       }
       controller.mountServerSide(serverSideNode)
     } else if (preview) {
@@ -72,6 +76,7 @@ export function ViewHost({ session, target, serverSideNode, opener, embedded, pr
     } else if (target) {
       void controller.navigate(target.route, target.consumedRoute, target.serverSideType)
     }
+    onController?.(controller)
     // the screen on view: app-level answers (header actions) apply to it
     const isContent = !!target && !embedded && !serverSideNode
     if (isContent) setContentController(session, controller)

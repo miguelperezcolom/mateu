@@ -1,184 +1,264 @@
-import React, { useEffect, useState } from 'react'
-import { Banner, Breadcrumbs, Button, Label, PageHeader, Stack, Text } from '@primer/react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { Banner, Breadcrumbs, IconButton, Label, PageHeader, Stack, Text } from '@primer/react'
 import { ArrowLeftIcon } from '@primer/octicons-react'
-import { IconButton } from '@primer/react'
 import { interpolate } from '@rn/core/expressions'
 import type { PageBanner } from '@rn/core/MateuViewController'
 import { useController, useEmbeddedChrome } from './ViewHost'
 import { usePageFabs, type FabLike } from '../shell/global/fabs'
 import { ComponentRenderer } from './ComponentRenderer'
-import { useButtonPress } from './useButtonPress'
-import { buttonVariantOf, labelVariantOf } from './looks'
-import { usePending } from './usePending'
+import { labelVariantOf } from './looks'
+import { WireIcon } from './catalogue/display/shared'
+import { HeaderButton, HeaderButtons, splitToolbar, useHeaderPress } from './page/HeaderButtons'
+import { PageStatus, PeerNav, RecordSwitcherControl, useHeaderNavigate } from './page/HeaderExtras'
+import { PageTocAside, usePageLayout } from './page/PageToc'
+import { sectionsOf, showsToc } from './page/toc'
+import './page/page.css'
+
+export { ActionButton } from './page/HeaderButtons'
 
 type Dict = Record<string, unknown>
+type Ctx = { state: Dict; data?: unknown; appState?: unknown }
 
-const BACK_IDS = new Set(['back', 'backToList', 'cancel-view'])
+const HEADING = ['h2', 'h3', 'h4', 'h5', 'h6'] as const
 
 /**
- * A Page or a Form under Primer's PageHeader: the way back as the leading action, the title, the
- * badges and facts beside it, the description, the toolbar as the header's actions (one primary at
- * most); then the page banners, the content and the bottom buttons.
+ * A Page or a Form — the whole Mateu page contract (PageDto / FormDto) in Primer's grammar:
+ * PageHeader (crumbs and the overline as its context; the way back, the avatar, the title — or its
+ * dimmed placeholder —, the status, badges and the record switcher in the title area; the header
+ * widgets, peer arrows, Cancel-like buttons apart and the toolbar — groups and split buttons — as its
+ * actions; subtitle, timestamp and facts as its description), then the banners (static and the ones
+ * an action returned), the content — with the @Toc index beside it, the header pinned and the
+ * sticky sections stacked under it —, the bottom buttons and the footer.
  */
 export function PageRenderer({ component, metadata, state, data }: { component: Dict; metadata: Dict; state: Dict; data?: unknown }) {
   const controller = useController()
-  const press = useButtonPress()
-  const ctx = { state, data, appState: controller.session.appState }
+  const ctx: Ctx = { state, data, appState: controller.session.appState }
   // a micro frontend's declared chrome: NONE = no header, COMPACT = its actions only, PAGE = no trail
   const chrome = useEmbeddedChrome()
-  const noHeader = metadata['noHeader'] === true || chrome === 'NONE'
-  const compact = chrome === 'COMPACT'
-  const title = noHeader || compact ? '' : interpolate(String(metadata['title'] ?? metadata['pageTitle'] ?? ''), ctx)
-  const overline = noHeader || compact ? '' : interpolate(String(metadata['overline'] ?? ''), ctx)
-  const subtitle = noHeader || compact ? '' : interpolate(String(metadata['subtitle'] ?? ''), ctx)
-  const timestamp = noHeader || compact ? '' : interpolate(String(metadata['timestamp'] ?? ''), ctx)
-  const badges = noHeader || compact ? [] : ((metadata['badges'] as Dict[] | undefined) ?? [])
-  const kpis = noHeader || compact ? [] : ((metadata['kpis'] as Dict[] | undefined) ?? [])
+  const level = Math.max(0, Number(metadata['level'] ?? 0) || 0)
+  const noHeader = metadata['noHeader'] === true
   const readOnly = metadata['readOnly'] === true
-  const toolbarAll = noHeader ? [] : ((metadata['toolbar'] as Dict[] | undefined) ?? []).filter((b) => b && b['label'])
-  const back = toolbarAll.find((b) => BACK_IDS.has(String(b['actionId'] ?? b['id'] ?? '')))
-  const toolbar = toolbarAll.filter((b) => b !== back)
-  const declared = ((metadata['actions'] as Dict[] | undefined) ?? []).filter((a) => a && a['label'])
+  const children = (component['children'] as unknown[] | undefined) ?? []
   const buttons = ((metadata['buttons'] as Dict[] | undefined) ?? []).filter((b) => b && b['label'])
-  const crumbs = metadata['noBreadcrumbs'] === true || chrome ? [] : ((metadata['breadcrumbs'] as Dict[] | undefined) ?? [])
-  const header = metadata['header'] as unknown[] | undefined
+  const footer = (metadata['footer'] as unknown[] | undefined) ?? []
+  const compactDensity = /--mateu-compact\s*:\s*1/.test(String(component['style'] ?? ''))
   // the page's floating buttons join the ONE floating column of the global layer (a page in an
   // overlay or an island has none of its own on screen)
   usePageFabs(controller.windowless ? [] : (metadata['fabs'] as FabLike[] | undefined), (id) => void controller.runAction(id), (l) => interpolate(l, ctx))
 
-  const run = (b: Dict) => press(b, { state, data }, () => {
-    const id = String(b['actionId'] ?? b['id'] ?? '')
-    if (id) void controller.runAction(id, (b['parameters'] as Dict | undefined) ?? undefined)
-  }, String(b['label'] ?? ''))
+  // @Toc: tri-state, the page's own section cards (a top-level page only)
+  const sections = useMemo(() => sectionsOf(children), [children])
+  const toc = level === 0 && !controller.windowless && showsToc(metadata['toc'], sections)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const headerRef = useRef<HTMLDivElement>(null)
+  const { active, jump } = usePageLayout(rootRef, headerRef, { toc, count: sections.entries.length, layoutKey: children })
 
-  const actionButton = (b: Dict, i: number) => {
-    const { onPress, disabled } = run(b)
-    return <ActionButton key={i} button={b} onPress={onPress} disabled={disabled} label={interpolate(String(b['label'] ?? ''), ctx)} />
-  }
-
-  const headerActions = readOnly ? toolbar : [...toolbar, ...declared]
-  const showHeader = !!(title || subtitle || overline || badges.length || kpis.length || headerActions.length || back || crumbs.length)
+  const header = chrome === 'NONE' && level === 0 ? null : (
+    <PageHeaderBlock metadata={metadata} ctx={ctx} level={level} compact={chrome === 'COMPACT'} noCrumbs={!!chrome} noHeader={noHeader} readOnly={readOnly} />
+  )
 
   return (
-    <Stack gap="spacious">
-      {showHeader && (
-        <PageHeader role="banner" aria-label={title || undefined}>
-          {crumbs.length > 0 && (
-            <PageHeader.ContextArea>
-              <Breadcrumbs>
-                {crumbs.map((c, i) => (
-                  <Breadcrumbs.Item key={i} href="#" onClick={(e: React.MouseEvent) => {
-                    e.preventDefault()
-                    const route = String(c['link'] ?? c['route'] ?? '')
-                    if (route) controller.session.openView({ label: String(c['label'] ?? ''), route, consumedRoute: '', serverSideType: '' })
-                  }}>{String(c['label'] ?? '')}</Breadcrumbs.Item>
-                ))}
-              </Breadcrumbs>
-            </PageHeader.ContextArea>
-          )}
-          <PageHeader.TitleArea>
-            {back && (
-              <PageHeader.LeadingAction>
-                <IconButton icon={ArrowLeftIcon} aria-label={String(back['label'] ?? 'Back')} variant="invisible" onClick={run(back).onPress} />
-              </PageHeader.LeadingAction>
-            )}
-            <PageHeader.Title as="h2">{title}</PageHeader.Title>
-            {(badges.length > 0) && (
-              <PageHeader.TrailingVisual>
-                <Stack direction="horizontal" gap="condensed">
-                  {badges.map((b, i) => {
-                    const text = interpolate(String(b['text'] ?? b['label'] ?? ''), ctx)
-                    return text.trim() ? <Label key={i} variant={labelVariantOf(b)}>{text}</Label> : null
-                  })}
-                </Stack>
-              </PageHeader.TrailingVisual>
-            )}
-          </PageHeader.TitleArea>
-          {headerActions.length > 0 && (
-            <PageHeader.Actions>
-              <Stack direction="horizontal" gap="condensed" wrap="wrap">{headerActions.map((b, i) => actionButton(b, i))}</Stack>
-            </PageHeader.Actions>
-          )}
-          {(overline || subtitle || timestamp || kpis.length > 0) && (
-            <PageHeader.Description>
-              <Stack gap="condensed">
-                {overline && <Text size="small" weight="semibold" style={{ color: 'var(--fgColor-muted)', textTransform: 'uppercase' }}>{overline}</Text>}
-                {subtitle && <Text style={{ color: 'var(--fgColor-muted)' }}>{subtitle}</Text>}
-                {timestamp && <Text size="small" style={{ color: 'var(--fgColor-muted)' }}>{timestamp}</Text>}
-                {kpis.length > 0 && (
-                  <Stack direction="horizontal" gap="spacious" wrap="wrap">
-                    {kpis.map((k, i) => (
-                      <Stack key={i} gap="none">
-                        <Text size="small" style={{ color: 'var(--fgColor-muted)' }}>{interpolate(String(k['title'] ?? ''), ctx)}</Text>
-                        <Text weight="semibold">{interpolate(String(k['text'] ?? ''), ctx)}</Text>
-                      </Stack>
-                    ))}
-                  </Stack>
-                )}
+    <div ref={rootRef} className={'mateu-page' + (compactDensity ? ' mateu-compact' : '')} data-page-level={level}>
+      <Stack gap={compactDensity ? 'normal' : 'spacious'}>
+        {header && <div ref={headerRef} className={'mateu-page-header-wrap' + (toc ? ' is-sticky' : '')}>{header}</div>}
+        <Banners metadata={metadata} state={state} data={data} />
+        <div className={'mateu-page-body' + (toc ? ' with-toc' : '')}>
+          <Stack gap="normal">
+            {children.map((child, i) => <ComponentRenderer key={i} component={child} state={state} data={data} />)}
+            {!readOnly && buttons.length > 0 && (
+              <Stack direction="horizontal" justify="end" gap="condensed" wrap="wrap" className="mateu-page-buttons"
+                style={{ borderTop: 'var(--borderWidth-thin) solid var(--borderColor-muted)', paddingTop: 'var(--base-size-16)' }}>
+                {buttons.map((b, i) => <HeaderButton key={i} button={b} ctx={ctx} />)}
               </Stack>
-            </PageHeader.Description>
-          )}
-        </PageHeader>
-      )}
-      <Banners metadata={metadata} state={state} />
-      {Array.isArray(header) && header.map((h, i) => <ComponentRenderer key={`h${i}`} component={h} state={state} data={data} />)}
-      <Stack gap="normal">
-        {((component['children'] as unknown[] | undefined) ?? []).map((child, i) => (
-          <ComponentRenderer key={i} component={child} state={state} data={data} />
-        ))}
+            )}
+          </Stack>
+          {toc && <PageTocAside entries={sections.entries} active={active} onJump={jump} />}
+        </div>
+        {footer.length > 0 && (
+          <div className="mateu-page-footer">
+            {footer.map((f, i) => <ComponentRenderer key={i} component={f} state={state} data={data} />)}
+          </div>
+        )}
       </Stack>
-      {!readOnly && buttons.length > 0 && (
-        <Stack direction="horizontal" justify="end" gap="condensed" wrap="wrap"
-          style={{ borderTop: 'var(--borderWidth-thin) solid var(--borderColor-muted)', paddingTop: 'var(--base-size-16)' }}>
-          {buttons.map((b, i) => actionButton(b, i))}
-        </Stack>
-      )}
-    </Stack>
+    </div>
   )
 }
 
-/** @Banner + the banners an action returned: Primer Banners under the header. */
-function Banners({ metadata, state }: { metadata: Dict; state: Dict }) {
+function PageHeaderBlock({ metadata, ctx, level, compact, noCrumbs, noHeader, readOnly }: {
+  metadata: Dict; ctx: Ctx; level: number; compact: boolean; noCrumbs: boolean; noHeader: boolean; readOnly: boolean
+}) {
   const controller = useController()
-  const all: PageBanner[] = [...(((metadata['banners'] as PageBanner[] | undefined) ?? [])), ...controller.actionBanners]
-  const [dismissed, setDismissed] = useState<number[]>([])
+  const navigate = useHeaderNavigate()
+  const run = useHeaderPress(ctx)
+  const text = (v: unknown) => (typeof v === 'string' && v ? interpolate(v, ctx) : '')
+  // COMPACT chrome keeps the actions only: the toolbar, the header widgets, the record navigation
+  const full = !compact && !noHeader
+  const title = full ? text(metadata['title']) : ''
+  const placeholder = full && !title.trim() ? text(metadata['titlePlaceholder']) : ''
+  const overline = full ? text(metadata['overline']) : ''
+  const subtitle = full ? text(metadata['subtitle']) : ''
+  const timestamp = full ? text(metadata['timestamp']) : ''
+  const badges = full ? ((metadata['badges'] as Dict[] | undefined) ?? []) : []
+  const kpis = full ? ((metadata['kpis'] as Dict[] | undefined) ?? []) : []
+  const avatar = full ? metadata['avatar'] : null
+  const icon = full ? metadata['icon'] : null
+  const status = full ? (metadata['status'] as Dict | null | undefined) : null
+  const switcher = noHeader ? null : (metadata['switcher'] as Dict | null | undefined)
+  const peerNav = metadata['peerNav'] as Dict | null | undefined
+  const hasPeers = !!peerNav && !!(peerNav['prevRoute'] || peerNav['nextRoute'])
+  const widgets = (metadata['header'] as unknown[] | undefined) ?? []
+  const toolbarAll = ((metadata['toolbar'] as Dict[] | undefined) ?? []).filter((b) => b && (b['label'] || (b['children'] as unknown[] | undefined)?.length))
+  // the declared @Action buttons a read-only page does not offer
+  const declared = readOnly ? [] : ((metadata['actions'] as Dict[] | undefined) ?? []).filter((a) => a && a['label'])
+  // Back reads as a chevron before the title — only where there IS a title area to put it in
+  const { back, nav, actions } = splitToolbar([...toolbarAll, ...declared], !noHeader)
+  // the trail: a top-level page's own, not inside a micro frontend
+  const crumbs = metadata['noBreadcrumbs'] === true || noCrumbs || level > 0 ? [] : ((metadata['breadcrumbs'] as Dict[] | undefined) ?? [])
+  const shownBadges = badges.filter((b) => text(String(b['text'] ?? b['label'] ?? '')).trim())
+
+  const hasTitleArea = !!(title || placeholder || back || avatar || icon || shownBadges.length || switcher || (status && status['message']))
+  const hasActions = hasPeers || nav.length > 0 || actions.length > 0
+  // the header widgets (HeaderSupplier: facts, chips…) take their own row under the title: beside
+  // it, Primer's actions area squeezed the title into a narrow column
+  const hasDescription = !!(subtitle || timestamp || kpis.length || widgets.length)
+  if (!hasTitleArea && !hasActions && !hasDescription && !crumbs.length && !overline) return null
+  const hasTitleRow = hasTitleArea || !!crumbs.length || !!overline
+
+  const Heading = HEADING[Math.min(level, HEADING.length - 1)]
+  const actionsNode = hasActions && (
+    <Stack direction="horizontal" gap="condensed" wrap="wrap" align="center">
+      {hasPeers && <PeerNav peerNav={peerNav!} ctx={ctx} />}
+      <HeaderButtons nav={nav} actions={actions} ctx={ctx} />
+    </Stack>
+  )
+
+  // a header with no title area (noHeader, COMPACT chrome): the widgets and actions on one row
+  if (!hasTitleRow) {
+    return (
+      <Stack direction="horizontal" justify="end" gap="condensed" wrap="wrap" align="center">
+        {widgets.map((w, i) => <ComponentRenderer key={`w${i}`} component={w} state={ctx.state} data={ctx.data} />)}
+        {actionsNode}
+      </Stack>
+    )
+  }
+
+  return (
+    <PageHeader role={level === 0 && !controller.windowless ? 'banner' : undefined} aria-label={title || placeholder || undefined}>
+      {(crumbs.length > 0 || overline) && (
+        <PageHeader.ContextArea hidden={false}>
+          <Stack gap="condensed">
+            {crumbs.length > 0 && (
+              <Breadcrumbs>
+                {crumbs.map((c, i) => {
+                  const route = String(c['link'] ?? c['route'] ?? '')
+                  const last = i === crumbs.length - 1
+                  return (
+                    <Breadcrumbs.Item key={i} href={route ? '#' : undefined} selected={last && !route}
+                      onClick={(e: React.MouseEvent) => { e.preventDefault(); if (route) void navigate(route, String(c['label'] ?? '')) }}>
+                      {text(String(c['label'] ?? c['text'] ?? ''))}
+                    </Breadcrumbs.Item>
+                  )
+                })}
+              </Breadcrumbs>
+            )}
+            {overline && <span className="mateu-page-overline">{overline}</span>}
+          </Stack>
+        </PageHeader.ContextArea>
+      )}
+      {hasTitleArea && (
+        <PageHeader.TitleArea variant={level === 0 ? 'medium' : 'subtitle'}>
+          {back && (
+            <PageHeader.LeadingAction>
+              <IconButton icon={ArrowLeftIcon} aria-label={interpolate(String(back['label'] ?? 'Back'), ctx)} variant="invisible" onClick={run(back).onPress} />
+            </PageHeader.LeadingAction>
+          )}
+          {(!!avatar || !!icon) && (
+            <PageHeader.LeadingVisual>
+              {avatar ? <ComponentRenderer component={avatar} state={ctx.state} data={ctx.data} /> : <WireIcon token={icon} size={24} />}
+            </PageHeader.LeadingVisual>
+          )}
+          <PageHeader.Title as={Heading}>
+            {title || (placeholder ? <span className="mateu-page-title-placeholder">{placeholder}</span> : null)}
+          </PageHeader.Title>
+          {(shownBadges.length > 0 || switcher || status) && (
+            <PageHeader.TrailingVisual>
+              <Stack direction="horizontal" gap="condensed" align="center" wrap="wrap">
+                {status && <PageStatus status={status} ctx={ctx} />}
+                {shownBadges.map((b, i) => <Label key={i} variant={labelVariantOf(b)} size={b['small'] === true ? 'small' : undefined}>{text(String(b['text'] ?? b['label'] ?? ''))}</Label>)}
+                {switcher && <RecordSwitcherControl switcher={switcher} ctx={ctx} />}
+              </Stack>
+            </PageHeader.TrailingVisual>
+          )}
+        </PageHeader.TitleArea>
+      )}
+      {actionsNode && <PageHeader.Actions>{actionsNode}</PageHeader.Actions>}
+      {hasDescription && (
+        <PageHeader.Description>
+          <Stack gap="condensed">
+            {subtitle && <Text className="mateu-page-subtitle">{subtitle}</Text>}
+            {timestamp && <Text className="mateu-page-timestamp">{timestamp}</Text>}
+            {widgets.length > 0 && (
+              <Stack direction="horizontal" gap="normal" wrap="wrap" align="center" className="mateu-page-widgets">
+                {widgets.map((w, i) => <ComponentRenderer key={`w${i}`} component={w} state={ctx.state} data={ctx.data} />)}
+              </Stack>
+            )}
+            {kpis.length > 0 && (
+              <div className="mateu-page-facts">
+                {kpis.map((k, i) => (
+                  <div key={i} className="mateu-page-fact">
+                    <span className="mateu-page-fact-label">{text(String(k['title'] ?? ''))}</span>
+                    <span className="mateu-page-fact-value">{text(String(k['text'] ?? ''))}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Stack>
+        </PageHeader.Description>
+      )}
+    </PageHeader>
+  )
+}
+
+/**
+ * @Banner (theme, closeable, timeoutSeconds) + the banners an action returned (replace or append —
+ * the core keeps them, and drops them on navigation): Primer Banners under the header.
+ */
+function Banners({ metadata, state, data }: { metadata: Dict; state: Dict; data?: unknown }) {
+  const controller = useController()
+  const statics = (metadata['banners'] as PageBanner[] | undefined) ?? []
+  const fromActions = controller.actionBanners
+  const all = useMemo(() => [
+    ...statics.map((b, i) => ({ b, key: `s${i}` })),
+    ...fromActions.map((b, i) => ({ b, key: `a${i}:${b.title ?? ''}:${b.description ?? ''}` })),
+  ], [statics, fromActions])
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set())
+  // a new set of action banners is a new message: what was closed before does not hide it
+  useEffect(() => setDismissed((d) => new Set([...d].filter((k) => k.startsWith('s')))), [fromActions])
   useEffect(() => {
     const timers = all
-      .map((b, i) => ({ b, i }))
       .filter(({ b }) => (b.timeoutSeconds ?? 0) > 0)
-      .map(({ b, i }) => setTimeout(() => setDismissed((d) => [...d, i]), (b.timeoutSeconds ?? 0) * 1000))
+      .map(({ b, key }) => setTimeout(() => setDismissed((d) => new Set(d).add(key)), (b.timeoutSeconds ?? 0) * 1000))
     return () => timers.forEach(clearTimeout)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [all.length])
-  if (all.length === 0) return null
+  }, [all])
+  const visible = all.filter(({ key }) => !dismissed.has(key))
+  if (visible.length === 0) return null
   return (
-    <Stack gap="condensed">
-      {all.map((b, i) => {
-        if (dismissed.includes(i)) return null
+    <Stack gap="condensed" className="mateu-page-banners">
+      {visible.map(({ b, key }) => {
         const theme = String(b.theme ?? 'info').toLowerCase()
         const variant = theme === 'danger' || theme === 'error' ? 'critical' : theme === 'warning' ? 'warning' : theme === 'success' ? 'success' : 'info'
-        const title = interpolate(String(b.title ?? ''), { state })
+        const title = interpolate(String(b.title ?? ''), { state, data })
         return (
           <Banner
-            key={i}
+            key={key}
             title={title || 'Notice'}
             hideTitle={!title}
-            description={b.description ? interpolate(b.description, { state }) : undefined}
+            description={b.description ? interpolate(b.description, { state, data }) : undefined}
             variant={variant}
-            onDismiss={b.hasCloseButton ? () => setDismissed((d) => [...d, i]) : undefined}
+            onDismiss={b.hasCloseButton ? () => setDismissed((d) => new Set(d).add(key)) : undefined}
           />
         )
       })}
     </Stack>
-  )
-}
-
-/** A header / bottom-bar button, busy while its action is on its way. */
-export function ActionButton({ button, onPress, disabled, label }: { button: Dict; onPress: () => void; disabled: boolean; label: string }) {
-  const pending = usePending(String(button['actionId'] ?? button['id'] ?? ''))
-  return (
-    <Button variant={buttonVariantOf(button)} disabled={disabled || button['disabled'] === true} loading={pending} onClick={onPress}>
-      {label}
-    </Button>
   )
 }

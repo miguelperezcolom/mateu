@@ -1,0 +1,24 @@
+/* Notice drawn as Primer's tinted strip (when the Banner cannot say it: no icon, a glyph, a status, inline content) */
+.mateu-notice {
+  display: flex; align-items: center; gap: var(--base-size-8);
+  padding: var(--base-size-8) var(--base-size-12);
+  border: var(--borderWidth-thin) solid; border-radius: var(--borderRadius-medium);
+  font-size: var(--text-body-size-medium);
+}
+.mateu-notice.is-slim { padding: var(--base-size-4) var(--base-size-8); line-height: normal; }
+.mateu-notice--info { background: var(--bgColor-accent-muted); border-color: var(--borderColor-accent-muted); }
+.mateu-notice--info .mateu-notice__icon, .mateu-notice--info .mateu-notice__status { color: var(--fgColor-accent); }
+.mateu-notice--success { background: var(--bgColor-success-muted); border-color: var(--borderColor-success-muted); }
+.mateu-notice--success .mateu-notice__icon, .mateu-notice--success .mateu-notice__status { color: var(--fgColor-success); }
+.mateu-notice--warning { background: var(--bgColor-attention-muted); border-color: var(--borderColor-attention-muted); }
+.mateu-notice--warning .mateu-notice__icon, .mateu-notice--warning .mateu-notice__status { color: var(--fgColor-attention); }
+.mateu-notice--critical { background: var(--bgColor-danger-muted); border-color: var(--borderColor-danger-muted); }
+.mateu-notice--critical .mateu-notice__icon, .mateu-notice--critical .mateu-notice__status { color: var(--fgColor-danger); }
+.mateu-notice__icon { display: inline-flex; flex: none; }
+.mateu-notice__glyph { flex: none; font-size: 1.1em; line-height: 1; }
+.mateu-notice__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--base-size-4); }
+.mateu-notice__body.is-inline { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--base-size-8); }
+.mateu-notice__status { flex: none; font-weight: var(--base-text-weight-semibold); font-size: var(--text-body-size-small); }
+.mateu-badge-pill { border-radius: var(--borderRadius-full, 999px); }
+.mateu-badge-icon { margin-inline: 0 var(--base-size-4); vertical-align: text-bottom; }
+.mateu-badge-icon:last-child { margin-inline: var(--base-size-4) 0; }

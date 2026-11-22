@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Checkbox, Dialog, FormControl, Text } from '@primer/react'
 import { keyLabel, setSingleKeyShortcuts, singleKeyShortcutsOn } from '@infra/ui/appShortcuts.ts'
 import type { MateuSession } from '@rn/core/MateuSession'
-import { registeredScreenKeys, type AppShortcutLike } from './shortcuts'
+import { registeredScreenShortcuts, type AppShortcutLike } from './shortcuts'
 
 interface Listed { key: string; label: string }
 
@@ -20,8 +20,8 @@ function screenShortcuts(session: MateuSession): Listed[] {
     out.push({ key, label: (el.getAttribute('aria-label') || el.textContent || key).replace(/\s+/g, ' ').trim() })
   })
   // an @Action(shortcut) with no button on screen still answers to its key
-  for (const key of registeredScreenKeys(session)) {
-    if (!seen.has(key)) { seen.add(key); out.push({ key, label: 'An action of this screen' }) }
+  for (const { key, label } of registeredScreenShortcuts(session)) {
+    if (!seen.has(key)) { seen.add(key); out.push({ key, label }) }
   }
   return out
 }

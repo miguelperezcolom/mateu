@@ -127,6 +127,15 @@ export function useListing({ id, metadata, state, data, filters, columnMetas }: 
     runSearch(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  // initialPage: a listing that opens on another page than the first (a link's page still wins)
+  useEffect(() => {
+    const initialPage = Number(metadata['initialPage'] ?? 0) || 0
+    if (initialPage <= 0 || fromUrl?.page || controller.currentComponentState['page']) return
+    seed()
+    controller.currentComponentState['page'] = initialPage
+    runSearch(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const search = (values: Dict = filterValues, text: string = searchText) => {
     seed()
     applySearchToState(controller.currentComponentState, text, values)

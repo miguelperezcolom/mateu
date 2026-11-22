@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Dialog, IconButton, Text } from '@primer/react'
-import { MoonIcon, SunIcon, ThreeBarsIcon } from '@primer/octicons-react'
+import { DeviceMobileIcon, MoonIcon, SunIcon, ThreeBarsIcon } from '@primer/octicons-react'
 import type { MateuSession, NavTarget } from '@rn/core/MateuSession'
 import { appHomeOf } from '@rn/core/componentContext'
 import type { HeaderAction } from '@rn/core/embeddedAppExtras'
@@ -12,12 +12,15 @@ import { HeaderActions } from './header/HeaderActions'
 import { NotificationBell } from './header/NotificationBell'
 import { HeaderValues, useLiveUpdates } from './header/LiveHeader'
 import { UserMenu } from './header/UserMenu'
+import { AgentOperatingNotice, ConnectAi, useAgentChannel } from './header/AgentPush'
 import { useColorControl } from './header/theme'
 import {
   CardsDialog, SideNav, TabsNav, TilesHub, TopNav, firstLeaf, holdsCurrent, useMenuActivation, visibleItems,
   type MenuHandlers, type MenuItem,
 } from './header/MenuNav'
 import './header/header.css'
+
+const MobileQrDialog = React.lazy(() => import('./header/MobileQr'))
 
 type Dict = Record<string, unknown>
 
@@ -71,6 +74,9 @@ export function AppShell({ session, app, current, onNavigate, children }: {
   const color = useColorControl()
   const layout = layoutOf(app)
   const target = useMemo(() => appTargetOf(app), [app])
+  const agentMeta = useMemo(() => ({ ...app, ...target }), [app, target])
+  // live UI push: the channel a paired AI agent sends screens through (only when the app turned it on)
+  useAgentChannel(session, agentMeta)
   const live = useMemo(() => ({ ...target, liveUpdates: app['liveUpdates'] === true, presence: app['presence'] === true }), [target, app])
   useLiveUpdates(session, live)
 
@@ -81,6 +87,8 @@ export function AppShell({ session, app, current, onNavigate, children }: {
   const currentRoute = current?.route ?? ''
   const [paneOpen, setPaneOpen] = useState(app['drawerClosed'] !== true)
   const [drawer, setDrawer] = useState(false)
+  const [qr, setQr] = useState(false)
+  const menuSearch = Number(app['totalMenuOptions'] ?? 0) > 10
   const [cards, setCards] = useState<MenuItem | null>(null)
   const [hub, setHub] = useState<MenuItem | null>(null)
 
@@ -131,9 +139,19 @@ export function AppShell({ session, app, current, onNavigate, children }: {
             <IconButton icon={color.resolved === 'dark' ? SunIcon : MoonIcon} variant="invisible" size="small"
               aria-label={color.resolved === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} onClick={color.toggle} />
           )}
+          <ConnectAi session={session} app={agentMeta} />
+          {app['mobileQr'] === true && (
+            <IconButton icon={DeviceMobileIcon} variant="invisible" size="small" aria-label="Open on mobile" aria-haspopup="dialog" onClick={() => setQr(true)} />
+          )}
           <UserMenu app={app} />
         </div>
       </header>
+      <AgentOperatingNotice session={session} app={agentMeta} />
+      {qr && (
+        <React.Suspense fallback={null}>
+          <MobileQrDialog appTitle={title} baseUrl={session.api.baseUrl} onClose={() => setQr(false)} />
+        </React.Suspense>
+      )}
       {narrow && (
         <div className="mateu-header-values-band">
           <HeaderValues session={session} declared={app['headerValues'] as HeaderValue[] | undefined} />
@@ -150,7 +168,7 @@ export function AppShell({ session, app, current, onNavigate, children }: {
       <div className="mateu-app-body">
         {sidePane && (
           <aside className={'mateu-app-pane' + (app['variant'] === 'RAIL' ? ' mateu-app-pane--rail' : '')} aria-label="Main menu">
-            <SideNav menu={menu} h={h} />
+            <SideNav menu={menu} h={h} searchable={menuSearch} />
           </aside>
         )}
         <main id="mateu-main" tabIndex={-1} className="mateu-app-main">
@@ -161,7 +179,7 @@ export function AppShell({ session, app, current, onNavigate, children }: {
         <Dialog title={layout === 'sections' && !narrow ? 'Sections' : title} onClose={() => setDrawer(false)} position="left" width="medium">
           {layout === 'sections' && !narrow
             ? <SideNav menu={menu.map((m) => ({ ...m, submenus: [] }))} h={{ ...h, activate: (m) => { const full = menu.find((x) => x.label === m.label) ?? m; const leaf = firstLeaf(full) ?? full; activate(leaf) } }} label="Sections" />
-            : <SideNav menu={menu} h={h} />}
+            : <SideNav menu={menu} h={h} searchable={menuSearch} />}
         </Dialog>
       )}
       {cards && <CardsDialog group={cards} h={h} baseUrl={session.api.baseUrl} onClose={() => setCards(null)} />}

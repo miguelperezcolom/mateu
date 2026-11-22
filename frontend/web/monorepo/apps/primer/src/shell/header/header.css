@@ -361,3 +361,23 @@ button.mateu-card-menu-main:hover { background: var(--bgColor-muted); }
 }
 .mateu-inbox-entry { font-size: var(--text-body-size-medium, 14px); }
 .mateu-card-menu-actions button { font-size: var(--text-body-size-medium, 14px); }
+
+/* the filter over a long side menu */
+.mateu-menu-search { padding: 0 var(--base-size-8) var(--base-size-8); position: sticky; top: 0; background: var(--bgColor-default); z-index: 1; }
+.mateu-menu-search-empty { margin: var(--base-size-8); color: var(--fgColor-muted); font-size: var(--text-body-size-small); }
+.mateu-mobile-qr { image-rendering: pixelated; background: #fff; padding: var(--base-size-8); border-radius: var(--borderRadius-medium); }
+
+/* live UI push: "Connect AI", the pairing code, the operating strip */
+.mateu-connect-ai.is-connected { color: var(--fgColor-success); }
+.mateu-agents { margin: var(--base-size-4) 0 0; padding-left: var(--base-size-20); font-weight: var(--base-text-weight-semibold); }
+.mateu-pairing-code { text-align: center; }
+.mateu-pairing-code__value { display: block; font: var(--text-display-shorthand, 600 2rem/1.2 ui-monospace, monospace); font-family: var(--fontStack-monospace); letter-spacing: .25em; }
+.mateu-agent-error { color: var(--fgColor-danger); margin: 0; }
+.mateu-agent-operating {
+  position: fixed; top: var(--base-size-8); left: 50%; transform: translateX(-50%); z-index: 1001;
+  display: flex; align-items: center; gap: var(--base-size-12); max-width: min(36rem, calc(100vw - 1rem));
+  padding: var(--base-size-4) var(--base-size-4) var(--base-size-4) var(--base-size-12);
+  background: var(--bgColor-default); border: var(--borderWidth-thin) solid var(--borderColor-attention-emphasis);
+  border-radius: var(--borderRadius-large); box-shadow: var(--shadow-floating-small);
+}
+.mateu-agent-operating__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bgColor-attention-emphasis); flex: none; }
