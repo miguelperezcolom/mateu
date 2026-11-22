@@ -1,0 +1,10 @@
+# gcloud builds submit --config cloudbuild.yaml
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ['build',
+           '-t', 'europe-west1-docker.pkg.dev/$PROJECT_ID/mateu/native-demo:latest', '.']
+images:
+  - europe-west1-docker.pkg.dev/$PROJECT_ID/mateu/native-demo:latest
+options:
+  machineType: E2_HIGHCPU_8
+timeout: 1800s

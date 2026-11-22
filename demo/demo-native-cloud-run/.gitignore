@@ -1,0 +1,5 @@
+target/
+front/site/
+front/.netlify/
+*.log
+.reset-token
