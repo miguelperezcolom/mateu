@@ -43,6 +43,14 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ### Fixed
 
+- **Micronaut native on Linux: browsers never finished loading the UI.** Netty (Micronaut's HTTP
+  server) writes some responses through shared memory arenas on Linux, which a native image only
+  supports with `-H:+SharedArenaSupport`; without it every such response logged
+  `UnsupportedFeatureError` and the page hung (curl, and so the native smoke test, did not notice).
+  `mateu-micronaut` now passes the option itself (`META-INF/native-image/.../native-image.properties`),
+  so apps need no change. The native smoke test fetches the page's scripts and styles like a browser and
+  fails on `UnsupportedFeatureError`.
+
 - **Redwood: a listing with a default saved view (★) never finished loading** when opened from the
   menu: the chain re-applied the view for ever (it tested the bare route, which never carries the
   query), each time through an awaited `mateuNavigate` event. It now tests the full target and
