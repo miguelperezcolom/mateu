@@ -17,6 +17,16 @@ Decisiones ya tomadas por Miguel durante la redacción:
   coste. Cada reutilización se comprueba en el spike, y si alguna no compensa (por ejemplo, un
   elemento Lit neutro que dentro de React dé más guerra que reescribirlo), se reescribe.
 
+- **Orden (2026-11-22): Primer → SAP → Salesforce.** Primer arranca ya, después UI5/Fiori y
+  luego SLDS. Esto cambia la recomendación de §1, que ponía UI5 primero y SLDS en "no ahora". Los
+  riesgos de licencia de SLDS (§5.2) siguen en pie y se resolverán antes de empaquetarlo.
+- **Spike de Primer hecho (2026-11-22, rama `feat/primer-renderer`)**: `apps/primer` (Primer React
+  38 + React 19) sobre el núcleo de RN importado en su sitio, con dos shims web
+  (`react-native`, `expo-*`). Contra el SUT de e2e: conformidad **Core 7/7, Standard 12/12,
+  Full 3/4** (falta `Chart`). Verificado en el navegador: formularios, validación, acciones y
+  toasts, el ciclo CRUD con URLs y Atrás, y el shell con menú y deep links. Confirma la ruta C de
+  §3.2. El único cambio en el núcleo de RN fue `setRendererName`.
+
 > Nota: el encargo llegó cortado a mitad del punto de Apple ("…o (b) un renderer S"). Si había más
 > candidatos o instrucciones después de ese punto, faltan aquí.
 
