@@ -238,6 +238,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void neverServesTheRenderersDeployablePage() throws Exception {
+      contract.neverServesTheRenderersDeployablePage();
+    }
+
+    @Test
     void revalidatesFixedNameAssets() {
       contract.revalidatesFixedNameAssets("/assets/fixed.js");
     }

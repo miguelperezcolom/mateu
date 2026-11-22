@@ -35,6 +35,9 @@ ENV_VAR = "MATEU_UI"
 JAR_PREFIX = "static/"
 
 INDEX = "_index.html"
+# the renderer jars' page for a CDN / static host (scripts/static-site-page.mjs): a backend never
+# serves it (Java DeployablePage, .NET UiPage.DeployablePage)
+DEPLOYABLE_PAGE = "index.html"
 
 #: What the renderer's template says where the page title goes (Java: IndexPage).
 TITLE_MARKER = "AQUIELTITULODELAPAGINA"

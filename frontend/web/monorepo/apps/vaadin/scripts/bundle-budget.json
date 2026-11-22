@@ -1,8 +1,8 @@
 {
-  "rawBytes": 2923428,
-  "gzipBytes": 720261,
-  "measuredRawBytes": 2784217,
-  "measuredGzipBytes": 685962,
+  "rawBytes": 3040922,
+  "gzipBytes": 756431,
+  "measuredRawBytes": 2896116,
+  "measuredGzipBytes": 720410,
   "note": "Ceiling = measured + 5%. Raise it only as a reviewed change, saying why.",
-  "reason": "2026-11-12: the chrome texts in French, German, Portuguese and Italian (#1160) put the eager JS at 669.9 KB gzip, over the 667.3 KB ceiling (the chromeTexts chunk is now 22.0 KB gzip). chromeText() is synchronous and the language is only known from the first answer (AppDto.locale), so the six catalogues stay in the eager chunk \u2014 re-baselined with --update."
+  "reason": "2026-11-22: the renderer reads its backend from <meta name=\"mateu-backend\"> (a page deployed to a CDN / static host, pageBackend.ts) and names a proxy that cut a streamed answer (streamCut.ts + one chrome text in six languages): +0.6 KB gzip on 702.9 KB, over the 703.4 KB ceiling that had 0.5 KB left — re-baselined with --update."
 }

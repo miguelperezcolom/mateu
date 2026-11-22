@@ -30,7 +30,7 @@ import { foldoutSummaryOf } from './core/archetypes.mjs'
 import { dataManagementPageOf, collectionDetailPageOf, itemOverviewPageHeaderOf } from './reduceContexts.mjs'
 import { closeDockedPanel, dataManagementWithoutPanel } from './core/spPages.mjs'
 import { safeImageSrc } from './inputs.mjs'
-import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, keepViewport, focusSelectorOf, keepsViewport, menuRoutesOf, pathLeavingMountOf, leftMountFor, requestPeerNavigation, spelledWithTheBase, underPublicBase, currentPublicBase } from './mount.mjs'
+import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf, scrollToTopOnNavigate, scrollToTopWhenReplaced, keepViewport, focusSelectorOf, keepsViewport, menuRoutesOf, pathLeavingMountOf, leftMountFor, requestPeerNavigation, spelledWithTheBase, underPublicBase, currentPublicBase, pageBackendOf, normalizePageBackend, assetRootOf } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass, scoreboardTrendOf, scoreboardItemOf, scoreboardAtomOf, emptyStateAtomOf } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays, spColorKeyOf, spCalendarSpecOf, calendarPageToolbarOf, spNavActionOf, spCalendarHostClassOf } from './calendar.mjs'
@@ -2132,6 +2132,46 @@ test('mount: read once at boot — path mode under a mount, hash mode without <m
   assert.equal(currentRouteOf({ pathname: '/', search: '', hash: '#/orders?x=1' }), '/orders?x=1')
   assert.equal(currentRoutePathOf({ pathname: '/', search: '', hash: '#/orders?x=1' }), '/orders')
   setMount(null)
+})
+
+test('mount: a static page (CDN) names its backend with <meta name="mateu-backend">', () => {
+  const doc = (ui, backend) => ({ querySelector: (sel) => {
+    if (sel === 'mateu-ui') return ui ? { getAttribute: (n) => (n in ui ? ui[n] : null) } : null
+    if (sel === 'meta[name="mateu-backend"]') return backend == null ? null : { getAttribute: (n) => (n === 'content' ? backend : null) }
+    return null
+  } })
+  // the jar's deployable page: hash mode, empty tag = same origin (the host proxies /mateu/*)
+  assert.equal(initMount(doc(null, '')), null)
+  assert.equal(isPathMode(), false)
+  assert.equal(mateuBase('http://localhost:9005'), '')
+  assert.equal(mateuAssetBase('http://localhost:9005'), '')
+  assert.equal(urlOfRoute('/products'), '#/products')
+  // the alternative path: the backend's URL in the tag
+  initMount(doc(null, 'https://api.example.com/'))
+  assert.equal(mateuBase(''), 'https://api.example.com')
+  assert.equal(mateuAssetBase(''), 'https://api.example.com')
+  initMount(doc(null, 'https://api.example.com/crm'))
+  assert.equal(mateuBase(''), 'https://api.example.com/crm')
+  assert.equal(mateuAssetBase(''), 'https://api.example.com', 'static things live at the backend root')
+  // no tag: the app constant decides (vb-serve / VB hosted, as before)
+  initMount(doc(null, null))
+  assert.equal(mateuBase('http://localhost:9005'), 'http://localhost:9005')
+  // a server page (<mateu-ui>) never reads the tag
+  initMount(doc({ baseUrl: '/console' }, 'https://api.example.com'))
+  assert.equal(mateuBase('http://dev'), '/console') // NOSONAR: test inputs of the URL rule, never requested
+  assert.equal(mateuAssetBase('http://dev'), '') // NOSONAR: test inputs of the URL rule, never requested
+  setMount(null)
+  // the rule, identical to libs/mateu pageBackend.ts
+  const warn = console.warn; console.warn = () => {}
+  try {
+    assert.equal(normalizePageBackend('  '), '')
+    assert.equal(normalizePageBackend('/admin/'), '/admin')
+    for (const bad of ['javascript:alert(1)', 'api.example.com', '//evil.example', '/\\evil', 'https://a b', 'https://x/?q=1', 'ftp://x']) { // NOSONAR: test inputs of the URL rule, never requested
+      assert.equal(normalizePageBackend(bad), '', bad)
+    }
+  } finally { console.warn = warn }
+  assert.equal(pageBackendOf(null), '')
+  assert.equal(assetRootOf('/admin'), '')
 })
 
 test('mount: an in-content link is a screen of the app only below the mount, and its route drops the mount', () => {

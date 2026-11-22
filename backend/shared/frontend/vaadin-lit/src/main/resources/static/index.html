@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/assets/mateu-icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mateu</title>
+    <!-- Where the Mateu backend is. Empty = this site's own origin: proxy /mateu/* to the backend
+         (recommended — one origin, no CORS, cookies work). Or put the backend's URL here, e.g.
+         content="https://api.example.com", and allow this site's origin on the backend with
+         mateu.cors.allowed-origins. -->
+    <meta name="mateu-backend" content="">
+    <script src="/assets/mateu-theme.js"></script>
+      
+      
+    <script type="module" crossorigin src="/assets/mateu-vaadin.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-lit.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-vaadin.js">
+    <link rel="modulepreload" crossorigin href="/assets/chromeTexts.js">
+    <link rel="modulepreload" crossorigin href="/assets/authToken.js">
+    <link rel="modulepreload" crossorigin href="/assets/dirtyGuard.js">
+    <link rel="modulepreload" crossorigin href="/assets/safeNavigate.js">
+    <link rel="modulepreload" crossorigin href="/assets/globalCommands.js">
+    <link rel="stylesheet" crossorigin href="/assets/index.css">
+  </head>
+  <body>
+  <mateu-ui style="width: 100%; height: 100vh;"></mateu-ui>
+  <!-- Pre-boot loader: until the renderer's bundle has run, nothing else on this page paints (on a
+       phone on 3G that is seconds of a blank screen). Static markup + CSS only — no script, so the
+       page keeps running under script-src 'self' — after the root element so the server's
+       <mateu-ui> keeps it, and gone the moment <mateu-ui> is defined (the app's own loading
+       indicators take over). It shows after 300 ms, so a fast load never sees it. -->
+  <style>:root[theme~=dark]{background-color:#233348}.mateu-preboot{z-index:2147483000;pointer-events:none;color:#006af5;opacity:0;justify-content:center;align-items:center;animation:.2s ease-out .3s forwards mateu-preboot-in;display:flex;position:fixed;inset:0}:root[theme~=dark] .mateu-preboot{color:#66a8ff}.mateu-preboot svg{width:3rem;height:3rem;animation:.9s linear infinite mateu-preboot-spin}.mateu-preboot-label{clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;width:1px;height:1px;position:absolute;overflow:hidden}mateu-ui:defined~.mateu-preboot{display:none}@keyframes mateu-preboot-in{to{opacity:1}}@keyframes mateu-preboot-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.mateu-preboot{animation-duration:0s}.mateu-preboot svg{animation:none}}</style>
+  <div class="mateu-preboot" role="status">
+    <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+      <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-opacity="0.2" stroke-width="4"/>
+      <path d="M24 4a20 20 0 0 1 20 20" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+    <span class="mateu-preboot-label">Loading&hellip;</span>
+  </div>
+
+
+  </body>
+</html>

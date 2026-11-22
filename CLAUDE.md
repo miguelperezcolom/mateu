@@ -896,6 +896,21 @@ Each renderer in `frontend/web/monorepo/apps/<name>/` is a standalone Vite app. 
 
 The shared lib (`libs/mateu`) contains: `MateuApiClient`, SSE support, `mateu-ux` (root web component), `mateu-dialog`, `mateu-grid`, `mateu-choice`, and base infrastructure. Renderers import from `mateu` workspace package and provide renderer-specific web-components for each DTO type.
 
+**Renderer on a CDN (2026-11-22, `deploy/renderer-on-a-cdn.md`)**: each renderer jar ships `static/index.html`, the
+DEPLOYABLE page (no markers; written from `_index.html` by `scripts/static-site-page.mjs` in both `copy` steps, pinned
+by `scripts/static-site-page.test.mjs` — regenerate with `npm run copy`). The backend is named in ONE place,
+`<meta name="mateu-backend" content="">` (empty = same origin behind a `/mateu/*` proxy): libs/mateu `pageBackend.ts`
+(only for a `<mateu-ui>` whose page wrote no baseUrl) and Redwood `poc/mount.mjs` `pageBackendOf` (hash mode only,
+before the app constant) — same rule. Redwood's page = hosted mode (hash routes), deferred scripts written as plain
+scripts. A backend NEVER serves it: Spring Boot would as its welcome page at `/` (no root UI) and as `/index.html`,
+so core `DeployablePage` + MVC `DeployablePageFilter` / WebFlux `DeployablePageWebFilter` (after the SPA rewrite;
+WebFlux's root index answers `/index.html` itself) / Micronaut `MateuDeployablePageFilter` / Helidon's routing filter
+(both reach it when an app maps `static/` at `/`) answer 404; Quarkus never reaches it; .NET `UiPage.DeployablePage` /
+Python `ui_page.DEPLOYABLE_PAGE` are skipped. Parity `neverServesTheRenderersDeployablePage` (5 adapters; fixture
+`src/test/resources/static/index.html` in each, plus a `DeployablePageStaticMappingTest` for Micronaut/Helidon). SSE through Netlify's proxy is BUFFERED (long streams → 504 at ~30 s):
+`streamCut.ts` turns a gateway page on an SSE call into the `streamCutByProxy` chrome text. Browser check
+`e2e/cdn-site-probe.mjs` over `e2e/cdn-static-server.mjs`.
+
 ### Helidon MP adapter (JAX-RS/CDI/Weld) — parity notes (2026-07-25)
 
 Brought to full parity with Micronaut/Quarkus and pinned by the shared e2e suite (`e2e/sut/apps/helidon-app1`, port **8086**, a Playwright project running the same `**/shared/**` specs; 252/252 green). The adapter (`backend/helidon-mp/helidon-mp-core` + `annotation-processor-helidon-mp`) now supplies ALL the CDI wiring, so a consumer app needs only its `@UI` classes + a `META-INF/beans.xml` — NO Mateu glue (exactly like a Quarkus/Micronaut app). Non-obvious gotchas discovered building it (all of them silent failures — the server boots either way):

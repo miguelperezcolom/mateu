@@ -1288,6 +1288,9 @@ class MateuUiMiddleware:
         when needed), ``("page", content type, body, cache control)`` for a page — or None when the
         request is not ours. Blocking: called in a worker thread."""
         renderer = getattr(self, "renderer", None)
+        if path == "/" + ui_page.DEPLOYABLE_PAGE:
+            # the renderer's page for a CDN (no backend fills it): never served by a backend
+            return None
         if path != "/" and ui_page.is_asset(path) and renderer is not None:
             stamp = renderer.stamp(path)
             if stamp is None:

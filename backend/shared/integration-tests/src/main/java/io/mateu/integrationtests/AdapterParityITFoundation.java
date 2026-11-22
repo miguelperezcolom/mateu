@@ -1926,6 +1926,40 @@ public class AdapterParityITFoundation {
     }
   }
 
+  /**
+   * The marker of a renderer jar's deployable page ({@code io.mateu.core.infra.DeployablePage}).
+   */
+  public static final String DEPLOYABLE_PAGE_MARKER = "<meta name=\"mateu-backend\"";
+
+  /**
+   * A renderer jar ships {@code static/index.html}, the page made for a CDN or a static host (no
+   * backend fills it; it names its backend in {@code <meta name="mateu-backend">}). A backend never
+   * serves it: not at {@code /index.html}, and not at {@code /} when no UI sits at the root (the
+   * fixtures have none) — a framework's welcome page or a static mapping of {@code static/} would
+   * otherwise answer it, booting a UI aimed at nothing. The test classpath carries such a page
+   * (each adapter's {@code src/test/resources/static/index.html}), so this cannot pass vacuously.
+   */
+  public void neverServesTheRenderersDeployablePage() throws Exception {
+    try (var in =
+        Thread.currentThread().getContextClassLoader().getResourceAsStream("static/index.html")) {
+      if (in == null
+          || !new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8)
+              .contains(DEPLOYABLE_PAGE_MARKER)) {
+        throw new AssertionError(
+            "the test classpath must carry a deployable static/index.html for this check");
+      }
+    }
+    for (String path : new String[] {"/index.html", "/"}) {
+      for (String accept : new String[] {"text/html", "*/*"}) {
+        var body = given().accept(accept).when().get(path).then().extract().body().asString();
+        assertThat(
+            "GET " + path + " (Accept: " + accept + ") answered the deployable page",
+            body,
+            not(containsString(DEPLOYABLE_PAGE_MARKER)));
+      }
+    }
+  }
+
   /** Mateu's fixed-name assets are revalidated ({@code no-cache}). */
   public void revalidatesFixedNameAssets(String assetPath) {
     given()

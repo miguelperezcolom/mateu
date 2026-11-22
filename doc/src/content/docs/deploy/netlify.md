@@ -10,7 +10,9 @@ CI deploy from GitHub Actions — the same setup that publishes this documentati
 A UI that needs a server (view models with logic, proxied sources with secrets) does not fit here;
 see [Kubernetes](/deploy/kubernetes-hetzner-cloudfleet/) or your platform of choice. A **hybrid**
 bundle — static screens, the rest falling through to a backend at `baseUrl` — works on Netlify too,
-as long as that backend allows the site's origin (CORS).
+as long as that backend allows the site's origin (CORS). To host only the renderer on Netlify, in front
+of a backend that builds every screen, see
+[Deploy a renderer to a CDN or static host](/deploy/renderer-on-a-cdn/).
 
 ## 1. Build the bundle
 

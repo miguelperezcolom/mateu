@@ -587,6 +587,7 @@ export default defineConfig({
 								{ slug: 'deploy/static-ui', label: 'A 100 % static UI' },
 							],
 						},
+						{ slug: 'deploy/renderer-on-a-cdn', label: 'A renderer on a CDN' },
 						{ slug: 'deploy/environments', label: 'Environments' },
 						{ slug: 'deploy/sign-in', label: 'Sign-in providers' },
 						{ slug: 'java-user-manual/build/derived-openapi', label: 'The OpenAPI your UI implies' },

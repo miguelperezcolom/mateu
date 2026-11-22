@@ -11,6 +11,7 @@
 // TWICE, to META-INF/resources and static, plus the unminified bundles/plain and every source map:
 // ~20 MB of new files in git on every rebuild, even of unchanged sources):
 //   static/_index.html             the page the generated controller serves (indexHtmlPath default)
+//   static/index.html              the same page, deployable as is to a CDN / static host
 //   static/_redwood/...            the VB app, ONE location, a STABLE name. Spring Boot, Micronaut
 //                                  (classpath:static) and Helidon (/static) serve it from here; the
 //                                  module's pom copies it to META-INF/resources/_redwood at build
@@ -39,6 +40,7 @@ import { dirname, extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { sourceHash } from './source-hash.mjs'
 import { indexPage, readBuildFacts } from './index-page.mjs'
+import { staticSitePage } from '../../../../../../scripts/static-site-page.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const rendererRoot = join(here, '..')
@@ -138,8 +140,11 @@ const copyTree = (from, to, rel = '') => {
 }
 copyTree(src, dest)
 walk(dest, transform)
-writeFileSync(join(dest, '_index.html'),
-  indexPage(readBuildFacts(readFileSync(join(src, 'index.html'), 'utf8')), { appDir: APP_DIR, hash: SOURCE_HASH }))
+const template = indexPage(readBuildFacts(readFileSync(join(src, 'index.html'), 'utf8')), { appDir: APP_DIR, hash: SOURCE_HASH })
+writeFileSync(join(dest, '_index.html'), template)
+// the DEPLOYABLE page: the same one with no backend to fill it, for a CDN / static host
+// (scripts/static-site-page.mjs at the repo root, shared with the Vaadin renderer)
+writeFileSync(join(dest, 'index.html'), staticSitePage(template))
 writeFileSync(join(dest, APP_DIR, 'resources', 'mateu-anonymous-user.json'), JSON.stringify(ANONYMOUS_USER) + '\n')
 writeFileSync(join(dest, 'mateu-build-info.json'), JSON.stringify({ sourceHash: SOURCE_HASH }, null, 2) + '\n')
 console.log(`Copiado ${src} -> ${dest} (${APP_DIR}/, sourceHash ${SOURCE_HASH})`)

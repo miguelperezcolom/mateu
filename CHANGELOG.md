@@ -8,6 +8,32 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added — the web renderers deploy to a CDN or any static host
+
+- **Each renderer jar ships a deployable `static/index.html`** (`io.mateu:mateu-vaadin`, `io.mateu:mateu-redwood`)
+  next to the server template `_index.html`: no template markers, aimed at the page's own origin. Upload the
+  jar's `static/` folder to any CDN or static host; the recommended setup proxies `/mateu/*` to the backend
+  (same origin: no CORS, cookies work). Both pages are written from `_index.html` by one script,
+  `scripts/static-site-page.mjs` (Vaadin `npm run copy`, Redwood `scripts/copy.mjs`), and pinned by
+  `scripts/static-site-page.test.mjs`. Redwood's page runs in hosted mode (hash routes, no rewrite rule needed).
+- **One place for the backend's address**: `<meta name="mateu-backend" content="https://api.example.com">` in that
+  page, read at startup by both renderers (libs/mateu `pageBackend.ts`, Redwood `poc/mount.mjs`). Empty or absent
+  = same origin; the backend allows the site with `mateu.cors.allowed-origins`. A page a backend serves keeps
+  its `<mateu-ui baseUrl>` / Redwood mount exactly as before; the tag is never read there. The demo trick of
+  patching `mateuBaseUrl` into the compiled Redwood bundle is no longer needed.
+- A backend never serves the deployable page: Spring Boot would have served it as its welcome page at `/` (and
+  as `/index.html`) in an app with no UI at the root, and so would Micronaut and Helidon MP with `static/` mapped at
+  the root (the Micronaut starter's `micronaut.router.static-resources`), so those adapters answer 404 there as
+  before (`DeployablePage`; `DeployablePageFilter`, `DeployablePageWebFilter`, `MateuDeployablePageFilter`, the
+  Helidon routing filter); Quarkus never reaches the file, and the .NET and Python ports never serve it. Pinned on
+  all five adapters by `AdapterParityITFoundation.neverServesTheRenderersDeployablePage`.
+- The Vaadin renderer says that a proxy cut a streamed answer when an SSE request comes back as a `502`/`503`/`504`
+  gateway page instead of Mateu's JSON (it used to show the page's HTML as the error text): new chrome text
+  `streamCutByProxy`, six languages.
+- Guide: [Deploy a renderer to a CDN or static host](https://mateu.io/deploy/renderer-on-a-cdn/) (Netlify, nginx,
+  CloudFront, Cloudflare; what a proxy costs, and why long-lived streams need a proxy that streams or the direct
+  path). Browser check `e2e/cdn-site-probe.mjs` over `e2e/cdn-static-server.mjs`.
+
 ### Changed — the Quarkus starter is the quarkus.io blog sample, on the Quarkiverse extension
 
 - `starters/quarkus` depends on **`io.quarkiverse.mateu:quarkus-mateu`** (1.1.0: the runtime, REST + Jackson, the

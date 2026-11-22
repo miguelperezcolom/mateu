@@ -7,7 +7,8 @@
 //
 // Sources = webApps/ (the VB app: pages, chains, the generated bridge, css) + poc/ minus what never
 // reaches the bundle (tests, wire fixtures, screenshots, the capture/probe tooling), plus
-// scripts/index-page.mjs, which writes the jar's page.
+// scripts/index-page.mjs, which writes the jar's page (and the repo's scripts/static-site-page.mjs,
+// which writes its deployable twin).
 // Usage: node scripts/source-hash.mjs   → prints the hash
 
 import { createHash } from 'node:crypto'
@@ -46,7 +47,7 @@ function walk(dir, out) {
 export function sourceFiles(root = rendererRoot) {
   return ['poc', 'webApps']
     .flatMap((d) => walk(join(root, d), []))
-    .concat([join(root, 'scripts', 'index-page.mjs')])
+    .concat([join(root, 'scripts', 'index-page.mjs'), join(root, '..', '..', '..', '..', '..', 'scripts', 'static-site-page.mjs')])
     .map((p) => relative(root, p).split(sep).join('/'))
     .filter(isSource)
     // code-unit order, not locale order: the hash must be identical on every machine
