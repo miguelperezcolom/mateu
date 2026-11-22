@@ -7,7 +7,10 @@ import { locationOfRoute, routeOfLocation } from './pageConfig'
 import { Toasts, useToasts } from './Toasts'
 import { Overlays, useOverlays } from './Overlays'
 import { AppShell } from './AppShell'
+import { storedAppContext } from './header/appLevel'
 import { ViewHost } from '../render/ViewHost'
+import { GlobalLayer, type ContentPreview } from './global/GlobalLayer'
+import { Resilience } from './resilience/Resilience'
 
 type Dict = Record<string, unknown>
 
@@ -24,13 +27,16 @@ type Dict = Record<string, unknown>
  * browser history.
  */
 export function MateuPrimerApp({ baseUrl }: { baseUrl: string }) {
-  const session = useMemo(() => new MateuSession(baseUrl, newSessionId()), [baseUrl])
+  const session = useMemo(() => new MateuSession(baseUrl, newSessionId(), storedAppContext()) /* the @AppContext the user fixed rides every request */, [baseUrl])
   const confirm = useConfirm()
   const toasts = useToasts()
   const overlays = useOverlays(session)
   const [route, setRoute] = useState(() => routeOfLocation(window.location.pathname, baseUrl))
   const [boot, setBoot] = useState<{ app: Dict | null; failure: string | null; loading: boolean; attempt: number }>({ app: null, failure: null, loading: true, attempt: 0 })
   const [content, setContent] = useState<NavTarget | null>(null)
+  // the assistant's render-screen in the content area: shown until the next navigation
+  const [preview, setPreview] = useState<ContentPreview | null>(null)
+  const showPreview = useCallback((p: Omit<ContentPreview, 'version'>) => setPreview((old) => ({ ...p, version: (old?.version ?? 0) + 1 })), [])
 
   // a navigation: written to the URL and loaded in the content area (or as THE screen)
   const go = useCallback((target: NavTarget, replace = false) => {
@@ -39,6 +45,7 @@ export function MateuPrimerApp({ baseUrl }: { baseUrl: string }) {
       if (replace) window.history.replaceState(null, '', url)
       else window.history.pushState(null, '', url)
     }
+    setPreview(null)
     setContent(target)
   }, [baseUrl])
 
@@ -109,7 +116,9 @@ export function MateuPrimerApp({ baseUrl }: { baseUrl: string }) {
     return () => window.removeEventListener('popstate', onPop)
   }, [session, route, content, baseUrl])
 
-  const screen = content
+  const screen = preview
+    ? <ViewHost key={`preview-${preview.version}`} session={session} preview={{ increment: preview.increment, route: preview.route, consumedRoute: preview.route }} onNavigate={go} />
+    : content
     ? <ViewHost key={`${content.route}|${content.consumedRoute}|${content.serverSideType}`} session={session} target={content} onNavigate={go} />
     : null
 
@@ -151,11 +160,16 @@ export function MateuPrimerApp({ baseUrl }: { baseUrl: string }) {
     <>
       <a className="mateu-skip-link" href="#mateu-main" onClick={focusMain}>Skip to content</a>
       {body}
+      {!boot.failure && <GlobalLayer session={session} app={boot.app ?? NO_APP} current={content} onNavigate={go} onPreview={showPreview} />}
       <Overlays state={overlays} />
       <Toasts state={toasts} />
+      <Resilience session={session} />
     </>
   )
 }
+
+/** A screen on its own: no app shell, but its page FABs and screen shortcuts still need the global layer. */
+const NO_APP: Record<string, unknown> = {}
 
 /** A screen with no app shell: Primer's page container (centred, its margins). */
 function Centered({ children }: { children: React.ReactNode }) {

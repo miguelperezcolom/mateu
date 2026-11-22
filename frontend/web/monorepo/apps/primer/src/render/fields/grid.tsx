@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import { modifiersMatch } from '@rn/core/keyShortcuts'
 import { Button, Checkbox, IconButton, Select, Text, TextInput, VisuallyHidden } from '@primer/react'
 import { PlusIcon, TrashIcon } from '@primer/octicons-react'
 import { flattenColumnGroups } from '@rn/renderer/columnGroups'
@@ -13,6 +14,9 @@ interface Column {
   editable?: boolean
   editorType?: string
   editorOptions?: { value: unknown; label: string }[] | null
+  /** a button column (`stereotype: button` or an actionId): its fixed text, else the cell's value */
+  actionId?: string
+  text?: string
 }
 
 const NUMERIC = new Set(['integer', 'int', 'long', 'number', 'double', 'float', 'decimal', 'money'])
@@ -27,9 +31,11 @@ export function gridColumnsOf(columns: unknown, rows: Dict[]): Column[] {
       dataType: m['dataType'] as string | undefined, stereotype: m['stereotype'] as string | undefined,
       editable: m['editable'] === true, editorType: m['editorType'] as string | undefined,
       editorOptions: (m['editorOptions'] as Column['editorOptions']) ?? null,
+      actionId: typeof m['actionId'] === 'string' && m['actionId'] ? String(m['actionId']) : undefined,
+      text: typeof m['text'] === 'string' && m['text'] ? String(m['text']) : undefined,
     }))
   const cols = flat.length ? flat : Object.keys(rows[0] ?? {}).map((k) => ({ id: k, label: k }))
-  // internal columns (_select, _rowNumber…) are wire plumbing, not data
+  // internal columns (_select — the server-side detail editor's Edit —, _rowNumber…) are wire plumbing, not data
   return cols.filter((c) => !c.id.startsWith('_'))
 }
 
@@ -45,11 +51,32 @@ const cellText = (v: unknown): string => {
  * (`@InlineEditing`) edit in place, rows are added and removed; `@OnRowSelected` runs its action
  * with `_clickedRow` on a row click (read-only grids too).
  */
-export function GridField({ label, columns, rows, editable, inlineEditing, onChange, onRowSelected }: {
+export function GridField({ label, columns, rows, editable, inlineEditing, onChange, onRowSelected, onCellAction, rowSelectionShortcut }: {
   label: string; columns: Column[]; rows: Dict[]; editable: boolean; inlineEditing: boolean
   onChange: (rows: Dict[]) => void; onRowSelected?: (row: Dict) => void
+  /** a button column pressed: its action, the row as the parameters (the web's button cell) */
+  onCellAction?: (actionId: string, row: Dict) => void
+  /** @OnRowSelected(shortcut = "ctrl+shift"): the combination plus a digit selects that row */
+  rowSelectionShortcut?: string
 }) {
   const [selected, setSelected] = useState(-1)
+  const current = useRef({ rows, onRowSelected })
+  current.current = { rows, onRowSelected }
+  useEffect(() => {
+    if (!rowSelectionShortcut) return
+    const onKey = (e: KeyboardEvent) => {
+      const digit = /^(?:Digit|Numpad)([1-9])$/.exec(e.code)?.[1]
+      if (!digit || !modifiersMatch(rowSelectionShortcut, e)) return
+      const i = Number(digit) - 1
+      const { rows: rs, onRowSelected: select } = current.current
+      if (!select || !rs[i]) return
+      e.preventDefault()
+      setSelected(i)
+      select(rs[i])
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [rowSelectionShortcut])
   const canEdit = (c: Column) => editable && (inlineEditing || c.editable === true) && c.editable !== false
   const anyEditable = editable && columns.some(canEdit)
   const put = (i: number, id: string, v: unknown) => onChange(rows.map((r, j) => (j === i ? { ...r, [id]: v } : r)))
@@ -85,6 +112,14 @@ export function GridField({ label, columns, rows, editable, inlineEditing, onCha
     )
   }
 
+  const cell = (c: Column, row: Dict, i: number): React.ReactNode => {
+    if (c.actionId && (c.stereotype === 'button' || !canEdit(c))) {
+      const text = c.text || cellText(row[c.id])
+      return <Button size="small" variant="invisible" onClick={() => onCellAction?.(c.actionId!, row)}>{text || c.label}</Button>
+    }
+    return canEdit(c) ? editor(c, row, i) : cellText(row[c.id])
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--base-size-8)' }}>
       <div className="mateu-grid-field">
@@ -114,7 +149,7 @@ export function GridField({ label, columns, rows, editable, inlineEditing, onCha
                   if (onRowSelected && e.key === 'Enter' && e.target === e.currentTarget) { setSelected(i); onRowSelected(row) }
                 }}
               >
-                {columns.map((c) => <td key={c.id}>{canEdit(c) ? editor(c, row, i) : cellText(row[c.id])}</td>)}
+                {columns.map((c) => <td key={c.id}>{cell(c, row, i)}</td>)}
                 {anyEditable && (
                   <td className="actions">
                     <IconButton icon={TrashIcon} size="small" variant="invisible" aria-label={`Remove row ${i + 1}`} onClick={() => remove(i)} />

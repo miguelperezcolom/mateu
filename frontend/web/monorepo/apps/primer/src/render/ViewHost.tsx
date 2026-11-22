@@ -3,6 +3,8 @@ import type { MateuSession, NavTarget, OverlayOpenerContext } from '@rn/core/Mat
 import { MateuViewController, type RenderedView } from '@rn/core/MateuViewController'
 import { firstComponentFragment } from '@rn/core/chatStream'
 import { ViewBody } from './ViewBody'
+import { setContentController } from '../shell/header/appLevel'
+import { PresenceChip } from '../shell/header/LiveHeader'
 
 const ControllerContext = createContext<MateuViewController | null>(null)
 
@@ -70,7 +72,11 @@ export function ViewHost({ session, target, serverSideNode, opener, embedded, pr
     } else if (target) {
       void controller.navigate(target.route, target.consumedRoute, target.serverSideType)
     }
+    // the screen on view: app-level answers (header actions) apply to it
+    const isContent = !!target && !embedded && !serverSideNode
+    if (isContent) setContentController(session, controller)
     return () => {
+      if (isContent) setContentController(session, null)
       controller.onRender = () => {}
       session.unsubscribeAll(controller)
       controller.dispose()
@@ -86,6 +92,7 @@ export function ViewHost({ session, target, serverSideNode, opener, embedded, pr
   return (
     <ControllerProvider value={controller}>
       <ChromeContext.Provider value={chrome ?? null}>
+        {!!target && !embedded && !serverSideNode && <PresenceChip controller={controller} />}
         <ViewBody controller={controller} view={view} retry={retry} embedded={embedded || !!serverSideNode} />
       </ChromeContext.Provider>
     </ControllerProvider>

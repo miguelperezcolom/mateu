@@ -1,18 +1,22 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import { BaseStyles, ThemeProvider } from '@primer/react'
+import { BaseStyles } from '@primer/react'
 import '@primer/primitives/dist/css/primitives.css'
 import '@primer/primitives/dist/css/functional/themes/light.css'
 import '@primer/primitives/dist/css/functional/themes/dark.css'
 import './index.css'
 import { installAnnouncer } from './shims/react-native'
 import { setRendererName, setRendererVersion } from '@rn/core/buildSkew'
+import { setStreamingFetch } from '@rn/api/MateuApiClient'
+import { ThemedRoot } from './shell/header/theme'
 import { MateuPrimerApp } from './shell/MateuPrimerApp'
 import { baseUrlOfPage } from './shell/pageConfig'
 
 declare const __MATEU_RENDERER_VERSION__: string
 
 installAnnouncer()
+// a browser's fetch streams its body: LongTask increments and the live-updates stream apply as they arrive
+setStreamingFetch(window.fetch.bind(window))
 setRendererName('primer')
 setRendererVersion(typeof __MATEU_RENDERER_VERSION__ === 'string' ? __MATEU_RENDERER_VERSION__ : 'unknown')
 
@@ -21,10 +25,10 @@ const host = document.getElementById('mateu-primer-root') ?? document.body.appen
 
 createRoot(host).render(
   <React.StrictMode>
-    <ThemeProvider colorMode="auto">
+    <ThemedRoot>
       <BaseStyles>
         <MateuPrimerApp baseUrl={baseUrlOfPage(document)} />
       </BaseStyles>
-    </ThemeProvider>
+    </ThemedRoot>
   </React.StrictMode>,
 )

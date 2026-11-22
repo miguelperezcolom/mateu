@@ -100,3 +100,14 @@
 .mateu-choice-card:focus-visible { outline: 2px solid var(--focus-outlineColor); outline-offset: 1px; }
 .mateu-choice-card:disabled { cursor: default; color: var(--fgColor-muted); }
 .mateu-choice-check { color: var(--fgColor-accent); flex-shrink: 0; }
+
+/* FormLayout labelsAside: the label in a 10rem column left of its control (the dense back-office idiom) */
+.mateu-labels-aside [data-component="FormControl"][data-has-label][class*="ControlVerticalLayout"],
+.mateu-labels-aside .mateu-field {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  column-gap: var(--base-size-12);
+  align-items: baseline;
+}
+.mateu-labels-aside [data-component="FormControl"][data-has-label][class*="ControlVerticalLayout"] > :not(label),
+.mateu-labels-aside .mateu-field > :not(:first-child) { grid-column: 2; }

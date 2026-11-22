@@ -5,6 +5,7 @@ import { IconButton } from '@primer/react'
 import { interpolate } from '@rn/core/expressions'
 import type { PageBanner } from '@rn/core/MateuViewController'
 import { useController, useEmbeddedChrome } from './ViewHost'
+import { usePageFabs, type FabLike } from '../shell/global/fabs'
 import { ComponentRenderer } from './ComponentRenderer'
 import { useButtonPress } from './useButtonPress'
 import { buttonVariantOf, labelVariantOf } from './looks'
@@ -41,6 +42,9 @@ export function PageRenderer({ component, metadata, state, data }: { component: 
   const buttons = ((metadata['buttons'] as Dict[] | undefined) ?? []).filter((b) => b && b['label'])
   const crumbs = metadata['noBreadcrumbs'] === true || chrome ? [] : ((metadata['breadcrumbs'] as Dict[] | undefined) ?? [])
   const header = metadata['header'] as unknown[] | undefined
+  // the page's floating buttons join the ONE floating column of the global layer (a page in an
+  // overlay or an island has none of its own on screen)
+  usePageFabs(controller.windowless ? [] : (metadata['fabs'] as FabLike[] | undefined), (id) => void controller.runAction(id), (l) => interpolate(l, ctx))
 
   const run = (b: Dict) => press(b, { state, data }, () => {
     const id = String(b['actionId'] ?? b['id'] ?? '')

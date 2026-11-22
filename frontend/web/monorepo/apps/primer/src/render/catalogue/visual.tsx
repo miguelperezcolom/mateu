@@ -3,7 +3,8 @@ import './visual.css'
 import { Chart, Funnel, Heatmap, TrendChart } from './visual/charts'
 import { Calendar, Gantt, PlanningBoard } from './visual/time'
 import { Kanban, MatrixGrid, OrgChart, RecordMerge } from './visual/boards'
-import { AddOnPicker, Bpmn, CustomComponent, FormEditor, Grid, MapView, PaymentPicker, ResourceGrid, Workflow } from './visual/widgets'
+import { AddOnPicker, Bpmn, Grid, MapView, PaymentPicker, ResourceGrid } from './visual/widgets'
+import { FormEditor, Workflow } from './visual/definitions'
 
 /**
  * Wire types of the "visual" group (charts, time, boards, data widgets), each drawn with Primer:
@@ -15,6 +16,6 @@ export const visual: Catalogue = {
   Chart, TrendChart, Funnel, Heatmap,
   Calendar, Gantt, PlanningBoard,
   Kanban, MatrixGrid, OrgChart, RecordMerge,
-  Map: MapView, Grid, ResourceGrid, AddOnPicker, PaymentPicker, CustomComponent,
+  Map: MapView, Grid, ResourceGrid, AddOnPicker, PaymentPicker,
   Bpmn, Workflow, FormEditor,
 }

@@ -41,8 +41,8 @@ export function listingStateFromUrl(search: string, filterKeys: string[]): { sea
   return any ? out : null
 }
 
-/** Writes the listing's state into the URL (a history entry: Back returns to the previous rows). */
-export function writeListingUrl(state: Dict, filterKeys: string[]): void {
+/** Writes the listing's state into the URL (a history entry: Back returns to the previous rows; `replace` normalises the URL it opened with). */
+export function writeListingUrl(state: Dict, filterKeys: string[], replace = false): void {
   const params = new URLSearchParams(window.location.search)
   for (const k of LISTING_PARAMS(filterKeys)) params.delete(k)
   const text = String(state['searchText'] ?? '')
@@ -59,5 +59,7 @@ export function writeListingUrl(state: Dict, filterKeys: string[]): void {
   if (sort.length) params.set('sort', sort.join(','))
   const query = params.toString()
   const url = window.location.pathname + (query ? `?${query}` : '')
-  if (url !== window.location.pathname + window.location.search) window.history.pushState(window.history.state, '', url)
+  if (url === window.location.pathname + window.location.search) return
+  if (replace) window.history.replaceState(window.history.state, '', url)
+  else window.history.pushState(window.history.state, '', url)
 }

@@ -20,7 +20,7 @@ export interface ToastsState {
 
 let nextId = 1
 
-/** The session's `notify` hook: messages stacked bottom-right as Primer Banners. */
+/** The session's `notify` hook: messages stacked bottom-left as Primer Banners (GitHub's toast corner — the floating buttons own the right). */
 export function useToasts(): ToastsState {
   const [toasts, setToasts] = useState<Toast[]>([])
   const dismiss = useCallback((id: number) => setToasts((t) => t.filter((x) => x.id !== id)), [])
@@ -36,7 +36,7 @@ export function Toasts({ state }: { state: ToastsState }) {
     <div
       aria-live="polite"
       style={{
-        position: 'fixed', right: 'var(--base-size-16)', bottom: 'var(--base-size-16)', zIndex: 100,
+        position: 'fixed', left: 'var(--base-size-16)', bottom: 'var(--base-size-16)', zIndex: 100,
         display: 'flex', flexDirection: 'column', gap: 'var(--base-size-8)', width: 'min(28rem, calc(100vw - 2rem))',
       }}
     >
@@ -44,6 +44,11 @@ export function Toasts({ state }: { state: ToastsState }) {
     </div>
   )
 }
+
+const BANNER_VARIANT: Record<string, 'critical' | 'warning' | 'success' | 'info'> = {
+  error: 'critical', warning: 'warning', success: 'success', info: 'info', primary: 'info', contrast: 'info',
+}
+const BANNER_TITLE = { critical: 'Error', warning: 'Warning', success: 'Success', info: 'Information' } as const
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }) {
   const actions = toast.options?.actions ?? (toast.options?.undo ? [toast.options.undo] : [])
@@ -63,7 +68,10 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
     }, 250)
     return () => clearInterval(timer)
   }, [lifetime, onDismiss])
-  const variant = toast.variant === 'error' ? 'critical' : toast.variant === 'warning' ? 'warning' : 'info'
+  // the wire's variants (success, warning, error, primary, contrast, info) in Primer's Banner tones;
+  // the core types it as info|warning|error but passes the wire's word through
+  const wire = String(toast.variant)
+  const variant = BANNER_VARIANT[wire] ?? 'info'
   return (
     <div
       onMouseEnter={() => { hovering.current = true }}
@@ -73,7 +81,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
       role={toast.variant === 'error' ? 'alert' : 'status'}
     >
       <Banner
-        title={toast.title || (toast.variant === 'error' ? 'Error' : toast.variant === 'warning' ? 'Warning' : 'Information')}
+        title={toast.title || BANNER_TITLE[variant]}
         hideTitle={!toast.title}
         description={toast.text}
         variant={variant}

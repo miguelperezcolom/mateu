@@ -1,0 +1,112 @@
+/* The global layer: floating buttons, command palette, shortcuts list, assistant, access keys —
+   Primer's functional tokens only, so light and dark follow the theme. */
+
+.mateu-kbd {
+  display: inline-block;
+  min-width: 1.25rem;
+  padding: 0 var(--base-size-4);
+  margin-inline-start: var(--base-size-2);
+  font: var(--text-codeInline-shorthand, 500 0.75rem/1.25rem ui-monospace, SFMono-Regular, monospace);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  text-align: center;
+  color: var(--fgColor-muted);
+  background: var(--bgColor-muted);
+  border: var(--borderWidth-thin, 1px) solid var(--borderColor-default);
+  border-bottom-width: 2px;
+  border-radius: var(--borderRadius-small, 3px);
+}
+
+/* ONE column of floating buttons at the bottom right: the page's, the app's, the command center,
+   the assistant — stacked, never on top of each other */
+.mateu-fab-rail {
+  position: fixed;
+  right: var(--base-size-24);
+  bottom: var(--base-size-24);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--base-size-12);
+  pointer-events: none;
+}
+.mateu-fab-rail[hidden] { display: none; }
+.mateu-fab-rail > * { pointer-events: auto; }
+.mateu-fab {
+  box-shadow: var(--shadow-floating-small);
+}
+.mateu-fab:not(.mateu-fab--labelled) {
+  width: 3rem !important;
+  height: 3rem !important;
+  border-radius: 50% !important;
+}
+.mateu-fab--labelled { border-radius: 999px !important; }
+
+/* with the assistant open the column moves beside it */
+body:has(.mateu-assistant:not([hidden])) .mateu-fab-rail { right: calc(min(26rem, 100vw) + var(--base-size-16)); }
+@media (max-width: 40rem) {
+  body:has(.mateu-assistant:not([hidden])) .mateu-fab-rail { display: none; }
+}
+
+/* the command palette */
+.mateu-cmd { display: flex; flex-direction: column; gap: var(--base-size-8); padding: var(--base-size-16); min-height: 0; max-height: 70vh; }
+.mateu-cmd__list { overflow-y: auto; margin: 0 calc(-1 * var(--base-size-8)); }
+.mateu-cmd__group {
+  padding: var(--base-size-8) var(--base-size-16) var(--base-size-4);
+  font-size: var(--text-caption-size, 0.75rem);
+  font-weight: var(--base-text-weight-semibold, 600);
+  color: var(--fgColor-muted);
+}
+.mateu-cmd__empty { padding: var(--base-size-16); color: var(--fgColor-muted); margin: 0; }
+.mateu-cmd__footer {
+  display: flex; gap: var(--base-size-16); padding-top: var(--base-size-8);
+  border-top: var(--borderWidth-thin, 1px) solid var(--borderColor-muted);
+  font-size: var(--text-caption-size, 0.75rem); color: var(--fgColor-muted);
+}
+
+/* the shortcuts list */
+.mateu-shortcuts { width: 100%; border-collapse: collapse; margin-bottom: var(--base-size-16); }
+.mateu-shortcuts td { padding: var(--base-size-4) var(--base-size-8); border-bottom: var(--borderWidth-thin, 1px) solid var(--borderColor-muted); }
+.mateu-shortcuts td:first-child { width: 1%; white-space: nowrap; padding-inline-end: var(--base-size-16); }
+.mateu-shortcuts .mateu-kbd { margin-inline-start: 0; }
+
+/* the assistant: a side panel beside the page, not modal */
+.mateu-assistant {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  width: min(26rem, 100vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--overlay-bgColor, var(--bgColor-default));
+  border-left: var(--borderWidth-thin, 1px) solid var(--borderColor-default);
+  box-shadow: var(--shadow-floating-large);
+}
+.mateu-assistant[hidden] { display: none; }
+.mateu-assistant__header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--base-size-12) var(--base-size-16);
+  border-bottom: var(--borderWidth-thin, 1px) solid var(--borderColor-default);
+}
+.mateu-assistant__header h2 { margin: 0; }
+.mateu-assistant__messages { flex: 1; overflow-y: auto; padding: var(--base-size-16); display: flex; flex-direction: column; gap: var(--base-size-8); }
+.mateu-assistant__input { display: flex; flex-direction: column; gap: var(--base-size-8); padding: var(--base-size-12) var(--base-size-16); border-top: var(--borderWidth-thin, 1px) solid var(--borderColor-default); }
+.mateu-assistant__input button { align-self: flex-end; }
+.mateu-assistant .mateu-chat__bubble { max-width: 90%; padding: var(--base-size-8) var(--base-size-12); border-radius: var(--borderRadius-large, 12px); }
+.mateu-assistant .mateu-chat__bubble--user { align-self: flex-end; background: var(--bgColor-accent-muted); color: var(--fgColor-default); white-space: pre-wrap; }
+.mateu-assistant .mateu-chat__bubble--agent { align-self: flex-start; background: var(--bgColor-muted); color: var(--fgColor-default); }
+.mateu-assistant .mateu-muted { color: var(--fgColor-muted); margin: 0; }
+
+/* access keys: one fixed layer of badges while Alt is held */
+.mateu-access-keys { position: fixed; inset: 0; pointer-events: none; z-index: 10000; }
+.mateu-access-keys__badge {
+  position: absolute;
+  padding: 0 var(--base-size-4);
+  border-radius: var(--borderRadius-small, 3px);
+  font: 600 0.7rem/1.2rem var(--fontStack-system, system-ui, sans-serif);
+  background: var(--bgColor-attention-emphasis);
+  color: var(--fgColor-onEmphasis);
+  box-shadow: var(--shadow-resting-small);
+}

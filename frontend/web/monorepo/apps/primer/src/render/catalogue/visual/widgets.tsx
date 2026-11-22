@@ -5,8 +5,7 @@ import { mapRows, markerParameters, type MapMeta } from '@rn/renderer/mapRows'
 import { gridCellParameters, gridCellText, gridHeader, gridRowsOf, visibleTreeRows } from '@rn/renderer/wireWidgets'
 import { addOnTotal, fmtAmount, toggleAddOn } from '@rn/renderer/displayModels'
 import { initialPaymentMethod } from '@rn/renderer/displayFigures'
-import { parseBpmn, workflowDiagram, type Diagram } from '@rn/renderer/diagrams'
-import { parseFormEditorValue } from '@rn/renderer/definitionModel'
+import { parseBpmn, type Diagram } from '@rn/renderer/diagrams'
 import { useController } from '../../ViewHost'
 import { ComponentRenderer } from '../../ComponentRenderer'
 import { BOX_STYLE, styleOf } from '../../styleOf'
@@ -200,23 +199,6 @@ export function PaymentPicker({ component, metadata: m }: CatalogueProps) {
   )
 }
 
-// ── CustomComponent ───────────────────────────────────────────────────────────────────────────────
-
-/**
- * CustomComponent: the per-renderer escape hatch. This renderer has no registry of custom
- * renderers yet, so it says so and still shows the slotted children (never a broken screen).
- */
-export function CustomComponent({ component, metadata: m, state, data }: CatalogueProps) {
-  const name = str(m['name'])
-  const kids = arr(component['children']).map((c, i) => <ComponentRenderer key={i} component={c} state={state} data={data} />)
-  return (
-    <div className="mv-box" style={{ padding: 'var(--base-size-12)', borderStyle: 'dashed', display: 'grid', gap: 'var(--base-size-8)' }}>
-      <Text size="small" className="mv-muted">Custom component “{name}” is not registered on this renderer</Text>
-      {kids}
-    </div>
-  )
-}
-
 // ── Bpmn / Workflow / FormEditor (read-only here) ─────────────────────────────────────────────────
 
 const KIND_TONE: Record<string, 'success' | 'danger' | 'warning' | 'info' | 'neutral'> = {
@@ -224,7 +206,7 @@ const KIND_TONE: Record<string, 'success' | 'danger' | 'warning' | 'info' | 'neu
 }
 
 /** A parsed diagram drawn as SVG: nodes by kind (Primer tones), edges as polylines with arrows. */
-function DiagramView({ diagram, label }: { diagram: Diagram; label: string }) {
+export function DiagramView({ diagram, label, onPressNode }: { diagram: Diagram; label: string; onPressNode?: (id: string) => void }) {
   if (diagram.nodes.length === 0) return <Text className="mv-muted">Nothing to show.</Text>
   const pad = 16
   return (
@@ -244,7 +226,7 @@ function DiagramView({ diagram, label }: { diagram: Diagram; label: string }) {
               : <rect x={n.x} y={n.y} width={n.w} height={n.h} rx={8} fill={n.color ? colorOf(n.color, fill) : fill} fillOpacity={n.color ? 0.25 : 1} stroke={stroke} strokeWidth={1.5} />
           const below = n.kind !== 'task' && n.kind !== 'subprocess' && n.kind !== 'other'
           return (
-            <g key={n.id}>
+            <g key={n.id} {...(onPressNode ? { ...activate(() => onPressNode(n.id)), 'aria-label': n.label || n.id, style: { cursor: 'pointer' } } : {})}>
               {shape}
               {n.label && <text x={cx} y={below ? n.y + n.h + 14 : cy + 4} textAnchor="middle" style={{ fill: 'var(--fgColor-default)' }}>{n.label.length > 22 ? n.label.slice(0, 21) + '…' : n.label}</text>}
             </g>
@@ -257,38 +239,4 @@ function DiagramView({ diagram, label }: { diagram: Diagram; label: string }) {
 
 export function Bpmn({ component, metadata }: CatalogueProps) {
   return <div style={styleOf(component, BOX_STYLE)}><DiagramView diagram={parseBpmn(str(metadata['xml']))} label="Process diagram" /></div>
-}
-
-/** Workflow (an editor elsewhere): its diagram, read-only — editing it is a desktop/web-Vaadin task for now. */
-export function Workflow({ component, metadata }: CatalogueProps) {
-  const { name, diagram } = workflowDiagram(str(metadata['value']))
-  return (
-    <div style={{ display: 'grid', gap: 'var(--base-size-8)', ...styleOf(component, BOX_STYLE) }}>
-      {name && <Text weight="semibold">{name}</Text>}
-      <DiagramView diagram={diagram} label={`Workflow ${name}`} />
-      <Text size="small" className="mv-muted">Read-only in the Primer renderer.</Text>
-    </div>
-  )
-}
-
-/** FormEditor (a form definition editor elsewhere): the definition's fields, read-only. */
-export function FormEditor({ component, metadata }: CatalogueProps) {
-  const form = parseFormEditorValue(str(metadata['value']))
-  return (
-    <div style={{ display: 'grid', gap: 'var(--base-size-8)', ...styleOf(component, BOX_STYLE) }}>
-      {form.name && <Text weight="semibold">{String(form.name)}</Text>}
-      <div className="mv-box" style={{ overflowX: 'auto' }}>
-        <table className="mv-table">
-          <thead><tr><th>Field</th><th>Label</th><th>Type</th><th>Required</th></tr></thead>
-          <tbody>
-            {form.fields.length === 0 && <tr><td colSpan={4} className="mv-muted">No fields.</td></tr>}
-            {form.fields.map((f) => (
-              <tr key={f.id}><td><code>{f.id}</code></td><td>{f.label}</td><td>{f.stereotype ? `${f.dataType} · ${f.stereotype}` : f.dataType}</td><td>{f.required ? 'Yes' : ''}</td></tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <Text size="small" className="mv-muted">Read-only in the Primer renderer.</Text>
-    </div>
-  )
 }
