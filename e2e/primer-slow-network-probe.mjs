@@ -15,9 +15,12 @@
  */
 import { chromium } from 'playwright'
 import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const BASE = process.env.BASE ?? 'http://localhost:5180'
-const OUT = process.env.OUT ?? '/tmp/mateu-primer-slow-network-probe'
+// screenshots land in e2e/test-results (git-ignored), never in a shared temp folder
+const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'test-results', 'primer-slow-network-probe')
 const SYNC = '**/mateu/v3/sync/**'
 const isLoad = (body) => body.includes('"actionId":""') || body.includes('"actionId":"__load__"')
 

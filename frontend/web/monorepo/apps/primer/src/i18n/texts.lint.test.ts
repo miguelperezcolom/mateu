@@ -27,7 +27,7 @@ const WORDS = 'Retry|Cancel|Clear filters|Show more|Filter|Filter by|No data\\.?
 const ATTRS = 'aria-label|title|placeholder|alt|srText|label|inputLabel|loadingMessage|confirmButtonContent|cancelButtonContent|description|text'
 
 const PATTERNS: { name: string; re: RegExp }[] = [
-  { name: 'attribute text', re: new RegExp(`\\b(?:${ATTRS})="[A-Za-z¿¡][^"\${}]*[a-z][^"\${}]*"`) },
+  { name: 'attribute text', re: new RegExp(`\\b(?:${ATTRS})="[A-Za-z¿¡][^"{}$]*[a-z][^"{}$]*"`) },
   { name: 'attribute literal', re: new RegExp(`\\b(?:${ATTRS})=\\{\\s*['"\`][A-Z][a-z]`) },
   { name: 'JSX text', re: /(?<![=-])>\s*[A-Z¿][a-záéíóúñ']+(?:\s+[a-zA-Záéíóúñ'’,]+){0,20}[.…!?]?\s*<\// },
   { name: 'JSX text line', re: /^\s*[A-Z][a-z']+(?:\s+[a-zA-Z'’,]+){1,20}[.…!?]?\s*$/ },

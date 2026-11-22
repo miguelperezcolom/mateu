@@ -40,7 +40,13 @@ function AnswerMarkdown({ source, onRoute }: { source: string; onRoute: (href: s
     <div
       className="mateu-markdown"
       dangerouslySetInnerHTML={{ __html: html }}
+      // an in-app link of the answer navigates here (a link's Enter arrives as a click; the key is heard too)
       onClick={(e) => {
+        const a = (e.target as HTMLElement).closest('a')
+        if (a && onRoute(a.getAttribute('href') ?? '')) e.preventDefault()
+      }}
+      onKeyDown={(e) => {
+        if (e.key !== 'Enter') return
         const a = (e.target as HTMLElement).closest('a')
         if (a && onRoute(a.getAttribute('href') ?? '')) e.preventDefault()
       }}
