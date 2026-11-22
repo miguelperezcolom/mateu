@@ -63,6 +63,19 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     // named apart from the Vaadin jar's files (both serve from static/assets — never both on one classpath, but a stale copy must not be mistaken for ours)
-    rollupOptions: { output: { entryFileNames: 'assets/mateu-primer.js', chunkFileNames: 'assets/mateu-primer-[name]-[hash].js', assetFileNames: (a) => (a.names?.[0]?.endsWith('.css') ? 'assets/mateu-primer.css' : 'assets/mateu-primer-[name][extname]') } },
+    // the entry's stylesheet keeps its fixed name (the served page links it); a lazy chunk's own
+    // stylesheet is hashed beside its script and injected by the chunk loader
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/mateu-primer.js',
+        chunkFileNames: 'assets/mateu-primer-[name]-[hash].js',
+        assetFileNames: (a) => {
+          const name = a.names?.[0] ?? ''
+          if (!name.endsWith('.css')) return 'assets/mateu-primer-[name][extname]'
+          return name === 'index.css' || name === 'mateu-primer.css' ? 'assets/mateu-primer.css' : 'assets/mateu-primer-[name]-[hash][extname]'
+        },
+      },
+    },
   },
+
 })

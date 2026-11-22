@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react'
-import { marked } from 'marked'
 import { sanitizeHtml } from './safeHtml'
 
 /**
@@ -8,9 +7,23 @@ import { sanitizeHtml } from './safeHtml'
  * Primer's tokens (index.css `.mateu-markdown`), the way github.com renders a README.
  */
 export function Markdown({ source }: { source: string }) {
-  const html = useMemo(() => sanitizeHtml(marked.parse(source, { async: false, gfm: true, breaks: false }) as string), [source])
-  return <div className="mateu-markdown" dangerouslySetInnerHTML={{ __html: html }} />
+  // marked is its own chunk, fetched the first time a screen shows markdown (the text stays readable meanwhile)
+  return (
+    <React.Suspense fallback={<div className="mateu-markdown" style={{ whiteSpace: 'pre-wrap' }}>{source}</div>}>
+      <RenderedMarkdown source={source} />
+    </React.Suspense>
+  )
 }
+
+const RenderedMarkdown = React.lazy(async () => {
+  const { marked } = await import('marked')
+  return {
+    default: function RenderedMarkdown({ source }: { source: string }) {
+      const html = useMemo(() => sanitizeHtml(marked.parse(source, { async: false, gfm: true, breaks: false }) as string), [source])
+      return <div className="mateu-markdown" dangerouslySetInnerHTML={{ __html: html }} />
+    },
+  }
+})
 
 /** Trusted-by-policy HTML (an html field, a rich text value): sanitized the same way. */
 export function SafeHtml({ html, className }: { html: string; className?: string }) {

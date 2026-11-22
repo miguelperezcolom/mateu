@@ -9,7 +9,6 @@ import { runAndApply, routeTarget, type AppMetaLike } from './appActions'
 import { CommandPalette, flattenMenu } from './CommandPalette'
 import { ShortcutsHelp } from './ShortcutsHelp'
 import { IdleWarning } from './IdleWarning'
-import { ChatPanel } from './ChatPanel'
 import { trackScreenShortcuts, useGlobalKeys, type AppShortcutLike } from './shortcuts'
 import { useAccessKeys } from './accessKeys'
 import { humanizeId, usePageFabList, type FabLike, type ShownFab } from './fabs'
@@ -106,7 +105,8 @@ export function GlobalLayer({ session, app, current, onNavigate, onPreview }: {
       />
       {help && <ShortcutsHelp session={session} shortcuts={shortcuts} palette={paletteOn} onClose={() => setHelp(false)} />}
       {!!app['idleSession'] && <IdleWarning session={session} app={app} />}
-      {sseUrl && <ChatPanel session={session} sseUrl={sseUrl} open={chat} onClose={() => setChat(false)} seed={seed} />}
+      {/* the assistant is its own chunk: only an app with an agent (sseUrl) fetches it */}
+      {sseUrl && <React.Suspense fallback={null}><ChatPanel session={session} sseUrl={sseUrl} open={chat} onClose={() => setChat(false)} seed={seed} /></React.Suspense>}
     </>
   )
 }
@@ -119,3 +119,5 @@ function Fab({ fab }: { fab: ShownFab }) {
   }
   return <IconButton className="mateu-fab" icon={Icon} aria-label={fab.name} variant="primary" size="large" onClick={fab.run} />
 }
+
+const ChatPanel = React.lazy(() => import('./ChatPanel').then((m) => ({ default: m.ChatPanel })))

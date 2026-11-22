@@ -11,6 +11,7 @@ import { setStreamingFetch } from '@rn/api/MateuApiClient'
 import { ThemedRoot } from './shell/header/theme'
 import { MateuPrimerApp } from './shell/MateuPrimerApp'
 import { baseUrlOfPage } from './shell/pageConfig'
+import { preloadCatalogue } from './render/catalogue'
 
 declare const __MATEU_RENDERER_VERSION__: string
 
@@ -32,3 +33,6 @@ createRoot(host).render(
     </ThemedRoot>
   </React.StrictMode>,
 )
+
+// the catalogue families a screen did not need yet, fetched while the browser is idle
+preloadCatalogue()

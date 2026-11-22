@@ -76,7 +76,8 @@ function ClientSide({ component, state, data }: { component: Dict; state: Dict; 
   // the families drawn in catalogue/ (display, status, visualisation, structure)
   const Drawn = CATALOGUE[type]
   // each catalogue component contained: one that fails is a note in its place, not a dead screen
-  if (Drawn) return <RenderBoundary compact><Drawn component={component} metadata={m} state={state} data={data} /></RenderBoundary>
+  // (display/status/visual load on demand: a placeholder line while the family's chunk arrives)
+  if (Drawn) return <RenderBoundary compact><React.Suspense fallback={<SkeletonText />}><Drawn component={component} metadata={m} state={state} data={data} /></React.Suspense></RenderBoundary>
   // a type this renderer does not draw yet — said, never silently dropped
   return React.createElement('mateu-unsupported', { 'data-type': type || 'unknown' }, `Not drawn by the Primer renderer yet: ${type || 'unknown'}`)
 }
