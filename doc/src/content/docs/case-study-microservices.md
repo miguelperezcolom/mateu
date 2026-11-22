@@ -124,7 +124,3 @@ UI aligns with service boundaries.
 Mateu allows you to keep UI definition close to the backend that owns the behavior.
 
 This reduces complexity and makes microservice-based systems easier to build and evolve.
-
----
-
-👉 Try the demo: https://vaadin.mateu.io/fluent/use-cases/rra

@@ -120,7 +120,3 @@ Mateu works best when:
 - UI is driven by data and actions
 - speed matters more than pixel-perfect design
 - you want fewer moving parts
-
----
-
-👉 Try the live demo: https://vaadin.mateu.io/fluent/use-cases/rra

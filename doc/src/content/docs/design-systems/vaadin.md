@@ -7,7 +7,7 @@ The Vaadin renderer is Mateu's default frontend. It uses Vaadin Lumo web compone
 
 ![A form rendered by the Vaadin renderer](/images/docs/design-systems/basic-form-vaadin.png)
 
-**Demo:** https://vaadin.mateu.io/
+**Demo:** https://museums.ec1.mateu.io/ — and every component in the [Mateu Explorer](https://explorer.mateu.io)
 
 ## Add to your project
 

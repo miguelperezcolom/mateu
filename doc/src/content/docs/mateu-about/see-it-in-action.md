@@ -6,8 +6,9 @@ The fastest way to understand Mateu is to try the live demos.
 
 ## Live demos
 
-- https://vaadin.mateu.io
-- https://redwood.mateu.io
+- **[Mateu Explorer](https://explorer.mateu.io)** — every component and UX pattern, live, with the code that declares it.
+- **Museums**, the same app on the two web renderers: [Vaadin](https://museums.ec1.mateu.io) and [Oracle Redwood](https://museums-rw.ec1.mateu.io).
+- **[Native on Cloud Run](https://mateu-native-demo.netlify.app)** — a Quarkus native backend on Cloud Run with its data in Firestore, and the Redwood front as a static site ([video](https://youtu.be/c7i1Lsq1KFo)).
 
 :::note
 The SAP UI5 and Redwood-OJ demos were removed along with those renderers (see the
