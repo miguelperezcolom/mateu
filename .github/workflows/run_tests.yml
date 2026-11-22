@@ -120,6 +120,9 @@ jobs:
       - name: Primer renderer typechecks
         run: cd frontend/web/monorepo/apps/primer && ./node_modules/.bin/tsc -p .
 
+      - name: Primer renderer unit tests
+        run: cd frontend/web/monorepo/apps/primer && npm test
+
       # Mateu's own components take colour, spacing and type from the design system's tokens; a
       # hard-coded literal ignores dark mode, forced colours and a customer theme. A ratchet: the
       # per-file counts in scripts/design-tokens-baseline.json may only go down (UX review 2026-10).
