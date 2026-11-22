@@ -20,7 +20,7 @@
         <!-- The latest Mateu release on Maven Central. To build against your local checkout instead,
              install the backend (cd backend && mvn install -DskipTests) and pass
              -Dmateu.version=0.0.1-MATEU -->
-        <mateu.version>3.0.0</mateu.version>
+        <mateu.version>3.0.4</mateu.version>
     </properties>
 
     <dependencyManagement>
@@ -37,30 +37,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-arc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest</artifactId>
-        </dependency>
-        <!-- the Mateu wire is Jackson (the adapter declares it `provided`) -->
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest-jackson</artifactId>
-        </dependency>
-
-        <!-- Mateu runtime for Quarkus -->
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>mateu-quarkus</artifactId>
-            <version>${mateu.version}</version>
-        </dependency>
-        <!-- The web renderer (served as static assets by the app) -->
-        <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>mateu-vaadin</artifactId>
-            <version>${mateu.version}</version>
+            <groupId>io.quarkiverse.mateu</groupId>
+            <artifactId>quarkus-mateu</artifactId>
+            <version>1.1.0</version>
         </dependency>
         <!-- The generated controllers use Lombok -->
         <dependency>

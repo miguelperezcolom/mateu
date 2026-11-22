@@ -1,0 +1,14 @@
+{
+  "reflection": [
+    { "type": { "proxy": ["io.mateu.uidl.interfaces.HttpRequest"] } }
+  ],
+  "resources": [
+    { "glob": "static/**" },
+    { "glob": "specs/**" },
+    { "glob": "META-INF/mateu/**" },
+    { "glob": "io/mateu/core/infra/pwa/**" }
+  ],
+  "bundles": [
+    { "name": "org.hibernate.validator.ValidationMessages" }
+  ]
+}

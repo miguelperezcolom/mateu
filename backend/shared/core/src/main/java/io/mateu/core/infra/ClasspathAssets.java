@@ -14,16 +14,18 @@ import java.time.format.DateTimeParseException;
 
 /**
  * Mateu's renderer assets read straight from the classpath folder the renderer jars ship them in
- * ({@value #ROOT}), for adapters whose static handler cannot be pointed at it (Quarkus serves only
- * {@code META-INF/resources}).
+ * ({@value #ROOT}), for adapters whose static handler cannot be pointed at it without app
+ * configuration (Quarkus serves only {@code META-INF/resources}; Micronaut maps nothing by
+ * default).
  *
  * <p>The renderer jars ({@code mateu-vaadin}, {@code mateu-redwood}) carry each asset ONCE, under
- * {@code static/}: Spring Boot serves that folder by default, Micronaut and Helidon map it in the
- * app's configuration, the .NET and Python ports and the bundle exporter read it from the jar, and
- * {@code @UI(indexHtmlPath)} defaults to {@code /static/_index.html}. Only the paths {@link
- * StaticAssetCaching} names as Mateu's ({@code /assets/…}, {@code /js/…}, {@code /myassets/…},
- * {@code /_redwood/…}, {@code /version_<n>/…}) are looked up, so an app's own {@code static/}
- * content is not published by accident.
+ * {@code static/}: Spring Boot serves that folder by default, the Quarkus and Micronaut adapters
+ * serve Mateu's paths of it themselves, Helidon maps it in the app's configuration, the .NET and
+ * Python ports and the bundle exporter read it from the jar, and {@code @UI(indexHtmlPath)}
+ * defaults to {@code /static/_index.html}. Only the paths {@link StaticAssetCaching} names as
+ * Mateu's ({@code /assets/…}, {@code /js/…}, {@code /myassets/…}, {@code /_redwood/…}, {@code
+ * /version_<n>/…}) are looked up, so an app's own {@code static/} content is not published by
+ * accident.
  */
 public final class ClasspathAssets {
 

@@ -54,10 +54,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up JDK 21
+      # JDK 25 (the last listed, so the default): the Micronaut starter is on Micronaut 5, which needs
+      # it; every other starter and demo compiles for 21 and builds and runs on 25 as well.
+      - name: Set up JDK 21 and 25
         uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
-          java-version: 21
+          java-version: |
+            21
+            25
           distribution: zulu
           cache: maven
 
@@ -109,6 +113,7 @@ jobs:
           gen --authoring both --runtime spring-mvc --pages form,dashboard --artifact both-mvc --out "$out/both-mvc"
           gen --authoring both --runtime quarkus --artifact both-quarkus --out "$out/both-quarkus"
           gen --authoring code --runtime micronaut --sample empty --artifact empty-micronaut --out "$out/empty-micronaut"
+          gen --authoring code --runtime micronaut --sample empty --renderer redwood --artifact redwood-micronaut --out "$out/redwood-micronaut"
           gen --authoring code --runtime helidon-mp --sample empty --artifact empty-helidon --out "$out/empty-helidon"
           gen --authoring code --runtime spring-webflux --sample empty --renderer redwood --artifact redwood-webflux --out "$out/redwood-webflux"
           gen --authoring yaml --runtime spring-mvc --pages welcome,calendar --artifact yaml-pages --out "$out/yaml-pages"

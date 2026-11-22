@@ -96,6 +96,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       views: 'Views',
       saveView: 'Save view',
       openWithView: 'Open with this view',
+      dontOpenWithView: 'Don’t open with this view',
+      deleteViewNamed: 'Delete view {name}',
+      viewSaved: 'View “{name}” saved',
       saveCurrentView: 'Save current view…',
       clearFilters: 'Clear filters',
       pagingOf: 'of',
@@ -407,6 +410,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       views: 'Vistas',
       saveView: 'Guardar vista',
       openWithView: 'Abrir con esta vista',
+      dontOpenWithView: 'No abrir con esta vista',
+      deleteViewNamed: 'Borrar la vista {name}',
+      viewSaved: 'Vista «{name}» guardada',
       saveCurrentView: 'Guardar la vista actual…',
       clearFilters: 'Quitar filtros',
       pagingOf: 'de',
@@ -705,6 +711,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       views: 'Vues',
       saveView: 'Enregistrer la vue',
       openWithView: 'Ouvrir avec cette vue',
+      dontOpenWithView: 'Ne plus ouvrir avec cette vue',
+      deleteViewNamed: 'Supprimer la vue {name}',
+      viewSaved: 'Vue « {name} » enregistrée',
       saveCurrentView: 'Enregistrer la vue actuelle…',
       clearFilters: 'Effacer les filtres',
       pagingOf: 'sur',
@@ -1011,6 +1020,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       views: 'Ansichten',
       saveView: 'Ansicht speichern',
       openWithView: 'Mit dieser Ansicht öffnen',
+      dontOpenWithView: 'Nicht mehr mit dieser Ansicht öffnen',
+      deleteViewNamed: 'Ansicht {name} löschen',
+      viewSaved: 'Ansicht „{name}“ gespeichert',
       saveCurrentView: 'Aktuelle Ansicht speichern…',
       clearFilters: 'Filter entfernen',
       pagingOf: 'von',
@@ -1317,6 +1329,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       views: 'Visualizações',
       saveView: 'Salvar visualização',
       openWithView: 'Abrir com esta visualização',
+      dontOpenWithView: 'Não abrir com esta visualização',
+      deleteViewNamed: 'Excluir a visualização {name}',
+      viewSaved: 'Visualização “{name}” salva',
       saveCurrentView: 'Salvar a visualização atual…',
       clearFilters: 'Limpar filtros',
       pagingOf: 'de',
@@ -1623,6 +1638,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       views: 'Viste',
       saveView: 'Salva vista',
       openWithView: 'Apri con questa vista',
+      dontOpenWithView: 'Non aprire con questa vista',
+      deleteViewNamed: 'Elimina la vista {name}',
+      viewSaved: 'Vista «{name}» salvata',
       saveCurrentView: 'Salva la vista attuale…',
       clearFilters: 'Rimuovi filtri',
       pagingOf: 'di',
@@ -2261,10 +2279,73 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return values
   }
 
-  /** The options of the views menu (oj-menu): the saved ones (★ the default one) + actions. */
-  function viewsMenuOf(scope, storage) {
-    const views = listSavedViews(scope, storage).map((v) => ({ value: 'view:' + v.name, label: (v.isDefault ? '★ ' : '') + v.name }))
+  /**
+   * A condition set in a comparable form: unset values (null, '', []) dropped, keys sorted, a multi-value
+   * as its sorted values joined by commas (a list saved from the bar and the same list read back from
+   * the URL, `a,b`, are the same condition). The web renderer runs the same rule (savedViewsStore.ts).
+   */
+  function isUnsetValue(v) {
+    return v === undefined || v === null || v === '' || (Array.isArray(v) && !v.length)
+  }
+
+  function listOfValue(v) {
+    if (Array.isArray(v)) return v.map(String)
+    if (typeof v === 'string' && v.includes(',')) return v.split(',')
+    return null
+  }
+
+  const byText = (a, b) => a.localeCompare(b)
+
+  function comparableValues(values) {
+    const entries = Object.keys(values || {})
+      .filter((k) => !isUnsetValue(values[k]))
+      .map((k) => {
+        const list = listOfValue(values[k])
+        return [k, list ? list.map((x) => x.trim()).filter(Boolean).sort(byText).join(',') : String(values[k])]
+      })
+      .sort((a, b) => byText(a[0], b[0]))
+    return JSON.stringify(entries)
+  }
+
+  function sameViewValues(a, b) { return comparableValues(a) === comparableValues(b) }
+
+  /** The saved view the current conditions ARE (null when nothing is applied or none matches). */
+  function activeViewOf(views, values) {
+    if (comparableValues(values) === '[]') return null
+    return (views || []).find((v) => sameViewValues(v.values, values)) || null
+  }
+
+  /** What the views button says: the active view's name, else its own label. */
+  function viewsButtonLabelOf(scope, values, fallback, storage) {
+    const active = activeViewOf(listSavedViews(scope, storage), values)
+    return active ? active.name : fallback
+  }
+
+  /** Marks (or, when it already is, unmarks) a view as the one the listing opens with. */
+  function toggleDefaultView(scope, name, storage) {
+    const all = readAll(VIEWS_KEY, storage)
+    all[scope] = (all[scope] || []).map((v) => ({ ...v, isDefault: v.name === name ? !v.isDefault : false }))
+    writeAll(VIEWS_KEY, all, storage)
+  }
+
+  /**
+   * The options of the views menu (oj-menu): the saved ones (✓ the one the listing is showing, ★ the
+   * default one) + actions. With a view on, the menu also lets the user make it the default (or stop
+   * opening with it) and delete it — what an option of an oj-menu cannot carry inline.
+   */
+  function viewsMenuOf(scope, storage, current) {
+    const saved = listSavedViews(scope, storage)
+    const active = current ? activeViewOf(saved, current) : null
+    const views = saved.map((v) => ({
+      value: 'view:' + v.name,
+      label: (active && active.name === v.name ? '✓ ' : '') + (v.isDefault ? '★ ' : '') + v.name,
+    }))
+    const onActive = active ? [
+      { value: 'default', label: chromeText(active.isDefault ? 'dontOpenWithView' : 'openWithView') },
+      { value: 'delete', label: chromeText('deleteViewNamed', { name: active.name }) },
+    ] : []
     return views.concat([{ value: 'save', label: chromeText('saveCurrentView') }])
+      .concat(onActive)
       .concat(views.length ? [{ value: 'clear', label: chromeText('clearFilters') }] : [])
   }
 
@@ -31866,6 +31947,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // knows its routes WITHOUT the prefix: it is taken off every request sent to that base.
   const remotePrefixes = new Map()
 
+  // The routes a remote answers with, as IT knows them (its menu's, groups included), by base. A remote's own
+  // routes may already live under the mount's prefix — a RemoteMenu in a field named like the remote's own top
+  // group: routePrefix /intranet, routes /intranet/avisos — and then they are spliced as they are and must be
+  // asked for as they are: taking the prefix off asked the remote for /avisos, which it does not have.
+  const remoteNativeRoutes = new Map()
+
+  function nativeRouteOf(base, route) {
+    const own = remoteNativeRoutes.get(String(base || ''))
+    if (!own || !own.size) return false
+    const path = String(route == null ? '' : route).split('?')[0]
+    const lead = path[0] === '/' ? path : '/' + path
+    for (const r of own) {
+      if (lead === r || lead.indexOf(r + '/') === 0) return true
+    }
+    return false
+  }
+
+  function registerNativeRoute(base, route) {
+    const r = String(route || '').split('?')[0].replace(/\/+$/, '')
+    if (!base || !r || r === '/') return
+    const key = String(base)
+    if (!remoteNativeRoutes.has(key)) remoteNativeRoutes.set(key, new Set())
+    remoteNativeRoutes.get(key).add(r[0] === '/' ? r : '/' + r)
+  }
+
   /** `route` with `prefix` in front, unless it already lives under it (or there is no prefix). */
   function prefixedRoute(prefix, route) {
     const p = String(prefix || '').replace(/\/+$/, '')
@@ -31883,6 +31989,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const prefix = remotePrefixes.get(String(base || ''))
     const r = String(route == null ? '' : route)
     if (!prefix) return r
+    // one of the remote's own routes (or under one): it already carried the prefix, so it keeps it
+    if (nativeRouteOf(base, r)) return r
     const lead = r[0] === '/' ? r : '/' + r
     if (lead === prefix || lead.indexOf(prefix + '?') === 0) return lead.slice(prefix.length) || ''
     return lead.indexOf(prefix + '/') === 0 ? lead.slice(prefix.length) : r
@@ -31993,6 +32101,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (child.baseUrl) continue
       // under the mount's prefix in the shell (see remotePrefixes); the raw route stays registered too
       const raw = child.route || child.path || ''
+      // a raw route already under the prefix is the remote's own: asked for as it is (see remoteNativeRoutes)
+      if (prefix && raw && prefixedRoute(prefix, raw) === raw) registerNativeRoute(option.baseUrl, raw)
       if (prefix) {
         if (child.route) child.route = prefixedRoute(prefix, child.route)
         if (child.path) child.path = prefixedRoute(prefix, child.path)
@@ -39486,6 +39596,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     viewRouteOf,
     currentViewValues,
     viewsMenuOf,
+    activeViewOf,
+    viewsButtonLabelOf,
+    toggleDefaultView,
     listingScope,
     installRowTones,
     // @OnRowSelected on a grid field: row click / shortcut + number (tables.mjs)

@@ -29,6 +29,20 @@
 
 
     <dependencies>
+    <!-- GraalVM native-image API, for MateuNativeImageFeature: compile-time only (the native-image
+         builder provides it when an app is built native; a JVM app never loads the feature) -->
+    <dependency>
+      <groupId>org.graalvm.sdk</groupId>
+      <artifactId>nativeimage</artifactId>
+      <version>25.0.4.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- Lombok is build-time only (provided): it must not reach an app's classpath or processor path -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mateu-uidl</artifactId>

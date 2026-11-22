@@ -1,0 +1,8 @@
+# gcloud builds submit --config cloudbuild-jvm.yaml  (the JVM image, for the comparison)
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ['build', '-f', 'Dockerfile.jvm',
+           '-t', 'europe-west1-docker.pkg.dev/$PROJECT_ID/mateu/jvm-demo:latest', '.']
+images:
+  - europe-west1-docker.pkg.dev/$PROJECT_ID/mateu/jvm-demo:latest
+timeout: 1200s

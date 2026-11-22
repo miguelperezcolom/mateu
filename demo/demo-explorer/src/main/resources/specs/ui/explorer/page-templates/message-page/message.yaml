@@ -1,0 +1,17 @@
+# MessagePage: ONE card over a full-bleed illustrated background, no app chrome — a confirmation, a
+# sign-in step, an error. The form's title/subtitle head the card, its content is the body, its
+# toolbar the actions, `footer` the links under them. `background` picks the tone.
+type: Form
+title: Check your email
+subtitle: Your visit is almost booked.
+toolbar:
+  - {type: Button, label: Back to the welcome page, buttonStyle: primary, actionable: {type: RouteLink, route: x/page-templates/welcome-page}}
+template:
+  type: MessagePage
+  footer:
+    - {type: Anchor, text: Visiting hours, url: /museums}
+    - {type: Anchor, text: Privacy, url: /privacy}
+content:
+  - type: Markdown
+    markdown: >-
+      We sent a confirmation link to your inbox. Open it within 24 hours to confirm the booking.

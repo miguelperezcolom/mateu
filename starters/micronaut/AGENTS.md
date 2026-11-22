@@ -10,7 +10,7 @@ as Java code (`@UI` classes) or as data (YAML under `specs/ui/`) — and Mateu d
 CRUD screens, navigation and app shell. **There is no frontend code to write**: the web renderer is
 a prebuilt jar (`mateu-vaadin` or `mateu-redwood`) served as static assets.
 
-Runtime: **Micronaut 4, Java 21, Maven.**
+Runtime: **Micronaut 5, Java 25, Maven 3.9.10+.** (Mateu also runs on Micronaut 4.10 with Java 21.)
 
 ## Layout
 
@@ -51,9 +51,9 @@ mvn package                  # target/*.jar
   `findAll`, `deleteAllById`; override `find(searchText, filters, pageable)` to page in the
   database). The entity implements `Identifiable`.
 - **The annotation processor is mandatory.** `mateu-annotation-processor-micronaut` must stay in
-  `maven-compiler-plugin` → `annotationProcessorPaths` (next to Lombok). Without it no controller
+  `maven-compiler-plugin` → `annotationProcessorPaths` (next to Micronaut's own). Without it no controller
   is generated and every route answers 404.
-- Keep the static-resources mapping in `application.properties` (it serves the renderer).
+- No static-resources mapping is needed: the adapter serves the renderer's assets itself.
 - Do not hand-write controllers, REST endpoints for the UI, or frontend code — declare the model.
 - **Actions are declared.** An `actionId` only runs a method marked as an action (`@Action`,
   `@Button`, `@Toolbar`…) or one the view itself names (a fluent button's `actionId`, a trigger, a

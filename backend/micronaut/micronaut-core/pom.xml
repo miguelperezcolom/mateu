@@ -29,7 +29,24 @@
          (dependabot #302, #740) - a lone bump of the adapter broke on NullMarked. -->
     <micronaut.core.version>4.10.31</micronaut.core.version>
     <micronaut.serialization.version>2.16.2</micronaut.serialization.version>
+    <micronaut.reactor.version>3.9.1</micronaut.reactor.version>
+    <micronaut.test.version>4.10.3</micronaut.test.version>
   </properties>
+
+  <profiles>
+    <!-- The same adapter serves Micronaut 4 and 5. `-Pmicronaut5` (needs JDK 25, like Micronaut 5)
+         compiles and runs this module's tests (the adapter parity suite included) against the
+         Micronaut 5 platform; CI runs it in the micronaut-5 job. -->
+    <profile>
+      <id>micronaut5</id>
+      <properties>
+        <micronaut.core.version>5.2.25</micronaut.core.version>
+        <micronaut.serialization.version>3.2.6</micronaut.serialization.version>
+        <micronaut.reactor.version>4.3.0</micronaut.reactor.version>
+        <micronaut.test.version>5.2.0</micronaut.test.version>
+      </properties>
+    </profile>
+  </profiles>
 
   <!-- micronaut-serde 2.16 still declares the 4.9.x micronaut-core line, which leaked onto the
        annotation processor path next to 4.10 (NoClassDefFoundError NullMarked). The core BOM,
@@ -138,7 +155,7 @@
     <dependency>
       <groupId>io.micronaut.reactor</groupId>
       <artifactId>micronaut-reactor</artifactId>
-      <version>3.9.1</version>
+      <version>${micronaut.reactor.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -171,7 +188,7 @@
       <groupId>io.micronaut.test</groupId>
       <artifactId>micronaut-test-junit5</artifactId>
       <scope>test</scope>
-      <version>4.10.3</version>
+      <version>${micronaut.test.version}</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>

@@ -137,6 +137,7 @@
       ],
       "expo-web-browser",
       "expo-secure-store",
+      "./plugins/with-optional-portrait-screen",
       "./plugins/with-local-notifications-only",
       [
         "expo-notifications",

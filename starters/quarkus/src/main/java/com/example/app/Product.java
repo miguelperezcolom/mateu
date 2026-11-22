@@ -1,7 +1,10 @@
 package com.example.app;
 
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
+import io.mateu.uidl.annotations.Status;
+import io.mateu.uidl.annotations.StatusMapping;
 import io.mateu.uidl.annotations.Stereotype;
+import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.Min;
@@ -18,7 +21,14 @@ public record Product(
     @EditableOnlyWhenCreating @NotEmpty String id,
     @NotEmpty String name,
     @Min(0) @Stereotype(FieldStereotype.money) double price,
-    @NotNull ProductStatus status)
+    @Status(
+            defaultStatus = StatusType.NONE,
+            mappings = {
+                @StatusMapping(from = "Available", to = StatusType.SUCCESS),
+                @StatusMapping(from = "OutOfStock", to = StatusType.WARNING),
+                @StatusMapping(from = "Discontinued", to = StatusType.DANGER)
+            })
+        @NotNull ProductStatus status)
     implements Identifiable {
 
   @Override

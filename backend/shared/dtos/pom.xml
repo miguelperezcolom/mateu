@@ -100,7 +100,10 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.48</version>
-            <scope>compile</scope>
+            <!-- provided: with compile scope Lombok reached every app's runtime classpath AND its
+                 annotation processor path (through mateu-annotation-processor-*), where it ran
+                 over the app's own sources -->
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

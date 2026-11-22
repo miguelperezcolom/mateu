@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Boots each packaged Java starter on its own port and, through the Mateu action endpoint, checks
 # the building blocks of every starter: the app shell at the root opens on the home page
-# (homeRoute "home"), the home page answers with its "Browse products" call to action, and the
+# (homeRoute "home" — "hello" for Quarkus, see home_of), the home page answers (its "Browse products" call to action), and the
 # products screen answers (the CRUD view model; for the YAML-only starter, the listing). The static
 # starter has no server: its bundle is checked on disk.
 # Run after `mvn -f starters/pom.xml package`.
 #
 #   starters/smoke-test.sh                 # all of them
 #   starters/smoke-test.sh spring-mvc      # just one
+#   NATIVE=true starters/smoke-test.sh spring-mvc micronaut   # their native executables
 set -uo pipefail
 cd "$(dirname "$0")"
 
@@ -21,6 +22,14 @@ port_of() {
 
 cmd_for() {
   local s=$1 p; p=$(port_of "$1")
+  # NATIVE=true: the native executables (native.yml builds them with GraalVM) instead of the jars
+  if [[ ${NATIVE:-} == true ]]; then
+    case $s in
+      spring-mvc) echo "$s/target/mateu-starter-$s --server.port=$p" ;;
+      micronaut) echo "micronaut/target/mateu-starter-micronaut -Dmicronaut.server.port=$p" ;;
+    esac
+    return
+  fi
   case $s in
     spring-mvc|spring-webflux) echo "$JAVA -jar $s/target/mateu-starter-$s-1.0.0-SNAPSHOT.jar --server.port=$p" ;;
     quarkus)   echo "$JAVA -Dquarkus.http.port=$p -jar quarkus/target/quarkus-app/quarkus-run.jar" ;;
@@ -35,6 +44,21 @@ shell_of() {
   case $1 in
     yaml) echo '' ;;
     *) echo 'com.example.app.Shell' ;;
+  esac
+}
+
+# The page the shell opens on, and what it answers with. The Quarkus starter is the quarkus.io blog
+# sample (the quarkus-mateu extension): it opens on Hello, a form whose button calls a CDI bean.
+home_of() {
+  case $1 in
+    quarkus) echo 'hello' ;;
+    *) echo 'home' ;;
+  esac
+}
+home_marker_of() {
+  case $1 in
+    quarkus) echo 'Greet' ;;
+    *) echo 'Browse products' ;;
   esac
 }
 
@@ -79,14 +103,25 @@ for s in "${@:-spring-mvc spring-webflux quarkus micronaut helidon-mp yaml stati
       body=$(curl -s -m 5 -X POST -H 'Content-Type: application/json' \
         "http://localhost:$p/mateu/v3/sync/_no_route" \
         -d '{"route":"","actionId":"","componentState":{}}' 2>/dev/null || true)
-      if [[ "$body" == *'"homeRoute":"home"'* ]]; then ok=1; break; fi
+      if [[ "$body" == *"\"homeRoute\":\"$(home_of "$one")\""* ]]; then ok=1; break; fi
       sleep 2
     done
     if [[ $ok == 1 ]]; then
-      [[ "$(load "$one" "$p" /home)" == *'Browse products'* ]] || { echo "✘ $one: no home page"; ok=0; }
+      [[ "$(load "$one" "$p" "/$(home_of "$one")")" == *"$(home_marker_of "$one")"* ]] || { echo "✘ $one: no home page"; ok=0; }
       [[ "$(load "$one" "$p" /products)" =~ $(products_of "$one") ]] || { echo "✘ $one: no products screen"; ok=0; }
     fi
     page=$(curl -s -m 5 "http://localhost:$p/" || true)
+    # What a browser does next: fetch the page's scripts and styles, compressed. A native image that
+    # lacks an option can still answer them while logging UnsupportedFeatureError — Micronaut on
+    # Linux without -H:+SharedArenaSupport did, and real browsers never finished loading (curl alone
+    # did not notice).
+    for asset in $(echo "$page" | grep -oE '(src|href)="/[^"]+\.(js|css)"' | sed -E 's/^(src|href)="//; s/"$//' | head -6); do
+      curl -s -m 10 -o /dev/null -H 'Accept-Encoding: gzip, deflate, br, zstd' "http://localhost:$p$asset" || true
+    done
+    sleep 1
+    if grep -q "UnsupportedFeatureError" "$log"; then
+      echo "✘ $one: serving the page's assets logged UnsupportedFeatureError:"; grep -m3 "UnsupportedFeatureError" "$log"; ok=0
+    fi
     kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null
     if [[ $ok == 1 && "$page" == *"<html"* ]]; then
       echo "✔ $one (port $p): page served; shell opens on home; home and products answered"

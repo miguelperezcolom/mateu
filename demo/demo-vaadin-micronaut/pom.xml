@@ -16,7 +16,7 @@
     <properties>
         <!-- Latest Mateu release on Maven Central. Build against your checkout instead with
              -Dmateu.version=0.0.1-MATEU after installing the backend (see demo/README.md). -->
-        <mateu.version>3.0.0</mateu.version>
+        <mateu.version>3.0.4</mateu.version>
         <packaging>jar</packaging>
         <jdk.version>17</jdk.version>
         <release.version>17</release.version>
@@ -141,6 +141,13 @@
                     <!-- <useIncrementalCompilation>false</useIncrementalCompilation> -->
 
                     <annotationProcessorPaths combine.children="append">
+                        <!-- Lombok runs over this demo's code: it must be on the processor path itself
+                             (until 3.0.1 it arrived there through Mateu's processor) -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.40</version>
+                        </path>
                         <path>
                             <groupId>io.micronaut</groupId>
                             <artifactId>micronaut-http-validation</artifactId>
