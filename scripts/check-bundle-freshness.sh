@@ -70,6 +70,11 @@ if [ -d "backend/shared/frontend/vaadin-lit/src/main/resources/META-INF/resource
   echo "STALE  vaadin: old layout left behind (META-INF/resources/) - npm run copy removes it"
 fi
 
+# Primer (preview): its bundle is built from its own app AND from the React Native core it runs on
+check primer \
+  "backend/shared/frontend/primer/src/main/resources/static/assets/mateu-primer.js" \
+  "frontend/web/monorepo/apps/primer/src frontend/web/monorepo/apps/primer/index.html frontend/web/monorepo/apps/primer/vite.config.ts frontend/web/monorepo/apps/primer/package.json frontend/web/monorepo/apps/primer/package-lock.json frontend/app/react-native/src/core frontend/app/react-native/src/renderer"
+
 # Redwood: the jar is stamped with a hash of the sources it was built from (static/mateu-build-info.json,
 # written by apps/redwood/scripts/copy.mjs; apps/redwood/scripts/source-hash.mjs defines the sources).
 # Stronger than ancestry: it fails on ANY difference - a bundle built from a dirty tree, from another

@@ -16,7 +16,8 @@ installAnnouncer()
 setRendererName('primer')
 setRendererVersion(typeof __MATEU_RENDERER_VERSION__ === 'string' ? __MATEU_RENDERER_VERSION__ : 'unknown')
 
-const host = document.getElementById('mateu-primer') ?? document.body.appendChild(document.createElement('div'))
+// the React root is its own element: the mount marker (<mateu-ui> on a served page) only names the mount
+const host = document.getElementById('mateu-primer-root') ?? document.body.appendChild(document.createElement('div'))
 
 createRoot(host).render(
   <React.StrictMode>

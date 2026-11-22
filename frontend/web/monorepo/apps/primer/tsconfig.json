@@ -14,6 +14,7 @@
     "paths": {
       "@rn/*": ["../../../../app/react-native/src/*"],
       "@mateu/*": ["../../libs/mateu/src/mateu/*"],
+      "@infra/*": ["../../libs/mateu/src/mateu/ui/infra/*"],
       "react-native": ["./src/shims/react-native.ts"],
       "expo-web-browser": ["./src/shims/expo-web-browser.ts"],
       "expo-file-system": ["./src/shims/expo-file-system.ts"]

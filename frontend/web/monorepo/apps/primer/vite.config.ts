@@ -42,19 +42,27 @@ export default defineConfig({
       'expo-file-system': resolve(import.meta.dirname, 'src/shims/expo-file-system.ts'),
       '@rn': rnSrc,
       '@mateu': resolve(import.meta.dirname, '../../libs/mateu/src/mateu'),
+      // a few pure rules are libs/mateu's (the web renderers' shared lib) — one rule, not a copy:
+      // the Element attribute policy, the data-HTML sanitizer policy, the public-base rewrite
+      '@infra': resolve(import.meta.dirname, '../../libs/mateu/src/mateu/ui/infra'),
     },
   },
   server: {
     port: 5180,
     fs: { allow: ['..', '../../..', '../../../../app/react-native'] },
-    // the backend's own paths, and any mount's (`/shell-rail/mateu/v3/…`)
-    proxy: Object.fromEntries(['^(/[^/?]+)*/mateu/', '/images', '/assets', '/api'].map((p) => [p, {
-      target: process.env.MATEU_BACKEND ?? 'http://localhost:8080',
-      bypass: bypassHtml,
-    }])),
+    // everything that is not vite's own goes to the backend: its Mateu paths (`/x/mateu/v3/…`), its
+    // images, its static files (an Element's module, a REST endpoint)… A page load (Accept: text/html)
+    // stays here, so a deep link boots the renderer.
+    proxy: {
+      '^/(?!src/|@|node_modules/|__vite|index\\.html|$)': {
+        target: process.env.MATEU_BACKEND ?? 'http://localhost:8080',
+        bypass: bypassHtml,
+      },
+    },
   },
   build: {
     outDir: 'dist',
-    rollupOptions: { output: { entryFileNames: 'assets/mateu-primer.js', chunkFileNames: 'assets/[name]-[hash].js', assetFileNames: 'assets/[name][extname]' } },
+    // named apart from the Vaadin jar's files (both serve from static/assets — never both on one classpath, but a stale copy must not be mistaken for ours)
+    rollupOptions: { output: { entryFileNames: 'assets/mateu-primer.js', chunkFileNames: 'assets/mateu-primer-[name]-[hash].js', assetFileNames: (a) => (a.names?.[0]?.endsWith('.css') ? 'assets/mateu-primer.css' : 'assets/mateu-primer-[name][extname]') } },
   },
 })

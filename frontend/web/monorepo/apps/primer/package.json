@@ -9,12 +9,16 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "typecheck": "tsc",
-    "test": "node --test \"src/**/*.test.ts\""
+    "test": "node --test \"src/**/*.test.ts\"",
+    "copy": "node scripts/copy.mjs",
+    "notices": "node ../../../../../scripts/third-party-notices.mjs primer --out dist/assets/THIRD-PARTY-LICENSES.txt"
   },
   "dependencies": {
     "@primer/octicons-react": "^19.42.0",
     "@primer/primitives": "^11.10.0",
     "@primer/react": "^38.46.0",
+    "dompurify": "^3.5.0",
+    "marked": "^18.2.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-is": "^19.2.3"

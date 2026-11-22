@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { MateuSession, NavTarget, OverlayOpenerContext } from '@rn/core/MateuSession'
 import { MateuViewController, type RenderedView } from '@rn/core/MateuViewController'
+import { firstComponentFragment } from '@rn/core/chatStream'
 import { ViewBody } from './ViewBody'
 
 const ControllerContext = createContext<MateuViewController | null>(null)
@@ -14,6 +15,10 @@ export function useController(): MateuViewController {
 
 export const ControllerProvider = ControllerContext.Provider
 
+/** An embedded micro frontend's declared chrome (NONE | COMPACT | PAGE): what its page header keeps. */
+const ChromeContext = createContext<string | null>(null)
+export const useEmbeddedChrome = () => useContext(ChromeContext)
+
 interface Props {
   session: MateuSession
   /** A route to load. */
@@ -23,6 +28,10 @@ interface Props {
   /** The navigation context of the view that opened an overlay. */
   opener?: OverlayOpenerContext
   embedded?: boolean
+  /** An answer the host already holds (a micro frontend the server resolved): painted without asking. */
+  preview?: { increment: unknown; route: string; consumedRoute: string; serverSideType?: string }
+  /** A micro frontend's declared chrome: sent as embeddedChrome, and what its page header keeps. */
+  chrome?: string | null
   onNavigate?: (target: NavTarget, replace?: boolean) => void
 }
 
@@ -31,13 +40,14 @@ interface Props {
  * is) and re-renders on every increment it applies. The web twin of RN's MateuViewHost, without
  * its native concerns (keyboard avoidance, the FAB band, the screen stack).
  */
-export function ViewHost({ session, target, serverSideNode, opener, embedded, onNavigate }: Props) {
+export function ViewHost({ session, target, serverSideNode, opener, embedded, preview, chrome, onNavigate }: Props) {
   const controller = useMemo(() => new MateuViewController(session), [session])
   const [view, setView] = useState<RenderedView>(controller.rendered)
 
   useEffect(() => {
     controller.onRender = (v) => setView({ ...v })
     controller.windowless = !!embedded || !!serverSideNode
+    controller.embeddedChrome = chrome ?? undefined
     controller.confirmDiscard = () => session.confirmDiscard()
     if (onNavigate) {
       controller.detailOpener = (t) => onNavigate(t)
@@ -50,6 +60,13 @@ export function ViewHost({ session, target, serverSideNode, opener, embedded, on
         controller.currentServerSideType = opener.serverSideType
       }
       controller.mountServerSide(serverSideNode)
+    } else if (preview) {
+      controller.currentRoute = preview.route
+      controller.currentConsumedRoute = preview.consumedRoute
+      if (preview.serverSideType) controller.currentServerSideType = preview.serverSideType
+      const fragment = firstComponentFragment(preview.increment)
+      const increment = (preview.increment as Record<string, unknown> | null) ?? {}
+      controller.applyIncrement({ ...increment, fragments: fragment ? [fragment] : [] })
     } else if (target) {
       void controller.navigate(target.route, target.consumedRoute, target.serverSideType)
     }
@@ -68,7 +85,9 @@ export function ViewHost({ session, target, serverSideNode, opener, embedded, on
 
   return (
     <ControllerProvider value={controller}>
-      <ViewBody controller={controller} view={view} retry={retry} embedded={embedded || !!serverSideNode} />
+      <ChromeContext.Provider value={chrome ?? null}>
+        <ViewBody controller={controller} view={view} retry={retry} embedded={embedded || !!serverSideNode} />
+      </ChromeContext.Provider>
     </ControllerProvider>
   )
 }

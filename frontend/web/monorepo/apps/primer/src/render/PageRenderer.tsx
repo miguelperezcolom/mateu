@@ -4,7 +4,7 @@ import { ArrowLeftIcon } from '@primer/octicons-react'
 import { IconButton } from '@primer/react'
 import { interpolate } from '@rn/core/expressions'
 import type { PageBanner } from '@rn/core/MateuViewController'
-import { useController } from './ViewHost'
+import { useController, useEmbeddedChrome } from './ViewHost'
 import { ComponentRenderer } from './ComponentRenderer'
 import { useButtonPress } from './useButtonPress'
 import { buttonVariantOf, labelVariantOf } from './looks'
@@ -23,20 +23,23 @@ export function PageRenderer({ component, metadata, state, data }: { component: 
   const controller = useController()
   const press = useButtonPress()
   const ctx = { state, data, appState: controller.session.appState }
-  const noHeader = metadata['noHeader'] === true
-  const title = noHeader ? '' : interpolate(String(metadata['title'] ?? metadata['pageTitle'] ?? ''), ctx)
-  const overline = noHeader ? '' : interpolate(String(metadata['overline'] ?? ''), ctx)
-  const subtitle = noHeader ? '' : interpolate(String(metadata['subtitle'] ?? ''), ctx)
-  const timestamp = noHeader ? '' : interpolate(String(metadata['timestamp'] ?? ''), ctx)
-  const badges = noHeader ? [] : ((metadata['badges'] as Dict[] | undefined) ?? [])
-  const kpis = noHeader ? [] : ((metadata['kpis'] as Dict[] | undefined) ?? [])
+  // a micro frontend's declared chrome: NONE = no header, COMPACT = its actions only, PAGE = no trail
+  const chrome = useEmbeddedChrome()
+  const noHeader = metadata['noHeader'] === true || chrome === 'NONE'
+  const compact = chrome === 'COMPACT'
+  const title = noHeader || compact ? '' : interpolate(String(metadata['title'] ?? metadata['pageTitle'] ?? ''), ctx)
+  const overline = noHeader || compact ? '' : interpolate(String(metadata['overline'] ?? ''), ctx)
+  const subtitle = noHeader || compact ? '' : interpolate(String(metadata['subtitle'] ?? ''), ctx)
+  const timestamp = noHeader || compact ? '' : interpolate(String(metadata['timestamp'] ?? ''), ctx)
+  const badges = noHeader || compact ? [] : ((metadata['badges'] as Dict[] | undefined) ?? [])
+  const kpis = noHeader || compact ? [] : ((metadata['kpis'] as Dict[] | undefined) ?? [])
   const readOnly = metadata['readOnly'] === true
-  const toolbarAll = ((metadata['toolbar'] as Dict[] | undefined) ?? []).filter((b) => b && b['label'])
+  const toolbarAll = noHeader ? [] : ((metadata['toolbar'] as Dict[] | undefined) ?? []).filter((b) => b && b['label'])
   const back = toolbarAll.find((b) => BACK_IDS.has(String(b['actionId'] ?? b['id'] ?? '')))
   const toolbar = toolbarAll.filter((b) => b !== back)
   const declared = ((metadata['actions'] as Dict[] | undefined) ?? []).filter((a) => a && a['label'])
   const buttons = ((metadata['buttons'] as Dict[] | undefined) ?? []).filter((b) => b && b['label'])
-  const crumbs = metadata['noBreadcrumbs'] === true ? [] : ((metadata['breadcrumbs'] as Dict[] | undefined) ?? [])
+  const crumbs = metadata['noBreadcrumbs'] === true || chrome ? [] : ((metadata['breadcrumbs'] as Dict[] | undefined) ?? [])
   const header = metadata['header'] as unknown[] | undefined
 
   const run = (b: Dict) => press(b, { state, data }, () => {

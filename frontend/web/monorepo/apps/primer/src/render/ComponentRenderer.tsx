@@ -11,6 +11,10 @@ import { CrudRenderer } from './CrudRenderer'
 import { useButtonPress } from './useButtonPress'
 import { usePending } from './usePending'
 import { buttonVariantOf, labelVariantOf } from './looks'
+import { styleOf } from './styleOf'
+import { Markdown } from './Markdown'
+import { CATALOGUE } from './catalogue'
+import { Element, MicroFrontend } from './Embedded'
 
 type Dict = Record<string, unknown>
 
@@ -46,6 +50,7 @@ export const SUPPORTED_TYPES = new Set([
   'Div', 'Container', 'FullWidth', 'Scroller', 'FormSection', 'FormSubSection', 'Card', 'TabLayout', 'Tab',
   'AccordionLayout', 'AccordionPanel', 'Button', 'Text', 'Separator', 'Badge', 'Anchor', 'ProgressBar',
   'EmptyState', 'Notice', 'Skeleton', 'Image', 'Markdown', 'BulletedList', 'ResponsiveGrid', 'CustomField',
+  'MicroFrontend', 'Element',
 ])
 
 function ClientSide({ component, state, data }: { component: Dict; state: Dict; data?: unknown }) {
@@ -90,6 +95,12 @@ function ClientSide({ component, state, data }: { component: Dict; state: Dict; 
     case 'FullWidth':
     case 'Scroller':
       return <Stack direction="vertical" gap={m['spacing'] === false ? 'none' : 'normal'} style={styleOf(component)}>{kids()}</Stack>
+
+    case 'MicroFrontend':
+      return <MicroFrontend component={component} metadata={m} />
+
+    case 'Element':
+      return <Element metadata={m} state={state} data={data} />
 
     case 'ResponsiveGrid':
       return <ResponsiveGrid component={component} state={state} data={data} />
@@ -221,15 +232,19 @@ function ClientSide({ component, state, data }: { component: Dict; state: Dict; 
     }
 
     case 'Markdown':
-      // the markdown source as text for now — a sanitised markdown view is a Standard-level item
-      return <Text as="p" style={{ whiteSpace: 'pre-wrap' }}>{String(m['markdown'] ?? m['text'] ?? '')}</Text>
+      // never interpolated (a page documenting `${state.x}` shows it as written), a reading measure
+      return <div style={{ maxWidth: '72ch', ...styleOf(component) }}><Markdown source={String(m['markdown'] ?? m['text'] ?? '')} /></div>
 
     case 'BulletedList':
       return <ul style={{ margin: 0, paddingInlineStart: 'var(--base-size-20)' }}>{((m['items'] as unknown[]) ?? []).map((it, i) => <li key={i}>{String(it)}</li>)}</ul>
 
-    default:
+    default: {
+      // the families drawn in catalogue/ (display, status, visualisation)
+      const Drawn = CATALOGUE[type]
+      if (Drawn) return <Drawn component={component} metadata={m} state={state} data={data} />
       // a type this renderer does not draw yet — said, never silently dropped
       return React.createElement('mateu-unsupported', { 'data-type': type || 'unknown' }, `Not drawn by the Primer renderer yet: ${type || 'unknown'}`)
+    }
   }
 }
 
@@ -374,20 +389,6 @@ function spansAll(child: unknown): boolean {
 }
 
 /** The few layout properties of a node's own `style` worth keeping in Primer (sizes, gaps). */
-function styleOf(component: unknown, keep: string[] = ['width', 'max-width', 'min-width', 'gap', 'padding']): React.CSSProperties {
-  const raw = String((component as Dict | null)?.['style'] ?? '')
-  const out: Record<string, string> = {}
-  for (const decl of raw.split(';')) {
-    const at = decl.indexOf(':')
-    if (at < 0) continue
-    const prop = decl.slice(0, at).trim().toLowerCase()
-    const value = decl.slice(at + 1).trim()
-    if (!keep.includes(prop) || !value || /url\(|expression\(/i.test(value)) continue
-    out[prop.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())] = value
-  }
-  return out as React.CSSProperties
-}
-
 /** A server-sent href: http(s), mailto, tel or a relative path — never javascript:. */
 function safeHref(url: string): string {
   return /^(https?:|mailto:|tel:|\/|#|[^:]*$)/i.test(url.trim()) ? url : '#'

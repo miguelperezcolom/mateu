@@ -25,3 +25,60 @@ mateu-unsupported {
 .mateu-skip-link:focus {
   transform: none;
 }
+
+/* the served page's mount marker (IndexPage writes it in the root-element region): data, not UI */
+mateu-ui, #mateu-primer {
+  display: none !important;
+}
+
+/* markdown / html content, drawn the way github.com draws a README (Primer tokens only) */
+.mateu-markdown {
+  font: var(--text-body-shorthand-medium);
+  line-height: 1.5;
+  overflow-wrap: break-word;
+}
+.mateu-markdown > :first-child { margin-top: 0; }
+.mateu-markdown > :last-child { margin-bottom: 0; }
+.mateu-markdown p, .mateu-markdown ul, .mateu-markdown ol, .mateu-markdown blockquote, .mateu-markdown pre, .mateu-markdown table {
+  margin-top: 0;
+  margin-bottom: var(--base-size-16);
+}
+.mateu-markdown h1, .mateu-markdown h2, .mateu-markdown h3, .mateu-markdown h4 {
+  margin-top: var(--base-size-24);
+  margin-bottom: var(--base-size-16);
+  font-weight: var(--base-text-weight-semibold);
+  line-height: 1.25;
+}
+.mateu-markdown h1 { font-size: 2em; padding-bottom: .3em; border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted); }
+.mateu-markdown h2 { font-size: 1.5em; padding-bottom: .3em; border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted); }
+.mateu-markdown h3 { font-size: 1.25em; }
+.mateu-markdown ul, .mateu-markdown ol { padding-left: 2em; }
+.mateu-markdown a { color: var(--fgColor-accent); text-decoration: none; }
+.mateu-markdown a:hover { text-decoration: underline; }
+.mateu-markdown code {
+  padding: .2em .4em;
+  font-family: var(--fontStack-monospace);
+  font-size: 85%;
+  background-color: var(--bgColor-neutral-muted);
+  border-radius: var(--borderRadius-medium);
+}
+.mateu-markdown pre {
+  padding: var(--base-size-16);
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: var(--bgColor-muted);
+  border-radius: var(--borderRadius-medium);
+}
+.mateu-markdown pre code { padding: 0; background: transparent; font-size: 100%; }
+.mateu-markdown blockquote {
+  padding: 0 1em;
+  color: var(--fgColor-muted);
+  border-left: .25em solid var(--borderColor-default);
+}
+.mateu-markdown table { border-collapse: collapse; display: block; overflow: auto; }
+.mateu-markdown th, .mateu-markdown td { padding: 6px 13px; border: var(--borderWidth-thin) solid var(--borderColor-default); }
+.mateu-markdown th { font-weight: var(--base-text-weight-semibold); }
+.mateu-markdown tr:nth-child(2n) { background-color: var(--bgColor-muted); }
+.mateu-markdown img { max-width: 100%; }
+.mateu-markdown hr { height: .25em; margin: var(--base-size-24) 0; background-color: var(--borderColor-default); border: 0; }
