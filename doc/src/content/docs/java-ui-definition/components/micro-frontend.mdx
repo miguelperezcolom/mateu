@@ -221,7 +221,21 @@ Replace a collaborator by registering your own service: `IRemoteRegistry`, `IRem
 `IFragmentCachePolicySupplier`.
 
 **Python** — `resolve=Resolve.SERVER` on `components.MicroFrontend`; remotes in
-`add_mateu(remotes=[...])` (or `RemoteCatalogSupplier` subclasses among the sources):
+`add_mateu(remotes=[...])` (or `RemoteCatalogSupplier` subclasses among the sources), or from
+environment variables — no code change needed for Docker / Kubernetes deployments
+(see [Configuring remotes from environment variables](/python-user-manual/#configuring-remotes-from-environment-variables)):
+
+```bash
+MATEU_REMOTES=orders
+MATEU_REMOTES_ORDERS_BASE_URL=https://orders.example.com
+MATEU_REMOTES_ORDERS_TIMEOUT_MS=5000
+MATEU_REMOTES_ORDERS_IDENTITY=forward-authorization
+```
+
+The remote ID is upper-cased and every `-` replaced with `_` for the variable name
+(`order-service` → `MATEU_REMOTES_ORDER_SERVICE_BASE_URL`). Environment remotes have the
+lowest precedence: a `RemoteCatalogSupplier` or `add_mateu(remotes=[...])` descriptor with the
+same id always wins. A remote with a missing or invalid base URL is skipped with a warning.
 
 ```python
 from mateu_ui.uidl import ComponentTreeSupplier, RemoteDescriptor, ui
