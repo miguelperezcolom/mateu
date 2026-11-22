@@ -22,7 +22,7 @@ import { isClientRunnable, resolveAction, resolveFlowCommand, type ShellAction }
 import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
 import { finishedAnnouncement, progressOf, type TaskAction, type TaskEvent } from './taskCenter.ts';
 import { inboxChangeOf } from './inbox.ts';
-import { classifyFailure, describeFailure, HttpStatusError, isIdempotentAction } from './requestPolicy.ts';
+import { classifyFailure, describeFailure, ExternalServiceError, isIdempotentAction } from './requestPolicy.ts';
 import { connectivity } from './connectivity.ts';
 import { actionIdInWords, actionShortcutsOf } from './keyShortcuts.ts';
 import { ANONYMOUS_OWNER, newIdempotencyKey, OUTBOX_TEXTS, outboxRecoveryTexts, shouldQueue, type QueuedRequest } from './offlineQueue.ts';
@@ -815,8 +815,10 @@ export class MateuViewController {
     const appData = (increment?.['appData'] as Json) ?? {};
     const failure = appData['_restfetchError'] as Json | undefined;
     if (failure) {
-      if (typeof failure['status'] === 'number' && failure['status'] > 0) throw new HttpStatusError(failure['status'], '');
-      throw new Error('The request failed');
+      // what the SERVICE answered (its 401 is not this session's), with the detail the server passed on
+      const detail = typeof failure['detail'] === 'string' ? failure['detail'] : undefined;
+      if (typeof failure['status'] === 'number' && failure['status'] > 0) throw new ExternalServiceError(failure['status'], detail);
+      throw new Error(detail ?? 'The request failed');
     }
     return appData['_restfetch'] ?? {};
   }

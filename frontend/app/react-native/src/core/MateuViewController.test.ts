@@ -569,7 +569,8 @@ test('a write whose proxied call fails says so — not its success message', asy
   await c.initialLoad('/orders');
   await c.runAction('remove');
   assert.notEqual(notes.at(-1)!.text, 'Deleted');
-  assert.match(notes.at(-1)!.text, /could not complete the request \(error 500\)/);
+  // the SERVICE's failure, in the web's words (handleProxyResult) — not the Mateu server's
+  assert.match(notes.at(-1)!.text, /Request failed \(HTTP 500\)/);
 });
 
 test('forEachSelectedRow: a proxied source loops on the server (one call), a direct one per checked row', async () => {

@@ -77,5 +77,3 @@ Known gaps:
   core produces (toast actions, load failures) stay English.
 - CustomComponent: an app registers a renderer with `window.MateuPrimer.registerCustomComponent`
   or defines a custom element of that name.
-- A proxied REST call the THIRD PARTY refuses with 401 is shown as "session expired" (RN core rule,
-  shared with the native app).

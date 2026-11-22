@@ -15,6 +15,21 @@ export class HttpStatusError extends Error {
   }
 }
 
+/**
+ * A THIRD-PARTY service's refusal — a REST source called directly, or through the Mateu proxy
+ * (`appData._restfetchError`). Its 401/403 is that service's, not the user's session: it must never
+ * read as "your session is no longer valid" (the web's handleProxyResult shows the service's own
+ * detail, else "Request failed (HTTP <status>)").
+ */
+export class ExternalServiceError extends HttpStatusError {
+  readonly detail?: string;
+  constructor(status: number, detail?: string) {
+    super(status, detail ?? '');
+    this.name = 'ExternalServiceError';
+    this.detail = detail && detail.trim() ? detail : undefined;
+  }
+}
+
 /** No answer in time (`@Action(timeoutMillis)`, else the default ceiling). */
 export class RequestTimeoutError extends Error {
   readonly timeoutMillis: number;
@@ -57,6 +72,10 @@ const RETRYABLE = new Set<FailureKind>(['offline', 'timeout', 'server']);
 export function classifyFailure(error: unknown, online = true): RequestFailure {
   const failure = (kind: FailureKind, status?: number): RequestFailure => ({ kind, message: MESSAGES[kind](status), retryable: RETRYABLE.has(kind), status });
   if (error instanceof RequestTimeoutError) return failure('timeout');
+  if (error instanceof ExternalServiceError) {
+    const kind: FailureKind = error.status >= 500 ? 'server' : error.status === 408 || error.status === 429 ? 'timeout' : 'client';
+    return { kind, message: error.detail ?? `Request failed (HTTP ${error.status})`, retryable: RETRYABLE.has(kind), status: error.status };
+  }
   const status = error instanceof HttpStatusError ? error.status : statusOfMessage(error);
   const text = error instanceof Error ? error.message : String(error ?? '');
   if (status === undefined) {

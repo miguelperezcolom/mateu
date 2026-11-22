@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyFailure, HttpStatusError, isIdempotentAction, RequestTimeoutError, retryDelayMs, shouldRetry } from './requestPolicy.ts';
+import { classifyFailure, ExternalServiceError, HttpStatusError, isIdempotentAction, RequestTimeoutError, retryDelayMs, shouldRetry } from './requestPolicy.ts';
 import { Connectivity } from './connectivity.ts';
 import { loadFailureMessage } from './uxRules.ts';
 
