@@ -76,8 +76,11 @@ frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo (workspaces: apps/*, 
   apps/primer/            ← GitHub Primer renderer (PREVIEW, 2026-11): Primer React over the React
                             Native renderer's CORE imported in place (@rn alias + web shims) and the
                             design-system-neutral React layer in frontend/web/react-renderer (@mr —
-                            useMateuApp + a hook per shell feature; boundary.test.ts keeps every DS
-                            import out of it). EXCLUDED from the workspaces (`!apps/primer`, own
+                            useMateuApp + a hook per shell feature, and the VIEWS in views/, drawn
+                            with an abstract `@kit` = here Primer React; another React renderer
+                            writes a kit with the names in views/kit-contract.json + overrides in
+                            src/overrides/<path> for a structure of its own — never a copy;
+                            boundary.test.ts keeps every DS import out of it). EXCLUDED from the workspaces (`!apps/primer`, own
                             lockfile: the shared lockfile is a Vaadin freshness source). `npm run copy`
                             → backend/shared/frontend/primer (jar io.mateu:mateu-primer). Validated by
                             walking every demo-explorer URL + e2e/primer-*-probe.mjs (CI job

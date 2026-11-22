@@ -6,8 +6,10 @@ Mateu's React renderers — **Primer** (`apps/primer`) and, next, **SAP** (UI5 W
 second layer every one of them needs and none should copy: hosting a view, the boot, the URL, the
 shell's behaviour, the listings' state, texts, resilience. It lives here, alias **`@mr`**.
 
-Nothing here draws a design system. A renderer app supplies the looks; this tree supplies what
-those looks do.
+Nothing here imports a design system. The shared **views** (`views/`) draw every screen with an
+abstract **kit** (`@kit`, `@kit/icons`) that each renderer app aliases to its design system; a
+renderer only adds its kit, a few app files and, where its design system needs a different
+STRUCTURE, an override of a view.
 
 ## How a renderer app uses it
 
@@ -24,7 +26,45 @@ It is source, not a package: no `package.json`, no install. The consuming app
 - runs this tree's tests with its own (`node --test "src/**/*.test.ts"
   "../../../react-renderer/**/*.test.ts"` — Primer's `npm test`, run by CI's frontend-lib job).
 
+- aliases `@kit` / `@kit/icons` to its kit (`src/kit/index.ts`, `src/kit/icons.ts`) in vite and in
+  tsconfig `paths`, and adds the override plugin
+  (`viewOverrides({ views: <this>/views, overrides: overridesOf(appDir) })` from `vite/overrides.ts`)
+  BEFORE `react()`; `vite/` and `scripts/` stay out of the app's tsconfig `include`;
+- draws its root as `<MateuApp baseUrl bundle accentCss />` (`views/shell/MateuApp.tsx`) inside its
+  own theme provider, with `RendererKitProvider value={{ ViewBody, PresenceChip }}` from the views.
+
 See `apps/primer` for the reference wiring.
+
+## The views and the kit
+
+`views/` mirrors what a renderer draws: `render/` (components, fields, listings, page, catalogue)
+and `shell/` (app shell, header, global layer, overlays, toasts, resilience, sign-in chooser). They
+were Primer's views, and Primer's kit is Primer React itself (`apps/primer/src/kit`: `export * from
+'@primer/react'` + the experimental components) — so the kit API IS Primer React's: the same
+component names and the props the views pass. Another renderer implements those names in its design
+system (SLDS blueprints, UI5 web components).
+
+**The kit contract** — every name the views import, kept in `views/kit-contract.json` (written by
+`node scripts/write-kit-contract.ts`; `scripts/kitContract.test.ts` fails when it is stale). Each
+app's typecheck of the shared views against ITS kit is the full check (names and props).
+
+- `@kit` (48): `ActionList`, `ActionMenu`, `AnchoredOverlay`, `Avatar`, `Banner`, `BaseStyles`, `Blankslate`, `Breadcrumbs`, `Button`, `ButtonGroup`, `Checkbox`, `CheckboxGroup`, `CounterLabel`, `DataTable`, `Dialog`, `Flash`, `FormControl`, `Heading`, `IconButton`, `Label`, `Link`, `NavList`, `PageHeader`, `PageLayout`, `ProgressBar`, `Radio`, `RadioGroup`, `SegmentedControl`, `Select`, `SelectPanel`, `SelectPanelItemInput`, `SkeletonText`, `Spinner`, `Stack`, `Table`, `Text`, `TextInput`, `Textarea`, `ThemeProvider`, `Timeline`, `ToggleSwitch`, `Token`, `Tooltip`, `TreeView`, `UnderlineNav`, `UnderlinePanels`, `VisuallyHidden`, `useConfirm`
+- `@kit/icons` (141 Octicon-named icons, `<Name>Icon`): the list in `views/kit-contract.json`. A kit
+  maps each to its design system's icon (or draws nothing), keeping the name.
+
+**Contract tokens** — the views' stylesheets are written in Primer's primitives' CSS custom
+properties (`--fgColor-*`, `--bgColor-*`, `--borderColor-*`, `--borderWidth-*`, `--borderRadius-*`,
+`--base-size-*`, `--stack-gap-*`, `--text-*`, `--fontStack-*`, `--shadow-*`). **A kit must define
+the contract tokens**: Primer's primitives already are them; another renderer maps them onto its
+design system's own hooks in its stylesheet (the SLDS app does it onto `--slds-g-*`).
+
+**Overrides** — where a design system needs its own STRUCTURE (a Fiori floorplan, SLDS's global
+header), the app puts `src/overrides/<path below views/>`; the vite plugin hands it to every import
+of that view. An override exports at least the names of the view it replaces
+(`scripts/overrides.test.ts` checks every app); it imports shared code through `@mr/views/…`, and a
+relative import from it resolves from the original's place. Prefer a kit component to an override,
+and an override to a fork of the views: an override is a second copy of one file, kept in step by
+hand.
 
 ## The contract
 
@@ -86,11 +126,12 @@ read with `appText(key)` (wrap it with the app's own key type). Add a completene
 
 ## Rules
 
-- **No design system here**: no `@primer/*`, `@ui5/*`, `@salesforce-ux/*`, no stylesheet, no app's
-  source — `boundary.test.ts` fails on any. A hook takes what is DS-specific as a parameter
-  (`confirm`, `accentCss`, the renderer name) or leaves it to the view.
+- **No design system here**: no `@primer/*`, `@ui5/*`, `@salesforce-ux/*`, no app's source; the
+  views draw through `@kit` only and import only their own stylesheets (no stylesheet outside
+  `views/`, never a package's) — `boundary.test.ts` fails on any. A hook takes what is DS-specific
+  as a parameter (`confirm`, `accentCss`, the renderer name).
 - **No hard-coded chrome text**: Primer's `texts.lint.test.ts` lints this tree too.
 - **The RN core decides**; this tree only adapts it to the browser and React. A rule that belongs to
   every renderer (native included) goes in the core, with its test.
-- A file here is DS-neutral or it does not belong here. When a view and its behaviour are mixed,
-  split them: the hook here, the view in the app.
+- A file here is DS-neutral or it does not belong here: a hook outside `views/`, a view written
+  against the kit inside it. What only one design system can do is that app's kit or override.

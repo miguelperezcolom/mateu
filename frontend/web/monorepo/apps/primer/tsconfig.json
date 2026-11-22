@@ -17,6 +17,11 @@
       "@mateu/*": ["../../libs/mateu/src/mateu/*"],
       "@infra/*": ["../../libs/mateu/src/mateu/ui/infra/*"],
       "@mr/*": ["../../../react-renderer/*"],
+      "@kit": ["./src/kit/index.ts"],
+      "@kit/icons": ["./src/kit/icons.ts"],
+      "@primer/react": ["./node_modules/@primer/react"],
+      "@primer/react/*": ["./node_modules/@primer/react/*"],
+      "@primer/octicons-react": ["./node_modules/@primer/octicons-react"],
       "react-native": ["../../../react-renderer/shims/react-native.ts"],
       "react": ["./node_modules/@types/react"],
       "react/*": ["./node_modules/@types/react/*"],
@@ -32,5 +37,5 @@
     }
   },
   "include": ["src", "../../../react-renderer"],
-  "exclude": ["src/**/*.test.ts", "../../../react-renderer/**/*.test.ts"]
+  "exclude": ["src/**/*.test.ts", "../../../react-renderer/**/*.test.ts", "../../../react-renderer/vite", "../../../react-renderer/scripts"]
 }

@@ -12,11 +12,13 @@ the real Primer, not a theme over another design system. Design: `design/rendere
   downloaded file); those imports resolve to small web shims in `frontend/web/react-renderer/shims`.
 - **The design-system-neutral half is shared** with the other React renderers (SAP, Salesforce):
   `frontend/web/react-renderer` (alias `@mr`) — view hosting, the boot, the URL, the shell's
-  behaviour, the listings' state, texts, resilience. What is left here is Primer's drawing. See its
-  README for the contract.
-- **The UI layer is new**, Primer React only: `PageHeader`, `PageLayout` + `NavList` (app shell),
-  `FormControl` + inputs, `DataTable` / `Table.Pagination`, `Banner`, `Dialog`, `UnderlinePanels`,
-  `Blankslate`… A wire type it does not draw yet is an explicit `<mateu-unsupported>`.
+  behaviour, the listings' state, texts, resilience — and the VIEWS (`views/`), drawn with `@kit`.
+- **Here `@kit` is Primer React** (`src/kit`: `export * from '@primer/react'` + the experimental
+  components; `@kit/icons` = the Octicons): `PageHeader`, `PageLayout` + `NavList`, `FormControl` +
+  inputs, `DataTable`, `Banner`, `Dialog`, `UnderlinePanels`, `Blankslate`… What stays in this app:
+  `main.tsx`, the kit, the accent hooks (`accent.ts`), the page frame (`index.css`) and, when Primer
+  needs its own structure for a view, `src/overrides/<path>` (none today). A wire type nobody draws
+  is an explicit `<mateu-unsupported>`.
 - The core names this renderer in `X-Mateu-Renderer` (`primer/<version> wire/<w>`, `setRendererName`).
 
 ## Run it

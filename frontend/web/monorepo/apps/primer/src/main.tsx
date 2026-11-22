@@ -8,15 +8,16 @@ import './index.css'
 import { installAnnouncer } from '@mr/shims/react-native'
 import { setRendererName, setRendererVersion } from '@rn/core/buildSkew'
 import { setStreamingFetch } from '@rn/api/MateuApiClient'
-import { ThemedRoot } from './shell/header/theme'
-import { MateuPrimerApp } from './shell/MateuPrimerApp'
+import { ThemedRoot } from '@mr/views/shell/header/theme'
+import { MateuApp } from '@mr/views/shell/MateuApp'
+import { primerAccent } from './accent'
 import { baseUrlOfPage, bundleUrlOfPage } from '@mr/shell/pageConfig'
 import { openPageBundle } from '@mr/shell/staticBundle'
-import { preloadCatalogue } from './render/catalogue'
+import { preloadCatalogue } from '@mr/views/render/catalogue'
 import { signInFirst } from '@mr/shell/signIn'
 import { RendererKitProvider, type RendererKit } from '@mr/render/RendererKit'
-import { ViewBody } from './render/ViewBody'
-import { PresenceChip } from './shell/header/LiveHeader'
+import { ViewBody } from '@mr/views/render/ViewBody'
+import { PresenceChip } from '@mr/views/shell/header/LiveHeader'
 
 declare const __MATEU_RENDERER_VERSION__: string
 
@@ -45,7 +46,7 @@ void signInFirst(baseUrl).then(async (proceed) => {
       <ThemedRoot>
         <BaseStyles>
           <RendererKitProvider value={KIT}>
-            <MateuPrimerApp baseUrl={baseUrl} bundle={bundle} />
+            <MateuApp baseUrl={baseUrl} bundle={bundle} accentCss={primerAccent} />
           </RendererKitProvider>
         </BaseStyles>
       </ThemedRoot>

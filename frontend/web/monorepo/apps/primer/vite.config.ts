@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import type { IncomingMessage } from 'node:http'
 import { readFileSync } from 'node:fs'
+import { viewOverrides, overridesOf } from '../../../react-renderer/vite/overrides'
 
 /**
  * The Primer renderer draws with Primer React, and runs on the React Native renderer's core
@@ -15,6 +16,9 @@ const rnSrc = resolve(import.meta.dirname, '../../../../app/react-native/src')
 // the DS-neutral half of the React renderers (Primer, SAP, Salesforce): hosting, boot, listings'
 // logic, shell logic, texts, resilience — source imported in place, resolved against THIS install
 const mrSrc = resolve(import.meta.dirname, '../../../react-renderer')
+// …whose VIEWS draw with `@kit`: here, Primer React (src/kit) — and src/overrides/<path> replaces a
+// shared view where Primer needs its own structure (none today)
+const kitSrc = resolve(import.meta.dirname, 'src/kit')
 
 const rendererVersion: string = JSON.parse(readFileSync(resolve(import.meta.dirname, 'package.json'), 'utf8')).version ?? 'unknown'
 
@@ -22,7 +26,7 @@ const bypassHtml = (req: IncomingMessage) =>
   req.headers.accept?.includes('text/html') ? '/index.html' : undefined
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [viewOverrides({ views: resolve(mrSrc, 'views'), overrides: overridesOf(import.meta.dirname) }), react()],
   // ONE tsconfig for every file, the RN core's included: theirs extends expo/tsconfig.base, which is
   // only installed inside the React Native app (and a fresh checkout or CI has none)
   tsconfig: resolve(import.meta.dirname, 'tsconfig.json'),
@@ -46,16 +50,18 @@ export default defineConfig({
       { find: 'expo-file-system', replacement: resolve(mrSrc, 'shims/expo-file-system.ts') },
       { find: '@rn', replacement: rnSrc },
       { find: '@mr', replacement: mrSrc },
+      { find: /^@kit\/icons$/, replacement: resolve(kitSrc, 'icons.ts') },
+      { find: /^@kit$/, replacement: resolve(kitSrc, 'index.ts') },
       { find: '@mateu', replacement: resolve(import.meta.dirname, '../../libs/mateu/src/mateu') },
       // a few pure rules are libs/mateu's (the web renderers' shared lib) — one rule, not a copy:
       // the Element attribute policy, the data-HTML sanitizer policy, the public-base rewrite, the
       // built-in sign-in flows
       { find: '@infra', replacement: resolve(import.meta.dirname, '../../libs/mateu/src/mateu/ui/infra') },
-      // …whose chooser is a Lit element: here it is Primer's (src/shell/SignInChooser.tsx), so lit
+      // …whose chooser is a Lit element: here it is the shared view's (views/shell/SignInChooser.tsx), so lit
       // never reaches the bundle (it is only a devDependency, for the typecheck of libs/mateu)
       // libs/mateu's own dependencies resolve from THIS app's install (it is outside the workspaces)
       { find: /^nanoid$/, replacement: resolve(import.meta.dirname, 'node_modules/nanoid/index.browser.js') },
-      { find: /^\.\/mateu-sign-in\.ts$/, replacement: resolve(import.meta.dirname, 'src/shell/SignInChooser.tsx') },
+      { find: /^\.\/mateu-sign-in\.ts$/, replacement: resolve(mrSrc, 'views/shell/SignInChooser.tsx') },
     ],
   },
   server: {

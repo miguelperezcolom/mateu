@@ -14,6 +14,11 @@ gate, or silently behaves like Vaadin there. `<x>` = the renderer id, `mateu-<x>
       `server.fs.allow`, `resolve.dedupe` for `react`/`react-dom`/`dompurify`/`marked` (ONE React),
       `react-native`/`expo-*` aliased to `@mr/shims/*`, and its tests run by the app's `npm test`.
       See `frontend/web/react-renderer/README.md` and `apps/primer` for the reference wiring.
+- [ ] The VIEWS are shared too (`frontend/web/react-renderer/views`, drawn with `@kit`): the app
+      writes a KIT (`src/kit/index.ts` + `src/kit/icons.ts`, aliased `@kit` / `@kit/icons`) that
+      exports every name in `views/kit-contract.json` with Primer React's props, defines the
+      contract CSS tokens, adds the `viewOverrides` vite plugin, and puts a view that needs its
+      design system's own STRUCTURE in `src/overrides/<path>` — never a copy of the views.
 - [ ] `scripts/check-bundle-freshness.sh`: the app's block lists its own sources AND
       `frontend/web/react-renderer` plus the RN core folders it imports (`src/core`, `src/api`,
       `src/a11y`, …), as Primer's does. A CI job building the renderer from source needs nothing
