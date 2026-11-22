@@ -1,0 +1,12 @@
+# The SAME app on the JVM (for the JVM-vs-native comparison): Quarkus fast-jar on a JRE 25.
+FROM maven:3.9.11-eclipse-temurin-25 AS build
+WORKDIR /project
+COPY pom.xml .
+COPY src src
+RUN mvn -B -q package -DskipTests
+
+FROM eclipse-temurin:25-jre
+WORKDIR /work
+COPY --from=build /project/target/quarkus-app /work/app
+EXPOSE 8080
+CMD ["java", "-Dquarkus.http.host=0.0.0.0", "-Dquarkus.http.port=8080", "-jar", "/work/app/quarkus-run.jar"]
