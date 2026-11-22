@@ -18,6 +18,109 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   are registered as the lowest-priority base layer, overridden by matching remotes from
   `RemoteCatalogSupplier` or explicit `add_mateu(remotes=[...])` configuration.
 
+### Changed — the Quarkus starter is the quarkus.io blog sample, on the Quarkiverse extension
+
+- `starters/quarkus` depends on **`io.quarkiverse.mateu:quarkus-mateu`** (1.1.0: the runtime, REST + Jackson, the
+  Vaadin renderer and native support in one dependency) instead of `mateu-quarkus` + `mateu-vaadin` + Quarkus REST. It
+  is the sample of the Mateu post on the Quarkus blog: an `@ApplicationScoped` `ProductStore` injected into
+  `Products`, a `Hello` page whose button calls a CDI bean (`Greetings`), `@Status` on the product's status, and the
+  shell opens on `hello`. The generator's dashboard template brings its own `Products`/`ProductStore` (it reads the
+  store statically), and the templates that replace the shell drop `Hello`/`Greetings`. The Quarkus setup page now
+  recommends the extension.
+
+### Added — GraalVM native image on Spring Boot and Micronaut
+
+- **A Mateu app builds as a native executable with no reflection configuration**:
+  `mvn -Pnative native:compile` (Spring Boot), `mvn package -Dpackaging=native-image` (Micronaut).
+  `mateu-core` ships `MateuNativeImageFeature` + reachability metadata
+  (`META-INF/native-image/io.mateu/mateu-core/`): Mateu's own classes and every class of the app's
+  classpath entries that refer to Mateu (or carry `specs/ui`) are registered for reflection, with
+  their arrays, the arrays commons-beanutils creates, the renderer assets, `specs/`, the PWA files,
+  the validation bundle and the request proxy. Quarkus keeps its extension (quarkus-mateu); the
+  feature stands aside there. Verified on the Spring Boot and Micronaut starters (forms, CRUD,
+  validation, YAML screens, Vaadin and Redwood); CI workflow `native.yml` builds both native and
+  smoke-tests them. Docs: `deploy/native-image.md`.
+
+### Changed — saved views say which one is on (Vaadin and Redwood)
+
+- **The listing names the saved view it is showing**: the views button reads the view's name
+  («Kettles») instead of «Views» while the conditions are exactly that view's (same rule in both
+  renderers: unset values dropped, key order and a multi-value's order or comma-joined form
+  ignored), and the list marks it with ✓. Saving a view shows a toast («View “Kettles” saved»,
+  also announced to screen readers) and, on Vaadin, closes the panel so the button shows it.
+- **Redwood can now delete a view and make it the default from the menu** (with a view on: «Open
+  with this view» / «Don’t open with this view», «Delete view …»), which Vaadin already offered.
+
+### Fixed
+
+- **Micronaut native on Linux: browsers never finished loading the UI.** Netty (Micronaut's HTTP
+  server) writes some responses through shared memory arenas on Linux, which a native image only
+  supports with `-H:+SharedArenaSupport`; without it every such response logged
+  `UnsupportedFeatureError` and the page hung (curl, and so the native smoke test, did not notice).
+  `mateu-micronaut` now passes the option itself (`META-INF/native-image/.../native-image.properties`),
+  so apps need no change. The native smoke test fetches the page's scripts and styles like a browser and
+  fails on `UnsupportedFeatureError`.
+
+- **Redwood: a listing with a default saved view (★) never finished loading** when opened from the
+  menu: the chain re-applied the view for ever (it tested the bare route, which never carries the
+  query), each time through an awaited `mateuNavigate` event. It now tests the full target and
+  navigates in the chain itself.
+
+- **Redwood: the last row of a listing was cut off with the bottom navigation** (an app whose menu
+  is the tab bar at the bottom). Spectra's content card has `margin: -40px 0`; the content area
+  zeroed its bottom padding when the bottom bar is shown, so the page was 40px shorter than what it
+  drew. It now keeps 40px there.
+
+- **YAML-declared mounts in a native image**: `SpecsIndex` found no `type: UI` file there (it walked
+  `file:` and `jar:` resources only; a native image serves them as `resource:`), so a YAML app had no
+  mount and every screen was "Page not found".
+
+### Added — Micronaut 5
+
+- **Micronaut 5 is supported** next to 4.10: the same `mateu-micronaut` jar serves both. CI runs
+  the adapter's suite (the adapter parity contract over real HTTP included) against the Micronaut 5
+  platform as well (`-Pmicronaut5`, job `micronaut-5`, JDK 25). `starters/micronaut` is on
+  Micronaut 5.2.7 / Java 25. Micronaut 5 needs Java 25 and, with Maven, 3.9.10 or later (its
+  enforcer rule `checkSnakeYaml` fails to load on 3.9.9).
+- **No configuration for the renderer's assets on Micronaut.** The adapter serves `/assets/…`,
+  `/_redwood/…`, `/version_<n>/…` straight from the renderer jar (`MateuRendererAssetsFilter`,
+  with ETag / Last-Modified revalidation), like the Quarkus adapter. The
+  `micronaut.router.static-resources.*` mapping apps used to need still works and can go.
+- The New Project generator offers the **Redwood renderer on Micronaut**.
+
+### Fixed — what Mateu's artifacts bring into an app
+
+- **Lombok no longer reaches apps.** `mateu-dtos` declared it with compile scope, so it landed on
+  every app's runtime classpath and — through the `mateu-annotation-processor-*` jars — on its
+  annotation processor path, where it ran over the app's own sources. It is now `provided`
+  everywhere; an app that uses Lombok declares it itself, as usual. **Upgrade note**: an app whose
+  code uses Lombok but lists it only on `annotationProcessorPaths` (not as a dependency) compiled
+  thanks to that leak and now fails with `package lombok does not exist` — add
+  `org.projectlombok:lombok` with `<scope>provided</scope>` (Spring Boot manages its version). And
+  an app that declares its own `annotationProcessorPaths` but leaves Lombok out of them (Micronaut
+  apps typically do) ran Lombok only because Mateu's processor brought it: add Lombok to that list,
+  or `log`/getters/builders are "cannot find symbol".
+- **`com.google.code.findbugs:annotations` (LGPL) no longer reaches apps.** The parent pom and
+  `mateu-uidl` declared it with compile scope; no Mateu source uses it. Now `provided`.
+- The controller generated for Micronaut no longer makes javac warn "@Nullable on primitive types"
+  (the client-log endpoint's body).
+
+### Added — release check for the phone app's over-the-air updates
+
+- The `ota` release job warns (annotation + step summary) when the app version it publishes the
+  update for is not live in a store yet (`scripts/ota-store-check.mjs`: the App Store's public
+  lookup, `frontend/app/react-native/store-versions.json` for Google Play). Since the app moved to
+  1.0.1 (a native module), the updates of 3.0-rc.2, 3.0.0 and 3.0.1 reached no phone installed from
+  a store, with every job green: those installs stay on their JavaScript until the 1.0.1 store
+  builds are live.
+
+### Fixed — Redwood
+
+- **A remote whose own routes already live under its mount prefix** (a `RemoteMenu` field named
+  like the remote's top group: field `intranet`, remote routes `/intranet/avisos`…) is asked for
+  those routes as they are. The Redwood renderer took the prefix off, the remote answered NotFound
+  and every section of such a shell was "Page not found" (the Vaadin renderer was right).
+
 ## [3.0.1] — 2026-11-16
 
 ### Added — Spring Boot starter
