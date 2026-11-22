@@ -257,9 +257,9 @@ def remotes_from_env() -> list[RemoteDescriptor]:
     The remote ID is upper-cased and every ``-`` replaced with ``_`` when composing the variable
     name: ``order-service`` → ``MATEU_REMOTES_ORDER_SERVICE_BASE_URL``.
 
-    A remote whose base URL is missing, empty or invalid is skipped with a warning; malformed
-    timeouts are ignored (the remote's default is used instead).  Empty or whitespace-only entries
-    in ``MATEU_REMOTES`` are silently skipped."""
+    A remote whose base URL is missing, empty or invalid is skipped with a warning; non-positive
+    or malformed timeouts are ignored with a warning (the remote's default is used instead).  Empty
+    or whitespace-only entries in ``MATEU_REMOTES`` are silently skipped."""
     ids_raw = os.environ.get("MATEU_REMOTES", "").strip()
     if not ids_raw:
         return []
@@ -281,8 +281,14 @@ def remotes_from_env() -> list[RemoteDescriptor]:
         if raw_timeout:
             try:
                 parsed = int(raw_timeout)
-                timeout_ms = parsed if parsed > 0 else None
-            except (TypeError, ValueError):
+                if parsed > 0:
+                    timeout_ms = parsed
+                else:
+                    TRACE.warning(
+                        "Remote '%s': MATEU_REMOTES_%s_TIMEOUT_MS=%r is not a positive integer — ignored",
+                        remote_id, env_key, raw_timeout,
+                    )
+            except ValueError:
                 TRACE.warning(
                     "Remote '%s': MATEU_REMOTES_%s_TIMEOUT_MS=%r is not a valid integer — ignored",
                     remote_id, env_key, raw_timeout,

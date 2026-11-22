@@ -225,16 +225,11 @@ Replace a collaborator by registering your own service: `IRemoteRegistry`, `IRem
 environment variables — no code change needed for Docker / Kubernetes deployments
 (see [Configuring remotes from environment variables](/python-user-manual/#configuring-remotes-from-environment-variables)):
 
-```env
-MATEU_REMOTES=orders,content
-
+```bash
+MATEU_REMOTES=orders
 MATEU_REMOTES_ORDERS_BASE_URL=https://orders.example.com
 MATEU_REMOTES_ORDERS_TIMEOUT_MS=5000
-MATEU_REMOTES_ORDERS_IDENTITY=orders-service
-
-MATEU_REMOTES_CONTENT_BASE_URL=https://content.example.com
-MATEU_REMOTES_CONTENT_TIMEOUT_MS=3000
-MATEU_REMOTES_CONTENT_IDENTITY=content-service
+MATEU_REMOTES_ORDERS_IDENTITY=forward-authorization
 ```
 
 The remote ID is upper-cased and every `-` replaced with `_` for the variable name

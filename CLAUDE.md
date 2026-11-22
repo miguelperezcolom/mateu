@@ -473,7 +473,8 @@ IntelliJ `AppContext.enter`) and everything after the first paint still goes to 
   `SyncHandler.handle`; tests `test_microfrontend_server_resolution*.py`). Both keep `resolved` as RAW
   JSON (not re-typed: a newer remote's fields survive) and check slot keys at REGISTRATION (no AP:
   bad/duplicate key = startup failure). Neither ports the YAML ContentSlot builder nor the
-  `mateu.remotes.*` properties (Python: no env twin).
+  `mateu.remotes.*` properties (.NET has no env twin; Python supports configuring remotes from environment
+  variables via `MATEU_REMOTES` and per-remote `MATEU_REMOTES_<ID>_*` variables).
 
 ### Writing from YAML — `actions:` on a definition (2026-09-07)
 

@@ -19,8 +19,19 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from mateu_ui.core.microfrontends import DefaultRemoteRegistry, remotes_from_env  # noqa: E402
-from mateu_ui.uidl.remote import RemoteCatalogSupplier, RemoteDescriptor  # noqa: E402
+from fastapi import FastAPI  # noqa: E402
+
+from mateu_ui.core.microfrontends import (  # noqa: E402
+    DefaultRemoteRegistry,
+    RemoteIdentityStrategies,
+    remotes_from_env,
+)
+from mateu_ui.fastapi import add_mateu  # noqa: E402
+from mateu_ui.uidl.remote import (  # noqa: E402
+    RemoteCatalogSupplier,
+    RemoteDescriptor,
+    RemoteIdentityStrategy,
+)
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
@@ -86,6 +97,36 @@ def test_timeout_absent_gives_none(monkeypatch):
     assert remotes[0].timeout_ms is None
 
 
+def test_zero_timeout_is_ignored_with_warning(monkeypatch, caplog):
+    """MATEU_REMOTES_ORDERS_TIMEOUT_MS=0 is ignored with a warning and timeout_ms is None."""
+    monkeypatch.setenv("MATEU_REMOTES", "orders")
+    monkeypatch.setenv("MATEU_REMOTES_ORDERS_BASE_URL", "https://orders.example.com")
+    monkeypatch.setenv("MATEU_REMOTES_ORDERS_TIMEOUT_MS", "0")
+
+    with caplog.at_level(logging.WARNING, logger="mateu_ui.microfrontends"):
+        remotes = remotes_from_env()
+
+    assert len(remotes) == 1
+    assert remotes[0].timeout_ms is None
+    assert any("TIMEOUT_MS" in r.getMessage() and "positive integer" in r.getMessage()
+               for r in caplog.records)
+
+
+def test_negative_timeout_is_ignored_with_warning(monkeypatch, caplog):
+    """Negative MATEU_REMOTES_ORDERS_TIMEOUT_MS is ignored with a warning and timeout_ms is None."""
+    monkeypatch.setenv("MATEU_REMOTES", "orders")
+    monkeypatch.setenv("MATEU_REMOTES_ORDERS_BASE_URL", "https://orders.example.com")
+    monkeypatch.setenv("MATEU_REMOTES_ORDERS_TIMEOUT_MS", "-500")
+
+    with caplog.at_level(logging.WARNING, logger="mateu_ui.microfrontends"):
+        remotes = remotes_from_env()
+
+    assert len(remotes) == 1
+    assert remotes[0].timeout_ms is None
+    assert any("TIMEOUT_MS" in r.getMessage() and "positive integer" in r.getMessage()
+               for r in caplog.records)
+
+
 # ── Test 3: identity configuration ───────────────────────────────────────────
 
 
@@ -93,10 +134,10 @@ def test_identity_read_correctly(monkeypatch):
     """MATEU_REMOTES_ORDERS_IDENTITY is stored verbatim on the descriptor."""
     monkeypatch.setenv("MATEU_REMOTES", "orders")
     monkeypatch.setenv("MATEU_REMOTES_ORDERS_BASE_URL", "https://orders.example.com")
-    monkeypatch.setenv("MATEU_REMOTES_ORDERS_IDENTITY", "orders-service")
+    monkeypatch.setenv("MATEU_REMOTES_ORDERS_IDENTITY", "forward-authorization")
 
     remotes = remotes_from_env()
-    assert remotes[0].identity == "orders-service"
+    assert remotes[0].identity == "forward-authorization"
 
 
 def test_identity_absent_gives_none(monkeypatch):
@@ -109,6 +150,36 @@ def test_identity_absent_gives_none(monkeypatch):
     assert remotes[0].identity is None
 
 
+def test_valid_identity_strategy_resolves(monkeypatch):
+    """Built-in identity strategies resolve successfully against RemoteIdentityStrategies."""
+    monkeypatch.setenv("MATEU_REMOTES", "fwd,anon")
+    monkeypatch.setenv("MATEU_REMOTES_FWD_BASE_URL", "https://fwd.example.com")
+    monkeypatch.setenv("MATEU_REMOTES_FWD_IDENTITY", "forward-authorization")
+    monkeypatch.setenv("MATEU_REMOTES_ANON_BASE_URL", "https://anon.example.com")
+    monkeypatch.setenv("MATEU_REMOTES_ANON_IDENTITY", "none")
+
+    strategies = RemoteIdentityStrategies()
+    remotes = remotes_from_env()
+    by_id = {r.id: r for r in remotes}
+
+    assert strategies.of(by_id["fwd"]).name() == "forward-authorization"
+    assert strategies.of(by_id["anon"]).name() == "none"
+
+
+def test_invalid_identity_strategy_raises_on_resolution(monkeypatch):
+    """An unknown identity strategy raises ValueError at resolution time (existing validation)."""
+    monkeypatch.setenv("MATEU_REMOTES", "orders")
+    monkeypatch.setenv("MATEU_REMOTES_ORDERS_BASE_URL", "https://orders.example.com")
+    monkeypatch.setenv("MATEU_REMOTES_ORDERS_IDENTITY", "orders-service")
+
+    strategies = RemoteIdentityStrategies()
+    remotes = remotes_from_env()
+    assert remotes[0].identity == "orders-service"
+
+    with pytest.raises(ValueError, match=r"Remote orders names the identity strategy 'orders-service'"):
+        strategies.of(remotes[0])
+
+
 # ── Test 4: hyphen-to-underscore ID mapping ───────────────────────────────────
 
 
@@ -117,7 +188,7 @@ def test_hyphen_in_id_maps_to_underscore_in_env_var_name(monkeypatch):
     monkeypatch.setenv("MATEU_REMOTES", "order-service")
     monkeypatch.setenv("MATEU_REMOTES_ORDER_SERVICE_BASE_URL", "https://orders.example.com")
     monkeypatch.setenv("MATEU_REMOTES_ORDER_SERVICE_TIMEOUT_MS", "5000")
-    monkeypatch.setenv("MATEU_REMOTES_ORDER_SERVICE_IDENTITY", "orders-service")
+    monkeypatch.setenv("MATEU_REMOTES_ORDER_SERVICE_IDENTITY", "forward-authorization")
 
     remotes = remotes_from_env()
     assert len(remotes) == 1
@@ -125,7 +196,7 @@ def test_hyphen_in_id_maps_to_underscore_in_env_var_name(monkeypatch):
     assert r.id == "order-service"
     assert r.base_url == "https://orders.example.com"
     assert r.timeout_ms == 5000
-    assert r.identity == "orders-service"
+    assert r.identity == "forward-authorization"
 
 
 # ── Test 5: explicit remote takes precedence over env remote ──────────────────
@@ -359,19 +430,90 @@ def test_full_remote_configuration_all_fields(monkeypatch):
 
     monkeypatch.setenv("MATEU_REMOTES_ORDERS_BASE_URL", "https://orders.example.com")
     monkeypatch.setenv("MATEU_REMOTES_ORDERS_TIMEOUT_MS", "5000")
-    monkeypatch.setenv("MATEU_REMOTES_ORDERS_IDENTITY", "orders-service")
+    monkeypatch.setenv("MATEU_REMOTES_ORDERS_IDENTITY", "forward-authorization")
 
     monkeypatch.setenv("MATEU_REMOTES_CONTENT_BASE_URL", "https://content.example.com")
     monkeypatch.setenv("MATEU_REMOTES_CONTENT_TIMEOUT_MS", "3000")
-    monkeypatch.setenv("MATEU_REMOTES_CONTENT_IDENTITY", "content-service")
+    monkeypatch.setenv("MATEU_REMOTES_CONTENT_IDENTITY", "none")
 
     remotes = remotes_from_env()
     by_id = {r.id: r for r in remotes}
 
     assert by_id["orders"].base_url == "https://orders.example.com"
     assert by_id["orders"].timeout_ms == 5000
-    assert by_id["orders"].identity == "orders-service"
+    assert by_id["orders"].identity == "forward-authorization"
 
     assert by_id["content"].base_url == "https://content.example.com"
     assert by_id["content"].timeout_ms == 3000
-    assert by_id["content"].identity == "content-service"
+    assert by_id["content"].identity == "none"
+
+
+# ── integration: add_mateu(...) application setup ─────────────────────────────
+
+
+def test_add_mateu_registers_and_resolves_env_remotes(monkeypatch):
+    """An environment-configured remote is registered through add_mateu() and resolves correctly."""
+    monkeypatch.setenv("MATEU_REMOTES", "orders")
+    monkeypatch.setenv("MATEU_REMOTES_ORDERS_BASE_URL", "https://orders.example.com")
+    monkeypatch.setenv("MATEU_REMOTES_ORDERS_TIMEOUT_MS", "5000")
+    monkeypatch.setenv("MATEU_REMOTES_ORDERS_IDENTITY", "forward-authorization")
+
+    app = FastAPI()
+    handler = add_mateu(app)
+
+    registry = handler.microfrontends.registry
+    remote = registry.by_id("orders")
+    assert remote is not None
+    assert remote.id == "orders"
+    assert remote.base_url == "https://orders.example.com"
+    assert remote.timeout_ms == 5000
+    assert remote.identity == "forward-authorization"
+
+    # URL-based resolution
+    resolved = registry.for_url("https://orders.example.com/api/v1/orders")
+    assert resolved is not None
+    assert resolved.id == "orders"
+    assert resolved.base_url == "https://orders.example.com"
+
+    # Strategy resolution
+    strategy = handler.microfrontends.identities.of(remote)
+    assert strategy.name() == "forward-authorization"
+
+
+# ── path-based base URL support ────────────────────────────────────────────────
+
+
+def test_path_based_base_url_registered_and_resolved(monkeypatch):
+    """A path-based base URL (/_content-hub) is accepted, preserved, and resolves correctly."""
+    monkeypatch.setenv("MATEU_REMOTES", "content-hub")
+    monkeypatch.setenv("MATEU_REMOTES_CONTENT_HUB_BASE_URL", "/_content-hub")
+    monkeypatch.setenv("MATEU_REMOTES_CONTENT_HUB_TIMEOUT_MS", "2500")
+    monkeypatch.setenv("MATEU_REMOTES_CONTENT_HUB_IDENTITY", "none")
+
+    remotes = remotes_from_env()
+    assert len(remotes) == 1
+    remote = remotes[0]
+    assert remote.id == "content-hub"
+    assert remote.base_url == "/_content-hub"
+    assert remote.timeout_ms == 2500
+    assert remote.identity == "none"
+
+    registry = _registry()
+    registered = registry.by_id("content-hub")
+    assert registered is not None
+    assert registered.base_url == "/_content-hub"
+    assert registered.timeout_ms == 2500
+
+    # Server-side remote resolution works correctly for path-based URL and sub-paths
+    assert registry.for_url("/_content-hub") == registered
+    assert registry.for_url("/_content-hub/slots/header") == registered
+    assert registry.for_url("/_other") is None
+
+    # Also verify through add_mateu() setup
+    app = FastAPI()
+    handler = add_mateu(app, self_base_url="https://app.example.com")
+    app_registry = handler.microfrontends.registry
+    app_remote = app_registry.by_id("content-hub")
+    assert app_remote is not None
+    assert app_remote.base_url == "/_content-hub"
+    assert app_registry.for_url("/_content-hub/slots/header") == app_remote

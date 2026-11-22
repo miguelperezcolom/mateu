@@ -263,7 +263,7 @@ so a deployment can switch them without code.
 | `mcp_push_max_anonymous_sessions_per_address` | env `MATEU_MCP_PUSH_MAX_ANONYMOUS_SESSIONS_PER_ADDRESS`, else 200 | Anonymous sessions per client address (behind a proxy, run uvicorn with `--proxy-headers`). |
 | `build_id` | env `MATEU_BUILD_ID`, else a fingerprint of the release | The `X-Mateu-Build` id ([versions across teams](/deploy/versions-across-teams/)). |
 | `oracle_cdn_url` | env `MATEU_ORACLE_CDN_URL` | A mirror of Oracle's CDN for the Redwood page ([Oracle CDN mirror](/deploy/oracle-cdn-mirror/)). |
-| `remotes` | env `MATEU_REMOTES` (see below), else none | `RemoteDescriptor`s for [server-resolved micro frontends](/java-ui-definition/components/micro-frontend/#net-and-python) and content slots (on top of `RemoteCatalogSupplier` subclasses; explicit ones win). |
+| `remotes` | none | `RemoteDescriptor`s for [server-resolved micro frontends](/java-ui-definition/components/micro-frontend/#net-and-python) and content slots. Environment-configured remotes from `MATEU_REMOTES` are registered as the lowest-priority source and are overridden by matching remotes from `RemoteCatalogSupplier` or explicit `add_mateu(remotes=...)` configuration. |
 | `default_timeout_ms` | env `MATEU_MICROFRONTENDS_DEFAULT_TIMEOUT_MS`, else 500 | Budget of a server-resolved fragment that names none. |
 | `max_budget_ms` | env `MATEU_MICROFRONTENDS_MAX_BUDGET_MS`, else 2000 | The most a view waits for its fragments. |
 | `content_remote_id` | env `MATEU_CONTENT_SLOTS_REMOTE`, else `content` | The remote [content slots](/java-ui-definition/components/content-slot/#net-and-python) are resolved against. |
@@ -277,23 +277,21 @@ so a deployment can switch them without code.
 Container and Kubernetes deployments can register server-resolved micro-frontend remotes **without
 modifying Python code** by using `MATEU_REMOTES` and its per-remote companions:
 
-```env
-# Comma-separated list of remote IDs
-MATEU_REMOTES=orders,content
-
-# Per-remote variables — ID is upper-cased and every - replaced with _
+```bash
+MATEU_REMOTES=orders
 MATEU_REMOTES_ORDERS_BASE_URL=https://orders.example.com
 MATEU_REMOTES_ORDERS_TIMEOUT_MS=5000
-MATEU_REMOTES_ORDERS_IDENTITY=orders-service
-
-MATEU_REMOTES_CONTENT_BASE_URL=https://content.example.com
-MATEU_REMOTES_CONTENT_TIMEOUT_MS=3000
-MATEU_REMOTES_CONTENT_IDENTITY=content-service
+MATEU_REMOTES_ORDERS_IDENTITY=forward-authorization
 ```
 
 **ID mapping.** Remote IDs are transformed before constructing the variable name: they are
 upper-cased and every hyphen (`-`) is replaced with an underscore (`_`).  So the remote id
 `order-service` reads its URL from `MATEU_REMOTES_ORDER_SERVICE_BASE_URL`.
+
+**Remote identity strategy.** The `MATEU_REMOTES_<ID>_IDENTITY` variable specifies which
+registered `RemoteIdentityStrategy` to use. Built-in strategies are `forward-authorization` (the
+default, which forwards the caller's `Authorization` HTTP header to the remote) and `none`
+(anonymous). An unknown strategy name raises an error at resolution time.
 
 **Precedence (lowest → highest).** Environment-variable remotes have the _lowest_ priority:
 
@@ -308,9 +306,9 @@ path starting with `/`) is **skipped** with a warning on the `mateu_ui.microfron
 The other remotes in the list are still registered normally and application startup is not
 interrupted.
 
-**Malformed timeout.** A `MATEU_REMOTES_<ID>_TIMEOUT_MS` that is not a positive integer is
-ignored with a warning; the remote's default timeout (the global `default_timeout_ms`) is used
-instead.
+**Malformed timeout.** A `MATEU_REMOTES_<ID>_TIMEOUT_MS` that is not a positive integer (such as
+zero, a negative number, or a non-integer string) is ignored with a warning; the remote's default
+timeout (the global `default_timeout_ms`) is used instead.
 
 ## Forms
 

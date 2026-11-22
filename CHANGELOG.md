@@ -8,6 +8,16 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added — Python micro-frontend remotes from environment variables
+
+- **Configure server-resolved micro-frontend remotes from environment variables in Python**
+  (`#1282`, `#1300`): Container and Kubernetes deployments can now configure server-resolved
+  micro-frontend remotes without modifying application code using `MATEU_REMOTES` (a comma-separated
+  list of remote IDs) and per-remote variables `MATEU_REMOTES_<ID>_BASE_URL`,
+  `MATEU_REMOTES_<ID>_TIMEOUT_MS`, and `MATEU_REMOTES_<ID>_IDENTITY`. Environment-configured remotes
+  are registered as the lowest-priority base layer, overridden by matching remotes from
+  `RemoteCatalogSupplier` or explicit `add_mateu(remotes=[...])` configuration.
+
 ## [3.0.1] — 2026-11-16
 
 ### Added — Spring Boot starter
