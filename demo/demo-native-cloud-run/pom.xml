@@ -22,6 +22,10 @@
              -Dmateu.version=0.0.1-MATEU -->
         <mateu.version>3.0.4</mateu.version>
         <quarkus-mateu.version>1.1.0</quarkus-mateu.version>
+        <!-- The renderer: Mateu's default (Vaadin-based) one. `-Predwood` swaps it for the Redwood
+             renderer with no change to the classes; front/build-site.sh uses that for the Netlify site. -->
+        <mateu.renderer>mateu-vaadin</mateu.renderer>
+        <mateu.unused-renderer>mateu-redwood</mateu.unused-renderer>
     </properties>
 
     <dependencyManagement>
@@ -48,17 +52,17 @@
             <groupId>io.quarkiverse.mateu</groupId>
             <artifactId>quarkus-mateu</artifactId>
             <version>${quarkus-mateu.version}</version>
-            <!-- Redwood instead of the default Vaadin renderer -->
+            <!-- the extension brings the default renderer; the redwood profile leaves it out -->
             <exclusions>
                 <exclusion>
                     <groupId>io.mateu</groupId>
-                    <artifactId>mateu-vaadin</artifactId>
+                    <artifactId>${mateu.unused-renderer}</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mateu-redwood</artifactId>
+            <artifactId>${mateu.renderer}</artifactId>
         </dependency>
         <!-- Google Cloud Firestore (native-ready), where ProductStore keeps the products -->
         <dependency>
@@ -115,4 +119,14 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>redwood</id>
+            <properties>
+                <mateu.renderer>mateu-redwood</mateu.renderer>
+                <mateu.unused-renderer>mateu-vaadin</mateu.unused-renderer>
+            </properties>
+        </profile>
+    </profiles>
 </project>

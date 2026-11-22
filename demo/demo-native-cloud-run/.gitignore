@@ -3,3 +3,4 @@ front/site/
 front/.netlify/
 *.log
 .reset-token
+front/.redwood-app.log
