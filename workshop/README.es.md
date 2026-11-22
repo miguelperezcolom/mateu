@@ -10,7 +10,7 @@ taller **tecleas**, no miras: cada lab termina con algo funcionando en tu máqui
 C# (.NET) o Python. Los labs que no dependen del lenguaje (renderers en el móvil y el escritorio,
 YAML, IA) son los mismos para los tres; solo cambian los labs de código.
 
-**Versión de Mateu**: todos los labs fijan **3.0.4**, la versión que usan los
+**Versión de Mateu**: todos los labs fijan **3.0.6**, la versión que usan los
 [starters](../starters). Ningún lab compila Mateu desde el código fuente.
 
 ## Agenda
