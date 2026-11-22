@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import {
+    RENDERERS,
     coordinatesOf, dependencyXml, isProjectDescriptor, parseRenderer, rendererOf, withRenderer,
 } from './projectDescriptor'
 import { loadCatalogue, render, templateText, templatesRoot } from './newFiles'
@@ -51,7 +52,7 @@ describe('project descriptor', () => {
 
     it('contributes the mateu.renderer setting and the Project Settings command', () => {
         const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'))
-        expect(pkg.contributes.configuration.properties['mateu.renderer'].enum).toEqual(['vaadin', 'redwood'])
+        expect(pkg.contributes.configuration.properties['mateu.renderer'].enum).toEqual(RENDERERS.map((r) => r.id))
         expect(pkg.contributes.commands.map((c: { command: string }) => c.command)).toContain('mateu.projectSettings')
     })
 })

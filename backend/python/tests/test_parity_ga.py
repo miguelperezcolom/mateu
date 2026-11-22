@@ -200,6 +200,15 @@ def test_no_warning_when_they_agree_when_nothing_is_served_or_nothing_is_declare
     assert project_renderer.warn_on_startup(_Files({"_index.html"}), empty) is None
 
 
+def test_the_primer_renderer_is_recognised(tmp_path):
+    assert project_renderer.served(_Files({"_index.html", project_renderer.PRIMER_MARKER})) == "primer"
+    assert project_renderer.parse("type: Project\nrenderer: primer\n") == "primer"
+    (tmp_path / "project.yaml").write_text("type: Project\nrenderer: primer\n")
+    assert project_renderer.warn_on_startup(_Files({"_index.html", project_renderer.PRIMER_MARKER}), tmp_path) is None
+    message = project_renderer.warn_on_startup(_Files({"_index.html"}), tmp_path)
+    assert message is not None and "io.mateu:mateu-primer instead of io.mateu:mateu-vaadin" in message
+
+
 def test_a_type_project_file_anywhere_under_the_specs_is_read(tmp_path):
     (tmp_path / "settings").mkdir()
     (tmp_path / "settings" / "mine.yaml").write_text("type: Project\nrenderer: redwood\n")

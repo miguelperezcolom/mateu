@@ -68,7 +68,7 @@
     {
       "id": "project",
       "label": "Project Settings",
-      "description": "The project descriptor (type: Project, specs/ui/project.yaml): the renderer the whole project paints with (vaadin | redwood). One per project — offered only while the project has none.",
+      "description": "The project descriptor (type: Project, specs/ui/project.yaml): the renderer the whole project paints with (vaadin | redwood | primer). One per project — offered only while the project has none.",
       "fileName": "project",
       "template": "Mateu Project",
       "schemaType": "Project",

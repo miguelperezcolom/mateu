@@ -10,7 +10,7 @@ import org.yaml.snakeyaml.Yaml
  *
  * ```yaml
  * type: Project
- * renderer: redwood   # vaadin | redwood
+ * renderer: redwood   # vaadin | redwood | primer
  * ```
  *
  * Platform-free (text in, text out), so it is unit-tested. Mirrors io.mateu.uidl.data.ProjectSettings
@@ -27,7 +27,8 @@ object ProjectDescriptor {
      */
     enum class Renderer(val id: String, val label: String, val artifactId: String) {
         VAADIN("vaadin", "Vaadin (Lumo)", "mateu-vaadin"),
-        REDWOOD("redwood", "Redwood (Oracle)", "mateu-redwood");
+        REDWOOD("redwood", "Redwood (Oracle)", "mateu-redwood"),
+        PRIMER("primer", "Primer (GitHub, preview)", "mateu-primer");
 
         val coordinates: String get() = "$GROUP_ID:$artifactId"
 
@@ -51,7 +52,8 @@ object ProjectDescriptor {
     fun newText(renderer: Renderer): String =
         "# The project descriptor: settings true of the whole project, not of one page.\n" +
             "# renderer — the design system the project paints with: vaadin (io.mateu:mateu-vaadin, the\n" +
-            "# default) or redwood (io.mateu:mateu-redwood). The visual editor and Play open in it and the static\n" +
+            "# default), redwood (io.mateu:mateu-redwood) or primer (io.mateu:mateu-primer, preview). The visual\n" +
+            "# editor and Play open in it (a Primer project previews with Vaadin there for now) and the static\n" +
             "# bundle ships it; a served app still renders with its Maven dependency (the server warns when\n" +
             "# the two disagree).\n" +
             "type: $TYPE\n" +

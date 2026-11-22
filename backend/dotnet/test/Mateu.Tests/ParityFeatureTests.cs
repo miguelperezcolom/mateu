@@ -92,6 +92,29 @@ public class ParityFeatureTests
     }
 
     [Fact]
+    public void The_Primer_renderer_is_recognised_served_and_declared()
+    {
+        var specs = Directory.CreateTempSubdirectory("mateu-project-").FullName;
+        var ui = Directory.CreateTempSubdirectory("mateu-ui-").FullName;
+        Directory.CreateDirectory(Path.Combine(ui, "assets"));
+        File.WriteAllText(Path.Combine(ui, "_index.html"), "<html></html>");
+        File.WriteAllText(Path.Combine(ui, "assets", "mateu-primer.js"), "/* primer */");
+        try
+        {
+            Assert.Equal("primer", ProjectRendererCheck.Served(RendererFiles.At(ui)));
+            Assert.Equal("primer", ProjectRendererCheck.Parse("type: Project\nrenderer: primer\n"));
+            File.WriteAllText(Path.Combine(specs, "project.yaml"), "type: Project\nrenderer: vaadin\n");
+            var warning = ProjectRendererCheck.Mismatch(ProjectRendererCheck.Declared(specs), "primer");
+            Assert.Contains("says renderer: vaadin, but this server serves primer", warning);
+        }
+        finally
+        {
+            Directory.Delete(specs, true);
+            Directory.Delete(ui, true);
+        }
+    }
+
+    [Fact]
     public void A_type_Project_file_anywhere_under_the_specs_is_the_descriptor()
     {
         var specs = Directory.CreateTempSubdirectory("mateu-project-").FullName;

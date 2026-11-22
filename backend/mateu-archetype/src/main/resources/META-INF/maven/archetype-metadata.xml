@@ -18,10 +18,10 @@
       <defaultValue>code</defaultValue>
       <validationRegex>^(code|yaml|static)$</validationRegex>
     </requiredProperty>
-    <!-- vaadin | redwood (the static flavour is Vaadin only) -->
+    <!-- vaadin | redwood | primer (the static flavour is Vaadin only) -->
     <requiredProperty key="renderer">
       <defaultValue>vaadin</defaultValue>
-      <validationRegex>^(vaadin|redwood)$</validationRegex>
+      <validationRegex>^(vaadin|redwood|primer)$</validationRegex>
     </requiredProperty>
     <!-- The template gallery (new-project.json `samples`): code → crud | dashboard | intake |
          operations | empty; yaml and static → listing | swapi. `default` = the flavour's first

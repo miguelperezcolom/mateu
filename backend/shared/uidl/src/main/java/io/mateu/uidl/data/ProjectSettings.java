@@ -8,7 +8,7 @@ import io.mateu.uidl.annotations.Experimental;
  *
  * <pre>
  * type: Project
- * renderer: redwood   # vaadin | redwood
+ * renderer: redwood   # vaadin | redwood | primer
  * </pre>
  *
  * <p>One per project; absent means {@link ProjectRenderer#vaadin}. Who reads it: the visual editor

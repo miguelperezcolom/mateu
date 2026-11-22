@@ -80,6 +80,49 @@ public class BundleWriterTest {
             "/* bridge */"));
   }
 
+  private Path primerJar() throws Exception {
+    return jar(
+        "primer.jar",
+        Map.of(
+            "static/_index.html",
+            INDEX,
+            "static/assets/mateu-primer.js",
+            "/* primer */",
+            "static/assets/mateu-primer.css",
+            "/* css */"));
+  }
+
+  @Test
+  public void aPrimerBundleTakesThePrimerJarAmongTheOthers() throws Exception {
+    var out = tmp.newFolder("out").toPath();
+    BundleWriter.write(
+        out,
+        manifest(),
+        null,
+        loader(vaadinJar(), redwoodJar(), primerJar()),
+        "",
+        "Shop",
+        ProjectRenderer.primer);
+    assertTrue(Files.isRegularFile(out.resolve("assets/mateu-primer.js")));
+    assertFalse("never another renderer's files", Files.exists(out.resolve("assets/index.js")));
+    assertFalse(Files.exists(out.resolve("_redwood")));
+  }
+
+  @Test
+  public void aVaadinBundleIsNotTakenFromThePrimerJar() throws Exception {
+    var out = tmp.newFolder("out").toPath();
+    BundleWriter.write(
+        out,
+        manifest(),
+        null,
+        loader(primerJar(), vaadinJar()),
+        "",
+        "Shop",
+        ProjectRenderer.vaadin);
+    assertTrue(Files.isRegularFile(out.resolve("assets/index.js")));
+    assertFalse(Files.exists(out.resolve("assets/mateu-primer.js")));
+  }
+
   private static BundleManifest manifest() {
     return new BundleManifest("", "now", true, List.of());
   }

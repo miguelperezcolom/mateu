@@ -544,6 +544,7 @@ export default defineConfig({
 						{ slug: 'design-systems', label: 'Overview' },
 						{ slug: 'design-systems/vaadin', label: 'Web: Vaadin' },
 						{ slug: 'design-systems/oracle-redwood', label: 'Web: Redwood / Visual Builder' },
+						{ slug: 'design-systems/github-primer', label: 'Web: GitHub Primer (preview)' },
 						{ slug: 'native/mateu-app', label: 'Mobile: the Mateu app (any UI on your phone)' },
 						{ slug: 'native/react-native', label: 'Mobile: the React Native renderer' },
 						{ slug: 'native/android-testers', label: 'Mobile: test the Android app' },

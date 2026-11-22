@@ -14,21 +14,25 @@ import lombok.extern.slf4j.Slf4j;
  * the renderer it declares with the one this server actually SERVES.
  *
  * <p>For a served app the Maven dependency stays the source of truth — whichever renderer jar
- * ({@code io.mateu:mateu-vaadin} or {@code io.mateu:mateu-redwood}) is on the classpath is what the
- * index page boots. The descriptor is what the visual editor, Play and the static bundle paint
- * with, so when the two disagree the app a developer designed is not the app a user gets: that is
- * worth one clear WARN at startup, never a failure (a team may well serve Vaadin while trying
- * Redwood out in the editor).
+ * ({@code io.mateu:mateu-vaadin}, {@code io.mateu:mateu-redwood}, {@code io.mateu:mateu-primer}) is
+ * on the classpath is what the index page boots. The descriptor is what the visual editor, Play and
+ * the static bundle paint with, so when the two disagree the app a developer designed is not the
+ * app a user gets: that is worth one clear WARN at startup, never a failure (a team may well serve
+ * Vaadin while trying Redwood out in the editor).
  *
- * <p>Which renderer the classpath serves is read off its static resources: the Redwood jar ships a
- * Visual Builder app under {@code static/_redwood/}, the Vaadin one only {@code static/_index.html}
- * + {@code static/assets/}.
+ * <p>Which renderer the classpath serves is read off its static resources ({@link #servedBy}): the
+ * Redwood jar ships a Visual Builder app under {@code static/_redwood/}, the Primer one its entry
+ * {@code static/assets/mateu-primer.js}, the Vaadin one only {@code static/_index.html} + {@code
+ * static/assets/}.
  */
 @Slf4j
 public final class ProjectRendererCheck {
 
   /** A resource only the Redwood (Visual Builder) jar ships. */
   static final String REDWOOD_MARKER = "static/_redwood/app-flow.json";
+
+  /** A resource only the Primer jar ships (its entry script). */
+  static final String PRIMER_MARKER = "static/assets/mateu-primer.js";
 
   /** The SPA template every renderer jar ships. */
   static final String INDEX_TEMPLATE = "static/_index.html";
@@ -117,10 +121,23 @@ public final class ProjectRendererCheck {
    */
   public static ProjectRenderer served(ClassLoader classLoader) {
     var cl = classLoader != null ? classLoader : ProjectRendererCheck.class.getClassLoader();
-    if (cl.getResource(REDWOOD_MARKER) != null) {
+    return servedBy(path -> cl.getResource(path) != null);
+  }
+
+  /**
+   * The renderer a set of static resources is, by the files only it ships ({@code hasResource}
+   * answers for classpath-style paths: {@code static/…}); {@code null} when there is no {@code
+   * static/_index.html} at all. Shared with the static bundle, which reads a renderer's jar or
+   * folder the same way.
+   */
+  public static ProjectRenderer servedBy(java.util.function.Predicate<String> hasResource) {
+    if (hasResource.test(REDWOOD_MARKER)) {
       return ProjectRenderer.redwood;
     }
-    if (cl.getResource(INDEX_TEMPLATE) != null) {
+    if (hasResource.test(PRIMER_MARKER)) {
+      return ProjectRenderer.primer;
+    }
+    if (hasResource.test(INDEX_TEMPLATE)) {
       return ProjectRenderer.vaadin;
     }
     return null;

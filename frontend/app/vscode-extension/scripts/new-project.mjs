@@ -20,7 +20,7 @@ const USAGE = `Usage: node scripts/new-project.mjs --out <dir> [options]
   --authoring  code | yaml | static | both          (default: code)
   --runtime    spring-mvc | spring-webflux | quarkus | micronaut | helidon-mp | dotnet | python
                                                    (default: spring-mvc; ignored by static)
-  --renderer   vaadin | redwood                    (default: vaadin)
+  --renderer   vaadin | redwood | primer           (default: vaadin)
   --template   the gallery: crud | dashboard | intake | operations | empty (code),
                listing | swapi (yaml, static)       (default: the flavour's first)
   --sample     the same as --template (its older name)

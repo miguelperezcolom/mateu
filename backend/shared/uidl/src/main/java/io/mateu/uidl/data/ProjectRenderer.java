@@ -21,7 +21,12 @@ public enum ProjectRenderer {
    * The Redwood renderer: an Oracle Visual Builder app (JET + Spectra, loaded from Oracle's CDN).
    * Served by {@code io.mateu:mateu-redwood}.
    */
-  redwood("mateu-redwood");
+  redwood("mateu-redwood"),
+  /**
+   * The GitHub Primer renderer: Primer React over the React Native renderer's core (preview).
+   * Served by {@code io.mateu:mateu-primer}.
+   */
+  primer("mateu-primer");
 
   /** The group id every renderer artifact is published under. */
   public static final String GROUP_ID = "io.mateu";

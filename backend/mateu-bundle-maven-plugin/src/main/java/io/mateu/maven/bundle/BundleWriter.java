@@ -54,8 +54,6 @@ final class BundleWriter {
     static final PwaOptions ON = new PwaOptions(true, null);
   }
 
-  static final String REDWOOD_MARKER = "_redwood/app-flow.json";
-
   /** Where a renderer's static app comes from: a directory or a jar on the app classpath. */
   interface StaticApp {
     String index() throws IOException;
@@ -63,7 +61,8 @@ final class BundleWriter {
     /** Copies everything but the {@code _index.html} template into {@code out}. */
     void copyTo(Path out) throws IOException;
 
-    boolean isRedwood() throws IOException;
+    /** Which renderer this static app is, by the files only it ships. */
+    ProjectRenderer renderer() throws IOException;
   }
 
   /**
@@ -285,7 +284,7 @@ final class BundleWriter {
       if (renderer == null) {
         return app;
       }
-      if (app.isRedwood() == (renderer == ProjectRenderer.redwood)) {
+      if (app.renderer() == renderer) {
         return app;
       }
     }
@@ -324,8 +323,10 @@ final class BundleWriter {
     }
 
     @Override
-    public boolean isRedwood() {
-      return Files.isRegularFile(dir.resolve(REDWOOD_MARKER));
+    public ProjectRenderer renderer() {
+      // classpath-style paths ("static/…") against this static/ folder
+      return io.mateu.core.infra.ProjectRendererCheck.servedBy(
+          path -> Files.isRegularFile(dir.resolve(path.substring("static/".length()))));
     }
   }
 
@@ -365,9 +366,10 @@ final class BundleWriter {
     }
 
     @Override
-    public boolean isRedwood() throws IOException {
+    public ProjectRenderer renderer() throws IOException {
       try (JarFile jar = jar()) {
-        return jar.getEntry("static/" + REDWOOD_MARKER) != null;
+        return io.mateu.core.infra.ProjectRendererCheck.servedBy(
+            path -> jar.getEntry(path) != null);
       }
     }
   }

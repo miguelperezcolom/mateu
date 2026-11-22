@@ -21,10 +21,16 @@ internal static class ProjectRendererCheck
     /// the renderer's <c>static/</c>).</summary>
     public const string RedwoodMarker = "_redwood/app-flow.json";
 
+    /// <summary>A file only the Primer renderer ships (Java's PRIMER_MARKER, under its <c>static/</c>).</summary>
+    public const string PrimerMarker = "assets/mateu-primer.js";
+
+    /// <summary>The renderers a descriptor can name (Java's ProjectRenderer).</summary>
+    private static readonly string[] Known = ["vaadin", "redwood", "primer"];
+
     private static readonly IDeserializer Yaml = new DeserializerBuilder().Build();
 
     /// <summary>The renderer the project declares — <c>vaadin</c> (the default when the descriptor
-    /// names none) or <c>redwood</c> — or null when the specs have no descriptor (nothing declared):
+    /// names none), <c>redwood</c> or <c>primer</c> — or null when the specs have no descriptor (nothing declared):
     /// <c>project.yaml</c>, else the first <c>type: Project</c> file under the specs.</summary>
     public static string? Declared(string specsDir)
     {
@@ -51,7 +57,7 @@ internal static class ProjectRendererCheck
             if (Yaml.Deserialize<object?>(yaml) is not IDictionary<object, object> root) return null;
             if (!root.TryGetValue("type", out var type) || type?.ToString() != "Project") return null;
             var renderer = root.TryGetValue("renderer", out var r) ? r?.ToString()?.Trim().ToLowerInvariant() : null;
-            return renderer is "redwood" ? "redwood" : "vaadin";
+            return renderer is not null && Known.Contains(renderer) ? renderer : "vaadin";
         }
         catch (YamlDotNet.Core.YamlException)
         {
@@ -60,9 +66,13 @@ internal static class ProjectRendererCheck
     }
 
     /// <summary>The renderer this server serves: <c>redwood</c> when its files carry the Visual
-    /// Builder app, <c>vaadin</c> for any other page, null when it serves none (a headless backend).</summary>
+    /// Builder app, <c>primer</c> when they carry Primer's entry script, <c>vaadin</c> for any other
+    /// page, null when it serves none (a headless backend).</summary>
     public static string? Served(RendererFiles? renderer) =>
-        renderer is null ? null : renderer.Read(RedwoodMarker) is not null ? "redwood" : "vaadin";
+        renderer is null ? null
+        : renderer.Read(RedwoodMarker) is not null ? "redwood"
+        : renderer.Read(PrimerMarker) is not null ? "primer"
+        : "vaadin";
 
     /// <summary>The warning to log, or null when there is nothing to say: no descriptor, no renderer
     /// served, or both agree (Java's ProjectRendererCheck.mismatch, the coordinates in .NET's terms).</summary>
