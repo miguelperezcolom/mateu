@@ -28,5 +28,6 @@ export function kitContractOf(viewsDir: string): KitContract {
       }
     }
   }
-  return { kit: [...kit].sort(), icons: [...icons].sort() }
+  const byName = (a: string, b: string) => a.localeCompare(b, "en")
+  return { kit: [...kit].sort(byName), icons: [...icons].sort(byName) }
 }
