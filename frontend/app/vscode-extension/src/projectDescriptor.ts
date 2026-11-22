@@ -10,7 +10,7 @@ export const PROJECT_TYPE = 'Project'
 export const PROJECT_FILE_NAME = 'project.yaml'
 export const RENDERER_GROUP_ID = 'io.mateu'
 
-export type RendererId = 'vaadin' | 'redwood'
+export type RendererId = 'vaadin' | 'redwood' | 'primer'
 
 export interface RendererInfo {
     id: RendererId
@@ -22,6 +22,7 @@ export interface RendererInfo {
 export const RENDERERS: readonly RendererInfo[] = [
     { id: 'vaadin', label: 'Vaadin (Lumo)', artifactId: 'mateu-vaadin' },
     { id: 'redwood', label: 'Redwood (Oracle)', artifactId: 'mateu-redwood' },
+    { id: 'primer', label: 'Primer (GitHub, preview)', artifactId: 'mateu-primer' },
 ]
 
 export const DEFAULT_RENDERER: RendererId = 'vaadin'
@@ -67,7 +68,8 @@ export function newDescriptor(renderer: RendererId): string {
     return [
         '# The project descriptor: settings true of the whole project, not of one page.',
         '# renderer — the design system the project paints with: vaadin (io.mateu:mateu-vaadin, the',
-        '# default) or redwood (io.mateu:mateu-redwood). The visual editor and Play open in it and the static',
+        '# default), redwood (io.mateu:mateu-redwood) or primer (io.mateu:mateu-primer, preview). The visual',
+        '# editor and Play open in it (a Primer project previews with Vaadin there for now) and the static',
         '# bundle ships it; a served app still renders with its Maven dependency (the server warns when',
         '# the two disagree).',
         `type: ${PROJECT_TYPE}`,

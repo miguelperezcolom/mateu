@@ -6,6 +6,7 @@
 import { againstBase } from './backendUrl.ts';
 import { interpolateBody } from './jsonTemplate.ts';
 import { serverActivity, type ServerActivity } from './serverActivity.ts';
+import { ExternalServiceError } from './requestPolicy.ts';
 
 type Json = Record<string, any>;
 
@@ -335,7 +336,8 @@ export async function fetchExternalJson(
   // a screen waits for it: counted by the "waiting for the server" indicator until its body is read
   return sources.activity.track(async () => {
     const res = await fetch(url, init);
-    if (!res.ok) throw new Error(`External REST fetch failed: ${res.status}`);
+    // the SERVICE's status: its 401 is not the user's session (requestPolicy ExternalServiceError)
+    if (!res.ok) throw new ExternalServiceError(res.status);
     return jsonBodyOf(res);
   });
 }

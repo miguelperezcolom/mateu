@@ -32,6 +32,9 @@ const REVIEWED = {
   // MIT plus one condition: the bpmn.io watermark on rendered diagrams must stay visible and not be
   // overlapped. mateu-bpmn does not hide or restyle it — keep it that way.
   'bpmn-js': { licence: 'SEE LICENSE IN LICENSE', why: 'bpmn.io License (MIT + keep the bpmn.io watermark visible)' },
+  // W3C Software and Document License: permissive (notice + attribution), GPL- and Apache-compatible.
+  // Reached through @primer/react; its notice travels in the Primer jar's THIRD-PARTY-LICENSES.txt.
+  'focus-visible': { licence: 'W3C', why: 'W3C Software and Document License (permissive; keep its notice)' },
 }
 
 /** Whether `pkg` is reviewed for the licence it declares NOW (a release with another licence fails again). */

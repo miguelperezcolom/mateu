@@ -60,6 +60,10 @@ export interface ShortcutEntry {
   shortcut: string;
   scope: ShortcutScope;
   run: () => void;
+  /** The action the key runs (an `@Action(shortcut)`), when it is one. */
+  actionId?: string;
+  /** What a "keyboard shortcuts" list says it does (the action's id in words when nothing better is known). */
+  label?: string;
 }
 
 /** The shortcuts on screen for ONE app (each hub session owns one). */
@@ -92,6 +96,13 @@ export class KeyShortcutRegistry {
     return true;
   }
 
+  /** The shortcuts registered now, latest first within each scope (screen before app): what a help list shows. */
+  list(): ShortcutEntry[] {
+    return [...this.entries]
+      .sort((a, b) => (a.entry.scope === b.entry.scope ? b.seq - a.seq : a.entry.scope === 'screen' ? -1 : 1))
+      .map(({ entry }) => entry);
+  }
+
   /** How many shortcuts are registered (tests, diagnostics). */
   size(): number {
     return this.entries.length;
@@ -100,6 +111,17 @@ export class KeyShortcutRegistry {
 
 /** The process-wide registry: the single-backend app's. */
 export const sharedKeyShortcuts = new KeyShortcutRegistry();
+
+/** An action id in words, for a shortcut list (`syncNow` → "Sync now", `save-draft` → "Save draft"). */
+export function actionIdInWords(actionId: string): string {
+  const words = actionId
+    .replace(/^(nested-form-action-|action-on-row-)/, '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[-_.]+/g, ' ')
+    .trim()
+    .toLowerCase();
+  return words ? words[0].toUpperCase() + words.slice(1) : actionId;
+}
 
 /** The `@Action(shortcut)`s of a component's actions: [actionId, shortcut] pairs. */
 export function actionShortcutsOf(actions: unknown): { actionId: string; shortcut: string }[] {

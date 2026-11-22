@@ -27,11 +27,23 @@ export interface ActionFlags {
   /** `@Action(offline = QUEUE)` (wire `offline: "queue"`): kept in the offline send queue when it
    *  cannot reach the server (offlineQueue.ts). */
   offline: Record<string, boolean>;
+  /** `fieldsToValidate` (comma-separated on the wire): a PARTIAL validation — only these fields are
+   *  checked before the action runs (the web's checkValidations). */
+  fieldsToValidate: Record<string, string[]>;
+  /** `customEvent {eventName, detail}`: the action dispatches that event on the session's bus
+   *  (what `@SubscribeTo` hears) and is never sent to the server — the web's mateu-component rule. */
+  customEvent: Record<string, { eventName: string; detail: unknown }>;
+}
+
+/** A field list as the wire spells it: `"a,b"` or `["a", "b"]`; blanks dropped. */
+function fieldListOf(v: unknown): string[] {
+  const parts = Array.isArray(v) ? v : typeof v === 'string' ? v.split(',') : [];
+  return parts.map((p) => String(p ?? '').trim()).filter(Boolean);
 }
 
 /** Reads the flags of the wire `actions` list; entries without an id are skipped. */
 export function actionFlagsOf(actions: unknown): ActionFlags {
-  const flags: ActionFlags = { ids: [], validationRequired: {}, rowsSelectedRequired: {}, confirmation: {}, sse: {}, bubble: {}, restData: {}, timeoutMillis: {}, idempotent: {}, js: {}, offline: {} };
+  const flags: ActionFlags = { ids: [], validationRequired: {}, rowsSelectedRequired: {}, confirmation: {}, sse: {}, bubble: {}, restData: {}, timeoutMillis: {}, idempotent: {}, js: {}, offline: {}, fieldsToValidate: {}, customEvent: {} };
   for (const a of asArray(actions)) {
     const id = str(a['id']);
     if (!id) continue;
@@ -48,6 +60,11 @@ export function actionFlagsOf(actions: unknown): ActionFlags {
     if (a['idempotent'] === true) flags.idempotent[id] = true;
     if (typeof a['js'] === 'string' && a['js'].trim()) flags.js[id] = a['js'];
     if (a['offline'] === 'queue') flags.offline[id] = true;
+    const only = fieldListOf(a['fieldsToValidate']);
+    if (only.length > 0) flags.fieldsToValidate[id] = only;
+    const ce = a['customEvent'] as Json | null | undefined;
+    const ceName = ce && typeof ce === 'object' ? str(ce['eventName'] ?? ce['name']) : '';
+    if (ceName) flags.customEvent[id] = { eventName: ceName, detail: (ce as Json)['detail'] ?? null };
   }
   return flags;
 }
@@ -340,4 +357,23 @@ export function notificationToastOf(metadata: Json): { title: string | null; tex
   const text = str(metadata['text']) || str(metadata['message']) || title;
   const duration = Number(metadata['duration']) || undefined;
   return { title: title && text !== title ? title : null, text, variant, duration };
+}
+
+/** The errors of the fields an action validates (`fieldsToValidate`), or all of them. */
+export function onlyFields(errors: Record<string, string>, fields: string[] | undefined): Record<string, string> {
+  if (!fields || fields.length === 0) return errors;
+  return Object.fromEntries(Object.entries(errors).filter(([fieldId]) => fields.includes(fieldId)));
+}
+
+/**
+ * Whether an OnLoad trigger may fire now — its `times` (1 by default, 0 = unlimited) over the life
+ * of the screen — and counts the firing when it may (the web's claimOnLoadFiring).
+ */
+export function claimOnLoad(fired: Map<string, number>, actionId: string, times: unknown): boolean {
+  const n = Number(times);
+  const limit = Number.isFinite(n) && n >= 0 && times !== null && times !== undefined ? n : 1;
+  const count = fired.get(actionId) ?? 0;
+  if (limit > 0 && count >= limit) return false;
+  fired.set(actionId, count + 1);
+  return true;
 }

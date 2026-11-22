@@ -1,0 +1,18 @@
+/* the pressed control: its host pulses (a ::after on a component would not reach every button) */
+[data-mateu-pending] { animation: mateu-pending-pulse 1s ease-in-out infinite; cursor: progress; }
+@keyframes mateu-pending-pulse { 0%, 100% { opacity: 1 } 50% { opacity: .55 } }
+@media (prefers-reduced-motion: reduce) { [data-mateu-pending] { animation: none; opacity: .7 } }
+
+.mateu-busy-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; pointer-events: none; }
+.mateu-busy-bar > * { border-radius: 0; }
+
+/* always-light pastels with dark ink, readable in both colour modes (the web strip's rule) */
+.mateu-connectivity-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+  padding: var(--base-size-8, 8px) var(--base-size-16, 16px);
+  font: var(--text-body-shorthand-medium, 14px/1.5 sans-serif);
+  color: #1f2328; text-align: center;
+}
+.mateu-connectivity-banner.is-offline { background: #ffebe9; border-bottom: 1px solid #ff818266; }
+.mateu-connectivity-banner.is-restored { background: #dafbe1; border-bottom: 1px solid #4ac26b66; }
+body.mateu-has-connectivity-banner { padding-block-start: 2.5rem; }

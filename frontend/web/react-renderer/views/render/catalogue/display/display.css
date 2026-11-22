@@ -1,0 +1,173 @@
+/* The display family (catalogue/display): Primer tokens only, so light, dark and high contrast follow. */
+
+.mateu-muted { color: var(--fgColor-muted); }
+
+.mateu-link-button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-4);
+}
+
+/* ── hero ── */
+.mateu-hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--base-size-8);
+  padding: var(--base-size-40) var(--base-size-32);
+  border-radius: var(--borderRadius-large);
+  background-color: var(--bgColor-muted);
+  background-size: cover;
+  background-position: center;
+  border: var(--borderWidth-thin) solid var(--borderColor-muted);
+}
+.mateu-hero__overline { margin: 0; font: var(--text-caption-shorthand); font-weight: var(--base-text-weight-semibold); text-transform: uppercase; letter-spacing: .04em; color: var(--fgColor-muted); }
+.mateu-hero__title { margin: 0; font: var(--text-display-shorthand); font-size: var(--text-title-size-large); }
+.mateu-hero__subtitle { margin: 0; font: var(--text-body-shorthand-large); color: var(--fgColor-muted); }
+.mateu-hero__ctas { margin-top: var(--base-size-8); }
+/* on a photo or a dark tone band the ink is the on-emphasis one */
+.mateu-hero--band { border-color: transparent; }
+.mateu-hero--band .mateu-hero__title,
+.mateu-hero--band .mateu-hero__subtitle,
+.mateu-hero--band .mateu-hero__overline { color: var(--fgColor-onEmphasis); }
+
+/* ── entity header ── */
+.mateu-entity-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--base-size-16);
+  justify-content: space-between;
+  padding: var(--base-size-16);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-default);
+}
+.mateu-entity-header__main { min-width: 0; flex: 1 1 20rem; display: flex; flex-direction: column; gap: var(--base-size-8); }
+.mateu-entity-header__title { margin: 0; font: var(--text-title-shorthand-medium); }
+.mateu-entity-header .mateu-muted { margin: 0; }
+.mateu-entity-header__facts { display: flex; flex-wrap: wrap; gap: var(--base-size-8) var(--base-size-24); margin: 0; }
+.mateu-entity-header__facts dt { font: var(--text-caption-shorthand); color: var(--fgColor-muted); }
+.mateu-entity-header__facts dd { margin: 0; font-weight: var(--base-text-weight-semibold); }
+.mateu-entity-header__metric { text-align: right; align-self: center; }
+.mateu-entity-header__metric-value { font: var(--text-title-shorthand-large); }
+
+/* ── avatars ── */
+.mateu-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px var(--avatar-borderColor, var(--borderColor-translucent));
+  vertical-align: middle;
+}
+.mateu-avatar--initials { color: var(--fgColor-onEmphasis); font-weight: var(--base-text-weight-semibold); line-height: 1; user-select: none; }
+.mateu-avatar-group { display: inline-flex; align-items: center; }
+.mateu-avatar-group__item { display: inline-flex; border-radius: 50%; box-shadow: 0 0 0 2px var(--bgColor-default); }
+.mateu-avatar-group__item + .mateu-avatar-group__item { margin-inline-start: calc(-1 * var(--base-size-4)); }
+.mateu-avatar-group__more {
+  width: 28px; height: 28px; justify-content: center; align-items: center;
+  background: var(--bgColor-neutral-muted); color: var(--fgColor-muted);
+  font: var(--text-caption-shorthand); font-weight: var(--base-text-weight-semibold);
+}
+.mateu-icon { display: inline-flex; color: var(--fgColor-muted); }
+
+/* ── disclosures ── */
+.mateu-details, .mateu-faq__item {
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-default);
+}
+.mateu-details > summary, .mateu-faq__item > summary {
+  display: flex; align-items: center; gap: var(--base-size-8);
+  padding: var(--base-size-8) var(--base-size-12);
+  cursor: pointer; list-style: none;
+  font-weight: var(--base-text-weight-semibold);
+}
+.mateu-details > summary::-webkit-details-marker, .mateu-faq__item > summary::-webkit-details-marker { display: none; }
+.mateu-details > summary:focus-visible, .mateu-faq__item > summary:focus-visible { outline: 2px solid var(--focus-outlineColor); outline-offset: -2px; }
+.mateu-details__summary { min-width: 0; }
+.mateu-details__summary > * { margin: 0; }
+.mateu-details__body, .mateu-faq__answer { padding: var(--base-size-8) var(--base-size-12) var(--base-size-12); border-top: var(--borderWidth-thin) solid var(--borderColor-muted); }
+.mateu-faq { display: flex; flex-direction: column; gap: var(--base-size-8); }
+.mateu-faq__item > summary::before { content: '+'; width: 1em; color: var(--fgColor-muted); }
+.mateu-faq__item[open] > summary::before { content: '−'; }
+
+.mateu-tooltip-anchor, .mateu-popover-anchor { display: inline-flex; border-radius: var(--borderRadius-small); }
+.mateu-tooltip-anchor:focus-visible, .mateu-popover-anchor:focus-visible { outline: 2px solid var(--focus-outlineColor); outline-offset: 2px; }
+.mateu-popover-anchor { cursor: pointer; }
+.mateu-tooltip-anchor--plain { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: help; }
+.mateu-popover-body { padding: var(--base-size-12) var(--base-size-16); max-width: 24rem; }
+
+.mateu-form-item { display: flex; flex-direction: column; gap: var(--base-size-4); }
+.mateu-form-item__label { font-weight: var(--base-text-weight-semibold); font-size: var(--text-body-size-medium); }
+
+/* ── landing blocks ── */
+.mateu-feature-grid { display: grid; gap: var(--base-size-16); grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr)); }
+.mateu-card {
+  display: flex; flex-direction: column; gap: var(--base-size-8);
+  padding: var(--base-size-16);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-default);
+  color: var(--fgColor-default);
+  text-align: left;
+  font: inherit;
+}
+.mateu-card p { margin: 0; }
+.mateu-card--action { cursor: pointer; }
+.mateu-card--action:hover { background: var(--bgColor-muted); border-color: var(--borderColor-emphasis); }
+.mateu-card--action:focus-visible { outline: 2px solid var(--focus-outlineColor); outline-offset: 2px; }
+.mateu-feature-grid__icon { font-size: var(--text-title-size-medium); color: var(--fgColor-accent); }
+.mateu-feature-grid__title { margin: 0; font: var(--text-title-shorthand-small); }
+.mateu-testimonial { margin: 0; }
+.mateu-testimonial blockquote { margin: 0; font: var(--text-body-shorthand-large); }
+.mateu-testimonial figcaption { display: flex; align-items: center; gap: var(--base-size-8); margin-top: auto; }
+.mateu-testimonial__stars { display: flex; gap: var(--base-size-2); color: var(--fgColor-attention); }
+
+.mateu-cookie-consent {
+  position: fixed; z-index: 100;
+  display: flex; align-items: center; gap: var(--base-size-12); flex-wrap: wrap;
+  max-width: 28rem;
+  padding: var(--base-size-12) var(--base-size-16);
+  background: var(--overlay-bgColor);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-large);
+  box-shadow: var(--shadow-floating-large);
+}
+.mateu-cookie-consent p { margin: 0; flex: 1 1 14rem; }
+.mateu-cookie-consent--bottom, .mateu-cookie-consent--top { left: 50%; transform: translateX(-50%); max-width: min(48rem, calc(100% - 2 * var(--base-size-16))); width: max-content; }
+.mateu-cookie-consent--bottom, .mateu-cookie-consent--bottomleft, .mateu-cookie-consent--bottomright { bottom: var(--base-size-16); }
+.mateu-cookie-consent--top, .mateu-cookie-consent--topleft, .mateu-cookie-consent--topright { top: var(--base-size-16); }
+.mateu-cookie-consent--bottomleft, .mateu-cookie-consent--topleft { left: var(--base-size-16); }
+.mateu-cookie-consent--bottomright, .mateu-cookie-consent--topright { right: var(--base-size-16); }
+
+/* ── activity ── */
+.mateu-comment-thread { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--base-size-12); }
+.mateu-comment { display: grid; grid-template-columns: auto 1fr; gap: var(--base-size-8) var(--base-size-12); align-items: start; }
+.mateu-comment > .mateu-comment-thread { grid-column: 1 / -1; }
+.mateu-comment__box { border: var(--borderWidth-thin) solid var(--borderColor-default); border-radius: var(--borderRadius-medium); background: var(--bgColor-default); overflow: hidden; }
+.mateu-comment__head { padding: var(--base-size-8) var(--base-size-16); background: var(--bgColor-muted); border-bottom: var(--borderWidth-thin) solid var(--borderColor-default); }
+.mateu-comment__body { padding: var(--base-size-12) var(--base-size-16); }
+
+.mateu-file-list { list-style: none; margin: 0; padding: 0; border: var(--borderWidth-thin) solid var(--borderColor-default); border-radius: var(--borderRadius-medium); }
+.mateu-file-list li { display: flex; align-items: center; gap: var(--base-size-8); padding: var(--base-size-8) var(--base-size-16); color: var(--fgColor-muted); }
+.mateu-file-list li + li { border-top: var(--borderWidth-thin) solid var(--borderColor-muted); }
+.mateu-file-list li > :nth-child(2) { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+
+.mateu-message-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--base-size-12); }
+.mateu-message-list li { display: flex; gap: var(--base-size-12); align-items: flex-start; }
+.mateu-message-input { display: flex; gap: var(--base-size-8); align-items: flex-end; }
+.mateu-message-input > :first-child { flex: 1; }
+
+.mateu-chat { display: flex; flex-direction: column; gap: var(--base-size-8); border: var(--borderWidth-thin) solid var(--borderColor-default); border-radius: var(--borderRadius-medium); padding: var(--base-size-12); background: var(--bgColor-default); }
+.mateu-chat__messages { display: flex; flex-direction: column; gap: var(--base-size-8); max-height: 24rem; min-height: 6rem; overflow-y: auto; }
+.mateu-chat__bubble { max-width: 85%; padding: var(--base-size-8) var(--base-size-12); border-radius: var(--borderRadius-large); }
+.mateu-chat__bubble--user { align-self: flex-end; background: var(--bgColor-accent-emphasis); color: var(--fgColor-onEmphasis); white-space: pre-wrap; }
+.mateu-chat__bubble--agent { align-self: flex-start; background: var(--bgColor-muted); }

@@ -35,16 +35,23 @@ check() {
 
   # The newest source commit, ignoring test files (they do not end up in the bundle).
   local source_commit
-  source_commit=$(git log -1 --format=%H -- $sources ':(exclude)**/*.test.ts' ':(exclude)**/*.spec.ts')
+  # tests, docs and the shared React tree's build-time checks never reach a bundle
+  source_commit=$(git log -1 --format=%H -- $sources ':(exclude)**/*.test.ts' ':(exclude)**/*.spec.ts' \
+    ':(exclude)**/README.md' ':(exclude)frontend/web/react-renderer/scripts/**' ':(exclude)frontend/web/react-renderer/views/kit-contract.json')
   if [ -z "$source_commit" ]; then
     status=1
     echo "?? $name: no commit found for its sources ($sources) — they moved; fix this script"
     return
   fi
 
-  # Fresh when the last source change is an ancestor of (or the same as) the last bundle change.
+  # Fresh when the last source change is an ancestor of (or the same as) the last bundle change —
+  # or when the sources read now exactly as they did where the bundle was built: a change undone
+  # later (a lockfile edited and restored) leaves commits in the history but nothing to rebuild.
   if git merge-base --is-ancestor "$source_commit" "$bundle_commit"; then
     echo "OK $name: bundle is at or after its source"
+  elif git diff --quiet "$bundle_commit" HEAD -- $sources ':(exclude)**/*.test.ts' ':(exclude)**/*.spec.ts' \
+      ':(exclude)**/README.md' ':(exclude)frontend/web/react-renderer/scripts/**' ':(exclude)frontend/web/react-renderer/views/kit-contract.json'; then
+    echo "OK $name: its sources read as they did where the bundle was built"
   else
     status=1
     echo
@@ -69,6 +76,12 @@ if [ -d "backend/shared/frontend/vaadin-lit/src/main/resources/META-INF/resource
   status=1
   echo "STALE  vaadin: old layout left behind (META-INF/resources/) - npm run copy removes it"
 fi
+
+# Primer (preview): its bundle is built from its own app, the shared React renderer tree
+# (frontend/web/react-renderer) AND the React Native core it runs on
+check primer \
+  "backend/shared/frontend/primer/src/main/resources/static/assets/mateu-primer.js" \
+  "frontend/web/monorepo/apps/primer/src frontend/web/monorepo/apps/primer/index.html frontend/web/monorepo/apps/primer/vite.config.ts frontend/web/monorepo/apps/primer/package.json frontend/web/monorepo/apps/primer/package-lock.json frontend/web/react-renderer frontend/app/react-native/src/core frontend/app/react-native/src/renderer frontend/app/react-native/src/api frontend/app/react-native/src/a11y"
 
 # Redwood: the jar is stamped with a hash of the sources it was built from (static/mateu-build-info.json,
 # written by apps/redwood/scripts/copy.mjs; apps/redwood/scripts/source-hash.mjs defines the sources).

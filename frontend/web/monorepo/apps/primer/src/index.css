@@ -1,0 +1,11 @@
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bgColor-default);
+  color: var(--fgColor-default);
+}
+
+/* the served page's mount marker (IndexPage writes it in the root-element region): data, not UI */
+mateu-ui, #mateu-primer {
+  display: none !important;
+}

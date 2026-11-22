@@ -84,6 +84,29 @@ class ProjectRendererCheckTest {
   }
 
   @Test
+  void detectsPrimer() throws Exception {
+    assertThat(
+            ProjectRendererCheck.served(
+                classpath(
+                    Map.of("static/_index.html", "<html/>", "static/assets/mateu-primer.js", ""))))
+        .isEqualTo(ProjectRenderer.primer);
+    assertThat(ProjectRendererCheck.parse("type: Project\nrenderer: primer\n"))
+        .map(ProjectSettings::renderer)
+        .contains(ProjectRenderer.primer);
+  }
+
+  @Test
+  void aPrimerClasspathWithAVaadinDescriptorWarns() {
+    assertThat(
+            ProjectRendererCheck.mismatch(
+                new ProjectSettings(ProjectRenderer.vaadin), ProjectRenderer.primer))
+        .get()
+        .asString()
+        .contains("io.mateu:mateu-primer")
+        .contains("io.mateu:mateu-vaadin");
+  }
+
+  @Test
   void aHeadlessServerServesNone() throws Exception {
     assertThat(ProjectRendererCheck.served(classpath(Map.of("x.txt", "")))).isNull();
   }

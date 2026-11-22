@@ -569,7 +569,8 @@ test('a write whose proxied call fails says so — not its success message', asy
   await c.initialLoad('/orders');
   await c.runAction('remove');
   assert.notEqual(notes.at(-1)!.text, 'Deleted');
-  assert.match(notes.at(-1)!.text, /could not complete the request \(error 500\)/);
+  // the SERVICE's failure, in the web's words (handleProxyResult) — not the Mateu server's
+  assert.match(notes.at(-1)!.text, /Request failed \(HTTP 500\)/);
 });
 
 test('forEachSelectedRow: a proxied source loops on the server (one call), a direct one per checked row', async () => {
@@ -604,6 +605,12 @@ test('mountServerSide (embedded island) renders the node with its initialData', 
   c.mountServerSide(ssc({ route: '/island', serverSideType: 'app.Island', initialData: { k: 1 } }));
   assert.equal(c.currentRoute, '/island');
   assert.deepEqual(renders.at(-1)!.state, { k: 1 });
+});
+
+test('mountServerSide keeps the island node\'s own data (a lookup\'s labels)', () => {
+  const { c, renders } = harness();
+  c.mountServerSide({ ...ssc({ route: '/island', serverSideType: 'app.Island', initialData: { author: 'g2' } }), data: { author: [{ value: 'g2', label: 'Alan Turing' }] } });
+  assert.deepEqual(renders.at(-1)!.data, { author: [{ value: 'g2', label: 'Alan Turing' }] });
 });
 
 test('validation falls back to the legacy matcher for syntax the parser does not cover', async () => {
@@ -942,4 +949,126 @@ test('@Action(shortcut): the shown view registers its keys in the session; anoth
   assert.equal(session.keyShortcuts.size(), 1);
   c.dispose();
   assert.equal(session.keyShortcuts.size(), 0);
+});
+
+test('a @Searchable selector pick in a dialog lands on the form that opened it: value, label, and the dialog closes', async () => {
+  const pick = {
+    commands: [
+      { type: 'DispatchEvent', data: { eventName: 'value-changed', detail: { value: 'menorca', fieldId: 'zona' } } },
+      { type: 'DispatchEvent', data: { eventName: 'data-changed', detail: { value: 'Menorca', key: 'zona-label' } } },
+      { type: 'DispatchEvent', data: { eventName: 'close-modal-requested', detail: null } },
+    ],
+  };
+  const { c: form, session } = harness([fragment(ssc({ actions: [{ id: 'codesearch-zona' }] }))])
+  await form.navigate('/orders', '', '');
+  let closed = 0;
+  const bus: string[] = [];
+  session.closeTopOverlay = () => { closed++; };
+  session.dispatchEvent = (name: string) => { bus.push(name); };
+  // the selector listing inside the dialog: its own controller, opened by the form
+  const selector = new MateuViewController(session);
+  selector.openerController = form;
+  (session as any).api.runAction = () => Promise.resolve(pick);
+  selector.mountServerSide(ssc({ id: 'sel', serverSideType: 'app.ZoneSelector', actions: [{ id: 'action-on-row-select' }] }));
+  await selector.runAction('action-on-row-select', { _clickedRow: { id: 'menorca' } });
+  assert.equal(form.currentComponentState['zona'], 'menorca');
+  assert.equal((form.rendered.data as Json)['zona-label'], 'Menorca');
+  assert.equal(selector.currentComponentState['zona'], undefined);
+  assert.equal(closed, 1);
+  assert.deepEqual(bus, []);
+});
+
+test('a dispatched event that is not one of the form events still travels on the bus', async () => {
+  const { c, session } = harness([fragment(ssc()), { commands: [{ type: 'DispatchEvent', data: { eventName: 'pax-selected', detail: { n: 2 } } }] }]);
+  const bus: string[] = [];
+  session.dispatchEvent = (name: string) => { bus.push(name); };
+  await c.navigate('/orders', '', '');
+  await c.runAction('pick');
+  assert.deepEqual(bus, ['pax-selected']);
+});
+
+test('a list field\'s row editor aimed at <field>-container is drawn in that container, not over the view', async () => {
+  const editor = { type: 'ServerSide', id: 'ed1', serverSideType: 'app.Guest', children: [{ type: 'ClientSide', metadata: { type: 'Form', title: 'Edit guest' } }], initialData: { name: 'Ada', _rowNumber: 0 } };
+  const { c, renders } = harness([
+    fragment(ssc({ actions: [{ id: 'guests_select' }, { id: 'guests_save' }] }), { guests: [{ name: 'Ada', _rowNumber: 0 }] }),
+    { fragments: [
+      { targetComponentId: 'cmp1', action: 'Replace', component: null, state: { guests: [{ name: 'Ada', _rowNumber: 0 }], _show_detail: { guests: true } } },
+      { targetComponentId: 'guests-container', action: 'Replace', component: editor, state: null, data: null },
+    ] },
+  ]);
+  await c.navigate('/orders', '', '');
+  const shown = renders.at(-1)!.component;
+  const drawn: Json[] = [];
+  const off = c.registerContainer('guests-container', (component) => drawn.push(component));
+  await c.runAction('guests_select', { name: 'Ada', _rowNumber: 0 });
+  assert.deepEqual(drawn, [editor]);
+  assert.equal(renders.at(-1)!.component, shown);
+  assert.deepEqual(c.currentComponentState['_show_detail'], { guests: true });
+  // Next: the next row as the container's state
+  const states: Json[] = [];
+  c.registerContainer('guests-container', (component, state) => states.push({ component, state }));
+  c.applyIncrement({ fragments: [{ targetComponentId: 'guests-container', action: 'Replace', component: null, state: { name: 'Alan', _rowNumber: 1 } }] });
+  assert.deepEqual(states, [{ component: null, state: { name: 'Alan', _rowNumber: 1 } }]);
+  assert.equal(c.currentComponentState['name'], undefined);
+  off();
+});
+
+test('an action a nested view does not own goes to the view it is drawn in, with its state as initiatorState', async () => {
+  const { c: holder, calls } = harness([fragment(ssc({ actions: [{ id: 'guests_save' }] }), { guests: [{ name: 'Ada', _rowNumber: 0 }] }), {}]);
+  await holder.navigate('/orders', '', '');
+  const editor = new MateuViewController(holder.session);
+  editor.bubbleTo = holder;
+  editor.mountServerSide({ type: 'ServerSide', id: 'ed1', serverSideType: 'app.Guest', children: [{ type: 'ClientSide', metadata: { type: 'Form' } }], initialData: { name: 'Ada', _rowNumber: 0 } });
+  editor.putState('name', 'Ada L.');
+  await editor.runAction('guests_save');
+  const sent = calls.at(-1)!;
+  assert.equal(sent.actionId, 'guests_save');
+  assert.equal(sent.serverSideType, 'app.Orders');
+  assert.deepEqual(sent.parameters.initiatorState, { name: 'Ada L.', _rowNumber: 0 });
+  assert.deepEqual(sent.componentState.guests, [{ name: 'Ada', _rowNumber: 0 }]);
+});
+
+test('fieldsToValidate: a partial validation checks only the named fields', async () => {
+  const { c, calls } = harness([
+    fragment(ssc({
+      actions: [{ id: 'checkEmail', validationRequired: true, fieldsToValidate: 'email' }],
+      validations: [
+        { fieldId: 'email', condition: "state['email']", message: 'Required' },
+        { fieldId: 'name', condition: "state['name']", message: 'Required' },
+      ],
+    })),
+    {},
+  ]);
+  await c.initialLoad('/orders');
+  c.putState('email', 'ana@example.com');
+  await c.runAction('checkEmail');
+  assert.deepEqual(c.fieldErrors, {});
+  assert.equal(calls.filter((x) => x.actionId === 'checkEmail').length, 1, 'name is not checked, so it is sent');
+});
+
+test('customEvent: the action dispatches its event on the bus and is not sent', async () => {
+  const { session, c, calls } = harness([fragment(ssc({ actions: [{ id: 'pick', customEvent: { eventName: 'room-picked', detail: { room: 12 } } }] }))]);
+  await c.initialLoad('/orders');
+  const heard: unknown[] = [];
+  session.subscribe({}, 'room-picked', (p) => { heard.push(p); return true; });
+  await c.runAction('pick');
+  assert.deepEqual(heard, [{ room: 12 }]);
+  assert.equal(calls.filter((x) => x.actionId === 'pick').length, 0);
+});
+
+test('OnLoad `times`: once by default across in-place re-renders; 0 re-fires on each', async () => {
+  const onLoad = (actionId: string, times?: number) => ({ type: 'OnLoad', actionId, timeoutMillis: 0, ...(times === undefined ? {} : { times }) });
+  const screen = () => fragment(ssc({ actions: [{ id: 'refresh' }, { id: 'poll' }], triggers: [onLoad('refresh'), onLoad('poll', 0)] }));
+  const { c, calls } = harness([screen(), screen(), screen(), screen(), screen()]);
+  await c.initialLoad('/orders');
+  await tick(); await tick();
+  const count = (id: string) => calls.filter((x) => x.actionId === id).length;
+  assert.equal(count('refresh'), 1);
+  assert.ok(count('poll') >= 1);
+  const pollBefore = count('poll');
+  // the same screen answered again (an action returning `this`)
+  c.applyIncrement(screen() as Json);
+  await tick(); await tick();
+  assert.equal(count('refresh'), 1, 'times = 1 means once for the screen');
+  assert.ok(count('poll') > pollBefore, 'times = 0 fires on every render');
 });

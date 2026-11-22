@@ -48,6 +48,12 @@ export const TARGETS = {
     entries: ['.'],
     notBundled: {},
   },
+  // the Primer renderer (preview): its own install, outside the monorepo workspaces
+  primer: {
+    dir: 'frontend/web/monorepo/apps/primer',
+    entries: ['.'],
+    notBundled: {},
+  },
 }
 
 // One shipped bundle each: the notices file that travels inside it (third-party-notices.mjs).
@@ -63,6 +69,12 @@ export const BUNDLES = {
     dir: 'frontend/web/monorepo',
     entries: ['apps/visual-editor', 'libs/mateu'],
     notBundled: VCF_DEV_SERVER,
+  },
+  // the io.mateu:mateu-primer jar (Primer React; the React Native core it runs on is ours)
+  primer: {
+    dir: 'frontend/web/monorepo/apps/primer',
+    entries: ['.'],
+    notBundled: {},
   },
 }
 

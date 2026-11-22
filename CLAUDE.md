@@ -71,7 +71,20 @@ frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo (workspaces: apps/*, 
                             referencia: demo/demo-vb (:9005). Ver README/DESIGN-NOTES/ROADMAP en
                             el propio directorio.
                             (Los renderers sapui5, redwood-oj (OJET), redhat/PatternFly y slds
-                            fueron RETIRADOS — los web soportados son vaadin y la línea VB.)
+                            fueron RETIRADOS — los web soportados son vaadin, la línea VB y,
+                            en PREVIEW, primer.)
+  apps/primer/            ← GitHub Primer renderer (PREVIEW, 2026-11): Primer React over the React
+                            Native renderer's CORE imported in place (@rn alias + web shims) and the
+                            design-system-neutral React layer in frontend/web/react-renderer (@mr —
+                            useMateuApp + a hook per shell feature, and the VIEWS in views/, drawn
+                            with an abstract `@kit` = here Primer React; another React renderer
+                            writes a kit with the names in views/kit-contract.json + overrides in
+                            src/overrides/<path> for a structure of its own — never a copy;
+                            boundary.test.ts keeps every DS import out of it). EXCLUDED from the workspaces (`!apps/primer`, own
+                            lockfile: the shared lockfile is a Vaadin freshness source). `npm run copy`
+                            → backend/shared/frontend/primer (jar io.mateu:mateu-primer). Validated by
+                            walking every demo-explorer URL + e2e/primer-*-probe.mjs (CI job
+                            renderer-primer). A new renderer name: design/renderers/new-renderer-checklist.md
 
 frontend/app/             ← Native (non-browser) renderers — all speak the same /mateu/v3/sync API
   react-native/           ← Mobile (Expo/TypeScript) — iOS & Android; boots via the app registry.
@@ -585,7 +598,7 @@ ported to .NET/Python.
   editor, a bundle built with `-Dmateu.bundle.mock=true`, an app run with `mateu.sources.mock=true` /
   `MATEU_SOURCES_MOCK=true` (`AppDto.mockSources`); writes succeed without persisting. Never
   otherwise, and outside sample mode the samples do not travel.
-- **Project settings** — `specs/ui/project.yaml` (`type: Project`): `renderer: vaadin|redwood`,
+- **Project settings** — `specs/ui/project.yaml` (`type: Project`): `renderer: vaadin|redwood|primer`,
   chosen once for the editor canvas, Play, `mateu-bundle:bundle` (`-Dmateu.bundle.renderer`
   overrides) and the IDEs; the server warns at startup when the classpath serves another renderer.
   Docs `define/yaml/project-settings.md`.

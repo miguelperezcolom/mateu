@@ -7,6 +7,7 @@ import {
   isMateuForbidden,
   isStaleScreenError,
   rendererHeaderValue,
+  setRendererName,
   setRendererVersion,
   skewTexts,
 } from './buildSkew.ts';
@@ -19,6 +20,13 @@ test('renderer header: name, app version and the wire this build speaks', () => 
   assert.equal(rendererHeaderValue(), 'react-native/unknown wire/3.0');
   setRendererVersion(' 1.0.0 ');
   assert.equal(rendererHeaderValue(), 'react-native/1.0.0 wire/3.0');
+});
+
+test('renderer header: another renderer on this core names itself (the Primer web renderer)', () => {
+  setRendererName('primer');
+  assert.equal(rendererHeaderValue('0.0.1', '3.0'), 'primer/0.0.1 wire/3.0');
+  setRendererName('');
+  assert.equal(rendererHeaderValue('0.0.1', '3.0'), 'react-native/0.0.1 wire/3.0');
 });
 
 test('backend key: the url up to the /mateu/ segment', () => {

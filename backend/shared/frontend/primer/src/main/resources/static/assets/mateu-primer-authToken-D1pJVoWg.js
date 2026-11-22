@@ -1,0 +1,1 @@
+export{h as setAuthToken}from"./mateu-primer-signInBridge-BPURprx2.js";

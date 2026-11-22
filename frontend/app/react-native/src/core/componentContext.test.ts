@@ -2,6 +2,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  onlyFields,
+  claimOnLoad,
   actionFlagsOf, actionTargetOf, appHomeOf, fieldErrorsOf, routeQueryOf, seedSearchFromRoute, namedEventOf, orchestratorOf,
   buttonActionClaimed, ownsAction, seedSearchDefaults, subscriptionParameters, toastOf, triggerPlanOf,
 } from './componentContext.ts';
@@ -168,4 +170,34 @@ test('floating components: a Notification toasts, a Dialog/ConfirmDialog/Drawer 
   assert.equal(floatingIntentOf('Replace', { type: 'ServerSide', metadata: { type: 'Dialog' } }, true), null);
   assert.deepEqual(notificationToastOf({ title: 'Saved', text: 'All good', theme: 'error' }), { title: 'Saved', text: 'All good', variant: 'error', duration: undefined });
   assert.deepEqual(notificationToastOf({ title: 'Only a title' }), { title: null, text: 'Only a title', variant: 'info', duration: undefined });
+});
+
+// ── ActionDto fieldsToValidate / customEvent, OnLoad `times` (the web's rules) ──
+
+test('actionFlagsOf: fieldsToValidate (comma list or array) and a customEvent', () => {
+  const flags = actionFlagsOf([
+    { id: 'checkEmail', validationRequired: true, fieldsToValidate: 'email, phone' },
+    { id: 'pick', fieldsToValidate: ['a', '', 'b'] },
+    { id: 'notify', customEvent: { eventName: 'room-picked', detail: { room: 12 } } },
+    { id: 'plain' },
+  ]);
+  assert.deepEqual(flags.fieldsToValidate, { checkEmail: ['email', 'phone'], pick: ['a', 'b'] });
+  assert.deepEqual(flags.customEvent, { notify: { eventName: 'room-picked', detail: { room: 12 } } });
+});
+
+test('onlyFields: a partial validation keeps the named fields only; none named = all', () => {
+  const errors = { email: 'Cannot be empty', name: 'Cannot be empty' };
+  assert.deepEqual(onlyFields(errors, ['email']), { email: 'Cannot be empty' });
+  assert.deepEqual(onlyFields(errors, undefined), errors);
+  assert.deepEqual(onlyFields(errors, []), errors);
+});
+
+test('claimOnLoad: once by default, `times` caps it, 0 = unlimited', () => {
+  const fired = new Map<string, number>();
+  assert.equal(claimOnLoad(fired, 'search', undefined), true);
+  assert.equal(claimOnLoad(fired, 'search', undefined), false);
+  assert.equal(claimOnLoad(fired, 'tick', 2), true);
+  assert.equal(claimOnLoad(fired, 'tick', 2), true);
+  assert.equal(claimOnLoad(fired, 'tick', 2), false);
+  for (let i = 0; i < 5; i++) assert.equal(claimOnLoad(fired, 'poll', 0), true);
 });

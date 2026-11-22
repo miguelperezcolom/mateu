@@ -1,0 +1,79 @@
+/* ── page width (fixed / full / edge — the Redwood template parameter, Primer's container widths) ── */
+.mateu-view[data-page-width="fixed"] { margin-inline: auto; }
+.mateu-view[data-page-width="full"] { max-width: none; }
+/* edge: the content area's gutter is given back (the shell pads 24px, 16px on a phone) */
+.mateu-view[data-page-width="edge"] { max-width: none; margin-inline: calc(-1 * var(--base-size-24)); }
+@media (max-width: 767px) { .mateu-view[data-page-width="edge"] { margin-inline: calc(-1 * var(--base-size-16)); } }
+/* …but the page's own header and banners keep it (an island's page inside is sized by its host) */
+.mateu-view[data-page-width="edge"] .mateu-page:not(.mateu-page .mateu-page) > * > :is(.mateu-page-header-wrap, .mateu-page-banners) { padding-inline: var(--base-size-24); }
+@media (max-width: 767px) {
+  .mateu-view[data-page-width="edge"] .mateu-page:not(.mateu-page .mateu-page) > * > :is(.mateu-page-header-wrap, .mateu-page-banners) { padding-inline: var(--base-size-16); }
+}
+
+/* ── the header ── */
+.mateu-page-overline {
+  font: var(--text-caption-shorthand, 600 12px/1.5 sans-serif);
+  font-weight: var(--base-text-weight-semibold, 600);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--fgColor-muted);
+}
+.mateu-page-title-placeholder { color: var(--fgColor-muted); font-style: italic; font-weight: var(--base-text-weight-normal, 400); }
+.mateu-page-timestamp { color: var(--fgColor-muted); font-size: var(--text-body-size-small, 12px); }
+.mateu-page-subtitle { color: var(--fgColor-muted); }
+.mateu-page-facts { display: flex; flex-wrap: wrap; gap: var(--base-size-24); margin-top: var(--base-size-8); }
+.mateu-page-fact { display: flex; flex-direction: column; min-width: 0; }
+.mateu-page-fact-label { color: var(--fgColor-muted); font-size: var(--text-body-size-small, 12px); }
+.mateu-page-fact-value { font-weight: var(--base-text-weight-semibold, 600); }
+.mateu-page-toolbar-divider { align-self: stretch; border-inline-start: var(--borderWidth-thin) solid var(--borderColor-muted); margin-inline: var(--base-size-4); }
+.mateu-page-footer { display: flex; flex-wrap: wrap; gap: var(--base-size-8); }
+
+/* docs mode (the index is shown): the header stays on screen under the app header */
+.mateu-page-header-wrap.is-sticky {
+  position: sticky;
+  top: var(--mateu-shell-sticky-top, 0px);
+  z-index: 3;
+  background: var(--bgColor-default);
+  padding-block: var(--base-size-8);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
+}
+
+/* ── @Toc: content + a sticky right-hand index ── */
+.mateu-page-body.with-toc { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: var(--base-size-24); align-items: start; }
+.mateu-page-toc {
+  position: sticky;
+  top: calc(var(--mateu-page-pinned-top, 0px) + var(--base-size-16));
+  max-height: calc(100vh - var(--mateu-page-pinned-top, 0px) - var(--base-size-32));
+  overflow-y: auto;
+}
+.mateu-page-toc-key {
+  margin-inline-start: auto;
+  font: var(--text-caption-shorthand, 12px/1.5 sans-serif);
+  color: var(--fgColor-muted);
+  border: var(--borderWidth-thin) solid var(--borderColor-muted);
+  border-radius: var(--borderRadius-small);
+  padding: 0 var(--base-size-4);
+  font-family: var(--fontStack-monospace);
+}
+@media (max-width: 1011px) {
+  .mateu-page-body.with-toc { grid-template-columns: minmax(0, 1fr); }
+  .mateu-page-toc { position: static; max-height: none; order: -1; }
+}
+/* a pinned @Section stacks under the header (its top is measured: .mateu-page-toc.ts) */
+.mateu-page section.mateu-section--sticky { z-index: 2; box-shadow: 0 calc(-1 * var(--base-size-8)) 0 0 var(--bgColor-default); }
+/* a section heading the index moved the focus to (for the screen reader) draws no focus box */
+.mateu-focus-target:focus { outline: none; }
+
+/* ── @Compact: high density — lower controls, tighter spacing, the text keeps its size ── */
+.mateu-compact {
+  --control-medium-size: var(--control-small-size, 28px);
+  --control-medium-paddingBlock: var(--control-small-paddingBlock, 4px);
+  --control-medium-paddingInline-normal: var(--control-small-paddingInline-normal, 12px);
+  --stack-gap-normal: var(--base-size-8);
+  --stack-gap-spacious: var(--base-size-12);
+}
+.mateu-compact .FormControl-label, .mateu-compact label { font-size: var(--text-body-size-small, 12px); }
+/* Primer's inputs size from their wrapper (32px): the small control height, like size="small" */
+.mateu-compact .TextInput-wrapper:not(:has(textarea)) { min-height: var(--control-small-size, 28px); height: var(--control-small-size, 28px); }
+.mateu-compact select { height: var(--control-small-size, 28px); }
+.mateu-compact section { padding: var(--base-size-8) var(--base-size-12) !important; }

@@ -4,7 +4,7 @@ import { evaluateExpression, interpolate, interpolateUrl } from './expressions.t
 import { applyClientRules, ruleRequiredErrorsOf } from './clientRules.ts';
 import { isStaleScreenError } from './buildSkew.ts';
 import { isLeaveAction } from './leaveActions.ts';
-import { actionFlagsOf, actionTargetOf, appHomeOf, buttonActionClaimed, floatingIntentOf, notificationToastOf, valueChangeActionsOf, type ValueChangeTrigger, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
+import { actionFlagsOf, actionTargetOf, appHomeOf, buttonActionClaimed, floatingIntentOf, notificationToastOf, valueChangeActionsOf, type ValueChangeTrigger, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf, onlyFields, claimOnLoad } from './componentContext.ts';
 import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, isErrorAnswer, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
@@ -22,9 +22,9 @@ import { isClientRunnable, resolveAction, resolveFlowCommand, type ShellAction }
 import type { ConfirmationDialogTexts } from './actionConfirmation.ts';
 import { finishedAnnouncement, progressOf, type TaskAction, type TaskEvent } from './taskCenter.ts';
 import { inboxChangeOf } from './inbox.ts';
-import { classifyFailure, describeFailure, HttpStatusError, isIdempotentAction } from './requestPolicy.ts';
+import { classifyFailure, describeFailure, ExternalServiceError, isIdempotentAction } from './requestPolicy.ts';
 import { connectivity } from './connectivity.ts';
-import { actionShortcutsOf } from './keyShortcuts.ts';
+import { actionIdInWords, actionShortcutsOf } from './keyShortcuts.ts';
 import { ANONYMOUS_OWNER, newIdempotencyKey, OUTBOX_TEXTS, outboxRecoveryTexts, shouldQueue, type QueuedRequest } from './offlineQueue.ts';
 import type { ToastAction } from './componentContext.ts';
 
@@ -128,9 +128,24 @@ export class MateuViewController {
   private actionIdempotent: Record<string, boolean> = {};
   private actionJs: Record<string, string> = {};
   private actionOffline: Record<string, boolean> = {};
+  private actionFieldsToValidate: Record<string, string[]> = {};
+  private actionCustomEvent: Record<string, { eventName: string; detail: unknown }> = {};
+  /** How often each OnLoad trigger of THIS screen fired (its `times`: 1 by default, 0 = unlimited),
+   *  counted across in-place re-renders of the same screen — the web's onLoadTimes.ts. */
+  private onLoadFired = new Map<string, number>();
+  private onLoadScreen = '';
+  private userWroteSinceRender = false;
   /** The actions in flight on this view (a second press of the same one is ignored until it answers). */
   private pending = new Set<string>();
   private pendingListeners = new Set<() => void>();
+
+  /**
+   * The view that opened the overlay this view is the content of (its host sets it from the
+   * overlay's opener). A selector picked in a lookup's dialog answers `value-changed` /
+   * `data-changed` events that, on the web, BUBBLE out of the dialog to the form holding the field:
+   * here they land on this opener (see applyBubblingEvent).
+   */
+  openerController: MateuViewController | null = null;
 
   /** The @Fab buttons of the App shell this view was opened through (see renderComponentFragment). */
   appFabs: { fabs: Json[]; route: string; consumedRoute: string; serverSideType: string } | null = null;
@@ -331,6 +346,28 @@ export class MateuViewController {
     delete this.fieldDataHandlers[fieldId];
   }
 
+  /**
+   * A container inside this view a fragment may be aimed at by id (`<list field>-container`, where
+   * the server answers a list field's row editor): its handler gets the fragment's component, state
+   * and data instead of the view being replaced (the web's applyFragment by container id).
+   */
+  registerContainer(containerId: string, handler: (component: Json | null, state: Json | null, data: unknown) => void): () => void {
+    if (!containerId) return () => undefined;
+    this.containerHandlers[containerId] = handler;
+    return () => {
+      if (this.containerHandlers[containerId] === handler) delete this.containerHandlers[containerId];
+    };
+  }
+  private containerHandlers: Record<string, (component: Json | null, state: Json | null, data: unknown) => void> = {};
+
+  /**
+   * The view an action this one does not own goes to, with this view's state as
+   * `parameters.initiatorState` — the web's bubbling out of a nested mateu-component. Set by the host
+   * of a component drawn INSIDE another view (a list field's row editor: its Save / Cancel / Next are
+   * the holder form's `<field>_save` …, and the edited row rides as the initiator state).
+   */
+  bubbleTo: MateuViewController | null = null;
+
   // ── navigation / actions ────────────────────────────────────────────────────────────
 
   async initialLoad(route: string): Promise<void> {
@@ -455,7 +492,7 @@ export class MateuViewController {
       this.actionValidationRequired[actionId] === true ||
       (!this.ownsAction(actionId) && BUBBLED_SUBMIT_ACTIONS.has(actionId));
     if (requiresValidation) {
-      const errors = this.collectFieldErrors();
+      const errors = onlyFields(this.collectFieldErrors(), this.actionFieldsToValidate[actionId]);
       const hadErrors = Object.keys(this.fieldErrors).length > 0;
       this.fieldErrors = {};
       // fixed since the last attempt: the old messages go (they stayed under a now-valid field)
@@ -480,6 +517,11 @@ export class MateuViewController {
       }
     }
 
+    // an action this nested view does not own goes up to the view it is drawn in, carrying our state
+    if (this.bubbleTo && !this.ownsAction(actionId)) {
+      return this.bubbleTo.runAction(actionId, { ...(parameters ?? {}), initiatorState: { ...this.currentComponentState } }, silent, background);
+    }
+
     // @Action(confirmationRequired): ask first, with the declared texts — same order as the web's
     // mateu-component (selection guard, validation, then the question).
     const confirmation = this.actionConfirmation[actionId];
@@ -491,6 +533,14 @@ export class MateuViewController {
     if (this.actionJs[actionId] !== undefined) {
       console.warn(`[mateu] RunJS is off: the client-side script of "${actionId}" was not run (the mobile app runs no page scripts).`);
       return false;
+    }
+
+    // an action declared with a customEvent dispatches it (heard by @SubscribeTo) instead of
+    // reaching the server — the web's mateu-component rule
+    const customEvent = this.actionCustomEvent[actionId];
+    if (customEvent) {
+      this.session.dispatchEvent(customEvent.eventName, customEvent.detail);
+      return true;
     }
 
     // @RestAction/@RestData: call the external REST endpoint CLIENT-SIDE instead of dispatching to
@@ -765,8 +815,10 @@ export class MateuViewController {
     const appData = (increment?.['appData'] as Json) ?? {};
     const failure = appData['_restfetchError'] as Json | undefined;
     if (failure) {
-      if (typeof failure['status'] === 'number' && failure['status'] > 0) throw new HttpStatusError(failure['status'], '');
-      throw new Error('The request failed');
+      // what the SERVICE answered (its 401 is not this session's), with the detail the server passed on
+      const detail = typeof failure['detail'] === 'string' ? failure['detail'] : undefined;
+      if (typeof failure['status'] === 'number' && failure['status'] > 0) throw new ExternalServiceError(failure['status'], detail);
+      throw new Error(detail ?? 'The request failed');
     }
     return appData['_restfetch'] ?? {};
   }
@@ -776,6 +828,7 @@ export class MateuViewController {
   putState(fieldId: string, value: unknown): void {
     const changed = !sameValue(this.currentComponentState[fieldId], value);
     this.currentComponentState[fieldId] = value;
+    this.userWroteSinceRender = true;
     this.markUserEdit();
     // Rules react to edits (observed fields, conditional visibility/disabling); without a rule change
     // the tree still re-renders against the edited state — a `${state.x}` title, label or button
@@ -816,7 +869,7 @@ export class MateuViewController {
     // @Action(shortcut): the screen's keys, in the session's registry while this view shows them
     this.offShortcuts?.();
     this.offShortcuts = this.session.keyShortcuts?.register(...actionShortcutsOf(sscNode['actions'])
-      .map(({ actionId, shortcut }) => ({ shortcut, scope: 'screen' as const, run: () => void this.runAction(actionId) })));
+      .map(({ actionId, shortcut }) => ({ shortcut, scope: 'screen' as const, actionId, label: actionIdInWords(actionId), run: () => void this.runAction(actionId) })));
     this.actionValidationRequired = flags.validationRequired;
     this.actionRowsSelectedRequired = flags.rowsSelectedRequired;
     this.actionConfirmation = flags.confirmation;
@@ -827,6 +880,8 @@ export class MateuViewController {
     this.actionIdempotent = flags.idempotent;
     this.actionJs = flags.js;
     this.actionOffline = flags.offline;
+    this.actionFieldsToValidate = flags.fieldsToValidate;
+    this.actionCustomEvent = flags.customEvent;
     this.currentValidations = asArray(sscNode['validations']);
     this.currentRules = asArray(sscNode['rules']);
     this.fieldAttributes = {};
@@ -1042,6 +1097,14 @@ export class MateuViewController {
       return;
     }
 
+    // A component aimed at a container this view holds (a list field's row editor) is drawn there;
+    // a state aimed at it (the editor's Next / Prev: another row) is the container's content's state.
+    const container = targetId ? this.containerHandlers[targetId] : undefined;
+    if (container && (component || state)) {
+      container(component, state, data);
+      return;
+    }
+
     // A state update aimed at an open overlay (a LongTask's progress dialog) belongs to it.
     if (!component && state && typeof state === 'object' && targetId && this.session.updateOverlayState(targetId, state)) {
       return;
@@ -1143,7 +1206,9 @@ export class MateuViewController {
     this.navigationServerSideType = opener || this.currentServerSideType;
     if (opener) this.openerServerSideType = opener;
     this.freshScreen = true;
-    this.renderComponentFragment(node, (node['initialData'] as Json) ?? {}, null);
+    // its own data travels on the node (ServerSideComponentDto.data): a lookup's labels, a listing's
+    // first page — dropped, a lookup inside an island showed its raw id instead of the label
+    this.renderComponentFragment(node, (node['initialData'] as Json) ?? {}, node['data'] ?? null);
   }
 
   /** Renders a component fragment: ServerSide wrappers unwrap here (mediator App → follow-up
@@ -1229,7 +1294,13 @@ export class MateuViewController {
         this.freshScreen = false;
         // timed OnLoad/OnSuccess: armed on a NEW screen only — a same-screen re-render (what a
         // refresh answers) must not re-arm the OnLoads, or every round would add another loop
-        this.polling.enterScreen(`${sst || this.currentServerSideType}|${route || this.currentRoute}`, triggers, fresh);
+        const screenKey = `${sst || this.currentServerSideType}|${route || this.currentRoute}`;
+        this.polling.enterScreen(screenKey, triggers, fresh);
+        // a fresh screen counts its OnLoads from zero; the same screen re-rendered keeps the count
+        // (the web's rule: an in-place re-render keeps counting unless the user edited since)
+        if (fresh || screenKey !== this.onLoadScreen || this.userWroteSinceRender) this.onLoadFired.clear();
+        this.onLoadScreen = screenKey;
+        this.userWroteSinceRender = false;
         this.fireOnLoadTriggers(triggers);
         return;
       }
@@ -1278,6 +1349,7 @@ export class MateuViewController {
       if (isTimedOnLoad(trigger)) continue; // delayed: the polling scheduler owns it
       const actionId = str(trigger['actionId']);
       if (!actionId) continue;
+      if (!claimOnLoad(this.onLoadFired, actionId, trigger['times'])) continue;
       if (actionId === 'search') this.seedSearchState();
       void this.runAction(actionId, undefined, true);
     }
@@ -1402,6 +1474,7 @@ export class MateuViewController {
         this.setDirty(false);
         break;
       case 'DispatchEvent':
+        if (this.applyBubblingEvent(cmdData as Json)) break;
         this.dispatchNamedEvent(cmdData as Json);
         break;
       case 'CloseModal':
@@ -1436,6 +1509,37 @@ export class MateuViewController {
       default:
         break;
     }
+  }
+
+  /**
+   * The web's DOM events a server dispatches for the form AROUND the component (a @Searchable
+   * selector's pick: `value-changed {fieldId, value}`, `data-changed {key, value}`,
+   * `close-modal-requested`): applied to the view that holds the field — the opener when this view
+   * is an overlay's content, else this one. True when handled (it is not a bus event then).
+   */
+  private applyBubblingEvent(cmdData: Json | null | undefined): boolean {
+    const eventName = str(cmdData?.['eventName']);
+    const detail = (cmdData?.['detail'] as Json | null | undefined) ?? {};
+    const holder = this.openerController ?? this;
+    if (eventName === 'value-changed' && typeof detail['fieldId'] === 'string' && detail['fieldId']) {
+      holder.putState(detail['fieldId'], detail['value']);
+      return true;
+    }
+    if (eventName === 'data-changed' && typeof detail['key'] === 'string' && detail['key']) {
+      holder.putData(detail['key'], detail['value']);
+      return true;
+    }
+    if (eventName === 'close-modal-requested') {
+      this.session.closeTopOverlay();
+      return true;
+    }
+    return false;
+  }
+
+  /** One entry of the view's data (a resolved label `<field>-label`), re-rendered. */
+  putData(key: string, value: unknown): void {
+    const data = this.view.data && typeof this.view.data === 'object' && !Array.isArray(this.view.data) ? (this.view.data as Json) : {};
+    this.publish({ ...this.view, data: { ...data, [key]: value } });
   }
 
   private dispatchNamedEvent(cmdData: Json | null | undefined): void {

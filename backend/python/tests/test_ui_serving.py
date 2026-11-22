@@ -363,3 +363,30 @@ def test_the_public_base_is_a_plain_path_and_rewrites_root_relative_urls():
     assert pwa.static_folders('<script src="/crm/assets/a.js"></script><script src="/crm/x.js"></script>', "/crm") == [
         "/crm/assets/"
     ]
+
+
+PRIMER_STATIC = Path(__file__).resolve().parents[3] / "backend/shared/frontend/primer/src/main/resources/static"
+
+
+def test_the_primer_renderer_is_served_like_any_web_renderer(caplog, tmp_path, monkeypatch):
+    """The mateu-primer jar's static/ (Primer React): its page at the mount and deep links, its
+    entry script, a lazy chunk and its stylesheet at the origin root — and a descriptor naming
+    another renderer is warned at startup."""
+    if not (PRIMER_STATIC / "_index.html").is_file():
+        pytest.skip("the Primer renderer bundle is not checked out next to this test")
+    import logging
+
+    (tmp_path / "project.yaml").write_text("type: Project\nrenderer: vaadin\n")
+    monkeypatch.setenv("MATEU_SPECS_DIR", str(tmp_path))
+    with caplog.at_level(logging.WARNING, logger="mateu.project"):
+        c = client(PRIMER_STATIC)
+    home = c.get("/")
+    assert home.status_code == 200 and '<mateu-ui baseUrl=""' in home.text
+    assert 'src="/assets/mateu-primer.js"' in home.text
+    assert c.get("/ui-probe/7", headers={"accept": "text/html"}).status_code == 200
+    script = c.get("/assets/mateu-primer.js", headers={"accept": "*/*"})
+    assert script.status_code == 200 and "javascript" in script.headers["content-type"]
+    assert c.get("/assets/mateu-primer.css", headers={"accept": "*/*"}).status_code == 200
+    lazy = next(p.name for p in (PRIMER_STATIC / "assets").glob("mateu-primer-visual-*.js"))
+    assert c.get("/assets/" + lazy, headers={"accept": "*/*"}).status_code == 200
+    assert any("says renderer: vaadin, but this server serves primer" in r.getMessage() for r in caplog.records)

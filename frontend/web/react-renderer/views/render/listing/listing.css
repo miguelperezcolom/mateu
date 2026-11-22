@@ -1,0 +1,12 @@
+/* the listing looks the wire declares (rowStripes, columnBorders, noRowBorder, noBorder, wrapCellContent) */
+.mateu-row-stripes tbody tr:nth-child(even) td { background: var(--bgColor-muted); }
+.mateu-column-borders td + td, .mateu-column-borders th + th { border-inline-start: var(--borderWidth-thin, 1px) solid var(--borderColor-muted); }
+.mateu-no-row-border td, .mateu-no-row-border th { border-block-end-color: transparent !important; }
+.mateu-no-border table { border-color: transparent !important; }
+.mateu-wrap-cells td { white-space: normal; overflow-wrap: anywhere; }
+.mateu-cell-centered { display: block; text-align: center; }
+/* contentHeight: the rows scroll inside the listing */
+.mateu-listing-scroll { overflow: auto; }
+.mateu-listing-more { display: flex; justify-content: center; padding: var(--base-size-8) 0; grid-area: footer; }
+/* a group header row is not a record: DataTable draws its (unselectable) checkbox disabled — it is not shown */
+.mateu-listing-table tbody tr td:first-child input[type=checkbox]:disabled { visibility: hidden; }

@@ -1,0 +1,114 @@
+/* Form field widgets drawn outside Primer's FormControl inputs — Primer tokens only. */
+.mateu-field { display: flex; flex-direction: column; gap: var(--base-size-4); min-width: 0; }
+.mateu-field-label {
+  font: var(--text-body-shorthand-medium);
+  font-weight: var(--base-text-weight-semibold);
+  color: var(--fgColor-default);
+}
+.mateu-field-label-muted { font-size: var(--text-body-size-small); color: var(--fgColor-muted); }
+.mateu-field-required { color: var(--fgColor-danger); }
+.mateu-field-help { margin: 0; color: var(--fgColor-muted); }
+.mateu-field-error { margin: 0; color: var(--fgColor-danger); display: flex; align-items: center; gap: var(--base-size-4); }
+
+.mateu-stars { display: inline-flex; gap: var(--base-size-2); }
+.mateu-stars button {
+  background: none; border: 0; padding: var(--base-size-2); cursor: pointer; line-height: 0;
+  color: var(--fgColor-muted); border-radius: var(--borderRadius-small);
+}
+.mateu-stars button[aria-checked="true"], .mateu-stars .on { color: var(--fgColor-attention); }
+.mateu-stars button:focus-visible { outline: 2px solid var(--focus-outlineColor); outline-offset: 1px; }
+.mateu-stars button:disabled { cursor: default; }
+
+.mateu-slider { display: flex; align-items: center; gap: var(--base-size-12); }
+.mateu-slider input[type="range"] { flex: 1; accent-color: var(--bgColor-accent-emphasis); }
+.mateu-slider output { min-width: 3ch; text-align: end; font-variant-numeric: tabular-nums; color: var(--fgColor-default); }
+
+.mateu-color { display: flex; align-items: center; gap: var(--base-size-8); }
+.mateu-color input[type="color"] {
+  inline-size: var(--base-size-32); block-size: var(--base-size-32); padding: 0;
+  border: var(--borderWidth-thin) solid var(--borderColor-default); border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-default); cursor: pointer;
+}
+.mateu-swatch {
+  display: inline-block; inline-size: var(--base-size-16); block-size: var(--base-size-16);
+  border-radius: var(--borderRadius-small); border: var(--borderWidth-thin) solid var(--borderColor-default);
+  vertical-align: middle; margin-inline-end: var(--base-size-8);
+}
+
+.mateu-range { display: flex; align-items: center; gap: var(--base-size-8); flex-wrap: wrap; }
+.mateu-range > * { flex: 1 1 8rem; min-width: 0; }
+.mateu-range > .mateu-range-sep { flex: 0 0 auto; color: var(--fgColor-muted); }
+
+.mateu-image-preview {
+  max-inline-size: 100%; max-block-size: 14rem; object-fit: contain;
+  border: var(--borderWidth-thin) solid var(--borderColor-muted); border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-muted);
+}
+.mateu-capture-surface {
+  inline-size: 100%; max-inline-size: 32rem; block-size: 12rem; touch-action: none;
+  border: var(--borderWidth-thin) dashed var(--borderColor-default); border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-default); cursor: crosshair; display: block;
+}
+.mateu-camera-video {
+  inline-size: 100%; max-inline-size: 32rem; border-radius: var(--borderRadius-medium); background: var(--bgColor-emphasis);
+}
+.mateu-files { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--base-size-4); }
+.mateu-files li { display: flex; align-items: center; gap: var(--base-size-8); }
+
+.mateu-listbox {
+  border: var(--borderWidth-thin) solid var(--borderColor-default); border-radius: var(--borderRadius-medium);
+  max-block-size: 16rem; overflow: auto; background: var(--bgColor-default);
+}
+.mateu-tree-panel {
+  padding: var(--base-size-8); max-block-size: 20rem; overflow: auto; min-inline-size: 16rem;
+}
+
+.mateu-markup-preview {
+  padding: var(--base-size-12); min-block-size: 6rem;
+  border: var(--borderWidth-thin) solid var(--borderColor-default); border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-default);
+}
+
+.mateu-grid-field { overflow-x: auto; border: var(--borderWidth-thin) solid var(--borderColor-default); border-radius: var(--borderRadius-medium); }
+.mateu-grid-field table { inline-size: 100%; border-collapse: collapse; font: var(--text-body-shorthand-medium); }
+.mateu-grid-field th, .mateu-grid-field td {
+  padding: var(--base-size-6) var(--base-size-8); text-align: start;
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted); vertical-align: middle;
+}
+.mateu-grid-field th { background: var(--bgColor-muted); font-weight: var(--base-text-weight-semibold); color: var(--fgColor-muted); }
+.mateu-grid-field tbody tr:last-child td { border-bottom: 0; }
+.mateu-grid-field tr.clickable { cursor: pointer; }
+.mateu-grid-field tr.clickable:hover td { background: var(--bgColor-muted); }
+.mateu-grid-field tr[aria-selected="true"] td { background: var(--bgColor-accent-muted); }
+.mateu-grid-field td.actions { inline-size: 1%; white-space: nowrap; text-align: end; }
+/* an editor fills its cell; a status label, a check, a button keeps its own size */
+.mateu-grid-field td:not(.actions) > :is(input, select, textarea, [data-component=TextInput], [data-component=Select]) { inline-size: 100%; min-inline-size: 6rem; }
+
+.mateu-bullets { margin: 0; padding-inline-start: var(--base-size-20); }
+.mateu-plain-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mateu-plain-text.multiline { white-space: pre-wrap; overflow: visible; }
+
+.mateu-choice-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: var(--base-size-8); }
+.mateu-choice-card {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--base-size-8);
+  padding: var(--base-size-12); text-align: start; cursor: pointer;
+  font: var(--text-body-shorthand-medium); color: var(--fgColor-default);
+  background: var(--bgColor-default);
+  border: var(--borderWidth-thin) solid var(--borderColor-default); border-radius: var(--borderRadius-medium);
+}
+.mateu-choice-card:hover:not(:disabled) { background: var(--bgColor-muted); }
+.mateu-choice-card[aria-checked="true"] { border-color: var(--borderColor-accent-emphasis); background: var(--bgColor-accent-muted); }
+.mateu-choice-card:focus-visible { outline: 2px solid var(--focus-outlineColor); outline-offset: 1px; }
+.mateu-choice-card:disabled { cursor: default; color: var(--fgColor-muted); }
+.mateu-choice-check { color: var(--fgColor-accent); flex-shrink: 0; }
+
+/* FormLayout labelsAside: the label in a 10rem column left of its control (the dense back-office idiom) */
+.mateu-labels-aside [data-component="FormControl"][data-has-label][class*="ControlVerticalLayout"],
+.mateu-labels-aside .mateu-field {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  column-gap: var(--base-size-12);
+  align-items: baseline;
+}
+.mateu-labels-aside [data-component="FormControl"][data-has-label][class*="ControlVerticalLayout"] > :not(label),
+.mateu-labels-aside .mateu-field > :not(:first-child) { grid-column: 2; }

@@ -154,6 +154,11 @@
         <artifactId>mateu-redwood</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>mateu-primer</artifactId>
+        <version>${project.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

@@ -1,0 +1,35 @@
+{
+  "name": "mateu-primer",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Mateu's GitHub Primer web renderer (Primer React) — PREVIEW. Draws any Mateu UI served on the /mateu/v3 wire, on the React Native renderer's platform-free core.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "typecheck": "tsc",
+    "test": "node --test \"src/**/*.test.ts\" \"../../../react-renderer/**/*.test.ts\"",
+    "copy": "node scripts/copy.mjs",
+    "notices": "node ../../../../../scripts/third-party-notices.mjs primer --out dist/assets/THIRD-PARTY-LICENSES.txt"
+  },
+  "dependencies": {
+    "@primer/octicons-react": "^19.42.0",
+    "@primer/primitives": "^11.10.0",
+    "@primer/react": "^38.46.0",
+    "dompurify": "^3.5.0",
+    "marked": "^18.2.1",
+    "nanoid": "^6.0.2",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-is": "^19.2.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "lit": "^3.3.3",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.5"
+  }
+}

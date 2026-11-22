@@ -18,9 +18,15 @@ log = logging.getLogger("mateu.project")
 #: The descriptor's conventional place (Java's ProjectSettings.CONVENTIONAL_PATH).
 CONVENTIONAL_PATH = "specs/ui/project.yaml"
 #: The renderers a project can name, with the artifact that serves each (Java's ProjectRenderer).
-RENDERERS = {"vaadin": "io.mateu:mateu-vaadin", "redwood": "io.mateu:mateu-redwood"}
+RENDERERS = {
+    "vaadin": "io.mateu:mateu-vaadin",
+    "redwood": "io.mateu:mateu-redwood",
+    "primer": "io.mateu:mateu-primer",
+}
 #: A file only the Redwood (Visual Builder) renderer ships (Java's REDWOOD_MARKER, minus static/).
 REDWOOD_MARKER = "_redwood/app-flow.json"
+#: A file only the Primer renderer ships (Java's PRIMER_MARKER, minus static/).
+PRIMER_MARKER = "assets/mateu-primer.js"
 
 
 def _specs_dir(specs_dir: str | os.PathLike[str] | None) -> Path:
@@ -84,7 +90,11 @@ def served(renderer_files) -> str | None:
     served (an API behind a separately deployed frontend)."""
     if renderer_files is None:
         return None
-    return "redwood" if renderer_files.read(REDWOOD_MARKER) is not None else "vaadin"
+    if renderer_files.read(REDWOOD_MARKER) is not None:
+        return "redwood"
+    if renderer_files.read(PRIMER_MARKER) is not None:
+        return "primer"
+    return "vaadin"
 
 
 def mismatch(declared: str | None, served_renderer: str | None) -> str | None:
