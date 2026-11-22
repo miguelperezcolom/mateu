@@ -112,9 +112,22 @@ public class MateuHelidonRoutes {
             .getBeans(io.mateu.uidl.security.PrincipalResolver.class, Any.Literal.INSTANCE)
             .isEmpty();
 
+    // the UIs' base urls, for the deployable-page guard below (a root UI keeps "/")
+    var uiBaseUrls = List.copyOf(generatedUis(beanManager).keySet());
     routing.addFilter(
         (chain, req, res) -> {
           String path = req.path().path();
+          // the renderer jar's page for a CDN (DeployablePage): with static/ served at "/" (a
+          // server.static.classpath mapping) Helidon would answer it at /index.html, and at "/"
+          // when no UI sits at the root — 404 there, as before the jars shipped it
+          if (("/".equals(path) || "/index.html".equals(path))
+              && ("GET".equals(req.prologue().method().text())
+                  || "HEAD".equals(req.prologue().method().text()))
+              && io.mateu.core.infra.DeployablePage.hidden(
+                  path, uiBaseUrls, Thread.currentThread().getContextClassLoader())) {
+            res.status(Status.NOT_FOUND_404).send();
+            return;
+          }
           if (CorsPolicy.appliesTo(path)) {
             // the version headers: the build id on every response (refusals and errors included),
             // set when the response is sent — the first request builds the wire type allow-list

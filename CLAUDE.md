@@ -904,8 +904,10 @@ by `scripts/static-site-page.test.mjs` — regenerate with `npm run copy`). The 
 before the app constant) — same rule. Redwood's page = hosted mode (hash routes), deferred scripts written as plain
 scripts. A backend NEVER serves it: Spring Boot would as its welcome page at `/` (no root UI) and as `/index.html`,
 so core `DeployablePage` + MVC `DeployablePageFilter` / WebFlux `DeployablePageWebFilter` (after the SPA rewrite;
-WebFlux's root index answers `/index.html` itself) answer 404; .NET `UiPage.DeployablePage` / Python
-`ui_page.DEPLOYABLE_PAGE` are skipped. SSE through Netlify's proxy is BUFFERED (long streams → 504 at ~30 s):
+WebFlux's root index answers `/index.html` itself) / Micronaut `MateuDeployablePageFilter` / Helidon's routing filter
+(both reach it when an app maps `static/` at `/`) answer 404; Quarkus never reaches it; .NET `UiPage.DeployablePage` /
+Python `ui_page.DEPLOYABLE_PAGE` are skipped. Parity `neverServesTheRenderersDeployablePage` (5 adapters; fixture
+`src/test/resources/static/index.html` in each, plus a `DeployablePageStaticMappingTest` for Micronaut/Helidon). SSE through Netlify's proxy is BUFFERED (long streams → 504 at ~30 s):
 `streamCut.ts` turns a gateway page on an SSE call into the `streamCutByProxy` chrome text. Browser check
 `e2e/cdn-site-probe.mjs` over `e2e/cdn-static-server.mjs`.
 

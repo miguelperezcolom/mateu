@@ -17,9 +17,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>A backend must never serve that second page: it would boot a UI aimed at the root mount. But a
  * file called {@code static/index.html} is exactly what Spring Boot serves as its welcome page at
  * {@code /} (MVC and WebFlux) when no Mateu UI sits at the root, and as a plain file at {@code
- * /index.html}, where an app answered 404 (or its root UI) before the file existed. The Spring
- * adapters ask {@link #hidden} and answer 404 then, so nothing changes for an app; an app's OWN
- * {@code static/index.html} (first on the classpath) is never hidden.
+ * /index.html}, where an app answered 404 (or its root UI) before the file existed — and so do
+ * Micronaut and Helidon MP when an app maps {@code static/} at the root (the Micronaut starter's
+ * {@code micronaut.router.static-resources}). Those adapters ask {@link #hidden} and answer 404
+ * then, so nothing changes for an app; an app's OWN {@code static/index.html} (first on the
+ * classpath) is never hidden. Quarkus never reaches the file. Pinned on all five adapters by
+ * {@code AdapterParityITFoundation.neverServesTheRenderersDeployablePage}.
  */
 public final class DeployablePage {
 
