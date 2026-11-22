@@ -8,8 +8,8 @@ import {
   updateField, updateForm, updateStep, updateWorkflow, wholeNumber,
   type FormDefinition, type FormDefinitionField, type WorkflowDefinition, type WorkflowStep,
 } from '@rn/renderer/definitionModel'
-import { useController } from '../../ViewHost'
-import { BOX_STYLE, styleOf } from '../../styleOf'
+import { useController } from '@mr/render/ViewHost'
+import { BOX_STYLE, styleOf } from '@mr/render/styleOf'
 import type { CatalogueProps } from '../types'
 import { DiagramView } from './widgets'
 

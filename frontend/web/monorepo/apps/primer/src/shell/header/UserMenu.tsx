@@ -3,7 +3,7 @@ import { ActionList, ActionMenu, Avatar, Button } from '@primer/react'
 import { SignOutIcon } from '@primer/octicons-react'
 import { headerAccountControl, initialsOf, pictureOf, signedInUserOf, userMenuLabel, userMenuTexts } from '@rn/core/userMenu'
 import { safeHref } from '@infra/ui/safeNavigate.ts'
-import { builtInSignOutAvailable, signOutOfBuiltIn } from '../signIn'
+import { builtInSignOutAvailable, signOutOfBuiltIn } from '@mr/shell/signIn'
 
 type Dict = Record<string, unknown>
 

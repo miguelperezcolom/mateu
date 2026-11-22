@@ -6,7 +6,7 @@ import { cellTone } from '@rn/renderer/crudListing'
 import { labelVariantOf } from '../looks'
 import { PlusIcon, TrashIcon } from '@primer/octicons-react'
 import { flattenColumnGroups } from '@rn/renderer/columnGroups'
-import { tx } from '../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 type Dict = Record<string, unknown>
 

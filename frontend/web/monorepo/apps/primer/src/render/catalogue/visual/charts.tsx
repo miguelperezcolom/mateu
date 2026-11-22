@@ -3,10 +3,10 @@ import { Text } from '@primer/react'
 import { chartTextAlternative, formatTick } from '@rn/core/uxRules'
 import { radarGeometry, trendPaths } from '@rn/renderer/chartGeometry'
 import { funnelStages } from '@rn/renderer/displayFigures'
-import { BOX_STYLE, styleOf } from '../../styleOf'
+import { BOX_STYLE, styleOf } from '@mr/render/styleOf'
 import type { CatalogueProps } from '../types'
 import { arr, colorOf, seriesColor, str, type Dict } from './common'
-import { tx } from '../../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 interface Dataset { label?: string; data?: number[] }
 

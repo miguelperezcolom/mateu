@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { SegmentedControl, Text, Textarea } from '@primer/react'
-import { Markdown, SafeHtml } from '../Markdown'
-import { tx } from '../../i18n/texts'
+import { Markdown, SafeHtml } from '@mr/render/Markdown'
+import { tx } from '@mr/i18n/texts'
 
 type Kind = 'markdown' | 'html' | 'richText'
 

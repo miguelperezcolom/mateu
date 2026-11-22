@@ -13,11 +13,11 @@ import type { GanttTask, PlanningBlock as WireBlock, PlanningResource as WireRes
 // the wire carries more than the RN types name (PlanningBlockDto.summary/icon, PlanningResourceDto.attributes)
 type PlanningBlock = WireBlock & { summary?: string; icon?: string }
 type PlanningResource = WireResource & { attributes?: string[] }
-import { useController } from '../../ViewHost'
-import { BOX_STYLE, styleOf } from '../../styleOf'
+import { useController } from '@mr/render/ViewHost'
+import { BOX_STYLE, styleOf } from '@mr/render/styleOf'
 import type { CatalogueProps } from '../types'
 import { activate, arr, colorOf, str, toneBg, toneFg, type Dict } from './common'
-import { tx } from '../../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 // ── Calendar ──────────────────────────────────────────────────────────────────────────────────────
 

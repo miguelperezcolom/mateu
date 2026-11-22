@@ -3,12 +3,12 @@ import { Button, Flash, Spinner, Stack, Text } from '@primer/react'
 import { SkeletonText } from '@primer/react/experimental'
 import type { MateuViewController, RenderedView } from '@rn/core/MateuViewController'
 import { loadFailureMessage } from '@rn/core/uxRules'
-import { ControllerProvider } from './ViewHost'
+import { ControllerProvider } from '@mr/render/ViewHost'
 import { RenderBoundary } from './RenderBoundary'
 import { ComponentRenderer } from './ComponentRenderer'
-import { pageWidthOf } from './page/pageWidth'
+import { pageWidthOf } from '@mr/page/pageWidth'
 import './page/page.css'
-import { tx } from '../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 /** What a view shows: a skeleton while its first answer is on its way, a failure with Retry, or the tree. */
 export function ViewBody({ controller, view, retry, embedded }: {

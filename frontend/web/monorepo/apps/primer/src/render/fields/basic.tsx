@@ -3,7 +3,7 @@ import { Link, Text, TextInput } from '@primer/react'
 import { StarFillIcon, StarIcon } from '@primer/octicons-react'
 import { decimalDraft, moneyInputCommit, moneyInputText, moneyText } from '@rn/core/uxRules'
 import { safeHref } from '@infra/ui/safeNavigate.ts'
-import { tx } from '../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 type A11y = { 'aria-labelledby'?: string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }
 

@@ -16,14 +16,21 @@
       "@rn/*": ["../../../../app/react-native/src/*"],
       "@mateu/*": ["../../libs/mateu/src/mateu/*"],
       "@infra/*": ["../../libs/mateu/src/mateu/ui/infra/*"],
-      "react-native": ["./src/shims/react-native.ts"],
+      "@mr/*": ["../../../react-renderer/*"],
+      "react-native": ["../../../react-renderer/shims/react-native.ts"],
+      "react": ["./node_modules/@types/react"],
+      "react/*": ["./node_modules/@types/react/*"],
+      "react-dom": ["./node_modules/@types/react-dom"],
+      "react-dom/*": ["./node_modules/@types/react-dom/*"],
+      "dompurify": ["./node_modules/dompurify"],
+      "marked": ["./node_modules/marked"],
       "nanoid": ["./node_modules/nanoid"],
       "lit": ["./node_modules/lit"],
       "lit/*": ["./node_modules/lit/*"],
-      "expo-web-browser": ["./src/shims/expo-web-browser.ts"],
-      "expo-file-system": ["./src/shims/expo-file-system.ts"]
+      "expo-web-browser": ["../../../react-renderer/shims/expo-web-browser.ts"],
+      "expo-file-system": ["../../../react-renderer/shims/expo-file-system.ts"]
     }
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.test.ts"]
+  "include": ["src", "../../../react-renderer"],
+  "exclude": ["src/**/*.test.ts", "../../../react-renderer/**/*.test.ts"]
 }

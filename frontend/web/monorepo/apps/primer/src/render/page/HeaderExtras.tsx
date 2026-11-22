@@ -4,9 +4,9 @@ import { ChevronLeftIcon, ChevronRightIcon, TriangleDownIcon } from '@primer/oct
 import { interpolate, interpolateUrl } from '@rn/core/expressions'
 import { fetchExternalJson, mapItemsToOptions } from '@rn/core/restFetch'
 import { filterSwitcherOptions, switcherCurrentLabel, switcherPick, type RecordSwitcher, type SwitcherOption } from '@rn/renderer/patternGaps'
-import { useController } from '../ViewHost'
+import { useController } from '@mr/render/ViewHost'
 import type { LabelVariant } from '../looks'
-import { tx } from '../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 type Dict = Record<string, unknown>
 type Ctx = { state: Dict; data?: unknown }

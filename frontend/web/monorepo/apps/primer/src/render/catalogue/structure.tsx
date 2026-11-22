@@ -2,12 +2,12 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Banner, Dialog, Text } from '@primer/react'
 import { evaluateExpression } from '@rn/core/expressions'
 import { contentSlots } from '@rn/renderer/wireWidgets'
-import { useController, ViewHost } from '../ViewHost'
+import { useController, ViewHost } from '@mr/render/ViewHost'
 import { ComponentRenderer } from '../ComponentRenderer'
-import { styleOf } from '../styleOf'
+import { styleOf } from '@mr/render/styleOf'
 import type { Catalogue, CatalogueProps, Dict } from './types'
 import { CustomComponent } from './custom'
-import { tx } from '../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 const str = (v: unknown): string => (v === null || v === undefined ? '' : String(v))
 const kidsOf = (c: Dict): unknown[] => ((c['children'] as unknown[] | undefined) ?? [])

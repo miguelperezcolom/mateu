@@ -131,14 +131,11 @@ import {
 } from '@primer/octicons-react'
 import type { Icon as OcticonType } from '@primer/octicons-react'
 import { interpolate } from '@rn/core/expressions'
-import { safeHref as libSafeHref } from '@infra/ui/safeNavigate.ts'
-import { useController } from '../../ViewHost'
-import type { Dict } from '../types'
+import { useController } from '@mr/render/ViewHost'
+import { childrenOf, initialsOf, isNode, list, safeColor, safeHref, str, useOpenRoute, useRun, type Dict } from '@mr/render/wire'
 
-export const str = (v: unknown): string => (v == null ? '' : String(v))
-export const list = <T = Dict>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : [])
-export const childrenOf = (c: unknown): unknown[] => list<unknown>((c as Dict | null)?.['children'])
-export const isNode = (v: unknown): v is Dict => !!v && typeof v === 'object'
+export { childrenOf, initialsOf, isNode, list, safeColor, safeHref, str, useOpenRoute, useRun }
+
 
 /** `${…}` over the view's state/data/app state — the texts a record page templates. */
 export function useText(state: Dict, data?: unknown) {
@@ -147,31 +144,9 @@ export function useText(state: Dict, data?: unknown) {
   return (t: unknown) => (t == null || t === '' ? '' : interpolate(String(t), ctx))
 }
 
-/** A server-sent URL: relative, http(s), mailto, tel (libs/mateu's rule); undefined otherwise. */
-export const safeHref = (url: unknown): string | undefined => (url ? libSafeHref(String(url)) : undefined)
 
-/** Runs a wire action id, if any, on the view's controller. */
-export function useRun() {
-  const controller = useController()
-  return (actionId: unknown, parameters?: Dict) => {
-    const id = str(actionId)
-    if (id) void controller.runAction(id, parameters)
-  }
-}
 
-/** Opens a mount-relative route the way a breadcrumb or a menu entry does. */
-export function useOpenRoute() {
-  const controller = useController()
-  return (route: string, label = '') => {
-    if (route) controller.session.openView({ label, route: route.replace(/^\/+/, ''), consumedRoute: '', serverSideType: '' })
-  }
-}
 
-/** A server colour (a timeline dot) only when it is plainly a colour: hex, rgb()/hsl(), a name. */
-export const safeColor = (c: unknown): string | undefined => {
-  const v = str(c).trim()
-  return /^(#[0-9a-f]{3,8}|(rgb|rgba|hsl|hsla)\([\d\s.,%]+\)|[a-z]+)$/i.test(v) ? v : undefined
-}
 
 // The wire names icons with the web's tokens (`vaadin:calendar`); Primer draws Octicons. A name
 // with no reasonable Octicon draws nothing (never the token as text or a stray dot); a token that
@@ -227,9 +202,6 @@ export function WireIcon({ token, size = 16, label }: { token: unknown; size?: n
   return <span aria-hidden={label ? undefined : true} aria-label={label} role={label ? 'img' : undefined} style={{ fontSize: size, lineHeight: 1 }}>{t}</span>
 }
 
-/** Initials of a name (max two), for an avatar without an image. */
-export const initialsOf = (name: string): string =>
-  name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('') || '?'
 
 // The Primer data-visualisation palette: who a chat message is from, an initials avatar's colour.
 const DISPLAY_COLORS = ['blue', 'green', 'orange', 'purple', 'red', 'teal', 'pink', 'indigo', 'coral', 'olive']

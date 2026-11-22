@@ -1,15 +1,11 @@
 import React from 'react'
 import { interpolate } from '@rn/core/expressions'
-import { useController } from '../../ViewHost'
-import type { CatalogueProps, Dict } from '../types'
+import { useController } from '@mr/render/ViewHost'
+import { childrenOf, glyph, list, metaOf, slotOf, str, type CatalogueProps, type Dict } from '@mr/render/wire'
 
 export type { CatalogueProps, Dict }
+export { childrenOf, glyph, list, metaOf, slotOf, str }
 
-export const str = (v: unknown): string => (typeof v === 'string' ? v : v == null ? '' : String(v))
-export const childrenOf = (c: unknown): unknown[] => (((c as Dict | null)?.['children'] as unknown[] | undefined) ?? [])
-export const metaOf = (c: unknown): Dict => (((c as Dict | null)?.['metadata'] as Dict | undefined) ?? {})
-export const slotOf = (c: unknown): string => str((c as Dict | null)?.['slot'])
-export const list = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : [])
 
 /** `${…}` over the view's state, data and the app's state. */
 export function useText(state: Dict, data?: unknown) {
@@ -40,12 +36,6 @@ export function trendLook(trend?: unknown): { color: string; mark: string } {
   return { color: 'var(--fgColor-muted)', mark: t === 'flat' || t === 'neutral' ? '→' : '' }
 }
 
-/** A wire icon: an emoji / short glyph is drawn as is; a design-system token (`vaadin:plus`) is not ours to draw. */
-export function glyph(icon?: unknown): string {
-  const s = str(icon)
-  if (!s || /^[a-z0-9-]+:[a-z0-9-]+$/i.test(s) || /^[a-z0-9-]+$/i.test(s)) return ''
-  return s.length <= 4 ? s : ''
-}
 
 /** An element that runs an action on click and on Enter/Space, like a button (null action: inert). */
 export function pressable(onPress: (() => void) | null | undefined, label?: string, className = ''): React.HTMLAttributes<HTMLElement> {

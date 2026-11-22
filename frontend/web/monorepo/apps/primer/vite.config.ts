@@ -9,9 +9,12 @@ import { readFileSync } from 'node:fs'
  * (frontend/app/react-native/src/core): the controller, the session, the api client, expressions,
  * rules… That core is platform-free but for two modules, which import react-native/expo for the
  * screen-reader announcement and for opening a downloaded file — so those three imports resolve to
- * small web shims here (src/shims). Nothing in the core is copied.
+ * small web shims here (frontend/web/react-renderer/shims). Nothing in the core is copied.
  */
 const rnSrc = resolve(import.meta.dirname, '../../../../app/react-native/src')
+// the DS-neutral half of the React renderers (Primer, SAP, Salesforce): hosting, boot, listings'
+// logic, shell logic, texts, resilience — source imported in place, resolved against THIS install
+const mrSrc = resolve(import.meta.dirname, '../../../react-renderer')
 
 const rendererVersion: string = JSON.parse(readFileSync(resolve(import.meta.dirname, 'package.json'), 'utf8')).version ?? 'unknown'
 
@@ -35,12 +38,14 @@ export default defineConfig({
     __MATEU_RENDERER_VERSION__: JSON.stringify(rendererVersion),
   },
   resolve: {
-    dedupe: ['react', 'react-dom'],
+    // ONE copy of each: the shared tree (frontend/web/react-renderer) has no install of its own
+    dedupe: ['react', 'react-dom', 'dompurify', 'marked'],
     alias: [
-      { find: 'react-native', replacement: resolve(import.meta.dirname, 'src/shims/react-native.ts') },
-      { find: 'expo-web-browser', replacement: resolve(import.meta.dirname, 'src/shims/expo-web-browser.ts') },
-      { find: 'expo-file-system', replacement: resolve(import.meta.dirname, 'src/shims/expo-file-system.ts') },
+      { find: 'react-native', replacement: resolve(mrSrc, 'shims/react-native.ts') },
+      { find: 'expo-web-browser', replacement: resolve(mrSrc, 'shims/expo-web-browser.ts') },
+      { find: 'expo-file-system', replacement: resolve(mrSrc, 'shims/expo-file-system.ts') },
       { find: '@rn', replacement: rnSrc },
+      { find: '@mr', replacement: mrSrc },
       { find: '@mateu', replacement: resolve(import.meta.dirname, '../../libs/mateu/src/mateu') },
       // a few pure rules are libs/mateu's (the web renderers' shared lib) — one rule, not a copy:
       // the Element attribute policy, the data-HTML sanitizer policy, the public-base rewrite, the
@@ -55,7 +60,7 @@ export default defineConfig({
   },
   server: {
     port: 5180,
-    fs: { allow: ['..', '../../..', '../../../../app/react-native'] },
+    fs: { allow: ['..', '../../..', '../../../react-renderer', '../../../../app/react-native'] },
     // everything that is not vite's own goes to the backend: its Mateu paths (`/x/mateu/v3/…`), its
     // images, its static files (an Element's module, a REST endpoint)… A page load (Accept: text/html)
     // stays here, so a deep link boots the renderer.

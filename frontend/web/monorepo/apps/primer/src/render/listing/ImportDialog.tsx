@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Dialog, Flash, FormControl, Text } from '@primer/react'
-import { tx } from '../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 /** The file id an import upload answered: the raw body, or a JSON string / {fileId} / {id} (the web's importFileIdOf). */
 export function importFileIdOf(responseText: unknown): string | undefined {

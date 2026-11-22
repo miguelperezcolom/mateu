@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { Button, ButtonGroup, Checkbox, Dialog, IconButton, Stack, Text, VisuallyHidden } from '@primer/react'
 import { ArrowDownIcon, ArrowUpIcon, DashIcon, PlusIcon } from '@primer/octicons-react'
 import type { MateuViewController } from '@rn/core/MateuViewController'
-import { useController, ViewHost } from '../ViewHost'
+import { useController, ViewHost } from '@mr/render/ViewHost'
 import { GridCellValue, type GridColumn } from './grid'
-import { tx } from '../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 type Dict = Record<string, unknown>
 

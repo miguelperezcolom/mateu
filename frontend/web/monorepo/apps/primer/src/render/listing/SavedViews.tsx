@@ -2,8 +2,8 @@ import React, { useState } from 'react'
 import { AnchoredOverlay, Button, IconButton, Stack, Text, TextInput } from '@primer/react'
 import { BookmarkIcon, StarFillIcon, StarIcon, TrashIcon } from '@primer/octicons-react'
 import { activeView, deleteView, listSavedViews, saveView, setDefaultView, type SavedView } from '@infra/savedViewsStore.ts'
-import type { Dict } from './rows'
-import { tx } from '../../i18n/texts'
+import type { Dict } from '@mr/listing/rows'
+import { tx } from '@mr/i18n/texts'
 
 /**
  * Saved views on the filter bar — the web renderer's store (localStorage `mateu-saved-views`, one

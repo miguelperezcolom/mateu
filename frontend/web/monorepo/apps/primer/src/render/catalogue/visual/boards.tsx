@@ -14,11 +14,11 @@ import { initialOrgPath, orgAncestors, orgChildren, orgDisplay, orgInitials, org
 import {
   CUSTOM, initialPicks, mergeParameters, mergeSummary, pickLabel, summaryText, valueText, visibleFields, type MergePicks, type RecordMergeMeta,
 } from '@rn/renderer/recordMerge'
-import { useController } from '../../ViewHost'
-import { BOX_STYLE, styleOf } from '../../styleOf'
+import { useController } from '@mr/render/ViewHost'
+import { BOX_STYLE, styleOf } from '@mr/render/styleOf'
 import type { CatalogueProps } from '../types'
 import { arr, colorOf, str, toneBg, toneFg, type Dict } from './common'
-import { tx } from '../../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 // ── Kanban ────────────────────────────────────────────────────────────────────────────────────────
 

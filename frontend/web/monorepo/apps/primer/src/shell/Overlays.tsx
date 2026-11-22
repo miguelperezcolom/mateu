@@ -5,55 +5,16 @@ import './overlays.css'
 import type { MateuSession, OverlayOpenerContext } from '@rn/core/MateuSession'
 import type { MateuViewController } from '@rn/core/MateuViewController'
 import { interpolate } from '@rn/core/expressions'
-import { overlayContentWithData, upsertOverlay, withOverlayState } from '@rn/renderer/patternGaps'
-import { ViewHost, ControllerProvider } from '../render/ViewHost'
+import { overlayContentWithData } from '@rn/renderer/patternGaps'
+import type { OverlayEntry, OverlaysState } from '@mr/shell/overlays'
+import { ViewHost, ControllerProvider } from '@mr/render/ViewHost'
 import { ComponentRenderer } from '../render/ComponentRenderer'
-import { tx } from '../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 type Dict = Record<string, unknown>
 
-interface Entry {
-  component: unknown
-  title: string
-  opener?: OverlayOpenerContext
-  revision: number
-  state: Dict
-}
-
-export interface OverlaysState {
-  entries: Entry[]
-  session: MateuSession
-  open: (component: unknown, state: unknown, data: unknown, opener?: OverlayOpenerContext) => void
-  closeTop: () => void
-}
-
-/**
- * The session's overlay hooks: a Dialog / Drawer fragment (Add) opens a layer, `CloseModal` closes
- * the top one. The stacking rules (an overlay re-sent by id replaces itself, a state update aimed
- * at an open one) are the React Native renderer's, reused as they are (patternGaps.ts).
- */
-export function useOverlays(session: MateuSession): OverlaysState {
-  const [entries, setEntries] = useState<Entry[]>([])
-  const open = useCallback((component: unknown, _state: unknown, _data: unknown, opener?: OverlayOpenerContext) => {
-    const meta = ((component as Dict)?.['metadata'] as Dict) ?? {}
-    const title = String(meta['headerTitle'] ?? meta['title'] ?? '')
-    const state = { ...((meta['initialData'] as Dict) ?? {}) }
-    setEntries((o) => upsertOverlay(o, { component, title, opener, revision: 0, state }))
-  }, [])
-  const closeTop = useCallback(() => setEntries((o) => o.slice(0, -1)), [])
-  useEffect(() => {
-    session.updateOverlayState = (id, state) => {
-      let took = false
-      setEntries((o) => {
-        const next = withOverlayState(o, id, state)
-        took = !!next
-        return next ?? o
-      })
-      return took
-    }
-  }, [session])
-  return { entries, session, open, closeTop }
-}
+export type { OverlaysState } from '@mr/shell/overlays'
+type Entry = OverlayEntry
 
 export function Overlays({ state }: { state: OverlaysState }) {
   return (

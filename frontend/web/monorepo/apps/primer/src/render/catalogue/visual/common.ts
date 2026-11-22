@@ -1,6 +1,9 @@
 import type React from 'react'
 
-export type Dict = Record<string, unknown>
+import { activate, list as arr, metaOf as meta, str, type Dict } from '@mr/render/wire'
+
+export type { Dict }
+export { activate, arr, meta, str }
 export type Tone = 'info' | 'success' | 'warning' | 'danger' | 'neutral'
 
 /** Primer's data-vis palette, in the order a series takes it (colour-blind distinguishable first). */
@@ -37,19 +40,4 @@ export function colorOf(value: unknown, fallback: string): string {
   return fallback
 }
 
-export const meta = (c: unknown): Dict => (((c as Dict | null)?.['metadata'] as Dict | undefined) ?? {})
-export const arr = <T = Dict>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : [])
-export const str = (v: unknown): string => (v == null ? '' : String(v))
 
-/** Enter / Space activate a non-button element, like a native button. */
-export const activate = (fn: () => void) => ({
-  role: 'button',
-  tabIndex: 0,
-  onClick: fn,
-  onKeyDown: (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      fn()
-    }
-  },
-})

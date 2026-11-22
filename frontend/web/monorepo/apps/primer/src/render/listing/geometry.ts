@@ -1,4 +1,4 @@
-import { NUMERIC, type Dict } from './rows'
+import { NUMERIC, type Dict } from '@mr/listing/rows'
 
 /**
  * A column's geometry on Primer's DataTable, from what the wire says (GridColumnDto):

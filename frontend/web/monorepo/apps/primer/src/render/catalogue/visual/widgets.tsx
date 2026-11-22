@@ -6,13 +6,13 @@ import { gridCellParameters, gridCellText, gridHeader, gridRowsOf, visibleTreeRo
 import { addOnTotal, fmtAmount, toggleAddOn } from '@rn/renderer/displayModels'
 import { initialPaymentMethod } from '@rn/renderer/displayFigures'
 import { parseBpmn, type Diagram } from '@rn/renderer/diagrams'
-import { useController } from '../../ViewHost'
+import { useController } from '@mr/render/ViewHost'
 import { ComponentRenderer } from '../../ComponentRenderer'
-import { BOX_STYLE, styleOf } from '../../styleOf'
+import { BOX_STYLE, styleOf } from '@mr/render/styleOf'
 import type { CatalogueProps } from '../types'
 import { activate, arr, colorOf, str, toneBg, toneFg, toneOf, type Dict } from './common'
 import { TileMap } from './tileMap'
-import { tx } from '../../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 // ── Map ───────────────────────────────────────────────────────────────────────────────────────────
 

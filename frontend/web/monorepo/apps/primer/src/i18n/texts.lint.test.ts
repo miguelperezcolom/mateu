@@ -11,6 +11,8 @@ import { join, relative } from 'node:path'
  * its line. Designer tools are excluded, as in the web renderer's lint (chromeTexts.lint.test.ts).
  */
 const SRC = new URL('..', import.meta.url).pathname
+// the shared half of the React renderers draws chrome too (frontend/web/react-renderer)
+const SHARED = new URL('../../../../../react-renderer/', import.meta.url).pathname
 
 const EXCLUDED = [
   /i18n\//,
@@ -60,7 +62,7 @@ const offending = (path: string): string[] => {
   return out
 }
 
-test('no hard-coded chrome text in the Primer renderer', () => {
-  const found = files(SRC).filter((f) => !EXCLUDED.some((re) => re.test(f))).flatMap(offending)
-  assert.deepEqual(found, [], 'move these to i18n/primerTexts.ts (or reuse a web chromeTexts key), or mark a non-chrome literal with // i18n-ok')
+test('no hard-coded chrome text in the Primer renderer nor in the shared React renderer tree', () => {
+  const found = [...files(SRC), ...files(SHARED)].filter((f) => !EXCLUDED.some((re) => re.test(f))).flatMap(offending)
+  assert.deepEqual(found, [], 'move these to react-renderer/i18n/rendererTexts.ts (or reuse a web chromeTexts key), or mark a non-chrome literal with // i18n-ok')
 })

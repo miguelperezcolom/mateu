@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { Button, Heading, Link, Text } from '@primer/react'
 import { StarFillIcon, StarIcon } from '@primer/octicons-react'
-import { Markdown } from '../../Markdown'
+import { Markdown } from '@mr/render/Markdown'
 import type { CatalogueProps } from '../types'
 import { list, MateuAvatar, safeHref, str, useRun, useText, WireIcon } from './shared'
-import { tx } from '../../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 /** FeatureGrid: a grid of feature cards (icon, title, text); a card with an action is a button. */
 export function FeatureGrid({ metadata, state, data }: CatalogueProps) {

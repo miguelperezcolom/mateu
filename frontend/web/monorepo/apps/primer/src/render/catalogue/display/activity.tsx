@@ -3,11 +3,11 @@ import { Button, Link, Text, Textarea, TextInput, Timeline as PrimerTimeline } f
 import { FileIcon, FileMediaIcon, FileZipIcon, PaperAirplaneIcon, TableIcon } from '@primer/octicons-react'
 import { ChatTurn, applyChatEvent, chatRequestBody, resolveChatUrl, CHAT_TEXTS } from '@rn/core/chatStream'
 import { uiEventHooks } from '@rn/core/uiEvents'
-import { Markdown } from '../../Markdown'
-import { useController } from '../../ViewHost'
+import { Markdown } from '@mr/render/Markdown'
+import { useController } from '@mr/render/ViewHost'
 import type { CatalogueProps, Dict } from '../types'
 import { displayColor, list, MateuAvatar, safeColor, safeHref, str, useRun, useText, WireIcon } from './shared'
-import { tx } from '../../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 /** Timeline: Primer's — a badge per event (its icon, its colour), title, text, when; an event with an action is a link. */
 export function Timeline({ metadata, state, data }: CatalogueProps) {

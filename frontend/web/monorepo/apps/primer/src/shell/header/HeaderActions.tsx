@@ -3,8 +3,8 @@ import { ActionList, ActionMenu, Button, IconButton } from '@primer/react'
 import { KebabHorizontalIcon } from '@primer/octicons-react'
 import type { MateuSession } from '@rn/core/MateuSession'
 import { headerActionLeaves, splitHeaderActions, type HeaderAction } from '@rn/core/embeddedAppExtras'
-import { runAndApply, type AppTarget } from './appLevel'
-import { tx } from '../../i18n/texts'
+import { runAndApply, type AppTarget } from '@mr/shell/appLevel'
+import { tx } from '@mr/i18n/texts'
 
 /**
  * The app's header actions (AppActionsSupplier → AppDto.contextActions): buttons on the header, an

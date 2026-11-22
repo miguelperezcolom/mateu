@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { AnchoredOverlay, Button, Checkbox, CheckboxGroup, FormControl, Select, Stack, TextInput } from '@primer/react'
 import { FilterIcon } from '@primer/octicons-react'
 import { isBlankFilterValue } from '@rn/renderer/crudListing'
-import { NUMERIC, multiValues, optionsOf, type Dict } from './rows'
-import { tx } from '../../i18n/texts'
+import { NUMERIC, multiValues, optionsOf, type Dict } from '@mr/listing/rows'
+import { tx } from '@mr/i18n/texts'
 
 /**
  * The listing's filters: a Filter button opening a panel with one control per filter, each the

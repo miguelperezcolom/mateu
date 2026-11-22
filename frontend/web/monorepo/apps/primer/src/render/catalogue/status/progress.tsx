@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { ActionList, Avatar, Button, Checkbox, CounterLabel, Heading, IconButton, Label, ProgressBar, Text } from '@primer/react'
 import { CheckCircleFillIcon, CircleIcon, DotFillIcon, AlertFillIcon, XCircleFillIcon, CheckIcon } from '@primer/octicons-react'
-import { useController } from '../../ViewHost'
+import { useController } from '@mr/render/ViewHost'
 import { type CatalogueProps, type Dict, glyph, labelVariant, list, pressable, str, useText } from './common'
-import { tx } from '../../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 /** A running task: done of total, a pill per subtask, and its action once it is complete. */
 export function TaskProgress({ metadata: m, state, data }: CatalogueProps) {

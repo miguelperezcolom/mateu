@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { ActionList, AnchoredOverlay, Button, SelectPanel, Text, Token, TreeView } from '@primer/react'
 import { TriangleDownIcon } from '@primer/octicons-react'
 import type { WidgetOption } from '@rn/core/fieldOptions'
-import { useController } from '../ViewHost'
-import { tx } from '../../i18n/texts'
+import { useController } from '@mr/render/ViewHost'
+import { tx } from '@mr/i18n/texts'
 
 type A11y = { 'aria-labelledby'?: string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }
 type Item = { id: string; text: string; description?: string }

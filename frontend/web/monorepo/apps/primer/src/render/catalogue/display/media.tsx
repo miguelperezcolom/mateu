@@ -4,7 +4,7 @@ import { ChevronDownIcon, ChevronRightIcon } from '@primer/octicons-react'
 import { ComponentRenderer } from '../../ComponentRenderer'
 import type { CatalogueProps } from '../types'
 import { childrenOf, isNode, list, MateuAvatar, str, useText, WireIcon } from './shared'
-import { tx } from '../../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 /** Icon: the Octicon its token names (an emoji as written). */
 export function Icon({ metadata }: CatalogueProps) {

@@ -5,11 +5,11 @@ import { interpolate } from '@rn/core/expressions'
 import { buttonGroupMembers, splitButtonParts } from '@rn/core/buttonGroup'
 import { isBackButton, isNavButton } from '@infra/ui/toolbarButtonKinds.ts'
 import { withSelectionGate } from '@infra/ui/selectionGate.ts'
-import { useController } from '../ViewHost'
-import { useButtonPress } from '../useButtonPress'
-import { usePending } from '../usePending'
+import { useController } from '@mr/render/ViewHost'
+import { useButtonPress } from '@mr/render/useButtonPress'
+import { usePending } from '@mr/render/usePending'
 import { buttonVariantOf } from '../looks'
-import { tx } from '../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 type Dict = Record<string, unknown>
 type Ctx = { state: Dict; data?: unknown }

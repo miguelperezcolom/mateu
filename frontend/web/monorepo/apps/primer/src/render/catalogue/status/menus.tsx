@@ -4,10 +4,10 @@ import { TriangleDownIcon } from '@primer/octicons-react'
 import { menuIntent, type MenuOptionLike } from '@rn/renderer/wireWidgets'
 import { actionPanelView, panelLabel, type ActionPanelMeta } from '@rn/renderer/actionPanel'
 import { dragMimeOf, draggedIdsOf, dropParamsOf, draggableSelectionOf, DRAG_SELECTION_EVENT } from '@infra/ui/dragAndDrop.ts'
-import { useController } from '../../ViewHost'
+import { useController } from '@mr/render/ViewHost'
 import { ComponentRenderer } from '../../ComponentRenderer'
 import { type CatalogueProps, type Dict, list, str, useText } from './common'
-import { tx } from '../../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 /** What a menu entry does: run its action, or open its route (in the app; an absolute url leaves it). */
 function useRunOption() {

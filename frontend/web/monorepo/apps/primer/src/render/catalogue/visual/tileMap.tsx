@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { IconButton } from '@primer/react'
 import { DashIcon, PlusIcon } from '@primer/octicons-react'
 import { planMapView, type LonLat } from '@infra/ui/mapPosition.ts'
-import { tx } from '../../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 /**
  * A slippy map with no SDK: Web Mercator tiles (the wire's `tileUrl`, Leaflet-style `{s}{z}{x}{y}`,

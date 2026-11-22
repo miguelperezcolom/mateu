@@ -6,7 +6,7 @@ import { appHomeOf } from '@rn/core/componentContext'
 import type { HeaderAction } from '@rn/core/embeddedAppExtras'
 import type { HeaderValue } from '@rn/core/appShellExtras'
 import { safeHref } from '@infra/ui/safeNavigate.ts'
-import { appTargetOf } from './header/appLevel'
+import { appTargetOf } from '@mr/shell/appLevel'
 import { ContextPickers } from './header/ContextPickers'
 import { HeaderActions } from './header/HeaderActions'
 import { NotificationBell } from './header/NotificationBell'
@@ -14,46 +14,15 @@ import { HeaderValues, useLiveUpdates } from './header/LiveHeader'
 import { UserMenu } from './header/UserMenu'
 import { AgentOperatingNotice, ConnectAi, useAgentChannel } from './header/AgentPush'
 import { useColorControl } from './header/theme'
-import {
-  CardsDialog, SideNav, TabsNav, TilesHub, TopNav, firstLeaf, holdsCurrent, useMenuActivation, visibleItems,
-  type MenuHandlers, type MenuItem,
-} from './header/MenuNav'
+import { NARROW_SHELL, menuLayoutOf, useMediaQuery } from '@mr/shell/layout'
+import { CardsDialog, SideNav, TabsNav, TilesHub, TopNav } from './header/MenuNav'
+import { firstLeaf, holdsCurrent, useMenuActivation, visibleItems, type MenuHandlers, type MenuItem } from '@mr/shell/menu'
 import './header/header.css'
-import { tx } from '../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 const MobileQrDialog = React.lazy(() => import('./header/MobileQr'))
 
 type Dict = Record<string, unknown>
-
-/** Below this width the menu folds behind ☰ and the header actions into "More". */
-const NARROW = '(max-width: 767px)'
-
-function useNarrow(): boolean {
-  const [narrow, setNarrow] = useState(() => typeof window.matchMedia === 'function' && window.matchMedia(NARROW).matches)
-  useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return
-    const mq = window.matchMedia(NARROW)
-    const on = () => setNarrow(mq.matches)
-    mq.addEventListener('change', on)
-    return () => mq.removeEventListener('change', on)
-  }, [])
-  return narrow
-}
-
-/** How a variant lays its menu out (AppDto.variant). */
-type Layout = 'side' | 'top' | 'tiles' | 'tabs' | 'sections' | 'bare'
-
-function layoutOf(app: Dict): Layout {
-  if (app['chromeless'] === true) return 'bare'
-  switch (app['variant']) {
-    case 'MEDIATOR': return 'bare'
-    case 'MENU_ON_TOP': return 'top'
-    case 'TILES': return 'tiles'
-    case 'TABS': return 'tabs'
-    case 'HAMBURGER_SECTIONS': return 'sections'
-    default: return 'side' // HAMBURGER_MENU, MENU_ON_LEFT, RAIL, AUTO
-  }
-}
 
 /**
  * An App shell in Primer's own grammar (github.com's header): the app's name, its menu, and on the
@@ -71,9 +40,9 @@ export function AppShell({ session, app, current, onNavigate, children }: {
   onNavigate: (target: NavTarget) => void
   children: React.ReactNode
 }) {
-  const narrow = useNarrow()
+  const narrow = useMediaQuery(NARROW_SHELL)
   const color = useColorControl()
-  const layout = layoutOf(app)
+  const layout = menuLayoutOf(app)
   const target = useMemo(() => appTargetOf(app), [app])
   const agentMeta = useMemo(() => ({ ...app, ...target }), [app, target])
   // live UI push: the channel a paired AI agent sends screens through (only when the app turned it on)

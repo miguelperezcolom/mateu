@@ -2,79 +2,18 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Button, Dialog, Spinner, Stack, Text } from '@primer/react'
 import { CopilotIcon, LinkIcon } from '@primer/octicons-react'
 import type { MateuSession } from '@rn/core/MateuSession'
-import { AGENT_CHANNEL_ACTION, AGENT_UNPAIR_ACTION, AgentChannel, agentActionRequest, type AgentAppMeta } from '@rn/core/agentPush'
+import { AGENT_UNPAIR_ACTION, agentActionRequest } from '@rn/core/agentPush'
 import { AgentPairingModel, connectAiEntry, type PairingButton } from '@rn/core/agentPairing'
-import { AGENT_SCREEN_ACTION, answerParameters, answerQuery, waitIdle } from '@rn/core/agentScreen'
 import { agentOperatingTexts } from '@rn/core/agentOperatingTexts'
-import { applyUiEvent } from '@rn/core/uiEvents'
 import { announceLive } from '@rn/a11y/a11y'
-import { tx } from '../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
+import { agentMetaOf as metaOf, useAgentChannel as useSharedAgentChannel, useAgentStatus } from '@mr/shell/agentPush'
 
 type Dict = Record<string, unknown>
 
-/** The renderer the live-push session names (the server only logs it). */
-const AGENT_RENDERER = 'primer'
-
-const metaOf = (app: Dict): AgentAppMeta & { agentPush?: boolean; homeRoute?: string } => app as never
-
-/**
- * LIVE UI PUSH (`AppDto.agentPush`, MCP phase C): an AI agent the user paired sends screens to THIS
- * tab. The RN core runs it all — the `_agent-channel` stream, pairing, the agent's queries answered
- * from what this tab shows (agentScreen) — and every pushed event goes through the very function
- * the assistant's events go through (uiEvents). The channel is open while the tab is visible (the
- * server keeps a pairing 120 s after its stream ends, so switching tabs does not lose it).
- */
+/** The live-push channel, naming this renderer (the hook is shared). */
 export function useAgentChannel(session: MateuSession, app: Dict) {
-  const meta = metaOf(app)
-  useEffect(() => {
-    if (!meta.agentPush) return undefined
-    const channel = new AgentChannel({
-      state: session.agent,
-      request: () => agentActionRequest(meta, AGENT_CHANNEL_ACTION, session.agent.session, session.appState, {
-        route: session.currentScreen()?.route ?? meta.homeRoute ?? meta.rootRoute ?? '',
-        renderer: AGENT_RENDERER,
-      }),
-      open: (request, onIncrement, signal) => session.api.runActionStream(request as never, onIncrement, signal),
-      onEvent: (event) => {
-        applyUiEvent(session, event)
-        if (event.event === 'render-screen') announceLive(tx('agentSentScreen'), false)
-      },
-      onAnnounce: (text) => announceLive(text, false),
-      onQuery: (query) => {
-        if (session.agent.stoppedByUser) return
-        session.agentScreen.noteQuery()
-        void answerQuery(query, {
-          registry: session.agentScreen,
-          appState: session.appState,
-          idle: () => waitIdle(() => session.activity.busy, (l) => session.activity.subscribe(l)),
-        }).then((answer) => session.api.runAction({
-          ...agentActionRequest(meta, AGENT_SCREEN_ACTION, session.agent.session, session.appState, answerParameters(query, answer)),
-          background: true,
-        } as never)).catch(() => undefined)
-      },
-      log: () => undefined,
-    })
-    const visible = () => document.visibilityState === 'visible'
-    const onVisibility = () => (visible() ? channel.start() : channel.stop())
-    document.addEventListener('visibilitychange', onVisibility)
-    const offStopped = session.agent.subscribe(() => {
-      if (session.agent.stoppedByUser) channel.stop()
-      else if (visible()) channel.start()
-    })
-    if (visible()) channel.start()
-    return () => {
-      document.removeEventListener('visibilitychange', onVisibility)
-      offStopped()
-      channel.dispose()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [meta.agentPush, meta.serverSideType, meta.rootRoute, session])
-}
-
-function useAgentStatus(session: MateuSession) {
-  const [, setVersion] = useState(0)
-  useEffect(() => session.agent.subscribe(() => setVersion((v) => v + 1)), [session])
-  return session.agent.status
+  useSharedAgentChannel(session, app, 'primer')
 }
 
 /** "Connect AI" on the header (shown only when push is on): opens the pairing dialog. */

@@ -8,7 +8,7 @@ import {
 import { UploadCancelled, UploadError, uploadFile, xhrTransport, type UploadApi } from '@rn/core/fileUploader'
 import { fileValueSummary } from '@rn/renderer/fileUpload'
 import { safeHref } from '@infra/ui/safeNavigate.ts'
-import { tx } from '../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 type A11y = { 'aria-labelledby'?: string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }
 

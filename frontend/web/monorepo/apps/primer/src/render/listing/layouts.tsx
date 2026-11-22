@@ -4,8 +4,8 @@ import { cellText } from '@rn/renderer/cellText'
 import { cardLayoutOf, listColumns, listRowModel, pictureUrlOf, type ColDef } from '@rn/renderer/crudListing'
 import { labelVariantOf } from '../looks'
 import { ComponentRenderer } from '../ComponentRenderer'
-import { childrenOf, type Dict, type Row } from './rows'
-import { tx } from '../../i18n/texts'
+import { childrenOf, type Dict, type Row } from '@mr/listing/rows'
+import { tx } from '@mr/i18n/texts'
 
 /** gridLayout = cards: one bordered box per row, its picture and title first (the title opens it). */
 export function Cards({ rows, defs, cellOf }: { rows: Row[]; defs: ColDef[]; cellOf: (r: Row, c: ColDef) => React.ReactNode }) {

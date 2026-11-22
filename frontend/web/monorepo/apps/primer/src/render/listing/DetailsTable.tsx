@@ -4,8 +4,8 @@ import { Table } from '@primer/react/experimental'
 import { ChevronDownIcon, ChevronRightIcon } from '@primer/octicons-react'
 import type { ColDef } from '@rn/renderer/crudListing'
 import { RowDetail } from './layouts'
-import { NUMERIC, type Dict, type Row } from './rows'
-import { tx } from '../../i18n/texts'
+import { NUMERIC, type Dict, type Row } from '@mr/listing/rows'
+import { tx } from '@mr/i18n/texts'
 
 /**
  * A listing whose rows carry @Details (`detailPath`): Primer's Table primitives, each row with a

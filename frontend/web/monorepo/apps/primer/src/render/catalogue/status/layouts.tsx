@@ -3,11 +3,11 @@ import { Heading, IconButton, Label, Text } from '@primer/react'
 import { ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon, PencilIcon, FoldIcon, UnfoldIcon, PlayIcon, PauseIcon } from '@primer/octicons-react'
 import { foldoutOpenStates } from '@rn/core/foldoutFit'
 import { foldoutSummaryOf } from '@rn/renderer/patternGaps'
-import { useController } from '../../ViewHost'
+import { useController } from '@mr/render/ViewHost'
 import { ComponentRenderer } from '../../ComponentRenderer'
-import { BOX_STYLE, styleOf } from '../../styleOf'
+import { BOX_STYLE, styleOf } from '@mr/render/styleOf'
 import { type CatalogueProps, type Dict, childrenOf, list, metaOf, slotOf, str, useText } from './common'
-import { tx } from '../../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 /** The width an element is given (ResizeObserver); 0 before the first layout. */
 function useWidth<T extends HTMLElement>(): [React.RefObject<T | null>, number] {

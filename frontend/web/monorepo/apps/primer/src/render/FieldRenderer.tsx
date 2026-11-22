@@ -18,8 +18,8 @@ import { fieldPlaceholder } from '@rn/core/uxRules'
 import { readOnlyFieldText } from '@rn/core/readOnlyDisplay'
 import { isMultiValued, pickedStrings, pickedValue, pickedValues, widgetOptionsOf, type TypedOption, type WidgetOption } from '@rn/core/fieldOptions'
 import { fetchExternalJson, mapItemsToOptions, type FetchedOption } from '@rn/core/restFetch'
-import { useController } from './ViewHost'
-import { tx } from '../i18n/texts'
+import { useController } from '@mr/render/ViewHost'
+import { tx } from '@mr/i18n/texts'
 
 type Dict = Record<string, unknown>
 

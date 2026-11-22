@@ -2,11 +2,11 @@ import React from 'react'
 import { Button, Heading, Label, ProgressBar, Text } from '@primer/react'
 import { CheckIcon } from '@primer/octicons-react'
 import { offerFooterOf } from '@rn/renderer/displayFigures'
-import { useController } from '../../ViewHost'
+import { useController } from '@mr/render/ViewHost'
 import { ComponentRenderer } from '../../ComponentRenderer'
-import { BOX_STYLE, styleOf } from '../../styleOf'
+import { BOX_STYLE, styleOf } from '@mr/render/styleOf'
 import { type CatalogueProps, type Dict, childrenOf, glyph, labelVariant, list, pressable, str, trendLook, useText } from './common'
-import { tx } from '../../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 /** A KPI tile: title, the value (+ unit), its trend and period; a tile with an action drills in. */
 export function MetricCard({ metadata: m, state, data }: CatalogueProps) {

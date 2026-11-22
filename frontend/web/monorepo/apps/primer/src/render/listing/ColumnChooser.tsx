@@ -3,7 +3,7 @@ import { AnchoredOverlay, Button, Checkbox, FormControl, IconButton } from '@pri
 import { ArrowDownIcon, ArrowUpIcon, ColumnsIcon } from '@primer/octicons-react'
 import { applyColumnPrefs, clearColumnPrefs, isProtectedColumn, readColumnPrefs, writeColumnPrefs, type ColumnPrefs } from '@infra/columnPrefsStore.ts'
 import type { ColDef } from '@rn/renderer/crudListing'
-import { tx } from '../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 /** A column as the web store reads it (its id, whether it names the row, its type). */
 const metaOf = (c: ColDef) => ({ id: c.fieldId, identifier: c.identifier, dataType: c.dataType })

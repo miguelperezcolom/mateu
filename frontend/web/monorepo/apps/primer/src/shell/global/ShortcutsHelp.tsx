@@ -2,8 +2,8 @@ import React, { useState } from 'react'
 import { Checkbox, Dialog, FormControl, Text } from '@primer/react'
 import { keyLabel, setSingleKeyShortcuts, singleKeyShortcutsOn } from '@infra/ui/appShortcuts.ts'
 import type { MateuSession } from '@rn/core/MateuSession'
-import { registeredScreenShortcuts, type AppShortcutLike } from './shortcuts'
-import { tx } from '../../i18n/texts'
+import { registeredScreenShortcuts, type AppShortcutLike } from '@mr/shell/shortcuts'
+import { tx } from '@mr/i18n/texts'
 
 interface Listed { key: string; label: string }
 

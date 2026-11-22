@@ -3,8 +3,8 @@ import { IconButton, Stack, Text, TextInput, Token, Button } from '@primer/react
 import { SearchIcon } from '@primer/octicons-react'
 import { lookupLabelOf } from '@rn/core/readOnlyDisplay'
 import { removeSearchableId, searchableChips, searchableIds } from '@infra/ui/searchableMulti.ts'
-import { useController } from '../ViewHost'
-import { tx } from '../../i18n/texts'
+import { useController } from '@mr/render/ViewHost'
+import { tx } from '@mr/i18n/texts'
 
 type Dict = Record<string, unknown>
 type A11y = { 'aria-labelledby': string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }

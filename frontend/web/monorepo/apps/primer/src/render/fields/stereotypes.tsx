@@ -3,7 +3,7 @@ import { AnchoredOverlay, Button, Text } from '@primer/react'
 import { TriangleDownIcon } from '@primer/octicons-react'
 import type { WidgetOption } from '@rn/core/fieldOptions'
 import { ChoiceCards } from './choiceCards'
-import { tx } from '../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 type A11y = { 'aria-labelledby'?: string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }
 

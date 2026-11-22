@@ -5,10 +5,10 @@ import { cellText } from '@rn/renderer/cellText'
 import { cellTone, pictureUrlOf, type ColDef } from '@rn/renderer/crudListing'
 import { rowToneOf } from '@infra/ui/rowTone.ts'
 import { dragMimeOf } from '@infra/ui/dragAndDrop.ts'
-import { useController } from '../ViewHost'
+import { useController } from '@mr/render/ViewHost'
 import { labelVariantOf } from '../looks'
-import { NUMERIC, isBool, withoutRowKey, type Dict, type Row } from './rows'
-import { tx } from '../../i18n/texts'
+import { NUMERIC, isBool, withoutRowKey, type Dict, type Row } from '@mr/listing/rows'
+import { tx } from '@mr/i18n/texts'
 
 export interface CellContext {
   /** The column that names the row: the row header, the link that opens it, the drag handle. */

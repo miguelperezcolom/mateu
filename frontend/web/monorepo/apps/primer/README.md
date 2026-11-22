@@ -9,7 +9,11 @@ the real Primer, not a theme over another design system. Design: `design/rendere
   `frontend/app/react-native/src` (alias `@rn`): `MateuSession`, `MateuViewController`, the api
   client, expressions, rules, the REST source catalogue, the listing helpers. Nothing is copied.
   Two core modules import `react-native` / `expo-*` (the screen-reader announcement, opening a
-  downloaded file); those imports resolve to small web shims in `src/shims`.
+  downloaded file); those imports resolve to small web shims in `frontend/web/react-renderer/shims`.
+- **The design-system-neutral half is shared** with the other React renderers (SAP, Salesforce):
+  `frontend/web/react-renderer` (alias `@mr`) — view hosting, the boot, the URL, the shell's
+  behaviour, the listings' state, texts, resilience. What is left here is Primer's drawing. See its
+  README for the contract.
 - **The UI layer is new**, Primer React only: `PageHeader`, `PageLayout` + `NavList` (app shell),
   `FormControl` + inputs, `DataTable` / `Table.Pagination`, `Banner`, `Dialog`, `UnderlinePanels`,
   `Blankslate`… A wire type it does not draw yet is an explicit `<mateu-unsupported>`.

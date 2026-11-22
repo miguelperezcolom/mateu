@@ -7,7 +7,7 @@ import { ComponentRenderer } from '../../ComponentRenderer'
 import { labelVariantOf } from '../../looks'
 import type { CatalogueProps, Dict } from '../types'
 import { childrenOf, list, safeHref, str, useOpenRoute, useRun, useText, WireIcon } from './shared'
-import { tx } from '../../../i18n/texts'
+import { tx } from '@mr/i18n/texts'
 
 /**
  * HeroSection: the welcome / landing band — overline, title, subtitle, the CTAs (its children);

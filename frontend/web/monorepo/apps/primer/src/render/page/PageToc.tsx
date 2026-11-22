@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { NavList } from '@primer/react'
-import { type TocEntry, tocShortcutIndex } from './toc'
-import { tx } from '../../i18n/texts'
+import { type TocEntry, tocShortcutIndex } from '@mr/page/toc'
+import { tx } from '@mr/i18n/texts'
 
 const GAP = 8
 
