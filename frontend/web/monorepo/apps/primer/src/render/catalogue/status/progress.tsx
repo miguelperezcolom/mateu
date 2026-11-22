@@ -3,6 +3,7 @@ import { ActionList, Avatar, Button, Checkbox, CounterLabel, Heading, IconButton
 import { CheckCircleFillIcon, CircleIcon, DotFillIcon, AlertFillIcon, XCircleFillIcon, CheckIcon } from '@primer/octicons-react'
 import { useController } from '../../ViewHost'
 import { type CatalogueProps, type Dict, glyph, labelVariant, list, pressable, str, useText } from './common'
+import { tx } from '../../../i18n/texts'
 
 /** A running task: done of total, a pill per subtask, and its action once it is complete. */
 export function TaskProgress({ metadata: m, state, data }: CatalogueProps) {
@@ -18,7 +19,7 @@ export function TaskProgress({ metadata: m, state, data }: CatalogueProps) {
         <Text weight="semibold">{t(m['label'])}</Text>
         <Text size="small" className="mateu-st-muted">{done}/{total}</Text>
       </div>
-      <ProgressBar progress={total > 0 ? Math.min(100, (done / total) * 100) : 0} bg={complete ? 'success.emphasis' : 'accent.emphasis'} aria-label={t(m['label']) || 'Progress'} />
+      <ProgressBar progress={total > 0 ? Math.min(100, (done / total) * 100) : 0} bg={complete ? 'success.emphasis' : 'accent.emphasis'} aria-label={t(m['label']) || tx('progress')} />
       {total > 1 && total <= 12 && (
         <div className="mateu-st-row mateu-st-wrap">
           {Array.from({ length: total }, (_, i) => (
@@ -47,7 +48,7 @@ export function Checklist({ metadata: m, state, data }: CatalogueProps) {
         {title ? <Heading as="h3" className="mateu-st-h">{title}</Heading> : <span />}
         <Text size="small" className="mateu-st-muted">{count}/{items.length}</Text>
       </div>
-      <ProgressBar progress={items.length ? (count / items.length) * 100 : 0} bg="success.emphasis" aria-label={title || 'Checklist progress'} />
+      <ProgressBar progress={items.length ? (count / items.length) * 100 : 0} bg="success.emphasis" aria-label={title || tx('progress')} />
       <ul className="mateu-st-plain">
         {items.map((it, i) => {
           const id = `chk-${str(it['id']) || i}-${title}`
@@ -138,7 +139,7 @@ export function ProcessMonitor({ metadata: m, state, data }: CatalogueProps) {
                 {Number(it['errors'] ?? 0) > 0 && <Label variant="danger">{Number(it['errors'])}</Label>}
               </span>
             </div>
-            {it['actionId'] ? <Button size="small" onClick={() => void controller.runAction(str(it['actionId']))}>{t(it['actionLabel']) || 'Open'}</Button> : null}
+            {it['actionId'] ? <Button size="small" onClick={() => void controller.runAction(str(it['actionId']))}>{t(it['actionLabel']) || tx('open')}</Button> : null}
           </li>
         )
       })}
@@ -185,7 +186,7 @@ export function TaskQueue({ metadata: m, state, data }: CatalogueProps) {
   return (
     <div className="mateu-st-queue">
       {groups.map((g, gi) => (
-        <ActionList key={gi} selectionVariant="single" role="listbox" aria-label={t(g['label']) || 'Queue'}>
+        <ActionList key={gi} selectionVariant="single" role="listbox" aria-label={t(g['label']) || tx('queue')}>
           {g['label'] ? <ActionList.GroupHeading>{t(g['label'])}</ActionList.GroupHeading> : null}
           {list<Dict>(g['items']).map((it, i) => {
             const id = str(it['id'])

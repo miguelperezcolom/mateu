@@ -6,6 +6,7 @@ import { cellTone } from '@rn/renderer/crudListing'
 import { labelVariantOf } from '../looks'
 import { PlusIcon, TrashIcon } from '@primer/octicons-react'
 import { flattenColumnGroups } from '@rn/renderer/columnGroups'
+import { tx } from '../../i18n/texts'
 
 type Dict = Record<string, unknown>
 
@@ -51,7 +52,7 @@ export function gridColumnsOf(columns: unknown, rows: Dict[]): Column[] {
 
 const plainText = (v: unknown, c?: Column): string => {
   if (v === null || v === undefined) return ''
-  if (typeof v === 'boolean') return v ? 'Yes' : 'No'
+  if (typeof v === 'boolean') return v ? tx('yes') : tx('no')
   if (typeof v === 'object' && ('message' in (v as Dict) || 'value' in (v as Dict))) return listingCellText(v, c?.valueLabels, c)
   if (typeof v === 'object') return String((v as Dict)['label'] ?? (v as Dict)['name'] ?? JSON.stringify(v))
   return listingCellText(v, c?.valueLabels, c)
@@ -150,12 +151,12 @@ export function GridField({ label, columns, rows, editable, inlineEditing, onCha
           <thead>
             <tr>
               {columns.map((c) => <th key={c.id} scope="col">{c.label}</th>)}
-              {anyEditable && <th scope="col"><VisuallyHidden>Actions</VisuallyHidden></th>}
+              {anyEditable && <th scope="col"><VisuallyHidden>{tx('actions')}</VisuallyHidden></th>}
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
-              <tr><td colSpan={columns.length + (anyEditable ? 1 : 0)}><Text style={{ color: 'var(--fgColor-muted)' }}>No rows</Text></td></tr>
+              <tr><td colSpan={columns.length + (anyEditable ? 1 : 0)}><Text style={{ color: 'var(--fgColor-muted)' }}>{tx('noRows')}</Text></td></tr>
             )}
             {rows.map((row, i) => (
               <tr
@@ -175,7 +176,7 @@ export function GridField({ label, columns, rows, editable, inlineEditing, onCha
                 {columns.map((c) => <td key={c.id}>{cell(c, row, i)}</td>)}
                 {anyEditable && (
                   <td className="actions">
-                    <IconButton icon={TrashIcon} size="small" variant="invisible" aria-label={`Remove row ${i + 1}`} onClick={() => remove(i)} />
+                    <IconButton icon={TrashIcon} size="small" variant="invisible" aria-label={tx('removeRowN', { n: i + 1 })} onClick={() => remove(i)} />
                   </td>
                 )}
               </tr>
@@ -183,7 +184,7 @@ export function GridField({ label, columns, rows, editable, inlineEditing, onCha
           </tbody>
         </table>
       </div>
-      {anyEditable && <div><Button size="small" leadingVisual={PlusIcon} onClick={add}>Add row</Button></div>}
+      {anyEditable && <div><Button size="small" leadingVisual={PlusIcon} onClick={add}>{tx('addRow')}</Button></div>}
     </div>
   )
 }

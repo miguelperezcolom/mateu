@@ -11,3 +11,4 @@
 .mateu-overlay--modeless { pointer-events: auto; box-shadow: var(--shadow-floating-large); }
 /* a dialog or drawer sits above the floating buttons (30) and the assistant panel (40) */
 [class*="Dialog-Backdrop"] { z-index: 50; }
+.mateu-overlay__head--drag { cursor: move; user-select: none; }

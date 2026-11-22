@@ -14,6 +14,7 @@ import { ViewHost } from '../render/ViewHost'
 import type { MateuViewController } from '@rn/core/MateuViewController'
 import { GlobalLayer, type ContentPreview } from './global/GlobalLayer'
 import { Resilience } from './resilience/Resilience'
+import { tx } from '../i18n/texts'
 
 type Dict = Record<string, unknown>
 
@@ -71,10 +72,10 @@ export function MateuPrimerApp({ baseUrl, bundle }: { baseUrl: string; bundle?: 
       confirmButtonType: texts.destructive ? 'danger' : 'primary',
     })
     session.confirmDiscard = () => confirm({
-      title: 'Discard changes?',
-      content: 'You have unsaved changes on this screen. If you leave, they are lost.',
-      confirmButtonContent: 'Discard',
-      cancelButtonContent: 'Stay',
+      title: tx('discardTitle'),
+      content: tx('discardMessage'),
+      confirmButtonContent: tx('discard'),
+      cancelButtonContent: tx('stay'),
       confirmButtonType: 'danger',
     })
     session.reload = () => window.location.reload()
@@ -154,13 +155,13 @@ export function MateuPrimerApp({ baseUrl, bundle }: { baseUrl: string; bundle?: 
           <Stack gap="condensed">
             <Text weight="semibold">{message.title}</Text>
             <Text>{message.detail}</Text>
-            <div><Button onClick={() => setBoot((b) => ({ ...b, attempt: b.attempt + 1 }))}>Try again</Button></div>
+            <div><Button onClick={() => setBoot((b) => ({ ...b, attempt: b.attempt + 1 }))}>{tx('tryAgain')}</Button></div>
           </Stack>
         </Flash>
       </Centered>
     )
   } else if (boot.loading && !content) {
-    body = <Centered><Spinner size="large" srText="Loading" /></Centered>
+    body = <Centered><Spinner size="large" srText={tx('loading')} /></Centered>
   } else if (boot.app) {
     body = (
       <AppShell
@@ -181,7 +182,7 @@ export function MateuPrimerApp({ baseUrl, bundle }: { baseUrl: string; bundle?: 
 
   return (
     <>
-      <a className="mateu-skip-link" href="#mateu-main" onClick={focusMain}>Skip to content</a>
+      <a className="mateu-skip-link" href="#mateu-main" onClick={focusMain}>{tx('skipToContent')}</a>
       {body}
       {!boot.failure && <GlobalLayer session={session} app={boot.app ?? NO_APP} current={content} onNavigate={go} onPreview={showPreview} />}
       <Overlays state={overlays} />

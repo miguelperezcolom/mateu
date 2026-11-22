@@ -4,6 +4,7 @@ import { ArrowDownIcon, ArrowUpIcon, DashIcon, PlusIcon } from '@primer/octicons
 import type { MateuViewController } from '@rn/core/MateuViewController'
 import { useController, ViewHost } from '../ViewHost'
 import { GridCellValue, type GridColumn } from './grid'
+import { tx } from '../../i18n/texts'
 
 type Dict = Record<string, unknown>
 
@@ -19,7 +20,7 @@ function editorsOf(controller: object): Record<string, Delivered> {
 
 const cellText = (v: unknown): string => {
   if (v === null || v === undefined) return ''
-  if (typeof v === 'boolean') return v ? 'Yes' : 'No'
+  if (typeof v === 'boolean') return v ? tx('yes') : tx('no')
   if (typeof v === 'object') return String((v as Dict)['label'] ?? (v as Dict)['name'] ?? JSON.stringify(v))
   return String(v)
 }
@@ -53,7 +54,7 @@ export function RowEditorGrid({ fieldId, label, columns, rows, state, formPositi
       setTick((t) => t + 1)
     } else if (rowState && kept?.view) {
       // Next / Prev: the editor stays, showing another row
-      kept.view.applyIncrement({ fragments: [{ targetComponentId: kept.view.currentComponentId, action: 'Replace', component: null, state: rowState }] })
+      kept.view.applyIncrement({ fragments: [{ targetComponentId: kept.view.currentComponentId, action: 'Replace', component: null /* i18n-ok: a wire action */, state: rowState }] })
     }
   }), [controller, fieldId])
 
@@ -71,9 +72,9 @@ export function RowEditorGrid({ fieldId, label, columns, rows, state, formPositi
       <table aria-label={label}>
         <thead>
           <tr>
-            <th scope="col" style={{ width: '2.5rem' }}><VisuallyHidden>Selected</VisuallyHidden></th>
+            <th scope="col" style={{ width: '2.5rem' }}><VisuallyHidden>{tx('selected')}</VisuallyHidden></th>
             {columns.map((c) => <th key={c.id} scope="col">{c.label}</th>)}
-            <th scope="col" style={{ width: '4rem' }}><VisuallyHidden>Edit</VisuallyHidden></th>
+            <th scope="col" style={{ width: '4rem' }}><VisuallyHidden>{tx('edit')}</VisuallyHidden></th>
           </tr>
         </thead>
         <tbody>
@@ -86,14 +87,14 @@ export function RowEditorGrid({ fieldId, label, columns, rows, state, formPositi
             return (
               <tr key={`${n}-${i}`} aria-selected={selected.has(n)}>
                 <td>
-                  <Checkbox aria-label={`Select ${name}`} checked={selected.has(n)} onChange={(e) => {
+                  <Checkbox aria-label={tx('selectNamed', { name })} checked={selected.has(n)} onChange={(e) => {
                     const next = new Set(selected)
                     if (e.target.checked) next.add(n); else next.delete(n)
                     select(next)
                   }} />
                 </td>
                 {columns.map((c) => <td key={c.id}><GridCellValue value={row[c.id]} column={c} /></td>)}
-                <td><Button size="small" variant="invisible" aria-label={`Edit ${name}`} onClick={() => run('select', { ...row })}>Edit</Button></td>
+                <td><Button size="small" variant="invisible" aria-label={tx('editNamed', { name })} onClick={() => run('select', { ...row })}>{tx('edit')}</Button></td>
               </tr>
             )
           })}
@@ -103,11 +104,11 @@ export function RowEditorGrid({ fieldId, label, columns, rows, state, formPositi
   )
   const toolbar = (
     <Stack direction="horizontal" gap="condensed">
-      <IconButton icon={PlusIcon} size="small" aria-label={`Add to ${label}`} onClick={() => run('add')} />
-      <IconButton icon={DashIcon} size="small" aria-label="Remove the selected rows" disabled={selected.size === 0} onClick={() => { run('remove'); select(new Set()) }} />
+      <IconButton icon={PlusIcon} size="small" aria-label={tx('addTo', { name: label })} onClick={() => run('add')} />
+      <IconButton icon={DashIcon} size="small" aria-label={tx('removeSelectedRows')} disabled={selected.size === 0} onClick={() => { run('remove'); select(new Set()) }} />
       <ButtonGroup>
-        <IconButton icon={ArrowUpIcon} size="small" aria-label="Move up" disabled={selected.size === 0} onClick={() => run('move-up')} />
-        <IconButton icon={ArrowDownIcon} size="small" aria-label="Move down" disabled={selected.size === 0} onClick={() => run('move-down')} />
+        <IconButton icon={ArrowUpIcon} size="small" aria-label={tx('moveUp')} disabled={selected.size === 0} onClick={() => run('move-up')} />
+        <IconButton icon={ArrowDownIcon} size="small" aria-label={tx('moveDown')} disabled={selected.size === 0} onClick={() => run('move-down')} />
       </ButtonGroup>
     </Stack>
   )

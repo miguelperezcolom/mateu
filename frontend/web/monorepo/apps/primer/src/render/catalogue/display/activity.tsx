@@ -7,6 +7,7 @@ import { Markdown } from '../../Markdown'
 import { useController } from '../../ViewHost'
 import type { CatalogueProps, Dict } from '../types'
 import { displayColor, list, MateuAvatar, safeColor, safeHref, str, useRun, useText, WireIcon } from './shared'
+import { tx } from '../../../i18n/texts'
 
 /** Timeline: Primer's — a badge per event (its icon, its colour), title, text, when; an event with an action is a link. */
 export function Timeline({ metadata, state, data }: CatalogueProps) {
@@ -126,8 +127,8 @@ export function MessageInput({ metadata }: CatalogueProps) {
   }
   return (
     <form className="mateu-message-input" onSubmit={(e) => { e.preventDefault(); submit() }}>
-      <TextInput aria-label="Message" placeholder="Message" value={value} onChange={(e) => setValue(e.target.value)} block />
-      <Button type="submit" variant="primary" leadingVisual={PaperAirplaneIcon} disabled={!value.trim()}>Send</Button>
+      <TextInput aria-label={tx('message')} placeholder={tx('chatPlaceholder')} value={value} onChange={(e) => setValue(e.target.value)} block />
+      <Button type="submit" variant="primary" leadingVisual={PaperAirplaneIcon} disabled={!value.trim()}>{tx('send')}</Button>
     </form>
   )
 }
@@ -191,7 +192,7 @@ export function Chat({ metadata }: CatalogueProps) {
   return (
     <div className="mateu-chat">
       <div className="mateu-chat__messages" ref={listRef} aria-live="polite">
-        {messages.length === 0 && <Text className="mateu-muted">Ask anything about this app.</Text>}
+        {messages.length === 0 && <Text className="mateu-muted">{tx('chatEmpty')}</Text>}
         {messages.map((m) => (
           <div key={m.id} className={`mateu-chat__bubble mateu-chat__bubble--${m.from}`}>
             {m.from === 'agent' ? <Markdown source={m.text || '…'} /> : m.text}
@@ -200,10 +201,10 @@ export function Chat({ metadata }: CatalogueProps) {
         {busy && progress && <Text size="small" className="mateu-muted">{progress}</Text>}
       </div>
       <form className="mateu-message-input" onSubmit={(e) => { e.preventDefault(); void send() }}>
-        <Textarea aria-label="Message" placeholder="Message" value={input} rows={2} resize="vertical" block
+        <Textarea aria-label={tx('message')} placeholder={tx('chatPlaceholder')} value={input} rows={2} resize="vertical" block
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send() } }} />
-        <Button type="submit" variant="primary" leadingVisual={PaperAirplaneIcon} loading={busy} disabled={!input.trim()}>Send</Button>
+        <Button type="submit" variant="primary" leadingVisual={PaperAirplaneIcon} loading={busy} disabled={!input.trim()}>{tx('send')}</Button>
       </form>
     </div>
   )

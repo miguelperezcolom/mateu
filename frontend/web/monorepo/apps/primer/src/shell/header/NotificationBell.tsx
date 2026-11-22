@@ -6,13 +6,14 @@ import { filtered, grouped, inboxItemOf, unreadCount, type InboxAction, type Inb
 import { markReadVars, notificationsOf, runAppSource } from '@rn/core/appSources'
 import { answerData, applyAppAnswer, runAppLevel, type AppTarget } from './appLevel'
 import { useNotifyPermission, useOsNotifications } from './osNotifications'
+import { tx, type TextKey } from '../../i18n/texts'
 
 type Dict = Record<string, unknown>
 
-const FILTERS: { id: InboxFilter; label: string }[] = [
-  { id: 'unread', label: 'Unread' },
-  { id: 'all', label: 'All' },
-  { id: 'resolved', label: 'Resolved' },
+const FILTERS: { id: InboxFilter; label: TextKey }[] = [
+  { id: 'unread', label: 'notificationFilterUnread' },
+  { id: 'all', label: 'notificationFilterAll' },
+  { id: 'resolved', label: 'notificationFilterResolved' },
 ]
 
 /**
@@ -131,7 +132,7 @@ export function NotificationBell({ session, app, onNavigate }: { session: MateuS
   const items = session.inbox.items()
   const unread = unreadCount(items)
   const groups = grouped(filtered(items, filter))
-  const label = unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'
+  const label = unread > 0 ? tx('notificationsUnread', { count: unread }) : tx('notifications')
 
   return (
     <AnchoredOverlay
@@ -145,20 +146,20 @@ export function NotificationBell({ session, app, onNavigate }: { session: MateuS
           {unread > 0 && <CounterLabel scheme="primary" className="mateu-bell-count" aria-hidden="true">{unread > 99 ? '99+' : unread}</CounterLabel>}
         </span>
       )}
-      overlayProps={{ role: 'dialog', 'aria-label': 'Notifications', width: 'large' } as never}
+      overlayProps={{ role: 'dialog', 'aria-label': tx('notifications'), width: 'large' } as never}
       focusZoneSettings={{ disabled: true }}
     >
       <div className="mateu-inbox">
         <div className="mateu-inbox-head">
-          <Text weight="semibold">Notifications</Text>
-          <SegmentedControl aria-label="Show" size="small" onChange={(i) => setFilter(FILTERS[i].id)}>
-            {FILTERS.map((f) => <SegmentedControl.Button key={f.id} selected={filter === f.id}>{f.label}</SegmentedControl.Button>)}
+          <Text weight="semibold">{tx('notifications')}</Text>
+          <SegmentedControl aria-label={tx('notificationFilters')} size="small" onChange={(i) => setFilter(FILTERS[i].id)}>
+            {FILTERS.map((f) => <SegmentedControl.Button key={f.id} selected={filter === f.id}>{tx(f.label)}</SegmentedControl.Button>)}
           </SegmentedControl>
         </div>
         <div className="mateu-inbox-list">
-          {groups.length === 0 && <Text as="p" className="mateu-inbox-empty">No notifications</Text>}
+          {groups.length === 0 && <Text as="p" className="mateu-inbox-empty">{tx('noNotifications')}</Text>}
           {groups.map((g) => (
-            <section key={g.category || '_'} aria-label={g.category || 'Notifications'}>
+            <section key={g.category || '_'} aria-label={g.category || tx('notifications')}>
               {!!g.category && <h3 className="mateu-inbox-category">{g.category}</h3>}
               <ul className="mateu-inbox-items">
                 {g.items.map((n) => (
@@ -174,13 +175,13 @@ export function NotificationBell({ session, app, onNavigate }: { session: MateuS
                         {!!n.text && <span className={'mateu-inbox-text' + (expanded === n.id ? ' expanded' : '')}>{n.text}</span>}
                       </span>
                     </button>
-                    <IconButton icon={XIcon} size="small" variant="invisible" aria-label={`Dismiss ${n.title}`} onClick={() => void dismiss(n)} />
+                    <IconButton icon={XIcon} size="small" variant="invisible" aria-label={tx('notificationDismissOf', { title: n.title })} onClick={() => void dismiss(n)} />
                     {!n.resolved && (n.actions ?? []).length > 0 && (
                       <div className="mateu-inbox-actions">
                         {(n.actions ?? []).map((a, i) => (
                           <Button key={`${a.actionId ?? a.route ?? ''}#${i}`} size="small"
                             variant={a.style === 'primary' ? 'primary' : a.style === 'danger' ? 'danger' : 'default'}
-                            onClick={() => void act(n, a)}>{a.label || (a.style === 'undo' ? 'Undo' : '')}</Button>
+                            onClick={() => void act(n, a)}>{a.label || (a.style === 'undo' ? tx('undo') : '')}</Button>
                         ))}
                       </div>
                     )}
@@ -193,9 +194,9 @@ export function NotificationBell({ session, app, onNavigate }: { session: MateuS
         {(items.length > 0 || (osNotifications && notify.permission === 'undetermined')) && (
           <div className="mateu-inbox-foot">
             {osNotifications && notify.permission === 'undetermined' && (
-              <Button size="small" variant="invisible" leadingVisual={BellIcon} onClick={notify.ask}>Notify me on this device</Button>
+              <Button size="small" variant="invisible" leadingVisual={BellIcon} onClick={notify.ask}>{tx('osNotificationsEnable')}</Button>
             )}
-            {items.length > 0 && <Button size="small" variant="invisible" disabled={unread === 0} onClick={() => void markRead('all')}>Mark all read</Button>}
+            {items.length > 0 && <Button size="small" variant="invisible" disabled={unread === 0} onClick={() => void markRead('all')}>{tx('markAllRead')}</Button>}
           </div>
         )}
       </div>

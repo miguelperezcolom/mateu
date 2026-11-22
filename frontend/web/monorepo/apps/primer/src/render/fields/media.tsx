@@ -8,6 +8,7 @@ import {
 import { UploadCancelled, UploadError, uploadFile, xhrTransport, type UploadApi } from '@rn/core/fileUploader'
 import { fileValueSummary } from '@rn/renderer/fileUpload'
 import { safeHref } from '@infra/ui/safeNavigate.ts'
+import { tx } from '../../i18n/texts'
 
 type A11y = { 'aria-labelledby'?: string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }
 
@@ -74,8 +75,8 @@ export function UploadableImage({ value, label, editable, onChange, buttonRef }:
       {editable && (
         <Stack direction="horizontal" gap="condensed">
           {picker.element}
-          <Button ref={buttonRef} leadingVisual={UploadIcon} onClick={picker.open}>{value ? 'Replace' : 'Upload'}</Button>
-          {value && <Button variant="danger" leadingVisual={TrashIcon} onClick={() => onChange('')}>Delete</Button>}
+          <Button ref={buttonRef} leadingVisual={UploadIcon} onClick={picker.open}>{value ? tx('replace') : tx('upload')}</Button>
+          {value && <Button variant="danger" leadingVisual={TrashIcon} onClick={() => onChange('')}>{tx('delete')}</Button>}
         </Stack>
       )}
     </Stack>
@@ -125,7 +126,7 @@ export function FileUpload({ value, config, editable, api, onChange, buttonRef }
         onChange(current)
       } catch (e) {
         if (e instanceof UploadCancelled) break
-        setError(e instanceof UploadError ? e.message : 'The file could not be uploaded.')
+        setError(e instanceof UploadError ? e.message : tx('uploadFailed'))
         break
       } finally {
         abort.current = null
@@ -145,7 +146,7 @@ export function FileUpload({ value, config, editable, api, onChange, buttonRef }
               <li key={i}>
                 <FileIcon />
                 {href ? <a href={href} target="_blank" rel="noopener noreferrer">{text}</a> : <Text>{text}</Text>}
-                {editable && <IconButton icon={XIcon} size="small" variant="invisible" aria-label={`Remove ${text}`} onClick={() => onChange(withoutFile(value, i, config.multiple))} />}
+                {editable && <IconButton icon={XIcon} size="small" variant="invisible" aria-label={tx('removeNamed', { name: text })} onClick={() => onChange(withoutFile(value, i, config.multiple))} />}
               </li>
             )
           })}
@@ -153,14 +154,14 @@ export function FileUpload({ value, config, editable, api, onChange, buttonRef }
       ) : !editable ? <Text>—</Text> : null}
       {progress !== null && (
         <Stack direction="horizontal" gap="condensed" align="center">
-          <ProgressBar progress={Math.round(progress * 100)} aria-label="Upload progress" style={{ flex: 1 }} />
-          <Button size="small" onClick={() => abort.current?.abort()}>Cancel</Button>
+          <ProgressBar progress={Math.round(progress * 100)} aria-label={tx('uploadProgress')} style={{ flex: 1 }} />
+          <Button size="small" onClick={() => abort.current?.abort()}>{tx('cancel')}</Button>
         </Stack>
       )}
       {editable && (config.multiple || entries.length === 0) && progress === null && (
         <div>
           {picker.element}
-          <Button ref={buttonRef} leadingVisual={UploadIcon} onClick={picker.open}>{config.multiple ? 'Add files' : 'Choose a file'}</Button>
+          <Button ref={buttonRef} leadingVisual={UploadIcon} onClick={picker.open}>{config.multiple ? tx('chooseFiles') : tx('chooseFile')}</Button>
         </div>
       )}
       {error && <Text size="small" style={{ color: 'var(--fgColor-danger)' }} role="alert">{error}</Text>}
@@ -202,8 +203,8 @@ export function Signature({ value, label, editable, onChange, buttonRef }: {
         <ImageValue value={value} alt={`${label} (signature)`} />
         {editable && (
           <Stack direction="horizontal" gap="condensed">
-            <Button ref={buttonRef} leadingVisual={PencilIcon} onClick={() => { setDrawing(true); setInked(false) }}>Sign again</Button>
-            <Button variant="danger" leadingVisual={TrashIcon} onClick={() => { onChange(''); setDrawing(true); setInked(false) }}>Delete</Button>
+            <Button ref={buttonRef} leadingVisual={PencilIcon} onClick={() => { setDrawing(true); setInked(false) }}>{tx('signAgain')}</Button>
+            <Button variant="danger" leadingVisual={TrashIcon} onClick={() => { onChange(''); setDrawing(true); setInked(false) }}>{tx('delete')}</Button>
           </Stack>
         )}
       </Stack>
@@ -239,9 +240,9 @@ export function Signature({ value, label, editable, onChange, buttonRef }: {
         onPointerCancel={() => { last.current = null }}
       />
       <Stack direction="horizontal" gap="condensed">
-        <Button ref={buttonRef} variant="primary" disabled={!inked} onClick={() => { const c = canvas.current; if (c) { onChange(c.toDataURL('image/png')); setDrawing(false) } }}>Accept</Button>
-        <Button onClick={clear} disabled={!inked}>Clear</Button>
-        {value && <Button variant="invisible" onClick={() => setDrawing(false)}>Cancel</Button>}
+        <Button ref={buttonRef} variant="primary" disabled={!inked} onClick={() => { const c = canvas.current; if (c) { onChange(c.toDataURL('image/png')); setDrawing(false) } }}>{tx('accept')}</Button>
+        <Button onClick={clear} disabled={!inked}>{tx('clear')}</Button>
+        {value && <Button variant="invisible" onClick={() => setDrawing(false)}>{tx('cancel')}</Button>}
       </Stack>
     </Stack>
   )
@@ -297,14 +298,14 @@ export function PhotoCapture({ value, label, editable, onChange, buttonRef }: {
           {picker.element}
           {stream ? (
             <>
-              <Button variant="primary" leadingVisual={DeviceCameraIcon} onClick={shoot}>Take photo</Button>
-              <Button onClick={stop}>Cancel</Button>
+              <Button variant="primary" leadingVisual={DeviceCameraIcon} onClick={shoot}>{tx('takePhoto')}</Button>
+              <Button onClick={stop}>{tx('cancel')}</Button>
             </>
           ) : (
             <>
-              <Button ref={buttonRef} leadingVisual={DeviceCameraIcon} onClick={() => void start()}>{value ? 'Retake' : 'Take a photo'}</Button>
-              <Button leadingVisual={UploadIcon} onClick={picker.open}>Choose a file</Button>
-              {value && <Button variant="danger" leadingVisual={TrashIcon} onClick={() => onChange('')}>Delete</Button>}
+              <Button ref={buttonRef} leadingVisual={DeviceCameraIcon} onClick={() => void start()}>{value ? tx('retake') : tx('takeAPhoto')}</Button>
+              <Button leadingVisual={UploadIcon} onClick={picker.open}>{tx('chooseFile')}</Button>
+              {value && <Button variant="danger" leadingVisual={TrashIcon} onClick={() => onChange('')}>{tx('delete')}</Button>}
             </>
           )}
         </Stack>

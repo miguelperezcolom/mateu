@@ -8,6 +8,7 @@ import { AGENT_SCREEN_ACTION, answerParameters, answerQuery, waitIdle } from '@r
 import { agentOperatingTexts } from '@rn/core/agentOperatingTexts'
 import { applyUiEvent } from '@rn/core/uiEvents'
 import { announceLive } from '@rn/a11y/a11y'
+import { tx } from '../../i18n/texts'
 
 type Dict = Record<string, unknown>
 
@@ -36,7 +37,7 @@ export function useAgentChannel(session: MateuSession, app: Dict) {
       open: (request, onIncrement, signal) => session.api.runActionStream(request as never, onIncrement, signal),
       onEvent: (event) => {
         applyUiEvent(session, event)
-        if (event.event === 'render-screen') announceLive('Your AI agent sent a screen', false)
+        if (event.event === 'render-screen') announceLive(tx('agentSentScreen'), false)
       },
       onAnnounce: (text) => announceLive(text, false),
       onQuery: (query) => {
@@ -127,8 +128,8 @@ function ConnectAiDialog({ session, app, onClose }: { session: MateuSession; app
       <Stack gap="normal">
         {!!view.intro && <Text as="p">{view.intro}</Text>}
         {view.connected && (
-          <div aria-label={`Connected to ${view.agentsText}`}>
-            <Text weight="semibold" className="mateu-header-muted">Connected to</Text>
+          <div aria-label={tx('agentConnectedTo', { agents: view.agentsText })}>
+            <Text weight="semibold" className="mateu-header-muted">{tx('connectedTo')}</Text>
             <ul className="mateu-agents">{view.agents.map((a, i) => <li key={i}>{a}</li>)}</ul>
           </div>
         )}

@@ -4,7 +4,7 @@ import { evaluateExpression, interpolate, interpolateUrl } from './expressions.t
 import { applyClientRules, ruleRequiredErrorsOf } from './clientRules.ts';
 import { isStaleScreenError } from './buildSkew.ts';
 import { isLeaveAction } from './leaveActions.ts';
-import { actionFlagsOf, actionTargetOf, appHomeOf, buttonActionClaimed, floatingIntentOf, notificationToastOf, valueChangeActionsOf, type ValueChangeTrigger, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf } from './componentContext.ts';
+import { actionFlagsOf, actionTargetOf, appHomeOf, buttonActionClaimed, floatingIntentOf, notificationToastOf, valueChangeActionsOf, type ValueChangeTrigger, fieldErrorsOf, namedEventOf, orchestratorOf, ownsAction, seedSearchDefaults, seedSearchFromRoute, subscriptionParameters, toastOf, triggerPlanOf, onlyFields, claimOnLoad } from './componentContext.ts';
 import { evalCondition } from './legacyCondition.ts';
 import { asArray, detailLabel, errorText, getByPath, isErrorAnswer, str, trimSlashes } from './viewWire.ts';
 import { MateuSession, type NavTarget } from './MateuSession.ts';
@@ -128,6 +128,13 @@ export class MateuViewController {
   private actionIdempotent: Record<string, boolean> = {};
   private actionJs: Record<string, string> = {};
   private actionOffline: Record<string, boolean> = {};
+  private actionFieldsToValidate: Record<string, string[]> = {};
+  private actionCustomEvent: Record<string, { eventName: string; detail: unknown }> = {};
+  /** How often each OnLoad trigger of THIS screen fired (its `times`: 1 by default, 0 = unlimited),
+   *  counted across in-place re-renders of the same screen — the web's onLoadTimes.ts. */
+  private onLoadFired = new Map<string, number>();
+  private onLoadScreen = '';
+  private userWroteSinceRender = false;
   /** The actions in flight on this view (a second press of the same one is ignored until it answers). */
   private pending = new Set<string>();
   private pendingListeners = new Set<() => void>();
@@ -485,7 +492,7 @@ export class MateuViewController {
       this.actionValidationRequired[actionId] === true ||
       (!this.ownsAction(actionId) && BUBBLED_SUBMIT_ACTIONS.has(actionId));
     if (requiresValidation) {
-      const errors = this.collectFieldErrors();
+      const errors = onlyFields(this.collectFieldErrors(), this.actionFieldsToValidate[actionId]);
       const hadErrors = Object.keys(this.fieldErrors).length > 0;
       this.fieldErrors = {};
       // fixed since the last attempt: the old messages go (they stayed under a now-valid field)
@@ -526,6 +533,14 @@ export class MateuViewController {
     if (this.actionJs[actionId] !== undefined) {
       console.warn(`[mateu] RunJS is off: the client-side script of "${actionId}" was not run (the mobile app runs no page scripts).`);
       return false;
+    }
+
+    // an action declared with a customEvent dispatches it (heard by @SubscribeTo) instead of
+    // reaching the server — the web's mateu-component rule
+    const customEvent = this.actionCustomEvent[actionId];
+    if (customEvent) {
+      this.session.dispatchEvent(customEvent.eventName, customEvent.detail);
+      return true;
     }
 
     // @RestAction/@RestData: call the external REST endpoint CLIENT-SIDE instead of dispatching to
@@ -811,6 +826,7 @@ export class MateuViewController {
   putState(fieldId: string, value: unknown): void {
     const changed = !sameValue(this.currentComponentState[fieldId], value);
     this.currentComponentState[fieldId] = value;
+    this.userWroteSinceRender = true;
     this.markUserEdit();
     // Rules react to edits (observed fields, conditional visibility/disabling); without a rule change
     // the tree still re-renders against the edited state — a `${state.x}` title, label or button
@@ -862,6 +878,8 @@ export class MateuViewController {
     this.actionIdempotent = flags.idempotent;
     this.actionJs = flags.js;
     this.actionOffline = flags.offline;
+    this.actionFieldsToValidate = flags.fieldsToValidate;
+    this.actionCustomEvent = flags.customEvent;
     this.currentValidations = asArray(sscNode['validations']);
     this.currentRules = asArray(sscNode['rules']);
     this.fieldAttributes = {};
@@ -1274,7 +1292,13 @@ export class MateuViewController {
         this.freshScreen = false;
         // timed OnLoad/OnSuccess: armed on a NEW screen only — a same-screen re-render (what a
         // refresh answers) must not re-arm the OnLoads, or every round would add another loop
-        this.polling.enterScreen(`${sst || this.currentServerSideType}|${route || this.currentRoute}`, triggers, fresh);
+        const screenKey = `${sst || this.currentServerSideType}|${route || this.currentRoute}`;
+        this.polling.enterScreen(screenKey, triggers, fresh);
+        // a fresh screen counts its OnLoads from zero; the same screen re-rendered keeps the count
+        // (the web's rule: an in-place re-render keeps counting unless the user edited since)
+        if (fresh || screenKey !== this.onLoadScreen || this.userWroteSinceRender) this.onLoadFired.clear();
+        this.onLoadScreen = screenKey;
+        this.userWroteSinceRender = false;
         this.fireOnLoadTriggers(triggers);
         return;
       }
@@ -1323,6 +1347,7 @@ export class MateuViewController {
       if (isTimedOnLoad(trigger)) continue; // delayed: the polling scheduler owns it
       const actionId = str(trigger['actionId']);
       if (!actionId) continue;
+      if (!claimOnLoad(this.onLoadFired, actionId, trigger['times'])) continue;
       if (actionId === 'search') this.seedSearchState();
       void this.runAction(actionId, undefined, true);
     }

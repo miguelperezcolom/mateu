@@ -7,6 +7,7 @@ import { dragMimeOf, draggedIdsOf, dropParamsOf, draggableSelectionOf, DRAG_SELE
 import { useController } from '../../ViewHost'
 import { ComponentRenderer } from '../../ComponentRenderer'
 import { type CatalogueProps, type Dict, list, str, useText } from './common'
+import { tx } from '../../../i18n/texts'
 
 /** What a menu entry does: run its action, or open its route (in the app; an absolute url leaves it). */
 function useRunOption() {
@@ -89,7 +90,7 @@ export function Directory({ metadata: m }: CatalogueProps) {
       ) : (
         <NavList.Item key={i} href="#" aria-disabled={o.disabled || undefined} onClick={(e: React.MouseEvent) => { e.preventDefault(); if (!o.disabled) run(o) }}>{o.label}</NavList.Item>
       )
-  return <NavList aria-label="Directory">{list<MenuOptionLike>(m['menu']).map((o, i) => item(o, i))}</NavList>
+  return <NavList aria-label={tx('directory')}>{list<MenuOptionLike>(m['menu']).map((o, i) => item(o, i))}</NavList>
 }
 
 /** "I want to…": a button (and its shortcut) opening the categorised actions; populated first, "Show more", hide the empty ones. */
@@ -123,7 +124,7 @@ export function ActionPanel({ metadata: m }: CatalogueProps) {
           {m['hideUnpopulatedToggle'] === true && (
             <div className="mateu-st-row" style={{ marginBottom: 'var(--base-size-12)' }}>
               <ToggleSwitch size="small" checked={hide} onClick={() => setHide(!hide)} aria-labelledby="mateu-ap-hide" />
-              <Text id="mateu-ap-hide" size="small">Hide empty</Text>
+              <Text id="mateu-ap-hide" size="small">{tx('hideEmpty')}</Text>
             </div>
           )}
           <div className="mateu-st-grid">

@@ -3,6 +3,7 @@ import { Checkbox, Dialog, FormControl, Text } from '@primer/react'
 import { keyLabel, setSingleKeyShortcuts, singleKeyShortcutsOn } from '@infra/ui/appShortcuts.ts'
 import type { MateuSession } from '@rn/core/MateuSession'
 import { registeredScreenShortcuts, type AppShortcutLike } from './shortcuts'
+import { tx } from '../../i18n/texts'
 
 interface Listed { key: string; label: string }
 
@@ -47,20 +48,20 @@ export function ShortcutsHelp({ session, shortcuts, palette, onClose }: { sessio
   const screen = screenShortcuts(session)
   const app: Listed[] = shortcuts.filter((s) => s.key).map((s) => ({ key: s.key!, label: s.code ? `${s.label} (${s.code})` : s.label }))
   const general: Listed[] = [
-    ...(palette ? [{ key: 'ctrl+k', label: 'Open the command palette' }] : []),
-    { key: 'ctrl+/', label: 'Show this list' },
-    ...(singleKey ? [{ key: '?', label: 'Show this list' }] : []),
+    ...(palette ? [{ key: 'ctrl+k', label: tx('shortcutsPalette') }] : []),
+    { key: 'ctrl+/', label: tx('shortcutsHelpKey') },
+    ...(singleKey ? [{ key: '?', label: tx('shortcutsHelpKey') }] : []),
   ]
   return (
-    <Dialog title="Keyboard shortcuts" onClose={onClose} width="large">
-      {screen.length > 0 && (<><Text as="h3" weight="semibold" size="medium">This screen</Text><Table rows={screen} /></>)}
-      {app.length > 0 && (<><Text as="h3" weight="semibold" size="medium">App</Text><Table rows={app} /></>)}
-      <Text as="h3" weight="semibold" size="medium">General</Text>
+    <Dialog title={tx('keyboardShortcuts')} onClose={onClose} width="large">
+      {screen.length > 0 && (<><Text as="h3" weight="semibold" size="medium">{tx('shortcutsScreen')}</Text><Table rows={screen} /></>)}
+      {app.length > 0 && (<><Text as="h3" weight="semibold" size="medium">{tx('shortcutsApp')}</Text><Table rows={app} /></>)}
+      <Text as="h3" weight="semibold" size="medium">{tx('shortcutsGeneral')}</Text>
       <Table rows={general} />
       <FormControl>
         <Checkbox checked={singleKey} onChange={(e) => { setSingleKey(e.target.checked); setSingleKeyShortcuts(e.target.checked) }} />
-        <FormControl.Label>One-key shortcuts</FormControl.Label>
-        <FormControl.Caption>Turn them off if you use speech input: a word could press them.</FormControl.Caption>
+        <FormControl.Label>{tx('oneKeyShortcuts')}</FormControl.Label>
+        <FormControl.Caption>{tx('oneKeyShortcutsHint')}</FormControl.Caption>
       </FormControl>
     </Dialog>
   )

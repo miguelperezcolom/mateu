@@ -6,6 +6,7 @@ import { funnelStages } from '@rn/renderer/displayFigures'
 import { BOX_STYLE, styleOf } from '../../styleOf'
 import type { CatalogueProps } from '../types'
 import { arr, colorOf, seriesColor, str, type Dict } from './common'
+import { tx } from '../../../i18n/texts'
 
 interface Dataset { label?: string; data?: number[] }
 
@@ -187,7 +188,7 @@ export function TrendChart({ component, metadata }: CatalogueProps) {
   return (
     <figure className="mv-chart" style={{ margin: 0, maxWidth: '100%', width: '20rem', ...styleOf(component, BOX_STYLE) }}>
       {title && <Text as="div" size="small" weight="semibold" style={{ marginBottom: 'var(--base-size-4)' }}>{title}</Text>}
-      <svg viewBox={`0 0 ${w} ${h}`} width="100%" role="img" aria-label={`${title || 'Trend'}: ${values.join(', ')}`}>
+      <svg viewBox={`0 0 ${w} ${h}`} width="100%" role="img" aria-label={`${title || tx('trend')}: ${values.join(', ')}`}>
         {paths && metadata['area'] === true && <path d={paths.area} fill={color} fillOpacity={0.15} />}
         {paths && <path d={paths.line} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" />}
       </svg>

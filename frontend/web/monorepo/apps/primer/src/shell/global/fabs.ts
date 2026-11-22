@@ -1,4 +1,5 @@
 import { useEffect, useSyncExternalStore } from 'react'
+import { tx } from '../../i18n/texts'
 
 /** A floating action button as the wire carries it (FabDto). */
 export interface FabLike {
@@ -21,7 +22,7 @@ export interface ShownFab {
 /** `createOrder` / `create-order` → "Create order". */
 export const humanizeId = (raw: string): string => {
   const words = raw.replace(/[-_]+/g, ' ').replace(/([a-z0-9])([A-Z])/g, '$1 $2').trim().toLowerCase()
-  return words ? words.charAt(0).toUpperCase() + words.slice(1) : 'Action'
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : tx('action')
 }
 
 /**

@@ -19,6 +19,7 @@ import {
   type MenuHandlers, type MenuItem,
 } from './header/MenuNav'
 import './header/header.css'
+import { tx } from '../i18n/texts'
 
 const MobileQrDialog = React.lazy(() => import('./header/MobileQr'))
 
@@ -101,7 +102,7 @@ export function AppShell({ session, app, current, onNavigate, children }: {
     return <main id="mateu-main" tabIndex={-1} className="mateu-app-main mateu-app-main--bare">{children}</main>
   }
 
-  const title = String(app['title'] ?? '') || 'Mateu'
+  const title = String(app['title'] ?? '') || 'Mateu' // i18n-ok: the product name
   const subtitle = String(app['subtitle'] ?? '')
   const logo = typeof app['logo'] === 'string' && app['logo'] ? safeHref(app['logo'], { allowData: true }) : undefined
   // the current section (HAMBURGER_SECTIONS): the group holding the screen, else the first
@@ -118,10 +119,10 @@ export function AppShell({ session, app, current, onNavigate, children }: {
     <div className={`mateu-app mateu-app--${layout}`} data-variant={String(app['variant'] ?? '')}>
       <header className="mateu-app-header">
         {burger && (
-          <IconButton icon={ThreeBarsIcon} variant="invisible" aria-label={layout === 'sections' ? 'Sections' : 'Menu'}
+          <IconButton icon={ThreeBarsIcon} variant="invisible" aria-label={layout === 'sections' ? tx('sections') : tx('menu')}
             aria-expanded={!narrow && layout === 'side' ? paneOpen : drawer} onClick={onBurger} />
         )}
-        <button type="button" className="mateu-app-brand" onClick={goHome} aria-label={`${title}, home`}>
+        <button type="button" className="mateu-app-brand" onClick={goHome} aria-label={`${title}, ${tx('home')}`}>
           {logo && <img src={logo} alt="" className="mateu-app-logo" />}
           <span className="mateu-app-title">{title}</span>
           {subtitle && !narrow && layout !== 'top' && layout !== 'tiles' && <Text size="small" className="mateu-header-muted mateu-app-subtitle">{subtitle}</Text>}
@@ -137,11 +138,11 @@ export function AppShell({ session, app, current, onNavigate, children }: {
           {app['notificationsEnabled'] === true && <NotificationBell session={session} app={{ ...app, ...target }} onNavigate={navigate} />}
           {themeToggle && color && (
             <IconButton icon={color.resolved === 'dark' ? SunIcon : MoonIcon} variant="invisible" size="small"
-              aria-label={color.resolved === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} onClick={color.toggle} />
+              aria-label={color.resolved === 'dark' ? tx('lightMode') : tx('darkMode')} onClick={color.toggle} />
           )}
           <ConnectAi session={session} app={agentMeta} />
           {app['mobileQr'] === true && (
-            <IconButton icon={DeviceMobileIcon} variant="invisible" size="small" aria-label="Open on mobile" aria-haspopup="dialog" onClick={() => setQr(true)} />
+            <IconButton icon={DeviceMobileIcon} variant="invisible" size="small" aria-label={tx('openOnMobile')} aria-haspopup="dialog" onClick={() => setQr(true)} />
           )}
           <UserMenu app={app} />
         </div>
@@ -162,12 +163,12 @@ export function AppShell({ session, app, current, onNavigate, children }: {
       {layout === 'sections' && section && (
         <div className="mateu-section-band">
           <button type="button" className="mateu-section-name" onClick={() => { const l = firstLeaf(section); if (l) activate(l) }}>{section.label}</button>
-          <TabsNav items={visibleItems(section.submenus)} h={h} label={section.label ?? 'Section'} />
+          <TabsNav items={visibleItems(section.submenus)} h={h} label={section.label ?? tx('sections')} />
         </div>
       )}
       <div className="mateu-app-body">
         {sidePane && (
-          <aside className={'mateu-app-pane' + (app['variant'] === 'RAIL' ? ' mateu-app-pane--rail' : '')} aria-label="Main menu">
+          <aside className={'mateu-app-pane' + (app['variant'] === 'RAIL' ? ' mateu-app-pane--rail' : '')} aria-label={tx('mainMenu')}>
             <SideNav menu={menu} h={h} searchable={menuSearch} />
           </aside>
         )}
@@ -176,9 +177,9 @@ export function AppShell({ session, app, current, onNavigate, children }: {
         </main>
       </div>
       {drawer && (
-        <Dialog title={layout === 'sections' && !narrow ? 'Sections' : title} onClose={() => setDrawer(false)} position="left" width="medium">
+        <Dialog title={layout === 'sections' && !narrow ? tx('sections') : title} onClose={() => setDrawer(false)} position="left" width="medium">
           {layout === 'sections' && !narrow
-            ? <SideNav menu={menu.map((m) => ({ ...m, submenus: [] }))} h={{ ...h, activate: (m) => { const full = menu.find((x) => x.label === m.label) ?? m; const leaf = firstLeaf(full) ?? full; activate(leaf) } }} label="Sections" />
+            ? <SideNav menu={menu.map((m) => ({ ...m, submenus: [] }))} h={{ ...h, activate: (m) => { const full = menu.find((x) => x.label === m.label) ?? m; const leaf = firstLeaf(full) ?? full; activate(leaf) } }} label={tx('sections')} />
             : <SideNav menu={menu} h={h} searchable={menuSearch} />}
         </Dialog>
       )}

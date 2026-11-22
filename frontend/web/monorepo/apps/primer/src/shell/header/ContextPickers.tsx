@@ -5,6 +5,7 @@ import type { MateuSession } from '@rn/core/MateuSession'
 import { contextOptionsOf, runAppSource } from '@rn/core/appSources'
 import { AccessibilityInfo } from '../../shims/react-native'
 import { answerData, runAppLevel, saveAppContext, storedContextLabel, type AppTarget } from './appLevel'
+import { tx } from '../../i18n/texts'
 
 type Dict = Record<string, unknown>
 interface Option { value: unknown; label?: string }
@@ -62,10 +63,10 @@ function ContextPicker({ session, app, selector }: { session: MateuSession; app:
   const current = session.appState[selector.fieldName] == null ? '' : String(session.appState[selector.fieldName])
   const currentLabel = current
     ? options.find((o) => String(o.value) === current)?.label ?? storedContextLabel(selector.fieldName) ?? current
-    : 'Not set'
+    : tx('notSet')
   const name = selector.label ?? selector.fieldName
   const describedBy = `mateu-ctx-hint-${selector.fieldName}`
-  const hint = <span id={describedBy} className="sr-only">Choosing another value reloads the page</span>
+  const hint = <span id={describedBy} className="sr-only">{tx('appContextReloads')}</span>
 
   if (options.length <= SEARCHABLE_THRESHOLD) {
     return (
@@ -77,7 +78,7 @@ function ContextPicker({ session, app, selector }: { session: MateuSession; app:
           </ActionMenu.Button>
           <ActionMenu.Overlay width="small">
             <ActionList selectionVariant="single" aria-label={name}>
-              <ActionList.Item selected={current === ''} onSelect={() => choose(session, selector, null)}>None</ActionList.Item>
+              <ActionList.Item selected={current === ''} onSelect={() => choose(session, selector, null)}>{tx('none')}</ActionList.Item>
               {options.map((o) => (
                 <ActionList.Item key={String(o.value)} selected={String(o.value) === current} onSelect={() => choose(session, selector, o)}>
                   {labelOf(o)}
@@ -132,8 +133,8 @@ function SearchablePicker({ session, app, selector, options, current, currentLab
       {hint}
       <SelectPanel
         title={name}
-        placeholder={`Search ${name.toLowerCase()}`}
-        inputLabel={`Search ${name.toLowerCase()}`}
+        placeholder={tx('searchNamed', { name: name.toLowerCase() })}
+        inputLabel={tx('searchNamed', { name: name.toLowerCase() })}
         open={open}
         onOpenChange={(o) => { setOpen(o); if (!o) { setFilter(''); setSearched(null) } }}
         items={items}

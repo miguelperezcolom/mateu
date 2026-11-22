@@ -6,6 +6,7 @@ import { fetchExternalJson, mapItemsToOptions } from '@rn/core/restFetch'
 import { filterSwitcherOptions, switcherCurrentLabel, switcherPick, type RecordSwitcher, type SwitcherOption } from '@rn/renderer/patternGaps'
 import { useController } from '../ViewHost'
 import type { LabelVariant } from '../looks'
+import { tx } from '../../i18n/texts'
 
 type Dict = Record<string, unknown>
 type Ctx = { state: Dict; data?: unknown }
@@ -35,8 +36,8 @@ export function PeerNav({ peerNav, ctx }: { peerNav: Dict; ctx: Ctx }) {
   const prev = route(peerNav['prevRoute'])
   const next = route(peerNav['nextRoute'])
   const label = (v: unknown, fallback: string) => (typeof v === 'string' && v.trim() ? interpolate(v, ctx) : fallback)
-  const prevLabel = label(peerNav['prevLabel'], 'Previous')
-  const nextLabel = label(peerNav['nextLabel'], 'Next')
+  const prevLabel = label(peerNav['prevLabel'], tx('previous'))
+  const nextLabel = label(peerNav['nextLabel'], tx('next'))
   return (
     <ButtonGroup className="mateu-peer-nav">
       <IconButton icon={ChevronLeftIcon} aria-label={prevLabel} tooltipDirection="s" disabled={!prev} onClick={() => void go(prev, prevLabel)} />
@@ -62,7 +63,7 @@ export function RecordSwitcherControl({ switcher, ctx }: { switcher: Dict; ctx: 
   }, [switcher, ctx, fetched])
   const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState('')
-  const hint = (typeof switcher['label'] === 'string' ? switcher['label'] : '') || (switcher['type'] === 'context' ? 'Context' : '')
+  const hint = (typeof switcher['label'] === 'string' ? switcher['label'] : '') || (switcher['type'] === 'context' ? tx('context') : '')
   const current = switcherCurrentLabel(s) || '—'
   if (!s.options?.length && !switcher['optionsSource']) return null
 
@@ -88,9 +89,9 @@ export function RecordSwitcherControl({ switcher, ctx }: { switcher: Dict; ctx: 
       .map((o) => ({ id: String(o.value ?? ''), text: String(o.label ?? o.value ?? ''), description: o.description ?? undefined, disabled: o.disabled, value: o.value }))
     return (
       <SelectPanel
-        title={hint || 'Switch'}
-        placeholder="Filter"
-        inputLabel="Filter the list"
+        title={hint || tx('switchRecord')}
+        placeholder={tx('filter')}
+        inputLabel={tx('filterTheList')}
         open={open}
         onOpenChange={(o) => { setOpen(o); if (!o) setFilter('') }}
         items={items}
@@ -107,7 +108,7 @@ export function RecordSwitcherControl({ switcher, ctx }: { switcher: Dict; ctx: 
     <ActionMenu open={open} onOpenChange={setOpen}>
       <ActionMenu.Button size="small">{anchorText}</ActionMenu.Button>
       <ActionMenu.Overlay width="medium">
-        <ActionList selectionVariant="single" aria-label={hint || 'Switch'}>
+        <ActionList selectionVariant="single" aria-label={hint || tx('switchRecord')}>
           {(s.options ?? []).map((o, i) => (
             <ActionList.Item key={i} selected={String(o.value ?? '') === String(s.value ?? '')} disabled={o.disabled} onSelect={() => pick(o.value)}>
               {String(o.label ?? o.value ?? '')}

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { MateuSession } from '@rn/core/MateuSession'
 import { appShortcutFor, isHelpKey, isTypingTarget } from '@infra/ui/appShortcuts.ts'
+import { tx } from '../../i18n/texts'
 
 /** An `@AppShortcut` as AppDto.shortcuts carries it. */
 export interface AppShortcutLike {
@@ -58,4 +59,4 @@ export function useGlobalKeys({ session, shortcuts, palette, onPalette, onHelp, 
 export const registeredScreenShortcuts = (session: MateuSession): { key: string; label: string }[] =>
   session.keyShortcuts.list()
     .filter((e) => e.scope === 'screen' && e.shortcut?.trim())
-    .map((e) => ({ key: e.shortcut.trim().toLowerCase(), label: e.label || 'An action of this screen' }))
+    .map((e) => ({ key: e.shortcut.trim().toLowerCase(), label: e.label || tx('anActionOfScreen') }))

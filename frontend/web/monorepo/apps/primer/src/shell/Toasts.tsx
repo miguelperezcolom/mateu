@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Banner } from '@primer/react'
 import type { MessageVariant, NotifyOptions } from '@rn/core/MateuSession'
 import { toastLifetime } from '@rn/core/toastLifetime'
+import { tx } from '../i18n/texts'
 
 interface Toast {
   id: number
@@ -48,7 +49,7 @@ export function Toasts({ state }: { state: ToastsState }) {
 const BANNER_VARIANT: Record<string, 'critical' | 'warning' | 'success' | 'info'> = {
   error: 'critical', warning: 'warning', success: 'success', info: 'info', primary: 'info', contrast: 'info',
 }
-const BANNER_TITLE = { critical: 'Error', warning: 'Warning', success: 'Success', info: 'Information' } as const
+const BANNER_TITLE = { critical: 'toastError', warning: 'toastWarning', success: 'toastSuccess', info: 'toastInfo' } as const
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }) {
   const actions = toast.options?.actions ?? (toast.options?.undo ? [toast.options.undo] : [])
@@ -81,7 +82,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
       role={toast.variant === 'error' ? 'alert' : 'status'}
     >
       <Banner
-        title={toast.title || BANNER_TITLE[variant]}
+        title={toast.title || tx(BANNER_TITLE[variant])}
         hideTitle={!toast.title}
         description={toast.text}
         variant={variant}

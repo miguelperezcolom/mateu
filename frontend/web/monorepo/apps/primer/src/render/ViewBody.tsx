@@ -8,6 +8,7 @@ import { RenderBoundary } from './RenderBoundary'
 import { ComponentRenderer } from './ComponentRenderer'
 import { pageWidthOf } from './page/pageWidth'
 import './page/page.css'
+import { tx } from '../i18n/texts'
 
 /** What a view shows: a skeleton while its first answer is on its way, a failure with Retry, or the tree. */
 export function ViewBody({ controller, view, retry, embedded }: {
@@ -25,7 +26,7 @@ export function ViewBody({ controller, view, retry, embedded }: {
         <Stack gap="condensed">
           <Text weight="semibold">{message.title}</Text>
           <Text>{message.detail}</Text>
-          <div><Button onClick={retry}>Try again</Button></div>
+          <div><Button onClick={retry}>{tx('tryAgain')}</Button></div>
         </Stack>
       </Flash>
     )
@@ -44,7 +45,7 @@ export function ViewBody({ controller, view, retry, embedded }: {
       >
         {view.loading && (
           <div style={{ position: 'absolute', top: 'var(--base-size-8)', right: 'var(--base-size-8)', zIndex: 1 }}>
-            <Spinner size="small" srText="Loading" />
+            <Spinner size="small" srText={tx('loading')} />
           </div>
         )}
         <RenderBoundary resetKey={view.version}>
@@ -64,7 +65,7 @@ function LoadingSkeleton({ embedded }: { embedded?: boolean }) {
   }, [])
   if (!shown) return null
   return (
-    <div role="progressbar" aria-label="Loading" style={{ padding: embedded ? 'var(--base-size-8)' : 'var(--base-size-24)' }}>
+    <div role="progressbar" aria-label={tx('loading')} style={{ padding: embedded ? 'var(--base-size-8)' : 'var(--base-size-24)' }}>
       <SkeletonText lines={embedded ? 2 : 6} />
     </div>
   )

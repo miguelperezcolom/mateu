@@ -13,6 +13,7 @@ import { useGlobalKeys, type AppShortcutLike } from './shortcuts'
 import { useAccessKeys } from './accessKeys'
 import { humanizeId, usePageFabList, type FabLike, type ShownFab } from './fabs'
 import './global.css'
+import { tx } from '../../i18n/texts'
 
 /** What the assistant asked to show in the content area (render-screen → `__preview__`). */
 export interface ContentPreview { increment: unknown; route: string; title?: string; version: number }
@@ -80,16 +81,16 @@ export function GlobalLayer({ session, app, current, onNavigate, onPreview }: {
 
   return (
     <>
-      <div className="mateu-fab-rail" aria-label="Floating actions" role="group" hidden={!pageFabs.length && !appFabs.length && !commandCenter && !sseUrl}>
+      <div className="mateu-fab-rail" aria-label={tx('floatingActions')} role="group" hidden={!pageFabs.length && !appFabs.length && !commandCenter && !sseUrl}>
         {[...pageFabs, ...appFabs].map((f) => <Fab key={f.key} fab={f} />)}
         {commandCenter && (
-          <Tooltip text="Command center (Ctrl+K)" direction="w">
-            <IconButton className="mateu-fab" icon={CommandPaletteIcon} aria-label="Command center" variant="primary" size="large" onClick={() => setPalette(true)} />
+          <Tooltip text={`${tx('commandCenter')} (Ctrl+K)`} direction="w">
+            <IconButton className="mateu-fab" icon={CommandPaletteIcon} aria-label={tx('commandCenter')} variant="primary" size="large" onClick={() => setPalette(true)} />
           </Tooltip>
         )}
         {sseUrl && (
-          <Tooltip text={chat ? 'Close the assistant' : 'Open the assistant'} direction="w">
-            <IconButton className="mateu-fab" icon={octiconOf(app['askIcon']) ?? CopilotIcon} aria-label={chat ? `Close ${String(app['askLabel'] || 'assistant')}` : String(app['askLabel'] || 'Open assistant')} aria-expanded={chat} size="large" onClick={() => setChat((c) => !c)} />
+          <Tooltip text={chat ? tx('closeChat') : tx('openChat')} direction="w">
+            <IconButton className="mateu-fab" icon={octiconOf(app['askIcon']) ?? CopilotIcon} aria-label={chat ? (app['askLabel'] ? tx('closeNamed', { name: String(app['askLabel']) }) : tx('closeChat')) : String(app['askLabel'] || tx('openChat'))} aria-expanded={chat} size="large" onClick={() => setChat((c) => !c)} />
           </Tooltip>
         )}
       </div>

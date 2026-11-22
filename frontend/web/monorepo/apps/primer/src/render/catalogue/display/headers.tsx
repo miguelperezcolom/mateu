@@ -7,6 +7,7 @@ import { ComponentRenderer } from '../../ComponentRenderer'
 import { labelVariantOf } from '../../looks'
 import type { CatalogueProps, Dict } from '../types'
 import { childrenOf, list, safeHref, str, useOpenRoute, useRun, useText, WireIcon } from './shared'
+import { tx } from '../../../i18n/texts'
 
 /**
  * HeroSection: the welcome / landing band — overline, title, subtitle, the CTAs (its children);
@@ -101,7 +102,7 @@ export function CalloutCard({ metadata, state, data }: CatalogueProps) {
   const icon = str(metadata['icon'])
   return (
     <Banner
-      title={text(metadata['title']) || 'Notice'}
+      title={text(metadata['title']) || tx('toastInfo')}
       description={metadata['description'] ? text(metadata['description']) : undefined}
       variant={variant}
       leadingVisual={icon && (variant === 'info') ? <WireIcon token={icon} /> : undefined}
@@ -118,10 +119,10 @@ export function NotFound({ metadata }: CatalogueProps) {
   return (
     <Blankslate border spacious>
       <Blankslate.Visual><SearchIcon size="medium" /></Blankslate.Visual>
-      <Blankslate.Heading as="h2">{str(metadata['title']) || 'Not found'}</Blankslate.Heading>
-      <Blankslate.Description>{str(metadata['message']) || 'The page you are looking for does not exist.'}</Blankslate.Description>
+      <Blankslate.Heading as="h2">{str(metadata['title']) || tx('notFound')}</Blankslate.Heading>
+      <Blankslate.Description>{str(metadata['message']) || tx('pageNotFoundMessage')}</Blankslate.Description>
       {back && (
-        <Button leadingVisual={ArrowLeftIcon} onClick={() => open(back)}>{str(metadata['backLabel']) || 'Go back'}</Button>
+        <Button leadingVisual={ArrowLeftIcon} onClick={() => open(back)}>{str(metadata['backLabel']) || tx('goBack')}</Button>
       )}
     </Blankslate>
   )

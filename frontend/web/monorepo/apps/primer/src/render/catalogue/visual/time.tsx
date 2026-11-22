@@ -17,6 +17,7 @@ import { useController } from '../../ViewHost'
 import { BOX_STYLE, styleOf } from '../../styleOf'
 import type { CatalogueProps } from '../types'
 import { activate, arr, colorOf, str, toneBg, toneFg, type Dict } from './common'
+import { tx } from '../../../i18n/texts'
 
 // ── Calendar ──────────────────────────────────────────────────────────────────────────────────────
 
@@ -62,7 +63,7 @@ export function Calendar({ component, metadata }: CatalogueProps) {
   let body: React.ReactNode
   if (view === 'list') {
     const groups = agenda(m, anchor)
-    body = groups.length === 0 ? <Text className="mv-muted">No events.</Text> : (
+    body = groups.length === 0 ? <Text className="mv-muted">{tx('noEvents')}</Text> : (
       <div className="mv-agenda">
         {groups.map((g) => (
           <div key={g.date}>
@@ -93,7 +94,7 @@ export function Calendar({ component, metadata }: CatalogueProps) {
       <div className="mv-cal-head">
         <Text as="h3" weight="semibold" style={{ margin: 0, fontSize: 'var(--text-title-size-small)' }}>{periodTitle(view, anchor)}</Text>
         {views.length > 1 && (
-          <SegmentedControl aria-label="Calendar view" size="small" onChange={(i) => setView(views[i])}>
+          <SegmentedControl aria-label={tx('calendarView')} size="small" onChange={(i) => setView(views[i])}>
             {views.map((v) => <SegmentedControl.Button key={v} selected={v === view}>{viewLabel(v)}</SegmentedControl.Button>)}
           </SegmentedControl>
         )}

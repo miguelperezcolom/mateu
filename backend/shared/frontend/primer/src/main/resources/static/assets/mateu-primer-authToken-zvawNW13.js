@@ -1,0 +1,1 @@
+export{u as setAuthToken}from"./mateu-primer-signInBridge-DcLnEsYz.js";

@@ -12,6 +12,7 @@ import { sanitizeHtml } from '../../render/safeHtml'
 import { deferAgentEvent, isViewMovingAgentEvent, type DeferredAgentAction } from '@infra/ui/chatFollow.ts'
 import { loadChatFollow, saveChatFollow } from '@infra/ui/chatPanel.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { tx } from '../../i18n/texts'
 
 interface Message { id: number; from: 'user' | 'agent'; text: string; deferred?: DeferredAgentAction[] }
 
@@ -154,19 +155,19 @@ export function ChatPanel({ session, sseUrl, open, onClose, seed, texts = {} }: 
   }
 
   return (
-    <aside className="mateu-assistant" aria-label={texts.title || 'Assistant'} hidden={!open}
+    <aside className="mateu-assistant" aria-label={texts.title || tx('chat')} hidden={!open}
       onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose() } }}>
       <div className="mateu-assistant__header">
-        <Heading as="h2" variant="small">{texts.title || 'Assistant'}</Heading>
+        <Heading as="h2" variant="small">{texts.title || tx('chat')}</Heading>
         <Button size="small" variant={follow ? 'primary' : 'default'} leadingVisual={EyeIcon} aria-pressed={follow}
           title={chromeText(follow ? 'chatFollowOn' : 'chatFollowOff')}
           onClick={() => setFollow(saveChatFollow(!follow))}>
           {follow ? (texts.following || chromeText('chatFollowing')) : (texts.follow || chromeText('chatFollow'))}
         </Button>
-        <IconButton icon={XIcon} aria-label="Close assistant" variant="invisible" onClick={onClose} />
+        <IconButton icon={XIcon} aria-label={tx('closeChat')} variant="invisible" onClick={onClose} />
       </div>
       <div className="mateu-assistant__messages" ref={listRef} aria-live="polite">
-        {messages.length === 0 && <Text as="p" className="mateu-muted">Ask anything about this app.</Text>}
+        {messages.length === 0 && <Text as="p" className="mateu-muted">{tx('chatEmpty')}</Text>}
         {messages.map((m) => (
           <div key={m.id} className={`mateu-chat__bubble mateu-chat__bubble--${m.from}`}>
             {m.from === 'agent' ? <AnswerMarkdown source={m.text || '…'} onRoute={openRoute} /> : m.text}
@@ -183,10 +184,10 @@ export function ChatPanel({ session, sseUrl, open, onClose, seed, texts = {} }: 
         {!busy && usage && <Text as="p" size="small" className="mateu-muted">{usage}</Text>}
       </div>
       <form className="mateu-assistant__input" onSubmit={(e) => { e.preventDefault(); void send(input) }}>
-        <Textarea ref={inputRef} aria-label="Message" placeholder="Message" value={input} rows={2} resize="vertical" block
+        <Textarea ref={inputRef} aria-label={tx('message')} placeholder={tx('chatPlaceholder')} value={input} rows={2} resize="vertical" block
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(input) } }} />
-        <Button type="submit" variant="primary" leadingVisual={PaperAirplaneIcon} loading={busy} disabled={!input.trim()}>Send</Button>
+        <Button type="submit" variant="primary" leadingVisual={PaperAirplaneIcon} loading={busy} disabled={!input.trim()}>{tx('send')}</Button>
       </form>
     </aside>
   )

@@ -4,6 +4,7 @@ import { SearchIcon } from '@primer/octicons-react'
 import { lookupLabelOf } from '@rn/core/readOnlyDisplay'
 import { removeSearchableId, searchableChips, searchableIds } from '@infra/ui/searchableMulti.ts'
 import { useController } from '../ViewHost'
+import { tx } from '../../i18n/texts'
 
 type Dict = Record<string, unknown>
 type A11y = { 'aria-labelledby': string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }
@@ -44,7 +45,7 @@ export function SearchableField({ fieldId, label, value, editable, a11y, buttonR
       <IconButton
         ref={buttonRef}
         icon={SearchIcon}
-        aria-label={`Search ${label}`}
+        aria-label={tx('searchNamed', { name: label })}
         onClick={() => void controller.runAction(`codesearch-${fieldId}`, {})}
       />
     </Stack>

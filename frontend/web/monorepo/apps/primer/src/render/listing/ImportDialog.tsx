@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Dialog, Flash, FormControl, Text } from '@primer/react'
+import { tx } from '../../i18n/texts'
 
 /** The file id an import upload answered: the raw body, or a JSON string / {fileId} / {id} (the web's importFileIdOf). */
 export function importFileIdOf(responseText: unknown): string | undefined {
@@ -32,16 +33,16 @@ export function ImportDialog({ onClose, onUploaded }: { onClose: () => void; onU
     fetch('/upload', { method: 'POST', body: fd })
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text() })
       .then((text) => onUploaded(importFileIdOf(text)))
-      .catch(() => setError('The file could not be uploaded.'))
+      .catch(() => setError(tx('uploadFailed')))
       .finally(() => setBusy(false))
   }
   return (
-    <Dialog title="Import" onClose={onClose} footerButtons={[{ buttonType: 'default', content: 'Cancel', onClick: onClose }]}>
+    <Dialog title={tx('import')} onClose={onClose} footerButtons={[{ buttonType: 'default', content: tx('cancel'), onClick: onClose }]}>
       {error && <Flash variant="danger" style={{ marginBottom: 'var(--base-size-8)' }}>{error}</Flash>}
       <FormControl disabled={busy}>
-        <FormControl.Label>File to import</FormControl.Label>
+        <FormControl.Label>{tx('fileToImport')}</FormControl.Label>
         <input type="file" disabled={busy} onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f) }} />
-        {busy && <FormControl.Caption><Text>Uploading…</Text></FormControl.Caption>}
+        {busy && <FormControl.Caption><Text>{tx('uploading')}</Text></FormControl.Caption>}
       </FormControl>
     </Dialog>
   )

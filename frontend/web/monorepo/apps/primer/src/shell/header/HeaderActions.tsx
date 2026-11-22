@@ -4,6 +4,7 @@ import { KebabHorizontalIcon } from '@primer/octicons-react'
 import type { MateuSession } from '@rn/core/MateuSession'
 import { headerActionLeaves, splitHeaderActions, type HeaderAction } from '@rn/core/embeddedAppExtras'
 import { runAndApply, type AppTarget } from './appLevel'
+import { tx } from '../../i18n/texts'
 
 /**
  * The app's header actions (AppActionsSupplier → AppDto.contextActions): buttons on the header, an
@@ -43,7 +44,7 @@ export function HeaderActions({ session, app, actions, narrow }: { session: Mate
       {more.length > 0 && (
         <ActionMenu>
           <ActionMenu.Anchor>
-            <IconButton icon={KebabHorizontalIcon} size="small" aria-label="More actions" />
+            <IconButton icon={KebabHorizontalIcon} size="small" aria-label={tx('moreActions')} />
           </ActionMenu.Anchor>
           <ActionMenu.Overlay>
             <ActionList>

@@ -29,6 +29,7 @@ import { columnGeometry, tableLookClasses } from './listing/geometry'
 import { ImportDialog } from './listing/ImportDialog'
 import { mayTakeFocusOnItsOwn, watchForInteraction } from '@infra/a11y/initialFocus.ts'
 import './listing/listing.css'
+import { tx } from '../i18n/texts'
 
 // a listing may put the focus in its search box only once the user has acted on the page
 watchForInteraction()
@@ -247,8 +248,8 @@ function ListingActions({ m, listing, scope, columnPrefs, state, selected }: {
             <TextInput
               ref={searchBox}
               leadingVisual={SearchIcon}
-              aria-label={`Search ${m.title || 'the list'}`}
-              placeholder="Search"
+              aria-label={tx('searchNamed', { name: m.title || tx('theList') })}
+              placeholder={tx('search')}
               value={listing.searchText}
               onChange={(e) => {
                 listing.setSearchText(e.target.value)
@@ -314,7 +315,7 @@ function AppliedFilters({ m, listing }: { m: Model; listing: Listing }) {
       {filterTokens(m.filters, listing.filterValues).map((t) => (
         <Token key={t.key} text={t.text} onRemove={() => listing.setFilters(t.without)} />
       ))}
-      <Button variant="invisible" size="small" onClick={() => listing.setFilters({})}>Clear filters</Button>
+      <Button variant="invisible" size="small" onClick={() => listing.setFilters({})}>{tx('clearFilters')}</Button>
     </Stack>
   )
 }
@@ -333,7 +334,7 @@ function ListingBody(p: BodyProps) {
     return (
       <div style={{ gridArea: 'table' }}>
         <Blankslate border>
-          <Blankslate.Heading>{emptyMessageOf(p.live, p.metadata, 'No data')}</Blankslate.Heading>
+          <Blankslate.Heading>{emptyMessageOf(p.live, p.metadata, tx('noData'))}</Blankslate.Heading>
         </Blankslate>
       </div>
     )
@@ -344,7 +345,7 @@ function ListingBody(p: BodyProps) {
     case 'list': return <List rows={rows} defs={defs} onOpen={(r) => (p.opensRow(r) ? p.openRow(r) : undefined)} />
     case 'masterDetail': return <MasterDetail rows={rows} defs={defs} cellOf={cellOf} />
     case 'tree':
-      return <TreeListing rows={rows} defs={defs} label={m.title || 'Rows'} onOpen={p.openRow} opens={p.opensRow} selectLabel={m.selector ? 'Select' : undefined} />
+      return <TreeListing rows={rows} defs={defs} label={m.title || tx('rows')} onOpen={p.openRow} opens={p.opensRow} selectLabel={m.selector ? tx('select') : undefined} />
     default:
       if (m.detailPath) {
         return <DetailsTable rows={rows} defs={defs} detailPath={m.detailPath} cellOf={cellOf} actionsOf={actionsOf} labelledBy={m.title ? p.titleId : undefined} state={p.state} data={p.data} />
@@ -401,7 +402,7 @@ function ListingTable({ m, defs, rows, live, cellOf, linkColumn, titleId, sort, 
   if (actionsOf) {
     tableColumns.push({
       id: '__mateuRowActions',
-      header: () => <span className="sr-only">Actions</span>,
+      header: () => <span className="sr-only">{tx('actions')}</span>,
       align: 'end',
       width: 'auto',
       renderCell: (row: Row) => (isGroupRow(row) ? null : actionsOf(row)),
@@ -440,7 +441,7 @@ function ListingPaging({ paging, title, onPage }: { paging: ReturnType<typeof pa
     return (
       <Table.Pagination
         key={`${paging.pageNumber}-${paging.totalElements}`}
-        aria-label={`Pages of ${title || 'the list'}`}
+        aria-label={tx('pagesOf', { name: title || tx('theList') })}
         pageSize={paging.pageSize}
         totalCount={paging.totalElements}
         defaultPageIndex={paging.pageNumber}

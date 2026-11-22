@@ -18,6 +18,7 @@ import { useController } from '../../ViewHost'
 import { BOX_STYLE, styleOf } from '../../styleOf'
 import type { CatalogueProps } from '../types'
 import { arr, colorOf, str, toneBg, toneFg, type Dict } from './common'
+import { tx } from '../../../i18n/texts'
 
 // ── Kanban ────────────────────────────────────────────────────────────────────────────────────────
 
@@ -126,7 +127,7 @@ export function Kanban({ component, metadata: m }: CatalogueProps) {
                         : <span className="mv-card-title">{card.title}</span>}
                       {moves.length > 0 && (
                         <ActionMenu>
-                          <ActionMenu.Anchor><IconButton icon={KebabHorizontalIcon} size="small" variant="invisible" aria-label={`Move ${card.title ?? ''}`} /></ActionMenu.Anchor>
+                          <ActionMenu.Anchor><IconButton icon={KebabHorizontalIcon} size="small" variant="invisible" aria-label={tx('kanbanMove', { card: card.title ?? '' })} /></ActionMenu.Anchor>
                           <ActionMenu.Overlay>
                             <ActionList>{moves.map((mv, k) => <ActionList.Item key={k} onSelect={() => void commit(mv.move)}>{mv.label}</ActionList.Item>)}</ActionList>
                           </ActionMenu.Overlay>
@@ -138,7 +139,7 @@ export function Kanban({ component, metadata: m }: CatalogueProps) {
                   </article>
                 )
               })}
-              {cards.length === 0 && <Text size="small" className="mv-muted" style={{ padding: 'var(--base-size-8)', textAlign: 'center' }}>No cards</Text>}
+              {cards.length === 0 && <Text size="small" className="mv-muted" style={{ padding: 'var(--base-size-8)', textAlign: 'center' }}>{tx('noCards')}</Text>}
             </div>
           </section>
         )
@@ -312,7 +313,7 @@ export function RecordMerge({ component, metadata }: CatalogueProps) {
         {merge.title && <Text as="h3" weight="semibold" style={{ margin: 0 }}>{merge.title}</Text>}
         <FormControl>
           <Checkbox checked={differencesOnly} onChange={(e) => setDifferencesOnly(e.currentTarget.checked)} />
-          <FormControl.Label>Differences only</FormControl.Label>
+          <FormControl.Label>{tx('mergeShowDifferences')}</FormControl.Label>
         </FormControl>
         <Text size="small" className="mv-muted" style={{ marginLeft: 'auto' }}>{summaryText(mergeSummary(merge, picks))}</Text>
       </div>
@@ -320,9 +321,9 @@ export function RecordMerge({ component, metadata }: CatalogueProps) {
         <table className="mv-table">
           <thead>
             <tr>
-              <th scope="col">Field</th>
+              <th scope="col">{tx('mergeField')}</th>
               {records.map((r, i) => <th key={r.id ?? i} scope="col">{r.label}{r.caption ? <div style={{ fontWeight: 400 }}>{r.caption}</div> : null}</th>)}
-              <th scope="col">Merged</th>
+              <th scope="col">{tx('mergeMerged')}</th>
             </tr>
           </thead>
           <tbody>
@@ -344,9 +345,9 @@ export function RecordMerge({ component, metadata }: CatalogueProps) {
                   <td>
                     {(() => { const pickedText = valueText((f.values ?? [])[records.findIndex((r) => r.id === pick)]); return f.editable ? (
                       <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--base-size-8)' }}>
-                        <Radio name={group} value={CUSTOM} checked={pick === CUSTOM} aria-label={`Type a value for ${f.label ?? f.fieldId}`}
+                        <Radio name={group} value={CUSTOM} checked={pick === CUSTOM} aria-label={tx('mergeCustomValue', { field: f.label ?? f.fieldId })}
                           onChange={() => setPicks((p) => ({ ...p, [f.fieldId]: CUSTOM }))} />
-                        <TextInput size="small" aria-label={`${f.label ?? f.fieldId}, typed value`} value={pick === CUSTOM ? custom[f.fieldId] ?? '' : pickedText} placeholder="Type a value"
+                        <TextInput size="small" aria-label={tx('mergeTypedValue', { field: f.label ?? f.fieldId })} value={pick === CUSTOM ? custom[f.fieldId] ?? '' : pickedText} placeholder={tx('typeAValue')}
                           onChange={(e) => { const v = e.currentTarget.value; setPicks((p) => ({ ...p, [f.fieldId]: CUSTOM })); setCustom((c) => ({ ...c, [f.fieldId]: v })) }} />
                       </label>
                     ) : <Text style={{ color: 'var(--fgColor-accent)' }}>{pickedText}</Text> })()}
@@ -358,7 +359,7 @@ export function RecordMerge({ component, metadata }: CatalogueProps) {
         </table>
       </div>
       {merge.mergeActionId && (
-        <div><Button variant="primary" onClick={() => void controller.runAction(String(merge.mergeActionId), mergeParameters(merge, picks, custom))}>{merge.mergeLabel || 'Merge'}</Button></div>
+        <div><Button variant="primary" onClick={() => void controller.runAction(String(merge.mergeActionId), mergeParameters(merge, picks, custom))}>{merge.mergeLabel || tx('mergeAction')}</Button></div>
       )}
     </div>
   )

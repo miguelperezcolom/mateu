@@ -22,7 +22,7 @@ export function sectionsOf(children: unknown[]): { entries: TocEntry[]; stacked:
     if (!node || typeof node !== 'object') return
     if ((node as Dict)['type'] === 'ServerSide') return
     if (isSectionCard(node)) {
-      entries.push({ title: sectionTitleOf(node) || `Section ${entries.length + 1}`, sticky: isStickySection(node) })
+      entries.push({ title: sectionTitleOf(node) || '' /* untitled: PageToc names it by position */, sticky: isStickySection(node) })
       if (!across) stacked++
       return
     }

@@ -3,6 +3,7 @@ import { ActionList, AnchoredOverlay, Button, SelectPanel, Text, Token, TreeView
 import { TriangleDownIcon } from '@primer/octicons-react'
 import type { WidgetOption } from '@rn/core/fieldOptions'
 import { useController } from '../ViewHost'
+import { tx } from '../../i18n/texts'
 
 type A11y = { 'aria-labelledby'?: string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }
 type Item = { id: string; text: string; description?: string }
@@ -60,7 +61,7 @@ export function MultiSelect({ label, options, value, editable, onChange, a11y, b
       onSelectedChange={((picked: Item[]) => onChange(picked.map((p) => p.id))) as never}
       onFilterChange={setFilter}
       showSelectedOptionsFirst={false}
-      renderAnchor={(props) => <Anchor props={props} text={selected.map((s) => s.text).join(', ')} placeholder={placeholder ?? 'Select…'} a11y={a11y} buttonRef={buttonRef} />}
+      renderAnchor={(props) => <Anchor props={props} text={selected.map((s) => s.text).join(', ')} placeholder={placeholder ?? tx('selectPlaceholder')} a11y={a11y} buttonRef={buttonRef} />}
     />
   )
 }
@@ -143,11 +144,11 @@ export function TreeSelect({ options, leavesOnly, value, editable, onChange, a11
       open={open}
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
-      renderAnchor={(props) => <Anchor props={props} text={label} placeholder={placeholder ?? 'Select…'} a11y={a11y} buttonRef={buttonRef} />}
+      renderAnchor={(props) => <Anchor props={props} text={label} placeholder={placeholder ?? tx('selectPlaceholder')} a11y={a11y} buttonRef={buttonRef} />}
       focusZoneSettings={{ disabled: true }}
     >
       <div className="mateu-tree-panel">
-        <TreeView aria-label="Options">{nodes(options, 't')}</TreeView>
+        <TreeView aria-label={tx('options')}>{nodes(options, 't')}</TreeView>
       </div>
     </AnchoredOverlay>
   )
@@ -208,8 +209,8 @@ export function Lookup({ label, fieldId, value, valueLabel, action, editable, on
         timer.current = setTimeout(() => search(text), 300)
       }}
       loading={loading}
-      message={!loading && found.length === 0 ? { title: 'No results', body: 'Try another search.', variant: 'empty' } : undefined}
-      renderAnchor={(props) => <Anchor props={props} text={display} placeholder={placeholder ?? 'Select…'} a11y={a11y} buttonRef={buttonRef} />}
+      message={!loading && found.length === 0 ? { title: tx('noResults'), body: tx('tryAnotherSearch'), variant: 'empty' } : undefined}
+      renderAnchor={(props) => <Anchor props={props} text={display} placeholder={placeholder ?? tx('selectPlaceholder')} a11y={a11y} buttonRef={buttonRef} />}
     />
   )
 }

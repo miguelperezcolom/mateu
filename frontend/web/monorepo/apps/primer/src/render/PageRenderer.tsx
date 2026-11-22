@@ -13,6 +13,7 @@ import { PageStatus, PeerNav, RecordSwitcherControl, useHeaderNavigate } from '.
 import { PageTocAside, usePageLayout } from './page/PageToc'
 import { sectionsOf, showsToc } from './page/toc'
 import './page/page.css'
+import { tx } from '../i18n/texts'
 
 export { ActionButton } from './page/HeaderButtons'
 
@@ -169,7 +170,7 @@ function PageHeaderBlock({ metadata, ctx, level, compact, noCrumbs, noHeader, re
         <PageHeader.TitleArea variant={level === 0 ? 'medium' : 'subtitle'}>
           {back && (
             <PageHeader.LeadingAction>
-              <IconButton icon={ArrowLeftIcon} aria-label={interpolate(String(back['label'] ?? 'Back'), ctx)} variant="invisible" onClick={run(back).onPress} />
+              <IconButton icon={ArrowLeftIcon} aria-label={interpolate(String(back['label'] ?? tx('back')), ctx)} variant="invisible" onClick={run(back).onPress} />
             </PageHeader.LeadingAction>
           )}
           {(!!avatar || !!icon) && (
@@ -251,7 +252,7 @@ function Banners({ metadata, state, data }: { metadata: Dict; state: Dict; data?
         return (
           <Banner
             key={key}
-            title={title || 'Notice'}
+            title={title || tx('toastInfo')}
             hideTitle={!title}
             description={b.description ? interpolate(b.description, { state, data }) : undefined}
             variant={variant}

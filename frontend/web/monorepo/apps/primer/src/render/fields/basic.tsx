@@ -3,6 +3,7 @@ import { Link, Text, TextInput } from '@primer/react'
 import { StarFillIcon, StarIcon } from '@primer/octicons-react'
 import { decimalDraft, moneyInputCommit, moneyInputText, moneyText } from '@rn/core/uxRules'
 import { safeHref } from '@infra/ui/safeNavigate.ts'
+import { tx } from '../../i18n/texts'
 
 type A11y = { 'aria-labelledby'?: string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }
 
@@ -60,7 +61,7 @@ export function ColorField({ value, editable, onChange, a11y, inputRef }: { valu
   return (
     <div className="mateu-color">
       <input ref={inputRef} type="color" value={hex} onChange={(e) => onChange(e.target.value)} {...a11y} />
-      <TextInput value={value} onChange={(e) => onChange(e.target.value)} aria-label="Hex value" size="small" monospace />
+      <TextInput value={value} onChange={(e) => onChange(e.target.value)} aria-label={tx('hexValue')} size="small" monospace />
     </div>
   )
 }
@@ -114,9 +115,9 @@ export function RangeInputs({ fieldId, date, state, editable, onChange, a11y }: 
   const type = date ? 'date' : 'number'
   return (
     <div className="mateu-range" role="group" {...a11y}>
-      <TextInput type={type} aria-label="From" value={valueOf(`${fieldId}_from`)} disabled={!editable} onChange={(e) => put(`${fieldId}_from`, e.target.value)} block />
+      <TextInput type={type} aria-label={tx('rangeFrom')} value={valueOf(`${fieldId}_from`)} disabled={!editable} onChange={(e) => put(`${fieldId}_from`, e.target.value)} block />
       <span className="mateu-range-sep" aria-hidden="true">–</span>
-      <TextInput type={type} aria-label="To" value={valueOf(`${fieldId}_to`)} disabled={!editable} onChange={(e) => put(`${fieldId}_to`, e.target.value)} block />
+      <TextInput type={type} aria-label={tx('rangeTo')} value={valueOf(`${fieldId}_to`)} disabled={!editable} onChange={(e) => put(`${fieldId}_to`, e.target.value)} block />
     </div>
   )
 }

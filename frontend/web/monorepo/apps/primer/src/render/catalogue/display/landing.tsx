@@ -4,6 +4,7 @@ import { StarFillIcon, StarIcon } from '@primer/octicons-react'
 import { Markdown } from '../../Markdown'
 import type { CatalogueProps } from '../types'
 import { list, MateuAvatar, safeHref, str, useRun, useText, WireIcon } from './shared'
+import { tx } from '../../../i18n/texts'
 
 /** FeatureGrid: a grid of feature cards (icon, title, text); a card with an action is a button. */
 export function FeatureGrid({ metadata, state, data }: CatalogueProps) {
@@ -90,7 +91,7 @@ export function CookieConsent({ metadata }: CatalogueProps) {
   const [dismissed, setDismissed] = useState(true)
   useEffect(() => setDismissed(readCookie(name) === 'dismiss'), [name])
   if (dismissed) return null
-  const position = str(metadata['position']) || 'Bottom'
+  const position = str(metadata['position']) || 'Bottom' // i18n-ok: a wire value
   const link = safeHref(metadata['learnMoreLink'])
   const dismiss = () => {
     try {
@@ -101,10 +102,10 @@ export function CookieConsent({ metadata }: CatalogueProps) {
   return (
     <div className={`mateu-cookie-consent mateu-cookie-consent--${position.toLowerCase()}`} role="alert">
       <Text as="p">
-        {str(metadata['message']) || 'This app uses cookies to ensure you get the best experience.'}{' '}
-        {link && <Link href={link} target="_blank" rel="noopener noreferrer nofollow">{str(metadata['learnMore']) || 'Learn more'}</Link>}
+        {str(metadata['message']) || tx('cookiesMessage')}{' '}
+        {link && <Link href={link} target="_blank" rel="noopener noreferrer nofollow">{str(metadata['learnMore']) || tx('learnMore')}</Link>}
       </Text>
-      <Button variant="primary" size="small" onClick={dismiss}>{str(metadata['dismiss']) || 'Got it!'}</Button>
+      <Button variant="primary" size="small" onClick={dismiss}>{str(metadata['dismiss']) || tx('gotIt')}</Button>
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { AnchoredOverlay, Button, Checkbox, CheckboxGroup, FormControl, Select, 
 import { FilterIcon } from '@primer/octicons-react'
 import { isBlankFilterValue } from '@rn/renderer/crudListing'
 import { NUMERIC, multiValues, optionsOf, type Dict } from './rows'
+import { tx } from '../../i18n/texts'
 
 /**
  * The listing's filters: a Filter button opening a panel with one control per filter, each the
@@ -26,9 +27,9 @@ export function FilterPanel({ filters, values, onApply, active }: { filters: Dic
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
       renderAnchor={(props) => (
-        <Button {...props} leadingVisual={FilterIcon} count={active || undefined}>Filter</Button>
+        <Button {...props} leadingVisual={FilterIcon} count={active || undefined}>{tx('filter')}</Button>
       )}
-      overlayProps={{ role: 'dialog', 'aria-label': 'Filter', width: 'medium' } as never}
+      overlayProps={{ role: 'dialog', 'aria-label': tx('filter'), width: 'medium' } as never}
       focusZoneSettings={{ disabled: true }}
     >
       <form
@@ -37,8 +38,8 @@ export function FilterPanel({ filters, values, onApply, active }: { filters: Dic
       >
         {filters.map((f) => <FilterControl key={String(f['fieldId'])} filter={f} values={draft} set={set} />)}
         <Stack direction="horizontal" justify="end" gap="condensed">
-          <Button type="button" variant="invisible" onClick={() => { onApply({}); setOpen(false) }}>Clear</Button>
-          <Button type="submit" variant="primary">Apply</Button>
+          <Button type="button" variant="invisible" onClick={() => { onApply({}); setOpen(false) }}>{tx('clear')}</Button>
+          <Button type="submit" variant="primary">{tx('apply')}</Button>
         </Stack>
       </form>
     </AnchoredOverlay>
@@ -57,8 +58,8 @@ function FilterControl({ filter, values, set }: { filter: Dict; values: Dict; se
       <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
         <legend style={{ fontWeight: 'var(--base-text-weight-semibold)' as never, fontSize: 'var(--text-body-size-medium)', marginBottom: 'var(--base-size-4)' }}>{label}</legend>
         <Stack direction="horizontal" gap="condensed">
-          <TextInput type={type} aria-label={`${label} from`} placeholder="From" value={String(values[`${fieldId}_from`] ?? '')} onChange={(e) => set(`${fieldId}_from`, e.target.value)} />
-          <TextInput type={type} aria-label={`${label} to`} placeholder="To" value={String(values[`${fieldId}_to`] ?? '')} onChange={(e) => set(`${fieldId}_to`, e.target.value)} />
+          <TextInput type={type} aria-label={tx('fromNamed', { name: label })} placeholder={tx('rangeFrom')} value={String(values[`${fieldId}_from`] ?? '')} onChange={(e) => set(`${fieldId}_from`, e.target.value)} />
+          <TextInput type={type} aria-label={tx('toNamed', { name: label })} placeholder={tx('rangeTo')} value={String(values[`${fieldId}_to`] ?? '')} onChange={(e) => set(`${fieldId}_to`, e.target.value)} />
         </Stack>
       </fieldset>
     )
@@ -78,12 +79,12 @@ function FilterControl({ filter, values, set }: { filter: Dict; values: Dict; se
     )
   }
   if (dataType === 'bool' || dataType === 'boolean' || options.length > 0) {
-    const opts = options.length > 0 ? options : [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }]
+    const opts = options.length > 0 ? options : [{ value: 'true', label: tx('yes') }, { value: 'false', label: tx('no') }]
     return (
       <FormControl>
         <FormControl.Label>{label}</FormControl.Label>
         <Select block value={String(values[fieldId] ?? '')} onChange={(e) => set(fieldId, e.target.value)}>
-          <Select.Option value="">Any</Select.Option>
+          <Select.Option value="">{tx('any')}</Select.Option>
           {opts.map((o) => <Select.Option key={o.value} value={o.value}>{o.label}</Select.Option>)}
         </Select>
       </FormControl>
@@ -104,7 +105,7 @@ export function filterTokens(filters: Dict[], values: Dict): { key: string; text
     const fieldId = String(f['fieldId'])
     const label = String(f['label'] ?? fieldId)
     const opts = optionsOf(f)
-    const labelOf = (v: string) => opts.find((o) => o.value === v)?.label ?? (v === 'true' ? 'Yes' : v === 'false' ? 'No' : v)
+    const labelOf = (v: string) => opts.find((o) => o.value === v)?.label ?? (v === 'true' ? tx('yes') : v === 'false' ? tx('no') : v)
     const from = values[`${fieldId}_from`], to = values[`${fieldId}_to`]
     if (!isBlankFilterValue(from) || !isBlankFilterValue(to)) {
       const without = { ...values }

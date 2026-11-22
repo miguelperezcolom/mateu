@@ -8,6 +8,7 @@ import { dragMimeOf } from '@infra/ui/dragAndDrop.ts'
 import { useController } from '../ViewHost'
 import { labelVariantOf } from '../looks'
 import { NUMERIC, isBool, withoutRowKey, type Dict, type Row } from './rows'
+import { tx } from '../../i18n/texts'
 
 export interface CellContext {
   /** The column that names the row: the row header, the link that opens it, the drag handle. */
@@ -31,8 +32,8 @@ const TONE_FG: Record<string, string> = {
 function BoolCell({ value }: { value: unknown }) {
   const on = value === true || value === 'true'
   return on
-    ? <span role="img" aria-label="Yes" style={{ color: 'var(--fgColor-success)' }}><CheckIcon /></span>
-    : <span role="img" aria-label="No" style={{ color: 'var(--fgColor-muted)' }}>—</span>
+    ? <span role="img" aria-label={tx('yes')} style={{ color: 'var(--fgColor-success)' }}><CheckIcon /></span>
+    : <span role="img" aria-label={tx('no')} style={{ color: 'var(--fgColor-muted)' }}>—</span>
 }
 
 /** What a cell shows: an editor, a picture, a status label, a check, the row's link, a cell action, or the text. */
@@ -47,7 +48,7 @@ export function useCellRenderer(ctx: CellContext) {
     return text
   }
   const link = (row: Row, text: string): React.ReactNode =>
-    ctx.opensRow(row) ? <Link as="button" type="button" onClick={() => ctx.openRow(row)} style={{ textAlign: 'start' }}>{text || 'Open'}</Link> : text
+    ctx.opensRow(row) ? <Link as="button" type="button" onClick={() => ctx.openRow(row)} style={{ textAlign: 'start' }}>{text || tx('open')}</Link> : text
   const handle = (row: Row, content: React.ReactNode): React.ReactNode => {
     if (!ctx.dragType) return content
     const rowId = String(row['id'] ?? '')
@@ -60,7 +61,7 @@ export function useCellRenderer(ctx: CellContext) {
           e.dataTransfer.effectAllowed = 'move'
         }}
         style={{ cursor: 'grab' }}
-        title="Drag to move"
+        title={tx('dragToMove')}
       >{content}</span>
     )
   }
@@ -152,7 +153,7 @@ export function RowActions({ row, actionColumns }: { row: Row; actionColumns: Di
   return (
     <ActionMenu>
       <ActionMenu.Anchor>
-        <IconButton icon={KebabHorizontalIcon} variant="invisible" size="small" aria-label="Row actions" />
+        <IconButton icon={KebabHorizontalIcon} variant="invisible" size="small" aria-label={tx('rowActions')} />
       </ActionMenu.Anchor>
       <ActionMenu.Overlay>
         <ActionList>

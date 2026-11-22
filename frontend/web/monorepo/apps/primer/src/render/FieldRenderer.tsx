@@ -19,6 +19,7 @@ import { readOnlyFieldText } from '@rn/core/readOnlyDisplay'
 import { isMultiValued, pickedStrings, pickedValue, pickedValues, widgetOptionsOf, type TypedOption, type WidgetOption } from '@rn/core/fieldOptions'
 import { fetchExternalJson, mapItemsToOptions, type FetchedOption } from '@rn/core/restFetch'
 import { useController } from './ViewHost'
+import { tx } from '../i18n/texts'
 
 type Dict = Record<string, unknown>
 
@@ -161,7 +162,7 @@ const propertyRow: Rule = ({ m, dataType, raw, label }) => {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 'var(--base-size-16)', padding: 'var(--base-size-8) 0', borderBottom: 'var(--borderWidth-thin) solid var(--borderColor-muted)' }}>
       <Text style={{ color: 'var(--fgColor-muted)' }}>{label}</Text>
-      {status ? <Label variant={toneVariant(status.tone)}>{status.label}</Label> : <Text weight="semibold">{isBool ? (raw === true || raw === 'true' ? 'Yes' : 'No') : readOnlyFieldText(m, raw) || '—'}</Text>}
+      {status ? <Label variant={toneVariant(status.tone)}>{status.label}</Label> : <Text weight="semibold">{isBool ? (raw === true || raw === 'true' ? tx('yes') : tx('no')) : readOnlyFieldText(m, raw) || '—'}</Text>}
     </div>
   )
 }
@@ -422,7 +423,7 @@ const singleChoice: Rule = ({ stereotype, options, m, text, fieldId, label, help
     <FormControl required={required} disabled={disabled}>
       <FormControl.Label visuallyHidden={unlabelled}>{label}</FormControl.Label>
       <Select ref={ref} value={text} onChange={(e) => commitOne(e.target.value)} block validationStatus={status}>
-        <Select.Option value="">{placeholder ?? 'Select…'}</Select.Option>
+        <Select.Option value="">{placeholder ?? tx('selectPlaceholder')}</Select.Option>
         {options.map((o) => <Select.Option key={o.value} value={o.value}>{o.label}</Select.Option>)}
       </Select>
       {caption}

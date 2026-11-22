@@ -7,6 +7,7 @@ import { useController } from '../../ViewHost'
 import { ComponentRenderer } from '../../ComponentRenderer'
 import { BOX_STYLE, styleOf } from '../../styleOf'
 import { type CatalogueProps, type Dict, childrenOf, list, metaOf, slotOf, str, useText } from './common'
+import { tx } from '../../../i18n/texts'
 
 /** The width an element is given (ResizeObserver); 0 before the first layout. */
 function useWidth<T extends HTMLElement>(): [React.RefObject<T | null>, number] {
@@ -123,7 +124,7 @@ export function SplitLayout({ component, metadata: m, state, data }: CataloguePr
     <div ref={box} className={`mateu-st-split-layout mateu-st-splitter-host${vertical ? ' mateu-st-vertical' : ''}${str(m['variant']) === 'minimal' ? ' mateu-st-minimal' : ''}`} style={styleOf(component, BOX_STYLE)}>
       <div className="mateu-st-pane" style={{ flex: `0 0 ${pct}%` }}>{kids[0] ? <ComponentRenderer component={kids[0]} state={state} data={data} /> : null}</div>
       <div className="mateu-st-splitter" role="separator" tabIndex={0} aria-orientation={vertical ? 'horizontal' : 'vertical'}
-        aria-valuemin={10} aria-valuemax={90} aria-valuenow={Math.round(pct)} aria-label="Resize panes"
+        aria-valuemin={10} aria-valuemax={90} aria-valuenow={Math.round(pct)} aria-label={tx('resizePanes')}
         onPointerDown={onPointerDown} onKeyDown={onKeyDown} />
       <div className="mateu-st-pane">{kids[1] ? <ComponentRenderer component={kids[1]} state={state} data={data} /> : null}</div>
     </div>
@@ -142,7 +143,7 @@ export function MasterDetailLayout({ component, metadata: m, state, data }: Cata
     <div ref={ref} className={`mateu-st-split-layout${stacked ? ' mateu-st-vertical' : ''}`} style={styleOf(component, BOX_STYLE)}>
       <div className="mateu-st-pane">{kids[0] ? <ComponentRenderer component={kids[0]} state={state} data={data} /> : null}</div>
       <div className="mateu-st-pane">
-        {detail ? <ComponentRenderer component={detail} state={state} data={data} /> : <Text className="mateu-st-muted">Select an item to view details</Text>}
+        {detail ? <ComponentRenderer component={detail} state={state} data={data} /> : <Text className="mateu-st-muted">{tx('selectItemForDetails')}</Text>}
       </div>
     </div>
   )
@@ -190,12 +191,12 @@ export function CarouselLayout({ component, metadata: m, state, data }: Catalogu
       </div>
       {n > 1 && (
         <div className="mateu-st-row mateu-st-center">
-          {m['nav'] !== false && <IconButton icon={ChevronLeftIcon} aria-label="Previous slide" variant="invisible" disabled={disabled || (!loop && index === 0)} onClick={() => go(index - 1)} />}
+          {m['nav'] !== false && <IconButton icon={ChevronLeftIcon} aria-label={tx('previousSlide')} variant="invisible" disabled={disabled || (!loop && index === 0)} onClick={() => go(index - 1)} />}
           {m['dots'] !== false && slides.map((_, i) => (
-            <button key={i} type="button" className={`mateu-st-dot${i === index ? ' mateu-st-dot-on' : ''}`} aria-label={`Slide ${i + 1}`} aria-current={i === index ? 'true' : undefined} onClick={() => go(i)} disabled={disabled} />
+            <button key={i} type="button" className={`mateu-st-dot${i === index ? ' mateu-st-dot-on' : ''}`} aria-label={tx('slideN', { n: i + 1 })} aria-current={i === index ? 'true' : undefined} onClick={() => go(i)} disabled={disabled} />
           ))}
-          {m['nav'] !== false && <IconButton icon={ChevronRightIcon} aria-label="Next slide" variant="invisible" disabled={disabled || (!loop && index === n - 1)} onClick={() => go(index + 1)} />}
-          {auto && <IconButton icon={stopped ? PlayIcon : PauseIcon} aria-label={stopped ? 'Start the slide show' : 'Stop the slide show'} variant="invisible" onClick={() => setStopped((v) => !v)} />}
+          {m['nav'] !== false && <IconButton icon={ChevronRightIcon} aria-label={tx('nextSlide')} variant="invisible" disabled={disabled || (!loop && index === n - 1)} onClick={() => go(index + 1)} />}
+          {auto && <IconButton icon={stopped ? PlayIcon : PauseIcon} aria-label={stopped ? tx('carouselPlay') : tx('carouselPause')} variant="invisible" onClick={() => setStopped((v) => !v)} />}
         </div>
       )}
     </section>
@@ -223,14 +224,14 @@ export function FoldoutLayout({ component, metadata: m, state, data }: Catalogue
       {(m['headerTitle'] || nav) ? (
         <div className="mateu-st-row mateu-st-between">
           <div className="mateu-st-row">
-            {nav && nav['parentActionId'] ? <IconButton icon={ArrowLeftIcon} variant="invisible" aria-label={t(nav['parentLabel']) || 'Back'} onClick={() => run(nav['parentActionId'])} /> : null}
+            {nav && nav['parentActionId'] ? <IconButton icon={ArrowLeftIcon} variant="invisible" aria-label={t(nav['parentLabel']) || tx('back')} onClick={() => run(nav['parentActionId'])} /> : null}
             {m['headerTitle'] || nav?.['title'] ? <Heading as="h2" className="mateu-st-h2">{t(m['headerTitle'] ?? nav?.['title'])}</Heading> : null}
             {list<string>(m['badges']).map((b, i) => <Label key={i} variant="secondary">{t(b)}</Label>)}
           </div>
           {nav && (nav['previousActionId'] || nav['nextActionId']) ? (
             <div className="mateu-st-row">
-              <IconButton icon={ChevronLeftIcon} aria-label="Previous" disabled={!nav['previousActionId']} onClick={() => run(nav['previousActionId'])} />
-              <IconButton icon={ChevronRightIcon} aria-label="Next" disabled={!nav['nextActionId']} onClick={() => run(nav['nextActionId'])} />
+              <IconButton icon={ChevronLeftIcon} aria-label={tx('previous')} disabled={!nav['previousActionId']} onClick={() => run(nav['previousActionId'])} />
+              <IconButton icon={ChevronRightIcon} aria-label={tx('next')} disabled={!nav['nextActionId']} onClick={() => run(nav['nextActionId'])} />
             </div>
           ) : null}
         </div>
@@ -238,7 +239,7 @@ export function FoldoutLayout({ component, metadata: m, state, data }: Catalogue
       <div className="mateu-st-foldout">
         {overview ? (
           <section className="mateu-st-card mateu-st-foldout-overview">
-            {m['overviewEditActionId'] ? <div className="mateu-st-row" style={{ justifyContent: 'flex-end' }}><IconButton icon={PencilIcon} size="small" variant="invisible" aria-label="Edit" onClick={() => run(m['overviewEditActionId'])} /></div> : null}
+            {m['overviewEditActionId'] ? <div className="mateu-st-row" style={{ justifyContent: 'flex-end' }}><IconButton icon={PencilIcon} size="small" variant="invisible" aria-label={tx('edit')} onClick={() => run(m['overviewEditActionId'])} /></div> : null}
             <ComponentRenderer component={overview} state={state} data={data} />
           </section>
         ) : null}
@@ -250,7 +251,7 @@ export function FoldoutLayout({ component, metadata: m, state, data }: Catalogue
           if (!open) {
             return (
               <section key={i} className="mateu-st-card mateu-st-foldout-strip" aria-label={title}>
-                <IconButton icon={UnfoldIcon} size="small" variant="invisible" aria-label={`Open ${title}`} aria-expanded={false} onClick={() => setToggled({ ...toggled, [i]: true })} />
+                <IconButton icon={UnfoldIcon} size="small" variant="invisible" aria-label={tx('openNamed', { name: title })} aria-expanded={false} onClick={() => setToggled({ ...toggled, [i]: true })} />
                 <span className="mateu-st-strip-title">{title}</span>
                 {summary ? <div className="mateu-st-strip-summary"><ComponentRenderer component={summary} state={state} data={data} /></div> : null}
               </section>
@@ -263,7 +264,7 @@ export function FoldoutLayout({ component, metadata: m, state, data }: Catalogue
                   <Heading as="h3" className="mateu-st-h">{p.icon && !/:/.test(p.icon) ? `${p.icon} ` : ''}{title}</Heading>
                   {p.subtitle ? <Text size="small" className="mateu-st-muted">{t(p.subtitle)}</Text> : null}
                 </div>
-                <IconButton icon={FoldIcon} size="small" variant="invisible" aria-label={`Fold ${title}`} aria-expanded onClick={() => setToggled({ ...toggled, [i]: false })} />
+                <IconButton icon={FoldIcon} size="small" variant="invisible" aria-label={tx('foldNamed', { name: title })} aria-expanded onClick={() => setToggled({ ...toggled, [i]: false })} />
               </header>
               {content ? <ComponentRenderer component={content} state={state} data={data} /> : null}
             </section>
@@ -279,7 +280,7 @@ export function VirtualList({ component, metadata: m, state, data }: CataloguePr
   const items = list<unknown>((m['page'] as Dict | undefined)?.['content'])
   const box = styleOf(component, BOX_STYLE)
   return (
-    <ul className="mateu-st-virtual" tabIndex={0} aria-label="List" style={{ maxHeight: box.height ?? box.maxHeight ?? '24rem', ...box }}>
+    <ul className="mateu-st-virtual" tabIndex={0} aria-label={tx('list')} style={{ maxHeight: box.height ?? box.maxHeight ?? '24rem', ...box }}>
       {items.map((it, i) => (
         <li key={i}>
           {it && typeof it === 'object' && ('metadata' in (it as Dict) || 'type' in (it as Dict))

@@ -9,6 +9,7 @@ import { useController } from '../ViewHost'
 import { useButtonPress } from '../useButtonPress'
 import { usePending } from '../usePending'
 import { buttonVariantOf } from '../looks'
+import { tx } from '../../i18n/texts'
 
 type Dict = Record<string, unknown>
 type Ctx = { state: Dict; data?: unknown }
@@ -71,7 +72,7 @@ export function HeaderButton({ button, ctx }: { button: Dict; ctx: Ctx }) {
         <SingleButton button={split.primary} ctx={ctx} />
         <ActionMenu>
           <ActionMenu.Anchor>
-            <IconButton icon={TriangleDownIcon} aria-label={`More: ${label}`.trim()} variant={buttonVariantOf(button) === 'primary' ? 'primary' : 'default'} />
+            <IconButton icon={TriangleDownIcon} aria-label={tx('moreNamed', { name: label }).trim()} variant={buttonVariantOf(button) === 'primary' ? 'primary' : 'default'} />
           </ActionMenu.Anchor>
           <ActionMenu.Overlay><GroupItems members={split.more} ctx={ctx} /></ActionMenu.Overlay>
         </ActionMenu>
@@ -82,7 +83,7 @@ export function HeaderButton({ button, ctx }: { button: Dict; ctx: Ctx }) {
   if (members) {
     return (
       <ActionMenu>
-        <ActionMenu.Button variant={buttonVariantOf(button)}>{label || 'Actions'}</ActionMenu.Button>
+        <ActionMenu.Button variant={buttonVariantOf(button)}>{label || tx('actions')}</ActionMenu.Button>
         <ActionMenu.Overlay><GroupItems members={members} ctx={ctx} /></ActionMenu.Overlay>
       </ActionMenu>
     )

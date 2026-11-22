@@ -6,6 +6,7 @@ import { interpolate } from '@rn/core/expressions'
 import { headingLevel, rowJustification } from '@rn/core/uxRules'
 import { shortcutMatches } from '@rn/core/keyShortcuts'
 import { buttonGroupMembers, splitButtonParts } from '@rn/core/buttonGroup'
+import { modeForWidth } from '@infra/ui/adaptiveTabsMode.ts'
 import { useController, ViewHost } from './ViewHost'
 import { FieldRenderer } from './FieldRenderer'
 import { PageRenderer } from './PageRenderer'
@@ -20,6 +21,7 @@ import { CATALOGUE } from './catalogue'
 import { RenderBoundary } from './RenderBoundary'
 import { Element, MicroFrontend } from './Embedded'
 import './notice.css'
+import { tx } from '../i18n/texts'
 
 type Dict = Record<string, unknown>
 
@@ -162,8 +164,9 @@ const tabLayout: Draw = ({ component, m, state, data }) => <TabLayout component=
 const text: Draw = ({ component, m, ctx }) => {
   const value = interpolate(String(m['text'] ?? ''), ctx)
   const level = headingLevel(m['container'] as string | undefined)
-  // its own layout style (a section title's `flex: 1` pushes the toolbar to the row's end)
-  const own = styleOf(component)
+  // its own layout style (a section title's `flex: 1` pushes the toolbar to the row's end) and its
+  // type (the RAIL wizard's big "2 | 4" counter is a Text the server sizes itself)
+  const own = styleOf(component, TEXT_STYLE)
   if (level > 0) {
     return <Heading as={`h${level}` as 'h2'} variant={level <= 2 ? 'medium' : 'small'} style={{ margin: 0, ...own }}>{value}</Heading>
   }
@@ -176,6 +179,7 @@ const text: Draw = ({ component, m, ctx }) => {
     </Text>
   )
 }
+const TEXT_STYLE = [...LAYOUT_STYLE, 'margin', 'font-size', 'font-weight', 'letter-spacing', 'line-height', 'text-align']
 const TEXT_SIZE: Record<string, 'large' | 'medium' | 'small'> = { xl: 'large', l: 'large', s: 'small', xs: 'small' }
 
 // `${state.vip ? 'VIP' : ''}`: a badge whose text comes out empty is not shown
@@ -201,7 +205,7 @@ const anchor: Draw = ({ m, ctx }) => {
 
 // `valueKey` reads the value off the state (a LongTask's progress); `indeterminate` = busy, no amount
 const progressBar: Draw = ({ m, state }) => {
-  const label = String(m['text'] ?? m['label'] ?? '') || 'Progress'
+  const label = String(m['text'] ?? m['label'] ?? '') || tx('progress')
   if (m['indeterminate'] === true) return <Spinner size="small" srText={label} />
   const key = typeof m['valueKey'] === 'string' && m['valueKey'] ? m['valueKey'] : ''
   const value = Number((key ? state[key] : undefined) ?? m['value'] ?? 0) || 0
@@ -245,7 +249,7 @@ const notice: Draw = ({ component, m, ctx, controller, kids }) => {
   if (!own) {
     return (
       <Banner
-        title={value || 'Notice'}
+        title={value || tx('toastInfo')}
         hideTitle={!value}
         description={content.length ? <>{kids()}</> : undefined}
         variant={variant}
@@ -412,8 +416,32 @@ function TabLayout({ component, m, state, data }: { component: Dict; m: Dict; st
     return () => document.removeEventListener('keydown', onKey)
   }, [shortcuts])
   const ctx = { state, data, appState: controller.session.appState }
+  // `adaptable` (layout inference): below the web's breakpoint the tabs degrade to an accordion —
+  // the same groups, still one open at a time by the user's choice (adaptiveTabsMode.ts)
+  const box = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+  const adaptable = m['adaptable'] === true
+  useEffect(() => {
+    const el = box.current
+    if (!adaptable || !el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(([entry]) => setWidth(Math.round(entry.contentRect.width)))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [adaptable])
+  if (adaptable && modeForWidth(width) === 'accordion') {
+    return (
+      <div ref={box}>
+        <Stack gap="condensed">
+          {tabs.map((tab, i) => (
+            <AccordionPanel key={i} panel={{ ...(tab as Dict), metadata: { ...meta(tab), active: selected === `t${i}` } }} state={state} data={data} />
+          ))}
+        </Stack>
+      </div>
+    )
+  }
   return (
-    <UnderlinePanels aria-label={String(m['label'] ?? 'Tabs')} value={selected} onChange={({ value }) => setSelected(value)}>
+    <div ref={box}>
+    <UnderlinePanels aria-label={String(m['label'] ?? tx('tabs'))} value={selected} onChange={({ value }) => setSelected(value)}>
       {tabs.map((tab, i) => (
         <UnderlinePanels.Tab key={`t${i}`} value={`t${i}`} counter={meta(tab)['badge'] != null && meta(tab)['badge'] !== '' ? String(meta(tab)['badge']) : undefined}>
           {interpolate(String(meta(tab)['label'] ?? ''), ctx)}
@@ -427,6 +455,7 @@ function TabLayout({ component, m, state, data }: { component: Dict; m: Dict; st
         </UnderlinePanels.Panel>
       ))}
     </UnderlinePanels>
+    </div>
   )
 }
 
@@ -529,7 +558,7 @@ function ContentButton({ metadata, state, data, id }: { metadata: Dict; state: D
         <SingleButton metadata={split.primary} state={state} data={data} />
         <ActionMenu>
           <ActionMenu.Anchor>
-            <IconButton icon={TriangleDownIcon} aria-label={`More ${String(metadata['label'] ?? '')}`.trim()} variant={buttonVariantOf(metadata) === 'primary' ? 'primary' : 'default'} />
+            <IconButton icon={TriangleDownIcon} aria-label={tx('moreNamed', { name: String(metadata['label'] ?? '') }).trim()} variant={buttonVariantOf(metadata) === 'primary' ? 'primary' : 'default'} />
           </ActionMenu.Anchor>
           <ActionMenu.Overlay><MenuItems members={split.more} state={state} data={data} /></ActionMenu.Overlay>
         </ActionMenu>
@@ -540,7 +569,7 @@ function ContentButton({ metadata, state, data, id }: { metadata: Dict; state: D
   if (members) {
     return (
       <ActionMenu>
-        <ActionMenu.Button variant={buttonVariantOf(metadata)}>{interpolate(String(metadata['label'] ?? ''), { state, data }) || 'Actions'}</ActionMenu.Button>
+        <ActionMenu.Button variant={buttonVariantOf(metadata)}>{interpolate(String(metadata['label'] ?? ''), { state, data }) || tx('actions')}</ActionMenu.Button>
         <ActionMenu.Overlay><MenuItems members={members} state={state} data={data} key={id} /></ActionMenu.Overlay>
       </ActionMenu>
     )

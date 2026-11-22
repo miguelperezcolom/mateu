@@ -12,6 +12,7 @@ import { BOX_STYLE, styleOf } from '../../styleOf'
 import type { CatalogueProps } from '../types'
 import { activate, arr, colorOf, str, toneBg, toneFg, toneOf, type Dict } from './common'
 import { TileMap } from './tileMap'
+import { tx } from '../../../i18n/texts'
 
 // ── Map ───────────────────────────────────────────────────────────────────────────────────────────
 
@@ -40,7 +41,7 @@ export function MapView({ component, metadata }: CatalogueProps) {
         tileUrl={metadata['tileUrl'] as string | null} attribution={metadata['attribution'] as string | null} height={h}
         onMarker={(m) => { const r = rows.find((x) => x.markerId === m.id) ?? rows[markers.findIndex((x) => x.id === m.id)]; if (r) run(r) }} />
       {rows.length > 0 && (
-        <ul className="mv-box" style={{ listStyle: 'none', margin: 0, padding: 0 }} aria-label="Map locations">
+        <ul className="mv-box" style={{ listStyle: 'none', margin: 0, padding: 0 }} aria-label={tx('mapLocations')}>
           {rows.map((r, i) => (
             <li key={r.key} className="mv-row" style={{ padding: 'var(--base-size-8) var(--base-size-12)', borderTop: i ? 'var(--borderWidth-thin) solid var(--borderColor-muted)' : undefined }}>
               <span style={{ color: colorOf(r.markerId ? undefined : 'neutral', 'var(--fgColor-danger)') }}><LocationIcon /></span>
@@ -81,7 +82,7 @@ export function Grid({ component, state, data, metadata: m }: CatalogueProps) {
           <tr>{columns.map((c) => <th key={c.id} scope="col" style={{ textAlign: right(c.align) ? 'right' : 'left', width: c.width }}>{c.label}</th>)}</tr>
         </thead>
         <tbody>
-          {rows.length === 0 && <tr><td colSpan={Math.max(1, columns.length)} className="mv-muted">No data.</td></tr>}
+          {rows.length === 0 && <tr><td colSpan={Math.max(1, columns.length)} className="mv-muted">{tx('noData')}</td></tr>}
           {rows.map(({ row, depth, key, hasChildren }) => (
             <tr key={key}>
               {columns.map((c, ci) => {
@@ -132,7 +133,7 @@ export function ResourceGrid({ component, metadata: m }: CatalogueProps) {
         return (
           <div key={it.id ?? i} {...(it.disabled ? {} : activate(pick))} role="radio" aria-checked={sel} aria-disabled={it.disabled || undefined}
             className={'mv-tile' + (sel ? ' mv-selected' : '') + (it.recommended && !sel ? ' mv-recommended' : '') + (it.disabled ? '' : ' mv-clickable')}>
-            {it.recommended && <span><Label variant="success">{str(m['recommendedLabel'] || 'Recommended')}</Label></span>}
+            {it.recommended && <span><Label variant="success">{str(m['recommendedLabel'] || tx('recommended'))}</Label></span>}
             <Text weight="semibold">{it.title}</Text>
             {it.subtitle && <Text size="small" className="mv-muted">{it.subtitle}</Text>}
             {it.statusLabel && <span><Label variant={statusTone === 'success' ? 'success' : statusTone === 'danger' ? 'danger' : statusTone === 'warning' ? 'attention' : statusTone === 'info' ? 'accent' : 'secondary'}>{it.statusLabel}</Label></span>}
@@ -177,7 +178,7 @@ export function AddOnPicker({ component, metadata: m }: CatalogueProps) {
               : <>
                   <Text size="small">{money(it.price ?? 0)}{it.unit ? ` / ${it.unit}` : ''}</Text>
                   <Button size="small" variant={on ? 'primary' : 'default'} leadingVisual={on ? CheckIcon : PlusIcon} aria-pressed={on}
-                    aria-label={`${on ? 'Remove' : 'Add'} ${it.title ?? ''}`} onClick={() => toggle(it)}>{on ? 'Added' : 'Add'}</Button>
+                    aria-label={on ? tx('removeNamed', { name: it.title ?? '' }) : tx('addNamed', { name: it.title ?? '' })} onClick={() => toggle(it)}>{on ? tx('added') : tx('add')}</Button>
                 </>}
           </div>
         )
@@ -193,7 +194,7 @@ export function PaymentPicker({ component, metadata: m }: CatalogueProps) {
   const [selected, setSelected] = useState<string | undefined>(() => initialPaymentMethod(m['selected'], methods))
   return (
     <div style={{ display: 'grid', gap: 'var(--base-size-12)', ...styleOf(component, BOX_STYLE) }}>
-      <div className="mv-tiles" role="radiogroup" aria-label="Payment method" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(9rem, 1fr))' }}>
+      <div className="mv-tiles" role="radiogroup" aria-label={tx('paymentMethod')} style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(9rem, 1fr))' }}>
         {methods.map((pm, i) => {
           const sel = pm.id === selected
           return (
@@ -256,5 +257,5 @@ export function DiagramView({ diagram, label, onPressNode }: { diagram: Diagram;
 }
 
 export function Bpmn({ component, metadata }: CatalogueProps) {
-  return <div style={styleOf(component, BOX_STYLE)}><DiagramView diagram={parseBpmn(str(metadata['xml']))} label="Process diagram" /></div>
+  return <div style={styleOf(component, BOX_STYLE)}><DiagramView diagram={parseBpmn(str(metadata['xml']))} label={tx('processDiagram')} /></div>
 }

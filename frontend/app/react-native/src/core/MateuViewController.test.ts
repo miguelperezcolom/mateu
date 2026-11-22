@@ -1026,3 +1026,48 @@ test('an action a nested view does not own goes to the view it is drawn in, with
   assert.deepEqual(sent.parameters.initiatorState, { name: 'Ada L.', _rowNumber: 0 });
   assert.deepEqual(sent.componentState.guests, [{ name: 'Ada', _rowNumber: 0 }]);
 });
+
+test('fieldsToValidate: a partial validation checks only the named fields', async () => {
+  const { c, calls } = harness([
+    fragment(ssc({
+      actions: [{ id: 'checkEmail', validationRequired: true, fieldsToValidate: 'email' }],
+      validations: [
+        { fieldId: 'email', condition: "state['email']", message: 'Required' },
+        { fieldId: 'name', condition: "state['name']", message: 'Required' },
+      ],
+    })),
+    {},
+  ]);
+  await c.initialLoad('/orders');
+  c.putState('email', 'ana@example.com');
+  await c.runAction('checkEmail');
+  assert.deepEqual(c.fieldErrors, {});
+  assert.equal(calls.filter((x) => x.actionId === 'checkEmail').length, 1, 'name is not checked, so it is sent');
+});
+
+test('customEvent: the action dispatches its event on the bus and is not sent', async () => {
+  const { session, c, calls } = harness([fragment(ssc({ actions: [{ id: 'pick', customEvent: { eventName: 'room-picked', detail: { room: 12 } } }] }))]);
+  await c.initialLoad('/orders');
+  const heard: unknown[] = [];
+  session.subscribe({}, 'room-picked', (p) => { heard.push(p); return true; });
+  await c.runAction('pick');
+  assert.deepEqual(heard, [{ room: 12 }]);
+  assert.equal(calls.filter((x) => x.actionId === 'pick').length, 0);
+});
+
+test('OnLoad `times`: once by default across in-place re-renders; 0 re-fires on each', async () => {
+  const onLoad = (actionId: string, times?: number) => ({ type: 'OnLoad', actionId, timeoutMillis: 0, ...(times === undefined ? {} : { times }) });
+  const screen = () => fragment(ssc({ actions: [{ id: 'refresh' }, { id: 'poll' }], triggers: [onLoad('refresh'), onLoad('poll', 0)] }));
+  const { c, calls } = harness([screen(), screen(), screen(), screen(), screen()]);
+  await c.initialLoad('/orders');
+  await tick(); await tick();
+  const count = (id: string) => calls.filter((x) => x.actionId === id).length;
+  assert.equal(count('refresh'), 1);
+  assert.ok(count('poll') >= 1);
+  const pollBefore = count('poll');
+  // the same screen answered again (an action returning `this`)
+  c.applyIncrement(screen() as Json);
+  await tick(); await tick();
+  assert.equal(count('refresh'), 1, 'times = 1 means once for the screen');
+  assert.ok(count('poll') > pollBefore, 'times = 0 fires on every render');
+});

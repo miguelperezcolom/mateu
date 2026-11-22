@@ -16,7 +16,7 @@ export default function MobileQrDialog({ appTitle, baseUrl, onClose }: { appTitl
   const phone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
   const [copied, setCopied] = useState(false)
   const copy = () => void navigator.clipboard?.writeText(url).then(() => { setCopied(true); announceLive(chromeText('linkCopied'), false) })
-  const app = appTitle || 'Mateu'
+  const app = appTitle || 'Mateu' // i18n-ok: the product name
   return (
     <Dialog title={chromeTextf(phone ? 'mobileQrPhoneTitle' : 'mobileQrTitle', { app })} onClose={onClose} width="medium">
       {phone ? (

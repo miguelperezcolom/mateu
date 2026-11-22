@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { IconButton } from '@primer/react'
 import { DashIcon, PlusIcon } from '@primer/octicons-react'
 import { planMapView, type LonLat } from '@infra/ui/mapPosition.ts'
+import { tx } from '../../../i18n/texts'
 
 /**
  * A slippy map with no SDK: Web Mercator tiles (the wire's `tileUrl`, Leaflet-style `{s}{z}{x}{y}`,
@@ -106,7 +107,7 @@ export function TileMap({ position, zoom, markers, tileUrl, attribution, height,
 
   return (
     <div ref={box} className="mv-map" style={{ height }} tabIndex={0} role="application" aria-roledescription="map"
-      aria-label="Map — arrow keys pan, plus and minus zoom"
+      aria-label={tx('mapKeys')}
       onKeyDown={(e) => {
         const step = 80
         if (e.key === 'ArrowLeft') panBy(-step, 0)
@@ -136,8 +137,8 @@ export function TileMap({ position, zoom, markers, tileUrl, attribution, height,
       <div className="mv-map-tiles" aria-hidden="true">{tiles}</div>
       {pins}
       <div className="mv-map-zoom">
-        <IconButton icon={PlusIcon} size="small" aria-label="Zoom in" onClick={() => zoomBy(1)} />
-        <IconButton icon={DashIcon} size="small" aria-label="Zoom out" onClick={() => zoomBy(-1)} />
+        <IconButton icon={PlusIcon} size="small" aria-label={tx('zoomIn')} onClick={() => zoomBy(1)} />
+        <IconButton icon={DashIcon} size="small" aria-label={tx('zoomOut')} onClick={() => zoomBy(-1)} />
       </div>
       {credit && <div className="mv-map-credit">{credit}</div>}
     </div>

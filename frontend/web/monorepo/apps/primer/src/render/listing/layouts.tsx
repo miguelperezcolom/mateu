@@ -5,6 +5,7 @@ import { cardLayoutOf, listColumns, listRowModel, pictureUrlOf, type ColDef } fr
 import { labelVariantOf } from '../looks'
 import { ComponentRenderer } from '../ComponentRenderer'
 import { childrenOf, type Dict, type Row } from './rows'
+import { tx } from '../../i18n/texts'
 
 /** gridLayout = cards: one bordered box per row, its picture and title first (the title opens it). */
 export function Cards({ rows, defs, cellOf }: { rows: Row[]; defs: ColDef[]; cellOf: (r: Row, c: ColDef) => React.ReactNode }) {
@@ -72,7 +73,7 @@ export function MasterDetail({ rows, defs, cellOf }: { rows: Row[]; defs: ColDef
   return (
     <div style={{ gridArea: 'table', display: 'flex', flexWrap: 'wrap', border: 'var(--borderWidth-thin) solid var(--borderColor-default)', borderRadius: 'var(--borderRadius-medium)', minHeight: '20rem' }}>
       <div style={{ flex: '1 0 16rem', maxWidth: '100%', borderInlineEnd: 'var(--borderWidth-thin) solid var(--borderColor-default)' }}>
-        <ActionList showDividers selectionVariant="single" role="listbox" aria-label="Rows">
+        <ActionList showDividers selectionVariant="single" role="listbox" aria-label={tx('rows')}>
           {rows.map((row) => {
             const key = String(row['__mateuRowKey'])
             return (
@@ -88,7 +89,7 @@ export function MasterDetail({ rows, defs, cellOf }: { rows: Row[]; defs: ColDef
           })}
         </ActionList>
       </div>
-      <section aria-label="Detail" style={{ flex: '1000 1 20rem', minWidth: 'min(20rem, 100%)', padding: 'var(--base-size-16)' }}>
+      <section aria-label={tx('detail')} style={{ flex: '1000 1 20rem', minWidth: 'min(20rem, 100%)', padding: 'var(--base-size-16)' }}>
         {selected ? (
           <dl style={{ margin: 0, display: 'grid', gap: 'var(--base-size-12)' }}>
             {defs.map((c) => (
@@ -98,7 +99,7 @@ export function MasterDetail({ rows, defs, cellOf }: { rows: Row[]; defs: ColDef
               </div>
             ))}
           </dl>
-        ) : <Text style={{ color: 'var(--fgColor-muted)' }}>Select a row to see its details.</Text>}
+        ) : <Text style={{ color: 'var(--fgColor-muted)' }}>{tx('selectRowForDetails')}</Text>}
       </section>
     </div>
   )

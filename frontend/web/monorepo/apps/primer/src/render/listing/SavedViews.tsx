@@ -3,6 +3,7 @@ import { AnchoredOverlay, Button, IconButton, Stack, Text, TextInput } from '@pr
 import { BookmarkIcon, StarFillIcon, StarIcon, TrashIcon } from '@primer/octicons-react'
 import { activeView, deleteView, listSavedViews, saveView, setDefaultView, type SavedView } from '@infra/savedViewsStore.ts'
 import type { Dict } from './rows'
+import { tx } from '../../i18n/texts'
 
 /**
  * Saved views on the filter bar — the web renderer's store (localStorage `mateu-saved-views`, one
@@ -24,12 +25,12 @@ export function SavedViews({ scope, values, onApply }: { scope: string; values: 
       open={open}
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
-      renderAnchor={(props) => <Button {...props} leadingVisual={BookmarkIcon}>{current ? current.name : 'Views'}</Button>}
-      overlayProps={{ role: 'dialog', 'aria-label': 'Saved views', width: 'medium' } as never}
+      renderAnchor={(props) => <Button {...props} leadingVisual={BookmarkIcon}>{current ? current.name : tx('views')}</Button>}
+      overlayProps={{ role: 'dialog', 'aria-label': tx('savedViews'), width: 'medium' } as never}
       focusZoneSettings={{ disabled: true }}
     >
       <div style={{ padding: 'var(--base-size-16)', display: 'grid', gap: 'var(--stack-gap-normal)' }}>
-        {views.length === 0 && <Text size="small" style={{ color: 'var(--fgColor-muted)' }}>No saved views yet.</Text>}
+        {views.length === 0 && <Text size="small" style={{ color: 'var(--fgColor-muted)' }}>{tx('noSavedViews')}</Text>}
         {views.length > 0 && (
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 'var(--base-size-4)' }}>
             {views.map((v) => (
@@ -39,11 +40,11 @@ export function SavedViews({ scope, values, onApply }: { scope: string; values: 
                   icon={v.isDefault ? StarFillIcon : StarIcon}
                   variant="invisible"
                   size="small"
-                  aria-label={v.isDefault ? `Stop opening with ${v.name}` : `Open the listing with ${v.name}`}
+                  aria-label={v.isDefault ? `${tx('unsetDefaultView')}: ${v.name}` : `${tx('openWithView')}: ${v.name}`}
                   aria-pressed={!!v.isDefault}
                   onClick={() => { setDefaultView(scope, v.name); refresh() }}
                 />
-                <IconButton icon={TrashIcon} variant="invisible" size="small" aria-label={`Delete ${v.name}`} onClick={() => { deleteView(scope, v.name); refresh() }} />
+                <IconButton icon={TrashIcon} variant="invisible" size="small" aria-label={tx('deleteViewNamed', { name: v.name })} onClick={() => { deleteView(scope, v.name); refresh() }} />
               </li>
             ))}
           </ul>
@@ -52,8 +53,8 @@ export function SavedViews({ scope, values, onApply }: { scope: string; values: 
           onSubmit={(e) => { e.preventDefault(); if (!name.trim() || !canSave) return; saveView(scope, { name, values }); setName(''); refresh() }}
         >
           <Stack direction="horizontal" gap="condensed">
-            <TextInput aria-label="Name of the view" placeholder={canSave ? 'Save the current filters as…' : 'Apply a filter to save a view'} value={name} onChange={(e) => setName(e.target.value)} disabled={!canSave} style={{ flex: 1 }} />
-            <Button type="submit" disabled={!canSave || !name.trim()}>Save</Button>
+            <TextInput aria-label={tx('viewName')} placeholder={canSave ? tx('saveViewAs') : tx('applyFiltersToSaveView')} value={name} onChange={(e) => setName(e.target.value)} disabled={!canSave} style={{ flex: 1 }} />
+            <Button type="submit" disabled={!canSave || !name.trim()}>{tx('save')}</Button>
           </Stack>
         </form>
       </div>

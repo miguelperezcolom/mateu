@@ -6,6 +6,7 @@ import { ACTIVITY_EVENTS, ACTIVITY_KEY, idlePhase, latestActivity, recordActivit
 import { resolveSafeUrl } from '@infra/ui/safeNavigate.ts'
 import { safeLocalStorage } from '@infra/safeStorage.ts'
 import { runAppLevel, type AppMetaLike } from './appActions'
+import { tx } from '../../i18n/texts'
 
 interface IdleSessionLike {
   timeoutSeconds: number
@@ -88,15 +89,15 @@ export function IdleWarning({ session, app }: { session: MateuSession; app: AppM
   return (
     <Dialog
       role="alertdialog"
-      title="Are you still there?"
+      title={tx('idleTitle')}
       onClose={() => stayFn.current()}
       footerButtons={signingOut ? [] : [
-        { content: 'Sign out', onClick: () => signOut(true) },
-        { content: 'Stay signed in', buttonType: 'primary', onClick: () => stay(), autoFocus: true, ref: stayRef },
+        { content: tx('idleSignOut'), onClick: () => signOut(true) },
+        { content: tx('idleStay'), buttonType: 'primary', onClick: () => stay(), autoFocus: true, ref: stayRef },
       ]}
     >
       <Text as="p" aria-live="off">
-        {signingOut ? 'Signing out…' : `For your security you will be signed out in ${secondsLeft} seconds.`}
+        {signingOut ? tx('idleSigningOut') : tx('idleMessage', { seconds: secondsLeft })}
       </Text>
     </Dialog>
   )

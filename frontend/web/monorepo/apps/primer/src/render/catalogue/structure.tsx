@@ -7,6 +7,7 @@ import { ComponentRenderer } from '../ComponentRenderer'
 import { styleOf } from '../styleOf'
 import type { Catalogue, CatalogueProps, Dict } from './types'
 import { CustomComponent } from './custom'
+import { tx } from '../../i18n/texts'
 
 const str = (v: unknown): string => (v === null || v === undefined ? '' : String(v))
 const kidsOf = (c: Dict): unknown[] => ((c['children'] as unknown[] | undefined) ?? [])
@@ -73,11 +74,11 @@ function ConfirmDialog({ component, metadata: m, state, data }: CatalogueProps) 
     if (typeof actionId === 'string' && actionId) void controller.runAction(actionId)
   }
   const footer: { content: string; buttonType?: 'default' | 'primary'; onClick: () => void }[] = []
-  if (m['canCancel']) footer.push({ content: str(m['cancelText']) || (m['rejectText'] && !m['canReject'] ? str(m['rejectText']) : 'Cancel'), onClick: () => answer(m['cancelActionId']) })
-  if (m['canReject']) footer.push({ content: str(m['rejectText']) || 'No', onClick: () => answer(m['rejectActionId']) })
-  footer.push({ content: str(m['confirmText']) || 'OK', buttonType: 'primary', onClick: () => answer(m['confirmActionId']) })
+  if (m['canCancel']) footer.push({ content: str(m['cancelText']) || (m['rejectText'] && !m['canReject'] ? str(m['rejectText']) : tx('cancel')), onClick: () => answer(m['cancelActionId']) })
+  if (m['canReject']) footer.push({ content: str(m['rejectText']) || tx('no'), onClick: () => answer(m['rejectActionId']) })
+  footer.push({ content: str(m['confirmText']) || tx('ok'), buttonType: 'primary', onClick: () => answer(m['confirmActionId']) })
   return (
-    <Dialog title={str(m['header']) || 'Confirm'} onClose={() => answer(m['cancelActionId'])} footerButtons={footer} width="medium">
+    <Dialog title={str(m['header']) || tx('confirm')} onClose={() => answer(m['cancelActionId'])} footerButtons={footer} width="medium">
       <Kids list={kidsOf(component)} state={state} data={data} />
       {m['content'] && typeof m['content'] === 'object' ? <ComponentRenderer component={m['content']} state={state} data={data} /> : null}
     </Dialog>

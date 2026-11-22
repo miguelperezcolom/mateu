@@ -7,6 +7,7 @@ import { isRuleLeaf, menuLeafEffects, type ShellAction } from '@rn/core/shellFlo
 import { cardsOf, isCardsGroup } from '@rn/renderer/menuCards'
 import { safeHref, safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { runAndApply, type AppTarget } from './appLevel'
+import { tx } from '../../i18n/texts'
 
 type Dict = Record<string, unknown>
 
@@ -140,7 +141,7 @@ function SideEntry({ item, h, depth }: { item: MenuItem; h: MenuHandlers; depth:
   return <SideItem item={item} h={h} depth={depth} />
 }
 
-export function SideNav({ menu, h, label = 'Main menu', searchable = false }: { menu: MenuItem[]; h: MenuHandlers; label?: string; searchable?: boolean }) {
+export function SideNav({ menu, h, label = tx('mainMenu'), searchable = false }: { menu: MenuItem[]; h: MenuHandlers; label?: string; searchable?: boolean }) {
   const [query, setQuery] = useState('')
   const shown = useMemo(() => (query.trim() ? filterMenu(menu, query) : menu), [menu, query])
   return (
@@ -148,12 +149,12 @@ export function SideNav({ menu, h, label = 'Main menu', searchable = false }: { 
       {/* a long menu (more than 10 entries — AppDto.totalMenuOptions) gets a filter on top, like the web drawer */}
       {searchable && (
         <div className="mateu-menu-search">
-          <TextInput leadingVisual={SearchIcon} aria-label="Search the menu" placeholder="Search the menu" size="small" block
+          <TextInput leadingVisual={SearchIcon} aria-label={tx('searchTheMenu')} placeholder={tx('searchTheMenu')} size="small" block
             value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
       )}
       <NavList aria-label={label}>{shown.map((m, i) => <SideEntry key={i} item={m} h={h} depth={0} />)}</NavList>
-      {searchable && query.trim() && shown.length === 0 && <p className="mateu-menu-search-empty">No entries match.</p>}
+      {searchable && query.trim() && shown.length === 0 && <p className="mateu-menu-search-empty">{tx('noMenuMatches')}</p>}
     </>
   )
 }
@@ -204,7 +205,7 @@ function MenuListItems({ items, h }: { items: MenuItem[]; h: MenuHandlers }): Re
  */
 export function TopNav({ menu, h, onHub, hub }: { menu: MenuItem[]; h: MenuHandlers; onHub?: (g: MenuItem) => void; hub?: MenuItem | null }) {
   return (
-    <nav aria-label="Main menu" className="mateu-topnav">
+    <nav aria-label={tx('mainMenu')} className="mateu-topnav">
       <ul>
         {menu.filter((m) => !m.separator).map((m, i) => {
           const current = hub ? hub === m : holdsCurrent(m, h.currentRoute)
@@ -241,7 +242,7 @@ export function TopNav({ menu, h, onHub, hub }: { menu: MenuItem[]; h: MenuHandl
 // ---- tabs (TABS; HAMBURGER_SECTIONS' band) -------------------------------------------------------
 
 /** The entries as Primer's UnderlineNav (it folds what does not fit into "More"). A group: a dropdown in the band. */
-export function TabsNav({ items, h, label = 'Main menu' }: { items: MenuItem[]; h: MenuHandlers; label?: string }) {
+export function TabsNav({ items, h, label = tx('mainMenu') }: { items: MenuItem[]; h: MenuHandlers; label?: string }) {
   const leaves = items.filter((m) => !m.separator)
   if (leaves.length === 0) return null
   return (
@@ -309,7 +310,7 @@ function TileGrid({ items, h }: { items: MenuItem[]; h: MenuHandlers }) {
           </button>
         </li>
       ))}
-      {items.length === 0 && <Text className="mateu-header-muted">Nothing here</Text>}
+      {items.length === 0 && <Text className="mateu-header-muted">{tx('nothingHere')}</Text>}
     </ul>
   )
 }

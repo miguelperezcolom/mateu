@@ -6,9 +6,10 @@ import { delayedBusyOf } from '@rn/core/serverActivity'
 import { announceLive } from '@rn/a11y/a11y'
 import { trackPressedControls } from './pressedControl'
 import './resilience.css'
+import { tx } from '../../i18n/texts'
 
-export const OFFLINE_TEXT = 'No connection — changes you make now will not be saved.'
-export const RESTORED_TEXT = 'Connection restored.'
+const OFFLINE_TEXT = () => tx('offlineBanner')
+const RESTORED_TEXT = () => tx('connectionRestored')
 
 /**
  * What a slow or broken connection looks like on this renderer (the web renderer's
@@ -29,12 +30,12 @@ export function Resilience({ session }: { session: MateuSession }) {
 function BusyBar({ session }: { session: MateuSession }) {
   const [visible, setVisible] = useState(false)
   useEffect(() => {
-    const busy = delayedBusyOf(session.activity, () => announceLive('Loading…', false))
+    const busy = delayedBusyOf(session.activity, () => announceLive(tx('loading'), false))
     return busy.subscribe(setVisible)
   }, [session])
   if (!visible) return null
   return (
-    <div className="mateu-busy-bar" role="progressbar" aria-label="Waiting for the server" aria-busy="true">
+    <div className="mateu-busy-bar" role="progressbar" aria-label={tx('waitingForServer')} aria-busy="true">
       <ProgressBar animated progress={100} barSize="small" aria-hidden="true" />
     </div>
   )
@@ -49,11 +50,11 @@ function ConnectivityBanner() {
       setOnline(now)
       if (timer) clearTimeout(timer)
       if (now) {
-        announceLive(RESTORED_TEXT, false)
+        announceLive(RESTORED_TEXT(), false)
         setRestored(true)
         timer = setTimeout(() => setRestored(false), 4000)
       } else {
-        announceLive(OFFLINE_TEXT, true)
+        announceLive(OFFLINE_TEXT(), true)
         setRestored(false)
       }
     })
@@ -79,7 +80,7 @@ function ConnectivityBanner() {
   if (online && !restored) return null
   return (
     <div className={'mateu-connectivity-banner ' + (online ? 'is-restored' : 'is-offline')} data-mateu-connectivity={online ? 'restored' : 'offline'}>
-      {online ? RESTORED_TEXT : OFFLINE_TEXT}
+      {online ? RESTORED_TEXT() : OFFLINE_TEXT()}
     </div>
   )
 }

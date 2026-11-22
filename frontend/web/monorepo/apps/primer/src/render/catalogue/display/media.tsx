@@ -4,6 +4,7 @@ import { ChevronDownIcon, ChevronRightIcon } from '@primer/octicons-react'
 import { ComponentRenderer } from '../../ComponentRenderer'
 import type { CatalogueProps } from '../types'
 import { childrenOf, isNode, list, MateuAvatar, str, useText, WireIcon } from './shared'
+import { tx } from '../../../i18n/texts'
 
 /** Icon: the Octicon its token names (an emoji as written). */
 export function Icon({ metadata }: CatalogueProps) {
@@ -23,7 +24,7 @@ export function AvatarGroup({ metadata }: CatalogueProps) {
   const rest = all.length - shown.length
   const names = all.map((a) => str(a['name'])).filter(Boolean)
   return (
-    <span className="mateu-avatar-group" role="group" aria-label={names.join(', ') || 'People'}>
+    <span className="mateu-avatar-group" role="group" aria-label={names.join(', ') || tx('people')}>
       {shown.map((a, i) => (
         <span key={i} className="mateu-avatar-group__item" title={str(a['name'])}>
           <MateuAvatar name={str(a['name'])} image={a['image']} abbreviation={a['abbreviation']} size={28} />
@@ -86,7 +87,7 @@ export function Popover({ metadata, state, data }: CatalogueProps) {
       open={open}
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
-      overlayProps={{ role: 'dialog', 'aria-label': 'Details' }}
+      overlayProps={{ role: 'dialog', 'aria-label': tx('details') }}
       renderAnchor={(anchorProps) => (
         <span
           {...anchorProps}

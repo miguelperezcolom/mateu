@@ -6,6 +6,8 @@
  * The announcements go to ONE polite and ONE assertive live region created at boot (a region
  * filled in the same tick it is created is often not announced — the libs/mateu announcer's rule).
  */
+import { tx } from '../i18n/texts'
+
 type Politeness = 'polite' | 'assertive'
 
 const regions: Partial<Record<Politeness, HTMLElement>> = {}
@@ -67,6 +69,6 @@ export const Linking = {
 
 export const Share = {
   share(_content?: unknown, _options?: unknown): Promise<void> {
-    return Promise.reject(new Error('Share is not available on the web'))
+    return Promise.reject(new Error(tx('shareUnavailable')))
   },
 }

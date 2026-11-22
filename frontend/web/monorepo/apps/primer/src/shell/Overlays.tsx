@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Dialog, IconButton } from '@primer/react'
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, ChevronUpIcon, ScreenFullIcon, ScreenNormalIcon } from '@primer/octicons-react'
 import './overlays.css'
@@ -8,6 +8,7 @@ import { interpolate } from '@rn/core/expressions'
 import { overlayContentWithData, upsertOverlay, withOverlayState } from '@rn/renderer/patternGaps'
 import { ViewHost, ControllerProvider } from '../render/ViewHost'
 import { ComponentRenderer } from '../render/ComponentRenderer'
+import { tx } from '../i18n/texts'
 
 type Dict = Record<string, unknown>
 
@@ -71,7 +72,7 @@ function OverlayLayer({ entry, session: fallback, onClose }: { entry: Entry; ses
   const type = meta['type']
   const declaredTitle = interpolate(entry.title, { state: entry.state })
   // an overlay with no title still needs an accessible name — kept for screen readers, not shown
-  const title = declaredTitle || (type === 'Drawer' ? 'Details' : 'Dialog')
+  const title = declaredTitle || (type === 'Drawer' ? tx('details') : tx('dialog'))
   const subtitle = interpolate(String(meta['subtitle'] ?? ''), { state: entry.state })
 
   // what the overlay draws OUTSIDE its content (a footer, a ConfirmDialog's body) runs on the view that opened it
@@ -93,12 +94,12 @@ function OverlayLayer({ entry, session: fallback, onClose }: { entry: Entry; ses
       if (typeof actionId === 'string' && actionId && opener) void opener.runAction(actionId)
     }
     const footer = [
-      ...(meta['canCancel'] ? [{ content: String(meta['cancelText'] ?? 'Cancel'), onClick: () => press(meta['cancelActionId']) }] : []),
-      ...(meta['canReject'] ? [{ content: String(meta['rejectText'] ?? 'No'), onClick: () => press(meta['rejectActionId']) }] : []),
-      { content: String(meta['confirmText'] ?? 'OK'), buttonType: 'primary' as const, onClick: () => press(meta['confirmActionId']) },
+      ...(meta['canCancel'] ? [{ content: String(meta['cancelText'] ?? tx('cancel')), onClick: () => press(meta['cancelActionId']) }] : []),
+      ...(meta['canReject'] ? [{ content: String(meta['rejectText'] ?? tx('no')), onClick: () => press(meta['rejectActionId']) }] : []),
+      { content: String(meta['confirmText'] ?? tx('ok')), buttonType: 'primary' as const, onClick: () => press(meta['confirmActionId']) },
     ]
     return (
-      <Dialog title={interpolate(String(meta['header'] ?? ''), { state: entry.state }) || 'Confirm'} onClose={onClose} footerButtons={footer}>
+      <Dialog title={interpolate(String(meta['header'] ?? ''), { state: entry.state }) || tx('confirm')} onClose={onClose} footerButtons={footer}>
         {((entry.component as Dict)?.['children'] as unknown[] | undefined ?? []).map((n, i) => <React.Fragment key={i}>{onOpener(n)}</React.Fragment>)}
         {onOpener(meta['content'])}
       </Dialog>
@@ -131,6 +132,11 @@ function PanelLayer({ entry, meta, type, title, titleShown, subtitle, session, o
     : 'center'
   const declaredWidth = typeof meta['width'] === 'string' && meta['width'] && !bottom && step === DRAWER_STEPS.indexOf(drawerWidth(meta['size'])) ? String(meta['width']) : undefined
   const declaredHeight = !drawer && typeof meta['height'] === 'string' && meta['height'] ? String(meta['height']) : undefined
+  // a Dialog's own placement: `top`/`left` (CSS lengths), `draggable` by its header, `resizable` by its corner
+  const placed = !drawer && (typeof meta['top'] === 'string' && meta['top'] || typeof meta['left'] === 'string' && meta['left'])
+  const draggable = !drawer && meta['draggable'] === true
+  const resizable = !drawer && meta['resizable'] === true
+  const drag = useDialogDrag(draggable)
   const peer = drawer ? (meta['peerNav'] as Dict | null | undefined) ?? null : null
   const goPeer = (route: unknown, label: unknown) => {
     if (typeof route !== 'string' || !route) return
@@ -152,10 +158,16 @@ function PanelLayer({ entry, meta, type, title, titleShown, subtitle, session, o
       position={position as never}
       width={drawer ? DRAWER_STEPS[step] : 'large'}
       className={className}
-      style={{ ...(declaredWidth ? { width: declaredWidth, maxWidth: '100vw' } : {}), ...(declaredHeight ? { height: declaredHeight } : {}) }}
+      style={{
+        ...(declaredWidth ? { width: declaredWidth, maxWidth: '100vw' } : {}),
+        ...(declaredHeight ? { height: declaredHeight } : {}),
+        ...(placed ? { position: 'fixed', margin: 0, top: String(meta['top'] || 'auto'), left: String(meta['left'] || 'auto') } : {}),
+        ...(resizable ? { resize: 'both', overflow: 'auto', minWidth: '16rem', minHeight: '8rem' } : {}),
+        ...(drag.offset ? { translate: `${drag.offset.x}px ${drag.offset.y}px` } : {}),
+      } as React.CSSProperties}
       renderHeader={({ dialogLabelId, dialogDescriptionId }) => (
         <Dialog.Header>
-          <div className="mateu-overlay__head">
+          <div className={'mateu-overlay__head' + (draggable ? ' mateu-overlay__head--drag' : '')} ref={drag.handleRef} onPointerDown={drag.onPointerDown}>
             <div className="mateu-overlay__titles">
               <Dialog.Title id={dialogLabelId} className={titleShown ? undefined : 'sr-only'}>{title}</Dialog.Title>
               {subtitle && <Dialog.Subtitle id={dialogDescriptionId}>{subtitle}</Dialog.Subtitle>}
@@ -164,19 +176,19 @@ function PanelLayer({ entry, meta, type, title, titleShown, subtitle, session, o
             {peer && (
               <>
                 <IconButton icon={ChevronLeftIcon} size="small" variant="invisible" disabled={!peer['prevRoute']}
-                  aria-label={peer['prevLabel'] ? `Previous: ${String(peer['prevLabel'])}` : 'Previous'} onClick={() => goPeer(peer['prevRoute'], peer['prevLabel'])} />
+                  aria-label={peer['prevLabel'] ? tx('previousNamed', { name: String(peer['prevLabel']) }) : tx('previous')} onClick={() => goPeer(peer['prevRoute'], peer['prevLabel'])} />
                 <IconButton icon={ChevronRightIcon} size="small" variant="invisible" disabled={!peer['nextRoute']}
-                  aria-label={peer['nextLabel'] ? `Next: ${String(peer['nextLabel'])}` : 'Next'} onClick={() => goPeer(peer['nextRoute'], peer['nextLabel'])} />
+                  aria-label={peer['nextLabel'] ? tx('nextNamed', { name: String(peer['nextLabel']) }) : tx('next')} onClick={() => goPeer(peer['nextRoute'], peer['nextLabel'])} />
               </>
             )}
             {drawer && meta['maximizable'] === true && !bottom && (
               <IconButton icon={step >= DRAWER_STEPS.length - 1 ? ScreenNormalIcon : ScreenFullIcon} size="small" variant="invisible"
-                aria-label={step >= DRAWER_STEPS.length - 1 ? 'Restore size' : 'Make larger'}
+                aria-label={step >= DRAWER_STEPS.length - 1 ? tx('restoreSize') : tx('maximize')}
                 onClick={() => setStep((st) => (st >= DRAWER_STEPS.length - 1 ? Math.max(0, DRAWER_STEPS.indexOf(drawerWidth(meta['size']))) : st + 1))} />
             )}
             {drawer && bottom && meta['collapsible'] === true && (
               <IconButton icon={collapsed ? ChevronUpIcon : ChevronDownIcon} size="small" variant="invisible"
-                aria-label={collapsed ? 'Expand' : 'Collapse'} aria-expanded={!collapsed} onClick={() => setCollapsed((c) => !c)} />
+                aria-label={collapsed ? tx('expand') : tx('collapse')} aria-expanded={!collapsed} onClick={() => setCollapsed((c) => !c)} />
             )}
             {(drawer || meta['closeButtonOnHeader'] !== false) && <Dialog.CloseButton onClose={onClose} />}
           </div>
@@ -196,4 +208,28 @@ function drawerWidth(size: unknown): 'small' | 'medium' | 'large' | 'xlarge' {
     case 'xl': return 'xlarge'
     default: return 'medium'
   }
+}
+
+/**
+ * A `draggable` Dialog moves with its header: the pointer drags it (controls inside the header keep
+ * working — a press that starts on a button is not a drag), and the offset is kept while it is open.
+ */
+function useDialogDrag(enabled: boolean) {
+  const handleRef = useRef<HTMLDivElement>(null)
+  const [offset, setOffset] = useState<{ x: number; y: number } | null>(null)
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!enabled || e.button !== 0) return
+    if ((e.target as Element).closest('button, a, input, select, textarea, [role="button"]')) return
+    const start = { x: e.clientX, y: e.clientY }
+    const from = offset ?? { x: 0, y: 0 }
+    const move = (ev: PointerEvent) => setOffset({ x: from.x + ev.clientX - start.x, y: from.y + ev.clientY - start.y })
+    const up = () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+    e.preventDefault()
+  }
+  return { handleRef, offset, onPointerDown }
 }

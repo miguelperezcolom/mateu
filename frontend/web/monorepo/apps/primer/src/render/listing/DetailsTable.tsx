@@ -5,6 +5,7 @@ import { ChevronDownIcon, ChevronRightIcon } from '@primer/octicons-react'
 import type { ColDef } from '@rn/renderer/crudListing'
 import { RowDetail } from './layouts'
 import { NUMERIC, type Dict, type Row } from './rows'
+import { tx } from '../../i18n/texts'
 
 /**
  * A listing whose rows carry @Details (`detailPath`): Primer's Table primitives, each row with a
@@ -27,9 +28,9 @@ export function DetailsTable({ rows, defs, detailPath, cellOf, actionsOf, labell
       <Table aria-labelledby={labelledBy} gridTemplateColumns={template}>
         <Table.Head>
           <Table.Row>
-            <Table.Header><span className="sr-only">Details</span></Table.Header>
+            <Table.Header><span className="sr-only">{tx('details')}</span></Table.Header>
             {defs.map((c) => <Table.Header key={c.fieldId} align={NUMERIC.has(c.dataType) ? 'end' : undefined}>{c.label}</Table.Header>)}
-            {actionsOf && <Table.Header><span className="sr-only">Actions</span></Table.Header>}
+            {actionsOf && <Table.Header><span className="sr-only">{tx('actions')}</span></Table.Header>}
           </Table.Row>
         </Table.Head>
         <Table.Body>
@@ -47,7 +48,7 @@ export function DetailsTable({ rows, defs, detailPath, cellOf, actionsOf, labell
                         icon={expanded ? ChevronDownIcon : ChevronRightIcon}
                         variant="invisible"
                         size="small"
-                        aria-label={expanded ? 'Hide details' : 'Show details'}
+                        aria-label={expanded ? tx('hideDetails') : tx('showDetails')}
                         aria-expanded={expanded}
                         onClick={() => toggle(key)}
                       />

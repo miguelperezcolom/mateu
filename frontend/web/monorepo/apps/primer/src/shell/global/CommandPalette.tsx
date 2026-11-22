@@ -7,6 +7,7 @@ import { keyLabel, quickLaunchMatch, shortcutsMatching } from '@infra/ui/appShor
 import { listRecentRoutes } from '@infra/recentRoutesStore.ts'
 import { runAppLevel, routeTarget, type AppMetaLike } from './appActions'
 import type { AppShortcutLike } from './shortcuts'
+import { tx } from '../../i18n/texts'
 
 type Dict = Record<string, unknown>
 
@@ -137,28 +138,28 @@ export function CommandPalette({ session, app, open, onClose, onNavigate, onLaun
   for (const s of shortcutsMatching(shortcuts as never, query)) {
     if (!q && !s.code) continue
     rows.push({
-      key: `sc-${s.code ?? s.label}`, group: 'Quick launch', label: s.label, icon: RocketIcon,
+      key: `sc-${s.code ?? s.label}`, group: tx('quickLaunch'), label: s.label, icon: RocketIcon,
       trailing: [s.code, keyLabel(s.key)].filter(Boolean).join(' · '),
       run: () => { onClose(); onLaunch(s as AppShortcutLike) },
     })
   }
   if (!q) {
     for (const r of listRecentRoutes(scope)) {
-      rows.push({ key: `recent-${r.route}`, group: 'Recent', label: r.label, icon: HistoryIcon, run: () => go(routeTarget(r.route, r.label)) })
+      rows.push({ key: `recent-${r.route}`, group: tx('recent'), label: r.label, icon: HistoryIcon, run: () => go(routeTarget(r.route, r.label)) })
     }
   }
   const menuMatches = q ? menu.filter((m) => m.label.toLowerCase().includes(q) || m.breadcrumb.toLowerCase().includes(q)) : menu
   for (const m of menuMatches.slice(0, q ? 20 : 50)) {
-    rows.push({ key: `menu-${m.breadcrumb}-${m.label}-${m.target.route}`, group: 'Menu', label: m.label, description: m.breadcrumb || undefined, run: () => go(m.target) })
+    rows.push({ key: `menu-${m.breadcrumb}-${m.label}-${m.target.route}`, group: tx('menu'), label: m.label, description: m.breadcrumb || undefined, run: () => go(m.target) })
   }
   for (const h of hits) {
     rows.push({
-      key: `hit-${h.category ?? ''}-${h.route}-${h.label}`, group: h.category || 'Results', label: h.label,
+      key: `hit-${h.category ?? ''}-${h.route}-${h.label}`, group: h.category || tx('results'), label: h.label,
       description: h.description ?? undefined, icon: SearchIcon, run: () => go(routeTarget(h.route, h.label)),
     })
   }
   if (onAskAi && q) {
-    rows.push({ key: 'ask-ai', group: 'Assistant', label: `Ask AI: “${query.trim()}”`, icon: CommentDiscussionIcon, run: () => { onClose(); onAskAi(query.trim()) } })
+    rows.push({ key: 'ask-ai', group: tx('chat'), label: tx('askAi', { query: query.trim() }), icon: CommentDiscussionIcon, run: () => { onClose(); onAskAi(query.trim()) } })
   }
 
   const current = Math.min(active, Math.max(0, rows.length - 1))
@@ -187,7 +188,7 @@ export function CommandPalette({ session, app, open, onClose, onNavigate, onLaun
 
   return (
     <Dialog
-      title={app['commandCenterEnabled'] ? 'Command center' : 'Go to…'}
+      title={app['commandCenterEnabled'] ? tx('commandCenter') : tx('goTo')}
       onClose={onClose}
       width="large"
       initialFocusRef={inputRef as React.RefObject<HTMLElement>}
@@ -198,8 +199,8 @@ export function CommandPalette({ session, app, open, onClose, onNavigate, onLaun
             block
             size="large"
             leadingVisual={SearchIcon}
-            placeholder={searchEnabled ? 'Search screens, records, codes…' : 'Search screens and codes…'}
-            aria-label="Search"
+            placeholder={searchEnabled ? tx('searchScreensRecordsCodes') : tx('searchScreensAndCodes')}
+            aria-label={tx('search')}
             aria-controls="mateu-cmd-list"
             aria-activedescendant={rows.length ? `mateu-cmd-${current}` : undefined}
             value={query}
@@ -207,8 +208,8 @@ export function CommandPalette({ session, app, open, onClose, onNavigate, onLaun
             onKeyDown={onKeyDown}
             loading={searching}
           />
-          <div className="mateu-cmd__list" id="mateu-cmd-list" role="listbox" aria-label="Results">
-            {rows.length === 0 && <Text as="p" className="mateu-cmd__empty">{searching ? 'Searching…' : 'Nothing matches.'}</Text>}
+          <div className="mateu-cmd__list" id="mateu-cmd-list" role="listbox" aria-label={tx('results')}>
+            {rows.length === 0 && <Text as="p" className="mateu-cmd__empty">{searching ? tx('searching') : tx('noMatches')}</Text>}
             {groups.map((g) => (
               <div key={g.name} role="group" aria-label={g.name}>
                 <div className="mateu-cmd__group" aria-hidden="true">{g.name}</div>
@@ -237,9 +238,9 @@ export function CommandPalette({ session, app, open, onClose, onNavigate, onLaun
             ))}
           </div>
           <div className="mateu-cmd__footer" aria-hidden="true">
-            <span><span className="mateu-kbd">↑</span><span className="mateu-kbd">↓</span> move</span>
-            <span><span className="mateu-kbd">Enter</span> open</span>
-            <span><span className="mateu-kbd">Esc</span> close</span>
+            <span><span className="mateu-kbd">↑</span><span className="mateu-kbd">↓</span> {tx('paletteMove')}</span>
+            <span><span className="mateu-kbd">{'Enter' /* i18n-ok: a key name */}</span> {tx('paletteOpen')}</span>
+            <span><span className="mateu-kbd">{'Esc' /* i18n-ok: a key name */}</span> {tx('paletteClose')}</span>
           </div>
         </div>
       )}

@@ -49,26 +49,33 @@ The served page is the usual Mateu page contract: the server fills the title, th
 CI checks the bundle is fresh (`scripts/check-bundle-freshness.sh` — its sources include the RN
 core), the licences (`check-frontend-licenses.mjs primer`), the notices and the typecheck.
 
-## Where it stands (2026-11-22)
+## Where it stands (2026-11-23)
 
-- **Explorer** (`demo/demo-explorer`, every component and behaviour page): 212/212 screens drawn,
-  served from the jar as well as from the dev server. The only failures are the ones the pages
-  provoke on purpose (a 403 role switch, a 401 secret, a 404 sample source).
-- **Star Wars** (`demo/demo-starwars`, YAML only, a real REST API) and the **admin panel**
-  (`demo/demo-admin-panel`, ~60 routes: check-in screens, drawers, wizards, foldouts, boards…) walked
-  clean.
-- Conformance (`e2e/conformance-fixtures.json`): Core, Standard and Full.
-- Listings: server search, REST sources (in-memory or server-paged), filters with tokens, sort,
-  groups + totals, cards / list, inline editing, row actions, drag to a drop zone, and the web
-  renderer's URL contract (`searchText`, filters, `page`, `sort=field:direction`).
+- **Explorer** (`demo/demo-explorer`, a page per component and behaviour): 207/207 screens drawn
+  with no unsupported type, served from the jar as well as from the dev server; the one failing
+  request is the 403 the permissions page provokes on purpose. All 114 wire types are drawn.
+- **Admin panel** (24 routes: check-in screens with @Toc, drawers, wizards, foldouts, boards…),
+  **Star Wars** (YAML + a real REST API, also as a static bundle) and the e2e SUT walked clean.
+- Conformance (`e2e/conformance-fixtures.json`): Core 7/7, Standard 12/12, Full 4/4.
+- `e2e/primer-a11y-probe.mjs` 26/26 (axe WCAG 2.2 AA on the SUT screens + skip link, landmarks,
+  announcements, rejected save, overlay focus), `e2e/primer-slow-network-probe.mjs` 11/11,
+  `e2e/primer-sign-in-probe.mjs` 16/16 (against a mock IdP).
+- What it draws, beyond forms and the catalogue: the app shell in every variant (top bar, tabs,
+  tiles, side nav, card menus, responsive below 768px) with @AppContext pickers, header actions,
+  the notification bell, live header values, presence, theme toggle, Connect AI; the ⌘K palette and
+  command center, app shortcuts with the `?` help, the idle warning, FABs, the assistant panel,
+  access keys; the full page header (peer nav, record switcher, banners, @Toc, page width,
+  @Compact); listings with every layout, saved views, column chooser, filters, totals, inline
+  editing, drag, selector lookups, import; built-in sign-in; the chrome in en/es/fr/de/pt/it.
+- Bundle: the entry is ~0.42 MB gzipped; display/status/visual families, markdown, the assistant,
+  sign-in and the QR dialog are lazy chunks (the families preload when the browser is idle).
 
 Known gaps:
-- the app shell draws the menu only: context pickers, header actions, the notification bell, global
-  search / command center, app shortcuts, live header values, the idle warning, FABs and the AI chat
-  are not drawn yet; nor a theme toggle (the page follows the OS colour scheme);
-- saved views and the column chooser; tree listings;
-- CustomComponent has no registration mechanism; Bpmn / Workflow / FormEditor are read-only;
-- the a11y and slow-network probes have not been run against this renderer yet;
-- the bundle is one 1.8 MB chunk (0.5 MB gzipped): the catalogue is not split yet;
-- a proxied REST call the THIRD PARTY refuses with 401 is shown as "session expired" (RN core rule,
+- Bpmn is read-only (as on Vaadin, which uses bpmn-js's viewer); the form/workflow designers'
+  texts are English (as on the web).
+- Primer React's own strings ("Select rows", overflow "More items") and the texts the React Native
+  core produces (toast actions, load failures) stay English.
+- CustomComponent: an app registers a renderer with `window.MateuPrimer.registerCustomComponent`
+  or defines a custom element of that name.
+- A proxied REST call the THIRD PARTY refuses with 401 is shown as "session expired" (RN core rule,
   shared with the native app).

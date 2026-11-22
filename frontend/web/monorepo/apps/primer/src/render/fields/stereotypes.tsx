@@ -3,6 +3,7 @@ import { AnchoredOverlay, Button, Text } from '@primer/react'
 import { TriangleDownIcon } from '@primer/octicons-react'
 import type { WidgetOption } from '@rn/core/fieldOptions'
 import { ChoiceCards } from './choiceCards'
+import { tx } from '../../i18n/texts'
 
 type A11y = { 'aria-labelledby'?: string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }
 
@@ -24,7 +25,7 @@ export function PopoverChoice({ options, value, multiple, editable, onChange, a1
       onClose={() => setOpen(false)}
       renderAnchor={(props) => (
         <Button {...(props as object)} {...a11y} ref={mergeRefs((props as { ref?: React.Ref<HTMLButtonElement> }).ref, buttonRef)} trailingAction={TriangleDownIcon} alignContent="start">
-          {shown || <span style={{ color: 'var(--fgColor-muted)' }}>Select…</span>}
+          {shown || <span style={{ color: 'var(--fgColor-muted)' }}>{tx('selectPlaceholder')}</span>}
         </Button>
       )}
       width="large"

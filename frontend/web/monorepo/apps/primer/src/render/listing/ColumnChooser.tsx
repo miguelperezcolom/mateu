@@ -3,6 +3,7 @@ import { AnchoredOverlay, Button, Checkbox, FormControl, IconButton } from '@pri
 import { ArrowDownIcon, ArrowUpIcon, ColumnsIcon } from '@primer/octicons-react'
 import { applyColumnPrefs, clearColumnPrefs, isProtectedColumn, readColumnPrefs, writeColumnPrefs, type ColumnPrefs } from '@infra/columnPrefsStore.ts'
 import type { ColDef } from '@rn/renderer/crudListing'
+import { tx } from '../../i18n/texts'
 
 /** A column as the web store reads it (its id, whether it names the row, its type). */
 const metaOf = (c: ColDef) => ({ id: c.fieldId, identifier: c.identifier, dataType: c.dataType })
@@ -52,8 +53,8 @@ export function ColumnChooser({ defs, prefs, onChange }: { defs: ColDef[]; prefs
       open={open}
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
-      renderAnchor={(props) => <Button {...props} leadingVisual={ColumnsIcon} count={hidden.size || undefined}>Columns</Button>}
-      overlayProps={{ role: 'dialog', 'aria-label': 'Columns', width: 'medium' } as never}
+      renderAnchor={(props) => <Button {...props} leadingVisual={ColumnsIcon} count={hidden.size || undefined}>{tx('columns')}</Button>}
+      overlayProps={{ role: 'dialog', 'aria-label': tx('columns'), width: 'medium' } as never}
       focusZoneSettings={{ disabled: true }}
     >
       <div style={{ padding: 'var(--base-size-16)', display: 'grid', gap: 'var(--base-size-8)', maxHeight: '70vh', overflow: 'auto' }}>
@@ -66,13 +67,13 @@ export function ColumnChooser({ defs, prefs, onChange }: { defs: ColDef[]; prefs
                   <Checkbox checked={locked || !hidden.has(c.fieldId)} onChange={(e) => toggle(c.fieldId, e.target.checked)} />
                   <FormControl.Label>{c.label || c.fieldId}</FormControl.Label>
                 </FormControl>
-                <IconButton icon={ArrowUpIcon} size="small" variant="invisible" aria-label={`Move ${c.label} up`} disabled={i === 0} onClick={() => move(c.fieldId, -1)} />
-                <IconButton icon={ArrowDownIcon} size="small" variant="invisible" aria-label={`Move ${c.label} down`} disabled={i === ordered.length - 1} onClick={() => move(c.fieldId, 1)} />
+                <IconButton icon={ArrowUpIcon} size="small" variant="invisible" aria-label={tx('moveColumnUp', { column: c.label })} disabled={i === 0} onClick={() => move(c.fieldId, -1)} />
+                <IconButton icon={ArrowDownIcon} size="small" variant="invisible" aria-label={tx('moveColumnDown', { column: c.label })} disabled={i === ordered.length - 1} onClick={() => move(c.fieldId, 1)} />
               </li>
             )
           })}
         </ul>
-        <div><Button variant="invisible" size="small" onClick={() => onChange(undefined)} disabled={!prefs}>Reset columns</Button></div>
+        <div><Button variant="invisible" size="small" onClick={() => onChange(undefined)} disabled={!prefs}>{tx('resetColumns')}</Button></div>
       </div>
     </AnchoredOverlay>
   )

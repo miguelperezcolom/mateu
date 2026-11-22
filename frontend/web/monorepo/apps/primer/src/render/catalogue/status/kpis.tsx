@@ -6,6 +6,7 @@ import { useController } from '../../ViewHost'
 import { ComponentRenderer } from '../../ComponentRenderer'
 import { BOX_STYLE, styleOf } from '../../styleOf'
 import { type CatalogueProps, type Dict, childrenOf, glyph, labelVariant, list, pressable, str, trendLook, useText } from './common'
+import { tx } from '../../../i18n/texts'
 
 /** A KPI tile: title, the value (+ unit), its trend and period; a tile with an action drills in. */
 export function MetricCard({ metadata: m, state, data }: CatalogueProps) {
@@ -96,7 +97,7 @@ export function Meter({ metadata: m, state, data }: CatalogueProps) {
         <Text size="small" weight="semibold">{label}</Text>
         <Text size="small" className="mateu-st-muted">{value}{m['unit'] ? ` ${t(m['unit'])}` : ''}{max > 0 ? ` / ${max}` : ''}</Text>
       </div>
-      <ProgressBar progress={ratio * 100} bg={bg} aria-label={label || 'Meter'} aria-valuetext={caption} />
+      <ProgressBar progress={ratio * 100} bg={bg} aria-label={label || tx('progress')} aria-valuetext={caption} />
       <Text size="small" className="mateu-st-muted">{caption}</Text>
     </div>
   )
@@ -141,7 +142,7 @@ export function OfferCard({ component, metadata: m, state, data }: CatalogueProp
           {list<string>(m['features']).map((f, i) => <li key={i}><CheckIcon size={16} className="mateu-st-ok" /> {t(f)}</li>)}
         </ul>
       )}
-      {footer?.kind === 'current' && <div><Label variant="success">{footer.label ?? 'Current'}</Label></div>}
+      {footer?.kind === 'current' && <div><Label variant="success">{footer.label ?? tx('current')}</Label></div>}
       {footer?.kind === 'price' && <div className="mateu-st-value">{footer.price}</div>}
       {footer?.kind === 'cta' && (
         <Button variant={footer.added ? 'default' : 'primary'} block disabled={!footer.enabled}
@@ -164,7 +165,7 @@ export function PricingTable({ metadata: m, state, data }: CatalogueProps) {
         <div role="listitem" key={str(p['id']) || i} className={`mateu-st-card mateu-st-plan${p['featured'] === true ? ' mateu-st-featured' : ''}`}>
           <div className="mateu-st-row mateu-st-between">
             <Heading as="h3" className="mateu-st-h">{t(p['name'])}</Heading>
-            {p['featured'] === true && <Label variant="accent">Recommended</Label>}
+            {p['featured'] === true && <Label variant="accent">{tx('recommended')}</Label>}
           </div>
           <div><span className="mateu-st-value">{t(p['price'])}</span>{p['period'] ? <Text size="small" className="mateu-st-muted"> {t(p['period'])}</Text> : null}</div>
           <ul className="mateu-st-features">
@@ -196,12 +197,12 @@ export function Ledger({ metadata: m, state, data }: CatalogueProps) {
         {lines.map((l, i) => (
           <tr key={i}>
             <td>{t(l['concept'])}</td>
-            <td className={`mateu-st-num${Number(l['amount']) < 0 && l['included'] !== true ? ' mateu-st-negative' : ''}`}>{l['included'] === true ? <Label variant="secondary">{t(l['includedLabel']) || 'Included'}</Label> : money(Number(l['amount']) || 0)}</td>
+            <td className={`mateu-st-num${Number(l['amount']) < 0 && l['included'] !== true ? ' mateu-st-negative' : ''}`}>{l['included'] === true ? <Label variant="secondary">{t(l['includedLabel']) || tx('included')}</Label> : money(Number(l['amount']) || 0)}</td>
           </tr>
         ))}
       </tbody>
       <tfoot>
-        <tr><th scope="row">{t(m['totalLabel']) || 'Total'}</th><td className="mateu-st-num"><strong>{money(total)}</strong></td></tr>
+        <tr><th scope="row">{t(m['totalLabel']) || tx('total')}</th><td className="mateu-st-num"><strong>{money(total)}</strong></td></tr>
       </tfoot>
     </table>
   )
