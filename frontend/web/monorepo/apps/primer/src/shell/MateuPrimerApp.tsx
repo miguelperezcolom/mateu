@@ -34,7 +34,7 @@ export function MateuPrimerApp({ baseUrl }: { baseUrl: string }) {
 
   // a navigation: written to the URL and loaded in the content area (or as THE screen)
   const go = useCallback((target: NavTarget, replace = false) => {
-    const url = locationOfRoute(target.route, baseUrl) + window.location.search
+    const url = locationOfRoute(target.route, baseUrl) + carriedQuery()
     if (url !== window.location.pathname + window.location.search) {
       if (replace) window.history.replaceState(null, '', url)
       else window.history.pushState(null, '', url)
@@ -98,7 +98,7 @@ export function MateuPrimerApp({ baseUrl }: { baseUrl: string }) {
     const onPop = async () => {
       const next = routeOfLocation(window.location.pathname, baseUrl)
       if (session.anyUnsavedChanges() && !(await session.confirmDiscard())) {
-        window.history.pushState(null, '', locationOfRoute(content?.route ?? route, baseUrl) + window.location.search)
+        window.history.pushState(null, '', locationOfRoute(content?.route ?? route, baseUrl) + carriedQuery())
         return
       }
       setContent(null)
@@ -178,6 +178,16 @@ function rootOf(result: unknown): unknown {
   const comp = (frag?.['component'] as Dict | undefined) ?? null
   const child = ((comp?.['children'] as unknown[] | undefined) ?? [])[0]
   return typeOf(child) === 'App' ? child : comp
+}
+
+/**
+ * What a navigation keeps of the current query: nothing — the next screen's listing must not read
+ * the previous one's search — but the dev server's `?baseUrl=` (a served page names its mount itself).
+ */
+function carriedQuery(): string {
+  if (!import.meta.env.DEV) return ''
+  const base = new URLSearchParams(window.location.search).get('baseUrl')
+  return base ? `?baseUrl=${encodeURIComponent(base)}` : ''
 }
 
 function focusMain(e: React.MouseEvent) {

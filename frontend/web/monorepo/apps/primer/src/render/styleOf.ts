@@ -1,7 +1,13 @@
 import type React from 'react'
 
 /** The layout properties a wire `style` may set on a Primer layout (the look stays Primer's). */
-export const LAYOUT_STYLE = ['width', 'max-width', 'min-width', 'gap', 'padding']
+export const LAYOUT_STYLE = [
+  'width', 'max-width', 'min-width', 'gap', 'padding',
+  // how a box shares a row (an item overview's 22rem panel beside a growing main column)
+  'flex', 'flex-grow', 'flex-shrink', 'flex-basis', 'align-self', 'align-items', 'justify-content',
+  // a pinned panel: only `sticky` is honoured (fixed/absolute would let data cover the page)
+  'position', 'top',
+]
 /** A box the server frames (a micro frontend, a raw element): its size, frame and spacing too. */
 export const BOX_STYLE = [...LAYOUT_STYLE, 'height', 'min-height', 'max-height', 'margin', 'border', 'border-radius', 'overflow']
 
@@ -18,6 +24,7 @@ export function styleOf(component: unknown, keep: string[] = LAYOUT_STYLE): Reac
     const prop = decl.slice(0, at).trim().toLowerCase()
     const value = decl.slice(at + 1).trim()
     if (!keep.includes(prop) || !value || /url\(|expression\(/i.test(value)) continue
+    if (prop === 'position' && value !== 'sticky') continue
     out[prop.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())] = value
   }
   return out as React.CSSProperties

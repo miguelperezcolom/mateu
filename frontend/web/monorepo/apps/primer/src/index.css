@@ -82,3 +82,9 @@ mateu-ui, #mateu-primer {
 .mateu-markdown tr:nth-child(2n) { background-color: var(--bgColor-muted); }
 .mateu-markdown img { max-width: 100%; }
 .mateu-markdown hr { height: .25em; margin: var(--base-size-24) 0; background-color: var(--borderColor-default); border: 0; }
+
+/* read by screen readers only */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}

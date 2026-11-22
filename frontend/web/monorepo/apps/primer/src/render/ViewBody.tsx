@@ -4,6 +4,7 @@ import { SkeletonText } from '@primer/react/experimental'
 import type { MateuViewController, RenderedView } from '@rn/core/MateuViewController'
 import { loadFailureMessage } from '@rn/core/uxRules'
 import { ControllerProvider } from './ViewHost'
+import { RenderBoundary } from './RenderBoundary'
 import { ComponentRenderer } from './ComponentRenderer'
 
 /** What a view shows: a skeleton while its first answer is on its way, a failure with Retry, or the tree. */
@@ -36,7 +37,9 @@ export function ViewBody({ controller, view, retry, embedded }: {
             <Spinner size="small" srText="Loading" />
           </div>
         )}
-        <ComponentRenderer component={view.component} state={view.state} data={view.data} />
+        <RenderBoundary resetKey={view.version}>
+          <ComponentRenderer component={view.component} state={view.state} data={view.data} />
+        </RenderBoundary>
       </div>
     </ControllerProvider>
   )

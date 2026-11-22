@@ -11,9 +11,10 @@ import { CrudRenderer } from './CrudRenderer'
 import { useButtonPress } from './useButtonPress'
 import { usePending } from './usePending'
 import { buttonVariantOf, labelVariantOf } from './looks'
-import { styleOf } from './styleOf'
+import { LAYOUT_STYLE, styleOf } from './styleOf'
 import { Markdown } from './Markdown'
 import { CATALOGUE } from './catalogue'
+import { RenderBoundary } from './RenderBoundary'
 import { Element, MicroFrontend } from './Embedded'
 
 type Dict = Record<string, unknown>
@@ -96,6 +97,14 @@ function ClientSide({ component, state, data }: { component: Dict; state: Dict; 
     case 'Scroller':
       return <Stack direction="vertical" gap={m['spacing'] === false ? 'none' : 'normal'} style={styleOf(component)}>{kids()}</Stack>
 
+    case 'Drawer':
+    case 'Dialog': {
+      // an overlay found INSIDE a tree (a page's docked detail panel, a Gantt page's task drawer):
+      // drawn in place as a panel — an overlay the server opens arrives as an Add fragment instead
+      const panel = { ...component, metadata: { ...m, title: m['headerTitle'] ?? m['title'], content: m['content'] } }
+      return <Box component={{ ...panel, style: m['width'] ? `width: ${String(m['width'])}; max-width: 100%` : component['style'] }} state={state} data={data} level={2} />
+    }
+
     case 'MicroFrontend':
       return <MicroFrontend component={component} metadata={m} />
 
@@ -168,18 +177,23 @@ function ClientSide({ component, state, data }: { component: Dict; state: Dict; 
     case 'Text': {
       const text = interpolate(String(m['text'] ?? ''), ctx)
       const level = headingLevel(m['container'] as string | undefined)
+      // its own layout style (a section title's `flex: 1` pushes the toolbar to the row's end)
+      const own = styleOf(component)
       if (level > 0) {
-        return <Heading as={`h${level}` as 'h2'} variant={level <= 2 ? 'medium' : 'small'}>{text}</Heading>
+        return <Heading as={`h${level}` as 'h2'} variant={level <= 2 ? 'medium' : 'small'} style={{ margin: 0, ...own }}>{text}</Heading>
       }
       const size = m['size'] === 'xl' || m['size'] === 'l' ? 'large' : m['size'] === 's' || m['size'] === 'xs' ? 'small' : 'medium'
-      return <Text as="p" size={size} style={{ margin: m['noMargins'] ? 0 : undefined }}>{text}</Text>
+      return <Text as="p" size={size} style={{ margin: m['noMargins'] ? 0 : undefined, ...own }}>{text}</Text>
     }
 
     case 'Separator':
       return <hr style={{ border: 0, borderTop: 'var(--borderWidth-thin) solid var(--borderColor-muted)', margin: 'var(--base-size-8) 0', gridColumn: '1 / -1' }} />
 
-    case 'Badge':
-      return <Label variant={labelVariantOf(m)}>{interpolate(String(m['text'] ?? ''), ctx)}</Label>
+    case 'Badge': {
+      // `${state.vip ? 'VIP' : ''}`: a badge whose text comes out empty is not shown
+      const text = interpolate(String(m['text'] ?? ''), ctx)
+      return text.trim() ? <Label variant={labelVariantOf(m)}>{text}</Label> : null
+    }
 
     case 'Anchor': {
       const url = String(m['url'] ?? '')
@@ -238,10 +252,15 @@ function ClientSide({ component, state, data }: { component: Dict; state: Dict; 
     case 'BulletedList':
       return <ul style={{ margin: 0, paddingInlineStart: 'var(--base-size-20)' }}>{((m['items'] as unknown[]) ?? []).map((it, i) => <li key={i}>{String(it)}</li>)}</ul>
 
+    case '':
+      // no type, only children: a root the core composed (a component-tree archetype's page)
+      return <Stack direction="vertical" gap="normal" style={styleOf(component)}>{kids()}</Stack>
+
     default: {
       // the families drawn in catalogue/ (display, status, visualisation)
       const Drawn = CATALOGUE[type]
-      if (Drawn) return <Drawn component={component} metadata={m} state={state} data={data} />
+      // each catalogue component contained: one that fails is a note in its place, not a dead screen
+      if (Drawn) return <RenderBoundary compact><Drawn component={component} metadata={m} state={state} data={data} /></RenderBoundary>
       // a type this renderer does not draw yet — said, never silently dropped
       return React.createElement('mateu-unsupported', { 'data-type': type || 'unknown' }, `Not drawn by the Primer renderer yet: ${type || 'unknown'}`)
     }
@@ -305,8 +324,15 @@ function lengthPx(v: string): number {
 function Box({ component, state, data, level }: { component: Dict; state: Dict; data?: unknown; level: 2 | 3 }) {
   const m = meta(component)
   const ctx = { state, data }
+  // a Card's slots may be text or components (a title with a badge, a media image, header extras)
+  const slot = (v: unknown) => (node(v) ? <ComponentRenderer component={v} state={state} data={data} /> : null)
   const title = typeof m['title'] === 'string' ? interpolate(m['title'], ctx) : ''
   const subtitle = typeof m['subtitle'] === 'string' ? interpolate(m['subtitle'], ctx) : ''
+  const titleNode = title ? <Heading as={`h${level}` as 'h2'} variant="small">{title}</Heading> : slot(m['title'])
+  const subtitleNode = subtitle ? <Text as="p" size="small" style={{ color: 'var(--fgColor-muted)', margin: 0 }}>{subtitle}</Text> : slot(m['subtitle'])
+  const prefix = slot(m['headerPrefix'])
+  const suffix = slot(m['headerSuffix'])
+  const media = slot(m['media'])
   const frameless = (component['cssClasses'] as string | undefined)?.includes('frameless')
   return (
     <section
@@ -316,20 +342,26 @@ function Box({ component, state, data, level }: { component: Dict; state: Dict; 
         borderRadius: 'var(--borderRadius-medium)',
         background: 'var(--bgColor-default)',
         padding: frameless ? 0 : 'var(--base-size-16)',
-        ...styleOf(component, ['width', 'max-width', 'min-width']),
+        overflow: 'hidden',
+        ...styleOf(component, LAYOUT_STYLE.filter((k) => k !== 'gap' && k !== 'padding')),
       }}
     >
-      {(title || subtitle) && (
-        <div style={{ marginBottom: 'var(--base-size-12)' }}>
-          {title && <Heading as={`h${level}` as 'h2'} variant="small">{title}</Heading>}
-          {subtitle && <Text as="p" size="small" style={{ color: 'var(--fgColor-muted)', margin: 0 }}>{subtitle}</Text>}
+      {media && <div style={{ margin: frameless ? 0 : 'calc(-1 * var(--base-size-16)) calc(-1 * var(--base-size-16)) var(--base-size-12)' }}>{media}</div>}
+      {(titleNode || subtitleNode || prefix || suffix) && (
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--base-size-12)', marginBottom: 'var(--base-size-12)' }}>
+          {prefix}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {titleNode}
+            {subtitleNode}
+          </div>
+          {suffix}
         </div>
       )}
       <Stack gap="normal">
-        {node(m['header']) && <ComponentRenderer component={m['header']} state={state} data={data} />}
-        {node(m['content']) && <ComponentRenderer component={m['content']} state={state} data={data} />}
+        {slot(m['header'])}
+        {slot(m['content'])}
         {childrenOf(component).map((child, i) => <ComponentRenderer key={i} component={child} state={state} data={data} />)}
-        {node(m['footer']) && <ComponentRenderer component={m['footer']} state={state} data={data} />}
+        {slot(m['footer'])}
       </Stack>
     </section>
   )

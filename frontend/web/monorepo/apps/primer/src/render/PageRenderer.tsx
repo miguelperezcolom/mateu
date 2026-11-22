@@ -82,7 +82,10 @@ export function PageRenderer({ component, metadata, state, data }: { component: 
             {(badges.length > 0) && (
               <PageHeader.TrailingVisual>
                 <Stack direction="horizontal" gap="condensed">
-                  {badges.map((b, i) => <Label key={i} variant={labelVariantOf(b)}>{interpolate(String(b['text'] ?? b['label'] ?? ''), ctx)}</Label>)}
+                  {badges.map((b, i) => {
+                    const text = interpolate(String(b['text'] ?? b['label'] ?? ''), ctx)
+                    return text.trim() ? <Label key={i} variant={labelVariantOf(b)}>{text}</Label> : null
+                  })}
                 </Stack>
               </PageHeader.TrailingVisual>
             )}

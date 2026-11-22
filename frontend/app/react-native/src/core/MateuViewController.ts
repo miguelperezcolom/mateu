@@ -1143,7 +1143,9 @@ export class MateuViewController {
     this.navigationServerSideType = opener || this.currentServerSideType;
     if (opener) this.openerServerSideType = opener;
     this.freshScreen = true;
-    this.renderComponentFragment(node, (node['initialData'] as Json) ?? {}, null);
+    // its own data travels on the node (ServerSideComponentDto.data): a lookup's labels, a listing's
+    // first page — dropped, a lookup inside an island showed its raw id instead of the label
+    this.renderComponentFragment(node, (node['initialData'] as Json) ?? {}, node['data'] ?? null);
   }
 
   /** Renders a component fragment: ServerSide wrappers unwrap here (mediator App → follow-up

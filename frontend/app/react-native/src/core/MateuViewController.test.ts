@@ -606,6 +606,12 @@ test('mountServerSide (embedded island) renders the node with its initialData', 
   assert.deepEqual(renders.at(-1)!.state, { k: 1 });
 });
 
+test('mountServerSide keeps the island node\'s own data (a lookup\'s labels)', () => {
+  const { c, renders } = harness();
+  c.mountServerSide({ ...ssc({ route: '/island', serverSideType: 'app.Island', initialData: { author: 'g2' } }), data: { author: [{ value: 'g2', label: 'Alan Turing' }] } });
+  assert.deepEqual(renders.at(-1)!.data, { author: [{ value: 'g2', label: 'Alan Turing' }] });
+});
+
 test('validation falls back to the legacy matcher for syntax the parser does not cover', async () => {
   const { c, calls } = harness([fragment(ssc({
     actions: [{ id: 'save', validationRequired: true }],
