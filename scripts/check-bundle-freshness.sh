@@ -44,9 +44,14 @@ check() {
     return
   fi
 
-  # Fresh when the last source change is an ancestor of (or the same as) the last bundle change.
+  # Fresh when the last source change is an ancestor of (or the same as) the last bundle change —
+  # or when the sources read now exactly as they did where the bundle was built: a change undone
+  # later (a lockfile edited and restored) leaves commits in the history but nothing to rebuild.
   if git merge-base --is-ancestor "$source_commit" "$bundle_commit"; then
     echo "OK $name: bundle is at or after its source"
+  elif git diff --quiet "$bundle_commit" HEAD -- $sources ':(exclude)**/*.test.ts' ':(exclude)**/*.spec.ts' \
+      ':(exclude)**/README.md' ':(exclude)frontend/web/react-renderer/scripts/**' ':(exclude)frontend/web/react-renderer/views/kit-contract.json'; then
+    echo "OK $name: its sources read as they did where the bundle was built"
   else
     status=1
     echo
