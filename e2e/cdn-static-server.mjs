@@ -22,6 +22,8 @@ const port = Number(arg('port', '9300'))
 const proxy = arg('proxy', '')
 const backend = arg('backend', '')
 const upstream = proxy ? new URL(proxy) : null
+const PASSED_BACK = ['content-type', 'content-length', 'content-encoding', 'cache-control', 'etag',
+  'last-modified', 'vary', 'set-cookie', 'x-mateu-build', 'x-mateu-correlation-id']
 const SAFE_PROXY_PATH = /^\/mateu(\/[\w\-.~%/]*)?(\?[\w\-.~%=&+,:;@/]*)?$/
 
 const TYPES = {
@@ -55,8 +57,13 @@ createServer((req, res) => {
       protocol: upstream.protocol, hostname: upstream.hostname, port: upstream.port,
       path: upstream.pathname.replace(/\/$/, '') + req.url, method: req.method, headers,
     }
-    const up = send(options, (answer) => {
-      res.writeHead(answer.statusCode, answer.headers)
+    // A local test proxy to the backend named on the command line: the host is fixed above and the
+    // path checked, so the request cannot go anywhere else.
+    const up = send(options, (answer) => { // NOSONAR: fixed host, validated path (test tool, not shipped)
+      // only the headers a Mateu answer needs pass back (never a Location: no redirect through here)
+      const back = {}
+      for (const name of PASSED_BACK) if (answer.headers[name] !== undefined) back[name] = answer.headers[name]
+      res.writeHead(answer.statusCode, back)
       answer.pipe(res)
     })
     up.on('error', (e) => { res.writeHead(502); res.end('proxy error: ' + e.message) })
