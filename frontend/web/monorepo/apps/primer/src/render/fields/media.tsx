@@ -12,8 +12,15 @@ import { safeHref } from '@infra/ui/safeNavigate.ts'
 type A11y = { 'aria-labelledby'?: string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }
 
 /** An image a value names (a data URI or a url): never anything but data:image / http(s) / relative. */
-const imageSrc = (value: string): string | undefined =>
-  /^data:image\//i.test(value) ? value : safeHref(value) ?? undefined
+/**
+ * What an <img> may load: a data:image URI or a safe url — passed through encodeURI(decodeURI())
+ * so no quote or angle bracket ever reaches the attribute (a well-formed uri is unchanged).
+ */
+const imageSrc = (value: string): string | undefined => {
+  const src = /^data:image\//i.test(value) ? value : safeHref(value) ?? undefined
+  if (!src) return undefined
+  try { return encodeURI(decodeURI(src)) } catch { return undefined }
+}
 
 const readDataUri = (file: Blob): Promise<string> =>
   new Promise((resolve, reject) => {

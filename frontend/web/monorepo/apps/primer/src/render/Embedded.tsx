@@ -74,7 +74,7 @@ export function Element({ metadata, state, data }: { metadata: Dict; state: Dict
   // `on:` — one listener per event, reading the action off the CURRENT definition
   const onRef = useRef(on)
   onRef.current = on
-  const events = Object.keys(on).sort().join(',')
+  const events = Object.keys(on).sort((a, b) => a.localeCompare(b)).join(',')
   useEffect(() => {
     const el = ref.current
     if (!el || !events) return

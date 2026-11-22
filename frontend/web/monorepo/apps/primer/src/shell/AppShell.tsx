@@ -46,7 +46,7 @@ export function AppShell({ app, current, onNavigate, children }: {
     if (subs.length > 0) {
       return (
         <NavList.Group key={`g-${i}`} title={item.label ?? ''}>
-          {subs.map(renderItem)}
+          {subs.map((m, i) => renderItem(m, i))}
         </NavList.Group>
       )
     }
@@ -72,7 +72,7 @@ export function AppShell({ app, current, onNavigate, children }: {
       </PageLayout.Header>
       {menu.length > 0 && (
         <PageLayout.Pane position="start" divider="line" padding="normal" aria-label="Main menu" width="medium" sticky>
-          <NavList aria-label="Main menu">{menu.map(renderItem)}</NavList>
+          <NavList aria-label="Main menu">{menu.map((m, i) => renderItem(m, i))}</NavList>
         </PageLayout.Pane>
       )}
       <PageLayout.Content as="main" padding="normal" width="full">

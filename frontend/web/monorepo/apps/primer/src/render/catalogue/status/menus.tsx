@@ -85,11 +85,11 @@ export function Directory({ metadata: m }: CatalogueProps) {
   const item = (o: MenuOptionLike, i: number): React.ReactNode =>
     o.separator ? <NavList.Divider key={i} />
       : o.submenus?.length ? (
-        <NavList.Group key={i} title={o.label}>{o.submenus.map(item)}</NavList.Group>
+        <NavList.Group key={i} title={o.label}>{o.submenus.map((o, i) => item(o, i))}</NavList.Group>
       ) : (
         <NavList.Item key={i} href="#" aria-disabled={o.disabled || undefined} onClick={(e: React.MouseEvent) => { e.preventDefault(); if (!o.disabled) run(o) }}>{o.label}</NavList.Item>
       )
-  return <NavList aria-label="Directory">{list<MenuOptionLike>(m['menu']).map(item)}</NavList>
+  return <NavList aria-label="Directory">{list<MenuOptionLike>(m['menu']).map((o, i) => item(o, i))}</NavList>
 }
 
 /** "I want to…": a button (and its shortcut) opening the categorised actions; populated first, "Show more", hide the empty ones. */

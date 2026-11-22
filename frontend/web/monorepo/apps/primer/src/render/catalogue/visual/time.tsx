@@ -54,7 +54,7 @@ export function Calendar({ component, metadata }: CatalogueProps) {
       <div key={date} {...props} style={{ minHeight: tall ? '16rem' : undefined, background: tone ? toneBg(tone) : undefined }}>
         <span className={'mv-cal-num' + (date === today ? ' mv-today' : '')}>{dayOfMonth(date)}</span>
         {info.label && <span className="mv-cal-label" style={{ color: tone ? toneFg(tone) : 'var(--fgColor-muted)' }}>{info.label}</span>}
-        {eventsOn(m, date).map(eventChip)}
+        {eventsOn(m, date).map((e, i) => eventChip(e, i))}
       </div>
     )
   }
@@ -67,7 +67,7 @@ export function Calendar({ component, metadata }: CatalogueProps) {
         {groups.map((g) => (
           <div key={g.date}>
             <Text as="div" weight="semibold" size="small" style={{ marginBottom: 'var(--base-size-4)' }}>{dateLabel(g.date)}</Text>
-            <div style={{ display: 'grid', gap: 4 }}>{g.events.map(eventChip)}</div>
+            <div style={{ display: 'grid', gap: 4 }}>{g.events.map((e, i) => eventChip(e, i))}</div>
           </div>
         ))}
       </div>
