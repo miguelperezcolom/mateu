@@ -144,13 +144,13 @@ jobs:
           fi
           echo "${IDE_TAG#idea/}" > base/version.txt
           ls -la base
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: base-from-source-linux, path: base/linux.tar.gz, retention-days: 7, compression-level: 0 }
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: base-from-source-windows, path: base/windows.win.zip, retention-days: 7, compression-level: 0 }
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: base-from-source-macos-intel, path: base/macos-intel.sit, retention-days: 7, compression-level: 0 }
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: base-from-source-macos-aarch64, path: base/macos-aarch64.sit, retention-days: 7, compression-level: 0 }
 
   # ── packaging: the existing buildInstaller, handed each base (desktop-base-package.yml) ──
