@@ -27,6 +27,11 @@ export function setRendererName(name: string | null | undefined): void {
   rendererName = name && name.trim() ? name.trim() : 'react-native';
 }
 
+/** The name set at boot (`react-native` unless a renderer on this core named itself). */
+export function getRendererName(): string {
+  return rendererName;
+}
+
 /** The app's own version (app.json `version`, via expo-constants); blank → `unknown`. */
 export function setRendererVersion(version: string | null | undefined): void {
   rendererVersion = version && version.trim() ? version.trim() : 'unknown';

@@ -74,7 +74,7 @@ export function SideNav({ menu, h, label = tx('mainMenu'), searchable = false }:
 
 // ---- top navigation (MENU_ON_TOP, TILES) --------------------------------------------------------
 
-function MenuListItems({ items, h }: { items: MenuItem[]; h: MenuHandlers }): React.ReactElement {
+export function MenuListItems({ items, h }: { items: MenuItem[]; h: MenuHandlers }): React.ReactElement {
   return (
     <>
       {items.map((s, i) => {

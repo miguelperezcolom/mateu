@@ -8,12 +8,13 @@ import { agentOperatingTexts } from '@rn/core/agentOperatingTexts'
 import { announceLive } from '@rn/a11y/a11y'
 import { tx } from '@mr/i18n/texts'
 import { agentMetaOf as metaOf, useAgentChannel as useSharedAgentChannel, useAgentStatus } from '@mr/shell/agentPush'
+import { getRendererName } from '@rn/core/buildSkew'
 
 type Dict = Record<string, unknown>
 
 /** The live-push channel, naming this renderer (the hook is shared). */
 export function useAgentChannel(session: MateuSession, app: Dict) {
-  useSharedAgentChannel(session, app, 'primer')
+  useSharedAgentChannel(session, app, getRendererName())
 }
 
 /** "Connect AI" on the header (shown only when push is on): opens the pairing dialog. */

@@ -191,3 +191,6 @@ export function CardsDialog({ group, h, baseUrl, onClose }: { group: MenuItem; h
 export function TopNav({ menu, h, onHub, hub }: { menu: MenuItem[]; h: MenuHandlers; onHub?: (g: MenuItem) => void; hub?: MenuItem | null }) {
   return <TabsNav items={menu} h={h} onHub={onHub} hub={hub} />
 }
+
+// the shared menu's list items (a renderer's own shell may draw its menu with them)
+export { MenuListItems } from '@mr/views/shell/header/MenuNav'

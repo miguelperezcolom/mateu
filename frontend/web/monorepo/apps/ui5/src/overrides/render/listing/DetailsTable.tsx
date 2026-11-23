@@ -26,7 +26,11 @@ export function DetailsTable({ rows, defs, detailPath, cellOf, actionsOf, labell
                 <Label showColon>{c.label}</Label> {cellOf(row, c)}
               </span>
             ))}
-            {actionsOf && <span className="mateu-details-actions" onClick={(e) => e.stopPropagation()}>{actionsOf(row)}</span>}
+            {/* the row's own actions: a press (or its Enter / Space) acts on them, never on the panel's disclosure */}
+            {actionsOf && (
+              <span className="mateu-details-actions" onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation() }}>{actionsOf(row)}</span>
+            )}
           </div>
         )
         return (

@@ -15,3 +15,6 @@ export function AccordionPanel({ panel, state, data }: { panel: unknown; state: 
     </Panel>
   )
 }
+
+// the panels stack as the shared view stacks them
+export { AccordionGroup } from '@mr/views/render/AccordionPanel'

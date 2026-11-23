@@ -20,9 +20,10 @@ import { octiconOf } from './catalogue/display/shared'
 import { CATALOGUE } from './catalogue'
 import { RenderBoundary } from './RenderBoundary'
 import { Element, MicroFrontend } from '@mr/render/Embedded'
+import { Box } from './Box'
 import './notice.css'
 import { tx } from '@mr/i18n/texts'
-import { AccordionPanel } from './AccordionPanel'
+import { AccordionGroup, AccordionPanel } from './AccordionPanel'
 
 type Dict = Record<string, unknown>
 
@@ -84,7 +85,7 @@ function ClientSide({ component, state, data }: { component: Dict; state: Dict; 
   // (display/status/visual load on demand: a placeholder line while the family's chunk arrives)
   if (Drawn) return <RenderBoundary compact><React.Suspense fallback={<SkeletonText />}><Drawn component={component} metadata={m} state={state} data={data} /></React.Suspense></RenderBoundary>
   // a type this renderer does not draw yet — said, never silently dropped
-  return React.createElement('mateu-unsupported', { 'data-type': type || 'unknown' }, `Not drawn by the Primer renderer yet: ${type || 'unknown'}`)
+  return React.createElement('mateu-unsupported', { 'data-type': type || 'unknown' }, `Not drawn by this renderer yet: ${type || 'unknown'}`)
 }
 
 const page: Draw = ({ component, m, state, data }) => <PageRenderer component={component} metadata={m} state={state} data={data} />
@@ -321,7 +322,7 @@ const CORE: Record<string, Draw> = {
   FormSubSection: ({ component, state, data }) => <Box component={component} state={state} data={data} level={3} />,
   TabLayout: tabLayout,
   Tab: ({ kids }) => <>{kids()}</>,
-  AccordionLayout: ({ component, state, data }) => <Stack gap="condensed">{childrenOf(component).map((panel, i) => <AccordionPanel key={i} panel={panel} state={state} data={data} />)}</Stack>,
+  AccordionLayout: ({ component, state, data }) => <AccordionGroup>{childrenOf(component).map((panel, i) => <AccordionPanel key={i} panel={panel} state={state} data={data} />)}</AccordionGroup>,
   AccordionPanel: ({ component, state, data }) => <AccordionPanel panel={component} state={state} data={data} />,
   Button: ({ component, m, state, data }) => <ContentButton metadata={m} state={state} data={data} id={String(component['id'] ?? '')} />,
   Text: text,
@@ -466,69 +467,6 @@ function lengthPx(v: string): number {
   if (!match) return 0
   const n = Number(match[1])
   return match[2] === 'px' ? n : n * 16
-}
-
-const sectionClassesOf = (component: Dict): string | undefined =>
-  String(component['cssClasses'] ?? '').split(/\s+/).filter((c) => /^mateu-section(--sticky)?$/.test(c)).join(' ') || undefined
-
-/** A titled, outlined region: Primer has no Card component, its boxes are a bordered surface with a heading. */
-function Box({ component, state, data, level }: { component: Dict; state: Dict; data?: unknown; level: 2 | 3 }) {
-  const m = meta(component)
-  const ctx = { state, data }
-  // a Card's slots may be text or components (a title with a badge, a media image, header extras)
-  const slot = (v: unknown) => (node(v) ? <ComponentRenderer component={v} state={state} data={data} /> : null)
-  const title = typeof m['title'] === 'string' ? interpolate(m['title'], ctx) : ''
-  const subtitle = typeof m['subtitle'] === 'string' ? interpolate(m['subtitle'], ctx) : ''
-  const titleNode = title ? <Heading as={`h${level}` as 'h2'} variant="small">{title}</Heading> : slot(m['title'])
-  const subtitleNode = subtitle ? <Text as="p" size="small" style={{ color: 'var(--fgColor-muted)', margin: 0 }}>{subtitle}</Text> : slot(m['subtitle'])
-  const prefix = slot(m['headerPrefix'])
-  const suffix = slot(m['headerSuffix'])
-  const media = slot(m['media'])
-  const frameless = (component['cssClasses'] as string | undefined)?.includes('frameless')
-  const variants = ((m['variants'] as string[] | undefined) ?? []).map(String)
-  const elevated = variants.includes('elevated')
-  const horizontal = variants.includes('horizontal') && !!media
-  return (
-    <section
-      aria-label={title || undefined}
-      // the server's marker classes (mateu-section, mateu-section--sticky): the page's @Toc index and
-      // its sticky stacking find the section cards by them
-      className={sectionClassesOf(component)}
-      style={{
-        border: frameless || (elevated && !variants.includes('outlined')) ? 'none' : 'var(--borderWidth-thin) solid var(--borderColor-default)',
-        boxShadow: elevated ? 'var(--shadow-resting-medium)' : undefined,
-        display: horizontal ? 'flex' : undefined,
-        gap: horizontal ? 'var(--base-size-16)' : undefined,
-        borderRadius: 'var(--borderRadius-medium)',
-        background: 'var(--bgColor-default)',
-        padding: frameless ? 0 : 'var(--base-size-16)',
-        overflow: 'hidden',
-        ...styleOf(component, LAYOUT_STYLE.filter((k) => k !== 'gap' && k !== 'padding')),
-      }}
-    >
-      {media && (horizontal
-        ? <div style={{ flex: '0 0 40%', maxWidth: '40%', margin: frameless ? 0 : 'calc(-1 * var(--base-size-16)) 0 calc(-1 * var(--base-size-16)) calc(-1 * var(--base-size-16))' }}>{media}</div>
-        : <div style={{ margin: frameless ? 0 : 'calc(-1 * var(--base-size-16)) calc(-1 * var(--base-size-16)) var(--base-size-12)' }}>{media}</div>)}
-      <div style={{ flex: 1, minWidth: 0 }}>
-      {(titleNode || subtitleNode || prefix || suffix) && (
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--base-size-12)', marginBottom: 'var(--base-size-12)' }}>
-          {prefix}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {titleNode}
-            {subtitleNode}
-          </div>
-          {suffix}
-        </div>
-      )}
-      <Stack gap="normal">
-        {slot(m['header'])}
-        {slot(m['content'])}
-        {childrenOf(component).map((child, i) => <ComponentRenderer key={i} component={child} state={state} data={data} />)}
-        {slot(m['footer'])}
-      </Stack>
-      </div>
-    </section>
-  )
 }
 
 /**

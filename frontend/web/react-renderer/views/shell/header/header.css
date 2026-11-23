@@ -222,9 +222,11 @@
   padding: var(--base-size-16) var(--base-size-8);
   border-right: var(--borderWidth-thin) solid var(--borderColor-default);
   position: sticky;
-  top: var(--base-size-56, 56px);
+  /* under the app header: a shell whose header is taller sets --mateu-header-h */
+  top: var(--mateu-header-h, var(--base-size-56, 56px));
   align-self: flex-start;
-  height: calc(100vh - var(--base-size-56, 56px));
+  height: calc(100vh - var(--mateu-header-h, var(--base-size-56, 56px)));
+  background: var(--bgColor-default);
   overflow-y: auto;
 }
 .mateu-app-pane--rail { width: 220px; }

@@ -12,7 +12,8 @@ import { installAnnouncer } from '@mr/shims/react-native'
 import { setRendererName, setRendererVersion } from '@rn/core/buildSkew'
 import { setStreamingFetch } from '@rn/api/MateuApiClient'
 import { ThemedRoot } from '@app/overrides/shell/header/theme'
-import { MateuApp } from '@app/overrides/shell/MateuApp'
+import { MateuApp } from '@mr/views/shell/MateuApp'
+import { ui5Accent } from './accent'
 import { baseUrlOfPage, bundleUrlOfPage } from '@mr/shell/pageConfig'
 import { openPageBundle } from '@mr/shell/staticBundle'
 import { preloadCatalogue } from '@mr/views/render/catalogue'
@@ -51,7 +52,7 @@ void signInFirst(baseUrl).then(async (proceed) => {
     <React.StrictMode>
       <ThemedRoot>
         <RendererKitProvider value={KIT}>
-          <MateuApp baseUrl={baseUrl} bundle={bundle} />
+          <MateuApp baseUrl={baseUrl} bundle={bundle} accentCss={ui5Accent} />
         </RendererKitProvider>
       </ThemedRoot>
     </React.StrictMode>,

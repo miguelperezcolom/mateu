@@ -71,7 +71,7 @@ empty here — a renderer's own field controls, tried before the generic select 
 SAP renderer's date pickers, step input and combo box) and `render/AccordionPanel.tsx` (one
 expandable panel — the SAP renderer's `ui5-panel`). When a design system needs ONE control of a
 large view, extract that control into its own shared module and override the module, not the view.
-A custom component is registered on `window.MateuRenderer` (also `window.MateuPrimer`).
+A custom component is registered on `window.MateuRenderer` (also `window.MateuPrimer`, and the name a renderer gives it with `installCustomComponentGlobal` — `window.MateuSlds`).
 
 ## The contract
 
@@ -142,3 +142,30 @@ read with `appText(key)` (wrap it with the app's own key type). Add a completene
   every renderer (native included) goes in the core, with its test.
 - A file here is DS-neutral or it does not belong here: a hook outside `views/`, a view written
   against the kit inside it. What only one design system can do is that app's kit or override.
+
+## The tooling every renderer app shares
+
+One copy each, an app only names itself:
+
+- `vite/rendererConfig.ts` — the whole vite configuration (aliases `@rn` `@mr` `@kit` `@app`
+  `@infra`, the shims, the view overrides, the dev proxy to `MATEU_BACKEND`, the build's
+  `assets/mateu-<name>*` names and relative chunk urls). An app's `vite.config.ts` is
+  `defineConfig(rendererConfig({ appDir: import.meta.dirname, name, port, react: react(), kit }))`.
+- `scripts/package-renderer.mjs <name>` — an app's `npm run copy`: typecheck, build, the
+  third-party notices, `_index.html`, into `backend/shared/frontend/<name>/src/main/resources/static`.
+- `scripts/chromeLint.ts` — the chrome-text lint; an app's `src/i18n/texts.lint.test.ts` calls
+  `chromeTextsLint({ appSrc, protocolWords })` (protocolWords: its design system's enumerated
+  property values, which are not chrome).
+
+## Seams a design system overrides
+
+Where Primer, Fiori and SLDS draw the same thing differently, the shared view keeps the logic and the
+drawing is its own small file — override that file, never the whole view:
+`page/PageHeaderMarkup.tsx` (the header, from `HeaderParts`), `page/PageTocAside.tsx`
+(+ `TOC_IN_HEADER`), `ListingFrame` / `ListingToolbar` (+ the shared `ListingSearch`) /
+`ListingTable` / `ListingPager`, `Box` (cards), `AccordionPanel`, `fields/FieldLabel`,
+`fields/ChoiceAnchor`, `fields/native.tsx` (`NATIVE_RULES`: a design system's own field controls),
+`fields/MultiSelect`, `fields/valueControls`, `catalogue/status/{StepsTrack,MetricCard,Directory}`,
+`catalogue/display/{Breadcrumbs,Timeline,MessageList}`, `shell/bootViews.tsx` (confirm dialog, boot
+failure / wait, the page without a shell), `shell/header/BellButton.tsx`, and the whole
+`shell/AppShell.tsx` over `useAppShell` + `ShellBand` (`shell/appShellState.tsx`).

@@ -459,7 +459,7 @@ export const Checkbox = React.forwardRef<HTMLElement, AnyProps & { checked?: boo
         name={name}
         value={value}
         text={f?.labelText || undefined}
-        accessibleName={(rest['aria-label'] as string | undefined) ?? (f ? undefined : undefined)}
+        accessibleName={rest['aria-label'] as string | undefined}
         accessibleNameRef={rest['aria-labelledby'] as string | undefined}
         valueState={valueStateOf(f) as never}
         onChange={(e: Event) => onChange?.(asChange(e.target, value, (e.target as HTMLInputElement).checked))}

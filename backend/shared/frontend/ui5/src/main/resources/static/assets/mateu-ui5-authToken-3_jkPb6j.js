@@ -1,0 +1,1 @@
+export{h as setAuthToken}from"./mateu-ui5-signInBridge-HCUWyMU0.js";

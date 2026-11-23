@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Banner, Breadcrumbs, IconButton, Label, PageHeader, Stack, Text } from '@kit'
-import { ArrowLeftIcon } from '@kit/icons'
+import { Banner, Label, Stack } from '@kit'
 import { interpolate } from '@rn/core/expressions'
 import type { PageBanner } from '@rn/core/MateuViewController'
 import { useController, useEmbeddedChrome } from '@mr/render/ViewHost'
@@ -11,6 +10,8 @@ import { WireIcon } from './catalogue/display/shared'
 import { HeaderButton, HeaderButtons, splitToolbar, useHeaderPress } from './page/HeaderButtons'
 import { PageStatus, PeerNav, RecordSwitcherControl, useHeaderNavigate } from './page/HeaderExtras'
 import { PageTocAside, usePageLayout } from './page/PageToc'
+import { TOC_IN_HEADER } from './page/PageTocAside'
+import { PageHeaderMarkup } from './page/PageHeaderMarkup'
 import { sectionsOf, showsToc } from '@mr/page/toc'
 import './page/page.css'
 import { tx } from '@mr/i18n/texts'
@@ -61,9 +62,15 @@ export function PageRenderer({ component, metadata, state, data }: { component: 
   return (
     <div ref={rootRef} className={'mateu-page' + (compactDensity ? ' mateu-compact' : '')} data-page-level={level}>
       <Stack gap={compactDensity ? 'normal' : 'spacious'}>
-        {header && <div ref={headerRef} className={'mateu-page-header-wrap' + (toc ? ' is-sticky' : '')}>{header}</div>}
+        {(header || (toc && TOC_IN_HEADER)) && (
+          <div ref={headerRef} className={'mateu-page-header-wrap' + (toc ? ' is-sticky' : '')}>
+            {header}
+            {/* a design system whose index is the header's anchor bar (Fiori) pins it with the header */}
+            {toc && TOC_IN_HEADER && <PageTocAside entries={sections.entries} active={active} onJump={jump} />}
+          </div>
+        )}
         <Banners metadata={metadata} state={state} data={data} />
-        <div className={'mateu-page-body' + (toc ? ' with-toc' : '')}>
+        <div className={'mateu-page-body' + (toc && !TOC_IN_HEADER ? ' with-toc' : '')}>
           <Stack gap="normal">
             {children.map((child, i) => <ComponentRenderer key={i} component={child} state={state} data={data} />)}
             {!readOnly && buttons.length > 0 && (
@@ -73,7 +80,7 @@ export function PageRenderer({ component, metadata, state, data }: { component: 
               </Stack>
             )}
           </Stack>
-          {toc && <PageTocAside entries={sections.entries} active={active} onJump={jump} />}
+          {toc && !TOC_IN_HEADER && <PageTocAside entries={sections.entries} active={active} onJump={jump} />}
         </div>
         {footer.length > 0 && (
           <div className="mateu-page-footer">
@@ -144,79 +151,34 @@ function PageHeaderBlock({ metadata, ctx, level, compact, noCrumbs, noHeader, re
   }
 
   return (
-    <PageHeader role={level === 0 && !controller.windowless ? 'banner' : undefined} aria-label={title || placeholder || undefined}>
-      {(crumbs.length > 0 || overline) && (
-        <PageHeader.ContextArea hidden={false}>
-          <Stack gap="condensed">
-            {crumbs.length > 0 && (
-              <Breadcrumbs>
-                {crumbs.map((c, i) => {
-                  const route = String(c['link'] ?? c['route'] ?? '')
-                  const last = i === crumbs.length - 1
-                  return (
-                    <Breadcrumbs.Item key={i} href={route ? '#' : undefined} selected={last && !route}
-                      onClick={(e: React.MouseEvent) => { e.preventDefault(); if (route) void navigate(route, String(c['label'] ?? '')) }}>
-                      {text(String(c['label'] ?? c['text'] ?? ''))}
-                    </Breadcrumbs.Item>
-                  )
-                })}
-              </Breadcrumbs>
-            )}
-            {overline && <span className="mateu-page-overline">{overline}</span>}
-          </Stack>
-        </PageHeader.ContextArea>
-      )}
-      {hasTitleArea && (
-        <PageHeader.TitleArea variant={level === 0 ? 'medium' : 'subtitle'}>
-          {back && (
-            <PageHeader.LeadingAction>
-              <IconButton icon={ArrowLeftIcon} aria-label={interpolate(String(back['label'] ?? tx('back')), ctx)} variant="invisible" onClick={run(back).onPress} />
-            </PageHeader.LeadingAction>
-          )}
-          {(!!avatar || !!icon) && (
-            <PageHeader.LeadingVisual>
-              {avatar ? <ComponentRenderer component={avatar} state={ctx.state} data={ctx.data} /> : <WireIcon token={icon} size={24} />}
-            </PageHeader.LeadingVisual>
-          )}
-          <PageHeader.Title as={Heading}>
-            {title || (placeholder ? <span className="mateu-page-title-placeholder">{placeholder}</span> : null)}
-          </PageHeader.Title>
-          {(shownBadges.length > 0 || switcher || status) && (
-            <PageHeader.TrailingVisual>
-              <Stack direction="horizontal" gap="condensed" align="center" wrap="wrap">
-                {status && <PageStatus status={status} ctx={ctx} />}
-                {shownBadges.map((b, i) => <Label key={i} variant={labelVariantOf(b)} size={b['small'] === true ? 'small' : undefined}>{text(String(b['text'] ?? b['label'] ?? ''))}</Label>)}
-                {switcher && <RecordSwitcherControl switcher={switcher} ctx={ctx} />}
-              </Stack>
-            </PageHeader.TrailingVisual>
-          )}
-        </PageHeader.TitleArea>
-      )}
-      {actionsNode && <PageHeader.Actions>{actionsNode}</PageHeader.Actions>}
-      {hasDescription && (
-        <PageHeader.Description>
-          <Stack gap="condensed">
-            {subtitle && <Text className="mateu-page-subtitle">{subtitle}</Text>}
-            {timestamp && <Text className="mateu-page-timestamp">{timestamp}</Text>}
-            {widgets.length > 0 && (
-              <Stack direction="horizontal" gap="normal" wrap="wrap" align="center" className="mateu-page-widgets">
-                {widgets.map((w, i) => <ComponentRenderer key={`w${i}`} component={w} state={ctx.state} data={ctx.data} />)}
-              </Stack>
-            )}
-            {kpis.length > 0 && (
-              <div className="mateu-page-facts">
-                {kpis.map((k, i) => (
-                  <div key={i} className="mateu-page-fact">
-                    <span className="mateu-page-fact-label">{text(String(k['title'] ?? ''))}</span>
-                    <span className="mateu-page-fact-value">{text(String(k['text'] ?? ''))}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Stack>
-        </PageHeader.Description>
-      )}
-    </PageHeader>
+    <PageHeaderMarkup
+      level={level}
+      banner={level === 0 && !controller.windowless}
+      nested={level > 0 || controller.windowless}
+      label={title || placeholder || undefined}
+      crumbs={crumbs.map((c) => ({ label: text(String(c['label'] ?? c['text'] ?? '')), route: String(c['link'] ?? c['route'] ?? ''), routeLabel: String(c['label'] ?? '') }))}
+      onCrumb={(route, label) => void navigate(route, label)}
+      overline={overline}
+      back={back ? { label: interpolate(String(back['label'] ?? tx('back')), ctx), onPress: run(back).onPress } : null}
+      visual={avatar || icon ? (avatar ? <ComponentRenderer component={avatar} state={ctx.state} data={ctx.data} /> : <WireIcon token={icon} size={24} />) : null}
+      heading={Heading}
+      title={title}
+      placeholder={placeholder}
+      hasTitleArea={hasTitleArea}
+      trailing={(shownBadges.length > 0 || switcher || status) ? (
+        <>
+          {status && <PageStatus status={status} ctx={ctx} />}
+          {shownBadges.map((b, i) => <Label key={i} variant={labelVariantOf(b)} size={b['small'] === true ? 'small' : undefined}>{text(String(b['text'] ?? b['label'] ?? ''))}</Label>)}
+          {switcher && <RecordSwitcherControl switcher={switcher} ctx={ctx} />}
+        </>
+      ) : null}
+      actions={actionsNode || null}
+      subtitle={subtitle}
+      timestamp={timestamp}
+      widgets={widgets.length > 0 ? widgets.map((w, i) => <ComponentRenderer key={`w${i}`} component={w} state={ctx.state} data={ctx.data} />) : null}
+      facts={kpis.map((k) => ({ label: text(String(k['title'] ?? '')), value: text(String(k['text'] ?? '')) }))}
+      hasDescription={hasDescription}
+    />
   )
 }
 

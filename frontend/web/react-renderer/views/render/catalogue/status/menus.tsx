@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { ActionList, ActionMenu, Button, Dialog, Heading, NavList, Text, ToggleSwitch } from '@kit'
+import { ActionList, ActionMenu, Button, Dialog, Heading, Text, ToggleSwitch } from '@kit'
 import { TriangleDownIcon } from '@kit/icons'
 import { menuIntent, type MenuOptionLike } from '@rn/renderer/wireWidgets'
 import { actionPanelView, panelLabel, type ActionPanelMeta } from '@rn/renderer/actionPanel'
@@ -8,9 +8,10 @@ import { useController } from '@mr/render/ViewHost'
 import { ComponentRenderer } from '../../ComponentRenderer'
 import { type CatalogueProps, type Dict, list, str, useText } from './common'
 import { tx } from '@mr/i18n/texts'
+export { Directory } from './Directory'
 
 /** What a menu entry does: run its action, or open its route (in the app; an absolute url leaves it). */
-function useRunOption() {
+export function useRunOption() {
   const controller = useController()
   return (o: MenuOptionLike) => {
     const intent = menuIntent(o)
@@ -78,19 +79,6 @@ export function ContextMenu({ metadata: m, state, data }: CatalogueProps) {
       </ActionMenu>
     </>
   )
-}
-
-/** A directory of the app's places: Primer's NavList, groups as sub-lists. */
-export function Directory({ metadata: m }: CatalogueProps) {
-  const run = useRunOption()
-  const item = (o: MenuOptionLike, i: number): React.ReactNode =>
-    o.separator ? <NavList.Divider key={i} />
-      : o.submenus?.length ? (
-        <NavList.Group key={i} title={o.label}>{o.submenus.map((o, i) => item(o, i))}</NavList.Group>
-      ) : (
-        <NavList.Item key={i} href="#" aria-disabled={o.disabled || undefined} onClick={(e: React.MouseEvent) => { e.preventDefault(); if (!o.disabled) run(o) }}>{o.label}</NavList.Item>
-      )
-  return <NavList aria-label={tx('directory')}>{list<MenuOptionLike>(m['menu']).map((o, i) => item(o, i))}</NavList>
 }
 
 /** "I want to…": a button (and its shortcut) opening the categorised actions; populated first, "Show more", hide the empty ones. */

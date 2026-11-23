@@ -1,76 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { ActionList, AnchoredOverlay, Button, SelectPanel, Text, Token, TreeView } from '@kit'
-import { TriangleDownIcon } from '@kit/icons'
+import { ActionList, AnchoredOverlay, SelectPanel, Text, TreeView } from '@kit'
 import type { WidgetOption } from '@rn/core/fieldOptions'
 import { useController } from '@mr/render/ViewHost'
 import { tx } from '@mr/i18n/texts'
+import { ChoiceAnchor, type A11y } from './ChoiceAnchor'
+export { MultiSelect, TokenList } from './MultiSelect'
 
-type A11y = { 'aria-labelledby'?: string; 'aria-describedby'?: string; 'aria-invalid'?: boolean }
-type Item = { id: string; text: string; description?: string }
+export type Item = { id: string; text: string; description?: string }
 
-const itemOf = (o: WidgetOption): Item => ({ id: o.value, text: o.label })
-
-/** The anchor button every panel opens from: the picked text, or the placeholder in muted ink. */
-function Anchor({ props, text, placeholder, disabled, a11y, buttonRef }: {
-  props: React.HTMLAttributes<HTMLElement>; text: string; placeholder: string; disabled?: boolean; a11y?: A11y; buttonRef?: React.Ref<HTMLButtonElement>
-}) {
-  // the overlay positions itself off ITS ref on the anchor; the field's focus ref rides along
-  const theirs = (props as { ref?: React.Ref<HTMLButtonElement> }).ref
-  const both = (el: HTMLButtonElement | null) => {
-    for (const r of [theirs, buttonRef]) {
-      if (typeof r === 'function') r(el)
-      else if (r) (r as React.MutableRefObject<HTMLButtonElement | null>).current = el
-    }
-  }
-  // named "<label> <value>": the field's label, then what is picked (the anchor's own text)
-  const ownId = (props as { id?: string }).id
-  const labelledBy = a11y?.['aria-labelledby'] && ownId ? `${a11y['aria-labelledby']} ${ownId}` : a11y?.['aria-labelledby']
-  return (
-    <Button
-      {...(props as object)}
-      {...a11y}
-      aria-labelledby={labelledBy}
-      ref={both}
-      disabled={disabled}
-      trailingAction={TriangleDownIcon}
-      block
-      alignContent="start"
-    >
-      {text ? text : <span style={{ color: 'var(--fgColor-muted)' }}>{placeholder}</span>}
-    </Button>
-  )
-}
-
-/** multiSelect / a combobox on a collection: Primer's SelectPanel, several picks, filterable. */
-export function MultiSelect({ label, options, value, editable, onChange, a11y, buttonRef, placeholder }: {
-  label: string; options: WidgetOption[]; value: string[]; editable: boolean; onChange: (v: string[]) => void; a11y?: A11y; buttonRef?: React.Ref<HTMLButtonElement>; placeholder?: string
-}) {
-  const [open, setOpen] = useState(false)
-  const [filter, setFilter] = useState('')
-  const items = options.map(itemOf)
-  const selected = items.filter((i) => value.includes(i.id))
-  const shown = items.filter((i) => i.text.toLowerCase().includes(filter.toLowerCase()))
-  if (!editable) return <TokenList labels={selected.map((s) => s.text)} />
-  return (
-    <SelectPanel
-      title={label}
-      open={open}
-      onOpenChange={(o) => { setOpen(o); if (!o) setFilter('') }}
-      items={shown}
-      selected={selected}
-      onSelectedChange={((picked: Item[]) => onChange(picked.map((p) => p.id))) as never}
-      onFilterChange={setFilter}
-      showSelectedOptionsFirst={false}
-      renderAnchor={(props) => <Anchor props={props} text={selected.map((s) => s.text).join(', ')} placeholder={placeholder ?? tx('selectPlaceholder')} a11y={a11y} buttonRef={buttonRef} />}
-    />
-  )
-}
-
-/** Picked values shown read-only as Primer tokens. */
-export function TokenList({ labels }: { labels: string[] }) {
-  if (!labels.length) return <Text>—</Text>
-  return <div style={{ display: 'flex', gap: 'var(--base-size-4)', flexWrap: 'wrap' }}>{labels.map((l) => <Token key={l} text={l} />)}</div>
-}
+export const itemOf = (o: WidgetOption): Item => ({ id: o.value, text: o.label })
 
 /** @Stereotype(listBox): the options always visible (one, or several on a collection). */
 export function ListBox({ options, value, multiple, editable, onChange, a11y }: {
@@ -144,7 +82,7 @@ export function TreeSelect({ options, leavesOnly, value, editable, onChange, a11
       open={open}
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
-      renderAnchor={(props) => <Anchor props={props} text={label} placeholder={placeholder ?? tx('selectPlaceholder')} a11y={a11y} buttonRef={buttonRef} />}
+      renderAnchor={(props) => <ChoiceAnchor props={props} text={label} placeholder={placeholder ?? tx('selectPlaceholder')} a11y={a11y} buttonRef={buttonRef} />}
       focusZoneSettings={{ disabled: true }}
     >
       <div className="mateu-tree-panel">
@@ -210,7 +148,7 @@ export function Lookup({ label, fieldId, value, valueLabel, action, editable, on
       }}
       loading={loading}
       message={!loading && found.length === 0 ? { title: tx('noResults'), body: tx('tryAnotherSearch'), variant: 'empty' } : undefined}
-      renderAnchor={(props) => <Anchor props={props} text={display} placeholder={placeholder ?? tx('selectPlaceholder')} a11y={a11y} buttonRef={buttonRef} />}
+      renderAnchor={(props) => <ChoiceAnchor props={props} text={display} placeholder={placeholder ?? tx('selectPlaceholder')} a11y={a11y} buttonRef={buttonRef} />}
     />
   )
 }

@@ -1,8 +1,7 @@
-import React, { useCallback } from 'react'
-import { Button, Flash, PageLayout, Spinner, Stack, Text, useConfirm } from '@kit'
+import React from 'react'
 import { loadFailureMessage } from '@rn/core/uxRules'
 import type { StaticBundleLike } from '@mr/shell/appExtras'
-import { useMateuApp, focusMain, NO_APP, type ConfirmRequest } from '@mr/shell/useMateuApp'
+import { useMateuApp, focusMain, NO_APP } from '@mr/shell/useMateuApp'
 import { ViewHost } from '@mr/render/ViewHost'
 import { tx } from '@mr/i18n/texts'
 import { Toasts } from './Toasts'
@@ -10,6 +9,7 @@ import { Overlays } from './Overlays'
 import { AppShell } from './AppShell'
 import { GlobalLayer } from './global/GlobalLayer'
 import { Resilience } from './resilience/Resilience'
+import { BootFailure, BootLoading, Centered, useConfirmDialog } from './bootViews'
 import '../base.css'
 
 /**
@@ -23,14 +23,7 @@ export function MateuApp({ baseUrl, bundle, accentCss }: {
   bundle?: StaticBundleLike | null
   accentCss: (color: string) => string
 }) {
-  const kitConfirm = useConfirm()
-  const confirm = useCallback((r: ConfirmRequest) => kitConfirm({
-    title: r.title,
-    content: r.message,
-    confirmButtonContent: r.confirmLabel,
-    cancelButtonContent: r.cancelLabel,
-    confirmButtonType: r.destructive ? 'danger' : 'primary',
-  }), [kitConfirm])
+  const { confirm, dialog } = useConfirmDialog()
   const app = useMateuApp({ baseUrl, bundle, confirm, accentCss })
   const { session, boot, content, preview, go } = app
 
@@ -45,17 +38,11 @@ export function MateuApp({ baseUrl, bundle, accentCss }: {
     const message = loadFailureMessage(boot.failure)
     body = (
       <Centered>
-        <Flash variant="danger" role="alert">
-          <Stack gap="condensed">
-            <Text weight="semibold">{message.title}</Text>
-            <Text>{message.detail}</Text>
-            <div><Button onClick={app.retryBoot}>{tx('tryAgain')}</Button></div>
-          </Stack>
-        </Flash>
+        <BootFailure title={message.title} detail={message.detail} onRetry={app.retryBoot} />
       </Centered>
     )
   } else if (boot.loading && !content) {
-    body = <Centered><Spinner size="large" srText={tx('loading')} /></Centered>
+    body = <Centered><BootLoading /></Centered>
   } else if (boot.app) {
     body = <AppShell session={session} app={boot.app} current={content} onNavigate={app.navigate}>{screen}</AppShell>
   } else {
@@ -70,17 +57,7 @@ export function MateuApp({ baseUrl, bundle, accentCss }: {
       <Overlays state={app.overlays} />
       <Toasts state={app.toasts} />
       <Resilience session={session} />
+      {dialog}
     </>
-  )
-}
-
-/** A screen with no app shell: the kit's page container (centred, its margins). */
-function Centered({ children }: { children: React.ReactNode }) {
-  return (
-    <PageLayout containerWidth="xlarge" padding="normal">
-      <PageLayout.Content as="main" width="full">
-        <div id="mateu-main" tabIndex={-1} style={{ outline: 'none' }}>{children}</div>
-      </PageLayout.Content>
-    </PageLayout>
   )
 }

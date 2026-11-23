@@ -130,3 +130,16 @@ if (typeof window !== 'undefined') {
     if (Array.isArray(queued)) queued.forEach(([n, r]) => registerCustomComponent(n, r))
   }
 }
+
+/**
+ * The same door under a renderer's own name as well (`window.MateuSlds`, `window.MateuPrimer`…):
+ * one object, so a registration through any name reaches the same registry; calls queued under that
+ * name before the bundle ran (`(window.<name>Queue ||= []).push([name, renderer])`) are taken at once.
+ */
+export function installCustomComponentGlobal(globalName: string): void {
+  if (typeof window === 'undefined' || !window.MateuRenderer) return
+  const w = window as unknown as Record<string, unknown>
+  w[globalName] = window.MateuRenderer
+  const queued = w[`${globalName}Queue`]
+  if (Array.isArray(queued)) (queued as [string, CustomComponentRenderer][]).forEach(([n, r]) => registerCustomComponent(n, r))
+}
