@@ -23,7 +23,7 @@ export function DataTable({ data = [], columns = [], getRowId, cellPadding, init
   useEffect(() => {
     // rows that went away are no longer selected
     setSelected((s) => {
-      const ids = new Set((data as any[]).map(rowId))
+      const ids = new Set((data as any[]).map((r, i) => rowId(r, i)))
       const next = new Set([...s].filter((x) => ids.has(x)))
       return next.size === s.size ? s : next
     })
@@ -34,7 +34,7 @@ export function DataTable({ data = [], columns = [], getRowId, cellPadding, init
     setSelected(next)
     onSelectionChange?.({ selectedRows: next })
   }
-  const all = (data as any[]).filter(selectable).map(rowId)
+  const all = (data as any[]).filter(selectable).map((r, i) => rowId(r, i))
   const allOn = all.length > 0 && all.every((x) => selected.has(x))
   const someOn = !allOn && all.some((x) => selected.has(x))
   const toggleSort = (col: P) => {

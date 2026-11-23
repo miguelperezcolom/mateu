@@ -230,7 +230,8 @@ function groupParts(children: React.ReactNode, Label: unknown, Cap: unknown, Val
   return { label, caption, validation, rest }
 }
 
-const GroupLabel = ({ children, visuallyHidden }: P) => <>{children}{visuallyHidden ? null : null}</>
+// the group's legend is drawn by the fieldset; a visually hidden one is still its accessible name
+const GroupLabel = ({ children }: P) => <>{children}</>
 const GroupCaption = ({ children, id }: P) => <div className="slds-form-element__help mateu-form-caption" id={id}>{children}</div>
 const GroupValidation = ({ children, id }: P) => <div className="slds-form-element__help" id={id} role="alert">{children}</div>
 

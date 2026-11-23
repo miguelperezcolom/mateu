@@ -247,7 +247,8 @@ export function Timepicker({ value, onChange, id: givenId, disabled, readOnly, r
               <li key={t} role="presentation" className="slds-listbox__item">
                 <div id={`${listId}-${i}`} role="option" aria-selected={t === value}
                   className={cx('slds-media', 'slds-listbox__option', 'slds-listbox__option_plain', 'slds-media_small', t === value && 'slds-is-selected', i === active && 'slds-has-focus')}
-                  onMouseDown={(e) => e.preventDefault()} onClick={() => pick(t)}>
+                  onMouseDown={(e) => e.preventDefault()} onClick={() => pick(t)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(t) } }}>
                   <span className="slds-media__body"><span className="slds-truncate">{label(t)}</span></span>
                 </div>
               </li>

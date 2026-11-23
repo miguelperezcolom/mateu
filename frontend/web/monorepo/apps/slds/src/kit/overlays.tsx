@@ -462,7 +462,9 @@ export function SelectPanel({ open, onOpenChange, renderAnchor, items = [], sele
                 <li key={String(it.id ?? i)} role="presentation" className="slds-listbox__item">
                   <div id={optionId(i)} role="option" aria-selected={isSelected(it)} aria-disabled={it.disabled || undefined}
                     className={cx('slds-media', 'slds-listbox__option', 'slds-listbox__option_plain', 'slds-media_small', isSelected(it) && 'slds-is-selected', i === active && 'slds-has-focus')}
-                    onMouseEnter={() => setActive(i)} onClick={() => choose(it)}>
+                    onMouseEnter={() => setActive(i)} onClick={() => choose(it)}
+                    // the listbox moves the active option with the arrows; an option heard directly answers Enter / Space too
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(it) } }}>
                     <span className="slds-media__figure slds-listbox__option-icon">
                       {isSelected(it) && <CheckIcon size={12} className="slds-icon slds-icon_x-small slds-icon-text-default" />}
                     </span>
