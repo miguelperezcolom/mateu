@@ -10,7 +10,7 @@
     "build": "tsc && vite build",
     "typecheck": "tsc",
     "test": "node --test \"src/**/*.test.ts\" \"../../../react-renderer/**/*.test.ts\"",
-    "copy": "node ../../../react-renderer/scripts/package-renderer.mjs primer",
+    "copy": "node ../../../react-renderer/scripts/package-renderer.mjs",
     "notices": "node ../../../../../scripts/third-party-notices.mjs primer --out dist/assets/THIRD-PARTY-LICENSES.txt"
   },
   "dependencies": {

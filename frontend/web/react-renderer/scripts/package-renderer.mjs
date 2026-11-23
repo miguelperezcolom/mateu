@@ -6,18 +6,21 @@
  * (the bundle + THIRD-PARTY-LICENSES.txt). The folder is emptied first, so a file the build no
  * longer makes does not ship. ONE copy for every renderer app: its `npm run copy` names itself.
  *
- * Usage (from the app's folder, after its `npm ci`): node ../../../react-renderer/scripts/package-renderer.mjs <name>
+ * Usage (from the app's folder, after its `npm ci`): node ../../../react-renderer/scripts/package-renderer.mjs
+ * The renderer is the app's folder name, and only a known renderer is packaged (no argument is read).
  */
 import { execFileSync } from 'node:child_process'
 import { cpSync, existsSync, mkdirSync, renameSync, rmSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { basename, join, resolve } from 'node:path'
 
-const name = process.argv[2]
-if (!/^[a-z0-9-]+$/.test(name ?? '')) {
-  console.error('usage: package-renderer.mjs <renderer name>')
+// the React renderer apps this script packages — a new one is added here (and to the checklist)
+const RENDERERS = new Set(['primer', 'ui5', 'slds'])
+const app = process.cwd()
+const name = [...RENDERERS].find((r) => r === basename(app))
+if (!name) {
+  console.error(`package-renderer.mjs runs from a renderer app's folder (${[...RENDERERS].join(', ')})`)
   process.exit(2)
 }
-const app = process.cwd()
 const repo = resolve(app, '../../../../..')
 const target = join(repo, 'backend/shared/frontend', name, 'src/main/resources/static')
 const bin = (tool) => join(app, 'node_modules/.bin', tool)
