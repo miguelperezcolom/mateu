@@ -290,7 +290,7 @@ def add_mateu(
       ``MATEU_MCP_ENABLED`` env var, else OFF — Java's ``mateu.mcp.enabled``). It gives any caller a
       programmatic way to drive every screen, so the application has to decide to expose it.
     - ``ui`` — serve a web renderer's page too, like a Java app does: the ``static/`` folder of the
-      ``io.mateu:mateu-vaadin`` (or ``mateu-redwood``, ``mateu-primer``, ``mateu-ui5``) jar, or the jar itself (default: the
+      ``io.mateu:mateu-vaadin`` (or ``mateu-redwood``, ``mateu-primer``, ``mateu-ui5``, ``mateu-slds``) jar, or the jar itself (default: the
       ``MATEU_UI`` env var; neither → the sync API only). The page answers the mount and every deep
       link under it, the renderer's assets are served at the origin root, and nothing under
       ``/mateu`` is ever answered with the page. Your own routes keep winning: the page only answers

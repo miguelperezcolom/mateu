@@ -60,6 +60,30 @@ export const TARGETS = {
     entries: ['.'],
     notBundled: {},
   },
+  // the Salesforce (SLDS) renderer (preview): its own install, outside the monorepo workspaces
+  slds: {
+    dir: 'frontend/web/monorepo/apps/slds',
+    entries: ['.'],
+    notBundled: {},
+  },
+}
+
+/**
+ * Content a package ships under ANOTHER licence than the one its package.json declares — not code,
+ * so the licence guard's SPDX check does not see it. The SLDS package's code is BSD-3-Clause, its
+ * icons and images are CC BY-ND 4.0: they ship UNMODIFIED (the whole sprite, never recoloured or cut
+ * down) with the attribution below and the licence files, which live under assets/, not at the root.
+ */
+export const CONTENT_LICENCES = {
+  '@salesforce-ux/design-system': {
+    files: ['assets/icons/License-for-icons.txt', 'assets/images/License-for-images.txt'],
+    attribution: [
+      'Icons and images: Salesforce Lightning Design System (https://www.lightningdesignsystem.com),',
+      '(c) salesforce.com, inc., licensed under Creative Commons Attribution-NoDerivatives 4.0',
+      '(https://creativecommons.org/licenses/by-nd/4.0/). Redistributed unmodified. Salesforce Sans is',
+      'NOT included (the text uses the system font). Not affiliated with or endorsed by Salesforce.',
+    ],
+  },
 }
 
 // One shipped bundle each: the notices file that travels inside it (third-party-notices.mjs).
@@ -85,6 +109,12 @@ export const BUNDLES = {
   // the io.mateu:mateu-ui5 jar (UI5 Web Components + SAP's 72 font; the React Native core it runs on is ours)
   ui5: {
     dir: 'frontend/web/monorepo/apps/ui5',
+    entries: ['.'],
+    notBundled: {},
+  },
+  // the io.mateu:mateu-slds jar (SLDS blueprints: CSS + icons; the React layer and the core are ours)
+  slds: {
+    dir: 'frontend/web/monorepo/apps/slds',
     entries: ['.'],
     notBundled: {},
   },

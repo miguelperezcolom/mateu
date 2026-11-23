@@ -108,6 +108,34 @@ public class BundleWriterTest {
     assertFalse(Files.exists(out.resolve("_redwood")));
   }
 
+  private Path sldsJar() throws Exception {
+    return jar(
+        "slds.jar",
+        Map.of(
+            "static/_index.html",
+            INDEX,
+            "static/assets/mateu-slds.js",
+            "/* slds */",
+            "static/assets/mateu-slds.css",
+            "/* css */"));
+  }
+
+  @Test
+  public void anSldsBundleTakesTheSldsJarAmongTheOthers() throws Exception {
+    var out = tmp.newFolder("out").toPath();
+    BundleWriter.write(
+        out,
+        manifest(),
+        null,
+        loader(vaadinJar(), primerJar(), sldsJar()),
+        "",
+        "Shop",
+        ProjectRenderer.slds);
+    assertTrue(Files.isRegularFile(out.resolve("assets/mateu-slds.js")));
+    assertFalse(Files.exists(out.resolve("assets/mateu-primer.js")));
+    assertFalse("never another renderer's files", Files.exists(out.resolve("assets/index.js")));
+  }
+
   @Test
   public void aVaadinBundleIsNotTakenFromThePrimerJar() throws Exception {
     var out = tmp.newFolder("out").toPath();

@@ -1,7 +1,7 @@
 """Serving a web renderer's page from this server — the Python twin of Java's ``IndexPage`` +
 ``SpaFallback`` + ``StaticAssetCaching`` (``io.mateu.core.infra``).
 
-A Java app serves its UI itself: the ``mateu-vaadin`` / ``mateu-redwood`` / ``mateu-primer`` / ``mateu-ui5`` jar on the classpath
+A Java app serves its UI itself: the ``mateu-vaadin`` / ``mateu-redwood`` / ``mateu-primer`` / ``mateu-ui5`` / ``mateu-slds`` jar on the classpath
 brings the renderer's page (``static/_index.html``) and assets, and the generated controller
 answers the mount and its deep links with that page aimed at the mount. This port answered the
 sync API only, so a first-time user had nothing to open in a browser. Given a RENDERER — the
@@ -11,7 +11,7 @@ names no file), the assets at the origin root (where the renderer's page referen
 nothing under ``/mateu`` (an API miss stays a 404, never the page).
 
 The renderer is not packaged with ``mateu-ui``: point ``add_mateu(ui=…)`` / ``MATEU_UI`` at the
-jar downloaded from Maven Central (``io.mateu:mateu-vaadin``, ``mateu-redwood``, ``mateu-primer`` or ``mateu-ui5``, same version
+jar downloaded from Maven Central (``io.mateu:mateu-vaadin``, ``mateu-redwood``, ``mateu-primer``, ``mateu-ui5`` or ``mateu-slds``, same version
 as the wire you target) or at its extracted ``static/`` folder.
 """
 
@@ -453,7 +453,7 @@ def api_hint_page(base_url: str) -> str:
         f"<p>It serves the sync API at <code>POST {esc}/mateu/v3/sync/{{route}}</code>, which every Mateu "
         "renderer (web, mobile, IDE) can render, but no web page.</p>"
         f"<p>To open the app in this browser, set <code>{ENV_VAR}</code> to the "
-        "<code>io.mateu:mateu-vaadin</code> (or <code>mateu-redwood</code>, <code>mateu-primer</code>, <code>mateu-ui5</code>) jar, or to its "
+        "<code>io.mateu:mateu-vaadin</code> (or <code>mateu-redwood</code>, <code>mateu-primer</code>, <code>mateu-ui5</code>, <code>mateu-slds</code>) jar, or to its "
         "<code>static/</code> folder, and restart; or pass the same location as <code>ui</code> when "
         "registering Mateu.</p></body></html>"
     )
@@ -483,7 +483,7 @@ class RendererFiles:
         if files.read(INDEX) is None:
             raise FileNotFoundError(
                 f"{path} is not a Mateu web renderer: no {INDEX} (expected the static/ folder of "
-                "io.mateu:mateu-vaadin, mateu-redwood, mateu-primer or mateu-ui5, or the jar itself)"
+                "io.mateu:mateu-vaadin, mateu-redwood, mateu-primer, mateu-ui5 or mateu-slds, or the jar itself)"
             )
         return files
 

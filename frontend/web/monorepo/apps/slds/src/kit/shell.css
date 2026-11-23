@@ -1,0 +1,16 @@
+/* The SLDS app shell (overrides/shell/AppShell.tsx): SLDS's Global Header and Context Bar — their
+   blueprints' own CSS does the drawing; this is only what the blueprints leave to the app. The
+   shared header.css (menus, pane, band…) applies too. */
+.mateu-global-header { z-index: 9000; }
+.mateu-slds-brand { border: 0; padding: 0; cursor: pointer; background-color: transparent; background-repeat: no-repeat; background-position: left center; background-size: contain; min-width: 2rem; height: 2.5rem; display: flex; align-items: center; }
+.mateu-slds-brand[style*='background-image'] { width: 12rem; }
+.mateu-slds-brand:focus-visible { outline: 2px solid var(--focus-outlineColor); outline-offset: 2px; }
+.mateu-app-wordmark { font-size: var(--slds-g-font-scale-2, 1.125rem); font-weight: var(--base-text-weight-semibold); color: var(--fgColor-default); white-space: nowrap; }
+.mateu-global-search { display: flex; align-items: center; gap: .5rem; width: 100%; max-width: 36rem; text-align: start; color: var(--fgColor-muted); cursor: text; }
+.mateu-global-actions { display: flex; align-items: center; gap: .25rem; flex-wrap: nowrap; justify-content: flex-end; }
+.mateu-global-actions > li:empty { display: none; }
+.mateu-context-bar__menu { border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; height: 100%; font: inherit; color: inherit; }
+.mateu-context-tools { margin-inline-start: auto; display: flex; align-items: center; gap: .5rem; padding: 0 .75rem; min-width: 0; flex-wrap: nowrap; }
+.mateu-context-subtitle { max-width: 20rem; }
+.mateu-app { box-sizing: border-box; }
+.mateu-app-pane { background: var(--slds-g-color-surface-container-1, #fff); }

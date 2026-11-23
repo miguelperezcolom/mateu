@@ -15,10 +15,10 @@
     {"id": "both", "label": "Code + YAML", "description": "Shell, routes and pages as data under specs/ui; the Product CRUD stays a Java view model, bound in routes.yaml.", "starter": "${runtime}", "runtimes": ["spring-mvc", "spring-webflux", "quarkus", "micronaut", "helidon-mp"], "samples": ["crud"], "keepsSample": true, "unmountsSample": true, "overlays": {"*": "yaml"}, "pages": true}
   ],
   "runtimes": [
-    {"id": "spring-mvc", "label": "Spring Boot (MVC)", "language": "java", "renderers": ["vaadin", "redwood", "primer", "ui5"], "samples": ["crud", "dashboard", "intake", "operations", "empty", "listing", "swapi"], "run": "mvn spring-boot:run", "url": "http://localhost:8080"},
-    {"id": "spring-webflux", "label": "Spring Boot (WebFlux)", "language": "java", "renderers": ["vaadin", "redwood", "primer", "ui5"], "samples": ["crud", "dashboard", "intake", "operations", "empty"], "run": "mvn spring-boot:run", "url": "http://localhost:8080"},
+    {"id": "spring-mvc", "label": "Spring Boot (MVC)", "language": "java", "renderers": ["vaadin", "redwood", "primer", "ui5", "slds"], "samples": ["crud", "dashboard", "intake", "operations", "empty", "listing", "swapi"], "run": "mvn spring-boot:run", "url": "http://localhost:8080"},
+    {"id": "spring-webflux", "label": "Spring Boot (WebFlux)", "language": "java", "renderers": ["vaadin", "redwood", "primer", "ui5", "slds"], "samples": ["crud", "dashboard", "intake", "operations", "empty"], "run": "mvn spring-boot:run", "url": "http://localhost:8080"},
     {"id": "quarkus", "label": "Quarkus", "language": "java", "renderers": ["vaadin"], "samples": ["crud", "dashboard", "intake", "operations", "empty"], "run": "mvn quarkus:dev", "url": "http://localhost:8080"},
-    {"id": "micronaut", "label": "Micronaut", "language": "java", "renderers": ["vaadin", "redwood", "primer", "ui5"], "samples": ["crud", "dashboard", "intake", "operations", "empty"], "run": "mvn mn:run", "url": "http://localhost:8080"},
+    {"id": "micronaut", "label": "Micronaut", "language": "java", "renderers": ["vaadin", "redwood", "primer", "ui5", "slds"], "samples": ["crud", "dashboard", "intake", "operations", "empty"], "run": "mvn mn:run", "url": "http://localhost:8080"},
     {"id": "helidon-mp", "label": "Helidon MP", "language": "java", "renderers": ["vaadin"], "samples": ["crud", "dashboard", "intake", "operations", "empty"], "run": "mvn package && java -jar target/${artifactId}.jar", "url": "http://localhost:8080"},
     {"id": "dotnet", "label": ".NET (ASP.NET Core, C#)", "language": "csharp", "renderers": [], "samples": ["crud"], "run": "dotnet run", "url": "http://localhost:8080"},
     {"id": "python", "label": "Python (FastAPI)", "language": "python", "renderers": [], "samples": ["crud"], "run": "pip install -r requirements.txt && uvicorn main:app --port 8080", "url": "http://localhost:8080"}
@@ -32,7 +32,8 @@
     {"id": "vaadin", "label": "Vaadin", "artifactId": "mateu-vaadin"},
     {"id": "redwood", "label": "Oracle Redwood (Visual Builder)", "artifactId": "mateu-redwood"},
     {"id": "primer", "label": "GitHub Primer (preview)", "artifactId": "mateu-primer"},
-    {"id": "ui5", "label": "SAP Fiori (UI5, preview)", "artifactId": "mateu-ui5"}
+    {"id": "ui5", "label": "SAP Fiori (UI5, preview)", "artifactId": "mateu-ui5"},
+    {"id": "slds", "label": "Salesforce Lightning (preview)", "artifactId": "mateu-slds"}
   ],
   "$samples": "The template gallery: what the new project starts from. The flavours and runtimes list which they offer, in order (the first is the default); the flavour's `overlays[id]` names the overlay that turns the starter into it. `dropsSampleFiles`: the language's sampleFiles (the Product CRUD) go; `removeFiles`: further starter files the template replaces with nothing.",
   "samples": [
@@ -58,7 +59,7 @@
       "specsDir": "src/main/resources/specs/ui",
       "sourceRoot": "src/main/java",
       "packageDir": "src/main/java/com/example/app",
-      "rendererOverlays": {"redwood": "redwood", "primer": "primer", "ui5": "ui5"},
+      "rendererOverlays": {"redwood": "redwood", "primer": "primer", "ui5": "ui5", "slds": "slds"},
       "replacements": [
         {"from": "src/main/java/com/example/app", "to": "src/main/java/${packagePath}"},
         {"from": "com.example.app", "to": "${package}"},

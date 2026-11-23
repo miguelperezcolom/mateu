@@ -1135,6 +1135,69 @@
           "@ApplicationScoped"
         ]
       }
+    },
+    {
+      "name": "spring-mvc, code, empty, SLDS",
+      "options": {
+        "runtime": "spring-mvc",
+        "buildTool": "maven",
+        "renderer": "slds",
+        "authoring": "code",
+        "sample": "empty",
+        "pages": [],
+        "groupId": "org.example",
+        "artifactId": "hello",
+        "packageName": "org.example.hello",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "pom.xml",
+        "src/main/java/org/example/hello/Shell.java",
+        "src/main/java/org/example/hello/Home.java",
+        "src/main/java/org/example/hello/Application.java",
+        ".claude/settings.json",
+        "src/main/resources/specs/ui/project.yaml"
+      ],
+      "absent": [
+        "src/main/java/org/example/hello/Products.java",
+        "src/main/java/org/example/hello/Product.java",
+        "src/test/java/org/example/hello/ProductsUiTest.java",
+        "src/test/java/com/example/app/ProductsUiTest.java",
+        "claude/settings.json"
+      ],
+      "contains": {
+        "pom.xml": [
+          "<artifactId>mateu-slds</artifactId>"
+        ],
+        "src/main/java/org/example/hello/Shell.java": [
+          "package org.example.hello;",
+          "@Title(\"Hello\")",
+          "@Menu Home home;"
+        ],
+        "src/main/java/org/example/hello/Home.java": [
+          "package org.example.hello;",
+          "return \"Hello\";"
+        ],
+        ".claude/settings.json": [
+          "\"mateu@mateu\": true",
+          "\"repo\": \"miguelperezcolom/mateu\""
+        ],
+        "src/main/resources/specs/ui/project.yaml": [
+          "renderer: slds"
+        ]
+      },
+      "lacks": {
+        "pom.xml": [
+          "<artifactId>mateu-vaadin</artifactId>"
+        ],
+        "src/main/java/org/example/hello/Shell.java": [
+          "Products"
+        ],
+        "src/main/java/org/example/hello/Home.java": [
+          "Products",
+          "browseProducts"
+        ]
+      }
     }
   ]
 }

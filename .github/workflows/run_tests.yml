@@ -82,6 +82,7 @@ jobs:
             frontend/app/vscode-extension/package-lock.json
             frontend/web/monorepo/apps/primer/package-lock.json
             frontend/web/monorepo/apps/ui5/package-lock.json
+            frontend/web/monorepo/apps/slds/package-lock.json
 
       # Scoped to the one workspace: a plain `npm ci` at the monorepo root also installs
       # apps/redwood's Oracle tooling, part of which comes from static.oracle.com rather than the
@@ -100,12 +101,13 @@ jobs:
           (cd frontend/app/vscode-extension && npm ci --ignore-scripts --no-audit --no-fund)
           (cd frontend/web/monorepo/apps/primer && npm ci --ignore-scripts --no-audit --no-fund)
           (cd frontend/web/monorepo/apps/ui5 && npm ci --ignore-scripts --no-audit --no-fund)
+          (cd frontend/web/monorepo/apps/slds && npm ci --ignore-scripts --no-audit --no-fund)
 
       # The vaadin-lit jar is Apache-2.0: nothing bundled into it may be under a commercial licence
       # (it once shipped @vaadin/board, @vaadin/rich-text-editor and a Highcharts chunk). The same holds
       # for the visual editor bundled into the IDE plugins, the React Native app and the .vsix.
       - name: Shipped frontend dependencies are under approved licences
-        run: node scripts/check-frontend-licenses.mjs web react-native vscode-extension primer ui5
+        run: node scripts/check-frontend-licenses.mjs web react-native vscode-extension primer ui5 slds
 
       # Permissive is not enough: MIT, BSD and Apache-2.0 want their notices to travel with every
       # copy, and a minified bundle keeps none. Each shipped bundle carries THIRD-PARTY-LICENSES.txt
@@ -117,6 +119,7 @@ jobs:
           node scripts/third-party-notices.mjs visual-editor --check frontend/app/intellij-plugin/src/main/resources/visual-editor/assets/THIRD-PARTY-LICENSES.txt
           node scripts/third-party-notices.mjs primer --check backend/shared/frontend/primer/src/main/resources/static/assets/THIRD-PARTY-LICENSES.txt
           node scripts/third-party-notices.mjs ui5 --check backend/shared/frontend/ui5/src/main/resources/static/assets/THIRD-PARTY-LICENSES.txt
+          node scripts/third-party-notices.mjs slds --check backend/shared/frontend/slds/src/main/resources/static/assets/THIRD-PARTY-LICENSES.txt
 
       # The Primer renderer (preview) typechecks with its own install — its sources include the React
       # Native core it runs on, so a core change that breaks it fails here, not in a user's browser.
@@ -132,6 +135,12 @@ jobs:
 
       - name: SAP renderer unit tests
         run: cd frontend/web/monorepo/apps/ui5 && npm test
+      # The Salesforce (SLDS) renderer (preview): the same checks, on its own install.
+      - name: Salesforce (SLDS) renderer typechecks
+        run: cd frontend/web/monorepo/apps/slds && ./node_modules/.bin/tsc -p .
+
+      - name: Salesforce (SLDS) renderer unit tests
+        run: cd frontend/web/monorepo/apps/slds && npm test
 
       # Mateu's own components take colour, spacing and type from the design system's tokens; a
       # hard-coded literal ignores dark mode, forced colours and a customer theme. A ratchet: the
@@ -1031,3 +1040,90 @@ jobs:
             echo "::error::$bad job(s) failed or were cancelled — see the list above."
             exit 1
           fi
+
+  # The Salesforce (SLDS) renderer (preview), built FROM SOURCE into its jar and judged against the e2e SUT
+  # served with it: the conformance fixtures of every level, the a11y and slow-network probes and the
+  # built-in sign-in flow (that one needs no server: it plays the page and the IdP itself).
+  renderer-slds:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: 21
+          distribution: zulu
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Build backend
+        run: mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml
+
+      # SLDS installs on its own (it is not a monorepo workspace: its lockfile is its own).
+      - name: Build the SLDS renderer from source into its jar
+        run: |
+          (cd frontend/web/monorepo/apps/slds && npm ci --ignore-scripts --no-audit --no-fund && npm run copy)
+          test -f backend/shared/frontend/slds/src/main/resources/static/assets/mateu-slds.js
+          mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml -pl shared/frontend/slds
+
+      - name: Build the SUT with the SLDS renderer
+        run: |
+          mvn -B install -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/pom.xml -pl modules/sample1
+          mvn -B package -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/pom.xml -pl apps/mvc-app1 -Dmateu.renderer=mateu-slds -Dsut.build.dir=target-slds
+
+      - name: Start the SLDS SUT (:8091)
+        run: |
+          java -jar e2e/sut/apps/mvc-app1/target-slds/mvc-app1-1.0.0-SNAPSHOT.jar --server.port=8091 > /tmp/mvc-app-slds.log 2>&1 &
+          tries=0
+          until curl -s -o /dev/null http://localhost:8091/app; do
+            tries=$((tries + 1))
+            if [ "$tries" -ge 90 ]; then echo "::error::the SLDS SUT was not ready after 3 minutes"; exit 1; fi
+            sleep 2
+          done
+          curl -s http://localhost:8091/ | grep -q 'assets/mateu-slds.js' || { echo "::error::the SUT does not serve the SLDS page"; exit 1; }
+
+      - name: Install npm dependencies
+        run: cd e2e && npm ci --ignore-scripts
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('e2e/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-playwright-
+
+      - name: Install Playwright browsers
+        run: cd e2e && npx --no -- playwright install --with-deps chromium
+
+      - name: Conformance fixtures (core, standard, full)
+        run: cd e2e && BASE=http://localhost:8091 SHOTS=slds-shots node slds-conformance-probe.mjs
+
+      - name: Accessibility probe (axe + behaviour)
+        run: cd e2e && BASE=http://localhost:8091 node slds-a11y-probe.mjs
+
+      - name: Slow / unreliable network probe
+        run: cd e2e && BASE=http://localhost:8091 node slds-slow-network-probe.mjs
+
+      - name: Built-in sign-in probe
+        run: cd e2e && node slds-sign-in-probe.mjs
+
+      - name: Dump the SLDS SUT log on failure
+        if: failure()
+        run: tail -n 120 /tmp/mvc-app-slds.log
+
+      - name: Upload SLDS screenshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: renderer-slds
+          path: |
+            e2e/slds-shots/
+            e2e/test-results/
+          retention-days: 7

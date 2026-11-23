@@ -10,7 +10,7 @@ import org.yaml.snakeyaml.Yaml
  *
  * ```yaml
  * type: Project
- * renderer: redwood   # vaadin | redwood | primer | ui5
+ * renderer: redwood   # vaadin | redwood | primer | ui5 | slds
  * ```
  *
  * Platform-free (text in, text out), so it is unit-tested. Mirrors io.mateu.uidl.data.ProjectSettings
@@ -29,7 +29,8 @@ object ProjectDescriptor {
         VAADIN("vaadin", "Vaadin (Lumo)", "mateu-vaadin"),
         REDWOOD("redwood", "Redwood (Oracle)", "mateu-redwood"),
         PRIMER("primer", "Primer (GitHub, preview)", "mateu-primer"),
-        UI5("ui5", "SAP Fiori (UI5, preview)", "mateu-ui5");
+        UI5("ui5", "SAP Fiori (UI5, preview)", "mateu-ui5"),
+        SLDS("slds", "Salesforce Lightning (SLDS, preview)", "mateu-slds");
 
         val coordinates: String get() = "$GROUP_ID:$artifactId"
 
@@ -53,9 +54,9 @@ object ProjectDescriptor {
     fun newText(renderer: Renderer): String =
         "# The project descriptor: settings true of the whole project, not of one page.\n" +
             "# renderer — the design system the project paints with: vaadin (io.mateu:mateu-vaadin, the\n" +
-            "# default), redwood (io.mateu:mateu-redwood), primer (io.mateu:mateu-primer, preview) or ui5\n" +
-            "# (io.mateu:mateu-ui5, SAP Fiori, preview). The visual\n" +
-            "# editor and Play open in it (a Primer or SAP project previews with Vaadin there for now) and the static\n" +
+            "# default), redwood (io.mateu:mateu-redwood), primer (io.mateu:mateu-primer, preview), ui5\n" +
+            "# (io.mateu:mateu-ui5, SAP Fiori, preview) or slds (io.mateu:mateu-slds, preview). The visual\n" +
+            "# editor and Play open in it (a Primer, SAP or SLDS project previews with Vaadin there for now) and the static\n" +
             "# bundle ships it; a served app still renders with its Maven dependency (the server warns when\n" +
             "# the two disagree).\n" +
             "type: $TYPE\n" +

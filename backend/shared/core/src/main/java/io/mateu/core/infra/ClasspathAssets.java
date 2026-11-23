@@ -19,13 +19,13 @@ import java.time.format.DateTimeParseException;
  * default).
  *
  * <p>The renderer jars ({@code mateu-vaadin}, {@code mateu-redwood}, {@code mateu-primer}, {@code
- * mateu-ui5}) carry each asset ONCE, under {@code static/}: Spring Boot serves that folder by
- * default, the Quarkus and Micronaut adapters serve Mateu's paths of it themselves, Helidon maps it
- * in the app's configuration, the .NET and Python ports and the bundle exporter read it from the
- * jar, and {@code @UI(indexHtmlPath)} defaults to {@code /static/_index.html}. Only the paths
- * {@link StaticAssetCaching} names as Mateu's ({@code /assets/…}, {@code /js/…}, {@code
- * /myassets/…}, {@code /_redwood/…}, {@code /version_<n>/…}) are looked up, so an app's own {@code
- * static/} content is not published by accident.
+ * mateu-ui5}, {@code mateu-slds}) carry each asset ONCE, under {@code static/}: Spring Boot serves
+ * that folder by default, the Quarkus and Micronaut adapters serve Mateu's paths of it themselves,
+ * Helidon maps it in the app's configuration, the .NET and Python ports and the bundle exporter
+ * read it from the jar, and {@code @UI(indexHtmlPath)} defaults to {@code /static/_index.html}.
+ * Only the paths {@link StaticAssetCaching} names as Mateu's ({@code /assets/…}, {@code /js/…},
+ * {@code /myassets/…}, {@code /_redwood/…}, {@code /version_<n>/…}) are looked up, so an app's own
+ * {@code static/} content is not published by accident.
  */
 public final class ClasspathAssets {
 

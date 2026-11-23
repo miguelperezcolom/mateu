@@ -119,6 +119,24 @@ class ProjectRendererCheckTest {
   }
 
   @Test
+  void detectsSlds() throws Exception {
+    assertThat(
+            ProjectRendererCheck.served(
+                classpath(
+                    Map.of("static/_index.html", "<html/>", "static/assets/mateu-slds.js", ""))))
+        .isEqualTo(ProjectRenderer.slds);
+    assertThat(ProjectRendererCheck.parse("type: Project\nrenderer: slds\n"))
+        .map(ProjectSettings::renderer)
+        .contains(ProjectRenderer.slds);
+    assertThat(
+            ProjectRendererCheck.mismatch(
+                new ProjectSettings(ProjectRenderer.vaadin), ProjectRenderer.slds))
+        .get()
+        .asString()
+        .contains("io.mateu:mateu-slds");
+  }
+
+  @Test
   void aPrimerClasspathWithAVaadinDescriptorWarns() {
     assertThat(
             ProjectRendererCheck.mismatch(

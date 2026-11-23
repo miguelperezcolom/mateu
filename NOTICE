@@ -39,6 +39,17 @@ One of them carries a condition:
   visible and is not removed, changed or overlapped. Mateu's BPMN component
   keeps it as bpmn-js renders it.
 
+The Salesforce renderer (the io.mateu:mateu-slds jar, preview) ships the
+Salesforce Lightning Design System package (@salesforce-ux/design-system): its
+code (CSS) under the BSD 3-Clause License, and its icons and images under
+Creative Commons Attribution-NoDerivatives 4.0
+(https://creativecommons.org/licenses/by-nd/4.0/), (c) salesforce.com, inc.,
+redistributed unmodified — the sprites are shipped whole, never recoloured or
+cut down. Salesforce Sans is not included (its licence restricts it to apps
+built on the Salesforce platform); the renderer uses the system font stack.
+Salesforce and Lightning are trademarks of salesforce.com, inc.; Mateu is not
+affiliated with or endorsed by Salesforce.
+
 The Mateu desktop app installers (built on CI from
 frontend/app/intellij-plugin, `buildInstaller`) redistribute IntelliJ IDEA
 Open Source (the open-source IntelliJ IDEA built from

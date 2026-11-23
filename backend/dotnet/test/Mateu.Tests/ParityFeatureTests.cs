@@ -139,6 +139,25 @@ public class ParityFeatureTests
     }
 
     [Fact]
+    public void The_Salesforce_renderer_is_recognised_served_and_declared()
+    {
+        var ui = Directory.CreateTempSubdirectory("mateu-ui-").FullName;
+        Directory.CreateDirectory(Path.Combine(ui, "assets"));
+        File.WriteAllText(Path.Combine(ui, "_index.html"), "<html></html>");
+        File.WriteAllText(Path.Combine(ui, "assets", "mateu-slds.js"), "/* slds */");
+        try
+        {
+            Assert.Equal("slds", ProjectRendererCheck.Served(RendererFiles.At(ui)));
+            Assert.Equal("slds", ProjectRendererCheck.Parse("type: Project\nrenderer: slds\n"));
+            Assert.Contains("serves slds", ProjectRendererCheck.Mismatch("vaadin", "slds"));
+        }
+        finally
+        {
+            Directory.Delete(ui, true);
+        }
+    }
+
+    [Fact]
     public void A_type_Project_file_anywhere_under_the_specs_is_the_descriptor()
     {
         var specs = Directory.CreateTempSubdirectory("mateu-project-").FullName;

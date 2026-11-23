@@ -83,6 +83,10 @@ fi
 check primer \
   "backend/shared/frontend/primer/src/main/resources/static/assets/mateu-primer.js" \
   "frontend/web/monorepo/apps/primer/src frontend/web/monorepo/apps/primer/index.html frontend/web/monorepo/apps/primer/vite.config.ts frontend/web/monorepo/apps/primer/package-lock.json frontend/web/react-renderer frontend/app/react-native/src/core frontend/app/react-native/src/renderer frontend/app/react-native/src/api frontend/app/react-native/src/a11y"
+# Salesforce (preview): like Primer — its own app, the shared React renderer tree and the React Native core
+check slds \
+  "backend/shared/frontend/slds/src/main/resources/static/assets/mateu-slds.js" \
+  "frontend/web/monorepo/apps/slds/src frontend/web/monorepo/apps/slds/index.html frontend/web/monorepo/apps/slds/vite.config.ts frontend/web/monorepo/apps/slds/package-lock.json frontend/web/react-renderer frontend/app/react-native/src/core frontend/app/react-native/src/renderer frontend/app/react-native/src/api frontend/app/react-native/src/a11y"
 
 # SAP (preview): like Primer — its own app, the shared React renderer tree and the React Native core
 check ui5 \
