@@ -2065,6 +2065,11 @@ oj-bind-if:has(> .mateu-header-overline) + oj-sp-header-general-overview .oj-sp-
 .mateu-has-toc > oj-sp-messages-toast { display: block; }
 .mateu-anchor-nav { position: absolute; top: var(--mateu-anchor-nav-start, 0px); bottom: 0; inset-inline-end: var(--mateu-anchor-nav-gap); width: var(--mateu-anchor-nav-width); }
 .mateu-anchor-nav-list { position: sticky; top: var(--mateu-anchor-nav-top, 0px); padding-top: 1rem; }
+/* a section's header sticks right under what is REALLY pinned at the top, like the navigator. Spectra's
+   PositionUtility sets it inline (top: 88px = the page header's height) believing the page header stuck,
+   but in a Mateu page it scrolls away with the content: the stuck section header hung 88px down, the
+   section's fields showing through above it. toc.mjs measures what is pinned (0 when nothing is). */
+.oj-sp-section-header.oj-sp-section-sticky { top: var(--mateu-anchor-nav-top, 0px) !important; }
 .mateu-anchor-nav-bar { display: none; }
 .mateu-anchor-nav ul, .oj-sp-vertical-anchor-navigator-popup ul { margin: 0; padding: 0; list-style: none; }
 .mateu-anchor-nav .oj-sp-navigator-list-item,

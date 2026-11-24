@@ -240,8 +240,10 @@ export function installToc(doc = typeof document !== 'undefined' ? document : nu
     container.style.setProperty('--mateu-anchor-nav-start', start + 'px')
   }
   const spy = () => {
-    if (!items().length) return
+    // what is pinned at the top also places Spectra's sticky section headers (app.css): measured on
+    // every page, with an index or without one
     placeNav()
+    if (!items().length) return
     if (locked >= 0) { mark(locked); return }
     const tops = tocSectionsOf(doc).map((el) => el.getBoundingClientRect().top)
     if (tops.length) mark(tocActiveIndex(tops, tocReadingLine(doc)))
