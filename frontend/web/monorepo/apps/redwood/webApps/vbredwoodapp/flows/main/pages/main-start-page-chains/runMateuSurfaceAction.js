@@ -77,6 +77,8 @@ define([
           await Actions.callComponentMethod(context, { selector: '#mateuModal', method: 'close' });
         }
       }
+      // the notices already on the band: if this answer navigates, they go (its own stay)
+      const noticesBefore = [...($application.variables.mateuNoticeKeys || [])];
       for (const toast of (reg.effects && reg.effects.toasts) || []) {
         const notification = bridge.bannerNotificationOf(toast);
         if (notification) { await Actions.fireNotificationEvent(context, notification); continue; }
@@ -98,7 +100,7 @@ define([
       if (navigate && navigate.url) {
         window.open(navigate.url, '_blank', 'noopener');
       } else if (navigate && navigate.route && !bridge.leftMountFor(navigate, $application.variables.mateuRegistry)) {
-        await Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: navigate.route, force: true } });
+        await Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: navigate.route, force: true, staleNotices: noticesBefore } });
       }
     }
   }

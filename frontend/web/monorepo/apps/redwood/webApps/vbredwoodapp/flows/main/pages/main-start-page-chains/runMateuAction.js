@@ -665,6 +665,8 @@ define([
         await Actions.callComponentMethod(context, { selector: '#mateuRowEditor', method: 'close' });
       }
 
+      // the notices already on the band: if this answer navigates, they go (its own stay)
+      const noticesBefore = [...($application.variables.mateuNoticeKeys || [])];
       // toast with the starter's pattern: variable + open() of the local oj-sp-messages-toast
       for (const toast of allToasts) {
         // an error or warning goes to the shell's message banner (the Redwood toast only confirms)
@@ -719,7 +721,7 @@ define([
           // own URL and reloaded nothing.
           await Actions.fireEvent(context, {
             name: 'application:mateuNavigate',
-            payload: { route: effects.navigate.route, force: true },
+            payload: { route: effects.navigate.route, force: true, staleNotices: noticesBefore },
           });
         }
       }

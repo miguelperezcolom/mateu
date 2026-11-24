@@ -527,7 +527,8 @@ define([
         $application.variables.mateuFilterValues || {},
         $application.variables.mateuLastSearchText || '');
       const banners = bridge.bannersOf(host);
-      const staleKeys = $application.variables.mateuBannerKeys || [];
+      // the screen's banners go, and the notices an action left about it (notify.mjs takeStaleNotices)
+      const staleKeys = [...($application.variables.mateuBannerKeys || []), ...bridge.takeStaleNotices($application.variables, detail.staleNotices)];
       if (staleKeys.length) {
         await Actions.fireDataProviderEvent(context, {
           target: $page.variables.messagesBannerADP,

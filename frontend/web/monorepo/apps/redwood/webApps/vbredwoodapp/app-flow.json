@@ -620,6 +620,11 @@
       "defaultValue": [],
       "description": "keys de los banners mostrados (para retirarlos al navegar)"
     },
+    "mateuNoticeKeys": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "keys de los avisos (error/warning) que una acci\u00f3n dej\u00f3 en la banda de mensajes: se retiran al cambiar de pantalla"
+    },
     "mateuWelcome": {
       "type": "any",
       "description": "proyecci\u00f3n del arquetipo Welcome (hero + CTAs + tiles)"
@@ -1028,9 +1033,10 @@
     "mateuNavigate": {
       "payloadType": {
         "route": "string",
-        "force": "boolean"
+        "force": "boolean",
+        "staleNotices": "any"
       },
-      "description": "Efecto NavigateTo del bridge: la shell (que posee el men\u00fa) carga la ruta"
+      "description": "Efecto NavigateTo del bridge: la shell (que posee el men\u00fa) carga la ruta. staleNotices: los avisos que retira (por defecto, todos los que hay); los que trajo la misma respuesta que navega se quedan"
     },
     "spShowToast": {
       "payloadType": {
