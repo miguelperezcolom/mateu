@@ -258,6 +258,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     installRichText,
     setTileReorderSink,
     bannerNotificationOf,
+    staleNoticesOf,
+    takeStaleNotices,
     notificationsOf,
     setUndoSink,
     setToastNavigateSink,

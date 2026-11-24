@@ -935,6 +935,19 @@ test('toc: a click on an entry scrolls to its section (no anchor navigation) and
   assert.ok(items[3].classList.contains('anchor-item-selected'))
 })
 
+test('toc: without an index, what is pinned at the top is still measured — Spectra\'s sticky section headers stick there (app.css), not 88px down under a page header that scrolled away', () => {
+  const { doc, win, el, fire } = makeDom()
+  // a form with sections and no index: nothing stuck at the top while it scrolls
+  doc.body.appendChild(el('div', { 'data-mateu-section': 'Identity', box: { top: -300, height: 400 } }))
+  installToc(doc, win)
+  fire(win, 'scroll', { bubbles: false })
+  assert.equal(doc.documentElement.style.getPropertyValue('--mateu-anchor-nav-top'), '0px')
+  // a record header that stays pinned: the section headers stick right under it
+  doc.body.appendChild(el('div', { class: 'mateu-sticky-header', box: { top: 0, height: 64 } }))
+  fire(win, 'scroll', { bubbles: false })
+  assert.equal(doc.documentElement.style.getPropertyValue('--mateu-anchor-nav-top'), '64px')
+})
+
 test('toc: on md-down the "Sections" button opens the list in its popup, and choosing an entry closes it', () => {
   const { doc, win, el, fire } = makeDom()
   win.scrollBy = () => {}

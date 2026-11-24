@@ -23,7 +23,7 @@ import {
 } from './reduceContexts.mjs'
 import { attachmentDownloadOf } from './files.mjs'
 import { absoluteUrlOf } from './core/overviews.mjs'
-import { bannerNotificationOf } from './notify.mjs'
+import { bannerNotificationOf, staleNoticesOf, takeStaleNotices } from './notify.mjs'
 import { isErrorAnswer, onErrorTriggers } from './polling.mjs'
 import { markdownToHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
 import { hexColorOf } from './inputs.mjs'
@@ -1404,4 +1404,20 @@ test('OrgChart over Spectra\'s hierarchy viewer: the root in focus, a picked per
   } finally {
     setOrgHierarchyProviderFactory(null)
   }
+})
+
+test('notices: a screen change takes away the errors and warnings the band holds — except those of the answer that navigated', () => {
+  // a menu click, the browser's back…: nothing named, all of them go
+  assert.deepEqual(staleNoticesOf(['0', '1'], undefined), ['0', '1'])
+  // an action whose answer navigates names the ones before it: its own (2) stay on the new screen
+  assert.deepEqual(staleNoticesOf(['0', '1', '2'], ['0', '1']), ['0', '1'])
+  // one already closed by the user is not removed twice
+  assert.deepEqual(staleNoticesOf(['2'], ['0', '1']), [])
+  assert.deepEqual(staleNoticesOf(undefined, undefined), [])
+  // the chain's step: the ones that go leave the app's list, the rest stay for the next change
+  const vars = { mateuNoticeKeys: ['0', '1', '2'] }
+  assert.deepEqual(takeStaleNotices(vars, ['0', '1']), ['0', '1'])
+  assert.deepEqual(vars.mateuNoticeKeys, ['2'])
+  assert.deepEqual(takeStaleNotices(vars, undefined), ['2'])
+  assert.deepEqual(vars.mateuNoticeKeys, [])
 })

@@ -1,7 +1,8 @@
 /* Mateu — Apache License 2.0 (LICENSE.txt at the repository root) */
 
 // A notice in the shell's message band (Actions.fireNotificationEvent). The transient ones
-// go away by themselves after 5 seconds; the rest, when the user closes them (closeMessageBanner).
+// go away by themselves after 5 seconds; the rest, when the user closes them (closeMessageBanner)
+// or changes screen (onMateuNavigate: mateuNoticeKeys) — a notice is about the screen it came from.
 define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) => {
   'use strict';
 
@@ -10,7 +11,7 @@ define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) =>
   class showNotificationMessage extends ActionChain {
     /** @param {{event: {summary: string, message: string, displayMode: string, type: string}}} params */
     async run(context, { event }) {
-      const { $page } = context;
+      const { $page, $application } = context;
       // the band's keys: a number sequence, as TEXT (MessagesBannerType.id is a string, and VB
       // coerces it). With the counter typed as a string with no default the first notice had no id
       // and the next ones were all "NaN", so closing one removed nothing.
@@ -32,6 +33,7 @@ define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) =>
           keys: [id],
         },
       });
+      $application.variables.mateuNoticeKeys = [...($application.variables.mateuNoticeKeys || []), id];
       if (event.displayMode === 'transient') {
         setTimeout(() => Actions.fireDataProviderEvent(context, { target: banner, remove: { keys: [id] } }), TRANSIENT_MILLIS);
       }

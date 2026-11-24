@@ -22166,6 +22166,27 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { summary: toast.text || '', type: toast.variant, displayMode: 'persist' }
   }
 
+  /**
+   * The notices of the shell's message band (an error or warning an action left: bannerNotificationOf)
+   * that a screen change takes away: those named in `stale` — the answer that navigated says which
+   * were there BEFORE it, so its own stay on the screen it leads to —, or all of them when nothing is
+   * named (a menu click, the browser's back…). A notice is about the screen it came from.
+   */
+  function staleNoticesOf(notices, stale) {
+    const shown = Array.isArray(notices) ? notices.map(String) : []
+    if (!Array.isArray(stale)) return shown
+    const named = new Set(stale.map(String))
+    return shown.filter((key) => named.has(key))
+  }
+
+  /** The notices a screen change takes away (staleNoticesOf), dropped from the app's `mateuNoticeKeys`:
+   *  their keys, for the chain to remove them from the band. */
+  function takeStaleNotices(vars, stale) {
+    const gone = staleNoticesOf(vars && vars.mateuNoticeKeys, stale)
+    if (vars && gone.length) vars.mateuNoticeKeys = (vars.mateuNoticeKeys || []).filter((key) => !gone.includes(String(key)))
+    return gone
+  }
+
   /** The shortest time a toast with an action stays, in ms (WCAG 2.2.1 — libs/mateu ACTIONABLE_TOAST_MIN_MS). */
   const ACTION_TOAST_MIN_MS = 10000
   /** The least time a resumed toast gets before it closes (libs/mateu dismissTimer RESUME_MIN_MS). */
@@ -26322,8 +26343,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       container.style.setProperty('--mateu-anchor-nav-start', start + 'px')
     }
     const spy = () => {
-      if (!items().length) return
+      // what is pinned at the top also places Spectra's sticky section headers (app.css): measured on
+      // every page, with an index or without one
       placeNav()
+      if (!items().length) return
       if (locked >= 0) { mark(locked); return }
       const tops = tocSectionsOf(doc).map((el) => el.getBoundingClientRect().top)
       if (tops.length) mark(tocActiveIndex(tops, tocReadingLine(doc)))
@@ -39688,6 +39711,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installRichText,
     setTileReorderSink,
     bannerNotificationOf,
+    staleNoticesOf,
+    takeStaleNotices,
     notificationsOf,
     setUndoSink,
     setToastNavigateSink,

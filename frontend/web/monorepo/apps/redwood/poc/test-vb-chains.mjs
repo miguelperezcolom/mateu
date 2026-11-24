@@ -921,7 +921,7 @@ test('N-4: a browser-run flow\'s Navigate asks when the unsaved changes are the 
     confirmAnswer = true
     await act(ctx, 'goList')
     assert.equal(asked.length, 2)
-    assert.deepEqual(navs().at(-1)[2], { route: '/n4-list', force: true })
+    assert.deepEqual(navs().at(-1)[2], { route: '/n4-list', force: true, staleNotices: [] })
   } finally { win.confirm = realConfirm; confirmAnswer = true }
 })
 
@@ -1211,7 +1211,7 @@ test('runMateuAction: a flow the page declares runs in the browser, with no serv
   await act(ctx, 'goHome')
   assert.equal(sent.length, before, 'no request')
   const nav = calls.find((c) => c[0] === 'event' && c[1] === 'application:mateuNavigate')
-  assert.deepEqual(nav[2], { route: '/home', force: true }, 'a NavigateTo forces the shell to the route')
+  assert.deepEqual(nav[2], { route: '/home', force: true, staleNotices: [] }, 'a NavigateTo forces the shell to the route')
 })
 
 test('runMateuAction: a flow that marks the page dirty asks before its Navigate leaves (W-3, as on Vaadin)', async () => {
@@ -1235,7 +1235,7 @@ test('runMateuAction: a flow that marks the page dirty asks before its Navigate 
     confirmAnswer = true
     await act(ctx, 'localFlow')
     assert.equal(asked.length, 2)
-    assert.deepEqual(navs().at(-1)[2], { route: '/fluent-counter', force: true }, 'confirmed: it leaves')
+    assert.deepEqual(navs().at(-1)[2], { route: '/fluent-counter', force: true, staleNotices: [] }, 'confirmed: it leaves')
     assert.equal(bridge.hasUnsavedChanges(ctx.$application.variables), false, 'the discarded changes ask no more')
     assert.equal(sent.length, before, 'no server round trip')
   } finally { win.confirm = realConfirm; confirmAnswer = true }
@@ -1253,7 +1253,7 @@ test('runMateuAction: a server NavigateTo never asks, even with unsaved changes 
     await act(ctx, 'save')
     assert.equal(asked, 0)
     const nav = calls.filter((c) => c[0] === 'event' && c[1] === 'application:mateuNavigate').at(-1)
-    assert.deepEqual(nav[2], { route: '/home', force: true })
+    assert.deepEqual(nav[2], { route: '/home', force: true, staleNotices: [] })
   } finally { win.confirm = realConfirm }
 })
 
@@ -1455,6 +1455,31 @@ test('the message band: every notice gets its own text key, and closing one remo
   await new close().run(ctx, { event: { detail: {} } })
   assert.deepEqual(calls.map((c) => c[1].remove.keys), [['1'], ['0']])
   assert.ok(calls.every((c) => c[1].target === ctx.$page.variables.messagesBannerADP))
+})
+
+test('the message band: a screen change takes away the notices an action left — not those of the answer that navigated', async () => {
+  const show = chain('pages/shell-page-chains/showNotificationMessage.js')
+  answer(byRoute('/a'), replace(page('pa', 'x.A', 'A')))
+  answer(byRoute('/b'), replace(page('pb', 'x.B', 'B')))
+  answer(byRoute('/c'), replace(page('pc', 'x.C', 'C')))
+  const ctx = newContext()
+  ctx.$page.variables.messageId = 0
+  await navigate(ctx, '/a')
+  // an error on /a (e.g. a refused save) stays there…
+  await new show().run(ctx, { event: { summary: 'Refused', type: 'error', displayMode: 'persist' } })
+  assert.deepEqual(ctx.$application.variables.mateuNoticeKeys, ['0'])
+  // …then an action answers with a warning AND a NavigateTo: it names the notices before it
+  await new show().run(ctx, { event: { summary: 'Saved, but…', type: 'warning', displayMode: 'persist' } })
+  calls.length = 0
+  await navigate(ctx, '/b', { force: true, event: { detail: { route: '/b', staleNotices: ['0'] } } })
+  const removed = calls.filter((c) => c[0] === 'dataProvider' && c[1].remove).flatMap((c) => c[1].remove.keys)
+  assert.deepEqual(removed, ['0'], 'the old error goes; the warning that came with the navigation stays')
+  assert.deepEqual(ctx.$application.variables.mateuNoticeKeys, ['1'])
+  // a menu click names nothing: whatever is left goes
+  calls.length = 0
+  await navigate(ctx, '/c')
+  assert.deepEqual(calls.filter((c) => c[0] === 'dataProvider' && c[1].remove).flatMap((c) => c[1].remove.keys), ['1'])
+  assert.deepEqual(ctx.$application.variables.mateuNoticeKeys, [])
 })
 
 // ═══ the <mateu-ui> component: the same chains under the embedded VB runtime ═══════════════
