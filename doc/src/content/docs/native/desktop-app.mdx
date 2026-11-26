@@ -105,7 +105,8 @@ features** (with its uninstaller) and, in the hub variant, the `mateu://` protoc
 is fixed: the setup does not ask where to install, and refuses a folder there that holds anything else.
 The uninstaller removes what it installed, by name, and only then the folder if it is empty.
 
-The setup published on the GitHub release is **not code-signed** yet, so Windows **SmartScreen**
+The setup published on the GitHub release is **not code-signed** yet (signing through the SignPath
+Foundation is under way — see the [code signing policy](/reference/code-signing-policy/)), so Windows **SmartScreen**
 stops it the first time with *"Windows protected your PC"*. To install it, check that the file came
 from the [Mateu releases page](https://github.com/miguelperezcolom/mateu/releases) (each release
 lists its files with their SHA-256), then click **More info ▸ Run anyway**. A browser may also flag

@@ -162,7 +162,8 @@ Get-AuthenticodeSignature .\mateu-desktop-3.0.0-windows-setup.exe | Format-List 
 Get-AuthenticodeSignature "<install folder>\bin\idea64.exe" | Format-List Status, SignerCertificate
 ```
 
-When the release is Authenticode-signed, the setup shows `Status: Valid` with Mateu's certificate.
+When the release is Authenticode-signed, the setup shows `Status: Valid` with the certificate SignPath
+Foundation issues for Mateu (see the [code signing policy](/reference/code-signing-policy/)).
 The IntelliJ binaries inside keep **JetBrains'** signature — Mateu never re-signs them, and the
 release workflow fails if that signature does not survive the packaging. An unsigned setup makes
 SmartScreen warn on first run; verify it by its attestation and checksum.
