@@ -220,6 +220,7 @@ Have questions, ideas or feedback?
 
 - [CONTRIBUTING.md](CONTRIBUTING.md) — build order, module map, tests, sign-off.
 - [SECURITY.md](SECURITY.md) — report vulnerabilities privately, never in a public issue.
+- [Code signing policy](https://mateu.io/reference/code-signing-policy/) — who builds, reviews and approves the signed Windows installer.
 - [Code of conduct](CODE_OF_CONDUCT.md) · Licensed under [Apache-2.0](LICENSE.txt).
 
 ---
