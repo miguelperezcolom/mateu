@@ -28,11 +28,9 @@ artifact Mateu publishes (jars, packages, the macOS app, the Android APK) is on
 
 ## Team roles
 
-- **Committers and reviewers:** [Miguel Pérez Colom](https://github.com/miguelperezcolom),
-  [Marc Bennasar](https://github.com/marcbennasarp) and [Alejandro Borrego Megías](https://github.com/alejbormeg),
-  the collaborators with write access to the repository. Every change goes through a pull request
-  (`master` is protected), and a change from anyone outside the team is reviewed by a team member
-  before it is merged.
+- **Committers and reviewers:** [Miguel Pérez Colom](https://github.com/miguelperezcolom). Every
+  change goes through a pull request (`master` is protected), and a change from anyone else is
+  reviewed by him before it is merged.
 - **Approvers:** [Miguel Pérez Colom](https://github.com/miguelperezcolom), the repository owner.
   Every signing request is approved by hand on SignPath before the release is published.
 
