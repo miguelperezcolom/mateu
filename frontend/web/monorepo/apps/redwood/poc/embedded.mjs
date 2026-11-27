@@ -673,7 +673,7 @@ export const embeddedActions = Object.freeze({
  * the two cannot drift apart silently.
  */
 export const CONTENT_INSTALLERS = Object.freeze([
-  'installRules', 'installPlanningRange', 'installActionPanels', 'installTileReorder', 'installRichText',
+  'installRules', 'installPlanningRange', 'installPlanningTools', 'installActionPanels', 'installTileReorder', 'installRichText',
   'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
   'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
   'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer', 'installInputPurpose',

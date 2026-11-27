@@ -1,6 +1,9 @@
 import { writeTileOrder, moveTile, moveTileBy } from './prefs.mjs'
 import { kanbanDropIndexOf } from './core/kanban.mjs'
 import { surfaceAtomOf } from './surfaces.mjs'
+import { selectedRowsOf } from './core/listing.mjs'
+import { dragMimeOf } from './core/atoms.mjs'
+import { chromeText } from './i18n.mjs'
 // DRAGGING ROWS TO A DESTINATION: the rows of a @DragRows(type) listing are dragged with the dnd
 // of JET's own oj-table (dnd.drag.rows.data-types = the type's MIME type); a DropZone
 // (isDropZone atom) accepts that MIME type — it highlights while something of its own passes over it — and on
@@ -108,6 +111,52 @@ export function installTileReorder(doc = typeof document !== 'undefined' ? docum
   }, true)
 }
 
+// ── WITHOUT DRAGGING (WCAG 2.1.1 Keyboard, 2.5.7 Dragging Movements) — libs/mateu dragAndDrop.ts
+// publishDragSelection: the page's @DragRows listing has rows CHECKED → every drop zone accepting
+// its type offers «Move the selected rows here (n)», which runs the same drop action with their ids.
+// The selection lives in the shell ($application.variables.mateuListing/-Rows/-Selection): read
+// through a reader the shell installs, so the button follows whatever changed it.
+
+/** The ids of the checked rows of a listing that drags `mime` — [] for another type or none. */
+export function dragSelectionIdsOf(listing, rows, selection, mime) {
+  if (!listing || !listing.dragType || !mime || dragMimeOf(listing.dragType) !== mime) return []
+  return selectedRowsOf(rows, selection).map((r) => (r && r.id != null ? String(r.id) : null)).filter((id) => id != null)
+}
+
+let dragSelectionReader = () => null
+export function setDragSelectionReader(fn) { dragSelectionReader = typeof fn === 'function' ? fn : () => null }
+
+function selectedIdsFor(zone) {
+  const now = dragSelectionReader() || {}
+  return dragSelectionIdsOf(now.listing, now.rows, now.selection, zone.getAttribute('data-drop-accept'))
+}
+
+/** Shows (or hides) each zone's «move the selected rows here» button for the selection on screen. */
+export function refreshDropSelection(doc = typeof document !== 'undefined' ? document : null) {
+  if (!doc) return
+  for (const zone of doc.querySelectorAll('.mateu-drop-zone[data-drop-accept]')) {
+    const button = zone.querySelector('.mateu-drop-selected')
+    if (!button) continue
+    const ids = selectedIdsFor(zone)
+    button.hidden = !ids.length
+    if (ids.length) button.textContent = chromeText('dropSelected', { count: ids.length })
+  }
+}
+
+// after a selection change or a repaint (VB binds asynchronously): a few frames, then stop
+let dropSelectionTries = 0
+export function refreshDropSelectionSoon(doc = typeof document !== 'undefined' ? document : null) {
+  if (typeof requestAnimationFrame !== 'function') { refreshDropSelection(doc); return }
+  const running = dropSelectionTries > 0
+  dropSelectionTries = 6
+  if (running) return
+  const tick = () => {
+    refreshDropSelection(doc)
+    if (--dropSelectionTries > 0) requestAnimationFrame(tick)
+  }
+  requestAnimationFrame(tick)
+}
+
 export function installDragAndDrop(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc || doc.__mateuDnd) return
   doc.__mateuDnd = true
@@ -143,6 +192,19 @@ export function installDragAndDrop(doc = typeof document !== 'undefined' ? docum
     for (const z of doc.querySelectorAll('.mateu-drop-zone')) z.classList.remove('mateu-drop-ready', 'mateu-drop-over')
   }
   doc.addEventListener('dragend', clear, true)
+  // the button of a zone: the same drop, with the checked rows
+  doc.addEventListener('click', (e) => {
+    const button = e.target && e.target.closest ? e.target.closest('.mateu-drop-selected') : null
+    const zone = button && button.closest('.mateu-drop-zone[data-drop-accept]')
+    if (!zone || !dropSink) return
+    const ids = selectedIdsFor(zone)
+    if (!ids.length) return
+    e.preventDefault()
+    let params = {}
+    try { params = JSON.parse(zone.getAttribute('data-drop-params') || '{}') } catch (err) { params = {} }
+    const mime = zone.getAttribute('data-drop-accept')
+    dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) }, surfaceAtomOf(zone))
+  }, true)
   doc.addEventListener('drop', (e) => {
     const zone = zoneOf(e.target, e)
     if (!zone) return

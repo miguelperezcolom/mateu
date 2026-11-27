@@ -293,6 +293,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       shortcutsPalette: 'Search or go to',
       quickLaunchCode: 'Code',
       headerValueChanged: '{label} changed to {value}',
+      uploadingFile: 'Uploading {name}…',
+      fileTooLarge: 'This file is too large (max {max}).',
+      fileNotAccepted: 'This type of file is not accepted.',
+      uploadFailed: 'The file could not be uploaded.',
+      uploadNotAllowed: 'This upload is not allowed.',
+      uploadsNotAvailable: 'Uploads are not available.',
+      uploadNotSent: 'The file could not be sent. Check the connection and try again.',
+      dropSelected: 'Move the selected rows here ({count})',
+      planningEarlier: 'One day earlier',
+      planningLater: 'One day later',
+      planningRowUp: 'Previous row',
+      planningRowDown: 'Next row',
+      planningShorter: 'One day shorter',
+      planningLonger: 'One day longer',
+      planningKeys: 'Arrow keys move it, Shift+Left/Right change its length, Enter applies, Escape cancels',
+      planningPending: '{block}: {resource}, {start} to {end}',
+      planningPick: 'Block to move or resize',
+      presenceAnd: ' and ',
+      presenceMore: '{names} and {n} more',
+      presenceEditing: '{names} is editing this record',
+      presenceEditingMany: '{names} are editing this record',
+      presenceViewing: '{names} is viewing it',
+      presenceViewingMany: '{names} are viewing it',
+      presenceStartedEditing: '{name} started editing this record',
+      presenceLabel: 'Also on this record',
       idleTitle: 'Are you still there?',
       idleMessage: 'For your security you will be signed out in {seconds} seconds.',
       idleStay: 'Stay signed in',
@@ -598,6 +623,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       shortcutsPalette: 'Buscar o ir a',
       quickLaunchCode: 'Código',
       headerValueChanged: '{label} ha cambiado a {value}',
+      uploadingFile: 'Subiendo {name}…',
+      fileTooLarge: 'Este fichero es demasiado grande (máx. {max}).',
+      fileNotAccepted: 'Este tipo de fichero no se acepta.',
+      uploadFailed: 'No se ha podido subir el fichero.',
+      uploadNotAllowed: 'Esta subida no está permitida.',
+      uploadsNotAvailable: 'Las subidas no están disponibles.',
+      uploadNotSent: 'No se ha podido enviar el fichero. Comprueba la conexión y vuelve a intentarlo.',
+      dropSelected: 'Mover aquí las filas seleccionadas ({count})',
+      planningEarlier: 'Un día antes',
+      planningLater: 'Un día después',
+      planningRowUp: 'Fila anterior',
+      planningRowDown: 'Fila siguiente',
+      planningShorter: 'Un día menos',
+      planningLonger: 'Un día más',
+      planningKeys: 'Las flechas lo mueven, Mayús+Izquierda/Derecha cambian su duración, Intro aplica, Escape cancela',
+      planningPending: '{block}: {resource}, del {start} al {end}',
+      planningPick: 'Bloque que mover o cambiar de tamaño',
+      presenceAnd: ' y ',
+      presenceMore: '{names} y {n} más',
+      presenceEditing: '{names} está editando este registro',
+      presenceEditingMany: '{names} están editando este registro',
+      presenceViewing: '{names} lo está viendo',
+      presenceViewingMany: '{names} lo están viendo',
+      presenceStartedEditing: '{name} ha empezado a editar este registro',
+      presenceLabel: 'También en este registro',
       idleTitle: '¿Sigues ahí?',
       idleMessage: 'Por seguridad, se cerrará tu sesión en {seconds} segundos.',
       idleStay: 'Seguir conectado',
@@ -907,6 +957,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       shortcutsPalette: 'Rechercher ou aller à',
       quickLaunchCode: 'Code',
       headerValueChanged: '{label} est passé à {value}',
+      uploadingFile: 'Envoi de {name}…',
+      fileTooLarge: 'Ce fichier est trop volumineux (max. {max}).',
+      fileNotAccepted: "Ce type de fichier n'est pas accepté.",
+      uploadFailed: "Le fichier n'a pas pu être envoyé.",
+      uploadNotAllowed: "Cet envoi n'est pas autorisé.",
+      uploadsNotAvailable: "L'envoi de fichiers n'est pas disponible.",
+      uploadNotSent: "Le fichier n'a pas pu être envoyé. Vérifiez la connexion et réessayez.",
+      dropSelected: 'Déplacer ici les lignes sélectionnées ({count})',
+      planningEarlier: 'Un jour plus tôt',
+      planningLater: 'Un jour plus tard',
+      planningRowUp: 'Ligne précédente',
+      planningRowDown: 'Ligne suivante',
+      planningShorter: 'Un jour de moins',
+      planningLonger: 'Un jour de plus',
+      planningKeys: 'Les flèches le déplacent, Maj+Gauche/Droite changent sa durée, Entrée applique, Échap annule',
+      planningPending: '{block} : {resource}, du {start} au {end}',
+      planningPick: 'Bloc à déplacer ou redimensionner',
+      presenceAnd: ' et ',
+      presenceMore: '{names} et {n} autres',
+      presenceEditing: '{names} modifie cet enregistrement',
+      presenceEditingMany: '{names} modifient cet enregistrement',
+      presenceViewing: '{names} le consulte',
+      presenceViewingMany: '{names} le consultent',
+      presenceStartedEditing: '{name} a commencé à modifier cet enregistrement',
+      presenceLabel: 'Également sur cet enregistrement',
       idleTitle: 'Êtes-vous toujours là ?',
       idleMessage: 'Pour votre sécurité, vous serez déconnecté dans {seconds} secondes.',
       idleStay: 'Rester connecté',
@@ -1216,6 +1291,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       shortcutsPalette: 'Suchen oder gehe zu',
       quickLaunchCode: 'Code',
       headerValueChanged: '{label} geändert auf {value}',
+      uploadingFile: '{name} wird hochgeladen…',
+      fileTooLarge: 'Diese Datei ist zu groß (max. {max}).',
+      fileNotAccepted: 'Dieser Dateityp wird nicht akzeptiert.',
+      uploadFailed: 'Die Datei konnte nicht hochgeladen werden.',
+      uploadNotAllowed: 'Dieser Upload ist nicht erlaubt.',
+      uploadsNotAvailable: 'Uploads sind nicht verfügbar.',
+      uploadNotSent: 'Die Datei konnte nicht gesendet werden. Prüfen Sie die Verbindung und versuchen Sie es erneut.',
+      dropSelected: 'Ausgewählte Zeilen hierher verschieben ({count})',
+      planningEarlier: 'Einen Tag früher',
+      planningLater: 'Einen Tag später',
+      planningRowUp: 'Vorherige Zeile',
+      planningRowDown: 'Nächste Zeile',
+      planningShorter: 'Einen Tag kürzer',
+      planningLonger: 'Einen Tag länger',
+      planningKeys: 'Pfeiltasten verschieben, Umschalt+Links/Rechts ändern die Dauer, Eingabe übernimmt, Escape bricht ab',
+      planningPending: '{block}: {resource}, {start} bis {end}',
+      planningPick: 'Zu verschiebender oder anzupassender Block',
+      presenceAnd: ' und ',
+      presenceMore: '{names} und {n} weitere',
+      presenceEditing: '{names} bearbeitet diesen Datensatz',
+      presenceEditingMany: '{names} bearbeiten diesen Datensatz',
+      presenceViewing: '{names} sieht ihn sich an',
+      presenceViewingMany: '{names} sehen ihn sich an',
+      presenceStartedEditing: '{name} hat begonnen, diesen Datensatz zu bearbeiten',
+      presenceLabel: 'Ebenfalls in diesem Datensatz',
       idleTitle: 'Sind Sie noch da?',
       idleMessage: 'Zu Ihrer Sicherheit werden Sie in {seconds} Sekunden abgemeldet.',
       idleStay: 'Angemeldet bleiben',
@@ -1525,6 +1625,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       shortcutsPalette: 'Pesquisar ou ir para',
       quickLaunchCode: 'Código',
       headerValueChanged: '{label} mudou para {value}',
+      uploadingFile: 'Enviando {name}…',
+      fileTooLarge: 'Este arquivo é grande demais (máx. {max}).',
+      fileNotAccepted: 'Este tipo de arquivo não é aceito.',
+      uploadFailed: 'Não foi possível enviar o arquivo.',
+      uploadNotAllowed: 'Este envio não é permitido.',
+      uploadsNotAvailable: 'O envio de arquivos não está disponível.',
+      uploadNotSent: 'Não foi possível enviar o arquivo. Verifique a conexão e tente novamente.',
+      dropSelected: 'Mover para cá as linhas selecionadas ({count})',
+      planningEarlier: 'Um dia antes',
+      planningLater: 'Um dia depois',
+      planningRowUp: 'Linha anterior',
+      planningRowDown: 'Próxima linha',
+      planningShorter: 'Um dia a menos',
+      planningLonger: 'Um dia a mais',
+      planningKeys: 'As setas o movem, Shift+Esquerda/Direita mudam sua duração, Enter aplica, Esc cancela',
+      planningPending: '{block}: {resource}, de {start} a {end}',
+      planningPick: 'Bloco a mover ou redimensionar',
+      presenceAnd: ' e ',
+      presenceMore: '{names} e mais {n}',
+      presenceEditing: '{names} está editando este registro',
+      presenceEditingMany: '{names} estão editando este registro',
+      presenceViewing: '{names} está vendo',
+      presenceViewingMany: '{names} estão vendo',
+      presenceStartedEditing: '{name} começou a editar este registro',
+      presenceLabel: 'Também neste registro',
       idleTitle: 'Você ainda está aí?',
       idleMessage: 'Por segurança, sua sessão será encerrada em {seconds} segundos.',
       idleStay: 'Continuar conectado',
@@ -1834,6 +1959,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       shortcutsPalette: 'Cerca o vai a',
       quickLaunchCode: 'Codice',
       headerValueChanged: '{label} è cambiato in {value}',
+      uploadingFile: 'Caricamento di {name}…',
+      fileTooLarge: 'Questo file è troppo grande (max {max}).',
+      fileNotAccepted: 'Questo tipo di file non è accettato.',
+      uploadFailed: 'Impossibile caricare il file.',
+      uploadNotAllowed: 'Questo caricamento non è consentito.',
+      uploadsNotAvailable: 'I caricamenti non sono disponibili.',
+      uploadNotSent: 'Impossibile inviare il file. Controlla la connessione e riprova.',
+      dropSelected: 'Sposta qui le righe selezionate ({count})',
+      planningEarlier: 'Un giorno prima',
+      planningLater: 'Un giorno dopo',
+      planningRowUp: 'Riga precedente',
+      planningRowDown: 'Riga successiva',
+      planningShorter: 'Un giorno in meno',
+      planningLonger: 'Un giorno in più',
+      planningKeys: 'Le frecce lo spostano, Maiusc+Sinistra/Destra cambiano la durata, Invio applica, Esc annulla',
+      planningPending: '{block}: {resource}, dal {start} al {end}',
+      planningPick: 'Blocco da spostare o ridimensionare',
+      presenceAnd: ' e ',
+      presenceMore: '{names} e altri {n}',
+      presenceEditing: '{names} sta modificando questo record',
+      presenceEditingMany: '{names} stanno modificando questo record',
+      presenceViewing: '{names} lo sta guardando',
+      presenceViewingMany: '{names} lo stanno guardando',
+      presenceStartedEditing: '{name} ha iniziato a modificare questo record',
+      presenceLabel: 'Anche su questo record',
       idleTitle: 'Ci sei ancora?',
       idleMessage: 'Per sicurezza la sessione verrà chiusa tra {seconds} secondi.',
       idleStay: 'Resta connesso',
@@ -13576,6 +13726,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           shortcuts: md.shortcuts || [],
           headerValues: md.headerValues || [],
           liveUpdates: !!md.liveUpdates,
+          // @App(presence): record pages tell who else has the record open (presence.mjs)
+          presence: !!md.presence,
           idleSession: md.idleSession || null,
           // @App(mobileQr): the header's "Open on mobile" action (qr.mjs)
           mobileQr: !!md.mobileQr,
@@ -14593,6 +14745,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // `image` is an image BY ITS URL (typed in, previewed); `uploadableImage` is the one you upload
   const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'url', signature: 'signature', camera: 'camera' }
 
+  const UPLOAD_ATTRIBUTE_KEYS = ['maxBytes', 'multiple', 'uploadUrl', 'uploadTicket', 'uploadDirect']
+
+  /** The upload attributes of a file field, as the JSON mateu-capture-field reads ('' when none). */
+  function uploadAttributesJsonOf(attributes) {
+    const out = {}
+    for (const a of Array.isArray(attributes) ? attributes : []) {
+      if (a && UPLOAD_ATTRIBUTE_KEYS.includes(a.key) && a.value != null) out[a.key] = String(a.value)
+    }
+    return Object.keys(out).length ? JSON.stringify(out) : ''
+  }
+
   /** The widget of an «extra» stereotype, or null if the field is one of the usual ones. */
   function extraWidgetOf(f, options, value) {
     const st = f.stereotype
@@ -14630,7 +14793,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // the accept list travels in the field's generic attributes ({key, value} pairs)
     if (CAPTURE_MODES[st]) {
       const declared = ((f.attributes || []).find && (f.attributes || []).find((a) => a && a.key === 'accept')) || {}
-      return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || declared.value || '' }
+      // a FILE field carries what uploads need (fileUploads.mjs): the declared maxBytes/multiple and,
+      // when the app registers a storage, the server's uploadUrl/uploadTicket/uploadDirect
+      const upload = CAPTURE_MODES[st] === 'file' ? uploadAttributesJsonOf(f.attributes) : ''
+      return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || declared.value || '', upload }
     }
     // slider → oj-slider; stars → oj-rating-gauge; color → mateu-color-field (a hex string: JET's
     // oj-color-spectrum works on oj.Color objects); richText → mateu-rich-text-field (HTML, Delta read)
@@ -15254,6 +15420,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Today's line on a gantt (Redwood's danger ink, as the web's marker). */
   const TODAY_INK = '#c74634' // design-token-ok: oj-gantt referenceObjects svgStyle is a DVT style object painted onto SVG, not a CSS cascade — a var() is not resolved there
 
+  /**
+   * What the tape chart's WITHOUT-DRAGGING tool row needs (planning.mjs installPlanningTools; WCAG 2.1.1
+   * Keyboard, 2.5.7 Dragging Movements — the web's mateu-planning-board tool row): the window (first
+   * day + length), the movable rows (no group headers), each block as day indexes (inclusive end, as
+   * the wire sends it) and the gantt's row → tasks layout (a click's getContextByNode resolves to it).
+   * '' when the board neither moves nor resizes.
+   */
+  function planningToolsModelOf(m, rows, from, to) {
+    if (!m.moveActionId && !m.resizeActionId) return ''
+    const idx = (iso) => Math.round((Date.parse(iso + 'T00:00:00Z') - Date.parse(from + 'T00:00:00Z')) / DAY_MS)
+    const labels = new Map(rows.filter((r) => !r.isGroup).map((r) => [r.id, r.label]))
+    const blocks = (m.blocks || []).map((b) => {
+      const span = b && b.id != null && daySpanOf(b.start, b.end)
+      return span && labels.has(b.resourceId)
+        ? { id: String(b.id), label: b.label || String(b.id), resourceId: b.resourceId, startIdx: idx(span.start), endIdx: idx(span.end) }
+        : null
+    }).filter(Boolean)
+    return JSON.stringify({
+      move: m.moveActionId || '', resize: m.resizeActionId || '', from, days: idx(to) + 1,
+      rows: rows.filter((r) => !r.isGroup).map((r) => ({ id: r.id, label: r.label })),
+      rowTasks: rows.map((r) => (r.tasks || []).map((t) => String(t.id))),
+      blocks,
+    })
+  }
+
   function planningAtomOf(m, id) {
     const columns = m.attributeColumns || []
     const blocks = (m.blocks || []).map((b) => {
@@ -15334,6 +15525,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       rowLabels: rows.map((r) => r.label).join('\u001f'),
       dndMove: m.moveActionId ? 'enabled' : 'disabled',
       taskResizable: m.resizeActionId ? 'enabled' : 'disabled',
+      toolsModel: planningToolsModelOf(m, rows, from, to),
     }
   }
 
@@ -22605,16 +22797,241 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
+
+  // LARGE FILE UPLOADS through the app's storage port (design/uploads/file-uploads-contract.md) on
+  // the VB shell — a port of libs/mateu fileUploads.ts + fileUploader.ts (the same rules as the React
+  // Native app's src/core/fileUploads.ts; keep the three in step). A fileUpload field the server gave
+  // an `uploadTicket` + `uploadUrl` (its storage is registered) sends the bytes to the server —
+  // streamed (`POST uploadUrl`, raw body, X-Mateu-Upload-Ticket + X-Mateu-File-Name), or, with
+  // `uploadDirect`, to the pre-signed target the store issues (`POST uploadUrl/target`; a 404 falls
+  // back to streaming) — and commits the `mateu-file:` reference the server answers. Without a ticket
+  // the file is read into a data URI as before, refused over `maxBytes` (10 MB when undeclared).
+  // The pure half is tested in Node (test-sources.mjs); mateu-capture-field (inputs.mjs) uses it.
+
+  /** The data-URI fallback's limit when the field declares none (10 MB). */
+  const DEFAULT_UPLOAD_FALLBACK_MAX_BYTES = 10485760
+
+  const attrMapOf = (attributes) => {
+    const out = {}
+    if (Array.isArray(attributes)) {
+      for (const a of attributes) if (a && typeof a.key === 'string' && a.value != null) out[a.key] = String(a.value)
+    } else if (attributes && typeof attributes === 'object') {
+      for (const [k, v] of Object.entries(attributes)) if (v != null) out[k] = String(v)
+    }
+    return out
+  }
+  const blankless = (s) => (s && String(s).trim() ? String(s).trim() : undefined)
+
+  /** What a fileUpload field declares (accept/maxBytes/multiple) and what the server added
+   *  (uploadUrl/uploadTicket/uploadDirect), from the field's generic attributes. */
+  function uploadConfigOf(attributes) {
+    const a = attrMapOf(attributes)
+    const max = a.maxBytes !== undefined && /^\d+$/.test(a.maxBytes.trim()) ? Number(a.maxBytes.trim()) : undefined
+    return {
+      accept: blankless(a.accept),
+      maxBytes: max,
+      multiple: (a.multiple || '').trim().toLowerCase() === 'true',
+      uploadUrl: blankless(a.uploadUrl),
+      uploadTicket: blankless(a.uploadTicket),
+      uploadDirect: (a.uploadDirect || '').trim().toLowerCase() === 'true',
+    }
+  }
+
+  /** True when the field uploads through the server instead of reading the file into a data URI. */
+  const isUploadMode = (c) => !!(c && c.uploadTicket && c.uploadUrl)
+
+  /** Whether `accept` lets a file through — the server's rule (`.ext`, `type/*`, exact type). */
+  function uploadAccepts(accept, name, contentType) {
+    const entries = String(accept || '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
+    if (!entries.length) return true
+    const lowerName = String(name || '').toLowerCase()
+    const type = String(contentType || '').split(';')[0].trim().toLowerCase()
+    return entries.some((entry) => {
+      if (entry.startsWith('.')) return lowerName.endsWith(entry)
+      if (entry.endsWith('/*')) return type.startsWith(entry.slice(0, -1))
+      return type === entry
+    })
+  }
+
+  /** `N bytes`, `N KB`, `N MB`, `N GB` (1024 base, integer when exact, else one decimal). */
+  function uploadBytesText(bytes) {
+    const units = ['bytes', 'KB', 'MB', 'GB']
+    let value = bytes
+    let unit = 0
+    while (unit < units.length - 1 && value >= 1024) { value /= 1024; unit++ }
+    return (Number.isInteger(value) ? String(value) : value.toFixed(1)) + ' ' + units[unit]
+  }
+
+  /** Percent-encodes UTF-8, escaping every byte outside `A-Za-z0-9-._~` (the file name header). */
+  function uploadPercentEncode(text) {
+    return encodeURIComponent(String(text)).replace(/[!'()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase())
+  }
+
+  /** The field's value as a list of entries (a single value → one entry; blank → none). */
+  function fileValuesOf(value) {
+    if (Array.isArray(value)) return value.filter((v) => v != null && String(v) !== '').map(String)
+    if (value == null || String(value) === '') return []
+    return [String(value)]
+  }
+
+  /** The value after a file was committed: appended for a `multiple` field, replaced otherwise. */
+  const withUploadedFile = (current, added, multiple) => (multiple ? [...fileValuesOf(current), added] : added)
+
+  /** The value after the entry at `index` was removed. */
+  function withoutUploadedFile(current, index, multiple) {
+    if (!multiple) return ''
+    const list = fileValuesOf(current)
+    list.splice(index, 1)
+    return list
+  }
+
+  /** What the user is told when a picked file cannot go: null when it may. */
+  function pickedFileRefusal(config, file) {
+    if (!uploadAccepts(config.accept, file.name, file.type)) return chromeText('fileNotAccepted')
+    const max = isUploadMode(config) ? config.maxBytes : (config.maxBytes ?? DEFAULT_UPLOAD_FALLBACK_MAX_BYTES)
+    if (max !== undefined && file.size > max) return chromeText('fileTooLarge', { max: uploadBytesText(max) })
+    return null
+  }
+
+  /**
+   * Where to send the bytes: an absolute `uploadUrl` as it is; a root-relative one under the ROOT the
+   * backend serves its assets from (mount.mjs mateuAssetBase: the public base in path mode, the
+   * backend origin in development) — the upload endpoints live at the root path, never under a mount.
+   */
+  function resolveUploadTarget(assetBase, uploadUrl) {
+    if (/^[a-z][a-z0-9+.-]*:/i.test(uploadUrl)) return uploadUrl
+    const root = String(assetBase || '').replace(/\/+$/, '')
+    return uploadUrl.startsWith('/') ? root + uploadUrl : root + '/' + uploadUrl
+  }
+
+  const jsonOfText = (text) => {
+    try { const v = JSON.parse(text); return v && typeof v === 'object' ? v : null } catch (e) { return null }
+  }
+
+  /** The server's `message` of a refused upload, else a plain text for its status. */
+  function uploadErrorText(status, text) {
+    const message = (jsonOfText(text) || {}).message
+    if (typeof message === 'string' && message) return message
+    if (status === 403) return chromeText('uploadNotAllowed')
+    if (status === 404) return chromeText('uploadsNotAvailable')
+    if (status === 415) return chromeText('fileNotAccepted')
+    if (status === 0) return chromeText('uploadNotSent')
+    return chromeText('uploadFailed')
+  }
+
+  /** A refused or failed upload; `message` is what the user is shown. */
+  class UploadFailure extends Error {
+    constructor(status, message) { super(message); this.status = status }
+  }
+  /** The user cancelled the upload (nothing to show). */
+  class UploadAborted extends Error {
+    constructor() { super('cancelled') }
+  }
+
+  /** The Mateu credentials only for a url they may go to (the stored token never leaves its origins). */
+  const credentialsFor = (url) => (storedTokenMayGoTo(url) ? authHeadersOf() : {})
+
+  async function sendUpload(transport, request) {
+    if (request.signal && request.signal.aborted) throw new UploadAborted()
+    try {
+      return await transport(request)
+    } catch (e) {
+      if (e instanceof UploadAborted || (request.signal && request.signal.aborted)) throw new UploadAborted()
+      throw new UploadFailure(0, uploadErrorText(0, ''))
+    }
+  }
+
+  /**
+   * Uploads `file` for a field in upload mode and returns the value to commit (a `mateu-file:`
+   * reference). `transport({method, url, headers, body, onProgress, signal})` → `{status, text}`.
+   */
+  async function uploadPickedFile(assetBase, config, file, transport, onProgress, signal) {
+    if (!isUploadMode(config)) throw new UploadFailure(0, chromeText('uploadsNotAvailable'))
+    const url = resolveUploadTarget(assetBase, config.uploadUrl)
+    const ticket = config.uploadTicket
+    const contentType = file.type || undefined
+    if (config.uploadDirect) {
+      const targetUrl = url.replace(/\/+$/, '') + '/target'
+      const answer = await sendUpload(transport, {
+        method: 'POST', url: targetUrl, signal,
+        headers: { ...credentialsFor(targetUrl), 'X-Mateu-Upload-Ticket': ticket, 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ name: file.name, contentType: contentType || 'application/octet-stream', size: file.size == null ? -1 : file.size }),
+      })
+      if (answer.status === 200) {
+        const json = jsonOfText(answer.text)
+        if (!json || typeof json.url !== 'string' || typeof json.value !== 'string') throw new UploadFailure(200, chromeText('uploadFailed'))
+        const headers = {}
+        for (const [k, v] of Object.entries(json.headers || {})) if (v != null) headers[k] = String(v)
+        const hasType = Object.keys(headers).some((k) => k.toLowerCase() === 'content-type')
+        // the pre-signed url belongs to the store, not to Mateu: only the headers the store asked for
+        const sent = await sendUpload(transport, {
+          method: typeof json.method === 'string' && json.method ? json.method : 'PUT', url: json.url, signal, onProgress,
+          headers: { ...(contentType && !hasType ? { 'Content-Type': contentType } : {}), ...headers }, body: file,
+        })
+        if (sent.status < 200 || sent.status >= 300) throw new UploadFailure(sent.status, uploadErrorText(sent.status, sent.text))
+        return json.value
+      }
+      if (answer.status !== 404) throw new UploadFailure(answer.status, uploadErrorText(answer.status, answer.text))
+      // 404: the store issued no target — stream it through Mateu
+    }
+    const answer = await sendUpload(transport, {
+      method: 'POST', url, signal, onProgress, body: file,
+      headers: {
+        ...credentialsFor(url),
+        'X-Mateu-Upload-Ticket': ticket,
+        'X-Mateu-File-Name': uploadPercentEncode(file.name),
+        'Content-Type': contentType || 'application/octet-stream',
+        Accept: 'application/json',
+      },
+    })
+    if (answer.status !== 200) throw new UploadFailure(answer.status, uploadErrorText(answer.status, answer.text))
+    const value = (jsonOfText(answer.text) || {}).value
+    if (typeof value !== 'string' || !value) throw new UploadFailure(answer.status, chromeText('uploadFailed'))
+    return value
+  }
+
+  /** The browser's transport: XMLHttpRequest, which reports upload progress and can be aborted. */
+  function xhrUploadTransport(request) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.open(request.method, request.url)
+      for (const [k, v] of Object.entries(request.headers || {})) xhr.setRequestHeader(k, v)
+      if (request.onProgress && xhr.upload) {
+        xhr.upload.onprogress = (e) => { if (e.lengthComputable && e.total > 0) request.onProgress(Math.min(1, e.loaded / e.total)) }
+      }
+      xhr.onload = () => resolve({ status: xhr.status, text: String(xhr.responseText || '') })
+      xhr.onerror = () => reject(new Error('network'))
+      xhr.ontimeout = () => reject(new Error('timeout'))
+      xhr.onabort = () => reject(new UploadAborted())
+      if (request.signal) request.signal.addEventListener('abort', () => xhr.abort())
+      xhr.send(request.body)
+    })
+  }
+
+  // where the upload endpoints are (loadMateuShell: mount.mjs mateuAssetBase)
+  let uploadAssetBase = ''
+  function setUploadAssetBase(base) { uploadAssetBase = base || '' }
+  const currentUploadAssetBase = () => uploadAssetBase
+
+
+
+
   // CAPTURE fields of a form (file, image, signature, camera) for which JET/Redwood has no
   // component: there is no signature pad or camera in oj-*/oj-sp-*, and oj-file-picker only delivers
-  // File (Mateu's value is a data URI that travels in the state, with no upload endpoint — the same
-  // contract as the web renderer). So an OWN, minimal element, `<mateu-capture-field>`:
+  // File. Mateu's value is a data URI that travels in the state — or, for a file field whose app
+  // registers a storage (the server sends an upload ticket), the `mateu-file:` reference of the file
+  // it was uploaded to (fileUploads.mjs) — the same contract as the web renderer. So an OWN, minimal
+  // element, `<mateu-capture-field>`:
   // the buttons are real oj-buttons, the canvas/video/image use Redwood's tokens, and the
   // value comes out as `valueChanged` with { value, updatedFrom: 'internal' } — the shape of a JET
   // component's event, so the field-change chains (hostInputChanged, mateuFieldEdited…)
   // treat it as one more.
   //
-  //   <mateu-capture-field mode="signature|camera|file|image|url" accept="…" readonly value="data:…">
+  //   <mateu-capture-field mode="signature|camera|file|image|url" accept="…" readonly value="data:…"
+  //       data-upload='{"uploadUrl":…,"uploadTicket":…,"maxBytes":…,"multiple":…}'>
+  //
+  // A `file` field with `multiple` holds a LIST of values (the `value` property is an array).
   //
   // `url` is the image stereotype (an image by its URL): editable, the URL input with a contained preview
   // under it that follows what is typed; read-only, the image alone.
@@ -22691,10 +23108,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const name = params.name || dec(q < 0 ? rest : rest.slice(0, q))
       return /^\d+$/.test(params.size || '') ? name + ' · ' + sizeText(Number(params.size)) : name
     }
-    const m = v.match(/^data:([^;,]+)?(;base64)?,(.*)$/i)
-    if (!m) return v ? v.split('/').pop() : ''
-    const bytes = m[2] ? Math.floor((m[3].length * 3) / 4) : decodeURIComponent(m[3]).length
-    return (m[1] || 'file') + ' · ' + sizeText(bytes)
+    // a data URI carries the file's name as a `;name=` parameter when the web or this field read it
+    const named = v.match(/^data:([^;,]+)?((?:;[^;,=]+=[^;,]*)*)(;base64)?,(.*)$/i)
+    if (!named) return v ? v.split('/').pop() : ''
+    const nameParam = (named[2] || '').split(';').find((p) => p.indexOf('name=') === 0)
+    let name = ''
+    if (nameParam) { try { name = decodeURIComponent(nameParam.slice(5)) } catch (e) { name = nameParam.slice(5) } }
+    const bytes = named[3] ? Math.floor((named[4].length * 3) / 4) : decodeURIComponent(named[4]).length
+    return (name || named[1] || 'file') + ' · ' + sizeText(bytes)
   }
 
   /** Defines `<mateu-capture-field>` in `win` (once). */
@@ -22721,22 +23142,145 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       reader.onerror = () => reject(reader.error)
       reader.readAsDataURL(file)
     })
+    // a file read inline keeps its NAME, as the web renderer stamps it (before the base64 marker)
+    const namedDataUri = (uri, name) => {
+      const comma = uri.indexOf(',')
+      if (comma < 0 || !name) return uri
+      const meta = uri.slice(0, comma)
+      const stamped = meta.indexOf(';base64') >= 0 ? meta.replace(';base64', ';name=' + encodeURIComponent(name) + ';base64') : meta + ';name=' + encodeURIComponent(name)
+      return stamped + uri.slice(comma)
+    }
 
     class MateuCaptureField extends win.HTMLElement {
       static get observedAttributes() { return ['value', 'readonly', 'mode', 'accept'] }
       connectedCallback() { this.render() }
-      disconnectedCallback() { this.stopCamera() }
+      disconnectedCallback() { this.stopCamera(); for (const u of this.uploads || []) u.controller.abort() }
       attributeChangedCallback() { if (this.isConnected && !this.busy) this.render() }
-      get value() { return this.getAttribute('value') || '' }
-      set value(v) { if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v)) }
+      // a `multiple` file field holds a list: kept as a property (an attribute would flatten it)
+      get value() { return this.list ? this.list.slice() : (this.getAttribute('value') || '') }
+      set value(v) {
+        if (Array.isArray(v)) {
+          this.list = fileValuesOf(v)
+          this.removeAttribute('value')
+          if (this.isConnected && !this.busy) this.render()
+          return
+        }
+        this.list = null
+        if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v))
+      }
+
+      /** What the server and the field declare for uploads (data-upload, accept). */
+      uploadConfig() {
+        let declared = {}
+        try { declared = JSON.parse(this.getAttribute('data-upload') || '{}') || {} } catch (e) { declared = {} }
+        const config = uploadConfigOf(declared)
+        return { ...config, accept: config.accept || this.getAttribute('accept') || undefined }
+      }
 
       emit(value) {
         this.busy = true
         this.value = value
         this.busy = false
+        const empty = value == null || value === '' || (Array.isArray(value) && !value.length)
         this.dispatchEvent(new win.CustomEvent('valueChanged', {
-          detail: { value: value || null, previousValue: null, updatedFrom: 'internal' }, bubbles: true }))
+          detail: { value: empty ? (Array.isArray(value) ? [] : null) : value, previousValue: null, updatedFrom: 'internal' }, bubbles: true }))
         this.render()
+      }
+
+      /** A FILE field: each picked file is checked, then uploaded (upload mode) or read inline. */
+      pickFiles() {
+        const config = this.uploadConfig()
+        const input = doc.createElement('input')
+        input.type = 'file'
+        if (config.accept) input.accept = config.accept
+        input.multiple = !!config.multiple
+        input.addEventListener('change', () => {
+          const picked = Array.from(input.files || [])
+          this.error = null
+          for (const file of config.multiple ? picked : picked.slice(0, 1)) {
+            const refusal = pickedFileRefusal(config, file)
+            if (refusal) { this.error = refusal; continue }
+            if (isUploadMode(config)) void this.upload(config, file)
+            else readFile(file).then((uri) => this.emit(withUploadedFile(this.value, namedDataUri(uri, file.name), config.multiple)))
+              .catch(() => { this.error = chromeText('uploadFailed'); this.render() })
+          }
+          this.render()
+        })
+        input.click()
+      }
+
+      async upload(config, file) {
+        const entry = { name: file.name, fraction: 0, controller: new win.AbortController() }
+        this.uploads = [...(this.uploads || []), entry]
+        this.render()
+        try {
+          const value = await uploadPickedFile(currentUploadAssetBase(), config, file, xhrUploadTransport, (fraction) => {
+            entry.fraction = fraction
+            const bar = entry.bar
+            if (bar) bar.setAttribute('value', String(Math.round(fraction * 100)))
+          }, entry.controller.signal)
+          this.uploads = this.uploads.filter((u) => u !== entry)
+          this.emit(withUploadedFile(this.value, value, config.multiple))
+        } catch (failure) {
+          this.uploads = this.uploads.filter((u) => u !== entry)
+          if (!(failure instanceof UploadAborted)) this.error = failure.message
+          this.render()
+        }
+      }
+
+      /** The FILE mode: the entries (each removable in a list), the uploads in flight, the error. */
+      renderFile(box, actions, readonly) {
+        const config = this.uploadConfig()
+        const values = fileValuesOf(this.value)
+        values.forEach((v, i) => {
+          const row = doc.createElement('div')
+          row.className = 'mateu-capture-file'
+          const span = doc.createElement('span')
+          span.className = 'oj-typography-body-md'
+          span.textContent = describeFileValue(v)
+          row.appendChild(span)
+          if (!readonly && config.multiple) row.appendChild(button(t.remove, 'borderless', () => this.emit(withoutUploadedFile(this.value, i, true))))
+          box.appendChild(row)
+        })
+        for (const u of this.uploads || []) {
+          const row = doc.createElement('div')
+          row.className = 'mateu-capture-file mateu-capture-uploading'
+          const span = doc.createElement('span')
+          span.className = 'oj-typography-body-sm'
+          span.textContent = chromeText('uploadingFile', { name: u.name })
+          const bar = doc.createElement('progress')
+          bar.className = 'mateu-capture-progress'
+          bar.max = 100
+          bar.setAttribute('value', String(Math.round(u.fraction * 100)))
+          bar.setAttribute('aria-label', span.textContent)
+          u.bar = bar
+          row.appendChild(span)
+          row.appendChild(bar)
+          row.appendChild(button(chromeText('cancel'), 'borderless', () => u.controller.abort()))
+          box.appendChild(row)
+        }
+        if (!values.length && !(this.uploads || []).length) {
+          const empty = doc.createElement('span')
+          empty.className = 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end'
+          empty.textContent = readonly ? '—' : t.empty
+          box.appendChild(empty)
+        }
+        if (this.error) {
+          const error = doc.createElement('div')
+          error.className = 'mateu-capture-error oj-typography-body-sm oj-text-color-danger'
+          error.setAttribute('role', 'alert')
+          error.textContent = this.error
+          box.appendChild(error)
+        }
+        if (!readonly) {
+          if (config.multiple || !values.length) actions.appendChild(button(t.upload, 'outlined', () => this.pickFiles()))
+          else {
+            actions.appendChild(button(t.replace, 'outlined', () => this.pickFiles()))
+            actions.appendChild(button(t.remove, 'borderless', () => this.emit(null)))
+          }
+        }
+        this.appendChild(box)
+        if (actions.childNodes.length) this.appendChild(actions)
       }
 
       stopCamera() {
@@ -22771,6 +23315,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (mode === 'url' && !readonly) {
           this.renderUrl(box, value)
           this.appendChild(box)
+          return
+        }
+        if (mode === 'file') {
+          this.renderFile(box, actions, readonly)
           return
         }
         if (value && (mode !== 'file' || isImageValue(value))) {
@@ -24124,6 +24672,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // RANGE selection on the tape chart (PlanningBoard → oj-gantt): dragging over EMPTY cells of
   // a row launches rangeSelectActionId with { _resourceId, _start, _end } (the «click on the start
   // cell and on the end cell» of OPERA's Room Diary → I Want To: booking, walk-in, out of service).
@@ -24241,6 +24790,234 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const base = Date.parse(d.start + 'Z')
       rangeSink(d.gantt.dataset.rangeAction, { _resourceId: rowId, _start: isoUtc(base + a * DAY), _end: isoUtc(base + b * DAY) }, surfaceAtomOf(d.gantt))
     }, true)
+  }
+
+  // ── WITHOUT DRAGGING (WCAG 2.1.1 Keyboard, 2.5.7 Dragging Movements) — the web's
+  // mateu-planning-board tool row. Under a movable/resizable tape chart, a toolbar: the block to
+  // change (a select — a click on a bar picks it too), one day earlier/later, previous/next row,
+  // one day shorter/longer, the pending change in words, Apply / Cancel. With focus in the toolbar the
+  // arrow keys nudge (Shift+Left/Right change the length), Enter applies, Escape cancels. Apply sends
+  // the SAME action (and parameters) a drag would (core/boards.mjs planningActionOf). The pure half is
+  // tested in Node (test-pms.mjs).
+
+  /** The pending change after one nudge (libs/mateu `nudged`, the same rule): a move keeps the length
+   *  inside the window and walks the rows; a resize moves the END edge, never before the start. */
+  function planningNudged(p, nudge, resourceIds, windowDays) {
+    if (nudge.length) {
+      const endIdx = Math.max(p.startIdx, Math.min(windowDays - 1, p.endIdx + nudge.length))
+      return { ...p, mode: 'resize', resourceId: p.originResourceId, endIdx }
+    }
+    const length = p.endIdx - p.startIdx
+    const startIdx = Math.max(0, Math.min(windowDays - 1 - length, p.startIdx + (nudge.days || 0)))
+    const row = resourceIds.indexOf(p.resourceId)
+    const nextRow = Math.max(0, Math.min(resourceIds.length - 1, row + (nudge.rows || 0)))
+    return { ...p, mode: 'move', startIdx, endIdx: startIdx + length, resourceId: resourceIds[nextRow] != null ? resourceIds[nextRow] : p.resourceId }
+  }
+
+  /** Whether a pending change changes anything. */
+  const planningPendingChanged = (p) => !!p
+    && (p.resourceId !== p.originResourceId || p.startIdx !== p.originStartIdx || p.endIdx !== p.originEndIdx)
+
+  /** A block's pending change before any nudge. */
+  function planningPendingOf(model, blockId) {
+    const b = model && (model.blocks || []).find((x) => x.id === String(blockId))
+    return b ? { blockId: b.id, mode: 'move', resourceId: b.resourceId, startIdx: b.startIdx, endIdx: b.endIdx,
+      originResourceId: b.resourceId, originStartIdx: b.startIdx, originEndIdx: b.endIdx } : null
+  }
+
+  /** Nudges `p` (a move and a resize are separate changes: switching kind starts from the block). */
+  function planningNudgeOf(model, p, nudge) {
+    if (!model || !p) return p
+    if (nudge.length ? !model.resize : !model.move) return p
+    const base = p.mode === (nudge.length ? 'resize' : 'move') ? p : planningPendingOf(model, p.blockId)
+    return planningNudged(base, nudge, model.rows.map((r) => r.id), model.days)
+  }
+
+  /** The action Apply sends: the drag's (moveActionId / resizeActionId) with the new row and days. */
+  function planningApplyOf(model, p) {
+    if (!model || !planningPendingChanged(p)) return null
+    const actionId = p.mode === 'resize' ? model.resize : model.move
+    if (!actionId) return null
+    const day = (i) => new Date(Date.parse(model.from + 'T00:00:00Z') + i * DAY).toISOString().slice(0, 10)
+    return { actionId, parameters: { _blockId: p.blockId, _resourceId: p.resourceId, _start: day(p.startIdx), _end: day(p.endIdx) } }
+  }
+
+  /** The pending change in words ("Smith: Room 102, 3/14/2027 to 3/16/2027"). */
+  function planningPendingText(model, p, lang) {
+    if (!model || !p) return ''
+    const block = (model.blocks || []).find((b) => b.id === p.blockId)
+    const row = (model.rows || []).find((r) => r.id === p.resourceId)
+    const day = (i) => new Date(Date.parse(model.from + 'T00:00:00Z') + i * DAY).toLocaleDateString(lang || undefined, { timeZone: 'UTC' })
+    return chromeText('planningPending', { block: block ? block.label : p.blockId, resource: row ? row.label : p.resourceId, start: day(p.startIdx), end: day(p.endIdx) })
+  }
+
+  /** The block a gantt click landed on (getContextByNode → row and task index), or null. */
+  function planningBlockAtContext(model, ctx) {
+    if (!model || !ctx || ctx.rowIndex == null || ctx.index == null) return null
+    if (ctx.subId && !/^oj-gantt-task/.test(ctx.subId)) return null
+    const tasks = (model.rowTasks || [])[ctx.rowIndex]
+    return tasks && tasks[ctx.index] != null ? tasks[ctx.index] : null
+  }
+
+  const PLANNING_TOOL_KEYS = { ArrowLeft: { days: -1 }, ArrowRight: { days: 1 }, ArrowUp: { rows: -1 }, ArrowDown: { rows: 1 } }
+
+  /** The nudge a key asks for in the toolbar, or null (Shift+Left/Right = length). */
+  function planningKeyNudge(e) {
+    if (!(e.key in PLANNING_TOOL_KEYS) || e.ctrlKey || e.metaKey || e.altKey) return null
+    if (e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) return { length: e.key === 'ArrowLeft' ? -1 : 1 }
+    return PLANNING_TOOL_KEYS[e.key]
+  }
+
+  function planningModelOfTools(tools) {
+    try { return JSON.parse(tools.getAttribute('data-planning-tools') || 'null') } catch (e) { return null }
+  }
+
+  /** Paints a tool row from its model and its state (`tools.__mateuPending`, `tools.__mateuBlock`). */
+  function paintPlanningTools(tools) {
+    const doc = tools.ownerDocument
+    const model = planningModelOfTools(tools)
+    tools.textContent = ''
+    tools.hidden = !model || !(model.blocks || []).length
+    if (tools.hidden) return
+    const lang = doc.documentElement && doc.documentElement.getAttribute('lang')
+    if (!tools.__mateuBlock || !model.blocks.some((b) => b.id === tools.__mateuBlock)) { tools.__mateuBlock = model.blocks[0].id; tools.__mateuPending = null }
+    const pending = tools.__mateuPending
+    tools.setAttribute('role', 'toolbar')
+    tools.setAttribute('aria-label', chromeText('planningPick'))
+    tools.setAttribute('aria-description', chromeText('planningKeys'))
+    const select = doc.createElement('select')
+    select.className = 'mateu-planning-pick'
+    select.setAttribute('aria-label', chromeText('planningPick'))
+    for (const b of model.blocks) {
+      const o = doc.createElement('option')
+      const row = model.rows.find((r) => r.id === b.resourceId)
+      o.value = b.id
+      o.textContent = b.label + (row ? ' · ' + row.label : '')
+      if (b.id === tools.__mateuBlock) o.selected = true
+      select.appendChild(o)
+    }
+    tools.appendChild(select)
+    const button = (label, glyph, act, extra) => {
+      const el = doc.createElement('button')
+      el.type = 'button'
+      el.className = 'mateu-planning-tool' + (extra ? ' ' + extra : '')
+      el.setAttribute('data-planning-act', act)
+      if (glyph) { el.setAttribute('aria-label', label); el.title = label; el.textContent = glyph } else el.textContent = label
+      tools.appendChild(el)
+    }
+    if (model.move) {
+      button(chromeText('planningEarlier'), '◀', 'earlier')
+      button(chromeText('planningLater'), '▶', 'later')
+      button(chromeText('planningRowUp'), '▲', 'up')
+      button(chromeText('planningRowDown'), '▼', 'down')
+    }
+    if (model.resize) {
+      button(chromeText('planningShorter'), '−', 'shorter')
+      button(chromeText('planningLonger'), '+', 'longer')
+    }
+    const text = doc.createElement('span')
+    text.className = 'mateu-planning-pending'
+    text.setAttribute('aria-live', 'polite')
+    text.textContent = planningPendingChanged(pending) ? planningPendingText(model, pending, lang) : ''
+    tools.appendChild(text)
+    if (planningPendingChanged(pending)) {
+      button(chromeText('apply'), '', 'apply', 'mateu-planning-apply')
+      button(chromeText('cancel'), '', 'cancel')
+    }
+  }
+
+  const PLANNING_ACTS = { earlier: { days: -1 }, later: { days: 1 }, up: { rows: -1 }, down: { rows: 1 }, shorter: { length: -1 }, longer: { length: 1 } }
+
+  /** Runs one act of a tool row (a nudge, apply, cancel); repaints it, keeping focus on the same control. */
+  function runPlanningTool(tools, act) {
+    const model = planningModelOfTools(tools)
+    if (!model) return
+    const doc = tools.ownerDocument
+    const focusedAct = doc.activeElement && tools.contains(doc.activeElement) ? doc.activeElement.getAttribute('data-planning-act') : null
+    if (act === 'cancel') tools.__mateuPending = null
+    else if (act === 'apply') {
+      const call = planningApplyOf(model, tools.__mateuPending)
+      tools.__mateuPending = null
+      if (call && rangeSink) {
+        const gantt = tools.previousElementSibling
+        rangeSink(call.actionId, call.parameters, surfaceAtomOf(gantt && gantt.matches && gantt.matches('oj-gantt') ? gantt : tools))
+      }
+    } else if (PLANNING_ACTS[act]) {
+      const p = tools.__mateuPending || planningPendingOf(model, tools.__mateuBlock)
+      tools.__mateuPending = planningNudgeOf(model, p, PLANNING_ACTS[act])
+    }
+    paintPlanningTools(tools)
+    const again = focusedAct && tools.querySelector('[data-planning-act="' + focusedAct + '"]')
+    if (again && again.focus) again.focus()
+  }
+
+  /** Installs (once) the tool rows: clicks and keys on them, a bar click picking the block. */
+  function installPlanningTools(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuPlanningTools) return
+    doc.__mateuPlanningTools = true
+    const toolsOf = (t) => (t && t.closest ? t.closest('.mateu-planning-tools') : null)
+    doc.addEventListener('click', (e) => {
+      const tools = toolsOf(e.target)
+      if (tools) {
+        const act = e.target.closest('[data-planning-act]')
+        if (act) { e.preventDefault(); runPlanningTool(tools, act.getAttribute('data-planning-act')) }
+        return
+      }
+      // a click on a bar of the tape chart picks that block in its tool row
+      const gantt = e.target && e.target.closest ? e.target.closest('oj-gantt.mateu-planning') : null
+      const next = gantt && gantt.nextElementSibling
+      if (!next || !next.classList || !next.classList.contains('mateu-planning-tools') || typeof gantt.getContextByNode !== 'function') return
+      const id = planningBlockAtContext(planningModelOfTools(next), gantt.getContextByNode(e.target))
+      if (id && id !== next.__mateuBlock) { next.__mateuBlock = id; next.__mateuPending = null; paintPlanningTools(next) }
+    }, true)
+    doc.addEventListener('change', (e) => {
+      const tools = toolsOf(e.target)
+      if (!tools || !e.target.classList.contains('mateu-planning-pick')) return
+      tools.__mateuBlock = e.target.value
+      tools.__mateuPending = null
+      paintPlanningTools(tools)
+      const pick = tools.querySelector('.mateu-planning-pick')
+      if (pick) pick.focus()
+    }, true)
+    // VB paints (and repaints) the tool rows asynchronously: follow them
+    const Observer = doc.defaultView && doc.defaultView.MutationObserver
+    if (Observer && doc.body) {
+      let queued = false
+      new Observer(() => {
+        if (queued) return
+        queued = true
+        queueMicrotask(() => { queued = false; refreshPlanningTools(doc) })
+      }).observe(doc.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-planning-tools'] })
+    }
+    refreshPlanningTools(doc)
+    doc.addEventListener('keydown', (e) => {
+      const tools = toolsOf(e.target)
+      if (!tools) return
+      // the select keeps its own arrows (choosing the block)
+      if (e.target.classList && e.target.classList.contains('mateu-planning-pick') && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) return
+      const nudge = planningKeyNudge(e)
+      if (nudge) {
+        e.preventDefault()
+        const act = Object.keys(PLANNING_ACTS).find((k) => JSON.stringify(PLANNING_ACTS[k]) === JSON.stringify(nudge))
+        runPlanningTool(tools, act)
+      } else if (e.key === 'Escape' && planningPendingChanged(tools.__mateuPending)) {
+        e.preventDefault(); e.stopPropagation(); runPlanningTool(tools, 'cancel')
+      } else if (e.key === 'Enter' && planningPendingChanged(tools.__mateuPending) && !(e.target.closest && e.target.closest('button'))) {
+        e.preventDefault(); runPlanningTool(tools, 'apply')
+      }
+    }, true)
+  }
+
+  /** Paints every tool row whose model changed (a repaint brings a new data-planning-tools). */
+  function refreshPlanningTools(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc) return
+    for (const tools of doc.querySelectorAll('.mateu-planning-tools')) {
+      const model = tools.getAttribute('data-planning-tools') || ''
+      if (tools.__mateuModel === model) continue
+      tools.__mateuModel = model
+      tools.__mateuPending = null
+      paintPlanningTools(tools)
+    }
   }
 
 
@@ -24539,6 +25316,317 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+  // RECORD PRESENCE (`@App(presence = true)`) on the VB shell — "Ana is editing this record". The
+  // same contract as libs/mateu presence.ts (the web's mateu-presence-chip), so a Vaadin tab and a
+  // Redwood tab of one app see each other:
+  //  - a RECORD page (a route of 2+ segments, or one segment when the page asks to confirm leaving
+  //    with unsaved changes; never …/new, never the root) WATCHES its record: mount-relative route +
+  //    the screen's class. It reports itself every HEARTBEAT_MS with the app-level `_presence` action
+  //    — `viewing`, or `editing` while the page holds unsaved changes — once more at once when that
+  //    flips, and `leave` when the page goes away. The answer is a `PresenceChanged` command with
+  //    the OTHER people.
+  //  - changes others make arrive on the app event stream (appExtras.mjs `_live-updates`, which runs
+  //    for presence too), so the chip follows within a second.
+  //  - the chip is painted into #mateuPresence (main-start-page.html, under the page header band —
+  //    a listing has its own band and no chip). Anonymous callers take no part (nothing answered).
+  // What is pure is tested in Node (test-e2.mjs); the DOM half is wired from loadMateuShell / the
+  // after-reduce hook.
+
+  const PRESENCE_ACTION = '_presence'
+  const PRESENCE_HEARTBEAT_MS = 10000
+
+  /** The presence changes an increment carries (a heartbeat's answer, a stream event). */
+  function presenceChangesOf(increment) {
+    const commands = (increment && increment.commands) || []
+    return commands
+      .filter((c) => c && c.type === 'PresenceChanged' && c.data && typeof c.data.key === 'string')
+      .map((c) => ({ key: c.data.key, entries: Array.isArray(c.data.entries) ? c.data.entries : [] }))
+  }
+
+  /** The route a page reports: no query, no surrounding slashes. */
+  function presenceRouteOf(route) {
+    return String(route || '').split('?')[0].split('#')[0].replace(/\/{2,}/g, '/').replace(/^\/+|\/+$/g, '')
+  }
+
+  /** Whether a page on `route` is a RECORD page (libs/mateu isRecordRoute, the same rule). */
+  function isRecordRoute(route, edits = false) {
+    const path = String(route || '').replace(/\/(edit|view)$/, '')
+    if (!path.length || path === 'new' || path.endsWith('/new')) return false
+    return edits || path.split('/').filter(Boolean).length >= 2
+  }
+
+  /** "Ana", "Ana and Bob", "Ana, Bob and 2 more". */
+  function presenceNamesText(names, lang) {
+    if (names.length <= 1) return names[0] || ''
+    if (names.length === 2) return names[0] + chromeText('presenceAnd', null, lang) + names[1]
+    return chromeText('presenceMore', { names: names.slice(0, 2).join(', '), n: names.length - 2 }, lang)
+  }
+
+  /** What the chip says — editors first (a warning: they may overwrite each other), then viewers. */
+  function presenceSummaryOf(entries, lang) {
+    if (!entries || !entries.length) return null
+    const editors = entries.filter((e) => e.editing).map((e) => e.name)
+    const viewers = entries.filter((e) => !e.editing).map((e) => e.name)
+    const parts = []
+    if (editors.length) parts.push(chromeText(editors.length === 1 ? 'presenceEditing' : 'presenceEditingMany', { names: presenceNamesText(editors, lang) }, lang))
+    if (viewers.length) parts.push(chromeText(viewers.length === 1 ? 'presenceViewing' : 'presenceViewingMany', { names: presenceNamesText(viewers, lang) }, lang))
+    return { text: parts.join(' · '), tone: editors.length ? 'warning' : 'neutral', editors, viewers }
+  }
+
+  /** The people who START editing between two answers (announced once, politely). */
+  function presenceNewEditors(before, after) {
+    const were = new Set((before || []).filter((e) => e.editing).map((e) => e.name))
+    return (after || []).filter((e) => e.editing && !were.has(e.name)).map((e) => e.name)
+  }
+
+  /** Initials for the avatar of a name ("Ana López" → "AL", "ana@x.org" → "A"). */
+  function presenceInitialsOf(name) {
+    const words = String(name || '?').split('@')[0].split(/[\s._-]+/).filter(Boolean)
+    const letters = words.length >= 2 ? words[0][0] + words[1][0] : (words[0] || '?')[0]
+    return (letters || '?').toUpperCase()
+  }
+
+  /**
+   * What the screen on show watches, from the registry: the host's class and whether it edits; null
+   * when there is nothing to watch (no host, an app MEDIATOR still loading its content).
+   */
+  function presencePageOf(hostCtx) {
+    const tree = hostCtx && hostCtx.tree
+    if (!tree || tree.type !== 'ServerSide' || !tree.serverSideType) return null
+    const first = (tree.children || [])[0]
+    if (first && first.metadata && first.metadata.type === 'App') return null
+    const walk = (node) => !!node && typeof node === 'object'
+      && (node.confirmOnNavigationIfDirty === true || (node.children || []).some(walk))
+    return { view: tree.serverSideType, edits: walk(tree) }
+  }
+
+  // ── the singleton ───────────────────────────────────────────────────────────────────────────
+
+  // the tab's id: only told apart from this person's other tabs, never a secret
+  const presenceTab = globalThis.crypto && globalThis.crypto.randomUUID ? globalThis.crypto.randomUUID() : Date.now().toString(36) + '-' + Math.floor((globalThis.performance ? globalThis.performance.now() : 0) * 1000).toString(36)
+  let presenceTarget = null // { base, serverSideType }
+  let presenceWatch = null // { route, view, edits, key, entries, editing, timer }
+  let presenceDirtyReader = () => false
+  let presenceFetch = (...args) => globalThis.fetch(...args)
+
+  /** Whether the shell on show asked for presence. */
+  const presenceEnabled = () => presenceTarget !== null
+
+  /** How the shell's unsaved-changes flag is read ($application.variables.mateuDirty). */
+  function setPresenceDirtyReader(fn) { presenceDirtyReader = typeof fn === 'function' ? fn : () => false }
+
+  /** Test hook: the fetch the reports go through. */
+  function setPresenceFetch(fn) { presenceFetch = fn }
+
+  /** The shell on show (syncAppExtras): `presence` on → record pages report themselves; off → stop. */
+  function syncPresence(shell, base) {
+    const want = !!(shell && shell.presence) && typeof presenceFetch === 'function'
+    if (!want) {
+      if (presenceTarget) { stopPresenceWatch(true); presenceTarget = null; paintPresence() }
+      return
+    }
+    const next = { base: base || '', serverSideType: shell.serverSideType || '' }
+    const changed = !presenceTarget || presenceTarget.base !== next.base || presenceTarget.serverSideType !== next.serverSideType
+    if (changed && presenceTarget) stopPresenceWatch(true)
+    presenceTarget = next
+    if (changed && presenceWatch) startPresenceWatch()
+  }
+
+  /**
+   * The screen on show (the after-reduce hook): its record is watched while it is on screen; another
+   * record (or none) stops the previous watch with a `leave`.
+   */
+  function notePresencePage(page, route) {
+    const r = presenceRouteOf(route)
+    const watchable = !!page && isRecordRoute(r, page.edits)
+    const id = watchable ? r + '|' + page.view : null
+    const current = presenceWatch ? presenceWatch.route + '|' + presenceWatch.view : null
+    if (id === current) {
+      if (presenceWatch) { presenceWatch.edits = page.edits; recheckPresenceEditing() }
+      schedulePresencePaint()
+      return
+    }
+    if (presenceWatch) stopPresenceWatch(true)
+    presenceWatch = watchable ? { route: r, view: page.view, edits: page.edits, entries: [], first: true, editing: !!presenceDirtyReader(), timer: null } : null
+    if (presenceWatch) startPresenceWatch()
+    schedulePresencePaint()
+  }
+
+  /** A presence change from the event stream: the watch of that record follows. */
+  function applyPresenceChange(change) {
+    if (presenceWatch && change && presenceWatch.key === change.key) updatePresence(change.entries)
+  }
+
+  /** The page's unsaved-changes flag may have flipped: report it at once, not on the next beat. */
+  function recheckPresenceEditing() {
+    if (!presenceWatch) return
+    const editing = !!presenceDirtyReader()
+    if (presenceWatch.editing !== editing) {
+      presenceWatch.editing = editing
+      presenceBeat()
+    }
+  }
+
+  /** The page goes away (pagehide): the server forgets this tab now, not in 30 s. */
+  function leavePresence() { if (presenceWatch) void sendPresence(presenceWatch, 'leave') }
+
+  /** The entries the chip shows (the OTHER people on this record). */
+  const presenceEntriesNow = () => (presenceTarget && presenceWatch ? presenceWatch.entries : [])
+
+  function startPresenceWatch() {
+    if (!presenceTarget || !presenceWatch) return
+    presenceBeat()
+    clearInterval(presenceWatch.timer)
+    presenceWatch.timer = setInterval(presenceBeat, PRESENCE_HEARTBEAT_MS)
+  }
+
+  function stopPresenceWatch(leave) {
+    if (!presenceWatch) return
+    clearInterval(presenceWatch.timer)
+    presenceWatch.timer = null
+    if (leave) void sendPresence(presenceWatch, 'leave')
+    presenceWatch.entries = []
+  }
+
+  function presenceBeat() { if (presenceWatch) void sendPresence(presenceWatch, presenceWatch.editing ? 'editing' : 'viewing') }
+
+  function updatePresence(entries) {
+    const watch = presenceWatch
+    if (!watch) return
+    // the first answer is the state found on arrival: announce only who STARTS editing later
+    if (!watch.first) for (const name of presenceNewEditors(watch.entries, entries)) announce(chromeText('presenceStartedEditing', { name }))
+    watch.first = false
+    watch.entries = entries || []
+    schedulePresencePaint()
+  }
+
+  function sendPresence(watch, state) {
+    if (!presenceTarget) return Promise.resolve()
+    const { base, serverSideType } = presenceTarget
+    const url = underPublicBase(base) + '/mateu/v3/sync/_no_route'
+    let request
+    try {
+      request = presenceFetch(url, {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, rendererHeaders(), authHeadersOf()),
+        // a leave sent while the page unloads must still go out
+        keepalive: state === 'leave',
+        body: JSON.stringify({
+          serverSideType: serverSideType || undefined, appState: {}, componentState: {},
+          parameters: { route: watch.route, view: watch.view, tab: presenceTab, state },
+          initiatorComponentId: 'mateu-presence', consumedRoute: '', route: '', actionId: PRESENCE_ACTION,
+        }),
+      })
+    } catch (e) { return Promise.resolve() }
+    return Promise.resolve(request).then(async (res) => {
+      if (!res || !res.ok || state === 'leave') return
+      for (const change of presenceChangesOf(await res.json())) {
+        // a late answer for a record we left changes nothing
+        if (presenceWatch !== watch) return
+        watch.key = change.key
+        updatePresence(change.entries)
+      }
+    }).catch(() => { /* presence is best effort: the next heartbeat tries again */ })
+  }
+
+  // ── DOM ─────────────────────────────────────────────────────────────────────────────────────
+
+  /** The chip's markup, as a plain description (painted by paintPresence; tested in Node). */
+  function presenceChipOf(entries, lang) {
+    const summary = presenceSummaryOf(entries, lang)
+    if (!summary) return null
+    const shown = entries.slice(0, 3)
+    return {
+      tone: summary.tone,
+      text: summary.text,
+      label: chromeText('presenceLabel', null, lang) + ': ' + summary.text,
+      avatars: shown.map((e) => ({ initials: presenceInitialsOf(e.name), name: e.name, editing: !!e.editing })),
+      more: entries.length > shown.length ? entries.length - shown.length : 0,
+    }
+  }
+
+  /** Paints the chip into #mateuPresence; false while the band is not there yet. */
+  function paintPresence(doc = typeof document !== 'undefined' ? document : null) {
+    const host = doc && doc.getElementById('mateuPresence')
+    if (!host) return false
+    const chip = presenceEnabled() ? presenceChipOf(presenceEntriesNow()) : null
+    host.textContent = ''
+    host.hidden = !chip
+    if (!chip) { host.removeAttribute('aria-label'); return true }
+    host.className = 'mateu-presence mateu-presence-' + chip.tone
+    host.setAttribute('role', 'status')
+    host.setAttribute('aria-label', chip.label)
+    const avatars = doc.createElement('span')
+    avatars.className = 'mateu-presence-avatars'
+    avatars.setAttribute('aria-hidden', 'true')
+    for (const a of chip.avatars) {
+      const av = doc.createElement('span')
+      av.className = 'mateu-presence-avatar' + (a.editing ? ' mateu-presence-editing' : '')
+      av.title = a.name
+      av.textContent = a.initials
+      avatars.appendChild(av)
+    }
+    if (chip.more) {
+      const more = doc.createElement('span')
+      more.className = 'mateu-presence-avatar mateu-presence-more'
+      more.textContent = '+' + chip.more
+      avatars.appendChild(more)
+    }
+    const text = doc.createElement('span')
+    text.className = 'mateu-presence-text'
+    text.setAttribute('aria-hidden', 'true')
+    text.textContent = chip.text
+    host.appendChild(avatars)
+    host.appendChild(text)
+    return true
+  }
+
+  // VB updates its bindings asynchronously: the band (and #mateuPresence in it) may come a few frames
+  // after the answer — paint until it is there
+  let presencePaintTries = 0
+  function schedulePresencePaint() {
+    if (typeof requestAnimationFrame !== 'function') { paintPresence(); return }
+    const already = presencePaintTries > 0
+    presencePaintTries = 12
+    if (already) return
+    const tick = () => {
+      if (paintPresence() || --presencePaintTries <= 0) { presencePaintTries = 0; return }
+      requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  }
+
+  /** Installs (once) what follows the page: edits flip «editing», the tab leaving says `leave`, a
+   *  re-created band gets the chip back. */
+  function installPresence(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuPresence) return
+    doc.__mateuPresence = true
+    const later = () => setTimeout(recheckPresenceEditing, 0)
+    doc.addEventListener('input', later, true)
+    doc.addEventListener('change', later, true)
+    doc.addEventListener('valueChanged', later, true)
+    doc.addEventListener('click', () => setTimeout(recheckPresenceEditing, 300), true)
+    if (doc.defaultView) doc.defaultView.addEventListener('pagehide', leavePresence)
+  }
+
+  /** The route of the screen on show, mount-relative (the URL; hash routes too). */
+  const presenceCurrentRoute = () => currentRoutePathOf(typeof location !== 'undefined' ? location : null)
+
+  /** Test hook: forget the watch and the shell. */
+  function resetPresence() {
+    if (presenceWatch) clearInterval(presenceWatch.timer)
+    presenceWatch = null
+    presenceTarget = null
+    presenceDirtyReader = () => false
+  }
+
+
+
+
+
+
+
+
 
 
 
@@ -24745,6 +25833,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  // a presence change the leader tab heard, handed to the other tabs (the web's liveUpdates.ts key)
+  const PRESENCE_CHANGE_KEY = 'mateu-presence-change'
+  let presenceBroadcastKey = null
+  function broadcastPresence(change) {
+    if (!presenceBroadcastKey) return
+    storeSet(presenceBroadcastKey, JSON.stringify({ at: Date.now(), tab: tabId, change }))
+    storeRemove(presenceBroadcastKey)
+  }
+
   // the live stream: only the leader tab holds it
   let liveTarget = null
   let liveHeartbeat = null
@@ -24806,6 +25903,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             for (const c of headerChangesOf(inc)) updateHeaderValue(c.id, c.value)
             // the inbox changed for this user (LiveNotifications.publish): the bell follows (inbox.mjs)
             for (const change of notificationsChangedOf(inc)) applyNotificationsChanged(change)
+            // someone opened / started editing / left a record (@App(presence)): the chip follows
+            // (presence.mjs), here and — through storage — in the other tabs of the browser
+            for (const change of presenceChangesOf(inc)) { applyPresenceChange(change); broadcastPresence(change) }
           } catch (e) { /* heartbeat */ }
         }
       }
@@ -24821,7 +25921,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const shared = !hasHostHeaderProvider()
     // header values also change through ordinary answers: scoped whether or not there is a stream
     headerBroadcastKey = shared ? scopedLiveKey(HEADER_VALUES_KEY, base, (shell && shell.serverSideType) || '') : null
-    if (!(shell && shell.liveUpdates)) {
+    // record presence rides the same stream: it runs for either
+    presenceBroadcastKey = shared ? scopedLiveKey(PRESENCE_CHANGE_KEY, base, (shell && shell.serverSideType) || '') : null
+    if (!(shell && (shell.liveUpdates || shell.presence))) {
       if (liveTarget) {
         const previous = liveTarget
         liveTarget = null
@@ -24984,6 +26086,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     extrasSinks = sinks || {}
     seedHeaderValues((shell && shell.headerValues) || [])
     syncLive(shell, sinks.base || '')
+    syncPresence(shell, sinks.base || '')
     const doc = docOf()
     if (doc) {
       const values = doc.getElementById('mateuHeaderValues')
@@ -25003,10 +26106,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     doc.__mateuAppExtras = true
     const win = doc.defaultView
     headerPainter = paintHeaderValues
+    installPresence(doc)
     // the other tabs: header values, activity, sign-out
     win.addEventListener('storage', (e) => {
       if (headerBroadcastKey && e.key === headerBroadcastKey && e.newValue) {
         try { const c = JSON.parse(e.newValue); if (c.id) updateHeaderValue(c.id, c.value, { broadcast: false }) } catch (err) { /* not ours */ }
+      }
+      if (presenceBroadcastKey && e.key === presenceBroadcastKey && e.newValue) {
+        try { const r = JSON.parse(e.newValue); if (r.tab !== tabId && r.change) applyPresenceChange(r.change) } catch (err) { /* not ours */ }
       }
       if (e.key === IDLE_SIGN_OUT_KEY && e.newValue && extrasShell && extrasShell.idleSession) idleSignOut(doc, false)
       if (e.key === IDLE_ACTIVITY_KEY) idleCheck(doc)
@@ -25402,6 +26509,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
+
+
   // DRAGGING ROWS TO A DESTINATION: the rows of a @DragRows(type) listing are dragged with the dnd
   // of JET's own oj-table (dnd.drag.rows.data-types = the type's MIME type); a DropZone
   // (isDropZone atom) accepts that MIME type — it highlights while something of its own passes over it — and on
@@ -25509,6 +26619,52 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }, true)
   }
 
+  // ── WITHOUT DRAGGING (WCAG 2.1.1 Keyboard, 2.5.7 Dragging Movements) — libs/mateu dragAndDrop.ts
+  // publishDragSelection: the page's @DragRows listing has rows CHECKED → every drop zone accepting
+  // its type offers «Move the selected rows here (n)», which runs the same drop action with their ids.
+  // The selection lives in the shell ($application.variables.mateuListing/-Rows/-Selection): read
+  // through a reader the shell installs, so the button follows whatever changed it.
+
+  /** The ids of the checked rows of a listing that drags `mime` — [] for another type or none. */
+  function dragSelectionIdsOf(listing, rows, selection, mime) {
+    if (!listing || !listing.dragType || !mime || dragMimeOf(listing.dragType) !== mime) return []
+    return selectedRowsOf(rows, selection).map((r) => (r && r.id != null ? String(r.id) : null)).filter((id) => id != null)
+  }
+
+  let dragSelectionReader = () => null
+  function setDragSelectionReader(fn) { dragSelectionReader = typeof fn === 'function' ? fn : () => null }
+
+  function selectedIdsFor(zone) {
+    const now = dragSelectionReader() || {}
+    return dragSelectionIdsOf(now.listing, now.rows, now.selection, zone.getAttribute('data-drop-accept'))
+  }
+
+  /** Shows (or hides) each zone's «move the selected rows here» button for the selection on screen. */
+  function refreshDropSelection(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc) return
+    for (const zone of doc.querySelectorAll('.mateu-drop-zone[data-drop-accept]')) {
+      const button = zone.querySelector('.mateu-drop-selected')
+      if (!button) continue
+      const ids = selectedIdsFor(zone)
+      button.hidden = !ids.length
+      if (ids.length) button.textContent = chromeText('dropSelected', { count: ids.length })
+    }
+  }
+
+  // after a selection change or a repaint (VB binds asynchronously): a few frames, then stop
+  let dropSelectionTries = 0
+  function refreshDropSelectionSoon(doc = typeof document !== 'undefined' ? document : null) {
+    if (typeof requestAnimationFrame !== 'function') { refreshDropSelection(doc); return }
+    const running = dropSelectionTries > 0
+    dropSelectionTries = 6
+    if (running) return
+    const tick = () => {
+      refreshDropSelection(doc)
+      if (--dropSelectionTries > 0) requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  }
+
   function installDragAndDrop(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuDnd) return
     doc.__mateuDnd = true
@@ -25544,6 +26700,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       for (const z of doc.querySelectorAll('.mateu-drop-zone')) z.classList.remove('mateu-drop-ready', 'mateu-drop-over')
     }
     doc.addEventListener('dragend', clear, true)
+    // the button of a zone: the same drop, with the checked rows
+    doc.addEventListener('click', (e) => {
+      const button = e.target && e.target.closest ? e.target.closest('.mateu-drop-selected') : null
+      const zone = button && button.closest('.mateu-drop-zone[data-drop-accept]')
+      if (!zone || !dropSink) return
+      const ids = selectedIdsFor(zone)
+      if (!ids.length) return
+      e.preventDefault()
+      let params = {}
+      try { params = JSON.parse(zone.getAttribute('data-drop-params') || '{}') } catch (err) { params = {} }
+      const mime = zone.getAttribute('data-drop-accept')
+      dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) }, surfaceAtomOf(zone))
+    }, true)
     doc.addEventListener('drop', (e) => {
       const zone = zoneOf(e.target, e)
       if (!zone) return
@@ -39076,7 +40245,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * the two cannot drift apart silently.
    */
   const CONTENT_INSTALLERS = Object.freeze([
-    'installRules', 'installPlanningRange', 'installActionPanels', 'installTileReorder', 'installRichText',
+    'installRules', 'installPlanningRange', 'installPlanningTools', 'installActionPanels', 'installTileReorder', 'installRichText',
     'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer', 'installInputPurpose',
@@ -39519,6 +40688,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // los tonos de fila (@RowStatus) y las filas de grupo del listado del host
     const listing = listingOf(reg.contexts[HOST_ID]);
     setListingTones(listing ? listing.rows : []);
+    // @App(presence): the record on screen is watched (presence.mjs)
+    notePresencePage(presencePageOf(reg.contexts[HOST_ID]), presenceCurrentRoute());
+    // the drop zones' «move the selected rows here» follows a repaint (dnd.mjs)
+    refreshDropSelectionSoon();
   });
   // MatrixGrid: oj-data-grid sobre un RowDataGridProvider de una vista aplanada del árbol (las
   // secciones plegables las pinta JET); __mateu guarda lo que installMatrixGrids necesita
@@ -39650,6 +40823,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     rowShortcutIndexOf,
     installStickyHeader,
     installPlanningRange,
+    installPlanningTools,
     installActionPanels,
     installRecordMerges,
     setRecordMergeSink,
@@ -39660,6 +40834,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     quickLaunchMatch,
     appShortcutRowsOf,
     updateHeaderValue,
+    // record presence (presence.mjs): how the shell's unsaved-changes flag is read
+    setPresenceDirtyReader,
+    // file fields upload to the app's storage (fileUploads.mjs): where the endpoints are
+    setUploadAssetBase,
+    // drop zones without dragging (dnd.mjs): where the page's listing selection is read, and repaint
+    setDragSelectionReader,
+    refreshDropSelectionSoon,
     installMatrixGrids,
     installMaps,
     mapViewPlanOf,

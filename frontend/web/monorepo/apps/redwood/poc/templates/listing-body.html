@@ -112,6 +112,8 @@
                         <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                       </template>
                     </oj-gantt>
+                    <!-- without dragging (planning.mjs installPlanningTools): pick a block, nudge it, Apply -->
+                    <div class="mateu-planning-tools" :data-planning-tools="[[ $current.data.toolsModel || null ]]" hidden></div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isDropZone ]]">
                     <!-- DropZone: destination for dragged rows (@DragRows); dnd.mjs accepts its MIME type -->
@@ -125,6 +127,8 @@
                         <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                       </oj-bind-for-each>
                       <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
+                      <!-- without dragging: the checked rows of the page's listing (dnd.mjs refreshDropSelection) -->
+                      <button type="button" class="mateu-drop-selected oj-sm-margin-2x-top" hidden></button>
                     </div>
                   </oj-bind-if>
                   <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -1186,6 +1190,7 @@
                                 <mateu-capture-field
                                     :mode="[[ $current.data.captureMode ]]"
                                     :accept="[[ $current.data.accept ]]"
+                                    :data-upload="[[ $current.data.upload || null ]]"
                                     :value="[[ $current.data.value ]]"
                                     :readonly="[[ $current.data.readonly ]]"
                                     :data-field-id="[[ $current.data.fieldId ]]"

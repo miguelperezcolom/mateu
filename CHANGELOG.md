@@ -8,6 +8,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 
 ## [Unreleased]
 
+### Added — Redwood closes its last gaps with the web renderer
+
+- **Record presence** (`@App(presence = true)`): the Redwood renderer shows who else is viewing or editing the
+  record in the page header, reports this tab on the same `_presence` action and reads changes from the
+  `_live-updates` stream and other tabs (same storage key as Vaadin, so both renderers interoperate).
+- **Large file uploads** through the app's `FileStorage`: a `fileUpload` field with a ticket streams the bytes to
+  `POST /mateu/v3/upload` (or the pre-signed target, falling back to streaming on 404), with progress, Cancel,
+  `multiple` fields and the `mateu-file:` value; without a store the data-URI fallback is refused over `maxBytes`.
+- **Moving without dragging** (WCAG 2.5.7): a `DropZone` offers "Move the selected rows here (n)" for the rows
+  selected in the listing, and a `PlanningBoard` gets a tool row under the chart (pick a block, one day
+  earlier/later, previous/next row, shorter/longer, arrow keys, Apply/Enter) that sends the same action a drag
+  would.
+
 ### Added — the web renderers deploy to a CDN or any static host
 
 - **Each renderer jar ships a deployable `static/index.html`** (`io.mateu:mateu-vaadin`, `io.mateu:mateu-redwood`)

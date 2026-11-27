@@ -753,6 +753,17 @@ export const CHECKBOX_SET_STEREOTYPES = { checkbox: true, choice: true }
 // `image` is an image BY ITS URL (typed in, previewed); `uploadableImage` is the one you upload
 export const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'url', signature: 'signature', camera: 'camera' }
 
+const UPLOAD_ATTRIBUTE_KEYS = ['maxBytes', 'multiple', 'uploadUrl', 'uploadTicket', 'uploadDirect']
+
+/** The upload attributes of a file field, as the JSON mateu-capture-field reads ('' when none). */
+export function uploadAttributesJsonOf(attributes) {
+  const out = {}
+  for (const a of Array.isArray(attributes) ? attributes : []) {
+    if (a && UPLOAD_ATTRIBUTE_KEYS.includes(a.key) && a.value != null) out[a.key] = String(a.value)
+  }
+  return Object.keys(out).length ? JSON.stringify(out) : ''
+}
+
 /** The widget of an «extra» stereotype, or null if the field is one of the usual ones. */
 export function extraWidgetOf(f, options, value) {
   const st = f.stereotype
@@ -790,7 +801,10 @@ export function extraWidgetOf(f, options, value) {
   // the accept list travels in the field's generic attributes ({key, value} pairs)
   if (CAPTURE_MODES[st]) {
     const declared = ((f.attributes || []).find && (f.attributes || []).find((a) => a && a.key === 'accept')) || {}
-    return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || declared.value || '' }
+    // a FILE field carries what uploads need (fileUploads.mjs): the declared maxBytes/multiple and,
+    // when the app registers a storage, the server's uploadUrl/uploadTicket/uploadDirect
+    const upload = CAPTURE_MODES[st] === 'file' ? uploadAttributesJsonOf(f.attributes) : ''
+    return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || declared.value || '', upload }
   }
   // slider → oj-slider; stars → oj-rating-gauge; color → mateu-color-field (a hex string: JET's
   // oj-color-spectrum works on oj.Color objects); richText → mateu-rich-text-field (HTML, Delta read)

@@ -18,6 +18,11 @@ import {
   headerValuesList, HEADER_VALUES_KEY,
 } from './appExtras.mjs'
 import { applyDomEffects } from './files.mjs'
+import {
+  presenceChangesOf, presenceRouteOf, isRecordRoute, presenceSummaryOf, presenceNewEditors, presenceInitialsOf,
+  presencePageOf, presenceChipOf, syncPresence, notePresencePage, presenceEntriesNow, setPresenceFetch,
+  setPresenceDirtyReader, recheckPresenceEditing, applyPresenceChange, resetPresence, PRESENCE_ACTION,
+} from './presence.mjs'
 import { REDWOOD_COVERAGE } from './coverage.mjs'
 import { flatAtoms } from './reduceContexts.mjs'
 
@@ -206,5 +211,87 @@ test('idle: active, warning with the seconds left, expired; measured from any ta
   recordActivityOf(state, IDLE_WRITE_EVERY_MS + 1)
   assert.equal(memory.get(IDLE_ACTIVITY_KEY), String(IDLE_WRITE_EVERY_MS + 1))
 })
+
+// ── record presence (@App(presence)) — the web's presence.test.ts, the same rules ─────────────
+
+test('presence: a record route is 2+ segments, or one when the page edits; never new nor the root', () => {
+  assert.equal(presenceRouteOf('/orders/7/?tab=1'), 'orders/7')
+  assert.equal(isRecordRoute('orders/7'), true)
+  assert.equal(isRecordRoute('orders/7/edit'), true)
+  assert.equal(isRecordRoute('orders'), false)
+  assert.equal(isRecordRoute('profile', true), true)
+  assert.equal(isRecordRoute('orders/new'), false)
+  assert.equal(isRecordRoute('', true), false)
+})
+
+test('presence: the chip says who edits (warning) and who views; initials; who STARTS editing', () => {
+  const entries = [{ name: 'Ana López', editing: true }, { name: 'bob@x.org', editing: false }]
+  const summary = presenceSummaryOf(entries, 'en')
+  assert.equal(summary.tone, 'warning')
+  assert.equal(summary.text, 'Ana López is editing this record · bob@x.org is viewing it')
+  assert.equal(presenceSummaryOf([{ name: 'A' }, { name: 'B' }, { name: 'C' }, { name: 'D' }], 'en').text, 'A, B and 2 more are viewing it')
+  assert.equal(presenceSummaryOf([], 'en'), null)
+  assert.equal(presenceInitialsOf('Ana López'), 'AL')
+  assert.equal(presenceInitialsOf('ana@x.org'), 'A')
+  assert.deepEqual(presenceNewEditors([{ name: 'Bob', editing: false }], [{ name: 'Bob', editing: true }]), ['Bob'])
+  const chip = presenceChipOf([...entries, { name: 'C' }, { name: 'D' }], 'en')
+  assert.equal(chip.avatars.length, 3)
+  assert.equal(chip.more, 1)
+  assert.ok(chip.label.startsWith('Also on this record: '))
+})
+
+test('presence: the App carries the flag; the page watched is the host class (a mediator, none)', () => {
+  const reg = reduceContexts({ contexts: {}, stack: [] }, { fragments: [{ targetComponentId: '', action: 'Replace',
+    component: { type: 'ClientSide', id: 'app', metadata: { type: 'App', serverSideType: 'x.App', presence: true, menu: [] } } }] })
+  assert.equal(reg.shell.presence, true)
+  const page = presencePageOf({ tree: { type: 'ServerSide', serverSideType: 'x.Order', children: [{ type: 'ClientSide', confirmOnNavigationIfDirty: true, children: [] }] } })
+  assert.deepEqual(page, { view: 'x.Order', edits: true })
+  assert.equal(presencePageOf({ tree: { type: 'ServerSide', serverSideType: 'x.Crud', children: [{ metadata: { type: 'App' } }] } }), null)
+  assert.deepEqual(presenceChangesOf({ commands: [{ type: 'PresenceChanged', data: { key: 'k', entries: [{ name: 'Ana' }] } }, { type: 'Other' }] }),
+    [{ key: 'k', entries: [{ name: 'Ana' }] }])
+})
+
+{
+  // the reports: the same app-level action and parameters the web sends
+  const sent = []
+  let answer = { commands: [{ type: 'PresenceChanged', data: { key: 'rec-1', entries: [{ name: 'Ana', editing: false }] } }] }
+  setPresenceFetch(async (url, init) => { sent.push({ url, body: JSON.parse(init.body), keepalive: init.keepalive }); return { ok: true, json: async () => answer } })
+  let dirty = false
+  setPresenceDirtyReader(() => dirty)
+  syncPresence({ presence: true, serverSideType: 'x.App' }, 'http://h')
+  notePresencePage({ view: 'x.Order', edits: false }, '/orders/7')
+  await new Promise((r) => setTimeout(r, 5))
+  test('presence: a record page reports itself (viewing) and shows the others the answer names', () => {
+    assert.equal(sent.length, 1)
+    assert.equal(sent[0].url, 'http://h/mateu/v3/sync/_no_route')
+    assert.equal(sent[0].body.actionId, PRESENCE_ACTION)
+    assert.equal(sent[0].body.serverSideType, 'x.App')
+    assert.deepEqual({ ...sent[0].body.parameters, tab: undefined }, { route: 'orders/7', view: 'x.Order', tab: undefined, state: 'viewing' })
+    assert.deepEqual(presenceEntriesNow(), [{ name: 'Ana', editing: false }])
+  })
+  dirty = true
+  recheckPresenceEditing()
+  await new Promise((r) => setTimeout(r, 5))
+  applyPresenceChange({ key: 'rec-1', entries: [{ name: 'Ana', editing: true }] })
+  applyPresenceChange({ key: 'other', entries: [] })
+  test('presence: unsaved changes flip it to editing at once; a stream change of THIS record lands', () => {
+    assert.equal(sent[1].body.parameters.state, 'editing')
+    assert.deepEqual(presenceEntriesNow(), [{ name: 'Ana', editing: true }])
+  })
+  notePresencePage({ view: 'x.Order', edits: false }, '/orders')
+  await new Promise((r) => setTimeout(r, 5))
+  test('presence: leaving the record says leave (keepalive) and watches nothing on a listing', () => {
+    const last = sent[sent.length - 1]
+    assert.equal(last.body.parameters.state, 'leave')
+    assert.equal(last.keepalive, true)
+    assert.deepEqual(presenceEntriesNow(), [])
+  })
+  syncPresence({ presence: false }, 'http://h')
+  notePresencePage({ view: 'x.Order', edits: false }, '/orders/8')
+  test('presence: off in the App → nothing is reported', () => {
+    assert.equal(sent.filter((s) => s.body.parameters.route === 'orders/8').length, 0)
+  })
+  resetPresence()
+}
 
 console.log(`\n${passed} E2 tests passed`)

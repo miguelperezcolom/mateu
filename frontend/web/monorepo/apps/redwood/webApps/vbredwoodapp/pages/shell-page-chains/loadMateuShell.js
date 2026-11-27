@@ -62,6 +62,8 @@ define([
       // images, logo, web-component modules and the sseUrl: from the backend's ROOT (not from the
       // @UI's mount), as in the Vaadin renderer
       const assetBase = bridge.mateuAssetBase($application.constants.mateuBaseUrl);
+      // file fields upload to the backend's ROOT (/mateu/v3/upload — fileUploads.mjs)
+      bridge.setUploadAssetBase(assetBase);
       bridge.setElementModuleBase(assetBase);
       const runPageAction = (actionId, parameters, atom) => {
         Actions.fireEvent(window.__mateuShellContext || context, {
@@ -104,6 +106,8 @@ define([
       // a record's page: its header stays pinned and compacts on scroll
       bridge.installStickyHeader();
       bridge.setPlanningRangeSink(runPageAction);
+      // the tape chart without dragging: a tool row under it (pick, nudge, Apply — the drag's action)
+      bridge.installPlanningTools();
       // toasts with «Undo» (Message.undoable): the action goes back to the content page
       bridge.setUndoSink(runPageAction);
       // a route a toast action, a finished task or an inbox entry names: in-app navigation
@@ -357,6 +361,14 @@ define([
       bridge.setAccessKeysEnabled(!!(reg.shell && reg.shell.accessKeys));
       // E2: the shell's app shortcuts, live header values (and their stream) and idle warning; the
       // context of the chain goes stale, so navigation and app actions always use the latest one
+      // @App(presence): a record page reports «editing» while it holds unsaved changes
+      bridge.setPresenceDirtyReader(() => !!$application.variables.mateuDirty);
+      // a DropZone moves the CHECKED rows of the page's @DragRows listing without dragging (dnd.mjs)
+      bridge.setDragSelectionReader(() => ({
+        listing: $application.variables.mateuListing,
+        rows: $application.variables.mateuListingRows,
+        selection: $application.variables.mateuListingSelection,
+      }));
       bridge.syncAppExtras(reg.shell, {
         base,
         navigate: (route) => Actions.callChain(window.__mateuShellContext || context, {

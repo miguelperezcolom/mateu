@@ -11,10 +11,10 @@ import assert from 'node:assert/strict'
 import { makeDom, dataTransfer, sleep, FakeEvent } from './test-harness-dom.mjs'
 import { installKeys, setShortcutContext, setKeysActionSink, setAccessKeysEnabled } from './keys.mjs'
 import { shortcutMatches, installActionPanels } from './actionPanels.mjs'
-import { installDragAndDrop, setDropSink, installTileReorder, setTileReorderSink, paintedTileOrder, installKanbans, setKanbanMoveSink } from './dnd.mjs'
+import { installDragAndDrop, setDropSink, setDragSelectionReader, refreshDropSelection, dragSelectionIdsOf, installTileReorder, setTileReorderSink, paintedTileOrder, installKanbans, setKanbanMoveSink } from './dnd.mjs'
 import { installMatrixGrids, setMatrixActionSink } from './matrix.mjs'
 import { panelExpanded, matrixSectionKey } from './reduceContexts.mjs'
-import { installPlanningRange, setPlanningRangeSink } from './planning.mjs'
+import { installPlanningRange, setPlanningRangeSink, installPlanningTools, refreshPlanningTools } from './planning.mjs'
 import { installHover } from './hover.mjs'
 import { installMaps, setMapActionSink } from './map.mjs'
 import {
@@ -27,6 +27,8 @@ import { setRulesContext, setRulesContexts, applyRulesNow, installRules, setRule
 import { installCalendars, setCalendarActionSink } from './calendar.mjs'
 import { installToc, tocActiveIndex, tocSectionsOf } from './toc.mjs'
 import { defineCaptureField, defineColorField, captureTexts } from './inputs.mjs'
+import { setUploadAssetBase } from './fileUploads.mjs'
+import { setPresenceFetch, syncPresence, notePresencePage, paintPresence, resetPresence } from './presence.mjs'
 import { CAPTURE_MODES } from './core/rowEditor.mjs'
 import { installRowTones, setListingTones, installStickyHeader, overflowTitleOf } from './tables.mjs'
 import { readTileOrder } from './prefs.mjs'
@@ -170,6 +172,97 @@ test('dnd: soltar filas en un DropZone que acepta su tipo lanza su acción con _
   assert.deepEqual(sink.calls[1][1], { _draggedIds: ['C1', 'C2'], _dragType: 'charge' }, 'parámetros ilegibles: se suelta igual')
   fire(zone, 'drop', { dataTransfer: dataTransfer({ 'application/x-mateu-charge': '[]' }) })
   assert.equal(sink.calls.length, 2, 'nada arrastrado: nada que lanzar')
+})
+
+test('dnd sin arrastrar: las filas MARCADAS del listado @DragRows se mueven con el botón del destino', () => {
+  const { doc, el, fire } = makeDom()
+  const button = el('button', { class: 'mateu-drop-selected' })
+  button.hidden = true
+  const zone = el('div', { class: 'mateu-drop-zone', 'data-drop-accept': 'application/x-mateu-charge',
+    'data-drop-action': 'moveCharges', 'data-drop-params': '{"window":2}' }, button)
+  doc.body.appendChild(zone)
+  installDragAndDrop(doc)
+  const sink = sinkLog()
+  setDropSink(sink)
+  const listing = { dragType: 'charge' }
+  const rows = [{ _rowNumber: 0, id: 'C1' }, { _rowNumber: 1, id: 'C2' }, { _rowNumber: 2, id: 'C3' }]
+  let selection = { all: false, keys: [], except: [] }
+  setDragSelectionReader(() => ({ listing, rows, selection }))
+  refreshDropSelection(doc)
+  assert.equal(button.hidden, true, 'nada marcado: no se ofrece')
+  selection = { all: false, keys: [0, 2], except: [] }
+  refreshDropSelection(doc)
+  assert.equal(button.hidden, false)
+  assert.equal(button.textContent, 'Move the selected rows here (2)')
+  fire(button, 'click')
+  assert.deepEqual(sink.calls, [['moveCharges', { window: 2, _draggedIds: ['C1', 'C3'], _dragType: 'charge' }, {}]])
+  assert.deepEqual(dragSelectionIdsOf({ dragType: 'guest' }, rows, selection, 'application/x-mateu-charge'), [], 'otro tipo: nada')
+  assert.deepEqual(dragSelectionIdsOf({ dragType: 'charge' }, rows, { all: true, except: [1], keys: [] }, 'application/x-mateu-charge'), ['C1', 'C3'])
+  setDragSelectionReader(null)
+})
+
+test('planning sin arrastrar: la fila de herramientas empuja el bloque y Aplicar lanza la acción del arrastre', () => {
+  const { doc, el, fire } = makeDom()
+  const model = { move: 'move', resize: 'resize', from: '2027-03-01', days: 7,
+    rows: [{ id: 'r1', label: '101' }, { id: 'r2', label: '102' }], rowTasks: [['b1'], []],
+    blocks: [{ id: 'b1', label: 'Smith', resourceId: 'r1', startIdx: 1, endIdx: 2 }] }
+  const gantt = el('oj-gantt', { class: 'mateu-planning' })
+  const tools = el('div', { class: 'mateu-planning-tools', 'data-planning-tools': JSON.stringify(model) })
+  doc.body.appendChild(gantt); doc.body.appendChild(tools)
+  installPlanningTools(doc)
+  refreshPlanningTools(doc)
+  const sink = sinkLog()
+  setPlanningRangeSink(sink)
+  assert.equal(tools.hidden, false)
+  assert.equal(tools.getAttribute('role'), 'toolbar')
+  assert.ok(tools.querySelector('.mateu-planning-pick'), 'the block is picked in a select')
+  assert.equal(tools.querySelector('.mateu-planning-apply'), null, 'nothing pending: no Apply')
+  fire(tools.querySelector('[data-planning-act="later"]'), 'click')
+  fire(tools.querySelector('[data-planning-act="down"]'), 'click')
+  assert.ok(/Smith: 102/.test(tools.querySelector('.mateu-planning-pending').textContent))
+  fire(tools.querySelector('[data-planning-act="apply"]'), 'click')
+  assert.deepEqual(sink.calls[0].slice(0, 2), ['move', { _blockId: 'b1', _resourceId: 'r2', _start: '2027-03-03', _end: '2027-03-04' }])
+  assert.equal(tools.querySelector('.mateu-planning-apply'), null, 'applied: nothing pending')
+  // the keyboard: Shift+Right lengthens it, Escape forgets it
+  const later = tools.querySelector('[data-planning-act="later"]')
+  fire(later, 'keydown', { key: 'ArrowRight', shiftKey: true })
+  assert.ok(tools.querySelector('.mateu-planning-apply'))
+  fire(tools.querySelector('[data-planning-act="later"]'), 'keydown', { key: 'Escape' })
+  assert.equal(tools.querySelector('.mateu-planning-apply'), null)
+  assert.equal(sink.calls.length, 1)
+  // Enter applies what is pending (not on a button: the button's own click does)
+  fire(tools.querySelector('[data-planning-act="earlier"]'), 'keydown', { key: 'ArrowLeft' })
+  fire(tools.querySelector('.mateu-planning-pending'), 'keydown', { key: 'Enter' })
+  assert.equal(sink.calls.length, 2, 'Enter applied the move')
+  setPlanningRangeSink(null)
+})
+
+test('planning sin arrastrar: un clic en una barra o el selector eligen el bloque; el selector guarda sus flechas', () => {
+  const { doc, el, fire } = makeDom()
+  const model = { move: 'move', resize: '', from: '2027-03-01', days: 7,
+    rows: [{ id: 'r1', label: '101' }, { id: 'r2', label: '102' }], rowTasks: [['b1'], ['b2']],
+    blocks: [{ id: 'b1', label: 'Smith', resourceId: 'r1', startIdx: 1, endIdx: 2 }, { id: 'b2', label: 'Jones', resourceId: 'r2', startIdx: 3, endIdx: 4 }] }
+  const bar = el('span', { class: 'bar' })
+  const gantt = el('oj-gantt', { class: 'mateu-planning' }, bar)
+  gantt.getContextByNode = () => ({ subId: 'oj-gantt-task', rowIndex: 1, index: 0 })
+  const tools = el('div', { class: 'mateu-planning-tools', 'data-planning-tools': JSON.stringify(model) })
+  doc.body.appendChild(gantt); doc.body.appendChild(tools)
+  installPlanningTools(doc)
+  installPlanningTools(doc) // once
+  refreshPlanningTools(doc)
+  fire(bar, 'click')
+  assert.equal(tools.__mateuBlock, 'b2', 'the clicked bar is picked')
+  gantt.getContextByNode = () => ({ subId: 'oj-gantt-row-label', rowIndex: 0, index: 0 })
+  fire(bar, 'click')
+  assert.equal(tools.__mateuBlock, 'b2', 'a click off a bar changes nothing')
+  const pick = tools.querySelector('.mateu-planning-pick')
+  pick.value = 'b1'
+  fire(pick, 'change')
+  assert.equal(tools.__mateuBlock, 'b1')
+  const down = fire(tools.querySelector('.mateu-planning-pick'), 'keydown', { key: 'ArrowDown' })
+  assert.equal(down.defaultPrevented, false, 'the select keeps its arrows')
+  assert.equal(tools.querySelector('.mateu-planning-apply'), null)
+  assert.equal(tools.querySelector('[data-planning-act="longer"]'), null, 'no resize action: no length tools')
 })
 
 test('kanban: a card dragged to another column (or picked in its ⋯ select) moves where the line showed', () => {
@@ -1057,6 +1150,141 @@ test('capture: un fichero que no es imagen se describe; la cámara sin getUserMe
   fire(cam.querySelectorAll('oj-button')[0], 'ojAction')
   await sleep(1)
   assert.equal(cam.querySelector('.mateu-capture-box').textContent, captureTexts('en').noCamera, 'permiso denegado: se dice')
+})
+
+// a picked file, as the browser hands it to the field's hidden <input type=file>
+const pickInto = (doc, files) => {
+  const realCreate = doc.createElement.bind(doc)
+  doc.createElement = (tag) => {
+    const e = realCreate(tag)
+    if (tag === 'input') e.click = () => { e.files = files; e.dispatchEvent(new FakeEvent('change')); doc.createElement = realCreate }
+    return e
+  }
+}
+const fakeFile = (name, type, size, text = 'x') => ({ name, type, size, text })
+
+test('capture (file): inline files keep their name; a multiple field lists and removes; a refused file says why', async () => {
+  const { doc, win, fire } = makeDom()
+  defineCaptureField(win)
+  win.FileReader = class { readAsDataURL(f) { this.result = 'data:' + f.type + ';base64,QUJD'; setTimeout(() => this.onload(), 0) } }
+  const field = doc.createElement('mateu-capture-field')
+  field.setAttribute('mode', 'file')
+  field.setAttribute('data-upload', JSON.stringify({ multiple: 'true', accept: '.pdf', maxBytes: '100' }))
+  const values = []
+  field.addEventListener('valueChanged', (e) => values.push(e.detail.value))
+  doc.body.appendChild(field)
+  const press = (label) => fire(field.querySelectorAll('oj-button').find((b) => b.textContent === label), 'ojAction')
+  pickInto(doc, [fakeFile('a.pdf', 'application/pdf', 3), fakeFile('b.txt', 'text/plain', 3), fakeFile('c.pdf', 'application/pdf', 500)])
+  press(captureTexts('en').upload)
+  await sleep(5)
+  assert.deepEqual(values[0], ['data:application/pdf;name=a.pdf;base64,QUJD'], 'only the accepted, small enough file goes, with its name')
+  assert.equal(field.querySelector('[role=alert]').textContent, chromeText('fileTooLarge', { max: '100 bytes' }))
+  assert.equal(field.querySelectorAll('.mateu-capture-file').length, 1)
+  field.value = ['data:application/pdf;name=a.pdf;base64,QUJD', 'data:application/pdf;name=z.pdf;base64,QUJD']
+  assert.equal(field.querySelectorAll('.mateu-capture-file').length, 2, 'a list value is a property')
+  fire(field.querySelectorAll('.mateu-capture-file')[0].querySelector('oj-button'), 'ojAction')
+  assert.deepEqual(values.at(-1), ['data:application/pdf;name=z.pdf;base64,QUJD'])
+  // a single field: Replace and Remove; read-only shows a dash
+  const one = doc.createElement('mateu-capture-field')
+  one.setAttribute('mode', 'file')
+  one.setAttribute('value', 'data:application/pdf;name=q.pdf;base64,QUJD')
+  doc.body.appendChild(one)
+  assert.deepEqual(one.querySelectorAll('oj-button').map((b) => b.textContent), [captureTexts('en').replace, captureTexts('en').remove])
+  fire(one.querySelectorAll('oj-button')[1], 'ojAction')
+  assert.equal(one.value, '')
+  one.setAttribute('readonly', '')
+  assert.match(one.textContent, /—/)
+  one.setAttribute('data-upload', '{not json')
+  assert.equal(one.uploadConfig().multiple, false, 'a broken data-upload is ignored')
+})
+
+test('capture (file): upload mode streams with progress, commits the server value; Cancel aborts silently; a refusal shows', async () => {
+  const { doc, win, fire } = makeDom()
+  defineCaptureField(win)
+  win.AbortController = AbortController
+  setUploadAssetBase('http://h')
+  const sent = []
+  let answer = { status: 200, text: JSON.stringify({ value: 'mateu-file:1?name=a.pdf' }) }
+  let hold = false
+  globalThis.XMLHttpRequest = class {
+    constructor() { this.upload = {}; this.headers = {} }
+    open(m, u) { this.method = m; this.url = u }
+    setRequestHeader(k, v) { this.headers[k] = v }
+    abort() { this.onabort() }
+    send(body) {
+      sent.push(this)
+      if (hold) return
+      setTimeout(() => {
+        this.upload.onprogress({ lengthComputable: true, loaded: 1, total: 2 })
+        this.status = answer.status; this.responseText = answer.text
+        if (answer.status === 0) this.onerror(); else this.onload()
+      }, 0)
+    }
+  }
+  const field = doc.createElement('mateu-capture-field')
+  field.setAttribute('mode', 'file')
+  field.setAttribute('data-upload', JSON.stringify({ uploadUrl: '/mateu/v3/upload', uploadTicket: 't1' }))
+  const values = []
+  field.addEventListener('valueChanged', (e) => values.push(e.detail.value))
+  doc.body.appendChild(field)
+  const upload = () => fire(field.querySelectorAll('oj-button').find((b) => b.textContent === captureTexts('en').upload || b.textContent === captureTexts('en').replace), 'ojAction')
+  pickInto(doc, [fakeFile('a.pdf', 'application/pdf', 3)])
+  upload()
+  assert.ok(field.querySelector('progress.mateu-capture-progress'), 'in flight: a progress bar')
+  await sleep(5)
+  assert.equal(sent[0].url, 'http://h/mateu/v3/upload')
+  assert.equal(sent[0].headers['X-Mateu-Upload-Ticket'], 't1')
+  assert.equal(sent[0].headers['X-Mateu-File-Name'], 'a.pdf')
+  assert.equal(values[0], 'mateu-file:1?name=a.pdf')
+  hold = true
+  pickInto(doc, [fakeFile('b.pdf', 'application/pdf', 3)])
+  upload()
+  fire(field.querySelector('.mateu-capture-uploading oj-button'), 'ojAction')
+  await sleep(5)
+  assert.equal(field.querySelector('[role=alert]'), null, 'a cancelled upload says nothing')
+  assert.equal(values.length, 1)
+  hold = false
+  answer = { status: 403, text: '' }
+  pickInto(doc, [fakeFile('c.pdf', 'application/pdf', 3)])
+  upload()
+  await sleep(5)
+  assert.equal(field.querySelector('[role=alert]').textContent, chromeText('uploadNotAllowed'))
+  answer = { status: 0, text: '' }
+  pickInto(doc, [fakeFile('d.pdf', 'application/pdf', 3)])
+  upload()
+  await sleep(5)
+  assert.equal(field.querySelector('[role=alert]').textContent, chromeText('uploadNotSent'))
+  hold = true
+  pickInto(doc, [fakeFile('e.pdf', 'application/pdf', 3)])
+  upload()
+  field.remove()
+  await sleep(1)
+  delete globalThis.XMLHttpRequest
+})
+
+test('presence: the chip paints who is here (editing first tone), +N beyond three, and clears when off', async () => {
+  const { doc } = makeDom()
+  const host = doc.createElement('span')
+  host.id = 'mateuPresence'
+  doc.body.appendChild(host)
+  assert.equal(paintPresence(makeDom().doc), false, 'no band yet: not painted')
+  const entries = [{ name: 'Ana López', editing: true }, { name: 'Bea' }, { name: 'Carlos Ruiz' }, { name: 'Dani' }]
+  setPresenceFetch(async () => ({ ok: true, json: async () => ({ commands: [{ type: 'PresenceChanged', data: { key: 'k', entries } }] }) }))
+  syncPresence({ presence: true, serverSideType: 'x.App' }, 'http://h')
+  notePresencePage({ view: 'x.Order', edits: false }, '/orders/7')
+  await sleep(5)
+  assert.equal(paintPresence(doc), true)
+  assert.equal(host.hidden, false)
+  assert.equal(host.getAttribute('role'), 'status')
+  assert.ok(host.getAttribute('aria-label').length > 0)
+  const avatars = host.querySelectorAll('.mateu-presence-avatar')
+  assert.deepEqual(avatars.map((a) => a.textContent), ['AL', 'B', 'CR', '+1'])
+  assert.ok(avatars[0].className.includes('mateu-presence-editing'))
+  syncPresence({ presence: false }, 'http://h')
+  paintPresence(doc)
+  assert.equal(host.hidden, true)
+  assert.equal(host.getAttribute('aria-label'), null)
+  resetPresence()
 })
 
 test('color field: el muestrario emite el hex; sólo lectura lo deshabilita', () => {

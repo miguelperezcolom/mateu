@@ -85,6 +85,19 @@ Object openBooking(HttpRequest httpRequest) {
 
 Reject an invalid move by returning a `Message` without changing the data — the board re-renders from the unchanged model, snapping the block back.
 
+## Without dragging
+
+A board that moves or resizes blocks can be used without dragging (keyboard, or a single tap):
+
+- **Vaadin** — focus a block: the arrow keys move it a day or a row, Shift+Left/Right change its
+  length, Enter applies, Escape cancels; the block's tool row offers the same moves as buttons.
+- **Redwood** — a tool row under the chart: pick the block (a list, or a click on its bar), then
+  one day earlier/later, previous/next row, one day shorter/longer — as buttons, or the same arrow
+  keys while focus is in the row —, and **Apply**.
+
+Either way Apply sends the same `moveActionId` / `resizeActionId` (with `_blockId`, `_resourceId`,
+`_start`, `_end`) a drag would, so the server needs nothing extra.
+
 ## When to use it
 
 Use a planning board when the question is "**who/what is where, when**" and the answer must be re-arrangeable in place: room planning, fleet assignment, shift/staff allocation, equipment rental. For monitoring the *progress* of scheduled work (one row per task, not per resource), use the [Gantt](/ux-patterns/gantt/) instead; for status-lane workflows use the Kanban.

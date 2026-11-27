@@ -1,14 +1,23 @@
 import { chromeText, chromeLanguage } from './i18n.mjs'
+import {
+  uploadConfigOf, isUploadMode, pickedFileRefusal, uploadPickedFile, xhrUploadTransport, UploadAborted,
+  fileValuesOf, withUploadedFile, withoutUploadedFile, currentUploadAssetBase,
+} from './fileUploads.mjs'
 // CAPTURE fields of a form (file, image, signature, camera) for which JET/Redwood has no
 // component: there is no signature pad or camera in oj-*/oj-sp-*, and oj-file-picker only delivers
-// File (Mateu's value is a data URI that travels in the state, with no upload endpoint — the same
-// contract as the web renderer). So an OWN, minimal element, `<mateu-capture-field>`:
+// File. Mateu's value is a data URI that travels in the state — or, for a file field whose app
+// registers a storage (the server sends an upload ticket), the `mateu-file:` reference of the file
+// it was uploaded to (fileUploads.mjs) — the same contract as the web renderer. So an OWN, minimal
+// element, `<mateu-capture-field>`:
 // the buttons are real oj-buttons, the canvas/video/image use Redwood's tokens, and the
 // value comes out as `valueChanged` with { value, updatedFrom: 'internal' } — the shape of a JET
 // component's event, so the field-change chains (hostInputChanged, mateuFieldEdited…)
 // treat it as one more.
 //
-//   <mateu-capture-field mode="signature|camera|file|image|url" accept="…" readonly value="data:…">
+//   <mateu-capture-field mode="signature|camera|file|image|url" accept="…" readonly value="data:…"
+//       data-upload='{"uploadUrl":…,"uploadTicket":…,"maxBytes":…,"multiple":…}'>
+//
+// A `file` field with `multiple` holds a LIST of values (the `value` property is an array).
 //
 // `url` is the image stereotype (an image by its URL): editable, the URL input with a contained preview
 // under it that follows what is typed; read-only, the image alone.
@@ -85,10 +94,14 @@ export function describeFileValue(value) {
     const name = params.name || dec(q < 0 ? rest : rest.slice(0, q))
     return /^\d+$/.test(params.size || '') ? name + ' · ' + sizeText(Number(params.size)) : name
   }
-  const m = v.match(/^data:([^;,]+)?(;base64)?,(.*)$/i)
-  if (!m) return v ? v.split('/').pop() : ''
-  const bytes = m[2] ? Math.floor((m[3].length * 3) / 4) : decodeURIComponent(m[3]).length
-  return (m[1] || 'file') + ' · ' + sizeText(bytes)
+  // a data URI carries the file's name as a `;name=` parameter when the web or this field read it
+  const named = v.match(/^data:([^;,]+)?((?:;[^;,=]+=[^;,]*)*)(;base64)?,(.*)$/i)
+  if (!named) return v ? v.split('/').pop() : ''
+  const nameParam = (named[2] || '').split(';').find((p) => p.indexOf('name=') === 0)
+  let name = ''
+  if (nameParam) { try { name = decodeURIComponent(nameParam.slice(5)) } catch (e) { name = nameParam.slice(5) } }
+  const bytes = named[3] ? Math.floor((named[4].length * 3) / 4) : decodeURIComponent(named[4]).length
+  return (name || named[1] || 'file') + ' · ' + sizeText(bytes)
 }
 
 /** Defines `<mateu-capture-field>` in `win` (once). */
@@ -115,22 +128,145 @@ export function defineCaptureField(win = typeof window !== 'undefined' ? window 
     reader.onerror = () => reject(reader.error)
     reader.readAsDataURL(file)
   })
+  // a file read inline keeps its NAME, as the web renderer stamps it (before the base64 marker)
+  const namedDataUri = (uri, name) => {
+    const comma = uri.indexOf(',')
+    if (comma < 0 || !name) return uri
+    const meta = uri.slice(0, comma)
+    const stamped = meta.indexOf(';base64') >= 0 ? meta.replace(';base64', ';name=' + encodeURIComponent(name) + ';base64') : meta + ';name=' + encodeURIComponent(name)
+    return stamped + uri.slice(comma)
+  }
 
   class MateuCaptureField extends win.HTMLElement {
     static get observedAttributes() { return ['value', 'readonly', 'mode', 'accept'] }
     connectedCallback() { this.render() }
-    disconnectedCallback() { this.stopCamera() }
+    disconnectedCallback() { this.stopCamera(); for (const u of this.uploads || []) u.controller.abort() }
     attributeChangedCallback() { if (this.isConnected && !this.busy) this.render() }
-    get value() { return this.getAttribute('value') || '' }
-    set value(v) { if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v)) }
+    // a `multiple` file field holds a list: kept as a property (an attribute would flatten it)
+    get value() { return this.list ? this.list.slice() : (this.getAttribute('value') || '') }
+    set value(v) {
+      if (Array.isArray(v)) {
+        this.list = fileValuesOf(v)
+        this.removeAttribute('value')
+        if (this.isConnected && !this.busy) this.render()
+        return
+      }
+      this.list = null
+      if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v))
+    }
+
+    /** What the server and the field declare for uploads (data-upload, accept). */
+    uploadConfig() {
+      let declared = {}
+      try { declared = JSON.parse(this.getAttribute('data-upload') || '{}') || {} } catch (e) { declared = {} }
+      const config = uploadConfigOf(declared)
+      return { ...config, accept: config.accept || this.getAttribute('accept') || undefined }
+    }
 
     emit(value) {
       this.busy = true
       this.value = value
       this.busy = false
+      const empty = value == null || value === '' || (Array.isArray(value) && !value.length)
       this.dispatchEvent(new win.CustomEvent('valueChanged', {
-        detail: { value: value || null, previousValue: null, updatedFrom: 'internal' }, bubbles: true }))
+        detail: { value: empty ? (Array.isArray(value) ? [] : null) : value, previousValue: null, updatedFrom: 'internal' }, bubbles: true }))
       this.render()
+    }
+
+    /** A FILE field: each picked file is checked, then uploaded (upload mode) or read inline. */
+    pickFiles() {
+      const config = this.uploadConfig()
+      const input = doc.createElement('input')
+      input.type = 'file'
+      if (config.accept) input.accept = config.accept
+      input.multiple = !!config.multiple
+      input.addEventListener('change', () => {
+        const picked = Array.from(input.files || [])
+        this.error = null
+        for (const file of config.multiple ? picked : picked.slice(0, 1)) {
+          const refusal = pickedFileRefusal(config, file)
+          if (refusal) { this.error = refusal; continue }
+          if (isUploadMode(config)) void this.upload(config, file)
+          else readFile(file).then((uri) => this.emit(withUploadedFile(this.value, namedDataUri(uri, file.name), config.multiple)))
+            .catch(() => { this.error = chromeText('uploadFailed'); this.render() })
+        }
+        this.render()
+      })
+      input.click()
+    }
+
+    async upload(config, file) {
+      const entry = { name: file.name, fraction: 0, controller: new win.AbortController() }
+      this.uploads = [...(this.uploads || []), entry]
+      this.render()
+      try {
+        const value = await uploadPickedFile(currentUploadAssetBase(), config, file, xhrUploadTransport, (fraction) => {
+          entry.fraction = fraction
+          const bar = entry.bar
+          if (bar) bar.setAttribute('value', String(Math.round(fraction * 100)))
+        }, entry.controller.signal)
+        this.uploads = this.uploads.filter((u) => u !== entry)
+        this.emit(withUploadedFile(this.value, value, config.multiple))
+      } catch (failure) {
+        this.uploads = this.uploads.filter((u) => u !== entry)
+        if (!(failure instanceof UploadAborted)) this.error = failure.message
+        this.render()
+      }
+    }
+
+    /** The FILE mode: the entries (each removable in a list), the uploads in flight, the error. */
+    renderFile(box, actions, readonly) {
+      const config = this.uploadConfig()
+      const values = fileValuesOf(this.value)
+      values.forEach((v, i) => {
+        const row = doc.createElement('div')
+        row.className = 'mateu-capture-file'
+        const span = doc.createElement('span')
+        span.className = 'oj-typography-body-md'
+        span.textContent = describeFileValue(v)
+        row.appendChild(span)
+        if (!readonly && config.multiple) row.appendChild(button(t.remove, 'borderless', () => this.emit(withoutUploadedFile(this.value, i, true))))
+        box.appendChild(row)
+      })
+      for (const u of this.uploads || []) {
+        const row = doc.createElement('div')
+        row.className = 'mateu-capture-file mateu-capture-uploading'
+        const span = doc.createElement('span')
+        span.className = 'oj-typography-body-sm'
+        span.textContent = chromeText('uploadingFile', { name: u.name })
+        const bar = doc.createElement('progress')
+        bar.className = 'mateu-capture-progress'
+        bar.max = 100
+        bar.setAttribute('value', String(Math.round(u.fraction * 100)))
+        bar.setAttribute('aria-label', span.textContent)
+        u.bar = bar
+        row.appendChild(span)
+        row.appendChild(bar)
+        row.appendChild(button(chromeText('cancel'), 'borderless', () => u.controller.abort()))
+        box.appendChild(row)
+      }
+      if (!values.length && !(this.uploads || []).length) {
+        const empty = doc.createElement('span')
+        empty.className = 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end'
+        empty.textContent = readonly ? '—' : t.empty
+        box.appendChild(empty)
+      }
+      if (this.error) {
+        const error = doc.createElement('div')
+        error.className = 'mateu-capture-error oj-typography-body-sm oj-text-color-danger'
+        error.setAttribute('role', 'alert')
+        error.textContent = this.error
+        box.appendChild(error)
+      }
+      if (!readonly) {
+        if (config.multiple || !values.length) actions.appendChild(button(t.upload, 'outlined', () => this.pickFiles()))
+        else {
+          actions.appendChild(button(t.replace, 'outlined', () => this.pickFiles()))
+          actions.appendChild(button(t.remove, 'borderless', () => this.emit(null)))
+        }
+      }
+      this.appendChild(box)
+      if (actions.childNodes.length) this.appendChild(actions)
     }
 
     stopCamera() {
@@ -165,6 +301,10 @@ export function defineCaptureField(win = typeof window !== 'undefined' ? window 
       if (mode === 'url' && !readonly) {
         this.renderUrl(box, value)
         this.appendChild(box)
+        return
+      }
+      if (mode === 'file') {
+        this.renderFile(box, actions, readonly)
         return
       }
       if (value && (mode !== 'file' || isImageValue(value))) {
