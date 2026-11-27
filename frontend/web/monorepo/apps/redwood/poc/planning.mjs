@@ -313,7 +313,7 @@ export function installPlanningTools(doc = typeof document !== 'undefined' ? doc
     new Observer(() => {
       if (queued) return
       queued = true
-      Promise.resolve().then(() => { queued = false; refreshPlanningTools(doc) })
+      queueMicrotask(() => { queued = false; refreshPlanningTools(doc) })
     }).observe(doc.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-planning-tools'] })
   }
   refreshPlanningTools(doc)

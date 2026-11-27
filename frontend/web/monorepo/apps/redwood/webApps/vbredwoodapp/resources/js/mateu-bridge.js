@@ -23200,8 +23200,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           for (const file of config.multiple ? picked : picked.slice(0, 1)) {
             const refusal = pickedFileRefusal(config, file)
             if (refusal) { this.error = refusal; continue }
-            if (isUploadMode(config)) this.upload(config, file)
+            if (isUploadMode(config)) void this.upload(config, file)
             else readFile(file).then((uri) => this.emit(withUploadedFile(this.value, namedDataUri(uri, file.name), config.multiple)))
+              .catch(() => { this.error = chromeText('uploadFailed'); this.render() })
           }
           this.render()
         })
@@ -24985,7 +24986,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       new Observer(() => {
         if (queued) return
         queued = true
-        Promise.resolve().then(() => { queued = false; refreshPlanningTools(doc) })
+        queueMicrotask(() => { queued = false; refreshPlanningTools(doc) })
       }).observe(doc.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-planning-tools'] })
     }
     refreshPlanningTools(doc)
@@ -25401,7 +25402,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // ── the singleton ───────────────────────────────────────────────────────────────────────────
 
-  const presenceTab = Math.random().toString(36).slice(2) + Date.now().toString(36)
+  // the tab's id: only told apart from this person's other tabs, never a secret
+  const presenceTab = globalThis.crypto && globalThis.crypto.randomUUID ? globalThis.crypto.randomUUID() : Date.now().toString(36) + '-' + Math.floor((globalThis.performance ? globalThis.performance.now() : 0) * 1000).toString(36)
   let presenceTarget = null // { base, serverSideType }
   let presenceWatch = null // { route, view, edits, key, entries, editing, timer }
   let presenceDirtyReader = () => false
@@ -25466,7 +25468,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** The page goes away (pagehide): the server forgets this tab now, not in 30 s. */
-  function leavePresence() { if (presenceWatch) sendPresence(presenceWatch, 'leave') }
+  function leavePresence() { if (presenceWatch) void sendPresence(presenceWatch, 'leave') }
 
   /** The entries the chip shows (the OTHER people on this record). */
   const presenceEntriesNow = () => (presenceTarget && presenceWatch ? presenceWatch.entries : [])
@@ -25482,11 +25484,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!presenceWatch) return
     clearInterval(presenceWatch.timer)
     presenceWatch.timer = null
-    if (leave) sendPresence(presenceWatch, 'leave')
+    if (leave) void sendPresence(presenceWatch, 'leave')
     presenceWatch.entries = []
   }
 
-  function presenceBeat() { if (presenceWatch) sendPresence(presenceWatch, presenceWatch.editing ? 'editing' : 'viewing') }
+  function presenceBeat() { if (presenceWatch) void sendPresence(presenceWatch, presenceWatch.editing ? 'editing' : 'viewing') }
 
   function updatePresence(entries) {
     const watch = presenceWatch

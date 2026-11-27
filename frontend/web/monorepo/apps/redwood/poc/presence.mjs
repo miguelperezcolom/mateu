@@ -90,7 +90,8 @@ export function presencePageOf(hostCtx) {
 
 // ── the singleton ───────────────────────────────────────────────────────────────────────────
 
-const presenceTab = Math.random().toString(36).slice(2) + Date.now().toString(36)
+// the tab's id: only told apart from this person's other tabs, never a secret
+const presenceTab = globalThis.crypto && globalThis.crypto.randomUUID ? globalThis.crypto.randomUUID() : Date.now().toString(36) + '-' + Math.floor((globalThis.performance ? globalThis.performance.now() : 0) * 1000).toString(36)
 let presenceTarget = null // { base, serverSideType }
 let presenceWatch = null // { route, view, edits, key, entries, editing, timer }
 let presenceDirtyReader = () => false
@@ -155,7 +156,7 @@ export function recheckPresenceEditing() {
 }
 
 /** The page goes away (pagehide): the server forgets this tab now, not in 30 s. */
-export function leavePresence() { if (presenceWatch) sendPresence(presenceWatch, 'leave') }
+export function leavePresence() { if (presenceWatch) void sendPresence(presenceWatch, 'leave') }
 
 /** The entries the chip shows (the OTHER people on this record). */
 export const presenceEntriesNow = () => (presenceTarget && presenceWatch ? presenceWatch.entries : [])
@@ -171,11 +172,11 @@ function stopPresenceWatch(leave) {
   if (!presenceWatch) return
   clearInterval(presenceWatch.timer)
   presenceWatch.timer = null
-  if (leave) sendPresence(presenceWatch, 'leave')
+  if (leave) void sendPresence(presenceWatch, 'leave')
   presenceWatch.entries = []
 }
 
-function presenceBeat() { if (presenceWatch) sendPresence(presenceWatch, presenceWatch.editing ? 'editing' : 'viewing') }
+function presenceBeat() { if (presenceWatch) void sendPresence(presenceWatch, presenceWatch.editing ? 'editing' : 'viewing') }
 
 function updatePresence(entries) {
   const watch = presenceWatch

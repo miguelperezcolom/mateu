@@ -186,8 +186,9 @@ export function defineCaptureField(win = typeof window !== 'undefined' ? window 
         for (const file of config.multiple ? picked : picked.slice(0, 1)) {
           const refusal = pickedFileRefusal(config, file)
           if (refusal) { this.error = refusal; continue }
-          if (isUploadMode(config)) this.upload(config, file)
+          if (isUploadMode(config)) void this.upload(config, file)
           else readFile(file).then((uri) => this.emit(withUploadedFile(this.value, namedDataUri(uri, file.name), config.multiple)))
+            .catch(() => { this.error = chromeText('uploadFailed'); this.render() })
         }
         this.render()
       })
