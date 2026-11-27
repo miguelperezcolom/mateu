@@ -102,7 +102,7 @@ user's); everything is logged on the server.
 ✅ **Checkpoint**: your agent (or `curl`) ran `calculate` and got 27; a page written by the agent
 appeared in a drawer over your open app.
 
-## Coming in the next release (not in 3.0.4)
+## Coming in the next release (not in 3.0.7)
 
 These exist in the repository but have **not been released** yet. Do not look for them in the
 workshop's version; the instructor may demo them from a build of `master`.
@@ -113,7 +113,7 @@ workshop's version; the instructor may demo them from a build of `master`.
   `set_session_fields`, `run_session_action`: an agent reads and fills the screen a paired user is
   looking at. See [lab 07](../07-stretch/guide.md).
 
-(In 3.0.4 the desktop app already has **Connect AI** — a toolbar action — so the push of step 3
+(In 3.0.7 the desktop app already has **Connect AI** — a toolbar action — so the push of step 3
 can target a desktop window too. We verified the push on the web renderer in the three languages, not
 on the desktop app: try it, and tell us.)
 

@@ -10,7 +10,7 @@ with two different design systems, on a phone, in a desktop app, for an AI agent
 Python. The language-neutral labs (renderers on the phone and the desktop, YAML, AI) are the same for
 the three tracks; only the code labs differ.
 
-**Mateu version**: every lab is pinned to **3.0.4** — the release the
+**Mateu version**: every lab is pinned to **3.0.7** — the release the
 [starters](../starters) use. Nothing in the labs builds Mateu from source.
 
 ## Agenda

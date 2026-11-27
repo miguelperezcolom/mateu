@@ -1,6 +1,6 @@
 {
- "tag": "v3.0.4",
- "base": "https://cdn.jsdelivr.net/gh/miguelperezcolom/mateu@v3.0.4/backend/shared/frontend/vaadin-lit/src/main/resources/static/",
+ "tag": "v3.0.7",
+ "base": "https://cdn.jsdelivr.net/gh/miguelperezcolom/mateu@v3.0.7/backend/shared/frontend/vaadin-lit/src/main/resources/static/",
  "index": "_index.html",
  "files": [
   "assets/THIRD-PARTY-LICENSES.txt",
@@ -42,13 +42,14 @@
   "assets/vendor-ol.js",
   "assets/vendor-vaadin.js",
   "assets/vendor.js",
+  "index.html",
   "myassets/background.svg"
  ],
  "digests": {
   "_index.html": "c359dacadb645c8f96ea54c890ece9d5334dd262466c24d769042a88e14a53bb",
   "assets/THIRD-PARTY-LICENSES.txt": "0612d311dcc2f26cc4103087f343747ac8200b959274fc773c1218cd85d9bd6a",
   "assets/authToken.js": "7fb3eef467f6d5d2c1688b2f1cd068a525d86178330b4d111a8d7c50da395fe4",
-  "assets/chromeTexts.js": "937afd4fba76bc87541a452b218efeb6ef9800fb1beab0cfec311b5b66594067",
+  "assets/chromeTexts.js": "86a84371f49fba77f45083c1ccc4bcd99474829d2f9923411ac7c11582c696f6",
   "assets/dirtyGuard.js": "1b513cf3807bcd7d33886525e35464a58412aea2882312591ff7703d6e7d3e4e",
   "assets/globalCommands.js": "3422c705433e2583a65cccbfb2ac46902013856cfdcf6a6201c095618d3733ae",
   "assets/index.css": "23a43cffd54a7c341ff648dc3730a47e668d739c88bbd787cfd0d1e40dd0f05f",
@@ -69,7 +70,7 @@
   "assets/mateu-signature-pad.js": "4cb167bfd8b8f501a080a61d545bbfbfba5abb47358cbdf730399b82d0ec6daa",
   "assets/mateu-task-center.js": "7d754168100456a9989e073b17d375579ba22adbb1508324db23c58404de105d",
   "assets/mateu-theme.js": "62ead7ad0bb8d6ec04665edf4cc57409bd01ecf3a5c187ba09f317d9d5b18933",
-  "assets/mateu-vaadin.js": "989c2b6859f0a2f968b9cca22e5e0b8af143fc807c4f3cfab711e6fffba43b5b",
+  "assets/mateu-vaadin.js": "7b5151033a9318cb75fdd4b0b6994a54f006c47498d9ff71303f1eba4a5ba053",
   "assets/mateu-workflow.js": "42ba7097dffd70914d1b4a455c76103d9fbebeca288c328fe91ce166b8f82672",
   "assets/neutralChrome.js": "6d5bfee594b9bd62cdce924f4e39e1dd7aebdefb9ec9e9cfeb9d751d0dd619ef",
   "assets/reattach.js": "25ef5949e3bd81f1bbc1356a13ba23eaa1c18c6c66f7be396381de9307199588",
@@ -85,6 +86,7 @@
   "assets/vendor-ol.js": "55bbd002c4a32047901e824c0c3ba36cce6c2992857ddf0563a73cd4c46220ad",
   "assets/vendor-vaadin.js": "c7a12499f30cda6fee07caf719df266d093ecf6668fa4641334c39a751f8fc6a",
   "assets/vendor.js": "bb89d85f32af2df4ff9e17c8af19a268b38805b972f79c8b60e3a5989e0eb91d",
+  "index.html": "034b8d907780ee2df60e806cc010b0cb00f1481f6d47c1ad117a5d636ae5e2b9",
   "myassets/background.svg": "07efb6ee40e2cab361cfa980a7d1403c83a46dbfdfe192f55200e337b1f68b41"
  }
 }

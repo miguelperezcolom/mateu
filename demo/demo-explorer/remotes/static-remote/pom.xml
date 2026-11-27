@@ -22,7 +22,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <mateu.version>3.0.4</mateu.version>
+        <mateu.version>3.0.7</mateu.version>
     </properties>
 
     <dependencies>
