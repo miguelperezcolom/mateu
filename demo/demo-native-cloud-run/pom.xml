@@ -20,7 +20,7 @@
         <!-- The latest Mateu release on Maven Central. To build against your local checkout instead,
              install the backend (cd backend && mvn install -DskipTests) and pass
              -Dmateu.version=0.0.1-MATEU -->
-        <mateu.version>3.0.4</mateu.version>
+        <mateu.version>3.0.7</mateu.version>
         <quarkus-mateu.version>1.1.0</quarkus-mateu.version>
         <!-- The renderer: Mateu's default (Vaadin-based) one. `-Predwood` swaps it for the Redwood
              renderer with no change to the classes; front/build-site.sh uses that for the Netlify site. -->
