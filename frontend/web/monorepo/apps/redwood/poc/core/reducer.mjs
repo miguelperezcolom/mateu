@@ -288,6 +288,8 @@ export function reduceContexts(reg, increment, opts = {}) {
         shortcuts: md.shortcuts || [],
         headerValues: md.headerValues || [],
         liveUpdates: !!md.liveUpdates,
+        // @App(presence): record pages tell who else has the record open (presence.mjs)
+        presence: !!md.presence,
         idleSession: md.idleSession || null,
         // @App(mobileQr): the header's "Open on mobile" action (qr.mjs)
         mobileQr: !!md.mobileQr,

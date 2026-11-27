@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { planningAtomOf, planningActionOf, overlayOf, panelExpanded, setPanelExpanded } from './reduceContexts.mjs'
 import { installStickyHeader } from './tables.mjs'
+import { planningNudged, planningNudgeOf, planningPendingOf, planningPendingChanged, planningApplyOf, planningPendingText, planningBlockAtContext, planningKeyNudge } from './planning.mjs'
 import { actionPanelAtomOf, shortcutHintOf } from './reduceContexts.mjs'
 import { shortcutMatches, parseShortcut } from './actionPanels.mjs'
 import { matrixSpecOf, matrixAtomOf, matrixSectionKey } from './reduceContexts.mjs'
@@ -2940,6 +2941,43 @@ test('a page foldout honours the height its style declares', () => {
   assert.deepEqual(foldoutOf(foldout('height: 24rem;')).hostStyle, { height: '24rem' })
   assert.deepEqual(foldoutOf(foldout('')).hostStyle, {})
   assert.match(webApp('flows/main/pages/main-start-page.html'), /mateuFoldoutEl"[^>]*:style="\[\[ \$application\.variables\.mateuFoldout\.hostStyle/)
+})
+
+// ── the tape chart WITHOUT dragging (planning.mjs) — libs/mateu mateu-planning-board `nudged` ──
+test('planning sin arrastrar: el modelo de la fila de herramientas, los empujones y la acción que aplica', () => {
+  const m = {
+    from: '2027-03-01', to: '2027-03-07', moveActionId: 'move', resizeActionId: 'resize',
+    resources: [{ id: 'r1', label: '101', group: 'Floor 1' }, { id: 'r2', label: '102', group: 'Floor 1' }, { id: 'r3', label: '201', group: 'Floor 2' }],
+    blocks: [{ id: 'b1', resourceId: 'r1', start: '2027-03-02', end: '2027-03-03', label: 'Smith' }],
+  }
+  const model = JSON.parse(planningAtomOf(m, 'p').toolsModel)
+  assert.equal(model.days, 7)
+  assert.deepEqual(model.rows.map((r) => r.id), ['r1', 'r2', 'r3'], 'group headers are no row to move to')
+  assert.deepEqual(model.blocks, [{ id: 'b1', label: 'Smith', resourceId: 'r1', startIdx: 1, endIdx: 2 }])
+  assert.deepEqual(model.rowTasks, [[], ['b1'], [], [], []], 'the gantt rows, group headers included')
+  assert.equal(planningBlockAtContext(model, { rowIndex: 1, index: 0, subId: 'oj-gantt-task' }), 'b1')
+  assert.equal(planningBlockAtContext(model, { rowIndex: 0, index: 0 }), null)
+  assert.equal(planningAtomOf({ ...m, moveActionId: '', resizeActionId: '' }, 'p').toolsModel, '', 'nothing to move: no tool row')
+
+  let p = planningPendingOf(model, 'b1')
+  assert.equal(planningPendingChanged(p), false)
+  p = planningNudgeOf(model, p, { days: 1 })
+  p = planningNudgeOf(model, p, { rows: 1 })
+  assert.deepEqual([p.mode, p.resourceId, p.startIdx, p.endIdx], ['move', 'r2', 2, 3])
+  assert.deepEqual(planningApplyOf(model, p), { actionId: 'move', parameters: { _blockId: 'b1', _resourceId: 'r2', _start: '2027-03-03', _end: '2027-03-04' } })
+  assert.equal(planningPendingText(model, p, 'en-US'), 'Smith: 102, 3/3/2027 to 3/4/2027')
+  // a resize starts from the block again (a move and a resize are separate changes) and keeps its row
+  const r = planningNudgeOf(model, p, { length: 2 })
+  assert.deepEqual([r.mode, r.resourceId, r.startIdx, r.endIdx], ['resize', 'r1', 1, 4])
+  assert.equal(planningApplyOf(model, r).actionId, 'resize')
+  // the window and the rows bound it
+  assert.deepEqual(planningNudged({ ...planningPendingOf(model, 'b1') }, { days: -9 }, ['r1'], 7).startIdx, 0)
+  assert.equal(planningNudged(planningPendingOf(model, 'b1'), { days: 9 }, ['r1'], 7).endIdx, 6)
+  assert.equal(planningNudged(planningPendingOf(model, 'b1'), { length: -5 }, ['r1'], 7).endIdx, 1, 'never before its start')
+  assert.equal(planningApplyOf({ ...model, move: '' }, p), null)
+  assert.deepEqual(planningKeyNudge({ key: 'ArrowRight', shiftKey: true }), { length: 1 })
+  assert.deepEqual(planningKeyNudge({ key: 'ArrowUp' }), { rows: -1 })
+  assert.equal(planningKeyNudge({ key: 'ArrowUp', ctrlKey: true }), null)
 })
 
 console.log(`\n${pass} tests PMS OK`)

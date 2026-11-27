@@ -7,6 +7,7 @@ import { rendererHeaders } from './versionSkew.mjs'
 import { keyHint, isFunctionKeyShortcut, currentShortcutActions } from './keys.mjs'
 import { shortcutMatches } from './actionPanels.mjs'
 import { safeHref } from './core/display.mjs'
+import { presenceChangesOf, applyPresenceChange, syncPresence, installPresence } from './presence.mjs'
 
 // The APP-LEVEL extras of the E2 patterns on the VB shell — the same contract (and the same
 // localStorage keys, so a Vaadin tab and a Redwood tab of one origin cooperate) as the web
@@ -210,6 +211,15 @@ function paintHeaderValues(changed = []) {
   }
 }
 
+// a presence change the leader tab heard, handed to the other tabs (the web's liveUpdates.ts key)
+const PRESENCE_CHANGE_KEY = 'mateu-presence-change'
+let presenceBroadcastKey = null
+function broadcastPresence(change) {
+  if (!presenceBroadcastKey) return
+  storeSet(presenceBroadcastKey, JSON.stringify({ at: Date.now(), tab: tabId, change }))
+  storeRemove(presenceBroadcastKey)
+}
+
 // the live stream: only the leader tab holds it
 let liveTarget = null
 let liveHeartbeat = null
@@ -271,6 +281,9 @@ function liveConnect() {
           for (const c of headerChangesOf(inc)) updateHeaderValue(c.id, c.value)
           // the inbox changed for this user (LiveNotifications.publish): the bell follows (inbox.mjs)
           for (const change of notificationsChangedOf(inc)) applyNotificationsChanged(change)
+          // someone opened / started editing / left a record (@App(presence)): the chip follows
+          // (presence.mjs), here and — through storage — in the other tabs of the browser
+          for (const change of presenceChangesOf(inc)) { applyPresenceChange(change); broadcastPresence(change) }
         } catch (e) { /* heartbeat */ }
       }
     }
@@ -286,7 +299,9 @@ function syncLive(shell, base) {
   const shared = !hasHostHeaderProvider()
   // header values also change through ordinary answers: scoped whether or not there is a stream
   headerBroadcastKey = shared ? scopedLiveKey(HEADER_VALUES_KEY, base, (shell && shell.serverSideType) || '') : null
-  if (!(shell && shell.liveUpdates)) {
+  // record presence rides the same stream: it runs for either
+  presenceBroadcastKey = shared ? scopedLiveKey(PRESENCE_CHANGE_KEY, base, (shell && shell.serverSideType) || '') : null
+  if (!(shell && (shell.liveUpdates || shell.presence))) {
     if (liveTarget) {
       const previous = liveTarget
       liveTarget = null
@@ -449,6 +464,7 @@ export function syncAppExtras(shell, sinks = {}) {
   extrasSinks = sinks || {}
   seedHeaderValues((shell && shell.headerValues) || [])
   syncLive(shell, sinks.base || '')
+  syncPresence(shell, sinks.base || '')
   const doc = docOf()
   if (doc) {
     const values = doc.getElementById('mateuHeaderValues')
@@ -468,10 +484,14 @@ export function installAppExtras(doc = docOf()) {
   doc.__mateuAppExtras = true
   const win = doc.defaultView
   headerPainter = paintHeaderValues
+  installPresence(doc)
   // the other tabs: header values, activity, sign-out
   win.addEventListener('storage', (e) => {
     if (headerBroadcastKey && e.key === headerBroadcastKey && e.newValue) {
       try { const c = JSON.parse(e.newValue); if (c.id) updateHeaderValue(c.id, c.value, { broadcast: false }) } catch (err) { /* not ours */ }
+    }
+    if (presenceBroadcastKey && e.key === presenceBroadcastKey && e.newValue) {
+      try { const r = JSON.parse(e.newValue); if (r.tab !== tabId && r.change) applyPresenceChange(r.change) } catch (err) { /* not ours */ }
     }
     if (e.key === IDLE_SIGN_OUT_KEY && e.newValue && extrasShell && extrasShell.idleSession) idleSignOut(doc, false)
     if (e.key === IDLE_ACTIVITY_KEY) idleCheck(doc)

@@ -33,6 +33,8 @@ define([
       }
       $application.variables.mateuListingSelection = bridge.toggleSelectionKey(
         $application.variables.mateuListingSelection, row._rowNumber, Array.isArray(value) && value.length > 0);
+      // the drop zones offer to move what is checked now (dnd.mjs)
+      bridge.refreshDropSelectionSoon();
     }
   }
 

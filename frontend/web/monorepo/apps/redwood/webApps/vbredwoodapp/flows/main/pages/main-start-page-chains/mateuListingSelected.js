@@ -37,6 +37,8 @@ define([
         $application.variables.mateuListSecondary, $application.variables.mateuListingSelection);
       $application.variables.mateuListPrimary = bridge.listPrimaryForSelection(
         $application.variables.mateuListPrimary, $application.variables.mateuListingSelection);
+      // the drop zones offer to move what is checked now (dnd.mjs)
+      bridge.refreshDropSelectionSoon();
     }
   }
 

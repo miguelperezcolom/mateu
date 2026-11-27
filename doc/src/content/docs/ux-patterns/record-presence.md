@@ -98,7 +98,9 @@ class Shell: ...
 - **React Native** — a line above the record screen.
 - **IntelliJ plugin / desktop app** — a line in the page header; the editing state is reported on
   the heartbeat.
-- **Redwood (Oracle VB)** — not yet: the flag is on the wire, the renderer ignores it.
+- **Redwood (Oracle VB)** — a chip under the page header (avatars + the same line, in Redwood's warning
+  tint while someone else edits); a listing page shows none. A Redwood tab and a Vaadin tab of the same
+  app see each other.
 
 ## Related
 

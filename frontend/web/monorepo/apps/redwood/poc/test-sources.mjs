@@ -13,6 +13,12 @@ import {
   loadContextSelectorOptions, adoptReferencedSources, clearReferencedSources, restColumnIdsOf,
 } from './restSources.mjs'
 import { resolveFieldTypes, setFieldTypeCatalogue } from './fieldTypes.mjs'
+import {
+  uploadConfigOf, isUploadMode, uploadAccepts, pickedFileRefusal, resolveUploadTarget, uploadPickedFile,
+  uploadErrorText, withUploadedFile, withoutUploadedFile, UploadAborted,
+} from './fileUploads.mjs'
+import { uploadAttributesJsonOf, extraWidgetOf } from './core/rowEditor.mjs'
+import { describeFileValue } from './inputs.mjs'
 import { adoptRenderMessage, previewLoadIncrement } from './editorPreview.mjs'
 import { openTreeRowsOnNewSearch, setUiValue, pageSwitcherOf, reduceContexts, listingOf, onLoadTriggers, HOST_ID, LOOKUP_LOADED, statusBadgeRows, selectedRowsOf, optionsOf } from './reduceContexts.mjs'
 import { runMateuAction, runMateuActionSse, loadLookups } from './transport.mjs'
@@ -1209,6 +1215,86 @@ test('R-6/R-8: the ceiling covers a REST source that never answers and a body th
     globalThis.fetch = original; connectivity.reset(); pendingActions.reset()
     clearInterval(keepAlive)
   }
+})
+
+// ── large file uploads (fileUploads.mjs) — libs/mateu fileUploads.test.ts, the same rules ─────
+
+test('uploads: a file field with a ticket uploads; its attributes reach mateu-capture-field', () => {
+  const attributes = [{ key: 'accept', value: '.pdf' }, { key: 'maxBytes', value: '2048' }, { key: 'multiple', value: 'true' },
+    { key: 'uploadUrl', value: '/mateu/v3/upload' }, { key: 'uploadTicket', value: 'T' }]
+  const config = uploadConfigOf(attributes)
+  assert.deepEqual(config, { accept: '.pdf', maxBytes: 2048, multiple: true, uploadUrl: '/mateu/v3/upload', uploadTicket: 'T', uploadDirect: false })
+  assert.equal(isUploadMode(config), true)
+  assert.equal(isUploadMode(uploadConfigOf([{ key: 'accept', value: '.pdf' }])), false)
+  const widget = extraWidgetOf({ stereotype: 'fileUpload', attributes }, [], null)
+  assert.equal(widget.captureMode, 'file')
+  assert.deepEqual(uploadConfigOf(JSON.parse(widget.upload)), { ...config, accept: undefined })
+  assert.equal(uploadAttributesJsonOf([{ key: 'accept', value: '.pdf' }]), '')
+})
+
+test('uploads: accept, the size limit (declared, else 10 MB without a ticket), the url under the root', () => {
+  assert.equal(uploadAccepts('.pdf, image/*', 'a.PDF', ''), true)
+  assert.equal(uploadAccepts('image/*', 'a.png', 'image/png'), true)
+  assert.equal(uploadAccepts('application/pdf', 'a.txt', 'text/plain'), false)
+  assert.equal(pickedFileRefusal({ accept: '.pdf' }, { name: 'a.txt', type: 'text/plain', size: 1 }), 'This type of file is not accepted.')
+  assert.equal(pickedFileRefusal({ maxBytes: 1024, uploadTicket: 'T', uploadUrl: '/u' }, { name: 'a', size: 2048 }), 'This file is too large (max 1 KB).')
+  assert.equal(pickedFileRefusal({ uploadTicket: 'T', uploadUrl: '/u' }, { name: 'a', size: 50 * 1048576 }), null)
+  assert.equal(pickedFileRefusal({}, { name: 'a', size: 11 * 1048576 }), 'This file is too large (max 10 MB).')
+  assert.equal(resolveUploadTarget('/crm', '/mateu/v3/upload'), '/crm/mateu/v3/upload')
+  assert.equal(resolveUploadTarget('http://localhost:8080/', '/mateu/v3/upload'), 'http://localhost:8080/mateu/v3/upload')
+  assert.equal(resolveUploadTarget('/crm', 'https://files.example/up'), 'https://files.example/up')
+  assert.equal(uploadErrorText(413, '{"message":"Too big"}'), 'Too big')
+  assert.equal(uploadErrorText(403, ''), 'This upload is not allowed.')
+  assert.equal(uploadErrorText(0, ''), 'The file could not be sent. Check the connection and try again.')
+})
+
+test('uploads: one value, or a list for a multiple field; a stored file and a named data URI read well', () => {
+  assert.equal(withUploadedFile('a', 'b', false), 'b')
+  assert.deepEqual(withUploadedFile(['a'], 'b', true), ['a', 'b'])
+  assert.deepEqual(withoutUploadedFile(['a', 'b'], 0, true), ['b'])
+  assert.equal(withoutUploadedFile('a', 0, false), '')
+  assert.equal(describeFileValue('mateu-file:f1?name=Contrato%20firmado.pdf&size=2048'), 'Contrato firmado.pdf · 2.0 KB')
+  assert.equal(describeFileValue('data:application/pdf;name=informe.pdf;base64,AAAA'), 'informe.pdf · 3 B')
+  assert.equal(describeFileValue('data:application/pdf;base64,AAAA'), 'application/pdf · 3 B')
+})
+
+test('uploads: streamed through Mateu — ticket + encoded name, the reference answered is the value', async () => {
+  const sent = []
+  const transport = async (rq) => { sent.push(rq); return { status: 200, text: '{"value":"mateu-file:f1?name=a%20b.pdf"}' } }
+  const config = uploadConfigOf([{ key: 'uploadUrl', value: '/mateu/v3/upload' }, { key: 'uploadTicket', value: 'T' }])
+  const progress = []
+  const value = await uploadPickedFile('http://h', config, { name: 'a b.pdf', type: 'application/pdf', size: 3 }, transport, (f) => progress.push(f))
+  assert.equal(value, 'mateu-file:f1?name=a%20b.pdf')
+  assert.equal(sent[0].method, 'POST')
+  assert.equal(sent[0].url, 'http://h/mateu/v3/upload')
+  assert.equal(sent[0].headers['X-Mateu-Upload-Ticket'], 'T')
+  assert.equal(sent[0].headers['X-Mateu-File-Name'], 'a%20b.pdf')
+  assert.equal(sent[0].headers['Content-Type'], 'application/pdf')
+  await assert.rejects(uploadPickedFile('http://h', config, { name: 'a' }, async () => ({ status: 413, text: '{"message":"Too big"}' })), /Too big/)
+  const aborted = new AbortController(); aborted.abort()
+  await assert.rejects(uploadPickedFile('http://h', config, { name: 'a' }, transport, null, aborted.signal), (e) => e instanceof UploadAborted)
+})
+
+test('uploads: direct to the store — the target first, the bytes with ONLY its headers; 404 streams instead', async () => {
+  const sent = []
+  const transport = async (rq) => {
+    sent.push(rq)
+    if (rq.url.endsWith('/target')) return { status: 200, text: '{"url":"https://store.example/put?sig=x","method":"PUT","headers":{"x-amz-acl":"private"},"value":"mateu-file:s3-1"}' }
+    return { status: 200, text: '' }
+  }
+  const config = uploadConfigOf([{ key: 'uploadUrl', value: '/mateu/v3/upload' }, { key: 'uploadTicket', value: 'T' }, { key: 'uploadDirect', value: 'true' }])
+  assert.equal(await uploadPickedFile('', config, { name: 'a.png', type: 'image/png', size: 9 }, transport), 'mateu-file:s3-1')
+  assert.equal(sent[0].url, '/mateu/v3/upload/target')
+  assert.deepEqual(JSON.parse(sent[0].body), { name: 'a.png', contentType: 'image/png', size: 9 })
+  assert.equal(sent[1].method, 'PUT')
+  assert.deepEqual(sent[1].headers, { 'Content-Type': 'image/png', 'x-amz-acl': 'private' })
+  const fallback = []
+  const value = await uploadPickedFile('', config, { name: 'a.png', size: 9 }, async (rq) => {
+    fallback.push(rq)
+    return rq.url.endsWith('/target') ? { status: 404, text: '' } : { status: 200, text: '{"value":"mateu-file:f2"}' }
+  })
+  assert.equal(value, 'mateu-file:f2')
+  assert.equal(fallback[1].url, '/mateu/v3/upload')
 })
 
 for (const { name, fn } of queue) {

@@ -200,6 +200,6 @@ Options: .NET `MateuOptions.UploadsSecret`; Python `add_mateu(uploads_secret=…
 | Web (Vaadin) | ✅ progress, Cancel, errors, several files, direct uploads |
 | React Native | ✅ progress, Cancel, errors, several files, direct uploads |
 | IntelliJ / desktop | ✅ progress, Cancel, errors, several files, direct uploads |
-| Redwood | 🟡 shows a stored reference (name · size); picking a file still stores a data URI — an app serving Redwood must accept both values |
+| Redwood | ✅ uploads to the storage (streamed or direct to the store's target), with progress and Cancel; several files for a `multiple` field; without a ticket, a data URI refused over `maxBytes` |
 
 Demo: `demo/demo-admin-panel` — `/file-uploads-demo` over a disk-backed `DiskFileStorage`.

@@ -2435,6 +2435,23 @@ oj-radioset.mateu-listbox .oj-radiocheckbox-container, oj-radioset.mateu-listbox
 /* Spectra rich text editor: our oj-label-value already labels the field — its own (empty) label row was a gap */
 .mateu-rte-spectra oj-label-value.oj-sp-input-rich-text-2-body > .oj-flex > .oj-flex-item:first-child { display: none; }
 .mateu-header-more-badges { display: flex; flex-wrap: wrap; gap: .375rem; padding-inline: var(--oj-sp-header-padding-horizontal, 1.5rem); margin-top: -.5rem; }
+/* RECORD PRESENCE (@App(presence), presence.mjs): who else has this record open — a quiet chip under the
+   header, in Redwood's warning tint while someone else EDITS it (they may overwrite each other) */
+.mateu-presence { display: inline-flex; align-items: center; gap: .5rem; max-width: calc(100% - 3rem);
+  margin: .25rem var(--oj-sp-header-padding-horizontal, 1.5rem) 0; padding: 2px .625rem 2px 2px; border-radius: 999px;
+  font-size: var(--oj-typography-body-sm-font-size, .875rem); line-height: 1.4;
+  background: rgb(var(--oj-palette-neutral-rgb-20, 233, 230, 226)); color: var(--oj-core-text-color-primary, #161513); }
+.mateu-presence[hidden] { display: none; }
+.mateu-presence-warning { background: var(--oj-core-warning-3, #fdf3dc); color: var(--oj-core-warning-1, #6b4400); }
+.mateu-presence-avatars { display: inline-flex; }
+.mateu-presence-avatar { display: inline-flex; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem;
+  border-radius: 50%; font-size: .7rem; font-weight: 600; margin-inline-start: -6px;
+  border: 2px solid var(--oj-core-bg-color-content, #fff);
+  background: var(--oj-core-info-3, #e4eef7); color: var(--oj-core-info-1, #14466e); }
+.mateu-presence-avatar:first-child { margin-inline-start: 0; }
+.mateu-presence-avatar.mateu-presence-editing { background: var(--oj-core-warning-2, #f6d385); color: var(--oj-core-warning-1, #6b4400); }
+.mateu-presence-avatar.mateu-presence-more { background: rgb(var(--oj-palette-neutral-rgb-40, 207, 201, 194)); color: inherit; }
+.mateu-presence-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* full-width / edge-to-edge pages (pageLayoutOf): the inner containers lose their own 48px gutters */
 .mateu-page-edge .oj-sm-padding-12x-horizontal, .mateu-page-full .oj-sm-padding-12x-horizontal { padding-left: 0 !important; padding-right: 0 !important; }
@@ -2570,3 +2587,28 @@ body:has(.mateu-message-card-host) .oj-sp-rw-chat-icon-cont { display: none !imp
 @media (max-width: 600px) {
   .oj-sp-public-primary-content-container.mateu-message-card-host { margin-top: var(--oj-core-spacing-10x, 40px) !important; padding: var(--oj-core-spacing-6x, 24px) var(--oj-core-spacing-4x, 16px) !important; }
 }
+
+/* a DropZone without dragging (dnd.mjs): «Move the selected rows here (n)» for the checked rows of the
+   page's @DragRows listing — Redwood's outlined button look */
+.mateu-drop-selected { display: inline-flex; align-items: center; min-height: 2rem; padding: 0 .75rem;
+  border: 1px solid var(--oj-button-outlined-chrome-border-color, rgb(var(--oj-palette-neutral-rgb-70, 122, 115, 110)));
+  border-radius: var(--oj-button-border-radius, 4px); background: transparent; color: var(--oj-core-text-color-primary, #161513);
+  font: inherit; font-size: var(--oj-typography-body-sm-font-size, .875rem); cursor: pointer; }
+.mateu-drop-selected:hover { background: rgb(var(--oj-palette-neutral-rgb-20, 233, 230, 226)); }
+.mateu-drop-selected:focus-visible { outline: 2px solid var(--oj-core-focus-border-color, #227e9e); outline-offset: 2px; }
+.mateu-drop-selected[hidden] { display: none; }
+/* file fields (fileUploads.mjs): an entry per row, the upload in flight, the refusal */
+.mateu-capture-file { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.mateu-capture-progress { width: 8rem; height: .5rem; }
+.mateu-capture-error { margin-top: .25rem; }
+/* the tape chart WITHOUT dragging (planning.mjs): the block picker, the nudges, the pending change, Apply */
+.mateu-planning-tools { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem; margin: -.25rem 0 .75rem; }
+.mateu-planning-tools[hidden] { display: none; }
+.mateu-planning-pick { min-height: 2rem; max-width: 18rem; font: inherit; font-size: var(--oj-typography-body-sm-font-size, .875rem); }
+.mateu-planning-tool { min-width: 2rem; min-height: 2rem; padding: 0 .5rem; border-radius: var(--oj-button-border-radius, 4px);
+  border: 1px solid var(--oj-button-outlined-chrome-border-color, rgb(var(--oj-palette-neutral-rgb-70, 122, 115, 110)));
+  background: transparent; color: var(--oj-core-text-color-primary, #161513); font: inherit; cursor: pointer; }
+.mateu-planning-tool:hover { background: rgb(var(--oj-palette-neutral-rgb-20, 233, 230, 226)); }
+.mateu-planning-tool:focus-visible, .mateu-planning-pick:focus-visible { outline: 2px solid var(--oj-core-focus-border-color, #227e9e); outline-offset: 2px; }
+.mateu-planning-apply { background: var(--oj-button-call-to-action-chrome-bg-color, #227e9e); color: #fff; border-color: transparent; } /* design-token-ok: text on the call-to-action fill */
+.mateu-planning-pending { font-size: var(--oj-typography-body-sm-font-size, .875rem); color: var(--oj-core-text-color-secondary, #6f6a66); }

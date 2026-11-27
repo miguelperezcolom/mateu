@@ -40,6 +40,31 @@ export const GROUP_ROW_PREFIX = '__mateuGroup:'
 /** Today's line on a gantt (Redwood's danger ink, as the web's marker). */
 export const TODAY_INK = '#c74634' // design-token-ok: oj-gantt referenceObjects svgStyle is a DVT style object painted onto SVG, not a CSS cascade — a var() is not resolved there
 
+/**
+ * What the tape chart's WITHOUT-DRAGGING tool row needs (planning.mjs installPlanningTools; WCAG 2.1.1
+ * Keyboard, 2.5.7 Dragging Movements — the web's mateu-planning-board tool row): the window (first
+ * day + length), the movable rows (no group headers), each block as day indexes (inclusive end, as
+ * the wire sends it) and the gantt's row → tasks layout (a click's getContextByNode resolves to it).
+ * '' when the board neither moves nor resizes.
+ */
+export function planningToolsModelOf(m, rows, from, to) {
+  if (!m.moveActionId && !m.resizeActionId) return ''
+  const idx = (iso) => Math.round((Date.parse(iso + 'T00:00:00Z') - Date.parse(from + 'T00:00:00Z')) / DAY_MS)
+  const labels = new Map(rows.filter((r) => !r.isGroup).map((r) => [r.id, r.label]))
+  const blocks = (m.blocks || []).map((b) => {
+    const span = b && b.id != null && daySpanOf(b.start, b.end)
+    return span && labels.has(b.resourceId)
+      ? { id: String(b.id), label: b.label || String(b.id), resourceId: b.resourceId, startIdx: idx(span.start), endIdx: idx(span.end) }
+      : null
+  }).filter(Boolean)
+  return JSON.stringify({
+    move: m.moveActionId || '', resize: m.resizeActionId || '', from, days: idx(to) + 1,
+    rows: rows.filter((r) => !r.isGroup).map((r) => ({ id: r.id, label: r.label })),
+    rowTasks: rows.map((r) => (r.tasks || []).map((t) => String(t.id))),
+    blocks,
+  })
+}
+
 export function planningAtomOf(m, id) {
   const columns = m.attributeColumns || []
   const blocks = (m.blocks || []).map((b) => {
@@ -120,6 +145,7 @@ export function planningAtomOf(m, id) {
     rowLabels: rows.map((r) => r.label).join('\u001f'),
     dndMove: m.moveActionId ? 'enabled' : 'disabled',
     taskResizable: m.resizeActionId ? 'enabled' : 'disabled',
+    toolsModel: planningToolsModelOf(m, rows, from, to),
   }
 }
 

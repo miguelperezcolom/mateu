@@ -11,10 +11,10 @@ import assert from 'node:assert/strict'
 import { makeDom, dataTransfer, sleep, FakeEvent } from './test-harness-dom.mjs'
 import { installKeys, setShortcutContext, setKeysActionSink, setAccessKeysEnabled } from './keys.mjs'
 import { shortcutMatches, installActionPanels } from './actionPanels.mjs'
-import { installDragAndDrop, setDropSink, installTileReorder, setTileReorderSink, paintedTileOrder, installKanbans, setKanbanMoveSink } from './dnd.mjs'
+import { installDragAndDrop, setDropSink, setDragSelectionReader, refreshDropSelection, dragSelectionIdsOf, installTileReorder, setTileReorderSink, paintedTileOrder, installKanbans, setKanbanMoveSink } from './dnd.mjs'
 import { installMatrixGrids, setMatrixActionSink } from './matrix.mjs'
 import { panelExpanded, matrixSectionKey } from './reduceContexts.mjs'
-import { installPlanningRange, setPlanningRangeSink } from './planning.mjs'
+import { installPlanningRange, setPlanningRangeSink, installPlanningTools, refreshPlanningTools } from './planning.mjs'
 import { installHover } from './hover.mjs'
 import { installMaps, setMapActionSink } from './map.mjs'
 import {
@@ -170,6 +170,65 @@ test('dnd: soltar filas en un DropZone que acepta su tipo lanza su acción con _
   assert.deepEqual(sink.calls[1][1], { _draggedIds: ['C1', 'C2'], _dragType: 'charge' }, 'parámetros ilegibles: se suelta igual')
   fire(zone, 'drop', { dataTransfer: dataTransfer({ 'application/x-mateu-charge': '[]' }) })
   assert.equal(sink.calls.length, 2, 'nada arrastrado: nada que lanzar')
+})
+
+test('dnd sin arrastrar: las filas MARCADAS del listado @DragRows se mueven con el botón del destino', () => {
+  const { doc, el, fire } = makeDom()
+  const button = el('button', { class: 'mateu-drop-selected' })
+  button.hidden = true
+  const zone = el('div', { class: 'mateu-drop-zone', 'data-drop-accept': 'application/x-mateu-charge',
+    'data-drop-action': 'moveCharges', 'data-drop-params': '{"window":2}' }, button)
+  doc.body.appendChild(zone)
+  installDragAndDrop(doc)
+  const sink = sinkLog()
+  setDropSink(sink)
+  const listing = { dragType: 'charge' }
+  const rows = [{ _rowNumber: 0, id: 'C1' }, { _rowNumber: 1, id: 'C2' }, { _rowNumber: 2, id: 'C3' }]
+  let selection = { all: false, keys: [], except: [] }
+  setDragSelectionReader(() => ({ listing, rows, selection }))
+  refreshDropSelection(doc)
+  assert.equal(button.hidden, true, 'nada marcado: no se ofrece')
+  selection = { all: false, keys: [0, 2], except: [] }
+  refreshDropSelection(doc)
+  assert.equal(button.hidden, false)
+  assert.equal(button.textContent, 'Move the selected rows here (2)')
+  fire(button, 'click')
+  assert.deepEqual(sink.calls, [['moveCharges', { window: 2, _draggedIds: ['C1', 'C3'], _dragType: 'charge' }, {}]])
+  assert.deepEqual(dragSelectionIdsOf({ dragType: 'guest' }, rows, selection, 'application/x-mateu-charge'), [], 'otro tipo: nada')
+  assert.deepEqual(dragSelectionIdsOf({ dragType: 'charge' }, rows, { all: true, except: [1], keys: [] }, 'application/x-mateu-charge'), ['C1', 'C3'])
+  setDragSelectionReader(null)
+})
+
+test('planning sin arrastrar: la fila de herramientas empuja el bloque y Aplicar lanza la acción del arrastre', () => {
+  const { doc, el, fire } = makeDom()
+  const model = { move: 'move', resize: 'resize', from: '2027-03-01', days: 7,
+    rows: [{ id: 'r1', label: '101' }, { id: 'r2', label: '102' }], rowTasks: [['b1'], []],
+    blocks: [{ id: 'b1', label: 'Smith', resourceId: 'r1', startIdx: 1, endIdx: 2 }] }
+  const gantt = el('oj-gantt', { class: 'mateu-planning' })
+  const tools = el('div', { class: 'mateu-planning-tools', 'data-planning-tools': JSON.stringify(model) })
+  doc.body.appendChild(gantt); doc.body.appendChild(tools)
+  installPlanningTools(doc)
+  refreshPlanningTools(doc)
+  const sink = sinkLog()
+  setPlanningRangeSink(sink)
+  assert.equal(tools.hidden, false)
+  assert.equal(tools.getAttribute('role'), 'toolbar')
+  assert.ok(tools.querySelector('.mateu-planning-pick'), 'the block is picked in a select')
+  assert.equal(tools.querySelector('.mateu-planning-apply'), null, 'nothing pending: no Apply')
+  fire(tools.querySelector('[data-planning-act="later"]'), 'click')
+  fire(tools.querySelector('[data-planning-act="down"]'), 'click')
+  assert.ok(/Smith: 102/.test(tools.querySelector('.mateu-planning-pending').textContent))
+  fire(tools.querySelector('[data-planning-act="apply"]'), 'click')
+  assert.deepEqual(sink.calls[0].slice(0, 2), ['move', { _blockId: 'b1', _resourceId: 'r2', _start: '2027-03-03', _end: '2027-03-04' }])
+  assert.equal(tools.querySelector('.mateu-planning-apply'), null, 'applied: nothing pending')
+  // the keyboard: Shift+Right lengthens it, Escape forgets it
+  const later = tools.querySelector('[data-planning-act="later"]')
+  fire(later, 'keydown', { key: 'ArrowRight', shiftKey: true })
+  assert.ok(tools.querySelector('.mateu-planning-apply'))
+  fire(tools.querySelector('[data-planning-act="later"]'), 'keydown', { key: 'Escape' })
+  assert.equal(tools.querySelector('.mateu-planning-apply'), null)
+  assert.equal(sink.calls.length, 1)
+  setPlanningRangeSink(null)
 })
 
 test('kanban: a card dragged to another column (or picked in its ⋯ select) moves where the line showed', () => {
