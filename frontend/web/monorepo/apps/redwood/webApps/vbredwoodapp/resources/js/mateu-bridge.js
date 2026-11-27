@@ -25543,8 +25543,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  function paintPresence() {
-    const doc = typeof document !== 'undefined' ? document : null
+  /** Paints the chip into #mateuPresence; false while the band is not there yet. */
+  function paintPresence(doc = typeof document !== 'undefined' ? document : null) {
     const host = doc && doc.getElementById('mateuPresence')
     if (!host) return false
     const chip = presenceEnabled() ? presenceChipOf(presenceEntriesNow()) : null

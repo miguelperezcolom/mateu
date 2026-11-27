@@ -232,8 +232,8 @@ export function presenceChipOf(entries, lang) {
   }
 }
 
-function paintPresence() {
-  const doc = typeof document !== 'undefined' ? document : null
+/** Paints the chip into #mateuPresence; false while the band is not there yet. */
+export function paintPresence(doc = typeof document !== 'undefined' ? document : null) {
   const host = doc && doc.getElementById('mateuPresence')
   if (!host) return false
   const chip = presenceEnabled() ? presenceChipOf(presenceEntriesNow()) : null
