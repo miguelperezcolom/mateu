@@ -117,7 +117,7 @@ export function AppShell({ session, app, current, onNavigate, children }: {
                 </div>
               )}
               <span className="slds-context-bar__label-action slds-context-bar__app-name">
-                <span className="slds-truncate" title={title}>{layout === 'sections' && section ? section.label : title}</span>
+                <span className="slds-truncate" title={subtitle ? `${title} — ${subtitle}` : title}>{layout === 'sections' && section ? section.label : title}</span>
               </span>
             </div>
           </div>
@@ -134,7 +134,6 @@ export function AppShell({ session, app, current, onNavigate, children }: {
           {/* the app's context on the bar's right: the live header values, the @AppContext pickers, the header actions */}
           {!narrow && (
             <div className="slds-context-bar__tertiary mateu-context-tools">
-              {subtitle && <span className="mateu-context-subtitle slds-text-body_small slds-text-color_weak slds-truncate">{subtitle}</span>}
               <HeaderValues session={session} declared={app['headerValues'] as HeaderValue[] | undefined} />
               <ContextPickers session={session} app={target} selectors={(app['contextSelectors'] as never[] | undefined) ?? []} />
               <HeaderActions session={session} app={target} actions={(app['contextActions'] as HeaderAction[] | undefined) ?? []} narrow={narrow} onNavigate={navigate} />

@@ -256,3 +256,13 @@ html, body { background: var(--slds-g-color-surface-1, #f3f3f3); }
 .mateu-datetime { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 9rem); gap: .5rem; }
 .slds-datepicker__month td:focus { outline: 2px solid var(--focus-outlineColor); outline-offset: -2px; }
 .mateu-combobox-faux { width: 100%; text-align: start; cursor: pointer; padding-right: 2rem; }
+
+/* Lightning spaces a page tightly: the content starts 12px under the page header (and blocks keep 12px
+   between them) — the shared page stack's "spacious" gap plus the header's own margin left ~48px */
+.mateu-page > :first-child { gap: var(--slds-g-spacing-3, .75rem) !important; }
+.mateu-page-header-wrap > .mateu-page-header { margin-bottom: 0; }
+/* the list view: the controls on the header's second row, the table joined to the header box */
+.mateu-list-view__controls { width: 100%; }
+.mateu-list-view__controls .mateu-listing-search { justify-content: flex-end; }
+.mateu-list-view > .mateu-page-header { border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 0; }
+.mateu-list-view > .mateu-listing-body { margin-block-start: 0; }
