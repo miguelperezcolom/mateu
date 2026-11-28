@@ -14,13 +14,14 @@ import { CrudRenderer } from './CrudRenderer'
 import { useButtonPress } from '@mr/render/useButtonPress'
 import { usePending } from '@mr/render/usePending'
 import { buttonVariantOf, labelVariantOf } from './looks'
-import { LAYOUT_STYLE, styleOf } from '@mr/render/styleOf'
+import { IMAGE_STYLE, LAYOUT_STYLE, styleOf } from '@mr/render/styleOf'
 import { Markdown } from '@mr/render/Markdown'
 import { octiconOf } from './catalogue/display/shared'
 import { CATALOGUE } from './catalogue'
 import { RenderBoundary } from './RenderBoundary'
 import { Element, MicroFrontend } from '@mr/render/Embedded'
 import { Box } from './Box'
+import { PageHeaderMarkup } from './page/PageHeaderMarkup'
 import './notice.css'
 import { tx } from '@mr/i18n/texts'
 import { AccordionGroup, AccordionPanel } from './AccordionPanel'
@@ -111,6 +112,19 @@ const formLayout: Draw = ({ component, m, state, data }) => {
 const ALIGN: Record<string, string> = { START: 'flex-start', CENTER: 'center', END: 'flex-end', STRETCH: 'stretch', BASELINE: 'baseline' }
 const alignOf = (v: unknown): string | undefined => ALIGN[String(v ?? '').toUpperCase()]
 
+// The wire types that are BLOCKS (a panel, a listing, a picture…) rather than a line of controls.
+const BLOCK_TYPES = new Set([
+  'VerticalLayout', 'HorizontalLayout', 'FormLayout', 'SplitLayout', 'TabLayout', 'AccordionLayout', 'ResponsiveGrid',
+  'Container', 'FullWidth', 'Scroller', 'Card', 'FormSection', 'FormSubSection', 'Crud', 'Listing', 'Grid', 'Image',
+  'Chart', 'Map', 'Calendar', 'Gantt', 'Kanban', 'Timeline', 'Scoreboard', 'DashboardLayout', 'DashboardPanel', 'MetricCard',
+  'FoldoutLayout', 'HeroSection', 'EmptyState', 'Notice', 'CalloutCard', 'TaskQueue', 'PlanningBoard', 'MatrixGrid', 'ServerSide',
+])
+/** A row without a declared vertical alignment: a line of controls centres them (a button beside a
+ *  text); a row holding a block puts every child at the top — centred, a short main column floated
+ *  halfway down beside a tall panel (the template rows: item overview, collection detail). */
+const rowAlignOf = (component: Dict, declared: unknown): string =>
+  alignOf(declared) ?? (childrenOf(component).some((c) => BLOCK_TYPES.has(String(meta(c as Dict)['type'] ?? (c as Dict)['type'] ?? ''))) ? 'flex-start' : 'center')
+
 /** A row / column's children, each wrapped in its share when the layout declares `flexGrows`. */
 function stackKids({ component, m, state, data, kids }: NodeProps, direction: 'row' | 'column'): React.ReactNode[] {
   const grows = m['flexGrows']
@@ -142,6 +156,29 @@ const vertical: Draw = (p) => (
     {stackKids(p, 'column')}
   </Stack>
 )
+
+// A DataManagementPage lays its header out as the archetype's ids (`data-management-title` + `-toolbar`,
+// how Redwood reads it too): drawn as the PAGE header — the title, the toolbar as its actions — not a
+// line of text over a row of buttons; the rest of the page as it came.
+const dataManagement: Draw = ({ component, m, state, data, ctx }) => {
+  const kids = childrenOf(component) as Dict[]
+  const title = kids.find((k) => k?.['id'] === 'data-management-title')
+  const toolbar = kids.find((k) => k?.['id'] === 'data-management-toolbar')
+  if (!title) return vertical({ component, m, state, data, ctx } as NodeProps)
+  const rest = kids.filter((k) => k !== title && k !== toolbar)
+  const text = interpolate(String(meta(title)['text'] ?? ''), ctx)
+  return (
+    <Stack direction="vertical" gap="normal">
+      <PageHeaderMarkup
+        level={0} banner={false} nested={false} crumbs={[]} onCrumb={() => {}} overline="" back={null} visual={null}
+        heading="h2" title={text} placeholder="" hasTitleArea={!!text} trailing={null}
+        actions={toolbar ? <ComponentRenderer component={toolbar} state={state} data={data} /> : null}
+        subtitle="" timestamp="" widgets={null} facts={[]} hasDescription={false}
+      />
+      <ComponentRenderer component={{ ...component, id: 'data-management-content', children: rest }} state={state} data={data} />
+    </Stack>
+  )
+}
 
 // an overlay found INSIDE a tree (a page's docked detail panel, a Gantt page's task drawer):
 // drawn in place as a panel — an overlay the server opens arrives as an Add fragment instead
@@ -285,7 +322,7 @@ const image: Draw = ({ component, m, ctx, controller }) => {
   // an image whose source is not known yet (a `${state.photo}` still empty) draws nothing, not src=""
   if (!raw) return null
   const src = controller.session.backendUrl(raw)
-  return <img src={src} alt={interpolate(String(m['alt'] ?? ''), ctx)} style={{ maxWidth: '100%', ...styleOf(component) }} />
+  return <img src={src} alt={interpolate(String(m['alt'] ?? ''), ctx)} style={{ maxWidth: '100%', ...styleOf(component, IMAGE_STYLE) }} />
 }
 
 /** The wire types the core draws itself; the rest are the catalogue's. */
@@ -295,7 +332,7 @@ const CORE: Record<string, Draw> = {
   Crud: ({ component, m, state, data }) => <CrudRenderer component={component} metadata={m} state={state} data={data} />,
   FormField: ({ m, state }) => <FieldRenderer metadata={m} state={state} />,
   FormLayout: formLayout,
-  VerticalLayout: vertical,
+  VerticalLayout: (p) => (p.component['id'] === 'data-management' ? dataManagement(p) : vertical(p)),
   Div: vertical,
   Container: vertical,
   FullWidth: vertical,
@@ -313,7 +350,7 @@ const CORE: Record<string, Draw> = {
   ),
   HorizontalLayout: (p) => (
     <Stack direction="horizontal" wrap="wrap" gap={gapOf(p.m)} align="center"
-      style={{ alignItems: alignOf(p.m['verticalAlignment']), justifyContent: rowJustification(p.m['justification'] as string | undefined) ?? undefined, ...styleOf(p.component) }}>
+      style={{ alignItems: rowAlignOf(p.component, p.m['verticalAlignment']), justifyContent: rowJustification(p.m['justification'] as string | undefined) ?? undefined, ...styleOf(p.component) }}>
       {stackKids(p, 'row')}
     </Stack>
   ),

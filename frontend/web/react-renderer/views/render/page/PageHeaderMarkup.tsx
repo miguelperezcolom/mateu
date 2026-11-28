@@ -21,6 +21,8 @@ export interface HeaderParts {
   /** The avatar or the icon before the title. */
   visual: React.ReactNode
   heading: 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+  /** The title's id, when something is labelled by it (a listing that is the page). */
+  titleId?: string
   title: string
   placeholder: string
   hasTitleArea: boolean
@@ -68,7 +70,7 @@ export function PageHeaderMarkup(p: HeaderParts) {
           )}
           {p.visual && <PageHeader.LeadingVisual>{p.visual}</PageHeader.LeadingVisual>}
           <PageHeader.Title as={p.heading}>
-            {p.title || (p.placeholder ? <span className="mateu-page-title-placeholder">{p.placeholder}</span> : null)}
+            {p.titleId && p.title ? <span id={p.titleId}>{p.title}</span> : p.title || (p.placeholder ? <span className="mateu-page-title-placeholder">{p.placeholder}</span> : null)}
           </PageHeader.Title>
           {p.trailing && (
             <PageHeader.TrailingVisual>

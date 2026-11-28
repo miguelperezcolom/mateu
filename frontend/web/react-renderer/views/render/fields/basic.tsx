@@ -11,7 +11,7 @@ export function LinkValue({ value }: { value: string }) {
   if (!value) return <Text>—</Text>
   const href = safeHref(value) ?? '#'
   const external = /^https?:/i.test(href)
-  return <Link href={href} target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined}>{value}</Link>
+  return <Link href={href} target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined} style={{ overflowWrap: 'anywhere' }}>{value}</Link>
 }
 
 /**

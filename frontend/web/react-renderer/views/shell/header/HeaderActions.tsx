@@ -1,32 +1,40 @@
 import React from 'react'
 import { ActionList, ActionMenu, Button, IconButton } from '@kit'
 import { KebabHorizontalIcon } from '@kit/icons'
-import type { MateuSession } from '@rn/core/MateuSession'
-import { headerActionLeaves, splitHeaderActions, type HeaderAction } from '@rn/core/embeddedAppExtras'
+import type { MateuSession, NavTarget } from '@rn/core/MateuSession'
+import { headerActionLeaves, type HeaderAction } from '@rn/core/embeddedAppExtras'
 import { runAndApply, type AppTarget } from '@mr/shell/appLevel'
 import { tx } from '@mr/i18n/texts'
 
 /**
  * The app's header actions (AppActionsSupplier → AppDto.contextActions): buttons on the header, an
  * action with children a menu whose children dispatch. Run APP-LEVEL; the answer applies to the
- * screen on view. On a narrow header they all fold, on a wide one the plain ones beyond three fold into a "More" menu.
+ * screen on view; one that names a `route` (YAML `headerActions: {label, route}`) navigates there like
+ * a menu entry. On a narrow header they all fold, on a wide one the plain ones beyond three fold into a "More" menu.
  */
-export function HeaderActions({ session, app, actions, narrow }: { session: MateuSession; app: AppTarget; actions: HeaderAction[]; narrow: boolean }) {
-  const usable = actions.filter((a) => a && (a.actionId || (a.children ?? []).length > 0))
+type Routed = HeaderAction & { route?: string | null }
+export function HeaderActions({ session, app, actions, narrow, onNavigate }: {
+  session: MateuSession; app: AppTarget; actions: HeaderAction[]; narrow: boolean; onNavigate?: (t: NavTarget) => void
+}) {
+  const usable = (actions as Routed[]).filter((a) => a && (a.actionId || (a.route && onNavigate) || (a.children ?? []).length > 0))
   if (usable.length === 0) return null
-  const run = (actionId?: string | null) => { if (actionId) void runAndApply(session, app, actionId) }
+  const press = (a: Routed) => {
+    if (a.actionId) void runAndApply(session, app, a.actionId)
+    else if (a.route && onNavigate) onNavigate({ label: a.label ?? '', route: a.route, consumedRoute: '', serverSideType: '' })
+  }
   // wide: up to three plain actions and every menu on the bar, the rest under "More"; narrow: all under "More"
-  const split = splitHeaderActions(usable, 3)
+  // (the core's splitHeaderActions counts only actions with an actionId as plain; a routed one is plain too)
   const menus = usable.filter((a) => (a.children ?? []).length > 0)
-  const inline = narrow ? [] : usable.filter((a) => split.inline.includes(a) || menus.includes(a))
-  const more = narrow ? usable : split.more.filter((a) => !menus.includes(a))
+  const plain = usable.filter((a) => !menus.includes(a))
+  const inline = narrow ? [] : usable.filter((a) => plain.slice(0, 3).includes(a) || menus.includes(a))
+  const more = narrow ? usable : plain.slice(3)
 
   return (
     <>
       {inline.map((a, i) => {
         const children = (a.children ?? []).filter(Boolean)
         if (children.length === 0) {
-          return <Button key={`a${i}`} size="small" onClick={() => run(a.actionId)}>{a.label ?? a.actionId}</Button>
+          return <Button key={`a${i}`} size="small" onClick={() => press(a)}>{a.label ?? a.actionId}</Button>
         }
         return (
           <ActionMenu key={`a${i}`}>
@@ -34,7 +42,7 @@ export function HeaderActions({ session, app, actions, narrow }: { session: Mate
             <ActionMenu.Overlay>
               <ActionList>
                 {headerActionLeaves(a).map((leaf, j) => (
-                  <ActionList.Item key={j} onSelect={() => run(leaf.actionId)}>{leaf.label ?? leaf.actionId}</ActionList.Item>
+                  <ActionList.Item key={j} onSelect={() => press(leaf as Routed)}>{leaf.label ?? leaf.actionId}</ActionList.Item>
                 ))}
               </ActionList>
             </ActionMenu.Overlay>
@@ -51,13 +59,13 @@ export function HeaderActions({ session, app, actions, narrow }: { session: Mate
               {more.map((a, i) => {
                 const children = (a.children ?? []).filter(Boolean)
                 if (children.length === 0) {
-                  return <ActionList.Item key={i} onSelect={() => run(a.actionId)}>{a.label ?? a.actionId}</ActionList.Item>
+                  return <ActionList.Item key={i} onSelect={() => press(a)}>{a.label ?? a.actionId}</ActionList.Item>
                 }
                 return (
                   <ActionList.Group key={i}>
                     <ActionList.GroupHeading>{a.label}</ActionList.GroupHeading>
                     {headerActionLeaves(a).map((leaf, j) => (
-                      <ActionList.Item key={j} onSelect={() => run(leaf.actionId)}>{leaf.label ?? leaf.actionId}</ActionList.Item>
+                      <ActionList.Item key={j} onSelect={() => press(leaf as Routed)}>{leaf.label ?? leaf.actionId}</ActionList.Item>
                     ))}
                   </ActionList.Group>
                 )

@@ -8,6 +8,8 @@ export const LAYOUT_STYLE = [
   // a pinned panel: only `sticky` is honoured (fixed/absolute would let data cover the page)
   'position', 'top',
 ]
+/** A picture: how big it is and how it fits its box (a photo capped at 22rem, `object-fit: contain`). */
+export const IMAGE_STYLE = [...LAYOUT_STYLE, 'height', 'min-height', 'max-height', 'aspect-ratio', 'object-fit', 'object-position', 'border-radius']
 /** A box the server frames (a micro frontend, a raw element): its size, frame and spacing too. */
 export const BOX_STYLE = [...LAYOUT_STYLE, 'height', 'min-height', 'max-height', 'margin', 'border', 'border-radius', 'overflow']
 
