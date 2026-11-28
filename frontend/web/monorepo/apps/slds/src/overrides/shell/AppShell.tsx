@@ -86,7 +86,7 @@ export function AppShell({ session, app, current, onNavigate, children }: {
           )}
           <div className="slds-global-header__item">
             <ul className="slds-global-actions mateu-global-actions">
-              {narrow && <li className="slds-global-actions__item"><HeaderActions session={session} app={target} actions={(app['contextActions'] as HeaderAction[] | undefined) ?? []} narrow={narrow} /></li>}
+              {narrow && <li className="slds-global-actions__item"><HeaderActions session={session} app={target} actions={(app['contextActions'] as HeaderAction[] | undefined) ?? []} narrow={narrow} onNavigate={navigate} /></li>}
               {app['notificationsEnabled'] === true && (
                 <li className="slds-global-actions__item slds-global-actions__notifications"><NotificationBell session={session} app={{ ...app, ...target }} onNavigate={navigate} /></li>
               )}
@@ -137,7 +137,7 @@ export function AppShell({ session, app, current, onNavigate, children }: {
               {subtitle && <span className="mateu-context-subtitle slds-text-body_small slds-text-color_weak slds-truncate">{subtitle}</span>}
               <HeaderValues session={session} declared={app['headerValues'] as HeaderValue[] | undefined} />
               <ContextPickers session={session} app={target} selectors={(app['contextSelectors'] as never[] | undefined) ?? []} />
-              <HeaderActions session={session} app={target} actions={(app['contextActions'] as HeaderAction[] | undefined) ?? []} narrow={narrow} />
+              <HeaderActions session={session} app={target} actions={(app['contextActions'] as HeaderAction[] | undefined) ?? []} narrow={narrow} onNavigate={navigate} />
             </div>
           )}
         </div>
