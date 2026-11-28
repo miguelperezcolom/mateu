@@ -72,7 +72,7 @@ frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo (workspaces: apps/*, 
                             el propio directorio.
                             (Los renderers sapui5, redwood-oj (OJET), redhat/PatternFly y slds
                             fueron RETIRADOS — los web soportados son vaadin, la línea VB y,
-                            en PREVIEW, primer y ui5.)
+                            en PREVIEW, primer, ui5 y slds.)
   apps/primer/            ← GitHub Primer renderer (PREVIEW, 2026-11): Primer React over the React
                             Native renderer's CORE imported in place (@rn alias + web shims) and the
                             design-system-neutral React layer in frontend/web/react-renderer (@mr —
@@ -92,6 +92,13 @@ frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo (workspaces: apps/*, 
                             the Fiori floorplans (shell bar, object page, list report, wizard…). The
                             72 font ships in the jar (setDefaultFontLoading(false): nothing from
                             sap.com). Own lockfile (`!apps/ui5`); jar io.mateu:mateu-ui5; CI renderer-ui5
+  apps/slds/              ← Salesforce Lightning renderer (PREVIEW, 2026-11): the SAME shared views as
+                            Primer (react-renderer/views over `@kit`) with an SLDS kit (src/kit: the
+                            blueprints' markup + our own interaction/ARIA) and a few src/overrides
+                            (Global Header shell, cards, combobox trigger, Path, pickers, toasts…).
+                            Own lockfile (`!apps/slds`); jar io.mateu:mateu-slds. Icons/images are
+                            CC BY-ND 4.0 — shipped UNMODIFIED (whole utility sprite) with attribution;
+                            Salesforce Sans is never shipped. Light only (SLDS 2 has no dark theme).
 
 frontend/app/             ← Native (non-browser) renderers — all speak the same /mateu/v3/sync API
   react-native/           ← Mobile (Expo/TypeScript) — iOS & Android; boots via the app registry.
@@ -605,7 +612,7 @@ ported to .NET/Python.
   editor, a bundle built with `-Dmateu.bundle.mock=true`, an app run with `mateu.sources.mock=true` /
   `MATEU_SOURCES_MOCK=true` (`AppDto.mockSources`); writes succeed without persisting. Never
   otherwise, and outside sample mode the samples do not travel.
-- **Project settings** — `specs/ui/project.yaml` (`type: Project`): `renderer: vaadin|redwood|primer|ui5`,
+- **Project settings** — `specs/ui/project.yaml` (`type: Project`): `renderer: vaadin|redwood|primer|ui5|slds`,
   chosen once for the editor canvas, Play, `mateu-bundle:bundle` (`-Dmateu.bundle.renderer`
   overrides) and the IDEs; the server warns at startup when the classpath serves another renderer.
   Docs `define/yaml/project-settings.md`.

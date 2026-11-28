@@ -164,6 +164,11 @@
         <artifactId>mateu-ui5</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>mateu-slds</artifactId>
+        <version>${project.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

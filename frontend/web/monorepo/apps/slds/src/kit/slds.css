@@ -1,0 +1,268 @@
+/*
+ * The Lightning Design System's own stylesheet (BSD-3-Clause), as the package publishes it.
+ * (Its unminified edition: the pre-minified one writes `:nth-child(1of …)`, which the build's CSS
+ * minifier cannot parse; Vite minifies this one itself.) It has
+ * no @font-face: Salesforce Sans is not shipped (its licence is for apps built ON the platform), so
+ * the text uses SLDS's system font stack.
+ */
+@import '@salesforce-ux/design-system/assets/styles/salesforce-lightning-design-system.css';
+
+/*
+ * The renderer's own CSS (the views' layout: grids, gaps, a listing's frame…) names its values by
+ * role — `--fgColor-muted`, `--base-size-8`, `--borderColor-default`… Here each role is SLDS's
+ * global styling hook for it, so every colour, size and radius the views use IS the design
+ * system's (light theme: SLDS 2 publishes one).
+ */
+:root {
+  /* text */
+  --fgColor-default: var(--slds-g-color-on-surface-3, #181818);
+  --fgColor-muted: var(--slds-g-color-on-surface-1, #5c5c5c);
+  --fgColor-accent: var(--slds-g-color-accent-1, #0250d9);
+  --fgColor-success: var(--slds-g-color-success-1, #2e844a);
+  --fgColor-attention: var(--slds-g-color-palette-orange-40, #a96404);
+  --fgColor-severe: var(--slds-g-color-palette-hot-orange-40, #b44200);
+  --fgColor-danger: var(--slds-g-color-error-1, #b60554);
+  --fgColor-done: var(--slds-g-color-palette-violet-40, #7526e3);
+  --fgColor-sponsors: var(--slds-g-color-palette-pink-40, #c41b8d);
+  --fgColor-neutral: var(--slds-g-color-on-surface-1, #5c5c5c);
+  --fgColor-onEmphasis: var(--slds-g-color-on-accent-1, #fff);
+  /* surfaces */
+  --bgColor-default: var(--slds-g-color-surface-container-1, #fff);
+  --bgColor-muted: var(--slds-g-color-surface-container-2, #f3f3f3);
+  --bgColor-inset: var(--slds-g-color-surface-1, #f3f3f3);
+  --bgColor-emphasis: var(--slds-g-color-surface-container-inverse-1, #03234d);
+  --bgColor-black: var(--slds-g-color-palette-neutral-10, #181818);
+  --bgColor-neutral-muted: var(--slds-g-color-surface-container-3, #e5e5e5);
+  --bgColor-accent-muted: var(--slds-g-color-palette-blue-95, #eef4ff);
+  --bgColor-accent-emphasis: var(--slds-g-color-accent-container-1, #0176d3);
+  --bgColor-success-muted: var(--slds-g-color-palette-green-95, #ebf7e6);
+  --bgColor-success-emphasis: var(--slds-g-color-success-container-1, #2e844a);
+  --bgColor-attention-muted: var(--slds-g-color-palette-yellow-90, #fbf3e0);
+  --bgColor-attention-emphasis: var(--slds-g-color-warning-container-1, #fe9339);
+  --bgColor-severe-muted: var(--slds-g-color-palette-hot-orange-95, #fef1ec);
+  --bgColor-severe-emphasis: var(--slds-g-color-palette-hot-orange-50, #ff5d2d);
+  --bgColor-danger-muted: var(--slds-g-color-palette-red-95, #fef1ee);
+  --bgColor-danger-emphasis: var(--slds-g-color-error-container-1, #ba0517);
+  --bgColor-done-muted: var(--slds-g-color-palette-violet-95, #f6f2fb);
+  --bgColor-done-emphasis: var(--slds-g-color-palette-violet-50, #9050e9);
+  --bgColor-neutral-emphasis: var(--slds-g-color-palette-neutral-50, #747474);
+  --bgColor-sponsors-muted: var(--slds-g-color-palette-pink-95, #fef0f3);
+  --bgColor-sponsors-emphasis: var(--slds-g-color-palette-pink-50, #e3066a);
+  /* borders */
+  --borderColor-default: var(--slds-g-color-border-1, #c9c9c9);
+  --borderColor-muted: var(--slds-g-color-border-2, #e5e5e5);
+  --borderColor-emphasis: var(--slds-g-color-palette-neutral-50, #747474);
+  --borderColor-translucent: var(--slds-g-color-neutral-10-opacity-10, rgba(0, 0, 0, .1));
+  --borderColor-accent-emphasis: var(--slds-g-color-border-accent-1, #0176d3);
+  --borderColor-accent-muted: var(--slds-g-color-palette-blue-80, #aacbff);
+  --borderColor-success-emphasis: var(--slds-g-color-border-success-1, #2e844a);
+  --borderColor-success-muted: var(--slds-g-color-palette-green-80, #91db8b);
+  --borderColor-attention-emphasis: var(--slds-g-color-border-warning-1, #dd7a01);
+  --borderColor-attention-muted: var(--slds-g-color-palette-yellow-80, #f9e3b6);
+  --borderColor-severe-emphasis: var(--slds-g-color-palette-hot-orange-50, #ff5d2d);
+  --borderColor-danger-emphasis: var(--slds-g-color-border-error-1, #ea001e);
+  --borderColor-danger-muted: var(--slds-g-color-palette-red-80, #feb9a5);
+  --borderColor-done-emphasis: var(--slds-g-color-palette-violet-50, #9050e9);
+  --borderColor-neutral-emphasis: var(--slds-g-color-palette-neutral-50, #747474);
+  --borderColor-sponsors-emphasis: var(--slds-g-color-palette-pink-50, #e3066a);
+  --focus-outlineColor: var(--slds-g-color-border-accent-1, #0176d3);
+  --avatar-borderColor: var(--slds-g-color-border-2, #e5e5e5);
+  --underlineNav-borderColor-active: var(--slds-g-color-border-accent-1, #0176d3);
+  --control-transparent-bgColor-hover: var(--slds-g-color-surface-container-2, #f3f3f3);
+  --overlay-bgColor: var(--slds-g-color-surface-container-1, #fff);
+  /* data series (charts): SLDS's palette */
+  --data-blue-color-emphasis: var(--slds-g-color-palette-blue-50, #0176d3); --data-blue-color-muted: var(--slds-g-color-palette-blue-90, #d8e6fe);
+  --data-green-color-emphasis: var(--slds-g-color-palette-green-50, #3ba755); --data-green-color-muted: var(--slds-g-color-palette-green-90, #cdefc4);
+  --data-orange-color-emphasis: var(--slds-g-color-palette-orange-50, #dd7a01); --data-orange-color-muted: var(--slds-g-color-palette-orange-90, #fedfd0);
+  --data-purple-color-emphasis: var(--slds-g-color-palette-purple-50, #ba01ff); --data-purple-color-muted: var(--slds-g-color-palette-purple-90, #f3d6fe);
+  --data-pink-color-emphasis: var(--slds-g-color-palette-pink-50, #e3066a); --data-pink-color-muted: var(--slds-g-color-palette-pink-90, #fddde3);
+  --data-teal-color-emphasis: var(--slds-g-color-palette-teal-50, #06a59a); --data-teal-color-muted: var(--slds-g-color-palette-teal-90, #acf3e4);
+  --data-red-color-emphasis: var(--slds-g-color-palette-red-50, #ea001e); --data-red-color-muted: var(--slds-g-color-palette-red-90, #fed7d1);
+  --data-yellow-color-emphasis: var(--slds-g-color-palette-yellow-50, #ca8501); --data-yellow-color-muted: var(--slds-g-color-palette-yellow-90, #f9e3b6);
+  --data-gray-color-emphasis: var(--slds-g-color-palette-neutral-50, #747474); --data-gray-color-muted: var(--slds-g-color-palette-neutral-90, #e5e5e5);
+  --data-auburn-color-emphasis: var(--slds-g-color-palette-hot-orange-50, #ff5d2d); --data-auburn-color-muted: var(--slds-g-color-palette-hot-orange-90, #fedfd0);
+  --data-coral-color-emphasis: var(--slds-g-color-palette-red-60, #fe5c4c); --data-coral-color-muted: var(--slds-g-color-palette-red-95, #fef1ee);
+  --data-lemon-color-emphasis: var(--slds-g-color-palette-yellow-60, #e4a201); --data-lemon-color-muted: var(--slds-g-color-palette-yellow-95, #fbf3e0);
+  --data-lime-color-emphasis: var(--slds-g-color-palette-green-60, #45c65a); --data-lime-color-muted: var(--slds-g-color-palette-green-95, #ebf7e6);
+  --data-olive-color-emphasis: var(--slds-g-color-palette-green-30, #194e31); --data-olive-color-muted: var(--slds-g-color-palette-green-90, #cdefc4);
+  --data-pine-color-emphasis: var(--slds-g-color-palette-teal-40, #0b827c); --data-pine-color-muted: var(--slds-g-color-palette-teal-90, #acf3e4);
+  --data-plum-color-emphasis: var(--slds-g-color-palette-violet-40, #7526e3); --data-plum-color-muted: var(--slds-g-color-palette-violet-90, #ece1f9);
+  --data-brown-color-emphasis: var(--slds-g-color-palette-orange-30, #825101); --data-brown-color-muted: var(--slds-g-color-palette-orange-90, #fedfd0);
+  /* avatar colours (initials): the same palette */
+  --display-blue-bgColor-emphasis: var(--slds-g-color-palette-blue-50, #0176d3);
+  --display-green-bgColor-emphasis: var(--slds-g-color-palette-green-50, #3ba755);
+  --display-orange-bgColor-emphasis: var(--slds-g-color-palette-orange-50, #dd7a01);
+  --display-purple-bgColor-emphasis: var(--slds-g-color-palette-purple-50, #ba01ff);
+  --display-pink-bgColor-emphasis: var(--slds-g-color-palette-pink-50, #e3066a);
+  --display-teal-bgColor-emphasis: var(--slds-g-color-palette-teal-50, #06a59a);
+  --display-red-bgColor-emphasis: var(--slds-g-color-palette-red-50, #ea001e);
+  --display-yellow-bgColor-emphasis: var(--slds-g-color-palette-yellow-50, #ca8501);
+  --display-gray-bgColor-emphasis: var(--slds-g-color-palette-neutral-50, #747474);
+  --display-indigo-bgColor-emphasis: var(--slds-g-color-palette-indigo-50, #5867e8);
+  --display-cyan-bgColor-emphasis: var(--slds-g-color-palette-cloud-blue-50, #1b96ff);
+  --display-coral-bgColor-emphasis: var(--slds-g-color-palette-red-60, #fe5c4c);
+  --display-lime-bgColor-emphasis: var(--slds-g-color-palette-green-60, #45c65a);
+  --display-plum-bgColor-emphasis: var(--slds-g-color-palette-violet-40, #7526e3);
+  --display-brown-bgColor-emphasis: var(--slds-g-color-palette-orange-30, #825101);
+  --display-pine-bgColor-emphasis: var(--slds-g-color-palette-teal-40, #0b827c);
+  --display-olive-bgColor-emphasis: var(--slds-g-color-palette-green-30, #194e31);
+  --display-lemon-bgColor-emphasis: var(--slds-g-color-palette-yellow-60, #e4a201);
+  --display-auburn-bgColor-emphasis: var(--slds-g-color-palette-hot-orange-50, #ff5d2d);
+  --display-rose-bgColor-emphasis: var(--slds-g-color-palette-pink-60, #ff538a);
+  /* spacing: SLDS's scale (x-x-small .25rem … xx-large 3rem) */
+  --base-size-2: .125rem; --base-size-4: var(--slds-g-spacing-1, .25rem); --base-size-6: .375rem; --base-size-8: var(--slds-g-spacing-2, .5rem);
+  --base-size-12: var(--slds-g-spacing-3, .75rem); --base-size-16: var(--slds-g-spacing-4, 1rem); --base-size-20: 1.25rem; --base-size-24: var(--slds-g-spacing-5, 1.5rem);
+  --base-size-28: 1.75rem; --base-size-32: var(--slds-g-spacing-6, 2rem); --base-size-40: 2.5rem; --base-size-56: 3.5rem;
+  --stack-gap-condensed: var(--slds-g-spacing-2, .5rem); --stack-gap-normal: var(--slds-g-spacing-4, 1rem); --stack-gap-spacious: var(--slds-g-spacing-6, 1.5rem);
+  --control-small-size: 1.5rem; --control-small-paddingInline-normal: .75rem; --control-small-paddingBlock: .25rem;
+  /* shape */
+  --borderWidth-thin: var(--slds-g-sizing-border-1, 1px); --borderWidth-thick: var(--slds-g-sizing-border-2, 2px);
+  --borderRadius-small: var(--slds-g-radius-border-1, .125rem); --borderRadius-medium: var(--slds-g-radius-border-2, .25rem);
+  --borderRadius-large: var(--slds-g-radius-border-3, .5rem); --borderRadius-full: var(--slds-g-radius-border-circle, 50%);
+  --shadow-resting-small: var(--slds-g-shadow-1, 0 2px 2px rgba(0, 0, 0, .1)); --shadow-resting-medium: var(--slds-g-shadow-2, 0 2px 4px rgba(0, 0, 0, .1));
+  --shadow-floating-small: var(--slds-g-shadow-3, 0 2px 8px rgba(0, 0, 0, .16)); --shadow-floating-large: var(--slds-g-shadow-4, 0 8px 24px rgba(0, 0, 0, .2));
+  /* type: SLDS's scale and its system stack */
+  --fontStack-system: var(--slds-g-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif);
+  --fontStack-sansSerif: var(--fontStack-system);
+  --fontStack-monospace: var(--slds-g-font-family-monospace, Consolas, Menlo, Monaco, Courier, monospace);
+  --base-text-weight-normal: var(--slds-g-font-weight-4, 400); --base-text-weight-semibold: var(--slds-g-font-weight-bold, 700);
+  --text-caption-size: var(--slds-g-font-scale-neg-2, .75rem);
+  --text-body-size-small: var(--slds-g-font-scale-neg-2, .75rem); --text-body-size-medium: var(--slds-g-font-scale-neg-1, .8125rem);
+  --text-title-size-small: var(--slds-g-font-scale-1, 1rem); --text-title-size-medium: var(--slds-g-font-scale-3, 1.25rem); --text-title-size-large: var(--slds-g-font-scale-5, 1.75rem);
+  --text-caption-shorthand: 400 var(--text-caption-size)/1.25 var(--fontStack-system);
+  --text-body-shorthand-small: 400 var(--text-body-size-small)/1.5 var(--fontStack-system);
+  --text-body-shorthand-medium: 400 var(--text-body-size-medium)/1.5 var(--fontStack-system);
+  --text-body-shorthand-large: 400 1rem/1.5 var(--fontStack-system);
+  --text-title-shorthand-small: 700 var(--text-title-size-small)/1.25 var(--fontStack-system);
+  --text-title-shorthand-medium: 700 var(--text-title-size-medium)/1.25 var(--fontStack-system);
+  --text-title-shorthand-large: 700 var(--text-title-size-large)/1.25 var(--fontStack-system);
+  --text-display-shorthand: 300 2.5rem/1.25 var(--fontStack-system);
+  --text-codeInline-shorthand: 400 .8125rem/1.5 var(--fontStack-monospace);
+}
+
+/* the page: SLDS's app background (the brand band area of a Lightning app) */
+html, body { background: var(--slds-g-color-surface-1, #f3f3f3); }
+
+/* ── the kit's own glue (placement, sizes the blueprints leave to the app) ─────────────────── */
+/* an icon takes the colour of what holds it; SLDS's own icon classes (more specific) decide where used */
+.mateu-svg-icon { vertical-align: middle; fill: currentColor; }
+.mateu-rotate-90 { transform: rotate(90deg); transition: transform .1s; }
+.mateu-button_start { justify-content: flex-start; text-align: start; }
+.mateu-button_small { line-height: 1.75rem; padding-inline: .75rem; }
+.mateu-button_large { line-height: 2.5rem; }
+.mateu-button-count { margin-inline-start: .25rem; }
+.mateu-button-spinner { display: inline-block; width: .75rem; height: .75rem; margin-inline-end: .5rem; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: mateu-spin .7s linear infinite; }
+@keyframes mateu-spin { to { transform: rotate(360deg) } }
+@media (prefers-reduced-motion: reduce) { .mateu-button-spinner { animation: none; } }
+.mateu-link-button { padding: 0; line-height: inherit; color: var(--slds-g-link-color, #0b5cab); }
+.mateu-control_block { width: 100%; }
+.mateu-input-trailing { position: absolute; right: .25rem; top: 50%; transform: translateY(-50%); display: flex; }
+.mateu-input_small { min-height: 1.75rem; line-height: 1.75rem; }
+.mateu-monospace { font-family: var(--fontStack-monospace); }
+.mateu-form-caption { color: var(--fgColor-muted); }
+.mateu-form-success { color: var(--fgColor-success); }
+.mateu-spinner { display: inline-flex; position: relative; align-items: center; justify-content: center; }
+.mateu-spinner_x-small { width: 1rem; height: 1rem; }
+.mateu-spinner_small { width: 2rem; height: 2rem; }
+.mateu-spinner_large { width: 3rem; height: 3rem; }
+.mateu-spinner .slds-spinner { position: absolute; top: 50%; left: 50%; }
+.mateu-counter { min-width: 1.25rem; justify-content: center; }
+.mateu-tooltip-anchor { position: relative; display: inline-flex; }
+.mateu-tooltip { position: absolute; z-index: 9500; width: max-content; max-width: 20rem; bottom: calc(100% + .75rem); left: 50%; transform: translateX(-50%); }
+.mateu-tooltip_s, .mateu-tooltip_se, .mateu-tooltip_sw { bottom: auto; top: calc(100% + .75rem); }
+.mateu-skeleton { display: grid; gap: .5rem; width: 100%; }
+.mateu-skeleton__line { display: block; height: .75rem; border-radius: var(--borderRadius-medium); background: var(--slds-g-color-surface-container-3, #e5e5e5); }
+.mateu-skeleton__line:last-child:not(:first-child) { width: 60%; }
+
+/* layers: portalled, placed by the kit */
+.mateu-layer { z-index: 9400; }
+.mateu-layer.slds-dropdown { margin: 0; transform: none; left: auto; }
+.mateu-layer.slds-popover { max-width: calc(100vw - 16px); }
+.mateu-select-panel__list { max-height: 18rem; overflow: auto; }
+.mateu-action-list { list-style: none; margin: 0; padding: 0; }
+.mateu-action-list__action { display: flex; align-items: center; gap: .5rem; width: 100%; padding: .5rem .75rem; border: 0; background: transparent; text-align: start; color: inherit; font: inherit; cursor: pointer; border-radius: var(--borderRadius-medium); }
+.mateu-action-list__action:hover, .mateu-action-list__action.slds-is-active { background: var(--slds-g-color-surface-container-2, #f3f3f3); }
+.mateu-action-list__action:focus-visible { outline: 2px solid var(--focus-outlineColor); outline-offset: -2px; }
+.mateu-action-list__label { display: grid; flex: 1; min-width: 0; }
+.mateu-item-desc { display: block; }
+.slds-dropdown__item > a { flex-wrap: wrap; }
+.mateu-group-heading { padding: .5rem .75rem .25rem; }
+
+/* modals and docked panels */
+.mateu-modal__container { max-height: 100vh; }
+.mateu-modal__content { overflow: auto; }
+.mateu-modal__header { position: relative; }
+.mateu-panel { display: flex; flex-direction: column; background: var(--slds-g-color-surface-container-1, #fff); box-shadow: var(--slds-g-shadow-4, 0 8px 24px rgba(0, 0, 0, .2)); }
+.mateu-panel.mateu-panel_bottom { border-top: 1px solid var(--borderColor-default); }
+.mateu-panel__header { display: flex; align-items: center; gap: .5rem; }
+.mateu-panel__body { flex: 1; overflow: auto; }
+.mateu-panel__footer { display: flex; justify-content: flex-end; gap: .5rem; padding: .75rem 1rem; border-top: 1px solid var(--borderColor-muted); }
+.mateu-panel-backdrop { position: fixed; inset: 0; }
+
+/* tables */
+.mateu-table-wrap { overflow-x: auto; }
+.mateu-th-button { width: 100%; border: 0; background: transparent; text-align: inherit; cursor: pointer; }
+.mateu-table_condensed td, .mateu-table_condensed th { padding-block: .25rem; }
+.mateu-cell { min-width: 0; }
+.mateu-row_group th, .mateu-row_group td { background: var(--slds-g-color-surface-container-2, #f3f3f3); }
+.mateu-pagination { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: .75rem; }
+.mateu-pagination__gap { pointer-events: none; }
+
+/* page header, tabs, nav, tree, timeline, illustration */
+.mateu-page-header { margin-bottom: var(--slds-g-spacing-4, 1rem); }
+.mateu-page-header__context { margin-bottom: .25rem; }
+.mateu-page-header__badges { display: flex; gap: .25rem; align-items: center; margin-inline-start: .5rem; flex-wrap: wrap; }
+.mateu-page-header__actions { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
+.mateu-page-header__details { width: 100%; }
+.mateu-underline-nav .slds-tabs_default__nav { flex-wrap: wrap; }
+.mateu-nav-toggle { width: 100%; border: 0; background: transparent; text-align: start; cursor: pointer; display: flex; align-items: center; }
+.mateu-nav-label { display: grid; min-width: 0; }
+.mateu-nav-desc { display: block; }
+.mateu-timeline-badge { width: 1.5rem; height: 1.5rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--slds-g-color-surface-container-3, #e5e5e5); }
+.mateu-illustration_border { border: 1px solid var(--borderColor-muted); border-radius: var(--borderRadius-medium); padding: 1.5rem; }
+.mateu-illustration__visual { display: flex; justify-content: center; margin-bottom: 1rem; color: var(--fgColor-muted); }
+.slds-illustration .slds-illustration__svg { max-height: 8rem; }
+.mateu-banner__description { overflow-wrap: anywhere; }
+.mateu-banner__actions { display: flex; gap: .5rem; }
+.mateu-page-layout__content { min-width: 0; }
+
+/* cards (the Card blueprint's variants Mateu adds: elevated, horizontal media) */
+.slds-card { min-width: 0; }
+.mateu-card_elevated { box-shadow: var(--slds-g-shadow-2, 0 2px 4px rgba(0, 0, 0, .1)); }
+.mateu-card_horizontal { display: flex; }
+.mateu-card_horizontal .mateu-card__media { flex: 0 0 40%; max-width: 40%; }
+.mateu-card__main { flex: 1; min-width: 0; }
+.mateu-card__media img { display: block; width: 100%; }
+.slds-accordion__content[hidden] { display: none; }
+/* a nested page's header: the Page Header's parts without its band (a card's header inside a page) */
+.slds-page-header.mateu-page-header_nested { background: transparent; box-shadow: none; border: 0; padding: 0; margin-bottom: var(--slds-g-spacing-3, .75rem); }
+.mateu-page-header_nested .slds-page-header__title { font-size: var(--slds-g-font-scale-2, 1.125rem); }
+
+/* toasts: the blueprint's container, above the global header and the layers */
+.mateu-toasts { position: fixed; top: 4.5rem; left: 0; right: 0; z-index: 9600; display: flex; flex-direction: column; align-items: center; gap: .5rem; pointer-events: none; }
+.mateu-toasts .slds-notify_toast { pointer-events: auto; min-width: min(30rem, calc(100vw - 2rem)); max-width: calc(100vw - 2rem); margin: 0; }
+.mateu-toast-actions { margin-top: .25rem; display: flex; gap: 1rem; }
+.mateu-toast-action { color: inherit; text-decoration: underline; padding: 0; line-height: inherit; }
+
+/* wizard steps: the Path is read-only here (no stage is a control) */
+.mateu-path-link { cursor: default; }
+.mateu-st-step-current { font-weight: var(--base-text-weight-semibold); }
+.mateu-st-step-desc { display: block; }
+.mateu-card__title-slot > *, .mateu-card__title-slot p { font: inherit; margin: 0; }
+
+/* date / time pickers: the dropdowns are portalled (placed by the kit) */
+.mateu-layer.slds-datepicker { position: fixed; padding: .5rem; width: auto; min-width: 18rem; }
+.mateu-layer.slds-dropdown_length-5 { max-height: 13.5rem; overflow-y: auto; }
+.mateu-datetime { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 9rem); gap: .5rem; }
+.slds-datepicker__month td:focus { outline: 2px solid var(--focus-outlineColor); outline-offset: -2px; }
+.mateu-combobox-faux { width: 100%; text-align: start; cursor: pointer; padding-right: 2rem; }
+
+/* Lightning spaces a page tightly: the content starts 12px under the page header (and blocks keep 12px
+   between them) — the shared page stack's "spacious" gap plus the header's own margin left ~48px */
+.mateu-page > :first-child { gap: var(--slds-g-spacing-3, .75rem) !important; }
+.mateu-page-header-wrap > .mateu-page-header { margin-bottom: 0; }
+/* the list view: the controls on the header's second row, the table joined to the header box */
+.mateu-list-view__controls { width: 100%; }
+.mateu-list-view__controls .mateu-listing-search { justify-content: flex-end; }
+.mateu-list-view > .mateu-page-header { border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 0; }
+.mateu-list-view > .mateu-listing-body { margin-block-start: 0; }

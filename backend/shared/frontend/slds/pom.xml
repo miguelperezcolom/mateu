@@ -1,0 +1,19 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.mateu</groupId>
+        <artifactId>mateu-frontend-parent</artifactId>
+        <version>0.0.1-MATEU</version>
+    </parent>
+
+    <artifactId>mateu-slds</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Mateu Salesforce (SLDS) renderer (preview)</name>
+    <description>PREVIEW. The Mateu web renderer drawn with the Salesforce Lightning Design System's blueprints (code BSD-3-Clause; icons and images CC BY-ND 4.0, shipped unmodified with attribution), packaged as static assets served by the backend. Put it on the classpath INSTEAD of mateu-vaadin. Salesforce Sans is not included. Not affiliated with or endorsed by Salesforce.</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+</project>

@@ -15,6 +15,7 @@
  *                     visual editor bundled into the IntelliJ plugin and the VS Code extension
  *   react-native      frontend/app/react-native — the iOS/Android/web app
  *   vscode-extension  frontend/app/vscode-extension — the .vsix (vsce adds its production node_modules)
+ *   primer, slds      the Primer and Salesforce React renderers' own installs (apps/primer, apps/slds)
  * The Redwood renderer has no production npm dependency (JET/Spectra come from Oracle's CDN at
  * runtime, nothing is vendored — apps/redwood/NOTICE.md), so it has no target.
  */
@@ -35,6 +36,11 @@ const REVIEWED = {
   // W3C Software and Document License: permissive (notice + attribution), GPL- and Apache-compatible.
   // Reached through @primer/react; its notice travels in the Primer jar's THIRD-PARTY-LICENSES.txt.
   'focus-visible': { licence: 'W3C', why: 'W3C Software and Document License (permissive; keep its notice)' },
+  // BSD-3-Clause CODE (allowed as such) whose icons and images are CC BY-ND 4.0: redistributable
+  // unmodified with attribution — the slds jar ships the sprites whole and untouched, and its
+  // THIRD-PARTY-LICENSES.txt carries the attribution and both licence files (CONTENT_LICENCES in
+  // frontend-deps.mjs). Salesforce Sans is not in the package's CSS and is never added.
+  '@salesforce-ux/design-system': { licence: 'BSD-3-Clause', why: 'BSD-3-Clause code; CC BY-ND 4.0 icons/images shipped unmodified with attribution' },
 }
 
 /** Whether `pkg` is reviewed for the licence it declares NOW (a release with another licence fails again). */

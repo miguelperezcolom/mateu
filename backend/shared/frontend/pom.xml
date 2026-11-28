@@ -18,6 +18,7 @@
     <module>redwood</module>
     <module>primer</module>
     <module>ui5</module>
+    <module>slds</module>
   </modules>
 
 </project>

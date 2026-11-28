@@ -7,6 +7,7 @@
     "apps/*",
     "!apps/primer",
     "!apps/ui5",
+    "!apps/slds",
     "libs/*"
   ],
   "scripts": {

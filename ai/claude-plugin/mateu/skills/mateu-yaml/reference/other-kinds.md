@@ -84,7 +84,7 @@ sources:
 
 ## Project settings — `type: Project`
 
-One per project (`specs/ui/project.yaml`): `renderer: vaadin | redwood | primer | ui5`. Read by the visual editor,
+One per project (`specs/ui/project.yaml`): `renderer: vaadin | redwood | primer | ui5 | slds`. Read by the visual editor,
 Play, the IDEs and `mateu-bundle:bundle` (`-Dmateu.bundle.renderer` overrides). A served app's
 renderer is still its dependency (`io.mateu:mateu-vaadin` / `io.mateu:mateu-redwood`); the server
 warns when they differ.

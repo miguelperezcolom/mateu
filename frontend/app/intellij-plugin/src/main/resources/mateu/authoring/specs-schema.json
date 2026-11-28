@@ -9988,7 +9988,7 @@
     },
     "ProjectRenderer" : {
       "type" : "string",
-      "enum" : [ "vaadin", "redwood", "primer", "ui5" ]
+      "enum" : [ "vaadin", "redwood", "primer", "ui5", "slds" ]
     }
   }
 }

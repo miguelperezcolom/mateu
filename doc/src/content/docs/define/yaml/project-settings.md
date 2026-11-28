@@ -8,13 +8,13 @@ A project picks its renderer **once**, in a small descriptor next to its other `
 ```yaml
 # src/main/resources/specs/ui/project.yaml
 type: Project
-renderer: redwood   # vaadin | redwood | primer | ui5
+renderer: redwood   # vaadin | redwood | primer | ui5 | slds
 ```
 
 | Key | Values | Default |
 |---|---|---|
 | `type` | `Project` (required — it is how the file is recognised) | — |
-| `renderer` | `vaadin` (served by `io.mateu:mateu-vaadin`), `redwood` (served by `io.mateu:mateu-redwood`) `primer` (GitHub's Primer, a preview, served by `io.mateu:mateu-primer`) or `ui5` (SAP Fiori on UI5 Web Components, a preview, served by `io.mateu:mateu-ui5`) | `vaadin` |
+| `renderer` | `vaadin` (served by `io.mateu:mateu-vaadin`), `redwood` (served by `io.mateu:mateu-redwood`), `primer` (GitHub's Primer, a preview, served by `io.mateu:mateu-primer`), `ui5` (SAP Fiori on UI5 Web Components, a preview, served by `io.mateu:mateu-ui5`) or `slds` (Salesforce's Lightning Design System, a preview, served by `io.mateu:mateu-slds`) | `vaadin` |
 
 There is one per project. It conventionally lives at `specs/ui/project.yaml`, and any file under
 `specs/ui/` with `type: Project` is found too. A project without one uses the defaults, so it
@@ -29,7 +29,7 @@ the static bundle always used Vaadin. They now read the project's choice:
 
 | Where | What it does with `renderer` |
 |---|---|
-| **Visual editor** | The canvas, the board, Play and Export always use the project's renderer — there is no per-page or per-session switch. Opening `project.yaml` itself shows a small settings form. A `primer` or `ui5` project is previewed with Vaadin in the editor for now (neither has a canvas yet). See [the visual editor](/define/yaml/visual-editor#the-projects-renderer). |
+| **Visual editor** | The canvas, the board, Play and Export always use the project's renderer — there is no per-page or per-session switch. Opening `project.yaml` itself shows a small settings form. A `primer`, `ui5` or `slds` project is previewed with Vaadin in the editor for now (none of them has a canvas yet). See [the visual editor](/define/yaml/visual-editor#the-projects-renderer). |
 | **Play** | Plays the mount in the project's renderer. With Redwood, the whole mount runs in the real Redwood app, including the menu, routes and Play's back/forward. |
 | **Static bundle** | `mateu-bundle:bundle` ships the project's renderer, and the editor's **Export** writes a manifest that renderer can read. See [static UI](/deploy/static-ui#choosing-the-renderer). |
 | **IDEs** | IntelliJ (**Settings → Tools → Mateu**) and VS Code (the `mateu.renderer` setting, or **Mateu: Project Settings…**) have a project-level renderer selector. The selector reads and writes this file, and the file is the source of truth. See [IDE tooling](/native/ide-tooling#the-projects-renderer-projectyaml). |
@@ -38,7 +38,7 @@ the static bundle always used Vaadin. They now read the project's choice:
 
 The renderer a **served** app shows is still decided by the renderer jar on its classpath. With
 `io.mateu:mateu-vaadin` it serves Vaadin, with `io.mateu:mateu-redwood` Redwood, with
-`io.mateu:mateu-primer` Primer, and with `io.mateu:mateu-ui5` SAP Fiori. `project.yaml`
+`io.mateu:mateu-primer` Primer, with `io.mateu:mateu-ui5` SAP Fiori, and with `io.mateu:mateu-slds` Salesforce Lightning. `project.yaml`
 does not switch it. If the two disagree, the app your users get is not the one you designed in the
 editor. The server therefore logs one warning at startup:
 
@@ -52,7 +52,7 @@ The warning is never a failure. A team may serve Vaadin while it tries Redwood o
 Nothing is logged when there is no descriptor, or when the server is headless (no renderer jar on
 the classpath, for an API behind a separately deployed frontend). The C# and Python servers run the
 same check against the renderer they serve (`MapMateu(ui: …)` / `MATEU_UI`, `add_mateu(ui=…)`): they
-read it off its files, so pointing them at the `mateu-primer` or `mateu-ui5` jar (or its `static/` folder) serves
+read it off its files, so pointing them at the `mateu-primer`, `mateu-ui5` or `mateu-slds` jar (or its `static/` folder) serves
 that renderer, and a descriptor naming another renderer is warned about at startup.
 
 To switch a served app, change the dependency **and** the descriptor together:

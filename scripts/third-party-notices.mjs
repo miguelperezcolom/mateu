@@ -12,13 +12,15 @@
  * Usage (from anywhere; the bundle's workspaces must be installed, `npm ci`):
  *   node scripts/third-party-notices.mjs <bundle> --out <file>     write it
  *   node scripts/third-party-notices.mjs <bundle> --check <file>   fail when <file> is not current
- * Bundles: vaadin, visual-editor (BUNDLES in frontend-deps.mjs). The output is deterministic (sorted,
+ * Bundles: vaadin, visual-editor, primer, slds (BUNDLES in frontend-deps.mjs). A package whose
+ * content is under another licence than its code (CONTENT_LICENCES) also gets that attribution and
+ * those licence files. The output is deterministic (sorted,
  * no dates), so the committed copy can be checked against a fresh one in CI.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { BUNDLES, licenceOf, walk } from './frontend-deps.mjs'
+import { BUNDLES, CONTENT_LICENCES, licenceOf, walk } from './frontend-deps.mjs'
 
 const LEGAL_FILE = /^(licen[cs]e|copying|notice|authors)([.-].*)?$/i
 
@@ -51,6 +53,9 @@ export const notices = (bundle) => {
     ...packages.map(({ pkg }) => `  ${pkg.name}@${pkg.version}  (${licenceOf(pkg)})`),
     '',
   ]
+  // content under another licence than the package's code (the SLDS icons and images: CC BY-ND 4.0)
+  const content = packages.filter(({ pkg }) => CONTENT_LICENCES[pkg.name])
+  for (const { pkg } of content) out.push(...CONTENT_LICENCES[pkg.name].attribution, '')
   // the same licence text (the Apache-2.0 LICENSE of every Vaadin package) is given once, and
   // referred to after that
   const firstWith = new Map()
@@ -58,7 +63,7 @@ export const notices = (bundle) => {
     out.push(RULE, `${pkg.name}@${pkg.version}`, `Licence: ${licenceOf(pkg)}`)
     const home = pkg.homepage ?? (typeof pkg.repository === 'string' ? pkg.repository : pkg.repository?.url)
     if (home) out.push(`Source: ${home}`)
-    const files = legalFilesOf(dir)
+    const files = [...legalFilesOf(dir), ...(CONTENT_LICENCES[pkg.name]?.files ?? []).filter((f) => existsSync(join(dir, f)))]
     if (!files.length) {
       out.push('', `(The package ships no licence file; its package.json declares ${licenceOf(pkg)}${pkg.author ? `, author ${typeof pkg.author === 'string' ? pkg.author : pkg.author.name}` : ''}.)`)
     }

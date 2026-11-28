@@ -23,6 +23,7 @@ RENDERERS = {
     "redwood": "io.mateu:mateu-redwood",
     "primer": "io.mateu:mateu-primer",
     "ui5": "io.mateu:mateu-ui5",
+    "slds": "io.mateu:mateu-slds",
 }
 #: A file only the Redwood (Visual Builder) renderer ships (Java's REDWOOD_MARKER, minus static/).
 REDWOOD_MARKER = "_redwood/app-flow.json"
@@ -30,6 +31,8 @@ REDWOOD_MARKER = "_redwood/app-flow.json"
 PRIMER_MARKER = "assets/mateu-primer.js"
 #: A file only the SAP (UI5) renderer ships (Java's UI5_MARKER, minus static/).
 UI5_MARKER = "assets/mateu-ui5.js"
+#: A file only the Salesforce (SLDS) renderer ships (Java's SLDS_MARKER, minus static/).
+SLDS_MARKER = "assets/mateu-slds.js"
 
 
 def _specs_dir(specs_dir: str | os.PathLike[str] | None) -> Path:
@@ -99,6 +102,8 @@ def served(renderer_files) -> str | None:
         return "primer"
     if renderer_files.read(UI5_MARKER) is not None:
         return "ui5"
+    if renderer_files.read(SLDS_MARKER) is not None:
+        return "slds"
     return "vaadin"
 
 

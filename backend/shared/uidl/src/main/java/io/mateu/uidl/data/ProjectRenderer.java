@@ -31,7 +31,12 @@ public enum ProjectRenderer {
    * The SAP renderer: SAP's UI5 Web Components and Fiori floorplans over the React Native
    * renderer's core (preview). Served by {@code io.mateu:mateu-ui5}.
    */
-  ui5("mateu-ui5");
+  ui5("mateu-ui5"),
+  /**
+   * The Salesforce renderer: the Lightning Design System's blueprints drawn in React, over the
+   * React Native renderer's core (preview). Served by {@code io.mateu:mateu-slds}.
+   */
+  slds("mateu-slds");
 
   /** The group id every renderer artifact is published under. */
   public static final String GROUP_ID = "io.mateu";

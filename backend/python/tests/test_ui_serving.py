@@ -407,3 +407,27 @@ def test_the_ui5_renderer_is_served_like_any_web_renderer(caplog, tmp_path, monk
     lazy = next(p.name for p in (UI5_STATIC / "assets").glob("mateu-ui5-visual-*.js"))
     assert c.get("/assets/" + lazy, headers={"accept": "*/*"}).status_code == 200
     assert any("says renderer: vaadin, but this server serves ui5" in r.getMessage() for r in caplog.records)
+
+
+SLDS_STATIC = Path(__file__).resolve().parents[3] / "backend/shared/frontend/slds/src/main/resources/static"
+
+
+def test_the_salesforce_renderer_is_served_like_any_web_renderer(caplog, tmp_path, monkeypatch):
+    """The mateu-slds jar's static/ (SLDS blueprints): its page, entry script, stylesheet and a lazy
+    chunk, and the startup warning when the descriptor names another renderer."""
+    if not (SLDS_STATIC / "_index.html").is_file():
+        pytest.skip("the Salesforce renderer bundle is not checked out next to this test")
+    import logging
+
+    (tmp_path / "project.yaml").write_text("type: Project\nrenderer: vaadin\n")
+    monkeypatch.setenv("MATEU_SPECS_DIR", str(tmp_path))
+    with caplog.at_level(logging.WARNING, logger="mateu.project"):
+        c = client(SLDS_STATIC)
+    home = c.get("/")
+    assert home.status_code == 200 and '<mateu-ui baseUrl=""' in home.text
+    assert 'src="/assets/mateu-slds.js"' in home.text
+    assert c.get("/assets/mateu-slds.js", headers={"accept": "*/*"}).status_code == 200
+    assert c.get("/assets/mateu-slds.css", headers={"accept": "*/*"}).status_code == 200
+    lazy = next(p.name for p in (SLDS_STATIC / "assets").glob("mateu-slds-visual-*.js"))
+    assert c.get("/assets/" + lazy, headers={"accept": "*/*"}).status_code == 200
+    assert any("says renderer: vaadin, but this server serves slds" in r.getMessage() for r in caplog.records)

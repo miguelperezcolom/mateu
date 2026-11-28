@@ -15,15 +15,17 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <p>For a served app the Maven dependency stays the source of truth — whichever renderer jar
  * ({@code io.mateu:mateu-vaadin}, {@code io.mateu:mateu-redwood}, {@code io.mateu:mateu-primer},
- * {@code io.mateu:mateu-ui5}) is on the classpath is what the index page boots. The descriptor is
- * what the visual editor, Play and the static bundle paint with, so when the two disagree the app a
- * developer designed is not the app a user gets: that is worth one clear WARN at startup, never a
- * failure (a team may well serve Vaadin while trying Redwood out in the editor).
+ * {@code io.mateu:mateu-ui5}, {@code io.mateu:mateu-slds}) is on the classpath is what the index
+ * page boots. The descriptor is what the visual editor, Play and the static bundle paint with, so
+ * when the two disagree the app a developer designed is not the app a user gets: that is worth one
+ * clear WARN at startup, never a failure (a team may well serve Vaadin while trying Redwood out in
+ * the editor).
  *
  * <p>Which renderer the classpath serves is read off its static resources ({@link #servedBy}): the
  * Redwood jar ships a Visual Builder app under {@code static/_redwood/}, the Primer one its entry
- * {@code static/assets/mateu-primer.js}, the SAP one {@code static/assets/mateu-ui5.js}, the Vaadin
- * one only {@code static/_index.html} + {@code static/assets/}.
+ * {@code static/assets/mateu-primer.js}, the SAP one {@code static/assets/mateu-ui5.js}, the
+ * Salesforce one {@code static/assets/mateu-slds.js}, the Vaadin one only {@code
+ * static/_index.html} + {@code static/assets/}.
  */
 @Slf4j
 public final class ProjectRendererCheck {
@@ -36,6 +38,9 @@ public final class ProjectRendererCheck {
 
   /** A resource only the SAP (UI5) jar ships (its entry script). */
   static final String UI5_MARKER = "static/assets/mateu-ui5.js";
+
+  /** A resource only the Salesforce (SLDS) jar ships (its entry script). */
+  static final String SLDS_MARKER = "static/assets/mateu-slds.js";
 
   /** The SPA template every renderer jar ships. */
   static final String INDEX_TEMPLATE = "static/_index.html";
@@ -142,6 +147,9 @@ public final class ProjectRendererCheck {
     }
     if (hasResource.test(UI5_MARKER)) {
       return ProjectRenderer.ui5;
+    }
+    if (hasResource.test(SLDS_MARKER)) {
+      return ProjectRenderer.slds;
     }
     if (hasResource.test(INDEX_TEMPLATE)) {
       return ProjectRenderer.vaadin;
