@@ -5,7 +5,8 @@ import {
   isDayActionable, monthWeeks, periodDates, periodTitle, switcherViews, timeRange, todayIso, viewLabel, weekdayShort,
   dateLabel, WEEKDAY_HEADERS, type CalendarEventMeta, type CalendarMeta, type CalendarView,
 } from '@rn/renderer/calendar'
-import { DAY_MS, ganttLayout, laneBlocks, parseDay, planningRows, planningWindow, todayDayNumber, todayOffset } from '@rn/renderer/timeline'
+import { DAY_MS, laneBlocks, parseDay, planningRows, planningWindow, todayDayNumber } from '@rn/renderer/timeline'
+import { ganttScale, todayPercent } from './ganttScale'
 import { ganttSelection } from '@rn/renderer/ganttSelection'
 import { addDaysIso } from '@rn/renderer/planningDrag'
 import type { GanttTask, PlanningBlock as WireBlock, PlanningResource as WireResource } from '@rn/api/metadata'
@@ -106,14 +107,14 @@ export function Calendar({ component, metadata }: CatalogueProps) {
 
 // ── Gantt ─────────────────────────────────────────────────────────────────────────────────────────
 
-/** Gantt: the RN core's layout (day width, month ticks, bars, today); a bar runs onTaskSelectionActionId. */
+/** Gantt: the whole range fits the width (ganttScale — months, years or decades); a bar runs onTaskSelectionActionId. */
 export function Gantt({ component, metadata }: CatalogueProps) {
   const controller = useController()
   const selectAction = metadata['onTaskSelectionActionId'] as string | undefined
-  const layout = ganttLayout(arr<GanttTask>(metadata['tasks']))
-  if (!layout) return <Text className="mv-muted">No tasks.</Text>
-  const { tasks, minDay, maxDay, dayW, laneW, months, bars } = layout
-  const todayX = todayOffset(todayDayNumber(), minDay, maxDay, dayW)
+  const scale = ganttScale(arr<GanttTask>(metadata['tasks']))
+  if (!scale) return <Text className="mv-muted">No tasks.</Text>
+  const { tasks, ticks, bars, minDay, totalDays } = scale
+  const today = todayPercent(todayDayNumber(), minDay, totalDays)
   const select = (t: GanttTask) => {
     const s = ganttSelection(selectAction, t.id)
     if (s) void controller.runAction(s.actionId, s.parameters)
@@ -125,22 +126,22 @@ export function Gantt({ component, metadata }: CatalogueProps) {
         {tasks.map((t, i) => <div key={t.id ?? i} className="mv-tl-label" title={t.title}>{t.title ?? t.id}</div>)}
       </div>
       <div className="mv-tl-scroll">
-        <div style={{ width: Math.max(laneW, 200), position: 'relative' }}>
+        <div style={{ width: '100%', minWidth: 320, position: 'relative' }}>
           <div className="mv-tl-head">
-            {months.map((mth, i) => <span key={i} style={{ position: 'absolute', left: mth.left + 4, top: 6 }}>{mth.label}</span>)}
+            {ticks.map((tk, i) => <span key={i} className="mv-tl-tick" style={{ left: `${tk.left}%` }}>{tk.label}</span>)}
           </div>
+          {ticks.map((tk, i) => <div key={`g${i}`} className="mv-tl-grid" style={{ left: `${tk.left}%` }} aria-hidden />)}
           {bars.map(({ task: t, left, width, progress }, i) => (
             <div key={t.id ?? i} className="mv-tl-lane">
               <button type="button" className={'mv-tl-bar' + (selectAction ? ' mv-clickable' : '')} disabled={!selectAction}
-                style={{ left, width, background: colorOf(t.color, 'var(--bgColor-accent-emphasis)'), cursor: selectAction ? 'pointer' : 'default' }}
+                style={{ left: `${left}%`, width: `${width}%`, minWidth: 4, padding: 0, background: colorOf(t.color, 'var(--bgColor-accent-emphasis)'), cursor: selectAction ? 'pointer' : 'default' }}
                 title={`${t.title ?? ''}: ${t.start} → ${t.end}, ${progress}%`} aria-label={`${t.title ?? ''}, ${t.start} to ${t.end}, ${progress}% done`}
                 onClick={() => select(t)}>
                 <span className="mv-tl-progress" style={{ width: `${progress}%` }} />
-                <span style={{ position: 'relative' }}>{width > 60 ? t.title : ''}</span>
               </button>
             </div>
           ))}
-          {todayX != null && <div className="mv-tl-today" style={{ left: todayX }} aria-hidden />}
+          {today != null && <div className="mv-tl-today" style={{ left: `${today}%` }} aria-hidden />}
         </div>
       </div>
     </div>

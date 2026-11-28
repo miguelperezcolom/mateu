@@ -43,7 +43,7 @@ Without it the canvas shows a notice instead of the page, and the Vaadin canvas 
 ## The project's renderer: project.yaml
 
 The renderer is a **project** setting, kept in `specs/ui/project.yaml` (`type: Project`,
-`renderer: vaadin | redwood | primer`; see [project settings](/define/yaml/project-settings)). Both IDEs
+`renderer: vaadin | redwood | primer | ui5`; see [project settings](/define/yaml/project-settings)). Both IDEs
 edit that file, and the file is the source of truth:
 
 - **IntelliJ**: **Settings | Tools | Mateu → Project → Renderer** reads `project.yaml` when the page

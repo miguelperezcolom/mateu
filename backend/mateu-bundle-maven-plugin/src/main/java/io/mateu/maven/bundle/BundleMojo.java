@@ -121,11 +121,11 @@ public class BundleMojo extends AbstractMojo {
   private String environment;
 
   /**
-   * The renderer to bundle: {@code vaadin}, {@code redwood} or {@code primer}. Default: the
-   * project's choice in {@code specs/ui/project.yaml} ({@code type: Project}); without one,
-   * whichever renderer the app's classpath serves; else vaadin. Its static app is taken from the
-   * renderer jar on the app's classpath (or {@code <assetsFrom>}), so a redwood bundle needs {@code
-   * io.mateu:mateu-redwood} there.
+   * The renderer to bundle: {@code vaadin}, {@code redwood}, {@code primer} or {@code ui5}.
+   * Default: the project's choice in {@code specs/ui/project.yaml} ({@code type: Project}); without
+   * one, whichever renderer the app's classpath serves; else vaadin. Its static app is taken from
+   * the renderer jar on the app's classpath (or {@code <assetsFrom>}), so a redwood bundle needs
+   * {@code io.mateu:mateu-redwood} there.
    */
   @Parameter(property = "mateu.bundle.renderer")
   private String renderer;

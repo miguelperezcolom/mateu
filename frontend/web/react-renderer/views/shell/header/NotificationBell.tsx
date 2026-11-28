@@ -1,10 +1,11 @@
 import React, { useRef } from 'react'
-import { AnchoredOverlay, Button, CounterLabel, IconButton, SegmentedControl, Text } from '@kit'
+import { AnchoredOverlay, Button, IconButton, SegmentedControl, Text } from '@kit'
 import { BellIcon, XIcon } from '@kit/icons'
 import type { MateuSession, NavTarget } from '@rn/core/MateuSession'
 import type { AppTarget } from '@mr/shell/appLevel'
 import { INBOX_FILTERS, useInbox } from '@mr/shell/inbox'
 import { tx } from '@mr/i18n/texts'
+import { BellButton } from './BellButton'
 
 type Dict = Record<string, unknown>
 
@@ -21,10 +22,7 @@ export function NotificationBell({ session, app, onNavigate }: { session: MateuS
       onClose={() => setOpen(false)}
       anchorRef={anchor}
       renderAnchor={(props) => (
-        <span className="mateu-bell">
-          <IconButton {...props} ref={anchor} icon={BellIcon} aria-label={label} size="small" variant="invisible" />
-          {unread > 0 && <CounterLabel scheme="primary" className="mateu-bell-count" aria-hidden="true">{unread > 99 ? '99+' : unread}</CounterLabel>}
-        </span>
+        <BellButton props={props} anchor={anchor} label={label} unread={unread} />
       )}
       overlayProps={{ role: 'dialog', 'aria-label': tx('notifications'), width: 'large' } as never}
       focusZoneSettings={{ disabled: true }}

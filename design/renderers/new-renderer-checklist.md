@@ -97,3 +97,14 @@ gate, or silently behaves like Vaadin there. `<x>` = the renderer id, `mateu-<x>
       sign-in probe.
 - [ ] Sonar: a by-design duplicate (a per-language text table, probes repeating another renderer's
       scenarios) goes into `.sonarcloud.properties` `sonar.cpd.exclusions` with its reason.
+
+## The app itself (React renderers)
+
+- `vite.config.ts` = `rendererConfig(...)` (frontend/web/react-renderer/vite/rendererConfig.ts), `npm run copy` =
+  `node ../../../react-renderer/scripts/package-renderer.mjs <name>`, `src/i18n/texts.lint.test.ts` =
+  `chromeTextsLint(...)` — never a copy of Primer's.
+- `src/kit` implements views/kit-contract.json; `src/overrides` holds ONLY the seams listed in
+  frontend/web/react-renderer/README.md ("Seams a design system overrides") the design system draws its own
+  way. A whole-view copy is a missing seam: split the view instead (Sonar's new-code duplication must
+  stay under 3%).
+

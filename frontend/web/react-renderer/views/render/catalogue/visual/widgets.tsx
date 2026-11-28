@@ -41,6 +41,12 @@ export function MapView({ component, metadata }: CatalogueProps) {
         tileUrl={metadata['tileUrl'] as string | null} attribution={metadata['attribution'] as string | null} height={h}
         onMarker={(m) => { const r = rows.find((x) => x.markerId === m.id) ?? rows[markers.findIndex((x) => x.id === m.id)]; if (r) run(r) }} />
       {rows.length > 0 && (
+        // folded under the map: the keyboard's and the screen reader's way to the markers, without a
+        // second copy of a page's own list of the same places
+        <details className="mv-map-list">
+        <summary style={{ cursor: 'pointer', font: 'var(--text-body-shorthand-small)', color: 'var(--fgColor-muted)', padding: 'var(--base-size-4) 0' }}>
+          {tx('mapLocations')} ({rows.length})
+        </summary>
         <ul className="mv-box" style={{ listStyle: 'none', margin: 0, padding: 0 }} aria-label={tx('mapLocations')}>
           {rows.map((r, i) => (
             <li key={r.key} className="mv-row" style={{ padding: 'var(--base-size-8) var(--base-size-12)', borderTop: i ? 'var(--borderWidth-thin) solid var(--borderColor-muted)' : undefined }}>
@@ -57,6 +63,7 @@ export function MapView({ component, metadata }: CatalogueProps) {
             </li>
           ))}
         </ul>
+        </details>
       )}
     </div>
   )

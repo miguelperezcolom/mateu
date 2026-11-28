@@ -54,6 +54,12 @@ export const TARGETS = {
     entries: ['.'],
     notBundled: {},
   },
+  // the SAP renderer (preview): its own install, outside the monorepo workspaces
+  ui5: {
+    dir: 'frontend/web/monorepo/apps/ui5',
+    entries: ['.'],
+    notBundled: {},
+  },
 }
 
 // One shipped bundle each: the notices file that travels inside it (third-party-notices.mjs).
@@ -73,6 +79,12 @@ export const BUNDLES = {
   // the io.mateu:mateu-primer jar (Primer React; the React Native core it runs on is ours)
   primer: {
     dir: 'frontend/web/monorepo/apps/primer',
+    entries: ['.'],
+    notBundled: {},
+  },
+  // the io.mateu:mateu-ui5 jar (UI5 Web Components + SAP's 72 font; the React Native core it runs on is ours)
+  ui5: {
+    dir: 'frontend/web/monorepo/apps/ui5',
     entries: ['.'],
     notBundled: {},
   },

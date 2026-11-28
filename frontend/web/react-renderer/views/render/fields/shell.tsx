@@ -1,6 +1,7 @@
 import React, { useId } from 'react'
 import { Text } from '@kit'
 import { AlertFillIcon } from '@kit/icons'
+import { FieldLabel } from './FieldLabel'
 import './fields.css'
 
 /**
@@ -26,10 +27,7 @@ export function FieldShell({ label, required, help, error, children }: {
   const describedBy = [errorId, helpId].filter(Boolean).join(' ') || undefined
   return (
     <div className="mateu-field">
-      <span id={labelId} className={React.useContext(UnlabelledField) ? 'sr-only' : 'mateu-field-label'}>
-        {label}
-        {required && <span aria-hidden="true" className="mateu-field-required"> *</span>}
-      </span>
+      <FieldLabel id={labelId} label={label} required={required} hidden={React.useContext(UnlabelledField)} />
       {children({ 'aria-labelledby': labelId, 'aria-describedby': describedBy, 'aria-invalid': error ? true : undefined })}
       {help && <Text as="p" id={helpId} size="small" className="mateu-field-help">{help}</Text>}
       {error && (
@@ -45,7 +43,7 @@ export function FieldShell({ label, required, help, error, children }: {
 export function ReadOnlyShell({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="mateu-field">
-      <span className={React.useContext(UnlabelledField) ? 'sr-only' : 'mateu-field-label mateu-field-label-muted'}>{label}</span>
+      <FieldLabel label={label} muted hidden={React.useContext(UnlabelledField)} />
       <div>{children}</div>
     </div>
   )

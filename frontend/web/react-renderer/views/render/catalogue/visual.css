@@ -42,6 +42,8 @@
 .mv-tl-lane.mv-group { height: 24px; background: var(--bgColor-muted); }
 .mv-tl-bar { position: absolute; top: 6px; height: 20px; border-radius: var(--borderRadius-small); overflow: hidden; font-size: 11px; line-height: 20px; padding-inline: var(--base-size-4); white-space: nowrap; text-overflow: ellipsis; color: var(--fgColor-onEmphasis); border: 0; text-align: left; font-family: inherit; }
 .mv-tl-progress { position: absolute; inset: 0 auto 0 0; background: var(--bgColor-black); opacity: .18; pointer-events: none; }
+.mv-tl-tick { position: absolute; top: 6px; padding-inline-start: var(--base-size-4); white-space: nowrap; }
+.mv-tl-grid { position: absolute; top: 28px; bottom: 0; border-left: var(--borderWidth-thin) solid var(--borderColor-muted); pointer-events: none; }
 .mv-tl-today { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--bgColor-danger-emphasis); pointer-events: none; }
 .mv-tl-day { position: absolute; top: 0; bottom: 0; text-align: center; font-size: 10px; line-height: 14px; border-left: var(--borderWidth-thin) solid var(--borderColor-muted); }
 .mv-tl-weekend { background: var(--bgColor-muted); }

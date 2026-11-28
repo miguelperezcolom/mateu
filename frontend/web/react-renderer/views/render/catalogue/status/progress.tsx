@@ -4,6 +4,7 @@ import { CheckCircleFillIcon, CircleIcon, DotFillIcon, AlertFillIcon, XCircleFil
 import { useController } from '@mr/render/ViewHost'
 import { type CatalogueProps, type Dict, glyph, labelVariant, list, pressable, str, useText } from './common'
 import { tx } from '@mr/i18n/texts'
+import { StepsTrack } from './StepsTrack'
 
 /** A running task: done of total, a pill per subtask, and its action once it is complete. */
 export function TaskProgress({ metadata: m, state, data }: CatalogueProps) {
@@ -155,21 +156,7 @@ export function ProgressSteps({ metadata: m, state, data }: CatalogueProps) {
   const allDone = steps.length > 0 && steps.every((s) => str(s['status']) === 'done')
   return (
     <div className="mateu-st-stack-sm">
-      <ol className={vertical ? 'mateu-st-steps-v' : 'mateu-st-steps'}>
-        {steps.map((s, i) => {
-          const status = str(s['status']) || 'upcoming'
-          const Icon = status === 'done' ? CheckCircleFillIcon : status === 'current' ? DotFillIcon : CircleIcon
-          return (
-            <li key={str(s['id']) || i} className={`mateu-st-step mateu-st-step-${status}`} aria-current={status === 'current' ? 'step' : undefined}>
-              <span className="mateu-st-step-dot"><Icon size={16} /></span>
-              <span className="mateu-st-stack-xs">
-                <Text size="small" weight={status === 'current' ? 'semibold' : 'normal'}>{t(s['title'])}</Text>
-                {vertical && s['description'] ? <Text size="small" className="mateu-st-muted">{t(s['description'])}</Text> : null}
-              </span>
-            </li>
-          )
-        })}
-      </ol>
+      <StepsTrack steps={steps} vertical={vertical} t={t} />
       {allDone && m['resultTitle'] ? <Text size="small" className="mateu-st-ok"><CheckIcon size={16} /> {t(m['resultTitle'])}</Text> : null}
     </div>
   )

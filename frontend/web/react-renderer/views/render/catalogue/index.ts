@@ -7,7 +7,7 @@ import { structure } from './structure'
  * The wire types drawn outside the core switch (ComponentRenderer), grouped by family. display,
  * status and visual load on demand — a screen pays only for the families it draws, and all of them
  * are fetched once the first screen is up (`preloadCatalogue`), so a later screen rarely waits.
- * structure stays in the main chunk: it is small and registers `window.MateuPrimer` at boot.
+ * structure stays in the main chunk: it is small and registers `window.MateuRenderer` at boot.
  */
 const LOADERS: Record<LazyFamily, () => Promise<Catalogue>> = {
   display: () => import('./display').then((m) => m.display),

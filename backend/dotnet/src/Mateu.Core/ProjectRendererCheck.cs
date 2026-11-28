@@ -24,13 +24,16 @@ internal static class ProjectRendererCheck
     /// <summary>A file only the Primer renderer ships (Java's PRIMER_MARKER, under its <c>static/</c>).</summary>
     public const string PrimerMarker = "assets/mateu-primer.js";
 
+    /// <summary>A file only the SAP (UI5) renderer ships (Java's UI5_MARKER, under its <c>static/</c>).</summary>
+    public const string Ui5Marker = "assets/mateu-ui5.js";
+
     /// <summary>The renderers a descriptor can name (Java's ProjectRenderer).</summary>
-    private static readonly string[] Known = ["vaadin", "redwood", "primer"];
+    private static readonly string[] Known = ["vaadin", "redwood", "primer", "ui5"];
 
     private static readonly IDeserializer Yaml = new DeserializerBuilder().Build();
 
     /// <summary>The renderer the project declares — <c>vaadin</c> (the default when the descriptor
-    /// names none), <c>redwood</c> or <c>primer</c> — or null when the specs have no descriptor (nothing declared):
+    /// names none), <c>redwood</c>, <c>primer</c> or <c>ui5</c> — or null when the specs have no descriptor (nothing declared):
     /// <c>project.yaml</c>, else the first <c>type: Project</c> file under the specs.</summary>
     public static string? Declared(string specsDir)
     {
@@ -66,12 +69,13 @@ internal static class ProjectRendererCheck
     }
 
     /// <summary>The renderer this server serves: <c>redwood</c> when its files carry the Visual
-    /// Builder app, <c>primer</c> when they carry Primer's entry script, <c>vaadin</c> for any other
+    /// Builder app, <c>primer</c> / <c>ui5</c> when they carry Primer's / SAP's entry script, <c>vaadin</c> for any other
     /// page, null when it serves none (a headless backend).</summary>
     public static string? Served(RendererFiles? renderer) =>
         renderer is null ? null
         : renderer.Read(RedwoodMarker) is not null ? "redwood"
         : renderer.Read(PrimerMarker) is not null ? "primer"
+        : renderer.Read(Ui5Marker) is not null ? "ui5"
         : "vaadin";
 
     /// <summary>The warning to log, or null when there is nothing to say: no descriptor, no renderer

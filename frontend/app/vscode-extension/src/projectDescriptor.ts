@@ -10,7 +10,7 @@ export const PROJECT_TYPE = 'Project'
 export const PROJECT_FILE_NAME = 'project.yaml'
 export const RENDERER_GROUP_ID = 'io.mateu'
 
-export type RendererId = 'vaadin' | 'redwood' | 'primer'
+export type RendererId = 'vaadin' | 'redwood' | 'primer' | 'ui5'
 
 export interface RendererInfo {
     id: RendererId
@@ -23,6 +23,7 @@ export const RENDERERS: readonly RendererInfo[] = [
     { id: 'vaadin', label: 'Vaadin (Lumo)', artifactId: 'mateu-vaadin' },
     { id: 'redwood', label: 'Redwood (Oracle)', artifactId: 'mateu-redwood' },
     { id: 'primer', label: 'Primer (GitHub, preview)', artifactId: 'mateu-primer' },
+    { id: 'ui5', label: 'SAP Fiori (UI5, preview)', artifactId: 'mateu-ui5' },
 ]
 
 export const DEFAULT_RENDERER: RendererId = 'vaadin'
@@ -68,8 +69,9 @@ export function newDescriptor(renderer: RendererId): string {
     return [
         '# The project descriptor: settings true of the whole project, not of one page.',
         '# renderer — the design system the project paints with: vaadin (io.mateu:mateu-vaadin, the',
-        '# default), redwood (io.mateu:mateu-redwood) or primer (io.mateu:mateu-primer, preview). The visual',
-        '# editor and Play open in it (a Primer project previews with Vaadin there for now) and the static',
+        '# default), redwood (io.mateu:mateu-redwood), primer (io.mateu:mateu-primer, preview) or ui5',
+        '# (io.mateu:mateu-ui5, SAP Fiori, preview). The visual',
+        '# editor and Play open in it (a Primer or SAP project previews with Vaadin there for now) and the static',
         '# bundle ships it; a served app still renders with its Maven dependency (the server warns when',
         '# the two disagree).',
         `type: ${PROJECT_TYPE}`,

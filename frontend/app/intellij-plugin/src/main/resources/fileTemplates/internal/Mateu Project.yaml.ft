@@ -3,6 +3,7 @@
 #   vaadin  (io.mateu:mateu-vaadin, the default)
 #   redwood (io.mateu:mateu-redwood — Oracle JET + Spectra, loaded from Oracle's CDN)
 #   primer  (io.mateu:mateu-primer — GitHub's Primer React, preview; the editor previews it with Vaadin)
+#   ui5     (io.mateu:mateu-ui5 — SAP's UI5 Web Components / Fiori, preview; the editor previews it with Vaadin)
 # The visual editor's canvas and Play open in it and the static bundle ships it. A served app
 # renders with its Maven dependency; the server warns at startup when the two disagree.
 type: Project

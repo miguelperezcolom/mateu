@@ -5,6 +5,7 @@ import { cellText } from '@rn/renderer/cellText'
 import { cellTone, pictureUrlOf, type ColDef } from '@rn/renderer/crudListing'
 import { rowToneOf } from '@infra/ui/rowTone.ts'
 import { dragMimeOf } from '@infra/ui/dragAndDrop.ts'
+import { formatNumberCell } from '@infra/ui/columnAlign.ts'
 import { useController } from '@mr/render/ViewHost'
 import { labelVariantOf } from '../looks'
 import { NUMERIC, isBool, withoutRowKey, type Dict, type Row } from '@mr/listing/rows'
@@ -91,7 +92,9 @@ export function useCellRenderer(ctx: CellContext) {
       const src = pictureUrlOf(value)
       return src ? <Avatar src={src} size={24} alt="" square /> : null
     }
-    const text = cellText(value, col.valueLabels, col)
+    // a number in the page's locale, grouped, at most two decimals — the web renderer's own rule
+    const number = formatNumberCell(value, col.dataType, document.documentElement.lang || undefined)
+    const text = number !== value ? String(number) : cellText(value, col.valueLabels, col)
     const shown = col === ctx.linkColumn ? header(row, col, text) : plain(row, col, text)
     const tip = col.tooltipPath ? String(row[col.tooltipPath] ?? '') : ''
     return tip ? <span title={tip}>{shown}</span> : shown

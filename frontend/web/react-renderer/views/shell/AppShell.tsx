@@ -1,26 +1,20 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React from 'react'
 import { Dialog, IconButton, Text } from '@kit'
 import { DeviceMobileIcon, MoonIcon, SunIcon, ThreeBarsIcon } from '@kit/icons'
 import type { MateuSession, NavTarget } from '@rn/core/MateuSession'
-import { appHomeOf } from '@rn/core/componentContext'
 import type { HeaderAction } from '@rn/core/embeddedAppExtras'
 import type { HeaderValue } from '@rn/core/appShellExtras'
-import { safeHref } from '@infra/ui/safeNavigate.ts'
-import { appTargetOf } from '@mr/shell/appLevel'
 import { ContextPickers } from './header/ContextPickers'
 import { HeaderActions } from './header/HeaderActions'
 import { NotificationBell } from './header/NotificationBell'
-import { HeaderValues, useLiveUpdates } from './header/LiveHeader'
+import { HeaderValues } from './header/LiveHeader'
 import { UserMenu } from './header/UserMenu'
-import { AgentOperatingNotice, ConnectAi, useAgentChannel } from './header/AgentPush'
-import { useColorControl } from './header/theme'
-import { NARROW_SHELL, menuLayoutOf, useMediaQuery } from '@mr/shell/layout'
+import { ConnectAi } from './header/AgentPush'
 import { CardsDialog, SideNav, TabsNav, TilesHub, TopNav } from './header/MenuNav'
-import { firstLeaf, holdsCurrent, useMenuActivation, visibleItems, type MenuHandlers, type MenuItem } from '@mr/shell/menu'
+import { firstLeaf, visibleItems } from '@mr/shell/menu'
+import { ShellBand, useAppShell } from './appShellState'
 import './header/header.css'
 import { tx } from '@mr/i18n/texts'
-
-const MobileQrDialog = React.lazy(() => import('./header/MobileQr'))
 
 type Dict = Record<string, unknown>
 
@@ -40,56 +34,22 @@ export function AppShell({ session, app, current, onNavigate, children }: {
   onNavigate: (target: NavTarget) => void
   children: React.ReactNode
 }) {
-  const narrow = useMediaQuery(NARROW_SHELL)
-  const color = useColorControl()
-  const layout = menuLayoutOf(app)
-  const target = useMemo(() => appTargetOf(app), [app])
-  const agentMeta = useMemo(() => ({ ...app, ...target }), [app, target])
-  // live UI push: the channel a paired AI agent sends screens through (only when the app turned it on)
-  useAgentChannel(session, agentMeta)
-  const live = useMemo(() => ({ ...target, liveUpdates: app['liveUpdates'] === true, presence: app['presence'] === true }), [target, app])
-  useLiveUpdates(session, live)
-
-  const themeToggle = app['themeToggle'] === true
-  useEffect(() => { color?.setToggleOffered(themeToggle) }, [color, themeToggle])
-
-  const menu = useMemo(() => visibleItems(app['menu'] as MenuItem[] | undefined), [app])
-  const currentRoute = current?.route ?? ''
-  const [paneOpen, setPaneOpen] = useState(app['drawerClosed'] !== true)
-  const [drawer, setDrawer] = useState(false)
-  const [qr, setQr] = useState(false)
-  const menuSearch = Number(app['totalMenuOptions'] ?? 0) > 10
-  const [cards, setCards] = useState<MenuItem | null>(null)
-  const [hub, setHub] = useState<MenuItem | null>(null)
-
-  const navigate = (t: NavTarget) => { setDrawer(false); setHub(null); onNavigate(t) }
-  const activate = useMenuActivation(session, app, target, navigate)
-  const h: MenuHandlers = { currentRoute, activate, openCards: (g) => { setDrawer(false); setCards(g) } }
-  const goHome = () => navigate({ label: '', ...appHomeOf(app) })
+  const s = useAppShell({ session, app, current, onNavigate })
+  const { narrow, color, layout, target, agentMeta, themeToggle, menu, paneOpen, drawer, setDrawer, setQr, cards, setCards, hub, setHub, menuSearch, navigate, activate, h, goHome, title, subtitle, logo, section, onStart } = s
 
   if (layout === 'bare') {
     return <main id="mateu-main" tabIndex={-1} className="mateu-app-main mateu-app-main--bare">{children}</main>
   }
 
-  const title = String(app['title'] ?? '') || 'Mateu' // i18n-ok: the product name
-  const subtitle = String(app['subtitle'] ?? '')
-  const logo = typeof app['logo'] === 'string' && app['logo'] ? safeHref(app['logo'], { allowData: true }) : undefined
-  // the current section (HAMBURGER_SECTIONS): the group holding the screen, else the first
-  const section = layout === 'sections' ? menu.find((m) => holdsCurrent(m, currentRoute)) ?? menu.find((m) => !m.separator) ?? null : null
   const sidePane = layout === 'side' && !narrow && menu.length > 0 && paneOpen
   const burger = menu.length > 0 && (narrow || layout === 'sections' || (layout === 'side' && app['variant'] === 'HAMBURGER_MENU'))
-
-  const onBurger = () => {
-    if (!narrow && layout === 'side') setPaneOpen((o) => !o)
-    else setDrawer(true)
-  }
 
   return (
     <div className={`mateu-app mateu-app--${layout}`} data-variant={String(app['variant'] ?? '')}>
       <header className="mateu-app-header">
         {burger && (
           <IconButton icon={ThreeBarsIcon} variant="invisible" aria-label={layout === 'sections' ? tx('sections') : tx('menu')}
-            aria-expanded={!narrow && layout === 'side' ? paneOpen : drawer} onClick={onBurger} />
+            aria-expanded={!narrow && layout === 'side' ? paneOpen : drawer} onClick={onStart} />
         )}
         <button type="button" className="mateu-app-brand" onClick={goHome} aria-label={`${title}, ${tx('home')}`}>
           {logo && <img src={logo} alt="" className="mateu-app-logo" />}
@@ -103,7 +63,7 @@ export function AppShell({ session, app, current, onNavigate, children }: {
         <div className="mateu-app-controls">
           {!narrow && <HeaderValues session={session} declared={app['headerValues'] as HeaderValue[] | undefined} />}
           {!narrow && <ContextPickers session={session} app={target} selectors={(app['contextSelectors'] as never[] | undefined) ?? []} />}
-          <HeaderActions session={session} app={target} actions={(app['contextActions'] as HeaderAction[] | undefined) ?? []} narrow={narrow} />
+          <HeaderActions session={session} app={target} actions={(app['contextActions'] as HeaderAction[] | undefined) ?? []} narrow={narrow} onNavigate={navigate} />
           {app['notificationsEnabled'] === true && <NotificationBell session={session} app={{ ...app, ...target }} onNavigate={navigate} />}
           {themeToggle && color && (
             <IconButton icon={color.resolved === 'dark' ? SunIcon : MoonIcon} variant="invisible" size="small"
@@ -116,18 +76,7 @@ export function AppShell({ session, app, current, onNavigate, children }: {
           <UserMenu app={app} />
         </div>
       </header>
-      <AgentOperatingNotice session={session} app={agentMeta} />
-      {qr && (
-        <React.Suspense fallback={null}>
-          <MobileQrDialog appTitle={title} baseUrl={session.api.baseUrl} onClose={() => setQr(false)} />
-        </React.Suspense>
-      )}
-      {narrow && (
-        <div className="mateu-header-values-band">
-          <HeaderValues session={session} declared={app['headerValues'] as HeaderValue[] | undefined} />
-          <ContextPickers session={session} app={target} selectors={(app['contextSelectors'] as never[] | undefined) ?? []} />
-        </div>
-      )}
+      <ShellBand session={session} app={app} s={s} />
       {layout === 'tabs' && menu.length > 1 && !narrow && <TabsNav items={menu} h={h} />}
       {layout === 'sections' && section && (
         <div className="mateu-section-band">

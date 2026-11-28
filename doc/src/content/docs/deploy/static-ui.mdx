@@ -186,12 +186,12 @@ does not reach the phone: reopen the UI after a change.
 The bundle ships the **project's renderer**, the one `specs/ui/project.yaml` names (see
 [project settings](/define/yaml/project-settings)). The goal chooses it in this order:
 
-1. `<renderer>vaadin|redwood|primer</renderer>` (`-Dmateu.bundle.renderer`), when set;
+1. `<renderer>vaadin|redwood|primer|ui5</renderer>` (`-Dmateu.bundle.renderer`), when set;
 2. otherwise `renderer:` in `project.yaml`;
 3. otherwise the renderer jar on the app's classpath; otherwise Vaadin.
 
 The renderer's static app is copied straight out of its jar on the app's classpath
-(`io.mateu:mateu-vaadin`, `io.mateu:mateu-redwood` or `io.mateu:mateu-primer`; `<assetsFrom>` still
+(`io.mateu:mateu-vaadin`, `io.mateu:mateu-redwood`, `io.mateu:mateu-primer` or `io.mateu:mateu-ui5`; `<assetsFrom>` still
 overrides it with a folder). When several are present, the one that matches is used. When the chosen one is missing, the build fails
 and names the artifact to add.
 

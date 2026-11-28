@@ -56,14 +56,16 @@
           "enum": [
             "vaadin",
             "redwood",
-            "primer"
+            "primer",
+            "ui5"
           ],
           "default": "vaadin",
           "scope": "resource",
           "enumDescriptions": [
             "Vaadin (Lumo) — served by io.mateu:mateu-vaadin (the default)",
             "Redwood (Oracle Visual Builder) — served by io.mateu:mateu-redwood",
-            "Primer (GitHub, preview) — served by io.mateu:mateu-primer; the visual editor previews it with Vaadin for now"
+            "Primer (GitHub, preview) — served by io.mateu:mateu-primer; the visual editor previews it with Vaadin for now",
+            "SAP Fiori (UI5, preview) — served by io.mateu:mateu-ui5; the visual editor previews it with Vaadin for now"
           ],
           "markdownDescription": "The renderer the whole project paints with. **Stored in `specs/ui/project.yaml`** (`type: Project`) — the file is the truth: changing this setting writes it, and the setting follows the file whenever it changes. The visual editor and Play open in it and the static bundle ships it; a served app renders with its Maven dependency (the server warns when the two disagree). Same as *Mateu: Project Settings…*."
         },

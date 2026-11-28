@@ -1,40 +1,34 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Button, Flash, Stack, Text, TextInput, Token } from '@kit'
+import { Button, Flash, Stack, Text, Token } from '@kit'
 import { Blankslate, DataTable, Table } from '@kit'
-import { SearchIcon } from '@kit/icons'
 import { interpolate } from '@rn/core/expressions'
-import { buttonActionId } from '@rn/core/uxRules'
 import { rowOpenOf, rowPressOf } from '@rn/core/rowOpen'
-import {
-  buildAggregateFooters, groupLabelColumnId, groupRowCellText, interleaveGroupRows, isGroupRow,
-  type AggregatableColumn, type GroupRow, type ListingData,
-} from '@rn/core/listingGroups'
+import { groupRowCellText, type AggregatableColumn, type GroupRow } from '@rn/core/listingGroups'
 import { flattenColumnGroups } from '@rn/renderer/columnGroups'
-import { activeFilterCount, columnDefsOf, emptyMessageOf, extractListing, firstRowAction, pagingOf, type ColDef } from '@rn/renderer/crudListing'
-import { withSelectionGate } from '@infra/ui/selectionGate.ts'
+import { activeFilterCount, columnDefsOf, emptyMessageOf, firstRowAction, pagingOf, type ColDef } from '@rn/renderer/crudListing'
 import { publishDragSelection } from '@infra/ui/dragAndDrop.ts'
 import { useController } from '@mr/render/ViewHost'
-import { useButtonPress } from '@mr/render/useButtonPress'
-import { ActionButton } from './PageRenderer'
 import { ComponentRenderer } from './ComponentRenderer'
-import { ROW_ACTION_TYPES, initialSortOf, rowKeyOf, withoutRowKey, type Dict, type Row } from '@mr/listing/rows'
-import { FilterPanel, filterTokens } from './listing/filters'
+import { ROW_ACTION_TYPES, rowKeyOf, withoutRowKey, type Dict, type Row } from '@mr/listing/rows'
+import { filterTokens } from './listing/filters'
 import { RowActions, useCellRenderer } from './listing/cells'
 import { Cards, List, MasterDetail, TreeListing } from './listing/layouts'
 import { DetailsTable } from './listing/DetailsTable'
-import { SavedViews } from './listing/SavedViews'
-import { ColumnChooser, useColumnPrefs } from './listing/ColumnChooser'
+import { useColumnPrefs } from './listing/ColumnChooser'
 import { useListing } from '@mr/listing/useListing'
-import { columnGeometry, tableLookClasses } from './listing/geometry'
-import { ImportDialog } from './listing/ImportDialog'
+import { tableLookClasses } from './listing/geometry'
 import { mayTakeFocusOnItsOwn, watchForInteraction } from '@infra/a11y/initialFocus.ts'
-import './listing/listing.css'
+import { ListingActions } from './ListingToolbar'
+import { ListingButtons } from './ListingButtons'
+import { ListingTable } from './ListingTable'
+import { ListingPager, useLoadedRows } from './ListingPager'
+import { ListingFrame } from './ListingFrame'
 import { tx } from '@mr/i18n/texts'
-
+import './listing/listing.css'
 // a listing may put the focus in its search box only once the user has acted on the page
 watchForInteraction()
 
-const aggregatable = (c: ColDef): AggregatableColumn => ({ id: c.fieldId, dataType: c.dataType, stereotype: c.stereotype, aggregate: c.aggregate || undefined })
+export const aggregatable = (c: ColDef): AggregatableColumn => ({ id: c.fieldId, dataType: c.dataType, stereotype: c.stereotype, aggregate: c.aggregate || undefined })
 const strOf = (v: unknown): string => (typeof v === 'string' ? v : '')
 
 /** What the listing declares, read once per render. */
@@ -79,14 +73,15 @@ function listingModel(component: Dict, metadata: Dict, state: Dict) {
     contentHeight: strOf(metadata['contentHeight']),
   }
 }
-type Model = ReturnType<typeof listingModel>
+export type Model = ReturnType<typeof listingModel>
 type Controller = ReturnType<typeof useController>
 
 /**
- * A listing (Crud) as Primer's DataTable inside Table.Container: title, search box, filters, saved
- * views, the column chooser and the toolbar above; the rows (a table — with @Details rows when it
- * has them —, cards, a list, a master/detail or a tree, as the listing declares); group headers and
- * totals; Table.Pagination. The listing LOGIC is the React Native renderer's and the web renderer's,
+ * A listing (Crud): its frame (ListingFrame) with the title, the toolbar (ListingToolbar: search box,
+ * filters, saved views, the column chooser, the listing's actions), the rows (a table — ListingTable,
+ * with @Details rows when it has them —, cards, a list, a master/detail or a tree, as the listing
+ * declares), group headers and totals, and the pages (ListingPager). Those four pieces are what a
+ * design system draws its own way (each its own file, overridden alone). The listing LOGIC is the React Native renderer's and the web renderer's,
  * imported in place — what a row opens, the columns, the paging, how search and filters are written
  * into the state, a REST source's rows, groups and aggregates, saved views and column choices
  * (the web's stores, so both renderers share them), the selection gate of a bulk action.
@@ -123,56 +118,27 @@ export function CrudRenderer({ component, metadata, state, data }: { component: 
   return (
     <>
       {m.header.map((h, i) => <ComponentRenderer key={`h${i}`} component={h} state={state} data={data} />)}
-      <Table.Container>
-        {m.title && <Table.Title as="h2" id={titleId}>{m.title}</Table.Title>}
-        {m.subtitle && <Table.Subtitle as="p" id={`${m.id}-subtitle`}>{m.subtitle}</Table.Subtitle>}
-        <ListingActions m={m} listing={listing} scope={scope} columnPrefs={columnPrefs} state={state} selected={selection.rows} />
+      <ListingFrame m={m} titleId={titleId} asPage={isTheView(controller, component)}
+        actions={<ListingButtons m={m} state={state} selected={selection.rows} />}
+        toolbar={<ListingActions m={m} listing={listing} scope={scope} columnPrefs={columnPrefs} state={state} selected={selection.rows} titleId={titleId} total={paging.totalElements} />}>
         <AppliedFilters m={m} listing={listing} />
         {showPreSearch ? (
           <div style={{ gridArea: 'table' }}>{m.preSearch.map((p, i) => <ComponentRenderer key={`p${i}`} component={p} state={state} data={data} />)}</div>
         ) : (
-          <ListingBody
-            m={m} metadata={metadata} state={state} data={data} defs={defs} rows={dataRows} live={listing.live}
-            restError={listing.restError} cellOf={cellOf} linkColumn={linkColumn} titleId={titleId}
-            openRow={openRow} opensRow={opensRow} sort={listing.initialSort} onSort={listing.sortBy} selection={selection}
-          />
+          // one wrapper in the frame's table area: whatever the layout (table, cards, list…), the rows
+          // keep the same distance from the toolbar above them
+          <div className="mateu-listing-body" style={{ gridArea: 'table', minWidth: 0 }}>
+            <ListingBody
+              m={m} metadata={metadata} state={state} data={data} defs={defs} rows={dataRows} live={listing.live}
+              restError={listing.restError} cellOf={cellOf} linkColumn={linkColumn} titleId={titleId}
+              openRow={openRow} opensRow={opensRow} sort={listing.initialSort} onSort={listing.sortBy} selection={selection} onMore={listing.toPage}
+            />
+          </div>
         )}
-        {m.infinite
-          ? <ShowMore loaded={dataRows.length} total={paging.totalElements} onMore={() => listing.toPage(paging.pageNumber + 1)} />
-          : <ListingPaging paging={paging} title={m.title} onPage={listing.toPage} />}
-      </Table.Container>
+        <ListingPager m={m} paging={paging} loaded={dataRows.length} onPage={listing.toPage} />
+      </ListingFrame>
       {m.footer.map((f, i) => <ComponentRenderer key={`f${i}`} component={f} state={state} data={data} />)}
     </>
-  )
-}
-
-/**
- * The rows on screen: the page — or, with infiniteScrolling, every page loaded so far (page 0
- * starts over: a new search, sort or filter).
- */
-function useLoadedRows(infinite: boolean, paging: ReturnType<typeof pagingOf>): Row[] {
-  const [acc, setAcc] = useState<{ pages: Map<number, Row[]>; key: unknown }>({ pages: new Map(), key: null })
-  useEffect(() => {
-    if (!infinite) return
-    setAcc((a) => {
-      const pages = paging.pageNumber === 0 ? new Map<number, Row[]>() : new Map(a.pages)
-      pages.set(paging.pageNumber, paging.rows as Row[])
-      return { pages, key: paging.rows }
-    })
-  }, [infinite, paging.rows, paging.pageNumber])
-  if (!infinite) return paging.rows as Row[]
-  const pages = acc.key === paging.rows ? acc.pages : new Map([...acc.pages, [paging.pageNumber, paging.rows as Row[]]])
-  return [...pages.keys()].sort((a, b) => a - b).flatMap((k) => pages.get(k) ?? [])
-}
-
-function ShowMore({ loaded, total, onMore }: { loaded: number; total: number; onMore: () => void }) {
-  if (total <= 0) return null
-  return (
-    <div className="mateu-listing-more">
-      {loaded < total
-        ? <Button onClick={onMore}>Show more ({loaded} of {total})</Button>
-        : <Text size="small" style={{ color: 'var(--fgColor-muted)' }}>{total} {total === 1 ? 'item' : 'items'}</Text>}
-    </div>
   )
 }
 
@@ -192,6 +158,16 @@ function useRowOpening(m: Model, controller: Controller) {
   }
   const opensRow = (row: Row) => !!m.rowOpen || m.selector || !!firstRowAction(m.columns as never, row)
   return { openRow, opensRow }
+}
+
+/** Whether the listing IS the view (the route answered with the listing itself, no page around it). */
+function isTheView(controller: Controller, component: Dict): boolean {
+  if (controller.windowless) return false
+  const root = controller.rendered.component as Dict | null | undefined
+  if (!root) return false
+  if (root === component) return true
+  const kids = (root['children'] as Dict[] | undefined) ?? []
+  return kids.length === 1 && (kids[0] === component || (!!component['id'] && kids[0]?.['id'] === component['id']))
 }
 
 /** Whether the listing has rows to show yet (a preSearch slot stands in for them until then). */
@@ -224,67 +200,10 @@ function useSelection(m: Model, controller: Controller, metadata: Dict) {
   return { rows, ids, change, enabled: m.selectable || !!m.dragType }
 }
 type Selection = ReturnType<typeof useSelection>
-type Listing = ReturnType<typeof useListing>
-
-/** Above the rows: the search box, Filter, saved views, Columns and the listing's toolbar. */
-function ListingActions({ m, listing, scope, columnPrefs, state, selected }: {
-  m: Model; listing: Listing; scope: string; columnPrefs: ReturnType<typeof useColumnPrefs>; state: Dict; selected: Row[]
-}) {
-  const controller = useController()
-  const press = useButtonPress()
-  const searchBox = useRef<HTMLInputElement>(null)
-  useAutoFocus(m.autoFocus && m.searchable, searchBox)
-  const typed = useDebounced((text: string) => listing.search(listing.filterValues, text), 300)
-  const [importing, setImporting] = useState(false)
-  const offersViews = (m.searchable || m.filters.length > 0) && !controller.windowless
-  const tableLike = m.layout !== 'tree' && m.defs.length > 1
-  if (!m.toolbar.length && !offersViews && !tableLike && !m.searchable && !m.filters.length) return null
-  const viewValues: Dict = { ...(listing.searchText ? { searchText: listing.searchText } : {}), ...listing.filterValues }
-  return (
-    <Table.Actions>
-      <Stack direction="horizontal" gap="condensed" wrap="wrap" align="center">
-        {m.searchable && (
-          <form role="search" onSubmit={(e) => { e.preventDefault(); listing.search() }}>
-            <TextInput
-              ref={searchBox}
-              leadingVisual={SearchIcon}
-              aria-label={tx('searchNamed', { name: m.title || tx('theList') })}
-              placeholder={tx('search')}
-              value={listing.searchText}
-              onChange={(e) => {
-                listing.setSearchText(e.target.value)
-                if (m.searchAsYouType) typed(e.target.value)
-              }}
-            />
-          </form>
-        )}
-        {m.filters.length > 0 && <FilterPanel filters={m.filters} values={listing.filterValues} onApply={listing.setFilters} active={activeFilterCount(listing.filterValues)} />}
-        {offersViews && <SavedViews scope={scope} values={viewValues} onApply={listing.applyView} />}
-        {tableLike && <ColumnChooser defs={m.defs} prefs={columnPrefs.prefs} onChange={columnPrefs.update} />}
-        {m.toolbar.map((raw, i) => {
-          // a bulk action is disabled while no row is selected (the server's gate stays the backstop)
-          const b = withSelectionGate(raw as never, selected) as Dict
-          const run = () => {
-            // Import (UploadEnabled): the file first, then `process-import` with its id
-            if (buttonActionId(b as never) === 'import') return setImporting(true)
-            void controller.runAction(buttonActionId(b as never), { crud_selected_items: selected })
-          }
-          const { onPress, disabled } = press(b, { state }, run, String(b['label'] ?? ''))
-          return <ActionButton key={i} button={b} onPress={onPress} disabled={disabled} label={String(b['label'])} />
-        })}
-      </Stack>
-      {importing && (
-        <ImportDialog
-          onClose={() => setImporting(false)}
-          onUploaded={(fileId) => { setImporting(false); void controller.runAction('process-import', { fileId }) }}
-        />
-      )}
-    </Table.Actions>
-  )
-}
+export type Listing = ReturnType<typeof useListing>
 
 /** The search box takes the focus once, after the page's own route focus — and only if the user has acted. */
-function useAutoFocus(on: boolean, ref: React.RefObject<HTMLInputElement | null>) {
+export function useAutoFocus(on: boolean, ref: React.RefObject<HTMLInputElement | null>) {
   useEffect(() => {
     if (!on) return
     const id = requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -296,7 +215,7 @@ function useAutoFocus(on: boolean, ref: React.RefObject<HTMLInputElement | null>
   }, [on]) // eslint-disable-line react-hooks/exhaustive-deps
 }
 
-function useDebounced<A extends unknown[]>(fn: (...args: A) => void, ms: number) {
+export function useDebounced<A extends unknown[]>(fn: (...args: A) => void, ms: number) {
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const latest = useRef(fn)
   latest.current = fn
@@ -320,10 +239,12 @@ function AppliedFilters({ m, listing }: { m: Model; listing: Listing }) {
   )
 }
 
-interface BodyProps {
+export interface BodyProps {
   m: Model; metadata: Dict; state: Dict; data?: unknown; defs: ColDef[]; rows: Row[]; live: unknown; restError: string | null
   cellOf: (r: Row, c: ColDef) => React.ReactNode; linkColumn?: ColDef; titleId: string
   openRow: (r: Row) => void; opensRow: (r: Row) => boolean; sort: unknown; onSort: (f: string, d: 'ASC' | 'DESC') => void; selection: Selection
+  /** Loads that page (a design system that grows a table asks for the next one). */
+  onMore: (page: number) => void
 }
 
 /** The rows, in the layout the listing declares. */
@@ -355,7 +276,7 @@ function ListingBody(p: BodyProps) {
 }
 
 /** A group header row's label column cell: its text, and on the last column its @GroupAction buttons. */
-function GroupCell({ row, col, m, labelColumnId, lastColumnId }: { row: Row; col: ColDef; m: Model; labelColumnId?: string; lastColumnId?: string }) {
+export function GroupCell({ row, col, m, labelColumnId, lastColumnId }: { row: Row; col: ColDef; m: Model; labelColumnId?: string; lastColumnId?: string }) {
   const controller = useController()
   const t = groupRowCellText(row as never, aggregatable(col), labelColumnId)
   const group = (row as unknown as GroupRow).__mateuGroup as unknown as Dict
@@ -374,81 +295,3 @@ function GroupCell({ row, col, m, labelColumnId, lastColumnId }: { row: Row; col
   )
 }
 
-/** A table: Primer's DataTable, with server sort, selection, group headers (and their actions) and totals. */
-function ListingTable({ m, defs, rows, live, cellOf, linkColumn, titleId, sort, onSort, selection, actionsOf, metadata }: BodyProps & { actionsOf?: (r: Row) => React.ReactNode }) {
-  const listing = extractListing<ListingData>(live)
-  const displayRows = interleaveGroupRows(rows, m.groupBy, listing?.groups) as Row[]
-  const labelColumnId = groupLabelColumnId(m.groupBy, defs.map((c) => c.fieldId))
-  const lastColumnId = defs[defs.length - 1]?.fieldId ?? ''
-  const footers = buildAggregateFooters(defs.map(aggregatable), listing, m.groupBy)
-  const metaOf = (fieldId: string) => m.columnMetas.find((cm) => String(cm['id'] ?? '') === fieldId) ?? {}
-  const tableColumns: Dict[] = defs.map((col) => {
-    const g = columnGeometry(metaOf(col.fieldId), col.dataType)
-    return {
-      id: col.fieldId,
-      header: col.label,
-      field: col.fieldId,
-      rowHeader: col === linkColumn,
-      sortBy: col.sortable ? true : undefined,
-      align: g.align,
-      width: g.width,
-      minWidth: g.minWidth,
-      renderCell: (row: Row) => {
-        if (isGroupRow(row)) return <GroupCell row={row} col={col} m={m} labelColumnId={labelColumnId} lastColumnId={lastColumnId} />
-        return g.centered ? <span className="mateu-cell-centered">{cellOf(row, col)}</span> : cellOf(row, col)
-      },
-    }
-  })
-  if (actionsOf) {
-    tableColumns.push({
-      id: '__mateuRowActions',
-      header: () => <span className="sr-only">{tx('actions')}</span>,
-      align: 'end',
-      width: 'auto',
-      renderCell: (row: Row) => (isGroupRow(row) ? null : actionsOf(row)),
-    })
-  }
-  const footerText = footers
-    ? defs.filter((c) => footers[c.fieldId] !== undefined).map((c, i) => (i === 0 && !c.aggregate ? footers[c.fieldId] : `${c.label}: ${footers[c.fieldId]}`)).join(' · ')
-    : ''
-  return (
-    <div style={{ gridArea: 'table', ...(m.contentHeight ? { maxHeight: m.contentHeight } : {}) }} className={['mateu-listing-table', m.looks, m.contentHeight ? 'mateu-listing-scroll' : ''].filter(Boolean).join(' ')}>
-      <DataTable
-        aria-labelledby={m.title ? titleId : undefined}
-        data={displayRows as never[]}
-        columns={tableColumns as never}
-        cellPadding={metadata['compact'] === true ? 'condensed' : undefined}
-        getRowId={(r: Row) => String(isGroupRow(r) ? (r as unknown as Dict)['_rowNumber'] : r['__mateuRowKey'])}
-        externalSorting
-        {...initialSortOf(sort, defs)}
-        onToggleSort={(columnId: unknown, direction: 'ASC' | 'DESC') => onSort(String(columnId), direction)}
-        rowSelection={selection.enabled || undefined}
-        // a group header row is a heading, not a record: it has no checkbox
-        isRowSelectable={(r: Row) => !isGroupRow(r)}
-        onSelectionChange={selection.enabled ? ({ selectedRows }: { selectedRows: Set<string | number> }) => {
-          selection.change(rows.filter((r) => selectedRows.has(String(r['__mateuRowKey']))))
-        } : undefined}
-      />
-      {/* the totals of the whole filtered set (Crud aggregates), under the rows */}
-      {footerText && <Text as="p" weight="semibold" style={{ margin: 'var(--base-size-8) var(--base-size-16) 0', textAlign: 'end' }}>{footerText}</Text>}
-    </div>
-  )
-}
-
-/** Table.Pagination when there is more than a page, else how many rows there are. */
-function ListingPaging({ paging, title, onPage }: { paging: ReturnType<typeof pagingOf>; title: string; onPage: (i: number) => void }) {
-  if (paging.totalElements > paging.pageSize && paging.pageSize > 0) {
-    return (
-      <Table.Pagination
-        key={`${paging.pageNumber}-${paging.totalElements}`}
-        aria-label={tx('pagesOf', { name: title || tx('theList') })}
-        pageSize={paging.pageSize}
-        totalCount={paging.totalElements}
-        defaultPageIndex={paging.pageNumber}
-        onChange={({ pageIndex }: { pageIndex: number }) => onPage(pageIndex)}
-      />
-    )
-  }
-  if (paging.totalElements <= 0) return null
-  return <Text as="p" size="small" style={{ gridArea: 'footer', color: 'var(--fgColor-muted)' }}>{paging.totalElements} {paging.totalElements === 1 ? 'item' : 'items'}</Text>
-}

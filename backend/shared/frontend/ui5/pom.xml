@@ -1,0 +1,19 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.mateu</groupId>
+        <artifactId>mateu-frontend-parent</artifactId>
+        <version>0.0.1-MATEU</version>
+    </parent>
+
+    <artifactId>mateu-ui5</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Mateu SAP renderer (preview)</name>
+    <description>PREVIEW. The Mateu web renderer drawn with SAP's UI5 Web Components (Apache-2.0) following the SAP Fiori design guidelines, packaged as static assets served by the backend. Put it on the classpath INSTEAD of mateu-vaadin. Not affiliated with or endorsed by SAP.</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+</project>

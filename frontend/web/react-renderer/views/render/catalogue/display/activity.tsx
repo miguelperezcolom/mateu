@@ -1,61 +1,17 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { Button, Link, Text, Textarea, TextInput, Timeline as PrimerTimeline } from '@kit'
+import { useEffect, useRef, useState } from 'react'
+import { Button, Link, Text, Textarea, TextInput } from '@kit'
 import { FileIcon, FileMediaIcon, FileZipIcon, PaperAirplaneIcon, TableIcon } from '@kit/icons'
 import { ChatTurn, applyChatEvent, chatRequestBody, resolveChatUrl, CHAT_TEXTS } from '@rn/core/chatStream'
 import { uiEventHooks } from '@rn/core/uiEvents'
 import { Markdown } from '@mr/render/Markdown'
 import { useController } from '@mr/render/ViewHost'
-import type { CatalogueProps, Dict } from '../types'
-import { displayColor, list, MateuAvatar, safeColor, safeHref, str, useRun, useText, WireIcon } from './shared'
+import { CatalogueProps } from '../types'
+import { list, safeHref, str, useRun, useText } from './shared'
 import { tx } from '@mr/i18n/texts'
+import { Comment } from './MessageList'
+export { MessageList } from './MessageList'
 
-/** Timeline: Primer's — a badge per event (its icon, its colour), title, text, when; an event with an action is a link. */
-export function Timeline({ metadata, state, data }: CatalogueProps) {
-  const text = useText(state, data)
-  const run = useRun()
-  return (
-    <PrimerTimeline>
-      {list(metadata['items']).map((it, i) => {
-        const color = safeColor(it['color'])
-        const title = text(it['title'])
-        return (
-          <PrimerTimeline.Item key={str(it['id']) || i}>
-            <PrimerTimeline.Badge style={color ? { backgroundColor: color, color: 'var(--fgColor-onEmphasis)' } : undefined}>
-              {it['icon'] ? <WireIcon token={it['icon']} size={14} /> : null}
-            </PrimerTimeline.Badge>
-            <PrimerTimeline.Body>
-              <div>
-                {it['actionId']
-                  ? <Link as="button" type="button" className="mateu-link-button" onClick={() => run(it['actionId'], { _itemId: it['id'] })}><Text weight="semibold">{title}</Text></Link>
-                  : <Text weight="semibold" style={{ color: 'var(--fgColor-default)' }}>{title}</Text>}
-                {it['timestamp'] ? <Text size="small" className="mateu-muted"> · {text(it['timestamp'])}</Text> : null}
-              </div>
-              {it['description'] ? <Text as="div" size="small">{text(it['description'])}</Text> : null}
-            </PrimerTimeline.Body>
-          </PrimerTimeline.Item>
-        )
-      })}
-    </PrimerTimeline>
-  )
-}
-
-function Comment({ c, depth, text }: { c: Dict; depth: number; text: (t: unknown) => string }) {
-  return (
-    <li className="mateu-comment" style={{ marginInlineStart: depth ? 'var(--base-size-40)' : undefined }}>
-      <MateuAvatar name={str(c['author'])} image={c['avatar']} size={32} />
-      <div className="mateu-comment__box">
-        <div className="mateu-comment__head">
-          <Text weight="semibold">{text(c['author'])}</Text>
-          {c['timestamp'] ? <Text size="small" className="mateu-muted"> {text(c['timestamp'])}</Text> : null}
-        </div>
-        <div className="mateu-comment__body">{text(c['text'])}</div>
-      </div>
-      {list(c['replies']).length > 0 && (
-        <ul className="mateu-comment-thread">{list(c['replies']).map((r, i) => <Comment key={str(r['id']) || i} c={r} depth={depth + 1} text={text} />)}</ul>
-      )}
-    </li>
-  )
-}
+export { Timeline } from './Timeline'
 
 /** CommentThread: comments the way github.com draws them (avatar, a bordered box with its header), replies indented. */
 export function CommentThread({ metadata, state, data }: CatalogueProps) {
@@ -91,27 +47,6 @@ export function FileList({ metadata }: CatalogueProps) {
           </li>
         )
       })}
-    </ul>
-  )
-}
-
-/** MessageList: chat messages — who (avatar in their colour), when, what. */
-export function MessageList({ metadata }: CatalogueProps) {
-  return (
-    <ul className="mateu-message-list">
-      {list(metadata['items']).map((m, i) => (
-        <li key={i}>
-          <MateuAvatar name={str(m['userName'])} image={m['userImg']} abbreviation={m['userAbbr']} size={32}
-            colorIndex={m['userColorIndex'] == null ? undefined : Number(m['userColorIndex'])} />
-          <div>
-            <div>
-              <Text weight="semibold" style={m['userColorIndex'] == null ? undefined : { color: `var(--display-${displayColor(Number(m['userColorIndex']))}-fgColor)` }}>{str(m['userName'])}</Text>
-              {m['time'] ? <Text size="small" className="mateu-muted"> {str(m['time'])}</Text> : null}
-            </div>
-            <Text as="div">{str(m['text'])}</Text>
-          </div>
-        </li>
-      ))}
     </ul>
   )
 }

@@ -6,6 +6,7 @@ import {
   buildSkew,
   isMateuForbidden,
   isStaleScreenError,
+  getRendererName,
   rendererHeaderValue,
   setRendererName,
   setRendererVersion,
@@ -25,7 +26,9 @@ test('renderer header: name, app version and the wire this build speaks', () => 
 test('renderer header: another renderer on this core names itself (the Primer web renderer)', () => {
   setRendererName('primer');
   assert.equal(rendererHeaderValue('0.0.1', '3.0'), 'primer/0.0.1 wire/3.0');
+  assert.equal(getRendererName(), 'primer');
   setRendererName('');
+  assert.equal(getRendererName(), 'react-native');
   assert.equal(rendererHeaderValue('0.0.1', '3.0'), 'react-native/0.0.1 wire/3.0');
 });
 

@@ -1,13 +1,14 @@
 import React from 'react'
 import { Blankslate } from '@kit'
-import { Banner, Breadcrumbs as PrimerBreadcrumbs, Button, Heading, Label, Link, Stack, Text } from '@kit'
+import { Banner, Button, Heading, Label, Link, Stack, Text } from '@kit'
 import { ArrowLeftIcon, SearchIcon } from '@kit/icons'
 import { heroToneColors } from '@rn/renderer/patternGaps'
 import { ComponentRenderer } from '../../ComponentRenderer'
 import { labelVariantOf } from '../../looks'
-import type { CatalogueProps, Dict } from '../types'
+import { type CatalogueProps, type Dict } from '../types'
 import { childrenOf, list, safeHref, str, useOpenRoute, useRun, useText, WireIcon } from './shared'
 import { tx } from '@mr/i18n/texts'
+export { Breadcrumbs } from './Breadcrumbs'
 
 /**
  * HeroSection: the welcome / landing band — overline, title, subtitle, the CTAs (its children);
@@ -128,24 +129,3 @@ export function NotFound({ metadata }: CatalogueProps) {
   )
 }
 
-/** Breadcrumbs: Primer's, each crumb opening its route in the app; the current item last. */
-export function Breadcrumbs({ metadata }: CatalogueProps) {
-  const open = useOpenRoute()
-  const crumbs = list(metadata['breadcrumbs'])
-  const current = str(metadata['currentItemText'])
-  return (
-    <PrimerBreadcrumbs>
-      {crumbs.map((c, i) => {
-        const link = str(c['link'])
-        return (
-          <PrimerBreadcrumbs.Item key={i} href={safeHref(link) ?? '#'} onClick={(e: React.MouseEvent) => {
-            if (e.metaKey || e.ctrlKey || e.shiftKey || /^https?:/i.test(link)) return
-            e.preventDefault()
-            open(link, str(c['text']))
-          }}>{str(c['text'])}</PrimerBreadcrumbs.Item>
-        )
-      })}
-      {current && <PrimerBreadcrumbs.Item selected>{current}</PrimerBreadcrumbs.Item>}
-    </PrimerBreadcrumbs>
-  )
-}

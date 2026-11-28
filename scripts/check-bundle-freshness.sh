@@ -77,11 +77,17 @@ if [ -d "backend/shared/frontend/vaadin-lit/src/main/resources/META-INF/resource
   echo "STALE  vaadin: old layout left behind (META-INF/resources/) - npm run copy removes it"
 fi
 
-# Primer (preview): its bundle is built from its own app, the shared React renderer tree
+# Primer (preview): its bundle is built from (its package.json is not listed: its dependencies are
+# its package-lock.json, and a script line there changes no bundle) its own app, the shared React renderer tree
 # (frontend/web/react-renderer) AND the React Native core it runs on
 check primer \
   "backend/shared/frontend/primer/src/main/resources/static/assets/mateu-primer.js" \
-  "frontend/web/monorepo/apps/primer/src frontend/web/monorepo/apps/primer/index.html frontend/web/monorepo/apps/primer/vite.config.ts frontend/web/monorepo/apps/primer/package.json frontend/web/monorepo/apps/primer/package-lock.json frontend/web/react-renderer frontend/app/react-native/src/core frontend/app/react-native/src/renderer frontend/app/react-native/src/api frontend/app/react-native/src/a11y"
+  "frontend/web/monorepo/apps/primer/src frontend/web/monorepo/apps/primer/index.html frontend/web/monorepo/apps/primer/vite.config.ts frontend/web/monorepo/apps/primer/package-lock.json frontend/web/react-renderer frontend/app/react-native/src/core frontend/app/react-native/src/renderer frontend/app/react-native/src/api frontend/app/react-native/src/a11y"
+
+# SAP (preview): like Primer — its own app, the shared React renderer tree and the React Native core
+check ui5 \
+  "backend/shared/frontend/ui5/src/main/resources/static/assets/mateu-ui5.js" \
+  "frontend/web/monorepo/apps/ui5/src frontend/web/monorepo/apps/ui5/index.html frontend/web/monorepo/apps/ui5/vite.config.ts frontend/web/monorepo/apps/ui5/package-lock.json frontend/web/react-renderer frontend/app/react-native/src/core frontend/app/react-native/src/renderer frontend/app/react-native/src/api frontend/app/react-native/src/a11y"
 
 # Redwood: the jar is stamped with a hash of the sources it was built from (static/mateu-build-info.json,
 # written by apps/redwood/scripts/copy.mjs; apps/redwood/scripts/source-hash.mjs defines the sources).

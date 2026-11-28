@@ -14,8 +14,8 @@ import { tx } from '../i18n/texts'
  */
 
 /** Marks the pressed control busy while its request runs (call once, at the root). */
-export function usePressedControls(session: MateuSession): void {
-  useEffect(() => trackPressedControls(session.activity), [session])
+export function usePressedControls(session: MateuSession, buttons?: string): void {
+  useEffect(() => trackPressedControls(session.activity, buttons), [session, buttons])
 }
 
 /** Whether the "waiting for the server" indicator shows (after the shared delay); announced once per wait. */

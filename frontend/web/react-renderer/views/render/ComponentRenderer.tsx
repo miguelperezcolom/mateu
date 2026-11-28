@@ -14,14 +14,17 @@ import { CrudRenderer } from './CrudRenderer'
 import { useButtonPress } from '@mr/render/useButtonPress'
 import { usePending } from '@mr/render/usePending'
 import { buttonVariantOf, labelVariantOf } from './looks'
-import { LAYOUT_STYLE, styleOf } from '@mr/render/styleOf'
+import { IMAGE_STYLE, LAYOUT_STYLE, styleOf } from '@mr/render/styleOf'
 import { Markdown } from '@mr/render/Markdown'
 import { octiconOf } from './catalogue/display/shared'
 import { CATALOGUE } from './catalogue'
 import { RenderBoundary } from './RenderBoundary'
 import { Element, MicroFrontend } from '@mr/render/Embedded'
+import { Box } from './Box'
+import { PageHeaderMarkup } from './page/PageHeaderMarkup'
 import './notice.css'
 import { tx } from '@mr/i18n/texts'
+import { AccordionGroup, AccordionPanel } from './AccordionPanel'
 
 type Dict = Record<string, unknown>
 
@@ -83,7 +86,7 @@ function ClientSide({ component, state, data }: { component: Dict; state: Dict; 
   // (display/status/visual load on demand: a placeholder line while the family's chunk arrives)
   if (Drawn) return <RenderBoundary compact><React.Suspense fallback={<SkeletonText />}><Drawn component={component} metadata={m} state={state} data={data} /></React.Suspense></RenderBoundary>
   // a type this renderer does not draw yet — said, never silently dropped
-  return React.createElement('mateu-unsupported', { 'data-type': type || 'unknown' }, `Not drawn by the Primer renderer yet: ${type || 'unknown'}`)
+  return React.createElement('mateu-unsupported', { 'data-type': type || 'unknown' }, `Not drawn by this renderer yet: ${type || 'unknown'}`)
 }
 
 const page: Draw = ({ component, m, state, data }) => <PageRenderer component={component} metadata={m} state={state} data={data} />
@@ -108,6 +111,19 @@ const formLayout: Draw = ({ component, m, state, data }) => {
 
 const ALIGN: Record<string, string> = { START: 'flex-start', CENTER: 'center', END: 'flex-end', STRETCH: 'stretch', BASELINE: 'baseline' }
 const alignOf = (v: unknown): string | undefined => ALIGN[String(v ?? '').toUpperCase()]
+
+// The wire types that are BLOCKS (a panel, a listing, a picture…) rather than a line of controls.
+const BLOCK_TYPES = new Set([
+  'VerticalLayout', 'HorizontalLayout', 'FormLayout', 'SplitLayout', 'TabLayout', 'AccordionLayout', 'ResponsiveGrid',
+  'Container', 'FullWidth', 'Scroller', 'Card', 'FormSection', 'FormSubSection', 'Crud', 'Listing', 'Grid', 'Image',
+  'Chart', 'Map', 'Calendar', 'Gantt', 'Kanban', 'Timeline', 'Scoreboard', 'DashboardLayout', 'DashboardPanel', 'MetricCard',
+  'FoldoutLayout', 'HeroSection', 'EmptyState', 'Notice', 'CalloutCard', 'TaskQueue', 'PlanningBoard', 'MatrixGrid', 'ServerSide',
+])
+/** A row without a declared vertical alignment: a line of controls centres them (a button beside a
+ *  text); a row holding a block puts every child at the top — centred, a short main column floated
+ *  halfway down beside a tall panel (the template rows: item overview, collection detail). */
+const rowAlignOf = (component: Dict, declared: unknown): string =>
+  alignOf(declared) ?? (childrenOf(component).some((c) => BLOCK_TYPES.has(String(meta(c as Dict)['type'] ?? (c as Dict)['type'] ?? ''))) ? 'flex-start' : 'center')
 
 /** A row / column's children, each wrapped in its share when the layout declares `flexGrows`. */
 function stackKids({ component, m, state, data, kids }: NodeProps, direction: 'row' | 'column'): React.ReactNode[] {
@@ -140,6 +156,29 @@ const vertical: Draw = (p) => (
     {stackKids(p, 'column')}
   </Stack>
 )
+
+// A DataManagementPage lays its header out as the archetype's ids (`data-management-title` + `-toolbar`,
+// how Redwood reads it too): drawn as the PAGE header — the title, the toolbar as its actions — not a
+// line of text over a row of buttons; the rest of the page as it came.
+const dataManagement: Draw = ({ component, m, state, data, ctx }) => {
+  const kids = childrenOf(component) as Dict[]
+  const title = kids.find((k) => k?.['id'] === 'data-management-title')
+  const toolbar = kids.find((k) => k?.['id'] === 'data-management-toolbar')
+  if (!title) return vertical({ component, m, state, data, ctx } as NodeProps)
+  const rest = kids.filter((k) => k !== title && k !== toolbar)
+  const text = interpolate(String(meta(title)['text'] ?? ''), ctx)
+  return (
+    <Stack direction="vertical" gap="normal">
+      <PageHeaderMarkup
+        level={0} banner={false} nested={false} crumbs={[]} onCrumb={() => {}} overline="" back={null} visual={null}
+        heading="h2" title={text} placeholder="" hasTitleArea={!!text} trailing={null}
+        actions={toolbar ? <ComponentRenderer component={toolbar} state={state} data={data} /> : null}
+        subtitle="" timestamp="" widgets={null} facts={[]} hasDescription={false}
+      />
+      <ComponentRenderer component={{ ...component, id: 'data-management-content', children: rest }} state={state} data={data} />
+    </Stack>
+  )
+}
 
 // an overlay found INSIDE a tree (a page's docked detail panel, a Gantt page's task drawer):
 // drawn in place as a panel — an overlay the server opens arrives as an Add fragment instead
@@ -283,7 +322,7 @@ const image: Draw = ({ component, m, ctx, controller }) => {
   // an image whose source is not known yet (a `${state.photo}` still empty) draws nothing, not src=""
   if (!raw) return null
   const src = controller.session.backendUrl(raw)
-  return <img src={src} alt={interpolate(String(m['alt'] ?? ''), ctx)} style={{ maxWidth: '100%', ...styleOf(component) }} />
+  return <img src={src} alt={interpolate(String(m['alt'] ?? ''), ctx)} style={{ maxWidth: '100%', ...styleOf(component, IMAGE_STYLE) }} />
 }
 
 /** The wire types the core draws itself; the rest are the catalogue's. */
@@ -293,7 +332,7 @@ const CORE: Record<string, Draw> = {
   Crud: ({ component, m, state, data }) => <CrudRenderer component={component} metadata={m} state={state} data={data} />,
   FormField: ({ m, state }) => <FieldRenderer metadata={m} state={state} />,
   FormLayout: formLayout,
-  VerticalLayout: vertical,
+  VerticalLayout: (p) => (p.component['id'] === 'data-management' ? dataManagement(p) : vertical(p)),
   Div: vertical,
   Container: vertical,
   FullWidth: vertical,
@@ -311,7 +350,7 @@ const CORE: Record<string, Draw> = {
   ),
   HorizontalLayout: (p) => (
     <Stack direction="horizontal" wrap="wrap" gap={gapOf(p.m)} align="center"
-      style={{ alignItems: alignOf(p.m['verticalAlignment']), justifyContent: rowJustification(p.m['justification'] as string | undefined) ?? undefined, ...styleOf(p.component) }}>
+      style={{ alignItems: rowAlignOf(p.component, p.m['verticalAlignment']), justifyContent: rowJustification(p.m['justification'] as string | undefined) ?? undefined, ...styleOf(p.component) }}>
       {stackKids(p, 'row')}
     </Stack>
   ),
@@ -320,7 +359,7 @@ const CORE: Record<string, Draw> = {
   FormSubSection: ({ component, state, data }) => <Box component={component} state={state} data={data} level={3} />,
   TabLayout: tabLayout,
   Tab: ({ kids }) => <>{kids()}</>,
-  AccordionLayout: ({ component, state, data }) => <Stack gap="condensed">{childrenOf(component).map((panel, i) => <AccordionPanel key={i} panel={panel} state={state} data={data} />)}</Stack>,
+  AccordionLayout: ({ component, state, data }) => <AccordionGroup>{childrenOf(component).map((panel, i) => <AccordionPanel key={i} panel={panel} state={state} data={data} />)}</AccordionGroup>,
   AccordionPanel: ({ component, state, data }) => <AccordionPanel panel={component} state={state} data={data} />,
   Button: ({ component, m, state, data }) => <ContentButton metadata={m} state={state} data={data} id={String(component['id'] ?? '')} />,
   Text: text,
@@ -465,83 +504,6 @@ function lengthPx(v: string): number {
   if (!match) return 0
   const n = Number(match[1])
   return match[2] === 'px' ? n : n * 16
-}
-
-const sectionClassesOf = (component: Dict): string | undefined =>
-  String(component['cssClasses'] ?? '').split(/\s+/).filter((c) => /^mateu-section(--sticky)?$/.test(c)).join(' ') || undefined
-
-/** A titled, outlined region: Primer has no Card component, its boxes are a bordered surface with a heading. */
-function Box({ component, state, data, level }: { component: Dict; state: Dict; data?: unknown; level: 2 | 3 }) {
-  const m = meta(component)
-  const ctx = { state, data }
-  // a Card's slots may be text or components (a title with a badge, a media image, header extras)
-  const slot = (v: unknown) => (node(v) ? <ComponentRenderer component={v} state={state} data={data} /> : null)
-  const title = typeof m['title'] === 'string' ? interpolate(m['title'], ctx) : ''
-  const subtitle = typeof m['subtitle'] === 'string' ? interpolate(m['subtitle'], ctx) : ''
-  const titleNode = title ? <Heading as={`h${level}` as 'h2'} variant="small">{title}</Heading> : slot(m['title'])
-  const subtitleNode = subtitle ? <Text as="p" size="small" style={{ color: 'var(--fgColor-muted)', margin: 0 }}>{subtitle}</Text> : slot(m['subtitle'])
-  const prefix = slot(m['headerPrefix'])
-  const suffix = slot(m['headerSuffix'])
-  const media = slot(m['media'])
-  const frameless = (component['cssClasses'] as string | undefined)?.includes('frameless')
-  const variants = ((m['variants'] as string[] | undefined) ?? []).map(String)
-  const elevated = variants.includes('elevated')
-  const horizontal = variants.includes('horizontal') && !!media
-  return (
-    <section
-      aria-label={title || undefined}
-      // the server's marker classes (mateu-section, mateu-section--sticky): the page's @Toc index and
-      // its sticky stacking find the section cards by them
-      className={sectionClassesOf(component)}
-      style={{
-        border: frameless || (elevated && !variants.includes('outlined')) ? 'none' : 'var(--borderWidth-thin) solid var(--borderColor-default)',
-        boxShadow: elevated ? 'var(--shadow-resting-medium)' : undefined,
-        display: horizontal ? 'flex' : undefined,
-        gap: horizontal ? 'var(--base-size-16)' : undefined,
-        borderRadius: 'var(--borderRadius-medium)',
-        background: 'var(--bgColor-default)',
-        padding: frameless ? 0 : 'var(--base-size-16)',
-        overflow: 'hidden',
-        ...styleOf(component, LAYOUT_STYLE.filter((k) => k !== 'gap' && k !== 'padding')),
-      }}
-    >
-      {media && (horizontal
-        ? <div style={{ flex: '0 0 40%', maxWidth: '40%', margin: frameless ? 0 : 'calc(-1 * var(--base-size-16)) 0 calc(-1 * var(--base-size-16)) calc(-1 * var(--base-size-16))' }}>{media}</div>
-        : <div style={{ margin: frameless ? 0 : 'calc(-1 * var(--base-size-16)) calc(-1 * var(--base-size-16)) var(--base-size-12)' }}>{media}</div>)}
-      <div style={{ flex: 1, minWidth: 0 }}>
-      {(titleNode || subtitleNode || prefix || suffix) && (
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--base-size-12)', marginBottom: 'var(--base-size-12)' }}>
-          {prefix}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {titleNode}
-            {subtitleNode}
-          </div>
-          {suffix}
-        </div>
-      )}
-      <Stack gap="normal">
-        {slot(m['header'])}
-        {slot(m['content'])}
-        {childrenOf(component).map((child, i) => <ComponentRenderer key={i} component={child} state={state} data={data} />)}
-        {slot(m['footer'])}
-      </Stack>
-      </div>
-    </section>
-  )
-}
-
-function AccordionPanel({ panel, state, data }: { panel: unknown; state: Dict; data?: unknown }) {
-  const m = meta(panel)
-  const [open, setOpen] = useState(m['active'] === true || m['open'] === true)
-  return (
-    <details open={open} onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
-      style={{ border: 'var(--borderWidth-thin) solid var(--borderColor-default)', borderRadius: 'var(--borderRadius-medium)', padding: 'var(--base-size-8) var(--base-size-16)' }}>
-      <summary style={{ cursor: 'pointer', fontWeight: 600 }}>{interpolate(String(m['label'] ?? ''), { state, data })}</summary>
-      <div style={{ paddingTop: 'var(--base-size-12)' }}>
-        {childrenOf(panel).map((c, i) => <ComponentRenderer key={i} component={c} state={state} data={data} />)}
-      </div>
-    </details>
-  )
 }
 
 /**

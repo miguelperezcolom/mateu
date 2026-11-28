@@ -6,6 +6,7 @@
   "workspaces": [
     "apps/*",
     "!apps/primer",
+    "!apps/ui5",
     "libs/*"
   ],
   "scripts": {

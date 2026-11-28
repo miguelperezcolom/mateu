@@ -96,6 +96,29 @@ class ProjectRendererCheckTest {
   }
 
   @Test
+  void detectsUi5() throws Exception {
+    assertThat(
+            ProjectRendererCheck.served(
+                classpath(
+                    Map.of("static/_index.html", "<html/>", "static/assets/mateu-ui5.js", ""))))
+        .isEqualTo(ProjectRenderer.ui5);
+    assertThat(ProjectRendererCheck.parse("type: Project\nrenderer: ui5\n"))
+        .map(ProjectSettings::renderer)
+        .contains(ProjectRenderer.ui5);
+  }
+
+  @Test
+  void aUi5ClasspathWithAPrimerDescriptorWarns() {
+    assertThat(
+            ProjectRendererCheck.mismatch(
+                new ProjectSettings(ProjectRenderer.primer), ProjectRenderer.ui5))
+        .get()
+        .asString()
+        .contains("io.mateu:mateu-ui5")
+        .contains("io.mateu:mateu-primer");
+  }
+
+  @Test
   void aPrimerClasspathWithAVaadinDescriptorWarns() {
     assertThat(
             ProjectRendererCheck.mismatch(
