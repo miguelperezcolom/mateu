@@ -1,6 +1,6 @@
 import React from 'react'
 import {
-  Bar, Breadcrumbs, BreadcrumbsItem, DynamicPage, DynamicPageHeader, DynamicPageTitle,
+  Breadcrumbs, BreadcrumbsItem, DynamicPage, DynamicPageHeader, DynamicPageTitle,
   Label as Ui5Label, Text as Ui5Text, Title,
 } from '@ui5/webcomponents-react'
 import '@ui5/webcomponents-icons/dist/nav-back.js'
@@ -8,6 +8,7 @@ import { IconButton, sapIcon } from '@kit'
 import { PageFrame as PlainPageFrame, type PageFrameProps } from '@mr/views/render/page/PageFrame'
 import { PageTocAside } from '@mr/views/render/page/PageToc'
 import { useFillViewport } from '../../../fiori/useFillViewport'
+import { tx } from '@mr/i18n/texts'
 
 const NavBackIcon = sapIcon('nav-back')
 
@@ -93,7 +94,9 @@ function FioriDynamicPage(p: PageFrameProps & { h: NonNullable<PageFrameProps['h
             </div>
           </DynamicPageHeader>
         ) : undefined}
-        footerArea={p.buttons ? <Bar design="FloatingFooter" endContent={<>{p.buttons}</>} /> : undefined}
+        // Fiori's floating footer bar, drawn in its tokens: UI5's Bar labels its root with its design
+        // name ("FloatingFooter") and gives it no role — an aria-label axe flags as prohibited
+        footerArea={p.buttons ? <div role="group" aria-label={tx('actions')} className="mateu-fiori-footer">{p.buttons}</div> : undefined}
       >
         <div className="mateu-fiori-content">
           {p.toc && (

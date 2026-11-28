@@ -111,3 +111,17 @@
   z-index: 2;
   background: var(--sapList_HeaderBackground, var(--sapGroup_ContentBackground));
 }
+/* the floating footer bar (Fiori: a rounded bar over the content's foot, its actions at the end) */
+.mateu-fiori-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  margin: 0 0.5rem 0.5rem;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  background: var(--sapPageFooter_Background);
+  border-radius: var(--sapElement_BorderCornerRadius, 0.75rem);
+  box-shadow: var(--sapContent_Shadow1);
+}
