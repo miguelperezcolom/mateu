@@ -19,6 +19,7 @@ import { useListing } from '@mr/listing/useListing'
 import { tableLookClasses } from './listing/geometry'
 import { mayTakeFocusOnItsOwn, watchForInteraction } from '@infra/a11y/initialFocus.ts'
 import { ListingActions } from './ListingToolbar'
+import { ListingButtons } from './ListingButtons'
 import { ListingTable } from './ListingTable'
 import { ListingPager, useLoadedRows } from './ListingPager'
 import { ListingFrame } from './ListingFrame'
@@ -117,17 +118,22 @@ export function CrudRenderer({ component, metadata, state, data }: { component: 
   return (
     <>
       {m.header.map((h, i) => <ComponentRenderer key={`h${i}`} component={h} state={state} data={data} />)}
-      <ListingFrame m={m} titleId={titleId}
+      <ListingFrame m={m} titleId={titleId} asPage={isTheView(controller, component)}
+        actions={<ListingButtons m={m} state={state} selected={selection.rows} />}
         toolbar={<ListingActions m={m} listing={listing} scope={scope} columnPrefs={columnPrefs} state={state} selected={selection.rows} titleId={titleId} total={paging.totalElements} />}>
         <AppliedFilters m={m} listing={listing} />
         {showPreSearch ? (
           <div style={{ gridArea: 'table' }}>{m.preSearch.map((p, i) => <ComponentRenderer key={`p${i}`} component={p} state={state} data={data} />)}</div>
         ) : (
-          <ListingBody
-            m={m} metadata={metadata} state={state} data={data} defs={defs} rows={dataRows} live={listing.live}
-            restError={listing.restError} cellOf={cellOf} linkColumn={linkColumn} titleId={titleId}
-            openRow={openRow} opensRow={opensRow} sort={listing.initialSort} onSort={listing.sortBy} selection={selection} onMore={listing.toPage}
-          />
+          // one wrapper in the frame's table area: whatever the layout (table, cards, list…), the rows
+          // keep the same distance from the toolbar above them
+          <div className="mateu-listing-body" style={{ gridArea: 'table', minWidth: 0 }}>
+            <ListingBody
+              m={m} metadata={metadata} state={state} data={data} defs={defs} rows={dataRows} live={listing.live}
+              restError={listing.restError} cellOf={cellOf} linkColumn={linkColumn} titleId={titleId}
+              openRow={openRow} opensRow={opensRow} sort={listing.initialSort} onSort={listing.sortBy} selection={selection} onMore={listing.toPage}
+            />
+          </div>
         )}
         <ListingPager m={m} paging={paging} loaded={dataRows.length} onPage={listing.toPage} />
       </ListingFrame>
@@ -152,6 +158,16 @@ function useRowOpening(m: Model, controller: Controller) {
   }
   const opensRow = (row: Row) => !!m.rowOpen || m.selector || !!firstRowAction(m.columns as never, row)
   return { openRow, opensRow }
+}
+
+/** Whether the listing IS the view (the route answered with the listing itself, no page around it). */
+function isTheView(controller: Controller, component: Dict): boolean {
+  if (controller.windowless) return false
+  const root = controller.rendered.component as Dict | null | undefined
+  if (!root) return false
+  if (root === component) return true
+  const kids = (root['children'] as Dict[] | undefined) ?? []
+  return kids.length === 1 && (kids[0] === component || (!!component['id'] && kids[0]?.['id'] === component['id']))
 }
 
 /** Whether the listing has rows to show yet (a preSearch slot stands in for them until then). */

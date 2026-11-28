@@ -82,3 +82,38 @@ mateu-unsupported {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
+
+/* a listing's rows keep one distance from its toolbar, whatever the layout (a design system's table
+   frame spaces only a table that follows its actions directly — cards and lists sat against them) */
+.mateu-listing-body {
+  margin-block-start: var(--base-size-12);
+}
+
+/* a listing's frame: heading (title + subtitle, its actions beside them), the search row, the applied
+   filters, the rows and the pages — one column, in that order */
+.mateu-listing-frame {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.mateu-listing-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--base-size-8);
+  margin-block-end: var(--base-size-8);
+}
+.mateu-listing-head__text {
+  min-width: 0;
+}
+.mateu-listing-frame--page > :first-child {
+  margin-block-end: var(--base-size-16);
+}
+.mateu-listing-search > form[role='search'] {
+  flex: 1 1 16rem;
+  max-width: 28rem;
+}
+.mateu-listing-search > form[role='search'] > * {
+  width: 100%;
+}

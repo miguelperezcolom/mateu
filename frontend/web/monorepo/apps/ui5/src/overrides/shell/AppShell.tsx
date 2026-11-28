@@ -87,7 +87,7 @@ export function AppShell({ session, app, current, onNavigate, children }: {
           <>
             {!narrow && <div slot="content" className="mateu-shell-content"><HeaderValues session={session} declared={app['headerValues'] as HeaderValue[] | undefined} /></div>}
             {!narrow && <div slot="content" className="mateu-shell-content"><ContextPickers session={session} app={target} selectors={(app['contextSelectors'] as never[] | undefined) ?? []} /></div>}
-            <div slot="content" className="mateu-shell-content"><HeaderActions session={session} app={target} actions={(app['contextActions'] as HeaderAction[] | undefined) ?? []} narrow={narrow} /></div>
+            <div slot="content" className="mateu-shell-content"><HeaderActions session={session} app={target} actions={(app['contextActions'] as HeaderAction[] | undefined) ?? []} narrow={narrow} onNavigate={navigate} /></div>
             <div slot="content" className="mateu-shell-content"><ConnectAi session={session} app={agentMeta} /></div>
             {account.control === 'signOut' && <SignOutButton account={account} />}
           </>

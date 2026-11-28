@@ -23,6 +23,21 @@ function openingStateOf(ownsUrl: boolean, filterKeys: string[]) {
   return { fromUrl: null, fromView: Object.keys(values).length ? values : null }
 }
 
+// per controller: screen (route) → listing id → the page state the listing first appeared on
+const FIRST_SEEN = new WeakMap<object, { route: string; byListing: Map<string, Dict> }>()
+function firstPageState(controller: Controller, listingId: string, now: Dict): Dict {
+  const route = String(controller.currentRoute ?? '')
+  let seen = FIRST_SEEN.get(controller)
+  if (!seen || seen.route !== route) {
+    seen = { route, byListing: new Map() }
+    FIRST_SEEN.set(controller, seen)
+  }
+  const kept = seen.byListing.get(listingId)
+  if (kept) return kept
+  seen.byListing.set(listingId, now)
+  return now
+}
+
 /**
  * A REST source (`rowsSource`): rows fetched in the browser (or through the server's proxy), paged
  * in memory — or by the server when the source names a totalPath.
@@ -37,9 +52,23 @@ function useRestRows(controller: Controller, args: {
   const restTotalPath = rowsSource ? sources.serverTotalPath(rowsSource) : undefined
   const restPageSize = Number(metadata['pageSize'] ?? 0) || 0
   if (rowsSource && restTotalPath && restPageSize > 0) controller.currentComponentState['size'] ??= restPageSize
-  const restState = () => ({ ...state, ...controller.currentComponentState })
+  // The page state a source sees is the one the listing APPEARED on (kept per screen, as the web
+  // renderer's listing element keeps it — it is not recreated when the page's answer re-renders the
+  // view); its own keys (search, page, size, sort, filters) are always the live ones.
+  const ownKeys = ['searchText', 'page', 'size', 'sort', ...filterKeysOf(filters)]
+  const pageState = firstPageState(controller, id, { ...state, ...controller.currentComponentState })
+  const restState = () => {
+    const live = controller.currentComponentState
+    return { ...pageState, ...Object.fromEntries(ownKeys.filter((k) => k in live).map((k) => [k, live[k]])) }
+  }
   const restResolve = (t: unknown): string => interpolate(String(t ?? ''), { state: restState(), appState: controller.session.appState })
-  const rowsUrl = resolved ? restResolve(resolved['url']) : ''
+  // What asks for another page of rows is the LISTING's own state — its search, page, size, sort and
+  // filters — never the page around it: a record page's state also holds the record (route `data:`),
+  // and a source reading `${state.type}` as its filter refetched with the record's type the moment the
+  // record arrived (a collection-detail list showed one body). The url is still interpolated over the
+  // whole state when it is fetched, so a nested listing reading the record (`${state.id}`) works.
+  const own = controller.currentComponentState
+  const listingKey = rowsSource ? JSON.stringify(ownKeys.map((k) => own[k] ?? null)) : ''
   const [restRows, setRestRows] = useState<Row[]>([])
   const [restRequest, setRestRequest] = useState(0)
   const [restError, setRestError] = useState<string | null>(null)
@@ -69,7 +98,7 @@ function useRestRows(controller: Controller, args: {
     }).catch((e: unknown) => { if (!cancelled) setRestError(e instanceof Error ? e.message : String(e)) })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rowsUrl, restRequest])
+  }, [listingKey, restRequest])
   return { rest: !!rowsSource, restError, refresh }
 }
 

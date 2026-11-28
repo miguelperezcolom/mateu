@@ -11,14 +11,17 @@ export function Icon({ metadata }: CatalogueProps) {
   return <span className="mateu-icon"><WireIcon token={metadata['icon']} /></span>
 }
 
-/** Avatar: the person's image, else their initials on a Primer display colour. */
-export function Avatar({ metadata }: CatalogueProps) {
-  return <MateuAvatar name={str(metadata['name'])} image={metadata['image']} abbreviation={metadata['abbreviation']} />
+/** Avatar: the person's image, else their initials on a Primer display colour. Its name and image
+ *  interpolate `${state.x}` (a record page's header avatar names the record's own photo). */
+export function Avatar({ metadata, state, data }: CatalogueProps) {
+  const text = useText(state, data)
+  return <MateuAvatar name={text(metadata['name'])} image={text(metadata['image'])} abbreviation={text(metadata['abbreviation'])} />
 }
 
 /** AvatarGroup: overlapping avatars (Primer's AvatarStack look), the rest as «+N». */
-export function AvatarGroup({ metadata }: CatalogueProps) {
-  const all = list(metadata['avatars'])
+export function AvatarGroup({ metadata, state, data }: CatalogueProps) {
+  const text = useText(state, data)
+  const all = list(metadata['avatars']).map((a) => ({ ...a, name: text(a['name']), image: text(a['image']), abbreviation: text(a['abbreviation']) }))
   const max = Number(metadata['maxItemsVisible'] ?? 0) || all.length
   const shown = all.slice(0, max)
   const rest = all.length - shown.length

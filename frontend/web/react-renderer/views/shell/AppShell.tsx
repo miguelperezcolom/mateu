@@ -63,7 +63,7 @@ export function AppShell({ session, app, current, onNavigate, children }: {
         <div className="mateu-app-controls">
           {!narrow && <HeaderValues session={session} declared={app['headerValues'] as HeaderValue[] | undefined} />}
           {!narrow && <ContextPickers session={session} app={target} selectors={(app['contextSelectors'] as never[] | undefined) ?? []} />}
-          <HeaderActions session={session} app={target} actions={(app['contextActions'] as HeaderAction[] | undefined) ?? []} narrow={narrow} />
+          <HeaderActions session={session} app={target} actions={(app['contextActions'] as HeaderAction[] | undefined) ?? []} narrow={narrow} onNavigate={navigate} />
           {app['notificationsEnabled'] === true && <NotificationBell session={session} app={{ ...app, ...target }} onNavigate={navigate} />}
           {themeToggle && color && (
             <IconButton icon={color.resolved === 'dark' ? SunIcon : MoonIcon} variant="invisible" size="small"
