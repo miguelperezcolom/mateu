@@ -13,8 +13,10 @@ import { ListingSearch } from '@mr/views/render/ListingToolbar'
 /** Above the rows: the search box, Filter, saved views, Columns and the listing's toolbar. */
 export { ListingSearch }
 
-export function ListingActions({ m, listing, scope, columnPrefs, state, selected, titleId, total }: {
+export function ListingActions({ m, listing, scope, columnPrefs, state, selected, titleId, total, part }: {
   m: Model; listing: Listing; scope: string; columnPrefs: ReturnType<typeof useColumnPrefs>; state: Dict; selected: Row[]; titleId: string; total: number
+  /** A list report draws the two halves apart: the filter bar in the page's header, the table toolbar over the rows. */
+  part?: 'filters' | 'table'
 }) {
   const controller = useController()
   const press = useButtonPress()
@@ -25,12 +27,12 @@ export function ListingActions({ m, listing, scope, columnPrefs, state, selected
   if (!m.toolbar.length && !hasFilterArea && !tableLike && !m.title) return null
   return (
     <>
-      {hasFilterArea && (
+      {hasFilterArea && part !== 'table' && (
       <div className="mateu-listing-filterbar">
         <ListingSearch m={m} listing={listing} scope={scope} offersViews={offersViews} />
       </div>
       )}
-      <Toolbar className="mateu-listing-toolbar" design="Transparent" accessibleNameRef={m.title ? titleId : undefined}>
+      {part !== 'filters' && <Toolbar className="mateu-listing-toolbar" design="Transparent" accessibleNameRef={m.title ? titleId : undefined}>
         {m.title && <Title level="H2" size="H5" id={titleId}>{m.title}{total > 0 ? ` (${total})` : ''}</Title>}
         <ToolbarSpacer />
         <div className="mateu-listing-actions">
@@ -47,7 +49,7 @@ export function ListingActions({ m, listing, scope, columnPrefs, state, selected
         })}
         {tableLike && <ColumnChooser defs={m.defs} prefs={columnPrefs.prefs} onChange={columnPrefs.update} />}
         </div>
-      </Toolbar>
+      </Toolbar>}
       {importing && (
         <ImportDialog
           onClose={() => setImporting(false)}

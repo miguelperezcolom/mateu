@@ -5,6 +5,24 @@ export { PageTocAside } from './PageTocAside'
 const GAP = 8
 
 /** The app shell's sticky header bottom (0 without one): what a pinned page element sits under. */
+/**
+ * The element the page scrolls in: the nearest scrollable ancestor across shadow roots and slots (a
+ * Fiori dynamic page scrolls its content itself), or null when the document scrolls.
+ */
+export function pageScrollerOf(el: HTMLElement | null): HTMLElement | null {
+  let n: Node | null = el
+  while (n && n !== document.body && n !== document.documentElement) {
+    let up: Node | null = (n as Element).assignedSlot ?? n.parentNode
+    if (up instanceof ShadowRoot) up = up.host
+    n = up
+    if (n instanceof HTMLElement && n !== document.body && n !== document.documentElement) {
+      const oy = getComputedStyle(n).overflowY
+      if ((oy === 'auto' || oy === 'scroll') && n.scrollHeight > n.clientHeight + 1) return n
+    }
+  }
+  return null
+}
+
 function shellStickyTop(): number {
   const header = document.querySelector<HTMLElement>('.mateu-app-header')
   if (!header || getComputedStyle(header).position !== 'sticky') return 0
@@ -32,7 +50,8 @@ export function usePageLayout(rootRef: React.RefObject<HTMLElement | null>, head
 
   /** Where the pinned region ends: the app header, the pinned page header, the stuck sticky cards. */
   const pinnedBottom = useCallback((exclude?: HTMLElement): number => {
-    let bottom = shellStickyTop()
+    const scroller = pageScrollerOf(rootRef.current)
+    let bottom = scroller ? scroller.getBoundingClientRect().top : shellStickyTop()
     const header = headerRef.current
     if (opts.toc && header) bottom = Math.max(bottom, header.getBoundingClientRect().bottom)
     for (const el of sections()) {
@@ -42,14 +61,14 @@ export function usePageLayout(rootRef: React.RefObject<HTMLElement | null>, head
       if (stuck) bottom = Math.max(bottom, r.bottom)
     }
     return bottom
-  }, [headerRef, opts.toc, sections])
+  }, [rootRef, headerRef, opts.toc, sections])
 
   // the pinned tops: the page header under the app header, each sticky card under those before it
   useLayoutEffect(() => {
     const root = rootRef.current
     if (!root) return
     const place = () => {
-      const shell = shellStickyTop()
+      const shell = pageScrollerOf(root) ? 0 : shellStickyTop()
       root.style.setProperty('--mateu-shell-sticky-top', `${shell}px`)
       const headerH = opts.toc && headerRef.current ? headerRef.current.offsetHeight : 0
       // the first pinned card sits right under the header (a gap would let the content scroll
@@ -84,22 +103,27 @@ export function usePageLayout(rootRef: React.RefObject<HTMLElement | null>, head
         if (r.top <= line || (el.classList.contains('mateu-section--sticky') && r.top <= parseFloat(el.style.top || '0') + 1)) current = i
       })
       // the end of the page: the last section is the one being read
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) current = all.length - 1
+      const atEnd = scroller
+        ? scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2
+        : window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2
+      if (atEnd) current = all.length - 1
       setActive(Math.max(0, current))
     }
     const unlock = () => { locked.current = false }
+    const scroller = pageScrollerOf(rootRef.current)
+    const scrolling: HTMLElement | Window = scroller ?? window
     spy()
-    window.addEventListener('scroll', spy, { passive: true })
+    scrolling.addEventListener('scroll', spy, { passive: true })
     window.addEventListener('wheel', unlock, { passive: true })
     window.addEventListener('touchstart', unlock, { passive: true })
     window.addEventListener('keydown', unlock)
     return () => {
-      window.removeEventListener('scroll', spy)
+      scrolling.removeEventListener('scroll', spy)
       window.removeEventListener('wheel', unlock)
       window.removeEventListener('touchstart', unlock)
       window.removeEventListener('keydown', unlock)
     }
-  }, [opts.toc, pinnedBottom, sections, opts.layoutKey])
+  }, [rootRef, opts.toc, pinnedBottom, sections, opts.layoutKey])
 
   const jump = useCallback((i: number) => {
     const el = sections()[i]
@@ -107,7 +131,7 @@ export function usePageLayout(rootRef: React.RefObject<HTMLElement | null>, head
     // a sticky card already in its place stays; anything else lands just below the pinned region
     const delta = el.getBoundingClientRect().top - (pinnedBottom(el) + GAP)
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    window.scrollBy({ top: delta, behavior: reduce ? 'auto' : 'smooth' })
+    ;(pageScrollerOf(rootRef.current) ?? window).scrollBy({ top: delta, behavior: reduce ? 'auto' : 'smooth' })
     setActive(i)
     // locked AFTER the keydown that may have triggered it has passed (keydown unlocks)
     setTimeout(() => { locked.current = true }, 0)
@@ -117,7 +141,7 @@ export function usePageLayout(rootRef: React.RefObject<HTMLElement | null>, head
       heading.classList.add('mateu-focus-target')
       heading.focus({ preventScroll: true })
     }
-  }, [pinnedBottom, sections])
+  }, [rootRef, pinnedBottom, sections])
 
   // Ctrl+Alt+1..9
   useEffect(() => {

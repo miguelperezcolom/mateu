@@ -77,3 +77,37 @@
 .mateu-compact .TextInput-wrapper:not(:has(textarea)) { min-height: 1.625rem; height: 1.625rem; }
 .mateu-compact select { height: 1.625rem; }
 .mateu-compact section { padding: 0.5rem 0.75rem !important; }
+
+/* ── Fiori dynamic page (PageFrame): the view's own page is the floorplan, edge to edge ── */
+.mateu-app-main:has(.mateu-fiori-page) { padding: 0; }
+.mateu-view:has(> * > .mateu-fiori-page),
+.mateu-view:has(.mateu-fiori-page:not(.mateu-fiori-page .mateu-fiori-page)) { max-width: none !important; margin-inline: 0 !important; }
+.mateu-fiori-page { display: block; overflow: hidden; }
+.mateu-dynamic-page { height: 100%; }
+.mateu-fiori-heading { display: flex; align-items: center; gap: 0.25rem; min-width: 0; }
+.mateu-fiori-heading__text { display: flex; flex-direction: column; min-width: 0; }
+.mateu-fiori-status { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.mateu-fiori-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; }
+.mateu-fiori-header { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 1rem 2rem; }
+.mateu-fiori-header__visual :is(img, ui5-avatar) { max-height: 5rem; }
+.mateu-fiori-header .mateu-page-facts { margin-top: 0; }
+/* the object page's anchor bar: pinned at the top of the scrolling content, under the title */
+.mateu-fiori-anchorbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--sapObjectHeader_Background, var(--sapGroup_ContentBackground));
+  border-bottom: 1px solid var(--sapList_BorderColor);
+  margin-inline: calc(-1 * var(--_ui5_dynamic_page_content_padding, 2rem));
+  padding-inline: var(--_ui5_dynamic_page_content_padding, 2rem);
+}
+.mateu-fiori-anchorbar .mateu-page-toc { position: static; max-height: none; }
+.mateu-fiori-content { display: flex; flex-direction: column; gap: 1rem; padding-block: 1rem 2rem; }
+.mateu-fiori-blocks { display: flex; flex-direction: column; gap: 1rem; }
+/* a list report's table toolbar (title with the count, the actions) stays under the title as the rows scroll */
+.mateu-list-report .mateu-listing-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--sapList_HeaderBackground, var(--sapGroup_ContentBackground));
+}

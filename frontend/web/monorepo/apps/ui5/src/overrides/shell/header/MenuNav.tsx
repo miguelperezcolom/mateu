@@ -101,7 +101,9 @@ export function TabsNav({ items, h, label = tx('mainMenu'), onHub, hub }: { item
     const current = hub ? hub === m : holdsCurrent(m, h.currentRoute)
     const showSubs = subs.length > 0 && !onHub && !isCardsGroup(m) && !nested
     return (
-      <Tab key={k} data-key={k} text={m.label ?? ''} icon={iconOf(m)} selected={current || undefined} disabled={m.disabled || undefined}
+      // text only, as a Fiori app's own navigation is (an icon in a tab is drawn in a circle — the
+      // filter-by-status look of an icon tab bar, not navigation)
+      <Tab key={k} data-key={k} text={m.label ?? ''} selected={current || undefined} disabled={m.disabled || undefined}
         items={showSubs ? <>{subs.filter((s) => !s.separator).map((s, j) => tab(s, `${k}.${subs.indexOf(s) >= 0 ? subs.indexOf(s) : j}`, true))}</> : undefined} />
     )
   }

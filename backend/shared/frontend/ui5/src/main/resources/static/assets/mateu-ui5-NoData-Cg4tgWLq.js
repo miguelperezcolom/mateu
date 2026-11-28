@@ -1,4 +1,4 @@
-import{n as e}from"./mateu-ui5-Illustrations-DCGs3_G7.js";import{a as t,n}from"./mateu-ui5-i18n-defaults-7F9w32sR.js";var r=`<svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" id="sapIllus-Dialog-NoData">
+import{n as e}from"./mateu-ui5-Illustrations-DCGs3_G7.js";import{f as t,l as n}from"./mateu-ui5-i18n-defaults-BP1af8DK.js";var r=`<svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" id="sapIllus-Dialog-NoData">
 <rect y="51.5" width="160" height="69" rx="12" fill="var(--sapContent_Illustrative_Color20)"/>
 <path d="M119.164 93.8629L115.057 92.7208L99.2307 89.0574L86.7225 75.8224L76.9139 65.6143L27 81.3713L40.3375 85.022L37.8491 89.6282L68.7241 108L70.5212 100.733L89.5729 107.582L119.164 93.8629Z" fill="var(--sapContent_Illustrative_Color21)"/>
 <path d="M85.1572 54.2786L120.643 64.9334L119.539 93.2143L85.1572 78.2211V54.2786Z" fill="var(--sapContent_Illustrative_Color16)"/>
